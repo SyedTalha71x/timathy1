@@ -5,7 +5,7 @@ import FitnessImage from '../../public/FitNess.png'
 
 export default function Footer() {
   return (
-    <footer className="relative bg-black px-4 py-12 overflow-hidden">
+    <footer className="relative bg-black px-4 footer_font py-12 overflow-hidden">
       <div className="absolute left-0 top-1/2 -translate-y-1/2 hidden md:block">
         <div className="relative h-[300px] w-[300px]">
           <img src={Hand} alt="Fitness equipment"  className="object-contain invert opacity-20" />

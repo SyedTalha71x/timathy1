@@ -1,0 +1,157 @@
+import { Settings, Zap, Target, ChevronLeft, ChevronRight } from "lucide-react"
+
+export default function Features() {
+  const features = [
+    {
+      icon: <Settings className="w-6 h-6" />,
+      title: "Feature 1",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      bgColor: "bg-[#1e2732]",
+    },
+    {
+      icon: <Zap className="w-6 h-6" />,
+      title: "Feature 1",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      bgColor: "bg-[#1e2732]",
+    },
+    {
+      icon: <Target className="w-6 h-6" />,
+      title: "Feature 1",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      bgColor: "bg-[#0066FF]",
+    },
+    {
+      icon: <Settings className="w-6 h-6" />,
+      title: "Feature 1",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      bgColor: "bg-[#FF6B00]",
+    },
+    {
+      icon: <Zap className="w-6 h-6" />,
+      title: "Feature 1",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      bgColor: "bg-[#1e2732]",
+    },
+    {
+      icon: <Target className="w-6 h-6" />,
+      title: "Feature 1",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      bgColor: "bg-[#1e2732]",
+    },
+  ]
+
+  return (
+    <section id="features" className="h-auto mx-auto bg-[#181818] py-20 px-4">
+      <div className="container mx-auto mt-16 max-w-[1200px]">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4">Features</h2>
+          <p className="text-white max-w-2xl mx-auto">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.
+          </p>
+        </div>
+
+        {/* Features Grid */}
+        <div className="relative w-full mx-auto">
+          <div className="grid grid-cols-3 gap-3">
+            {/* Top row */}
+            <div className="col-span-1 transform -translate-x-16">
+              <div className={`${features[0].bgColor} rounded-2xl p-6 transition-all duration-500 h-full`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/10 rounded-full w-10 h-10 flex items-center justify-center">
+                    {features[0].icon}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">{features[0].title}</h3>
+                </div>
+                <p className="text-gray-200 text-sm">{features[0].description}</p>
+              </div>
+            </div>
+
+            <div className="col-span-1">
+              <div className={`${features[1].bgColor} rounded-2xl p-6 transition-all duration-500 h-full`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/10 rounded-full w-10 h-10 flex items-center justify-center">
+                    {features[1].icon}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">{features[1].title}</h3>
+                </div>
+                <p className="text-gray-200 text-sm">{features[1].description}</p>
+              </div>
+            </div>
+
+            <div className="col-span-1 transform translate-x-16">
+              <div className={`${features[2].bgColor} rounded-2xl p-6 transition-all duration-500 h-full`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/10 rounded-full w-10 h-10 flex items-center justify-center">
+                    {features[2].icon}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">{features[2].title}</h3>
+                </div>
+                <p className="text-gray-200 text-sm">{features[2].description}</p>
+              </div>
+            </div>
+
+            {/* Bottom row */}
+            <div className="col-span-1 transform translate-x-16">
+              <div className={`${features[3].bgColor} rounded-2xl p-6 transition-all duration-500 h-full`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/10 rounded-full w-10 h-10 flex items-center justify-center">
+                    {features[3].icon}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">{features[3].title}</h3>
+                </div>
+                <p className="text-gray-200 text-sm">{features[3].description}</p>
+              </div>
+            </div>
+
+            <div className="col-span-1 transform translate-x-14">
+              <div className={`${features[4].bgColor} rounded-2xl p-6 transition-all duration-500 h-full`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/10 rounded-full w-10 h-10 flex items-center justify-center">
+                    {features[4].icon}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">{features[4].title}</h3>
+                </div>
+                <p className="text-gray-200 text-sm">{features[4].description}</p>
+              </div>
+            </div>
+
+            <div className="col-span-1 transform translate-x-20">
+              <div className={`${features[5].bgColor} rounded-2xl p-6 transition-all duration-500 h-full`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/10 rounded-full w-10 h-10 flex items-center justify-center">
+                    {features[5].icon}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">{features[5].title}</h3>
+                </div>
+                <p className="text-gray-200 text-sm">{features[5].description}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex justify-center gap-4 mt-16">
+            <button
+              className="p-2 rounded-full bg-[#1e2732] text-white hover:bg-gray-700 transition-colors"
+              aria-label="Previous"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              className="p-2 rounded-full bg-[#0066FF] text-white hover:bg-blue-700 transition-colors"
+              aria-label="Next"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+

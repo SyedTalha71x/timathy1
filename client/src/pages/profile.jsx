@@ -38,10 +38,10 @@ export default function ProfileSetup() {
       <div className="flex h-full w-full lg:p-10 md:p-8 sm:p-0 p-0 flex-col lg:flex-row items-center justify-center">
         <div className="flex flex-1 flex-col justify-center lg:p-16 md:p-14 sm:p-6 p-4">
           <div className="mx-auto text-left w-full max-w-sm lg:max-w-md">
-            <h1 className="mb-2 text-3xl  font-bold text-white">
+            <h1 className="mb-2 text-3xl profile_h1  font-bold text-white">
               Setup your profile 
             </h1>
-            <p className="mb-8 text-gray-300">
+            <p className="mb-8 profile_p text-gray-300">
               Today is a new day. It's your day. You shape it.
               <br />
               Complete your profile to get started.
@@ -77,7 +77,7 @@ export default function ProfileSetup() {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="rounded-2xl bg-blue-500 transition-all ease-in-out duration-500 cursor-pointer px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black"
+                className="rounded-2xl bg-[#3F74FF] transition-all ease-in-out duration-500 cursor-pointer px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black"
               >
                 Upload picture
               </button>
@@ -126,7 +126,7 @@ export default function ProfileSetup() {
               </div>
               <button
                 type="submit"
-                className="w-full rounded-2xl bg-blue-500 text-sm cursor-pointer px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
+                className="w-full rounded-2xl bg-[#3F74FF] text-sm cursor-pointer px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
               >
                 Save Profile
               </button>

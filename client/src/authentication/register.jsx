@@ -19,10 +19,10 @@ export default function Register() {
       <div className="flex h-full w-full lg:p-10 md:p-8 sm:p-0 p-0 flex-col lg:flex-row items-center justify-center">
         <div className="flex flex-1 flex-col justify-center lg:p-16 md:p-14 sm:p-6 p-4">
           <div className="mx-auto w-full max-w-sm lg:max-w-md">
-            <h1 className="mb-2 text-3xl font-bold text-white">
+            <h1 className="mb-2 text-3xl font-bold register_h1 text-white">
               Welcome Back <span className="inline-block animate-wave">👋</span>
             </h1>
-            <p className="mb-8 text-gray-400">
+            <p className="mb-8 register_p text-gray-400">
               Today is a new day. It's your day. You shape it.
               <br />
               Sign in to start managing your projects.
@@ -63,7 +63,7 @@ export default function Register() {
 
               <button
                 type="button"
-                className="flex w-full items-center justify-center cursor-pointer rounded-lg border border-gray-700 transition-all duration-500 ease-in-out bg-black px-4 py-3 text-white hover:bg-gray-700"
+                className="flex w-full register_btn items-center justify-center cursor-pointer rounded-lg border border-gray-700 transition-all duration-500 ease-in-out bg-black px-4 py-3 text-white hover:bg-gray-700"
               >
                 <img src={GoogleImage} alt="" className="mr-2" />
                 Sign up with Google
@@ -71,7 +71,7 @@ export default function Register() {
 
               <button
                 type="button"
-                className="flex w-full items-center cursor-pointer justify-center rounded-lg border border-gray-700 bg-black transition-all duration-500 ease-in-out px-4 py-3 text-white hover:bg-gray-700"
+                className="flex w-full register_btn items-center cursor-pointer justify-center rounded-lg border border-gray-700 bg-black transition-all duration-500 ease-in-out px-4 py-3 text-white hover:bg-gray-700"
               >
                 <img src={FacebookImage} alt="" className="mr-2" />
                 Sign up with Facebook
@@ -79,7 +79,7 @@ export default function Register() {
 
               <button
                 type="submit"
-                className="w-full rounded-2xl cursor-pointer bg-blue-500 px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
+                className="w-full register_btn rounded-2xl cursor-pointer bg-[#3F74FF] px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
               >
                 Sign Up
               </button>

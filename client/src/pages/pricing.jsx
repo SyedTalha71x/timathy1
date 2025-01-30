@@ -1,12 +1,22 @@
 import { Tag } from "lucide-react";
+import PricingImage from '../../public/Price.png'
 
 export default function PricingSection() {
   return (
-    <section id="pricing" className="h-auto bg-[#181818]  px-4 py-16">
-      <div className="mx-auto max-w-6xl">
+    <section id="pricing" className="h-auto relative bg-[#111111]  px-4 py-16">
+<div className="absolute lg:block hidden left-0 top-[160px] max-w-[300px] h-[80px]">
+  <img
+    src={PricingImage}
+    alt="Pricing Banner"
+    className="w-full h-auto max-h-full object-contain -z-10"
+  />
+</div>
+
+      <div className="mx-auto max-w-6xl relative">
+   
         <div className="mb-12 text-center">
-          <h2 className="mb-3 text-5xl font-extrabold text-white">Price plans</h2>
-          <p className="text-white">
+          <h2 className="mb-3 text-5xl  pricing_h1 text-white">Price plans</h2>
+          <p className="text-white pricing_p">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit,
             <br />
             sed do eiusmod tempor incididunt.
@@ -14,7 +24,7 @@ export default function PricingSection() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-3xl bg-black p-8">
+          <div className="rounded-3xl pricing_cards_font bg-black p-8">
             <div className="mb-6 flex items-center justify-center rounded-full bg-gray-500 w-12 h-12">
               <Tag className="text-white text-4xl" />
             </div>
@@ -22,7 +32,7 @@ export default function PricingSection() {
             <h3 className="mb-1 text-xl font-semibold text-white">Basic</h3>
             <p className="mb-6 text-sm text-gray-400">Best for personal use</p>
             <div className="mb-6 flex items-baseline">
-              <span className="text-5xl font-bold text-white">$20</span>
+              <span className="text-5xl font-bold price_font text-white">$20</span>
               <span className="ml-1 text-gray-400">/per month</span>
             </div>
             <div className="mb-8">
@@ -54,12 +64,12 @@ export default function PricingSection() {
                 </li>
               </ul>
             </div>
-            <button className="w-full rounded-2xl border border-gray-600 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800">
+            <button className="w-full rounded-2xl border border-gray-600 py-3 text-sm font-medium text-white  hover:bg-[#3F74FF] transition-all ease-in-out duration-500">
               Get started
             </button>
           </div>
 
-          <div className="rounded-3xl bg-black p-8">
+          <div className="rounded-3xl pricing_cards_font bg-black p-8">
           <div className="mb-6 flex items-center justify-center rounded-full bg-gray-500 w-12 h-12">
               <Tag className="text-white text-4xl" />
             </div>
@@ -70,7 +80,7 @@ export default function PricingSection() {
               For large teams & corporations
             </p>
             <div className="mb-6 flex items-baseline">
-              <span className="text-5xl font-bold text-white">$120</span>
+              <span className="text-5xl font-bold price_font text-white">$120</span>
               <span className="ml-1 text-gray-400">/per month</span>
             </div>
             <div className="mb-8">
@@ -102,19 +112,19 @@ export default function PricingSection() {
                 </li>
               </ul>
             </div>
-            <button className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700">
+            <button className="w-full rounded-2xl bg-[#3F74FF] transition-all ease-in-out duration-500 py-3 text-sm font-medium text-white  hover:bg-blue-700">
               Get started
             </button>
           </div>
 
-          <div className="rounded-3xl bg-black p-8">
+          <div className="rounded-3xl pricing_cards_font bg-black p-8">
           <div className="mb-6 flex items-center justify-center rounded-full bg-gray-500 w-12 h-12">
               <Tag className="text-white text-4xl" />
             </div>
             <h3 className="mb-1 text-xl font-semibold text-white">Business</h3>
             <p className="mb-6 text-sm text-gray-400">Best for personal use</p>
             <div className="mb-6 flex items-baseline">
-              <span className="text-5xl font-bold text-white">$20</span>
+              <span className="text-5xl font-bold price_font text-white">$20</span>
               <span className="ml-1 text-gray-400">/per month</span>
             </div>
             <div className="mb-8">
@@ -146,7 +156,7 @@ export default function PricingSection() {
                 </li>
               </ul>
             </div>
-            <button className="w-full rounded-2xl border border-gray-600 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800">
+            <button className="w-full rounded-2xl border border-gray-600 py-3 text-sm font-medium text-white  hover:bg-[#3F74FF] transition-all ease-in-out duration-500">
               Get started
             </button>
           </div>
