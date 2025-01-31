@@ -6,20 +6,43 @@ import Login from './authentication/login';
 import Register from './authentication/register'
 import Profile from './pages/profile'
 
+import Dashboardlayout from "./layouts/dashboard-layout";
+import Dashboard from './dashboardpages/dashboard'
+import ProfileDashboard from './dashboardpages/profile'
+import Appointments from "./dashboardpages/appointments";
+import ToDo  from './dashboardpages/todo'
+import Members from './dashboardpages/members'
+import Staff from './dashboardpages/staff'
+import Marketing from './dashboardpages/marketing'
+
+
 function App() {
   const location = useLocation();
-  const isLoginPage = location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/profile";
+  const isAuthOrDashboardPage = ["/login", "/register", "/profile"].includes(location.pathname) || location.pathname.startsWith("/dashboard");
 
   return (
     <>
-      {!isLoginPage && <Header />}
+      {!isAuthOrDashboardPage && <Header />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="profile" element={<Profile />} />
+
+
+        <Route path="/dashboard" element={<Dashboardlayout />}>
+          <Route path="main-dashboard" element={<Dashboard />} />
+          <Route path="profile" element={<ProfileDashboard />} />
+          <Route path="appointments" element={<Appointments />} />
+          <Route path="to-do" element={<ToDo />} />
+          <Route path="members" element={<Members />} />
+          <Route path="staff" element={<Staff />} />
+          <Route path="marketing" element={<Marketing />} />
+
+
+        </Route>
       </Routes>
-      {!isLoginPage && <Footer />}
+      {!isAuthOrDashboardPage && <Footer />}
     </>
   );
 }

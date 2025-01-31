@@ -7,6 +7,10 @@
     scroll-behavior: smooth;
 } */
 
+body{
+    scroll-behavior: smooth;
+}
+
 .nav_links {
   font-family: "Open Sans", serif;
   font-optical-sizing: auto;
@@ -167,4 +171,28 @@
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1C1C1C;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #333333 #1C1C1C;
 }

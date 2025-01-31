@@ -55,10 +55,10 @@ export default function NavBar() {
             <a href="/" className="text-white hover:text-gray-300">
               Home
             </a>
-            <a href="/#pricing" className="text-white hover:text-gray-300">
+            <a href="#pricing" className="text-white hover:text-gray-300">
               Pricing
             </a>
-            <a href="/#contact" className="text-white hover:text-gray-300">
+            <a href="#contact" className="text-white hover:text-gray-300">
               Contact us
             </a>
           </div>
@@ -89,10 +89,10 @@ export default function NavBar() {
           <a href="/" className="text-white hover:text-gray-300">
             Home
           </a>
-          <a href="/#pricing" className="text-white hover:text-gray-300">
+          <a href="#pricing" className="text-white hover:text-gray-300">
             Pricing
           </a>
-          <a href="/#contact" className="text-white hover:text-gray-300">
+          <a href="#contact" className="text-white hover:text-gray-300">
             Contact us
           </a>
 
