@@ -63,12 +63,12 @@ export default function Features() {
 
   return (
     <section id="features" className="h-auto mx-auto  py-20 px-4 bg-[#111111]">
-      <div className="absolute lg:block hidden top-[1150px]   right-0 max-w-[600px]">
+      <div className="absolute lg:block hidden top-[1100px]    right-0 max-w-[600px]">
         <img
           src={Feature}
           alt="Feature decoration"
           style={{ width: '100%', height: 'auto' }}
-          className="-z-10"
+          className="-z-50 "
         />
       </div>
       <div className="container mx-auto mt-16 max-w-6xl">

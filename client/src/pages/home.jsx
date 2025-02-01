@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <>
       <main
-        className="lg:h-[935px] md:h-[1200px] sm:h-[1200px] h-[1200px] bg-cover bg-center bg-no-repeat relative pb-32"
+        className="lg:h-[935px] md:h-[1200px] sm:h-[1200px] h-auto bg-cover bg-center bg-no-repeat relative pb-32"
         style={{
           backgroundImage: `
       linear-gradient(145deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.2) 100%),

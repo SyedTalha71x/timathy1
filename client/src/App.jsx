@@ -14,6 +14,7 @@ import ToDo  from './dashboardpages/todo'
 import Members from './dashboardpages/members'
 import Staff from './dashboardpages/staff'
 import Marketing from './dashboardpages/marketing'
+import Messages from "./dashboardpages/messages";
 
 
 function App() {
@@ -38,6 +39,8 @@ function App() {
           <Route path="members" element={<Members />} />
           <Route path="staff" element={<Staff />} />
           <Route path="marketing" element={<Marketing />} />
+          <Route path="messages" element={<Messages />} />
+
 
 
         </Route>

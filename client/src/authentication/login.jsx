@@ -15,6 +15,10 @@ export default function SignInPage() {
     e.preventDefault();
   };
 
+  const redirect = () =>{
+    window.location.href = "/";
+  }
+
   return (
     <div className="h-screen bg-[#0E0E0E] overflow-hidden flex justify-center items-center p-8"> 
       <div className="flex h-full w-full lg:p-10 md:p-8 sm:p-0 p-0 flex-col lg:flex-row items-center justify-center">
@@ -95,6 +99,7 @@ export default function SignInPage() {
               </button>
 
               <button
+              onClick={redirect}
                 type="submit"
                 className="w-full rounded-2xl login_btn cursor-pointer bg-[#3F74FF] px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
               >

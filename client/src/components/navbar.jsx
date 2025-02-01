@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import FitnessLogo from "../../public/FitNess.png";
 import { Link } from "react-router-dom";
@@ -27,7 +28,7 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <a href="/" className="text-2xl font-bold logo text-white">
-            <img src={FitnessLogo} alt="Fitness Logo" />
+            <h1 className="text-white text-3xl navbar_h1">FitNess</h1>
           </a>
           <div className="md:hidden flex items-center">
             <button
