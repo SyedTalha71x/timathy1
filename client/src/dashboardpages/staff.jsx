@@ -64,7 +64,7 @@ export default function Members() {
           <h1 className="text-2xl font-bold text-white">Staff management</h1>
 
           <button className="bg-[#FF843E] text-white px-10 py-2 rounded-full text-sm">
-          + Add a member
+          + Add Roles
         </button>
         </div>
 

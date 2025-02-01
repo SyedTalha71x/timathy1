@@ -1,9 +1,11 @@
-import { MoreHorizontal } from "lucide-react"
-import Avatar from "../../public/avatar.png"
+import { MoreHorizontal, X } from "lucide-react";
+import Avatar from "../../public/avatar.png";
+import { useState } from "react";
 
 export default function Appointments() {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-  const hours = Array.from({ length: 12 }, (_, i) => i + 8) // 8:00 to 19:00
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8:00 to 19:00
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const appointments = [
     {
@@ -26,7 +28,7 @@ export default function Appointments() {
       endHour: 18,
       day: 3, // Tuesday
     },
-  ]
+  ];
 
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
@@ -34,7 +36,12 @@ export default function Appointments() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center  mb-8">
             <h1 className="text-2xl font-bold text-white">Appointments</h1>
-            <button className="bg-[#FF843E] text-white px-4 py-2 mt-2 md:mt-0 rounded-lg text-sm">+ Add appointment</button>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#FF843E] text-white cursor-pointer px-4 py-2 mt-1 md:mt-0 rounded-lg text-sm"
+            >
+              + Add appointment
+            </button>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-6">
@@ -47,7 +54,10 @@ export default function Appointments() {
                       <div key={day}>{day}</div>
                     ))}
                     {Array.from({ length: 35 }, (_, i) => (
-                      <div key={i} className="aspect-square flex items-center justify-center text-gray-400 text-sm">
+                      <div
+                        key={i}
+                        className="aspect-square flex items-center justify-center text-gray-400 text-sm"
+                      >
                         {i + 1}
                       </div>
                     ))}
@@ -65,7 +75,11 @@ export default function Appointments() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                          <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
+                          <img
+                            src={Avatar || "/placeholder.svg"}
+                            alt=""
+                            className="w-full h-full rounded-full"
+                          />
                         </div>
                         <div className="text-white">
                           <p className="font-semibold">{appointment.name}</p>
@@ -89,11 +103,16 @@ export default function Appointments() {
                 <div className="min-w-[600px]">
                   {/* Header - Sticky */}
                   <div className="grid grid-cols-5 gap-4 mb-4 bg-[#000000] pb-2">
-                    {["Mon\n02", "Tues\n03", "Wed\n04", "Thu\n05"].map((day) => (
-                      <div key={day} className="text-center text-sm text-gray-400 whitespace-pre-line">
-                        {day}
-                      </div>
-                    ))}
+                    {["Mon\n02", "Tues\n03", "Wed\n04", "Thu\n05"].map(
+                      (day) => (
+                        <div
+                          key={day}
+                          className="text-center text-sm text-gray-400 whitespace-pre-line"
+                        >
+                          {day}
+                        </div>
+                      )
+                    )}
                   </div>
 
                   {/* Calendar Content - Scrollable */}
@@ -103,7 +122,10 @@ export default function Appointments() {
                         {/* Hours column */}
                         <div className="space-y-6">
                           {hours.map((hour) => (
-                            <div key={hour} className="text-right text-sm text-gray-400 h-6">
+                            <div
+                              key={hour}
+                              className="text-right text-sm text-gray-400 h-6"
+                            >
                               {`${hour}:00`}
                             </div>
                           ))}
@@ -114,7 +136,10 @@ export default function Appointments() {
                           <div key={day} className="relative">
                             <div className="absolute inset-0 border-l border-dashed border-gray-800" />
                             {hours.map((hour) => (
-                              <div key={hour} className="h-6 border-b border-dashed border-gray-800" />
+                              <div
+                                key={hour}
+                                className="h-6 border-b border-dashed border-gray-800"
+                              />
                             ))}
 
                             {appointments
@@ -125,10 +150,14 @@ export default function Appointments() {
                                   className={`absolute left-1 right-1 ${apt.color} rounded-lg p-1`}
                                   style={{
                                     top: `${(apt.startHour - 8) * 1.5}rem`,
-                                    height: `${(apt.endHour - apt.startHour) * 1.5}rem`,
+                                    height: `${
+                                      (apt.endHour - apt.startHour) * 1.5
+                                    }rem`,
                                   }}
                                 >
-                                  <div className="text-white text-xs font-semibold truncate">{apt.name}</div>
+                                  <div className="text-white text-xs font-semibold truncate">
+                                    {apt.name}
+                                  </div>
                                 </div>
                               ))}
                           </div>
@@ -142,6 +171,113 @@ export default function Appointments() {
           </div>
         </div>
       </main>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md lg:p-6 md:p-6 sm:p-4 p-4 relative">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-white text-lg font-semibold">
+                Add appointment
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-400 cursor-pointer hover:text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form className="space-y-4">
+              <div>
+                <label htmlFor="" className="text-sm text-gray-200 ">
+                  Input
+                </label>
+                <input
+                  type="text"
+                  placeholder="Input"
+                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="" className="text-sm text-gray-200 ">
+                  Input
+                </label>
+                <input
+                  type="text"
+                  placeholder="Input"
+                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="" className="text-sm text-gray-200 ">
+                  Input
+                </label>
+                <input
+                  type="text"
+                  placeholder="Input"
+                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="" className="text-sm text-gray-200 ">
+                  Input
+                </label>
+                <input
+                  type="text"
+                  placeholder="Input"
+                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+                />
+              </div>
+              <div>
+                <div>
+                  <label htmlFor="" className="text-gray-200 text-sm">
+                    Input
+                  </label>
+
+                  <select className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none">
+                    <option value="">Select</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="" className="text-gray-200 text-sm">
+                  Input
+                </label>
+
+                <div className="flex gap-1">
+                  <input
+                    type="text"
+                    placeholder="Input"
+                    className="w-24 bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Input"
+                    className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-start gap-3 mt-6">
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-3xl hover:bg-[#3F74FF]/90 cursor-pointer"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-8 py-2 bg-black text-red-500 border-slate-500 border-2  rounded-3xl text-sm cursor-pointer "
+                >
+                  Delete
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
