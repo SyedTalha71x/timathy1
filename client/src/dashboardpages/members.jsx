@@ -1,7 +1,9 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react"
 import { MoreHorizontal, X } from "lucide-react"
 
 export default function Members() {
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [tasks] = useState([
     {
       id: 1,
@@ -59,9 +61,8 @@ export default function Members() {
   // }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] p-6">
-    {/* Main Members Section */}
-    <div className="flex-1 min-w-0 mr-6">
+    <div className="flex  rounded-3xl bg-[#1C1C1C] text-white">
+    <div className="flex-1 min-w-0 p-6 pb-36">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-white">Members</h1>
         <button className="bg-[#FF843E] text-white px-10 py-2 rounded-full text-sm">
@@ -73,7 +74,7 @@ export default function Members() {
         <div className="space-y-3">
           {tasks.map((task) => (
             <div key={task.id} className="bg-[#161616] rounded-xl p-4">
-              <div className="flex justify-between items-center">
+              <div className="flex  justify-between items-center">
                 <div className="flex items-center space-x-4">
                   <img
                     src={task.image || "/placeholder.svg"}
@@ -100,26 +101,29 @@ export default function Members() {
       </div>
     </div>
 
-    {/* Notifications Section */}
-    <div className="lg:w-80 md:w-full sm:w-full w-full shrink-0 bg-[#181818] p-6 rounded-xl">
-      <h2 className="text-2xl font-bold text-white mb-6">Notification</h2>
-      <div className="space-y-3">
-        {notifications.map((notification) => (
-          <div key={notification.id} className="bg-gray-800 rounded-xl p-4 relative">
-            <button
-              onClick={() => removeNotification(notification.id)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
-            >
-              <X size={16} />
-            </button>
-            <h3 className="text-white font-medium capitalize mb-2">
-              {notification.heading}
-            </h3>
-            <p className="text-gray-400 text-sm">{notification.description}</p>
-          </div>
-        ))}
-      </div>
-    </div>
+    <aside
+        className={`
+          w-80 bg-[#181818] p-6 rounded-3xl fixed top-0 bottom-0 right-0 z-50 lg:static lg:block
+          ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
+          transition-transform duration-300 ease-in-out
+        `}
+      >
+        <h2 className="text-2xl font-bold mb-6">Notification</h2>
+        <div className="space-y-4">
+          {notifications.map((notification) => (
+            <div key={notification.id} className="bg-[#1C1C1C] rounded-lg p-4 relative">
+              <button
+                onClick={() => removeNotification(notification.id)}
+                className="absolute top-4 right-4 text-zinc-500 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+              <h3 className="font-semibold mb-2">{notification.heading}</h3>
+              <p className="text-sm text-zinc-400">{notification.description}</p>
+            </div>
+          ))}
+        </div>
+      </aside>
   </div>
   )
 }

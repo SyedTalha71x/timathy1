@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   BarChart3,
   Calendar,
@@ -17,6 +17,7 @@ import girl from "../../public/girl.png";
 
 const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleResize = () => {
@@ -35,29 +36,39 @@ const Sidebar = () => {
 
   return (
     <>
-      <button
-        onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-[#111111] text-white md:hidden hover:bg-zinc-700"
-        aria-label="Toggle Sidebar"
-      >
-        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
+      <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between md:hidden z-40">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-lg text-white hover:bg-zinc-700"
+            aria-label="Toggle Sidebar"
+          >
+            <Menu size={24} />
+          </button>
+          <span className="text-white font-semibold"></span>
+        </div>
+        <div className="flex items-center gap-2">
+          <img src={girl} alt="Profile" className="w-8 h-8 rounded-full" />
+        </div>
+      </div>
 
       <aside
         className={`${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed top-0 left-0 z-50 w-64 h-screen bg-[#111111] transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}
+        } fixed top-0 left-0 z-50 w-64 h-screen bg-[#111111] transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col`}
       >
-        <button
-          onClick={() => setIsSidebarOpen(false)}
-          className="absolute top-4 right-4 p-2 text-zinc-400 hover:bg-zinc-700 rounded-lg md:hidden"
-          aria-label="Close Sidebar"
-        >
-          <X size={20} />
-        </button>
+        <div className="absolute top-4 right-4 md:hidden">
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="p-2 text-white hover:bg-zinc-700 rounded-lg"
+            aria-label="Close Sidebar"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-        <div className="flex mt-[15%]  flex-col h-full">
-          <div className="p-4 ">
+        <div className="flex flex-col h-full overflow-hidden mt-14">
+          <div className="p-4 hidden md:block">
             <div className="flex flex-col text-center justify-center items-center gap-3">
               <div className="relative">
                 <img
@@ -74,33 +85,46 @@ const Sidebar = () => {
             </div>
           </div>
 
-          <nav className="flex-1 p-4 mt-10">
-            <ul className="space-y-2">
+          <nav className="flex-1 overflow-y-auto">
+            <ul className="space-y-2 p-4">
               {[
                 {
                   icon: Home,
                   label: "Dashboard",
                   to: "/dashboard/main-dashboard",
-                  active: true,
                 },
-                { icon: Users, label: "Profile", to: '/dashboard/profile' },
-                { icon: Calendar, label: "Appointments", to: '/dashboard/appointments' },
-                { icon: Settings, label: "Tools" },
-                { icon: CheckSquare, label: "To-Do", to: '/dashboard/to-do'},
-                { icon: Users, label: "Members", to: '/dashboard/members' },
-                { icon: Users, label: "Staff", to: '/dashboard/staff' },
-                { icon: CheckSquare, label: "Marketing", to: '/dashboard/marketing' },
+                { icon: Users, label: "Profile", to: "/dashboard/profile" },
+                {
+                  icon: Calendar,
+                  label: "Appointments",
+                  to: "/dashboard/appointments",
+                },
+                { icon: Settings, label: "Tools", to: "/dashboard/tools" },
+                { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
+                { icon: Users, label: "Members", to: "/dashboard/members" },
+                { icon: Users, label: "Staff", to: "/dashboard/staff" },
+                {
+                  icon: CheckSquare,
+                  label: "Marketing",
+                  to: "/dashboard/marketing",
+                },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
                     to={item.to}
-                    className={`flex items-center gap-3 px-4 py-2 rounded-2xl ${
-                      item.active
-                        ? "bg-[#3F74FF] text-white"
-                        : "text-white  hover:bg-[#3F74FF]"
+                    className={`flex items-center gap-3 px-4 py-2 text-zinc-200 relative
+                    group transition-all duration-300 
+                    ${location.pathname === item.to 
+                      ? 'text-white font-bold border-l-2 border-white pl-3' 
+                      : 'hover:text-white hover:border-l-2 hover:border-white hover:pl-3'
                     }`}
                   >
-                    <item.icon size={20} />
+                    <item.icon size={20} className={`
+                      ${location.pathname === item.to 
+                        ? 'text-white' 
+                        : 'text-zinc-400 group-hover:text-white'
+                      }`} 
+                    />
                     <span className="text-md">{item.label}</span>
                   </Link>
                 </li>
@@ -108,10 +132,10 @@ const Sidebar = () => {
             </ul>
           </nav>
 
-          <div className="p-4 ">
+          <div className="p-4 mt-auto">
             <Link
               href="#"
-              className="flex items-center gap-3 px-4 py-2 text-zinc-400 hover:bg-zinc-700 rounded-lg"
+              className="flex items-center gap-3 px-4 py-2 text-zinc-400 hover:text-white hover:border-l-2 hover:border-white hover:pl-3 transition-all duration-300"
             >
               <LogOut size={20} />
               <span>Logout</span>

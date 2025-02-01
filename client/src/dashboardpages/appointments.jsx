@@ -31,16 +31,15 @@ export default function Appointments() {
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center  mb-8">
             <h1 className="text-2xl font-bold text-white">Appointments</h1>
-            <button className="bg-[#FF843E] text-white px-4 py-2 rounded-lg text-sm">+ Add appointment</button>
+            <button className="bg-[#FF843E] text-white px-4 py-2 mt-2 md:mt-0 rounded-lg text-sm">+ Add appointment</button>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Schedule Grid - Now on the left */}
             <div className="lg:w-[300px] space-y-6">
-              <div className="bg-[#101010] rounded-xl p-4">
+              <div className="bg-[#000000] rounded-xl p-4">
                 <div className="mb-4">
                   <h2 className="text-white mb-4">Month 2000</h2>
                   <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-400">
@@ -56,7 +55,6 @@ export default function Appointments() {
                 </div>
               </div>
 
-              {/* Member Section */}
               <div>
                 <h2 className="text-white mb-4">Member</h2>
                 <div className="space-y-3">
@@ -85,53 +83,58 @@ export default function Appointments() {
               </div>
             </div>
 
-            {/* Calendar Grid - Fixed height */}
-            <div className="lg:flex-1 bg-[#101010] rounded-xl p-4 overflow-x-auto">
-              <div className="min-w-[600px]">
-                <div className="grid grid-cols-5 gap-4 mb-4">
-                  {["Mon\n02", "Tues\n03", "Wed\n04", "Thu\n05"].map((day) => (
-                    <div key={day} className="text-center text-sm text-gray-400 whitespace-pre-line">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="relative">
-                  <div className="grid grid-cols-[auto,1fr,1fr,1fr,1fr] gap-4">
-                    {/* Hours column */}
-                    <div className="space-y-4">
-                      {hours.map((hour) => (
-                        <div key={hour} className="text-right text-sm text-gray-400 h-4">
-                          {`${hour}:00`}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Days columns with grid lines */}
-                    {[0, 1, 2, 3].map((day) => (
-                      <div key={day} className="relative">
-                        <div className="absolute inset-0 border-l border-dashed border-gray-800" />
-                        {hours.map((hour) => (
-                          <div key={hour} className="h-4 border-b border-dashed border-gray-800" />
-                        ))}
-
-                        {/* Appointments */}
-                        {appointments
-                          .filter((apt) => apt.day === day + 2)
-                          .map((apt) => (
-                            <div
-                              key={apt.id}
-                              className={`absolute left-1 right-1 ${apt.color} rounded-lg p-1`}
-                              style={{
-                                top: `${(apt.startHour - 8) * 1}rem`,
-                                height: `${(apt.endHour - apt.startHour) * 1}rem`,
-                              }}
-                            >
-                              <div className="text-white text-xs font-semibold truncate">{apt.name}</div>
-                            </div>
-                          ))}
+            {/* Calendar Section with improved scrolling */}
+            <div className="lg:flex-1 bg-[#000000] rounded-xl p-4 overflow-hidden">
+              <div className="overflow-x-auto">
+                <div className="min-w-[600px]">
+                  {/* Header - Sticky */}
+                  <div className="grid grid-cols-5 gap-4 mb-4 bg-[#000000] pb-2">
+                    {["Mon\n02", "Tues\n03", "Wed\n04", "Thu\n05"].map((day) => (
+                      <div key={day} className="text-center text-sm text-gray-400 whitespace-pre-line">
+                        {day}
                       </div>
                     ))}
+                  </div>
+
+                  {/* Calendar Content - Scrollable */}
+                  <div className="overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
+                    <div className="relative">
+                      <div className="grid grid-cols-[auto,1fr,1fr,1fr,1fr] gap-4">
+                        {/* Hours column */}
+                        <div className="space-y-6">
+                          {hours.map((hour) => (
+                            <div key={hour} className="text-right text-sm text-gray-400 h-6">
+                              {`${hour}:00`}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Days columns with grid lines */}
+                        {[0, 1, 2, 3].map((day) => (
+                          <div key={day} className="relative">
+                            <div className="absolute inset-0 border-l border-dashed border-gray-800" />
+                            {hours.map((hour) => (
+                              <div key={hour} className="h-6 border-b border-dashed border-gray-800" />
+                            ))}
+
+                            {appointments
+                              .filter((apt) => apt.day === day + 2)
+                              .map((apt) => (
+                                <div
+                                  key={apt.id}
+                                  className={`absolute left-1 right-1 ${apt.color} rounded-lg p-1`}
+                                  style={{
+                                    top: `${(apt.startHour - 8) * 1.5}rem`,
+                                    height: `${(apt.endHour - apt.startHour) * 1.5}rem`,
+                                  }}
+                                >
+                                  <div className="text-white text-xs font-semibold truncate">{apt.name}</div>
+                                </div>
+                              ))}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

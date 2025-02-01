@@ -45,64 +45,57 @@ export default function MarketingTable() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#1C1C1C] p-6">
-      <div className="bg-[#161616] rounded-xl p-6">
+    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] p-6">
+      <div className="rounded-xl p-6 w-full overflow-hidden">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-white">Marketing</h1>
-          <button className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg text-sm">
+          <button className="flex items-center gap-2 bg-black text-white px-7 py-2 rounded-lg text-sm">
             Date
             <ChevronDown size={16} />
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-sm text-gray-400 border-b border-gray-800">
-                <th className="text-left pb-4 font-medium">Name</th>
-                <th className="text-left pb-4 font-medium">Reach</th>
-                <th className="text-left pb-4 font-medium">Impression</th>
-                <th className="text-left pb-4 font-medium">CPC</th>
-                <th className="text-left pb-4 font-medium">Time</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="overflow-x-auto ">
+          <div className="min-w-[1200px]  md:min-w-[800px] w-full">
+            <div className="grid grid-cols-5 text-sm text-white pb-4">
+              <div className="font-medium">Name</div>
+              <div className="font-medium">Reach</div>
+              <div className="font-medium">Impression</div>
+              <div className="font-medium">CPC</div>
+              <div className="font-medium">Time</div>
+            </div>
+
+            <div className="space-y-4">
               {campaigns.map((campaign) => (
-                <tr key={campaign.id} className="border-b border-gray-800 last:border-none">
-                  <td className="py-4">
+                <div
+                  key={campaign.id}
+                  className="grid grid-cols-5 bg-[#141414] rounded-2xl p-4"
+                >
+                  <div>
                     <span className="text-white">{campaign.name}</span>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex flex-col">
-                      <span className="text-white">{campaign.reach.value}</span>
-                      <span className="text-sm text-gray-400">{campaign.reach.label}</span>
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex flex-col">
-                      <span className="text-white">{campaign.impression.value}</span>
-                      <span className="text-sm text-gray-400">{campaign.impression.label}</span>
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex flex-col">
-                      <span className="text-white">{campaign.cpc.value}</span>
-                      <span className="text-sm text-gray-400">{campaign.cpc.label}</span>
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex flex-col">
-                      <span className="text-white">{campaign.time.value}</span>
-                      <span className="text-sm text-gray-400">{campaign.time.label}</span>
-                    </div>
-                  </td>
-                </tr>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-white">{campaign.reach.value}</span>
+                    <span className="text-sm text-gray-400">{campaign.reach.label}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-white">{campaign.impression.value}</span>
+                    <span className="text-sm text-gray-400">{campaign.impression.label}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-white">{campaign.cpc.value}</span>
+                    <span className="text-sm text-gray-400">{campaign.cpc.label}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-white whitespace-nowrap">{campaign.time.value}</span>
+                    <span className="text-sm text-gray-400">{campaign.time.label}</span>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   )
 }
-

@@ -7,9 +7,15 @@
     scroll-behavior: smooth;
 } */
 
-body{
-    scroll-behavior: smooth;
+/* Apply scrollbar styles to the entire page */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  scroll-behavior: smooth;
 }
+
 
 .nav_links {
   font-family: "Open Sans", serif;
@@ -172,6 +178,33 @@ body{
   font-weight: 400;
   font-style: normal;
 }
+
+
+/* Custom Scrollbar */
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  width: 6px;
+}
+
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
+  background: #1C1C1C;
+  border-radius: 10px;
+}
+
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 10px;
+}
+
+html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+/* For Firefox */
+html, body {
+  scrollbar-width: thin;
+  scrollbar-color: #333333 #1C1C1C;
+}
+
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;

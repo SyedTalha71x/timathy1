@@ -25,9 +25,9 @@ function App() {
   };
 
   return (
-    <div className="flex rounded-3xl bg-[#161616] text-white">
-      <main className="flex-1   min-w-0">
-        <div className=" bg-[#161616] p-8 ">
+    <div className="flex rounded-3xl bg-[#1C1C1C] text-white">
+      <main className="flex-1  min-w-0">
+        <div className="  p-8 ">
           <h1 className="text-2xl font-bold mb-8">Profile settings</h1>
 
           <div className="mb-8 flex flex-col justify-start items-start">
@@ -41,7 +41,6 @@ function App() {
             </div>
           </div>
 
-          {/* Form */}
           <div className="max-h-[calc(100vh-300px)] overflow-y-auto pr-4 custom-scrollbar">
             <form className="space-y-6 w-full max-w-md">
               <div className="space-y-4">

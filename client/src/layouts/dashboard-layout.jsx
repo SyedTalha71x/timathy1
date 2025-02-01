@@ -5,10 +5,10 @@ import Sidebar from "../components/sidebar";
 
 const Dashboardlayout = () => {
   return (
-    <div className="bg-[#111111] min-h-screen">
-      <div className="flex flex-grow">
+    <div className="bg-[#111111] min-h-screen h-screen overflow-hidden">
+      <div className="flex h-full">
         <Sidebar />
-        <main className="flex-1 p-5 overflow-auto">
+        <main className="flex-1 overflow-auto md:pt-5 pt-20 p-5">
           <Outlet />
         </main>
       </div>
@@ -16,6 +16,5 @@ const Dashboardlayout = () => {
   );
 };
 
-
-
 export default Dashboardlayout;
+

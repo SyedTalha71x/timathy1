@@ -140,15 +140,13 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* Right Sidebar */}
       <aside className={`
-        fixed top-0 right-0 bottom-0 w-80 rounded-3xl bg-zinc-800 z-50 
+        fixed top-0 right-0 bottom-0 w-80 lg:rounded-3xl md:rounded-3xl sm:rounded-bl-3xl rounded-tl-3xl bg-[#181818] z-50 
         lg:static lg:block
         ${isRightSidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
         transition-transform duration-300 ease-in-out
       `}>
         <div className="p-6">
-          {/* Close Button */}
           <button
             onClick={() => setIsRightSidebarOpen(false)}
             className="absolute top-4 left-4 p-2 text-zinc-400 hover:bg-zinc-700 rounded-lg lg:hidden"
@@ -157,7 +155,6 @@ export default function Dashboard() {
             <X size={20} />
           </button>
 
-          {/* Messages Section */}
           <div className="mb-8 mt-8 lg:mt-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Messages</h2>
@@ -193,7 +190,6 @@ export default function Dashboard() {
             
           </div>
 
-          {/* To-Do Section */}
           <div>
             <h2 className="text-xl font-semibold mb-4">TO-DO</h2>
             <div className="space-y-4">

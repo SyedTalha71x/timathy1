@@ -73,63 +73,61 @@ export default function TodoApp() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] p-6">
-      {/* Main Todo Section */}
-      <div className="flex-1 min-w-0 mr-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-white">To-Do</h1>
-          <button className="bg-[#FF843E] text-white px-10 py-2 rounded-full text-sm">
-            + Add task
-          </button>
-        </div>
+    <div className="flex rounded-3xl bg-[#1C1C1C] text-white">
+      <div className="flex-1   p-6">
+        <div className="pb-36">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-white">To-Do</h1>
+            <button className="bg-[#FF843E] text-white px-10 py-2 rounded-full text-sm">
+              + Add task
+            </button>
+          </div>
 
-        <div className="bg-black rounded-xl p-4 ">
-          <div className="space-y-3 ">
-            {tasks.map((task) => (
-              <div key={task.id} className="bg-[#161616] rounded-xl p-4">
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-white font-medium">{task.title}</h3>
-                      <p className="text-gray-400 text-sm">
-                        {task.description}
-                      </p>
-                    </div>
-                    <button className="text-gray-400 hover:text-white">
-                      <MoreHorizontal size={20} />
-                    </button>
-                  </div>
-                  <div>
+          <div className="bg-black rounded-xl p-4 mt-24 ">
+            <div className="space-y-3 ">
+              {tasks.map((task) => (
+                <div key={task.id} className="bg-[#161616] rounded-xl p-7">
                   <div className="flex justify-between items-center gap-3">
-                    <button className="text-gray-400 bg-black rounded-full py-1.5 px-8 hover:text-white text-sm">
-                      View details
-                    </button>
-                    <div className="flex gap-1">
-                    <button className="bg-[#3F74FF] text-white px-4 py-1.5 rounded-full text-sm flex items-center gap-2">
-                      <img
-                        src={Avatar || "/placeholder.svg"}
-                        alt=""
-                        className="w-4 h-4 rounded-full"
-                      />
-                      {task.assignee}
-                    </button>
-                    <span className="bg-[#1C1C1C] text-white px-3 py-1 rounded-full text-sm">
-                      {task.priority}
-                    </span>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-white font-medium">{task.title}</h3>
+                        <p className="text-gray-400 text-sm">
+                          {task.description}
+                        </p>
+                      </div>
                     </div>
-                  
+                    <div>
+                      <div className="flex  items-center gap-3">
+                        <button className="text-gray-400 bg-black rounded-full py-1.5 px-8 hover:text-white text-sm">
+                          View details
+                        </button>
+                        <div className="flex gap-1">
+                          <button className="bg-[#3F74FF] text-white px-4 py-1.5 rounded-full text-sm flex items-center gap-2">
+                            <img
+                              src={Avatar || "/placeholder.svg"}
+                              alt=""
+                              className="w-4 h-4 rounded-full"
+                            />
+                            {task.assignee}
+                          </button>
+                          <span className="bg-[#1C1C1C] text-white px-3 py-1 rounded-full text-sm">
+                            {task.priority}
+                          </span>
+                        </div>
+                        <button className="text-gray-400 hover:text-white">
+                          <MoreHorizontal size={20} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  </div>
-                 
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Notifications Section */}
-      <div className="lg:w-80 md:w-full sm:w-full w-full shrink-0 bg-[#181818] p-6 rounded-xl">
+      <div className="lg:w-80 md:w-full sm:w-full w-full shrink-0 bg-[#181818] p-6 lg:rounded-3xl md:rounded-3xl sm:rounded-bl-3xl rounded-tl-3xl">
         <h2 className="text-2xl font-bold text-white mb-6">Notification</h2>
         <div className="space-y-3">
           {notifications.map((notification) => (
