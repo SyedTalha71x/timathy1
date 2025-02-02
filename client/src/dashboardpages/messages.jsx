@@ -1,19 +1,53 @@
+/* eslint-disable no-unused-vars */
+import React, { useState } from 'react';
+import { Menu, X, SearchCheckIcon, Search , ThumbsUp} from 'lucide-react';
+import ProfileAvatar from '../../public/Rectangle 1.png'
+import { HiDotsVertical } from "react-icons/hi";
+
+
 export default function Messages() {
+    const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+
     return (
-      <div className="flex flex-col md:flex-row h-screen rounded-3xl bg-[#1C1C1C] text-gray-200">
-        {/* Left Sidebar */}
-        <div className="w-full md:w-96 md:min-w-[24rem] bg-black">
-          <div className="p-4">
-            {/* Messages Heading */}
-            <h1 className="text-2xl font-bold mb-4">Messages</h1>
-  
-            <div className="flex gap-2 mb-4">
-              <button className="px-6 py-2 text-sm bg-white text-black rounded-3xl">All</button>
-              <button className="px-6 py-2 text-sm text-gray-400 border border-slate-600 hover:bg-gray-800 rounded-3xl">
-                Unread
+      <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 overflow-hidden">
+        {isMessagesOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity duration-500"
+            onClick={() => setIsMessagesOpen(false)}
+          />
+        )}
+
+        {/* Messages Sidebar */}
+        <div 
+          className={`fixed md:relative inset-y-0 left-0 md:w-[380px] w-full transform transition-transform duration-500 ease-in-out ${
+            isMessagesOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          } bg-black z-40`}
+        >
+          <div className="p-4 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold">Messages</h1>
+              <button 
+                onClick={() => setIsMessagesOpen(false)}
+                className="md:hidden text-gray-400 hover:text-gray-300"
+              >
+                <X className="w-6 h-6" />
               </button>
             </div>
-  
+
+            <div className="flex gap-2 items-center justify-between mb-4">
+              <div className='flex gap-2'>
+
+              <button className="px-6 py-2 text-sm bg-white text-black rounded-xl">All</button>
+              <button className="px-6 py-2 text-sm text-gray-200 border border-slate-300 hover:bg-gray-800 rounded-xl">
+                Unread
+              </button>
+              </div>
+
+              <div>
+                <HiDotsVertical className='w-6 h-6 text-gray-200 cursor-pointer' />
+              </div>
+            </div>
+
             <div className="relative mb-4">
               <input
                 type="text"
@@ -34,22 +68,24 @@ export default function Messages() {
                 />
               </svg>
             </div>
-  
-            <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-200px)] md:max-h-[calc(100vh-220px)]">
+
+            <div className="flex-1 overflow-y-auto space-y-2">
               {[
-                { name: "Jennifer Markus", time: "Today | 05:30 PM", active: true },
-                { name: "Group 1", time: "Today | 05:30 PM" },
-                { name: "Jerry Haffer", time: "Today | 05:30 PM", verified: true },
-                { name: "David Eison", time: "Today | 05:30 PM" },
-                { name: "Mary Freund", time: "Today | 05:30 PM" },
+                { name: "Jennifer Markus", time: "Today | 05:30 PM", active: true, logo: ProfileAvatar },
+                { name: "Group 1", time: "Today | 05:30 PM", logo: ProfileAvatar },
+                { name: "Jerry Haffer", time: "Today | 05:30 PM", verified: true, logo: ProfileAvatar },
+                { name: "David Eison", time: "Today | 05:30 PM", logo: ProfileAvatar },
+                { name: "Mary Freund", time: "Today | 05:30 PM", logo: ProfileAvatar },
               ].map((chat, index) => (
                 <div
                   key={index}
                   className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-lg ${
                     chat.active ? "bg-gray-800" : "hover:bg-gray-800/50"
-                  }`}
+                  } cursor-pointer`}
                 >
-                  <div className="w-8 h-8 rounded-full bg-gray-600 flex-shrink-0" />
+                  <div>
+                    <img src={chat.logo} className='h-10 w-10 rounded-full' alt="" />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
@@ -85,16 +121,23 @@ export default function Messages() {
             </div>
           </div>
         </div>
-  
+
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col rounded-3xl">
-          {/* Chat Header */}
+        <div className="flex-1 flex flex-col min-w-0">
           <div className="flex items-center justify-between p-4 border-b border-gray-800">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gray-600" />
+              <button 
+                onClick={() => setIsMessagesOpen(true)}
+                className="md:hidden text-gray-400 hover:text-gray-300"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+             <div>
+              <img src={ProfileAvatar} className='h-12 w-12 rounded-full object-center' alt="" />
+             </div>
               <span className="font-medium">Jennifer Markus</span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <button className="text-blue-500 hover:text-blue-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -105,55 +148,51 @@ export default function Messages() {
                   />
                 </svg>
               </button>
-              <button className="text-gray-400 hover:text-gray-300">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
+              <div>
+                <Search className='w-5 h-5 ' />
+              </div>
             </div>
           </div>
-  
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-gray-600 flex-shrink-0" />
+              {/* <div className="w-8 h-8 rounded-full bg-gray-600 flex-shrink-0" /> */}
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">Jennifer Markus</span>
-                  <span className="text-sm text-gray-400">04:45 PM</span>
+                  {/* <span className="font-medium">Jennifer Markus</span> */}
+                  {/* <span className="text-sm text-gray-400">04:45 PM</span> */}
                 </div>
                 <div className="bg-black rounded-2xl text-sm p-4 max-w-md">
                   <p>Oh, hello! All perfectly.</p>
                   <p>I will check it and get back to you soon.</p>
+
                 </div>
+                  <span className="text-sm text-gray-400">04:45 PM</span>
               </div>
             </div>
-  
+
             <div className="flex gap-3 justify-end">
               <div className="flex flex-col gap-1 items-end">
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-400">04:45 PM</span>
                   <span className="font-medium">You</span>
-                </div>
+                </div> */}
                 <div className="bg-[#3F74FF] rounded-2xl p-4 text-sm max-w-md">
                   <p>Yes, hello! All perfectly.</p>
                   <p>I will check it and get back to you soon.</p>
                 </div>
+                <span className="text-sm text-gray-400">04:45 PM</span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-gray-600 flex-shrink-0" />
+              {/* <div className="w-8 h-8 rounded-full bg-gray-600 flex-shrink-0" /> */}
             </div>
           </div>
-  
+
           {/* Message Input */}
           <div className="p-4 border-t border-gray-800">
             <div className="flex items-center gap-2 bg-black rounded-lg p-2">
               <button className="p-2 hover:bg-gray-700 rounded-full">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -169,7 +208,7 @@ export default function Messages() {
               />
               <div className="flex items-center gap-2">
                 <button className="p-2 hover:bg-gray-700 rounded-full">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -179,21 +218,12 @@ export default function Messages() {
                   </svg>
                 </button>
                 <button className="p-2 hover:bg-gray-700 rounded-full">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
+                 <ThumbsUp className='w-5 h-5 text-gray-200' />
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    )
-  }
-  
-  
+    );
+}

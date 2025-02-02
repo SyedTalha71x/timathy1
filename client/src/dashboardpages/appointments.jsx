@@ -34,11 +34,13 @@ export default function Appointments() {
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center  mb-8">
-            <h1 className="text-2xl font-bold text-white">Appointments</h1>
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 sm:gap-0 mb-6 sm:mb-8">
+            <h1 className="text-xl sm:text-2xl font-bold text-white">
+              Appointments
+            </h1>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-[#FF843E] text-white cursor-pointer px-4 py-2 mt-1 md:mt-0 rounded-lg text-sm"
+              className="bg-[#FF843E] text-white w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
             >
               + Add appointment
             </button>
@@ -173,108 +175,86 @@ export default function Appointments() {
       </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md lg:p-6 md:p-6 sm:p-4 p-4 relative">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-white text-lg font-semibold">
-                Add appointment
-              </h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 cursor-pointer hover:text-white"
-              >
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[1000] p-6">
+          <div className="bg-[#181818] w-full sm:w-[480px] rounded-2xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
+            <div className="px-6 pt-6 pb-4 border-b border-gray-800">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-white">
+                  Add appointment
+                </h2>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
-            <form className="space-y-4">
-              <div>
-                <label htmlFor="" className="text-sm text-gray-200 ">
-                  Input
-                </label>
-                <input
-                  type="text"
-                  placeholder="Input"
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="" className="text-sm text-gray-200 ">
-                  Input
-                </label>
-                <input
-                  type="text"
-                  placeholder="Input"
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="" className="text-sm text-gray-200 ">
-                  Input
-                </label>
-                <input
-                  type="text"
-                  placeholder="Input"
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="" className="text-sm text-gray-200 ">
-                  Input
-                </label>
-                <input
-                  type="text"
-                  placeholder="Input"
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                />
-              </div>
-              <div>
-                <div>
-                  <label htmlFor="" className="text-gray-200 text-sm">
+            {/* Modal Body */}
+            <div className="px-6 py-4 max-h-[calc(100vh-120px)] sm:max-h-[600px] overflow-y-auto">
+              <form className="space-y-5">
+                {/* Input Fields */}
+                {["Input", "Input", "Input", "Input"].map((label, index) => (
+                  <div key={index} className="space-y-2">
+                    <label className="text-sm text-gray-200 block pl-1">
+                      {label}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={label}
+                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    />
+                  </div>
+                ))}
+
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-200 block pl-1">
                     Input
                   </label>
-
-                  <select className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none">
+                  <select className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none">
                     <option value="">Select</option>
                   </select>
                 </div>
-              </div>
 
-              <div>
-                <label htmlFor="" className="text-gray-200 text-sm">
-                  Input
-                </label>
-
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    placeholder="Input"
-                    className="w-24 bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Input"
-                    className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                  />
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-200 block pl-1">
+                    Input
+                  </label>
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      placeholder="Input"
+                      className="w-28 bg-[#101010] text-sm rounded-xl px-4 py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Input"
+                      className="flex-1 bg-[#101010] text-sm rounded-xl px-4 py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    />
+                  </div>
                 </div>
-              </div>
+              </form>
+            </div>
 
-              <div className="flex justify-start gap-3 mt-6">
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-gray-800">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-3xl hover:bg-[#3F74FF]/90 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#3F74FF] text-sm font-medium text-white rounded-2xl hover:bg-[#3F74FF]/90 transition-colors duration-200 order-1 sm:order-none"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-8 py-2 bg-black text-red-500 border-slate-500 border-2  rounded-3xl text-sm cursor-pointer "
+                  className="w-full sm:w-auto px-6 py-3 bg-black text-red-500 border-2 border-slate-500 rounded-2xl text-sm font-medium hover:bg-slate-900 transition-colors duration-200"
                 >
                   Delete
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

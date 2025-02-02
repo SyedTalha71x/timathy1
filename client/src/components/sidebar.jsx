@@ -38,6 +38,12 @@ const Sidebar = () => {
   return (
     <>
       <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between md:hidden z-40">
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
         <div className="flex items-center gap-3">
           <button
             onClick={toggleSidebar}
@@ -56,7 +62,7 @@ const Sidebar = () => {
       <aside
         className={`${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed top-0 left-0 z-50 w-64 h-screen bg-[#111111] transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col`}
+        } fixed top-0 left-0 z-50 w-64 h-screen bg-[#111111] transition-transform duration-500 overflow-y-auto ease-in-out md:relative md:translate-x-0 flex flex-col`}
       >
         <div className="absolute top-4 right-4 md:hidden">
           <button
