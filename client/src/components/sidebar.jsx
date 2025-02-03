@@ -15,6 +15,10 @@ import {
   CheckSquare,
 } from "lucide-react";
 import girl from "../../public/girl.png";
+import { MdOutlinePayment } from "react-icons/md";
+import { RiContractLine } from "react-icons/ri";
+
+
 
 const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -74,7 +78,7 @@ const Sidebar = () => {
           </button>
         </div>
 
-        <div className="flex flex-col h-full overflow-hidden mt-14">
+        <div className="flex flex-col h-full overflow-hidden mt-8">
           <div className="p-4 hidden md:block">
             <div className="flex flex-col text-center justify-center items-center gap-3">
               <div className="relative">
@@ -110,16 +114,22 @@ const Sidebar = () => {
                 { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
                 { icon: Users, label: "Members", to: "/dashboard/members" },
                 { icon: Users, label: "Staff", to: "/dashboard/staff" },
+                { icon: RiContractLine, label: "Contract", to: "/dashboard/contract" },
                 {
                   icon: CheckSquare,
                   label: "Marketing",
                   to: "/dashboard/marketing",
                 },
+                {
+                  icon: MdOutlinePayment,
+                  label: "Payment",
+                  to: "/dashboard/payment",
+                },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
                     to={item.to}
-                    className={`flex items-center gap-3 px-4 py-2 text-zinc-200 relative
+                    className={`flex items-center gap-3 text-sm px-4 py-2 text-zinc-200 relative
                     group transition-all duration-300 
                     ${location.pathname === item.to 
                       ? 'text-white font-bold border-l-2 border-white pl-3' 

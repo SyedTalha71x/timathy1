@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export default function Appointments() {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8:00 to 19:00
+  const hours = Array.from({ length: 12 }, (_, i) => i + 8);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const appointments = [
@@ -16,7 +16,7 @@ export default function Appointments() {
       color: "bg-[#3F74FF]",
       startHour: 10,
       endHour: 14,
-      day: 2, // Monday
+      day: 2,
     },
     {
       id: 2,
@@ -26,7 +26,7 @@ export default function Appointments() {
       color: "bg-[#CE4B55]",
       startHour: 16,
       endHour: 18,
-      day: 3, // Tuesday
+      day: 3,
     },
   ];
 
@@ -99,11 +99,9 @@ export default function Appointments() {
               </div>
             </div>
 
-            {/* Calendar Section with improved scrolling */}
             <div className="lg:flex-1 bg-[#000000] rounded-xl p-4 overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
-                  {/* Header - Sticky */}
                   <div className="grid grid-cols-5 gap-4 mb-4 bg-[#000000] pb-2">
                     {["Mon\n02", "Tues\n03", "Wed\n04", "Thu\n05"].map(
                       (day) => (
@@ -117,11 +115,9 @@ export default function Appointments() {
                     )}
                   </div>
 
-                  {/* Calendar Content - Scrollable */}
                   <div className="overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
                     <div className="relative">
                       <div className="grid grid-cols-[auto,1fr,1fr,1fr,1fr] gap-4">
-                        {/* Hours column */}
                         <div className="space-y-6">
                           {hours.map((hour) => (
                             <div
@@ -133,7 +129,6 @@ export default function Appointments() {
                           ))}
                         </div>
 
-                        {/* Days columns with grid lines */}
                         {[0, 1, 2, 3].map((day) => (
                           <div key={day} className="relative">
                             <div className="absolute inset-0 border-l border-dashed border-gray-800" />
@@ -175,81 +170,78 @@ export default function Appointments() {
       </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[1000] p-6">
-          <div className="bg-[#181818] w-full sm:w-[480px] rounded-2xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
-            <div className="px-6 pt-6 pb-4 border-b border-gray-800">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6">
+          <div className="bg-[#181818] w-full max-w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
+            <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800">
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-white">
+                <h2 className="text-base sm:text-lg font-semibold text-white">
                   Add appointment
                 </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg"
+                  className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
                 >
-                  <X size={20} />
+                  <X size={18} className="sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="px-6 py-4 max-h-[calc(100vh-120px)] sm:max-h-[600px] overflow-y-auto">
-              <form className="space-y-5">
-                {/* Input Fields */}
+            <div className="px-4 sm:px-6 py-4 max-h-[calc(100vh-180px)] overflow-y-auto">
+              <form className="space-y-4">
                 {["Input", "Input", "Input", "Input"].map((label, index) => (
-                  <div key={index} className="space-y-2">
-                    <label className="text-sm text-gray-200 block pl-1">
+                  <div key={index} className="space-y-1.5">
+                    <label className="text-sm text-gray-200 block">
                       {label}
                     </label>
                     <input
                       type="text"
                       placeholder={label}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                     />
                   </div>
                 ))}
 
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-200 block pl-1">
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200 block">
                     Input
                   </label>
-                  <select className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none">
+                  <select className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none">
                     <option value="">Select</option>
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-200 block pl-1">
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200 block">
                     Input
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <input
                       type="text"
                       placeholder="Input"
-                      className="w-28 bg-[#101010] text-sm rounded-xl px-4 py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      className="w-24 sm:w-28 bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                     />
                     <input
                       type="text"
                       placeholder="Input"
-                      className="flex-1 bg-[#101010] text-sm rounded-xl px-4 py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      className="flex-1 bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                     />
                   </div>
                 </div>
               </form>
             </div>
 
-            {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-gray-800">
-              <div className="flex flex-col sm:flex-row gap-3">
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-800">
+              <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-6 py-3 bg-[#3F74FF] text-sm font-medium text-white rounded-2xl hover:bg-[#3F74FF]/90 transition-colors duration-200 order-1 sm:order-none"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-[#3F74FF] text-sm font-medium text-white rounded-xl sm:rounded-2xl hover:bg-[#3F74FF]/90 transition-colors duration-200"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="w-full sm:w-auto px-6 py-3 bg-black text-red-500 border-2 border-slate-500 rounded-2xl text-sm font-medium hover:bg-slate-900 transition-colors duration-200"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-black text-red-500 border-2 border-slate-500 rounded-xl sm:rounded-2xl text-sm font-medium hover:bg-slate-900 transition-colors duration-200"
                 >
                   Delete
                 </button>

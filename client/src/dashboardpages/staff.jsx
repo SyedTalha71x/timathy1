@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MoreHorizontal, X, Bell } from "lucide-react";
 import Staff from '../../public/avatar3.png';
 
-export default function Members() {
+export default function StaffComponent() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
 
   const [tasks] = useState([

@@ -15,6 +15,8 @@ import Members from './dashboardpages/members'
 import Staff from './dashboardpages/staff'
 import Marketing from './dashboardpages/marketing'
 import Messages from "./dashboardpages/messages";
+import Payment from "./dashboardpages/payment"
+import Contract from './dashboardpages/contract'
 
 
 function App() {
@@ -40,8 +42,8 @@ function App() {
           <Route path="staff" element={<Staff />} />
           <Route path="marketing" element={<Marketing />} />
           <Route path="messages" element={<Messages />} />
-
-
+          <Route path="payment" element={<Payment />} />
+          <Route path="contract" element={<Contract />} />
 
         </Route>
       </Routes>
