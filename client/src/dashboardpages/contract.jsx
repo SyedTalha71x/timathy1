@@ -211,7 +211,7 @@ export default function ContractList() {
               <div className="space-y-2">
                 <span className="text-white text-sm">Member</span>
                 <div className="mt-2">
-                  <button className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl text-sm flex items-center gap-2">
+                  <button className="w-auto  bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl text-sm flex items-center gap-2">
                     <img src={Avatar} alt="" className="w-4 h-4 rounded-full" />
                     Jack
                   </button>

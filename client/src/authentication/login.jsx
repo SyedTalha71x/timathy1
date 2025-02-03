@@ -16,7 +16,7 @@ export default function SignInPage() {
   };
 
   const redirect = () =>{
-    window.location.href = "/";
+    window.location.href = "/dashboard/main-dashboard";
   }
 
   return (
