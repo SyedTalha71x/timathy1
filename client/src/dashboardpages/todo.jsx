@@ -204,105 +204,78 @@ export default function TodoApp() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 open_sans_font w-screen h-screen bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md lg:p-6 md:p-6 sm:p-4 p-4 relative">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-white text-lg open_sans_font_700 font-semibold">Add task</h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 cursor-pointer hover:text-white"
-              >
-                <X size={20} />
-              </button>
-            </div>
+  <div className="fixed inset-0 open_sans_font w-screen h-screen bg-black/50 flex items-center p-3 sm:p-4 md:p-6 justify-center z-[1000]">
+    <div className="bg-[#181818] rounded-xl w-full max-w-md p-4 sm:p-5 md:p-6 lg:p-6 relative">
+      <div className="flex justify-between items-center mb-5 sm:mb-6">
+        <h2 className="text-white text-lg open_sans_font_700 font-semibold">Add task</h2>
+        <button
+          onClick={() => setIsModalOpen(false)}
+          className="text-gray-400 cursor-pointer hover:text-white"
+        >
+          <X size={20} />
+        </button>
+      </div>
 
-            <form className="space-y-4">
-              <div>
-                <label htmlFor="" className="text-sm text-gray-200">
-                  Input
-                </label>
-                <input
-                  type="text"
-                  placeholder="Input"
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="" className="text-sm text-gray-200">
-                  Input
-                </label>
-                <input
-                  type="text"
-                  placeholder="Input"
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="" className="text-sm text-gray-200">
-                  Input
-                </label>
-                <input
-                  type="text"
-                  placeholder="Input"
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="" className="text-sm text-gray-200">
-                  Input
-                </label>
-                <input
-                  type="text"
-                  placeholder="Input"
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                />
-              </div>
-              <div>
-                <div>
-                  <label htmlFor="" className="text-gray-200 text-sm">
-                    Input
-                  </label>
-                  <select className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none">
-                    <option value="">Select</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="" className="text-gray-200 text-sm">
-                  Input
-                </label>
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    placeholder="Input"
-                    className="w-24 bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Input"
-                    className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-start gap-3 mt-6">
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-3xl hover:bg-[#3F74FF]/90 cursor-pointer"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-8 py-2 bg-black text-red-500 border-slate-500 border-2 rounded-3xl text-sm cursor-pointer"
-                >
-                  Delete
-                </button>
-              </div>
-            </form>
+      <form className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-1 gap-2 sm:gap-4">
+          {Array(4).fill("").map((_, index) => (
+            <div key={index}>
+              <label className="text-sm text-gray-200">Input</label>
+              <input
+                type="text"
+                placeholder="Input"
+                className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-200">Select Input</label>
+          <select className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white outline-none">
+            <option value="">Select</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-200">Double Input</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Short"
+              className="w-24 bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+            />
+            <input
+              type="text"
+              placeholder="Full Width"
+              className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+            />
           </div>
         </div>
-      )}
+
+        {/* Buttons */}
+        <div className="flex justify-start gap-3 mt-6">
+          <button
+            type="submit"
+            className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-3xl hover:bg-[#3F74FF]/90 cursor-pointer"
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(false)}
+            className="px-8 py-2 bg-black text-red-500 border-slate-500 border-2 rounded-3xl text-sm cursor-pointer"
+          >
+            Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
+
+
 
       {isShowDetails && selectedTask && (
         <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
