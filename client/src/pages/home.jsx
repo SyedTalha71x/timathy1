@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <>
       <main
-        className="lg:h-[935px] md:h-[1200px] sm:h-[1200px] h-auto bg-cover bg-center bg-no-repeat relative pb-32"
+        className="min-h-screen bg-cover bg-center bg-no-repeat relative"
         style={{
           backgroundImage: `
       linear-gradient(145deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.2) 100%),
@@ -25,16 +25,16 @@ export default function Home() {
     `,
         }}
       >
-        <section className="relative lg:min-h-screen min-h-[900px] flex flex-col justify-center">
+        <section className="relative flex flex-col justify-center">
           <div className="container mx-auto px-4 relative">
-            <div className="absolute top-42 md:top-36 left-1/2 transform -translate-x-1/2 z-0 text-center">
+            <div className="absolute top-42 sm:top-42 md:top-42 lg:top-36 left-1/2 transform -translate-x-1/2 z-0 text-center">
               <h1 className="text-4xl home_text sm:text-5xl md:text-6xl font-bold text-white leading-tight">
                 Transform Your Body,
                 <br /> Transform Your Life
               </h1>
             </div>
             <div className="text-center flex flex-col items-center relative z-10">
-              <div className="relative mt-10 sm:mt-32 md:mt-42">
+              <div className="relative mt-24 sm:mt-32 md:mt-42 mb-0">
                 <div className="aspect-[4/6] relative w-full sm:w-[350px] md:w-[400px] lg:w-[450px]">
                   <div className="absolute rounded-2xl z-10"></div>
                   <img
@@ -44,7 +44,6 @@ export default function Home() {
                   />
                 </div>
 
-                {/* Floating images - visible on all screen sizes */}
                 <div className="absolute top-[35%] left-[-15%] sm:top-[40%] sm:left-[5%] md:top-[35%] md:left-[-15%] lg:block hidden">
                   <img
                     src={HeartBeat}
@@ -68,7 +67,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="absolute lg:block hidden bottom-42 right-16  z-10">
+              <div className="absolute lg:block hidden bottom-42 right-16 z-10">
                 <img
                   src={Trainers}
                   alt="Trainers"
@@ -87,9 +86,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="w-auto z-50 max-w-[1200px] rounded-2xl text-white mx-auto bg-black transform">
-          <div className="p-8 sm:p-10 md:p-12">
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-8 sm:gap-16 md:gap-44 max-w-xl mx-auto text-center">
+        <section className="w-auto z-50 max-w-[1200px] rounded-2xl text-white mx-auto bg-black transform -mt-46 sm:-mt-46 md:-mt-46 lg:-mt-0 ">
+          <div className="p-6 sm:p-10 md:p-12">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-6 sm:gap-16 md:gap-44 max-w-xl mx-auto text-center">
               <StatsCard count="500+" label="Active Users" />
               <StatsCard count="500+" label="New Members" />
               <StatsCard count="500+" label="Premium Users" />

@@ -1,11 +1,11 @@
-import { MoreHorizontal, X } from "lucide-react";
-import Avatar from "../../public/avatar.png";
-import { useState } from "react";
+import { MoreHorizontal, X } from "lucide-react"
+import { useState, useEffect } from "react"
 
 export default function Appointments() {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const hours = Array.from({ length: 12 }, (_, i) => i + 8);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  const hours = Array.from({ length: 12 }, (_, i) => i + 8)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [activeDropdownId, setActiveDropdownId] = useState(null)
 
   const appointments = [
     {
@@ -28,16 +28,20 @@ export default function Appointments() {
       endHour: 18,
       day: 3,
     },
-  ];
+  ]
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveDropdownId(null)
+    document.addEventListener("click", handleClickOutside)
+    return () => document.removeEventListener("click", handleClickOutside)
+  }, [])
 
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 sm:gap-0 mb-6 sm:mb-8">
-            <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">
-              Appointments
-            </h1>
+            <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
             <button
               onClick={() => setIsModalOpen(true)}
               className="bg-[#FF843E] open_sans_font text-white w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
@@ -56,10 +60,7 @@ export default function Appointments() {
                       <div key={day}>{day}</div>
                     ))}
                     {Array.from({ length: 35 }, (_, i) => (
-                      <div
-                        key={i}
-                        className="aspect-square flex items-center justify-center text-gray-400 text-sm"
-                      >
+                      <div key={i} className="aspect-square flex items-center justify-center text-gray-400 text-sm">
                         {i + 1}
                       </div>
                     ))}
@@ -77,11 +78,7 @@ export default function Appointments() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                          <img
-                            src={Avatar || "/placeholder.svg"}
-                            alt=""
-                            className="w-full h-full rounded-full"
-                          />
+                          <img src="/public/avatar.png" alt="" className="w-full h-full rounded-full" />
                         </div>
                         <div className="text-white">
                           <p className="font-semibold">{appointment.name}</p>
@@ -90,9 +87,41 @@ export default function Appointments() {
                           </p>
                         </div>
                       </div>
-                      <button className="text-white/80 hover:text-white">
-                        <MoreHorizontal size={20} />
-                      </button>
+                      <div className="relative">
+                        <button
+                          className="text-white/80 cursor-pointer hover:text-white"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveDropdownId(activeDropdownId === appointment.id ? null : appointment.id)
+                          }}
+                        >
+                          <MoreHorizontal size={20} />
+                        </button>
+
+                        {activeDropdownId === appointment.id && (
+                          <>
+                            <div className="absolute top-0 right-8 cursor-pointer bg-[#2F2F2F]" onClick={() => setActiveDropdownId(null)} />
+                            <div className="absolute right-0 top-full mt-1 w-32 bg-[#1C1C1C] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                              <button
+                                className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                                onClick={() => setActiveDropdownId(null)}
+                              >
+                                Cancel
+                              </button>
+                              <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto"></div>
+                              <button
+                              
+                                className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
+                                onClick={() => {
+                                  setActiveDropdownId(null)
+                                }}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -103,16 +132,11 @@ export default function Appointments() {
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <div className="grid grid-cols-5 gap-4 mb-4 bg-[#000000] pb-2">
-                    {["Mon\n02", "Tues\n03", "Wed\n04", "Thu\n05"].map(
-                      (day) => (
-                        <div
-                          key={day}
-                          className="text-center text-sm text-gray-400 whitespace-pre-line"
-                        >
-                          {day}
-                        </div>
-                      )
-                    )}
+                    {["Mon\n02", "Tues\n03", "Wed\n04", "Thu\n05"].map((day) => (
+                      <div key={day} className="text-center text-sm text-gray-400 whitespace-pre-line">
+                        {day}
+                      </div>
+                    ))}
                   </div>
 
                   <div className="overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
@@ -120,10 +144,7 @@ export default function Appointments() {
                       <div className="grid grid-cols-[auto,1fr,1fr,1fr,1fr] gap-4">
                         <div className="space-y-6">
                           {hours.map((hour) => (
-                            <div
-                              key={hour}
-                              className="text-right text-sm text-gray-400 h-6"
-                            >
+                            <div key={hour} className="text-right text-sm text-gray-400 h-6">
                               {`${hour}:00`}
                             </div>
                           ))}
@@ -133,10 +154,7 @@ export default function Appointments() {
                           <div key={day} className="relative">
                             <div className="absolute inset-0 border-l border-dashed border-gray-800" />
                             {hours.map((hour) => (
-                              <div
-                                key={hour}
-                                className="h-6 border-b border-dashed border-gray-800"
-                              />
+                              <div key={hour} className="h-6 border-b border-dashed border-gray-800" />
                             ))}
 
                             {appointments
@@ -147,14 +165,10 @@ export default function Appointments() {
                                   className={`absolute left-1 right-1 ${apt.color} rounded-lg p-1`}
                                   style={{
                                     top: `${(apt.startHour - 8) * 1.5}rem`,
-                                    height: `${
-                                      (apt.endHour - apt.startHour) * 1.5
-                                    }rem`,
+                                    height: `${(apt.endHour - apt.startHour) * 1.5}rem`,
                                   }}
                                 >
-                                  <div className="text-white text-xs font-semibold truncate">
-                                    {apt.name}
-                                  </div>
+                                  <div className="text-white text-xs font-semibold truncate">{apt.name}</div>
                                 </div>
                               ))}
                           </div>
@@ -174,9 +188,7 @@ export default function Appointments() {
           <div className="bg-[#181818] w-full max-w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
             <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800">
               <div className="flex justify-between items-center">
-                <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">
-                  Add appointment
-                </h2>
+                <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">Add appointment</h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
@@ -190,9 +202,7 @@ export default function Appointments() {
               <form className="space-y-4">
                 {["Input", "Input", "Input", "Input"].map((label, index) => (
                   <div key={index} className="space-y-1.5">
-                    <label className="text-sm text-gray-200 block">
-                      {label}
-                    </label>
+                    <label className="text-sm text-gray-200 block">{label}</label>
                     <input
                       type="text"
                       placeholder={label}
@@ -202,18 +212,14 @@ export default function Appointments() {
                 ))}
 
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">
-                    Input
-                  </label>
+                  <label className="text-sm text-gray-200 block">Input</label>
                   <select className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none">
                     <option value="">Select</option>
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">
-                    Input
-                  </label>
+                  <label className="text-sm text-gray-200 block">Input</label>
                   <div className="flex gap-2 sm:gap-3">
                     <input
                       type="text"
@@ -251,5 +257,6 @@ export default function Appointments() {
         </div>
       )}
     </div>
-  );
+  )
 }
+

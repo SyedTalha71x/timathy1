@@ -19,12 +19,36 @@ export default function NavBar() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen && !event.target.closest(".sidebar")) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled ? "bg-black bg-opacity-80" : "bg-transparent"
       }`}
     >
+
+<div
+            className={`${isMenuOpen ? 'block' : 'hidden'} fixed inset-0 bg-black/40  z-40 transition-opacity`}
+          ></div>
+          
+
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <a href="/" className="text-2xl font-bold logo text-white">
@@ -81,11 +105,19 @@ export default function NavBar() {
         </div>
       </div>
 
+
       <div
         className={`${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed top-0 left-0 w-64 h-full bg-black bg-opacity-90 transition-transform duration-500 ease-in-out z-40`}
+        } fixed top-0 left-0 w-64 h-full bg-[#141414] bg-opacity-90 transition-transform duration-500 ease-in-out z-40`}
       >
+          <button
+              onClick={() => setIsMenuOpen(false)}
+              className="absolute  bottom-3 left-26 text-white cursor-pointer text-4xl focus:outline-none"
+            >
+              &times;
+            </button>
+
         <div className="flex flex-col items-center space-y-8 mt-20 nav_links">
           <a href="/" className="text-white hover:text-gray-300">
             Home
