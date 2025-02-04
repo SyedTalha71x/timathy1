@@ -288,7 +288,7 @@ export default function Members() {
             ? "translate-x-0"
             : "translate-x-full lg:translate-x-0"
         }
-        transition-transform duration-300 ease-in-out
+        transition-transform duration-500 ease-in-out
       `}
       >
         <div className="flex justify-between items-center mb-6">
