@@ -7,7 +7,7 @@ export default function Messages() {
   const [isMessagesOpen, setIsMessagesOpen] = useState(false)
 
   return (
-    <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 overflow-hidden">
+    <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
       {isMessagesOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity duration-500"
@@ -16,7 +16,7 @@ export default function Messages() {
       )}
 
       <div
-        className={`fixed md:relative inset-y-0 left-0 md:w-[380px] w-full transform transition-transform duration-500 ease-in-out ${
+        className={`fixed md:relative inset-y-0 left-0 md:w-[380px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${
           isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } bg-black z-40`}
       >
