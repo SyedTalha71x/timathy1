@@ -66,17 +66,17 @@ export default function StaffComponent() {
 
   return (
     <>
-      <div className="flex relative rounded-3xl bg-[#1C1C1C] text-white">
+      <div className="flex relative rounded-3xl cursor-pointer bg-[#1C1C1C] text-white">
         <div className="flex-1 min-w-0 p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">
+            <h1 className="text-xl sm:text-2xl oxanium_font text-white">
               Staff management
             </h1>
 
             <div className="flex items-center gap-4 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-[#FF843E] text-white px-6 sm:px-10 py-2 rounded-full text-sm flex-1 sm:flex-none"
+                className="bg-[#FF843E] text-white open_sans_font px-6 sm:px-10 py-2 rounded-full text-sm flex-1 sm:flex-none"
               >
                 + Add Roles
               </button>
@@ -90,7 +90,7 @@ export default function StaffComponent() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 mt-8 sm:mt-[10%] gap-4 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 open_sans_font md:grid-cols-2 mt-8 sm:mt-[10%] gap-4 max-w-5xl mx-auto">
             {tasks.map((task) => (
               <div
                 key={task.id}
@@ -147,7 +147,7 @@ export default function StaffComponent() {
           `}
         >
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold">Notifications</h2>
+            <h2 className="text-xl sm:text-2xl oxanium_font font-bold">Notifications</h2>
             <button
               onClick={() => setIsRightSidebarOpen(false)}
               className="lg:hidden p-2 hover:bg-black/20 rounded-full transition-colors"
@@ -157,7 +157,7 @@ export default function StaffComponent() {
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 open_sans_font">
             {notifications.map((notification) => (
               <div
                 key={notification.id}
@@ -169,7 +169,7 @@ export default function StaffComponent() {
                 >
                   <X size={16} />
                 </button>
-                <h3 className="font-semibold mb-2">{notification.heading}</h3>
+                <h3 className="font-semibold open_sans_font_700 mb-2">{notification.heading}</h3>
                 <p className="text-sm text-zinc-400">
                   {notification.description}
                 </p>
@@ -180,12 +180,12 @@ export default function StaffComponent() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
+        <div className="fixed inset-0 open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
           {" "}
           <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white text-lg font-semibold">Add Member</h2>
+                <h2 className="text-white text-lg open_sans_font_700">Add Member</h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="text-gray-400 hover:text-white transition-colors"
@@ -303,7 +303,7 @@ export default function StaffComponent() {
       )}
 
       {isShowDetails && selectedTask && (
-        <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+        <div className="fixed open_sans_font inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
           {" "}
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
             <div className="p-6">
@@ -320,7 +320,7 @@ export default function StaffComponent() {
               <div className="space-y-6">
                 <div className="w-24 h-24 rounded-2xl overflow-hidden">
                   <img
-                    src={Profile || "/placeholder.svg"}
+                    src={Profile}
                     alt="Profile"
                     width={96}
                     height={96}
@@ -329,7 +329,7 @@ export default function StaffComponent() {
                 </div>
 
                 <div>
-                  <h3 className="text-white text-xl font-bold mb-3">
+                  <h3 className="text-white open_sans_font_700 text-xl font-bold mb-3">
                     Staff Name
                   </h3>
                   <p className="text-gray-400 text-sm leading-relaxed">

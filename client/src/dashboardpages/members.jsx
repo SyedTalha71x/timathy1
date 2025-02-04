@@ -42,7 +42,7 @@ export default function Members() {
     <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative">
       <div className="flex-1 min-w-0 p-6 pb-36">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-white">Members</h1>
+          <h1 className="text-2xl oxanium_font text-white">Members</h1>
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsRightSidebarOpen(true)}
@@ -54,18 +54,18 @@ export default function Members() {
               onClick={() => setIsModalOpen(true)}
               className="bg-[#FF843E] flex gap-2 cursor-pointer text-white px-6 py-2.5 rounded-full text-sm hover:bg-[#FF843E]/90 transition-colors"
             >
-              + <span className="lg:block hidden">Add a member</span>
+              + <span className="lg:block open_sans_font hidden">Add a member</span>
             </button>
           </div>
         </div>
 
         {isModalOpen && (
-          <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
+          <div className="fixed open_sans_font inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
             {" "}
             <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-white text-lg font-semibold">
+                  <h2 className="text-white open_sans_font_700 text-lg font-semibold">
                     Add Member
                   </h2>
                   <button
@@ -185,7 +185,7 @@ export default function Members() {
         )}
 
         {isShowDetails && selectedTask && (
-          <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+          <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
             {" "}
             <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
               <div className="p-6">
@@ -202,14 +202,14 @@ export default function Members() {
                 <div className="space-y-6">
                   <div className="w-24 h-24 rounded-2xl overflow-hidden">
                     <img
-                      src={Profile || "/placeholder.svg"}
+                      src={Profile }
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
                   </div>
 
                   <div>
-                    <h3 className="text-white text-xl font-bold mb-3">
+                    <h3 className="text-white open_sans_font_700 text-xl font-bold mb-3">
                       Member Name
                     </h3>
                     <p className="text-gray-400 text-sm leading-relaxed">
@@ -243,7 +243,7 @@ export default function Members() {
           </div>
         )}
 
-        <div className="bg-black rounded-xl p-4 mt-[10%]">
+        <div className="bg-black rounded-xl open_sans_font p-4 mt-[10%]">
           <div className="space-y-3">
             {tasks.map((task) => (
               <div key={task.id} className="bg-[#161616] rounded-xl p-4">
@@ -301,7 +301,7 @@ export default function Members() {
       `}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Notification</h2>
+          <h2 className="text-2xl font-bold oxanium_font">Notification</h2>
           <button
             onClick={() => setIsRightSidebarOpen(false)}
             className="text-gray-400 hover:text-white lg:hidden transition-colors"
@@ -310,7 +310,7 @@ export default function Members() {
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 open_sans_font">
           {notifications.map((notification) => (
             <div
               key={notification.id}
@@ -322,7 +322,7 @@ export default function Members() {
               >
                 <X size={16} />
               </button>
-              <h3 className="font-semibold mb-2">{notification.heading}</h3>
+              <h3 className="open_sans_font_700 mb-2">{notification.heading}</h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
                 {notification.description}
               </p>

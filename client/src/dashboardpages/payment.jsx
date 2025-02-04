@@ -9,7 +9,7 @@ export default function PaymentForm() {
   return (
     <div className="bg-[#1C1C1C] flex pb-10 text-white lg:p-6 md:p-6 sm:p-4 p-4 rounded-3xl  w-full">
       <div className=" lg:p-6 md:p-6 sm:p-4 p-4">
-        <h2 className="text-2xl font-semibold mb-4">Payment method</h2>
+        <h2 className="text-2xl oxanium_font mb-4">Payment method</h2>
 
         <div className="flex gap-2 mb-6">
           <button
@@ -42,7 +42,7 @@ export default function PaymentForm() {
           </button>
         </div>
 
-        <form className="space-y-4">
+        <form className="space-y-4 open_sans_font">
           <div>
             <label className="block text-sm mb-2">Card Number</label>
             <input
@@ -101,7 +101,7 @@ export default function PaymentForm() {
 
           <button
             type="submit"
-            className="w-full bg-[#3F74FF] text-sm cursor-pointer hover:bg-blue-700 transition-all duration-500 ease-in-out text-white py-2 rounded-2xl"
+            className="w-full open_sans_font bg-[#3F74FF] text-sm cursor-pointer hover:bg-blue-700 transition-all duration-500 ease-in-out text-white py-2 rounded-2xl"
           >
             Add payment
           </button>

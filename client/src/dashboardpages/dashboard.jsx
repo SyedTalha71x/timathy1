@@ -103,11 +103,11 @@ export default function Dashboard() {
 
   const chartSeries = [
     {
-      name: "Revenue",
+      name: "Comp1",
       data: [30, 40, 45, 50, 49, 60],
     },
     {
-      name: "Expenses",
+      name: "Comp2",
       data: [20, 30, 35, 40, 38, 50],
     },
   ];
@@ -131,7 +131,7 @@ export default function Dashboard() {
                 >
                   <BarChart3 />
                 </button>
-                <h1 className="text-xl md:text-2xl font-semibold">Dashboard</h1>
+                <h1 className="text-xl md:text-2xl oxanium_font ">Dashboard</h1>
               </div>
               <button
                 onClick={toggleRightSidebar}
@@ -162,7 +162,7 @@ export default function Dashboard() {
 
             {/* Appointments Section */}
             <div>
-              <h2 className="text-lg md:text-xl font-semibold mb-4">
+              <h2 className="text-lg md:text-xl open_sans_font_700  mb-4">
                 Appointment
               </h2>
               <div className="space-y-4">
@@ -182,7 +182,7 @@ export default function Dashboard() {
                 ].map((appointment) => (
                   <div
                     key={appointment.name}
-                    className={`${appointment.color} p-3 md:p-4 rounded-xl flex items-center justify-between`}
+                    className={`${appointment.color} p-3 md:p-4 open_sans_font rounded-xl flex items-center justify-between`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center">
@@ -236,7 +236,7 @@ export default function Dashboard() {
 
           <div className="mb-8 mt-8 lg:mt-0">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-semibold">Messages</h2>
+              <h2 className="text-lg md:text-xl open_sans_font_700">Messages</h2>
             </div>
             <div className="space-y-4">
               {[1, 2].map((message) => (
@@ -248,17 +248,17 @@ export default function Dashboard() {
                       className="rounded-full h-10 w-10 md:h-12 md:w-12"
                     />
                     <div>
-                      <h3 className="font-semibold text-sm md:text-base">
+                      <h3 className=" open_sans_font text-sm md:text-base">
                         Jennifer Markus
                       </h3>
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs md:text-sm text-zinc-400">
+                    <p className="text-xs md:text-sm open_sans_font text-zinc-400">
                       Hey! Did you think the NFT marketplace for Alice app
                       design?
                     </p>
-                    <p className="text-xs mt-2 text-zinc-400">
+                    <p className="text-xs mt-2 open_sans_font text-zinc-400">
                       Today | 05:30 PM
                     </p>
                   </div>
@@ -266,7 +266,7 @@ export default function Dashboard() {
               ))}
               <Link
                 href="#"
-                className="text-sm md:text-md text-white flex justify-center items-center text-center hover:underline"
+                className="text-sm md:text-md open_sans_font text-white flex justify-center items-center text-center hover:underline"
               >
                 See all
               </Link>
@@ -274,16 +274,16 @@ export default function Dashboard() {
           </div>
 
           <div>
-            <h2 className="text-lg md:text-xl font-semibold mb-4">TO-DO</h2>
-            <div className="space-y-4">
+            <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 mb-4">TO-DO</h2>
+            <div className="space-y-4 open_sans_font">
               {[1, 2, 3].map((task) => (
                 <div
                   key={task}
                   className="p-3 md:p-4 bg-black rounded-xl flex items-center justify-between"
                 >
                   <div>
-                    <h3 className="font-semibold text-sm md:text-base">Task</h3>
-                    <p className="text-xs md:text-sm text-zinc-400">
+                    <h3 className="font-semibold open_sans_font text-sm md:text-base">Task</h3>
+                    <p className="text-xs open_sans_font md:text-sm text-zinc-400">
                       Description
                     </p>
                   </div>

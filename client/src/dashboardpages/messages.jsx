@@ -22,13 +22,13 @@ export default function Messages() {
       >
         <div className="p-4 h-full flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Messages</h1>
+            <h1 className="text-2xl oxanium_font">Messages</h1>
             <button onClick={() => setIsMessagesOpen(false)} className="md:hidden text-gray-400 hover:text-gray-300">
               <X className="w-6 h-6" />
             </button>
           </div>
 
-          <div className="flex gap-2 items-center justify-between mb-4">
+          <div className="flex gap-2 items-center open_sans_font justify-between mb-4">
             <div className="flex gap-2">
               <button className="px-6 py-2 text-sm bg-white text-black rounded-xl">All</button>
               <button className="px-6 py-2 text-sm text-gray-200 border border-slate-300 hover:bg-gray-800 rounded-xl">
@@ -41,7 +41,7 @@ export default function Messages() {
             </div>
           </div>
 
-          <div className="relative mb-4">
+          <div className="relative mb-4 open_sans_font">
             <input
               type="text"
               placeholder="Search"
@@ -115,7 +115,7 @@ export default function Messages() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 open_sans_font cursor-pointer">
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
           <div className="flex items-center gap-3">
             <button onClick={() => setIsMessagesOpen(true)} className="md:hidden text-gray-400 hover:text-gray-300">
@@ -124,7 +124,7 @@ export default function Messages() {
             <div>
               <img src={ProfileAvatar || "/placeholder.svg"} className="h-12 w-12 rounded-full object-center" alt="" />
             </div>
-            <span className="font-medium">Jennifer Markus</span>
+            <span className="font-medium ">Jennifer Markus</span>
           </div>
           <div className="flex items-center gap-2">
             <button className="text-blue-500 hover:text-blue-400">

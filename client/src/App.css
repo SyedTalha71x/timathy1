@@ -214,3 +214,26 @@ html, body {
   scrollbar-width: thin;
   scrollbar-color: #333333 #1C1C1C;
 }
+
+
+/* Dashboard custom css  */
+.open_sans_font{
+  font-family: "Open Sans", serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.open_sans_font_700{
+  font-family: "Open Sans", serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.oxanium_font{
+  font-family: "Oxanium", serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}

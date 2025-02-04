@@ -85,7 +85,6 @@ export default function TodoApp() {
   return (
     <>
       <div className="flex rounded-3xl bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden">
-        {/* Overlay for mobile notification panel */}
         {isNotificationOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-30 lg:hidden"
@@ -96,14 +95,14 @@ export default function TodoApp() {
         <div className="flex-1 lg:p-6 md:p-6 sm:p-5 p-5">
           <div className="lg:pb-36 md:pb-32 sm:pb-16 pb-16">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold text-white">To-Do</h1>
+              <h1 className="text-2xl font-bold text-white oxanium_font">To-Do</h1>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className="bg-[#FF843E] cursor-pointer text-white px-4 sm:px-10 py-2 rounded-full text-sm flex items-center gap-2"
                 >
                   <Plus size={18} />
-                  <span className="">Add task</span>
+                  <span className="open_sans_font">Add task</span>
                 </button>
                 <button
                   onClick={() => setIsNotificationOpen(true)}
@@ -114,7 +113,7 @@ export default function TodoApp() {
               </div>
             </div>
 
-            <div className="bg-black rounded-xl p-3 lg:mt-24 md:mt-20 sm:mt-16 mt-16">
+            <div className="bg-black rounded-xl open_sans_font p-3 lg:mt-24 md:mt-20 sm:mt-16 mt-16">
               <div className="space-y-3">
                 {tasks.map((task) => (
                   <div key={task.id} className="bg-[#161616] rounded-xl p-6">
@@ -140,7 +139,7 @@ export default function TodoApp() {
                         <div className="w-full flex flex-col sm:flex-row gap-2">
                           <button className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl text-sm flex items-center gap-2">
                             <img
-                              src={Avatar || "/placeholder.svg"}
+                              src={Avatar}
                               alt=""
                               className="w-4 h-4 rounded-full"
                             />
@@ -164,7 +163,6 @@ export default function TodoApp() {
           </div>
         </div>
 
-        {/* Notification Panel */}
         <div
           className={`fixed lg:static inset-y-0 right-0 w-[320px] bg-[#181818] p-6 transform transition-transform duration-500 ease-in-out ${
             isNotificationOpen
@@ -173,7 +171,7 @@ export default function TodoApp() {
           } z-40`}
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Notification</h2>
+            <h2 className="text-2xl oxanium_font text-white">Notification</h2>
             <button
               onClick={() => setIsNotificationOpen(false)}
               className="lg:hidden text-gray-400 hover:text-white"
@@ -181,7 +179,7 @@ export default function TodoApp() {
               <X size={20} />
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 ">
             {notifications.map((notification) => (
               <div
                 key={notification.id}
@@ -195,7 +193,7 @@ export default function TodoApp() {
                 >
                   <X size={16} />
                 </button>
-                <h3 className="text-white font-medium capitalize mb-2">
+                <h3 className="text-white open_sans_font_700 font-medium capitalize mb-2">
                   {notification.type}
                 </h3>
                 <p className="text-gray-400 text-sm">{notification.message}</p>
@@ -206,10 +204,10 @@ export default function TodoApp() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
+        <div className="fixed inset-0 open_sans_font w-screen h-screen bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
           <div className="bg-[#181818] rounded-xl w-full max-w-md lg:p-6 md:p-6 sm:p-4 p-4 relative">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-white text-lg font-semibold">Add task</h2>
+              <h2 className="text-white text-lg open_sans_font_700 font-semibold">Add task</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 cursor-pointer hover:text-white"

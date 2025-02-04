@@ -48,8 +48,8 @@ export default function MarketingTable() {
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] p-6">
       <div className="rounded-xl p-6 w-full overflow-hidden">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-white">Marketing</h1>
-          <button className="flex items-center gap-2 bg-black text-white px-7 py-2 rounded-lg text-sm">
+          <h1 className="text-2xl oxanium_font text-white">Marketing</h1>
+          <button className="flex open_sans_font items-center gap-2 bg-black text-white px-7 py-2 rounded-lg text-sm">
             Date
             <ChevronDown size={16} />
           </button>
@@ -58,14 +58,14 @@ export default function MarketingTable() {
         <div className="overflow-x-auto ">
           <div className="min-w-[1200px]  md:min-w-[800px] w-full">
             <div className="grid grid-cols-5 text-sm text-white pb-4">
-              <div className="font-medium">Name</div>
-              <div className="font-medium">Reach</div>
-              <div className="font-medium">Impression</div>
-              <div className="font-medium">CPC</div>
-              <div className="font-medium">Time</div>
+              <div className="font-medium open_sans_font_700">Name</div>
+              <div className="font-medium open_sans_font_700">Reach</div>
+              <div className="font-medium open_sans_font_700">Impression</div>
+              <div className="font-medium open_sans_font_700">CPC</div>
+              <div className="font-medium open_sans_font_700">Time</div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 open_sans_font">
               {campaigns.map((campaign) => (
                 <div
                   key={campaign.id}

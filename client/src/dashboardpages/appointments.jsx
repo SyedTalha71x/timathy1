@@ -35,18 +35,18 @@ export default function Appointments() {
       <main className="flex-1 min-w-0">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 sm:gap-0 mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">
+            <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">
               Appointments
             </h1>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-[#FF843E] text-white w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
+              className="bg-[#FF843E] open_sans_font text-white w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
             >
               + Add appointment
             </button>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-6 open_sans_font">
             <div className="lg:w-[300px] space-y-6">
               <div className="bg-[#000000] rounded-xl p-4">
                 <div className="mb-4">
@@ -68,12 +68,12 @@ export default function Appointments() {
               </div>
 
               <div>
-                <h2 className="text-white mb-4">Member</h2>
+                <h2 className="text-white mb-4 open_sans_font_700">Member</h2>
                 <div className="space-y-3">
                   {appointments.map((appointment) => (
                     <div
                       key={appointment.id}
-                      className={`${appointment.color} rounded-xl p-4 flex items-center justify-between`}
+                      className={`${appointment.color} open_sans_font rounded-xl p-4 flex items-center justify-between`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -99,7 +99,7 @@ export default function Appointments() {
               </div>
             </div>
 
-            <div className="lg:flex-1 bg-[#000000] rounded-xl p-4 overflow-hidden">
+            <div className="lg:flex-1 open_sans_font bg-[#000000] rounded-xl p-4 overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <div className="grid grid-cols-5 gap-4 mb-4 bg-[#000000] pb-2">
@@ -170,11 +170,11 @@ export default function Appointments() {
       </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6">
+        <div className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6">
           <div className="bg-[#181818] w-full max-w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
             <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800">
               <div className="flex justify-between items-center">
-                <h2 className="text-base sm:text-lg font-semibold text-white">
+                <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">
                   Add appointment
                 </h2>
                 <button

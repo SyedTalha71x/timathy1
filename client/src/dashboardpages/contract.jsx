@@ -48,30 +48,30 @@ export default function ContractList() {
   return (
     <div className="bg-[#1C1C1C] p-4 sm:p-6 rounded-3xl pb-10 w-full">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0 mb-6">
-        <h2 className="text-white text-xl sm:text-2xl font-bold">Contract</h2>
+        <h2 className="text-white text-xl sm:text-2xl oxanium_font">Contract</h2>
         <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center justify-center gap-2 px-4 py-2 bg-[#F27A30] hover:bg-[#e06b21] text-white rounded-xl text-sm transition-colors w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
-          <span className="text-sm">Add Contract</span>
+          <span className="text-sm open_sans_font">Add Contract</span>
         </button>
       </div>
 
-      <div className="space-y-3 mt-8 sm:mt-16">
+      <div className="space-y-3 mt-8 sm:mt-16 open_sans_font">
         {contracts.map((contract) => (
           <div
             key={contract.id}
             className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-[#141414] p-4 rounded-lg hover:bg-[#333333] transition-colors gap-4 sm:gap-0"
           >
             <div className="flex-1">
-              <h3 className="text-white font-medium">{contract.title}</h3>
+              <h3 className="text-white font-medium open_sans_font_700">{contract.title}</h3>
               <p className="text-gray-400 text-sm">{contract.description}</p>
             </div>
 
             <div className="flex-1">
-              <h4 className="text-white font-medium">Contract date</h4>
-              <p className="text-gray-400 text-sm">{contract.date}</p>
+              <h4 className="text-white open_sans_font_700">Contract date</h4>
+              <p className="text-gray-400  text-sm">{contract.date}</p>
             </div>
 
             <div className="flex items-center gap-3 mt-4 sm:mt-0">
@@ -90,11 +90,11 @@ export default function ContractList() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
+        <div className="fixed inset-0 bg-black/50 flex open_sans_font items-center justify-center z-[1000]">
           <div className="bg-[#181818] w-full max-w-md mx-4 rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-800">
               <div className="flex justify-between items-center">
-                <h2 className="text-base font-semibold text-white">
+                <h2 className="text-base open_sans_font_700 text-white">
                   Add Contract
                 </h2>
                 <button
@@ -106,7 +106,7 @@ export default function ContractList() {
               </div>
             </div>
 
-            <div className="px-4 py-3 max-h-[70vh] overflow-y-auto">
+            <div className="px-4 py-3 max-h-[70vh] overflow-y-auto open_sans_font">
               <form className="space-y-4">
                 {["Input", "Input", "Input", "Input"].map((label, index) => (
                   <div key={index} className="space-y-1.5">
@@ -178,7 +178,7 @@ export default function ContractList() {
       )}
 
       {isShowDetails && selectedTask && (
-        <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
+        <div className="fixed inset-0 w-screen h-screen open_sans_font bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
           <div className="bg-[#1C1C1C] rounded-xl lg:p-8 md:p-6 sm:p-4 p-4 w-full max-w-md relative">
             <button
               onClick={() => {
@@ -192,7 +192,7 @@ export default function ContractList() {
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-white text-xl font-bold mb-2">Contract</h3>
+                <h3 className="text-white text-xl font-bold mb-2 open_sans_font_700">Contract</h3>
                 <p className="text-gray-400 text-sm">
                   Lorem, ipsum dolor sit amet consectetur adipisicing elit.
                   Rerum facere quod earum iusto itaque accusantium molestias
@@ -209,17 +209,16 @@ export default function ContractList() {
               <div className="space-y-2 text-sm">
                 <span className="text-white">View pdf</span>
                 <div className="mt-2">
-  <a
-    href="/Terms+Conditions.pdf"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    <button className="py-1.5 px-5 bg-[#3F74FF] text-white text-sm rounded-xl">
-      View PDF
-    </button>
-  </a>
-</div>
-
+                  <a
+                    href="/Terms+Conditions.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <button className="py-1.5 px-5 bg-[#3F74FF] text-white text-sm rounded-xl">
+                      View PDF
+                    </button>
+                  </a>
+                </div>
               </div>
 
               <div className="bg-slate-500 h-[1px] w-full" />

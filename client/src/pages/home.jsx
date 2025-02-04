@@ -1,5 +1,5 @@
 import { StatsCard } from "../components/stats-card";
-import MenImage from "../../public/image 3.png";
+import MenImage from "../../public/men.png";
 import BackgroundImage from "../../public/black-smooth-textured-paper-background.png";
 import HeartBeat from "../../public/Frame 5.png";
 import TrackActivities from "../../public/Frame 10.png";

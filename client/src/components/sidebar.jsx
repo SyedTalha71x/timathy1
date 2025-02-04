@@ -78,8 +78,8 @@ const Sidebar = () => {
                 <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 border-2 border-zinc-800 rounded-full"></span>
               </div>
               <div>
-                <h2 className="font-semibold text-white">Samantha</h2>
-                <p className="text-sm text-zinc-400">samantha@gmail.com</p>
+                <h2 className="open_sans_font_700 text-white">Samantha</h2>
+                <p className="text-sm open_sans_font text-zinc-400">samantha@gmail.com</p>
               </div>
             </div>
           </div>
@@ -101,11 +101,11 @@ const Sidebar = () => {
                 <li key={item.label}>
                   <button
                     onClick={() => handleNavigation(item.to)}
-                    className={`flex items-center gap-3 text-sm px-4 py-2 text-zinc-200 relative w-full text-left
+                    className={`flex items-center gap-3 cursor-pointer text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full text-left
                     group transition-all duration-300 
                     ${
                       location.pathname === item.to
-                        ? "text-white font-bold border-l-2 border-white pl-3"
+                        ? "text-white  border-l-2 border-white pl-3"
                         : "hover:text-white hover:border-l-2 hover:border-white hover:pl-3"
                     }`}
                   >
@@ -124,7 +124,7 @@ const Sidebar = () => {
           <div className="p-4 mt-auto">
             <button
               onClick={redirectToHome}
-              className="flex items-center gap-3 px-4 py-2 text-zinc-400 hover:text-white hover:border-l-2 hover:border-white hover:pl-3 transition-all duration-300 w-full text-left"
+              className="flex items-center cursor-pointer gap-3 open_sans_font px-4 py-2 text-zinc-400 hover:text-white hover:border-l-2 hover:border-white hover:pl-3 transition-all duration-300 w-full text-left"
             >
               <LogOut size={20} />
               <span>Logout</span>

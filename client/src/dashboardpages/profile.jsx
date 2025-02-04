@@ -30,7 +30,6 @@ function App() {
 
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
-      {/* Overlay for mobile when sidebar is open */}
       {isRightSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -41,7 +40,7 @@ function App() {
       <main className="flex-1 min-w-0">
         <div className="p-4 md:p-8">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-xl md:text-2xl font-bold">Profile settings</h1>
+            <h1 className="text-xl md:text-2xl font-bold oxanium_font">Profile settings</h1>
             <button 
               onClick={toggleRightSidebar}
               className="lg:hidden p-2 hover:bg-zinc-800 rounded-lg transition-colors duration-200"
@@ -60,14 +59,14 @@ function App() {
               <div className="w-24 h-24 rounded-2xl overflow-hidden mb-4">
                 <img src={Profile || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
               </div>
-              <button className="bg-[#3F74FF] hover:bg-blue-700 text-white px-6 text-sm py-1.5 rounded-3xl transition-colors duration-200">
+              <button className="bg-[#3F74FF] open_sans_font hover:bg-blue-700 text-white px-6 text-sm py-1.5 rounded-3xl transition-colors duration-200">
                 Upload picture
               </button>
             </div>
           </div>
 
           <div className="max-h-[calc(100vh-300px)] overflow-y-auto pr-4 custom-scrollbar">
-            <form className="space-y-6 w-full max-w-md">
+            <form className="space-y-6 w-full max-w-md p-2 open_sans_font">
               <div className="space-y-4">
                 {[
                   { label: "First Name", id: "firstName", type: "text", placeholder: "First name" },
@@ -123,7 +122,7 @@ function App() {
         `}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl md:text-2xl font-bold">Notification</h2>
+          <h2 className="text-xl md:text-2xl font-bold oxanium_font">Notification</h2>
           <button
             onClick={toggleRightSidebar}
             className="lg:hidden p-2 hover:bg-zinc-700 rounded-lg transition-colors duration-200"
@@ -143,8 +142,8 @@ function App() {
               >
                 <X size={16} />
               </button>
-              <h3 className="font-semibold mb-2">{notification.heading}</h3>
-              <p className="text-sm text-zinc-400">{notification.description}</p>
+              <h3 className=" mb-2 oxanium_font">{notification.heading}</h3>
+              <p className="text-sm open_sans_font text-zinc-400">{notification.description}</p>
             </div>
           ))}
         </div>
