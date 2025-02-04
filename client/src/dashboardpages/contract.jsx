@@ -94,7 +94,9 @@ export default function ContractList() {
           <div className="bg-[#181818] w-full max-w-md mx-4 rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-800">
               <div className="flex justify-between items-center">
-                <h2 className="text-base font-semibold text-white">Add Contract</h2>
+                <h2 className="text-base font-semibold text-white">
+                  Add Contract
+                </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-lg"
@@ -108,7 +110,9 @@ export default function ContractList() {
               <form className="space-y-4">
                 {["Input", "Input", "Input", "Input"].map((label, index) => (
                   <div key={index} className="space-y-1.5">
-                    <label className="text-xs text-gray-200 block pl-1">{label}</label>
+                    <label className="text-xs text-gray-200 block pl-1">
+                      {label}
+                    </label>
                     <input
                       type="text"
                       placeholder={label}
@@ -118,14 +122,18 @@ export default function ContractList() {
                 ))}
 
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Input</label>
+                  <label className="text-xs text-gray-200 block pl-1">
+                    Input
+                  </label>
                   <select className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none">
                     <option value="">Select</option>
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Input</label>
+                  <label className="text-xs text-gray-200 block pl-1">
+                    Input
+                  </label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -201,10 +209,17 @@ export default function ContractList() {
               <div className="space-y-2 text-sm">
                 <span className="text-white">View pdf</span>
                 <div className="mt-2">
-                  <button className="py-1.5 px-5 bg-[#3F74FF] text-white text-sm rounded-xl">
-                    View Pdf
-                  </button>
-                </div>
+  <a
+    href="/Terms+Conditions.pdf"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <button className="py-1.5 px-5 bg-[#3F74FF] text-white text-sm rounded-xl">
+      View PDF
+    </button>
+  </a>
+</div>
+
               </div>
 
               <div className="bg-slate-500 h-[1px] w-full" />
