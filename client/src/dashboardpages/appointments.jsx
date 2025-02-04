@@ -184,78 +184,75 @@ export default function Appointments() {
       </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6">
-          <div className="bg-[#181818] w-full max-w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
-            <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800">
-              <div className="flex justify-between items-center">
-                <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">Add appointment</h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
-                >
-                  <X size={18} className="sm:w-5 sm:h-5" />
-                </button>
+  <div
+    className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6"
+    onClick={() => setIsModalOpen(false)}
+  >
+    <div
+      className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
+      onClick={(e) => e.stopPropagation()} // Prevent closing modal when clicking inside
+    >
+      {/* Modal Header */}
+      <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
+        <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">
+          Add appointment
+        </h2>
+        <button
+          onClick={() => setIsModalOpen(false)}
+          className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
+        >
+          <X size={18} className="sm:w-5 sm:h-5" />
+        </button>
+      </div>
+
+      {/* Modal Body */}
+      <div className="px-4 sm:px-6 py-4 max-h-[calc(100vh-180px)] overflow-y-auto">
+        <form className="space-y-4">
+          {/* Two Inputs Per Row on Small Screens, One Per Row on Large */}
+          <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-3">
+            {[...Array(4)].map((_, index) => (
+              <div key={index} className="space-y-1.5">
+                <label className="text-sm text-gray-200 block">Input</label>
+                <input
+                  type="text"
+                  placeholder="Input"
+                  className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                />
               </div>
-            </div>
-
-            <div className="px-4 sm:px-6 py-4 max-h-[calc(100vh-180px)] overflow-y-auto">
-              <form className="space-y-4">
-                {["Input", "Input", "Input", "Input"].map((label, index) => (
-                  <div key={index} className="space-y-1.5">
-                    <label className="text-sm text-gray-200 block">{label}</label>
-                    <input
-                      type="text"
-                      placeholder={label}
-                      className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                    />
-                  </div>
-                ))}
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Input</label>
-                  <select className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none">
-                    <option value="">Select</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Input</label>
-                  <div className="flex gap-2 sm:gap-3">
-                    <input
-                      type="text"
-                      placeholder="Input"
-                      className="w-24 sm:w-28 bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Input"
-                      className="flex-1 bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                    />
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <div className="px-4 sm:px-6 py-4 border-t border-gray-800">
-              <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-[#3F74FF] text-sm font-medium text-white rounded-xl sm:rounded-2xl hover:bg-[#3F74FF]/90 transition-colors duration-200"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-black text-red-500 border-2 border-slate-500 rounded-xl sm:rounded-2xl text-sm font-medium hover:bg-slate-900 transition-colors duration-200"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
-      )}
+
+          {/* Select Field */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-gray-200 block">Select</label>
+            <select className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200">
+              <option value="">Select</option>
+            </select>
+          </div>
+        </form>
+      </div>
+
+      {/* Modal Footer */}
+      <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
+        <button
+          type="submit"
+          className="w-full sm:w-auto px-4 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200"
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(false)}
+          className="w-full sm:w-auto px-4 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors duration-200"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
     </div>
   )
 }
