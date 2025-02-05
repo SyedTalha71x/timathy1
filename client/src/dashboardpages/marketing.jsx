@@ -45,8 +45,8 @@ export default function MarketingTable() {
   ]
 
   return (
-    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] p-6">
-      <div className="rounded-xl p-6 w-full overflow-hidden">
+    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] lg:p-6 md:p-5 sm:p-2 p-1">
+      <div className="rounded-xl lg:p-6 md:p-5 sm:p-4 p-4 w-full overflow-hidden">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl oxanium_font text-white">Marketing</h1>
           <button className="flex open_sans_font items-center gap-2 bg-black text-white px-7 py-2 rounded-lg text-sm">

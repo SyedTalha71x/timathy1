@@ -180,7 +180,7 @@ export default function StaffComponent() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
+        <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
           {" "}
           <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
             <div className="p-6">
@@ -194,7 +194,7 @@ export default function StaffComponent() {
                 </button>
               </div>
 
-              <form className="space-y-5">
+              <form className="space-y-3">
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-2xl overflow-hidden mb-4">
                     <img
@@ -208,7 +208,7 @@ export default function StaffComponent() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">
                       First Name
@@ -231,7 +231,7 @@ export default function StaffComponent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-1 gap-4">
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">
                       Email
@@ -258,30 +258,31 @@ export default function StaffComponent() {
                   <label className="text-sm text-gray-200 block mb-2">
                     Input
                   </label>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Input"
+                      className="w-[30%] bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Input"
+                      className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">
+                    Input
+                  </label>
                   <select className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors">
                     <option value="">Select</option>
                   </select>
                 </div>
 
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">
-                    Input
-                  </label>
-                  <div className="flex gap-4">
-                    <input
-                      type="text"
-                      placeholder="Input"
-                      className="w-1/3 bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Input"
-                      className="flex-1 bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                  </div>
-                </div>
+              
 
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="flex flex-row gap-3 pt-2">
                   <button
                     type="submit"
                     className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-3xl hover:bg-[#3F74FF]/90 transition-colors"

@@ -102,15 +102,7 @@ export default function Members() {
                     </div>
                   </div>
 
-                  <div className="">
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Input</label>
-                      <select className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors">
-                        <option value="">Select</option>
-                      </select>
-                    </div>
-                   
-                  </div>
+                
 
                   <div>
                   <div className="w-full">
@@ -120,6 +112,16 @@ export default function Members() {
                         <input type="text" placeholder="Full Width" className="w-2/3 bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors" />
                       </div>
                     </div>
+                  </div>
+
+                  <div className="">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Input</label>
+                      <select className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors">
+                        <option value="">Select</option>
+                      </select>
+                    </div>
+                   
                   </div>
 
                   <div className="flex flex-row gap-3 pt-2">

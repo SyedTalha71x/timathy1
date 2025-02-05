@@ -108,18 +108,20 @@ export default function ContractList() {
 
             <div className="px-4 py-3 max-h-[70vh] overflow-y-auto open_sans_font">
               <form className="space-y-4">
-                {["Input", "Input", "Input", "Input"].map((label, index) => (
-                  <div key={index} className="space-y-1.5">
-                    <label className="text-xs text-gray-200 block pl-1">
-                      {label}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={label}
-                      className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                    />
-                  </div>
-                ))}
+                <div className="grid sm:grid-cols-1 grid-cols-2 gap-4">
+                  {["Input", "Input", "Input", "Input"].map((label, index) => (
+                    <div key={index} className="space-y-1.5">
+                      <label className="text-xs text-gray-200 block pl-1">
+                        {label}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={label}
+                        className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      />
+                    </div>
+                  ))}
+                </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs text-gray-200 block pl-1">
@@ -134,16 +136,16 @@ export default function ContractList() {
                   <label className="text-xs text-gray-200 block pl-1">
                     Input
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     <input
                       type="text"
                       placeholder="Input"
-                      className="w-24 bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      className="w-14 bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                     />
                     <input
                       type="text"
                       placeholder="Input"
-                      className="flex-1 bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                     />
                   </div>
                 </div>
@@ -151,7 +153,7 @@ export default function ContractList() {
             </div>
 
             <div className="px-4 py-3 border-t border-gray-800">
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-2">
                 <button
                   type="submit"
                   className="w-full sm:w-auto px-4 py-2 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200 order-1 sm:order-none"
@@ -168,8 +170,8 @@ export default function ContractList() {
               </div>
             </div>
 
-            <div className="px-4 py-3">
-              <button className="flex gap-2 px-4 py-2 bg-[#F27A30] cursor-pointer hover:bg-[#e06b21] text-white rounded-xl text-sm transition-colors">
+            <div className="px-4 pb-2">
+              <button className="flex gap-2 px-4 py-2  bg-[#F27A30] cursor-pointer hover:bg-[#e06b21] text-white rounded-xl text-sm transition-colors">
                 View Template
               </button>
             </div>
