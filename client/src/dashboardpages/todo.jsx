@@ -149,21 +149,21 @@ export default function TodoApp() {
                       </div>
                       <div className="w-full">
                         <div className="flex flex-col sm:flex-row items-center gap-3">
-                          <button onClick={() => handleViewDetails(task)} className="w-full sm:w-full text-gray-200 border-[1px] border-slate-600 bg-black rounded-xl py-1.5 px-6 hover:text-white text-sm">
+                          <button onClick={() => handleViewDetails(task)} className="w-full sm:w-full cursor-pointer text-gray-200 border-[1px] border-slate-600 bg-black rounded-xl py-1.5 px-6 hover:text-white text-sm">
                             View details
                           </button>
                           <div className="w-full flex flex-col sm:flex-row gap-2">
-                            <button className="w-full sm:w-full flex justify-center items-center bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl text-sm gap-2">
+                            <button className="w-full sm:w-full cursor-pointer flex justify-center items-center bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl text-sm gap-2">
                               <img src={Avatar} alt="" className="w-4 h-4 rounded-full"/>
                               {task.assignee}
                             </button>
-                            <span className="w-full sm:w-full flex justify-center items-center bg-black text-white px-6 py-1 rounded-xl border-[1px] border-slate-600 text-sm">
+                            <span className="w-full sm:w-full cursor-pointer flex justify-center items-center bg-black text-white px-6 py-1 rounded-xl border-[1px] border-slate-600 text-sm">
                               {task.priority}
                             </span>
                           </div>
                           <div className="relative hidden sm:block">
                             <button className="w-full sm:w-auto text-gray-400 hover:text-white dropdown-trigger" onClick={(e) => toggleDropdown(task.id, e)}>
-                              <MoreHorizontal size={20} />
+                              <MoreHorizontal size={20} className="cursor-pointer" />
                             </button>
                             {activeDropdownId === task.id && (
                               <div className="dropdown-menu absolute right-3 top-2 mt-2 w-32 bg-[#1C1C1C] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
@@ -244,10 +244,10 @@ export default function TodoApp() {
               </div>
 
               <div>
-                <label className="text-sm text-gray-200">Double Input</label>
+                <label className="text-sm text-gray-200">Input</label>
                 <div className="flex gap-2">
-                  <input type="text" placeholder="Short" className="w-24 bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
-                  <input type="text" placeholder="Full Width" className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
+                  <input type="text" placeholder="Input" className="w-24 bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
+                  <input type="text" placeholder="Input" className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
                 </div>
               </div>
 

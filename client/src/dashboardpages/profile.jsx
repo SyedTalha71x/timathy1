@@ -90,7 +90,7 @@ function App() {
                   <label htmlFor="phone" className="block text-sm font-medium mb-2">
                     Phone No
                   </label>
-                  <div className="flex gap-4">
+                  <div className="flex gap-2">
                     <input
                       type="text"
                       id="countryCode"
@@ -100,7 +100,7 @@ function App() {
                     <input
                       type="tel"
                       id="phone"
-                      className="flex-1 px-4 py-3 rounded-xl bg-[#101010] border-none outline-none text-sm transition-colors duration-200 focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-xl bg-[#101010] border-none outline-none text-sm transition-colors duration-200 focus:ring-2 focus:ring-blue-500"
                       placeholder="Phone number"
                     />
                   </div>

@@ -47,10 +47,9 @@ export default function Members() {
   };
 
   const toggleDropdown = (id, event) => {
-    event.stopPropagation()
-    setActiveDropdownId(activeDropdownId === id ? null : id)
-  }
-
+    event.stopPropagation();
+    setActiveDropdownId(activeDropdownId === id ? null : id);
+  };
 
   return (
     <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative">
@@ -77,7 +76,7 @@ export default function Members() {
         </div>
 
         {isModalOpen && (
-          <div className="fixed open_sans_font inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
+          <div className="fixed open_sans_font inset-0 cursor-pointer w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
             <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
@@ -160,13 +159,13 @@ export default function Members() {
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Short"
+                          placeholder="Input"
                           className="w-1/3 bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                         />
                         <input
                           type="text"
-                          placeholder="Full Width"
-                          className="w-2/3 bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                          placeholder="Input"
+                          className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                         />
                       </div>
                     </div>
@@ -262,7 +261,7 @@ export default function Members() {
           </div>
         )}
 
-<div className="bg-black rounded-xl open_sans_font p-4 mt-[10%]">
+        <div className="bg-black rounded-xl open_sans_font p-4 mt-[10%]">
           <div className="space-y-3">
             {tasks.map((task) => (
               <div key={task.id} className="bg-[#161616] rounded-xl p-4">
@@ -274,8 +273,12 @@ export default function Members() {
                       alt=""
                     />
                     <div className="min-w-0">
-                      <h3 className="text-white font-medium truncate">{task.title}</h3>
-                      <p className="text-gray-400 text-sm truncate">{task.description}</p>
+                      <h3 className="text-white font-medium truncate">
+                        {task.title}
+                      </h3>
+                      <p className="text-gray-400 text-sm truncate">
+                        {task.description}
+                      </p>
                     </div>
                   </div>
 
@@ -306,7 +309,7 @@ export default function Members() {
                           <button
                             className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
                             onClick={() => {
-                              setActiveDropdownId(null)
+                              setActiveDropdownId(null);
                             }}
                           >
                             Delete

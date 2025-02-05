@@ -105,7 +105,7 @@ export default function Appointments() {
                               className="absolute top-0 right-8 cursor-pointer bg-[#2F2F2F]/10 backdrop-blur-xl"
                               onClick={() => setActiveDropdownId(null)}
                             />
-                            <div className="absolute right-3 top-5 mt-1 w-32 bg-[#1C1C1C] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                            <div className="absolute right-4 top-2 mt-1 w-32 bg-[#1C1C1C] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
                               <button
                                 className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
                                 onClick={() => setActiveDropdownId(null)}
