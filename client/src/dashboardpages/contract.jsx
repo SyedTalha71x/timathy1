@@ -137,7 +137,7 @@ export default function ContractList() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex open_sans_font items-center justify-center z-[1000]">
-          <div className="bg-[#181818] w-full max-w-md mx-4 rounded-2xl overflow-hidden">
+          <div className="bg-[#181818] p-3 w-full max-w-md mx-4 rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-800">
               <div className="flex justify-between items-center">
                 <h2 className="text-base open_sans_font_700 text-white">Add Contract</h2>

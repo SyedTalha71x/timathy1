@@ -1,5 +1,6 @@
 import { MoreHorizontal, X } from "lucide-react"
 import { useState, useEffect } from "react"
+import Avatar from '../../public/avatar.png'
 
 export default function Appointments() {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -78,7 +79,7 @@ export default function Appointments() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                          <img src="/public/avatar.png" alt="" className="w-full h-full rounded-full" />
+                          <img src={Avatar} alt="" className="w-full h-full rounded-full" />
                         </div>
                         <div className="text-white">
                           <p className="font-semibold">{appointment.name}</p>
