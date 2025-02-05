@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MoreHorizontal, X, Bell } from "lucide-react";
 import Staff from "../../public/avatar3.png";
 import Profile from "../../public/avatar3.png";
@@ -8,6 +8,21 @@ export default function StaffComponent() {
   const [isShowDetails, setIsShowDetails] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeDropdownId, setActiveDropdownId] = useState(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        !event.target.closest(".dropdown-trigger") &&
+        !event.target.closest(".dropdown-menu")
+      ) {
+        setActiveDropdownId(null);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const [tasks] = useState([
     {
@@ -64,6 +79,11 @@ export default function StaffComponent() {
     setIsShowDetails(true);
   };
 
+  const toggleDropdown = (taskId, event) => {
+    event.stopPropagation();
+    setActiveDropdownId(activeDropdownId === taskId ? null : taskId);
+  };
+
   return (
     <>
       <div className="flex relative rounded-3xl cursor-pointer bg-[#1C1C1C] text-white">
@@ -98,7 +118,34 @@ export default function StaffComponent() {
               >
                 <div className="relative w-full mb-4">
                   <button className="absolute right-0 top-0 text-gray-400 hover:text-white">
-                    <MoreHorizontal size={20} />
+                    <MoreHorizontal
+                      size={20}
+                      onClick={(e) => toggleDropdown(task.id, e)}
+                    />
+
+                    {activeDropdownId === task.id && (
+                      <div className="dropdown-menu absolute right-3 top-2 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                        <button
+                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveDropdownId(null);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto"></div>
+                        <button
+                          className="w-full px-4 py-2 text-red-500 text-sm  hover:bg-gray-800 text-left"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveDropdownId(null);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </button>
                   <img
                     src={task.image || "/placeholder.svg"}
@@ -147,7 +194,9 @@ export default function StaffComponent() {
           `}
         >
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl sm:text-2xl oxanium_font font-bold">Notifications</h2>
+            <h2 className="text-xl sm:text-2xl oxanium_font font-bold">
+              Notifications
+            </h2>
             <button
               onClick={() => setIsRightSidebarOpen(false)}
               className="lg:hidden p-2 hover:bg-black/20 rounded-full transition-colors"
@@ -169,7 +218,9 @@ export default function StaffComponent() {
                 >
                   <X size={16} />
                 </button>
-                <h3 className="font-semibold open_sans_font_700 mb-2">{notification.heading}</h3>
+                <h3 className="font-semibold open_sans_font_700 mb-2">
+                  {notification.heading}
+                </h3>
                 <p className="text-sm text-zinc-400">
                   {notification.description}
                 </p>
@@ -185,7 +236,9 @@ export default function StaffComponent() {
           <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white text-lg open_sans_font_700">Add Member</h2>
+                <h2 className="text-white text-lg open_sans_font_700">
+                  Add Member
+                </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="text-gray-400 hover:text-white transition-colors"
@@ -279,8 +332,6 @@ export default function StaffComponent() {
                     <option value="">Select</option>
                   </select>
                 </div>
-
-              
 
                 <div className="flex flex-row gap-3 pt-2">
                   <button

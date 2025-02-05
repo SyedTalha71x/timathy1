@@ -44,7 +44,7 @@ export default function Appointments() {
             <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-[#FF843E] open_sans_font text-white w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
+              className="bg-[#FF843E] cursor-pointer open_sans_font text-white w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
             >
               + Add appointment
             </button>
@@ -95,13 +95,13 @@ export default function Appointments() {
                             setActiveDropdownId(activeDropdownId === appointment.id ? null : appointment.id)
                           }}
                         >
-                          <MoreHorizontal size={20} />
+                          <MoreHorizontal size={20} className="cursor-pointer" />
                         </button>
 
                         {activeDropdownId === appointment.id && (
                           <>
-                            <div className="absolute top-0 right-8 cursor-pointer bg-[#2F2F2F]" onClick={() => setActiveDropdownId(null)} />
-                            <div className="absolute right-0 top-full mt-1 w-32 bg-[#1C1C1C] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                            <div className="absolute top-0 right-8 cursor-pointer bg-[#2F2F2F]/10 backdrop-blur-xl" onClick={() => setActiveDropdownId(null)} />
+                            <div className="absolute right-3 top-5 mt-1 w-32 bg-[#1C1C1C] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
                               <button
                                 className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
                                 onClick={() => setActiveDropdownId(null)}
@@ -190,9 +190,8 @@ export default function Appointments() {
   >
     <div
       className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
-      onClick={(e) => e.stopPropagation()} // Prevent closing modal when clicking inside
+      onClick={(e) => e.stopPropagation()} 
     >
-      {/* Modal Header */}
       <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
         <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">
           Add appointment
@@ -205,10 +204,8 @@ export default function Appointments() {
         </button>
       </div>
 
-      {/* Modal Body */}
       <div className="px-4 sm:px-6 py-4 max-h-[calc(100vh-180px)] overflow-y-auto">
         <form className="space-y-4">
-          {/* Two Inputs Per Row on Small Screens, One Per Row on Large */}
           <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-3">
             {[...Array(4)].map((_, index) => (
               <div key={index} className="space-y-1.5">
@@ -222,7 +219,6 @@ export default function Appointments() {
             ))}
           </div>
 
-          {/* Select Field */}
           <div className="space-y-1.5">
             <label className="text-sm text-gray-200 block">Select</label>
             <select className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200">
@@ -232,7 +228,6 @@ export default function Appointments() {
         </form>
       </div>
 
-      {/* Modal Footer */}
       <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
         <button
           type="submit"

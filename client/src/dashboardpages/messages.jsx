@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Menu, X, Search, ThumbsUp, MoreVertical, Star, Mic, Smile } from "lucide-react";
-import image1 from '../../public/Rectangle 27.png'
+import image1 from '../../public/Rectangle 1.png'
 import image2 from '../../public/avatar3.png'
 
 export default function Messages() {
@@ -8,6 +8,36 @@ export default function Messages() {
   const [activeDropdownId, setActiveDropdownId] = useState(null);
   const [showChatDropdown, setShowChatDropdown] = useState(false);
   const [showGroupDropdown, setShowGroupDropdown] = useState(false);
+
+  const dropdownRef = useRef(null);
+  const chatDropdownRef = useRef(null);
+  const groupDropdownRef = useRef(null);
+  const buttonRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && 
+          !dropdownRef.current.contains(event.target) && 
+          !buttonRef.current.contains(event.target)) {
+        setActiveDropdownId(null);
+      }
+
+      if (chatDropdownRef.current && 
+          !chatDropdownRef.current.contains(event.target)) {
+        setShowChatDropdown(false);
+      }
+
+      if (groupDropdownRef.current && 
+          !groupDropdownRef.current.contains(event.target)) {
+        setShowGroupDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const chatList = [
     {
@@ -95,6 +125,7 @@ export default function Messages() {
 
             <div className="relative">
               <button
+                ref={buttonRef}
                 onClick={() => setActiveDropdownId(activeDropdownId ? null : "main")}
                 className="p-2 hover:bg-gray-800 rounded-full"
                 aria-label="More options"
@@ -103,7 +134,7 @@ export default function Messages() {
               </button>
 
               {activeDropdownId === "main" && (
-                <div className="absolute right-5 top-5 cursor-pointer mt-1 w-32 bg-[#2F2F2F] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                <div ref={dropdownRef} className="absolute right-5 top-5 cursor-pointer mt-1 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
                   <button
                     className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
                     onClick={handleNewChat}
@@ -128,7 +159,7 @@ export default function Messages() {
               )}
 
               {showChatDropdown && (
-                <div className="absolute right-5 top-5 w-64 bg-[#2F2F2F] rounded-lg shadow-lg z-20 mt-2">
+                <div ref={chatDropdownRef} className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg shadow-lg z-20 mt-2">
                   <div className="p-3">
                     {[...Array(5)].map((_, index) => (
                       <div key={index} className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
@@ -148,7 +179,7 @@ export default function Messages() {
               )}
 
               {showGroupDropdown && (
-                <div className="absolute right-5 top-5 w-64 bg-[#2F2F2F] rounded-lg shadow-lg z-20 mt-2">
+                <div ref={groupDropdownRef} className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg shadow-lg z-20 mt-2">
                   <div className="p-3">
                     {[...Array(5)].map((_, index) => (
                       <div key={index} className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
