@@ -63,7 +63,7 @@ export default function MarketingTable() {
             <ChevronDown size={16} />
           </button>
           {isDateOpen && (
-            <div className="absolute top-full right-16 z-20 bg-black text-white p-4 rounded-xl mt-2">
+            <div className="absolute top-full right-6 z-20 bg-black text-white p-4 rounded-xl mt-2">
               <DatePicker
                 selected={startDate}
                 onChange={(date) => setStartDate(date)}
