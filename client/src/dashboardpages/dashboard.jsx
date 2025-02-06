@@ -13,7 +13,7 @@ import {
   CheckSquare,
   MessageCircle,
   X,
-  Clock
+  Clock,
 } from "lucide-react";
 import Rectangle1 from "../../public/Rectangle 1.png";
 import Image10 from "../../public/image10.png";
@@ -39,29 +39,39 @@ export default function Dashboard() {
         show: false,
       },
       background: "transparent",
-      fontFamily: 'Inter, sans-serif',
+      fontFamily: "Inter, sans-serif",
     },
     colors: ["#FF843E", "#3F74FF"],
     stroke: {
-      curve: 'smooth',
+      curve: "smooth",
       width: 3,
     },
     markers: {
       size: 0,
     },
     xaxis: {
-      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      categories: [
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ],
       labels: {
         style: {
           colors: "#999999",
-          fontSize: '12px',
+          fontSize: "12px",
         },
       },
       axisBorder: {
-        show: false
+        show: false,
       },
       axisTicks: {
-        show: false
+        show: false,
       },
     },
     yaxis: {
@@ -71,58 +81,65 @@ export default function Dashboard() {
       labels: {
         style: {
           colors: "#999999",
-          fontSize: '12px',
+          fontSize: "12px",
         },
-        formatter: (value) => Math.round(value)
-      }
+        formatter: (value) => Math.round(value),
+      },
     },
     grid: {
+      show: true,
       borderColor: "#333333",
-      strokeDashArray: 3,
+      position: "back",
       xaxis: {
         lines: {
-          show: true
-        }
+          show: true,
+        },
       },
       yaxis: {
         lines: {
-          show: true
-        }
-      }
+          show: true,
+        },
+      },
+      row: {
+        opacity: 0.1,
+      },
+      column: {
+        opacity: 0.1,
+      },
     },
     legend: {
       show: true,
-      position: 'top',
-      horizontalAlign: 'right',
+      position: "top",
+      horizontalAlign: "right",
       offsetY: -60,
       offsetX: -200,
       labels: {
         colors: "#ffffff",
       },
       itemMargin: {
-        horizontal: 10
-      }
+        horizontal: 10,
+      },
     },
     title: {
       text: "User",
-      align: 'left',
+      align: "left",
       style: {
-        fontSize: '16px',
-        fontWeight: 'bold',
-        color: '#ffffff'
-      }
+        fontSize: "16px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      },
     },
     subtitle: {
-      text: "↑ 45% more in 2024",  
-      align: 'left',
+      text: "↑ 45% more in 2024",
+      align: "left",
       style: {
-        fontSize: '12px',
-        color: '#ffffff',
-        fontWeight: 'bolder'
-      }
-    }
+        fontSize: "12px",
+        color: "#ffffff",
+        fontWeight: "bolder",
+      },
+    },
   };
-  
+
   const chartSeries = [
     {
       name: "Comp1",
@@ -169,7 +186,7 @@ export default function Dashboard() {
             </div>
 
             <div className="p-4 md:p-6 bg-[#2F2F2F] rounded-3xl overflow-hidden">
-              <div className="w-full max-w-full ">
+              <div className="w-full lg:w-auto lg:min-w-0 min-w-[800px] overflow-x-auto lg:overflow-x-visible">
                 <div className="min-w-[300px]">
                   <Chart
                     options={chartOptions}
@@ -217,9 +234,9 @@ export default function Dashboard() {
                           {appointment.name}
                         </h3>
                         <p className="text-xs flex gap-1 items-center md:text-sm text-white/70">
-                        <div>
-                          <Clock size={15} />
-                        </div>
+                          <div>
+                            <Clock size={15} />
+                          </div>
                           {appointment.time} | {appointment.date}
                         </p>
                       </div>
@@ -258,7 +275,9 @@ export default function Dashboard() {
 
           <div className="mb-8 mt-8 lg:mt-0">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl open_sans_font_700">Messages</h2>
+              <h2 className="text-lg md:text-xl open_sans_font_700">
+                Messages
+              </h2>
             </div>
             <div className="space-y-4">
               {[1, 2].map((message) => (
@@ -299,7 +318,9 @@ export default function Dashboard() {
           </div>
 
           <div>
-            <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 mb-4">TO-DO</h2>
+            <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 mb-4">
+              TO-DO
+            </h2>
             <div className="space-y-4 open_sans_font">
               {[1, 2, 3].map((task) => (
                 <div
@@ -307,7 +328,9 @@ export default function Dashboard() {
                   className="p-3 md:p-4 bg-black rounded-xl flex items-center justify-between"
                 >
                   <div>
-                    <h3 className="font-semibold open_sans_font text-sm md:text-base">Task</h3>
+                    <h3 className="font-semibold open_sans_font text-sm md:text-base">
+                      Task
+                    </h3>
                     <p className="text-xs open_sans_font md:text-sm text-zinc-400">
                       Description
                     </p>
