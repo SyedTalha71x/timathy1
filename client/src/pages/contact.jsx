@@ -24,7 +24,7 @@ export default function ContactSection() {
         </div>
 
         <div className="relative mx-auto max-w-[1000px] h-[600px]">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-xl overflow-hidden transform origin-right hidden md:block">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-xl overflow-hidden transform origin-right hidden md:block bg-[#1C1C1C]">
             {/* Dumbbell icon */}
             <div className="absolute top-2 left-2 w-62 h-62 -z-20">
               <img
@@ -33,13 +33,10 @@ export default function ContactSection() {
                 className="w-full h-full object-contain opacity-50"
               />
             </div>
-            {/* Multiple gradient layers for depth */}
-            <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-transparent to-black/30 z-10" />
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/50 via-transparent to-black/30 z-10" />
             <img
               src={Image || "/placeholder.svg"}
               alt="Fitness trainers"
-              className="h-full w-full object-cover brightness-110 "
+              className="h-full w-full object-cover brightness-110"
             />
           </div>
 
