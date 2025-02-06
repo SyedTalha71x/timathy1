@@ -186,8 +186,8 @@ export default function Dashboard() {
             </div>
 
             <div className="p-4 md:p-6 bg-[#2F2F2F] rounded-3xl overflow-hidden">
-              <div className="w-full lg:w-auto lg:min-w-0 min-w-[800px] overflow-x-auto lg:overflow-x-visible">
-                <div className="min-w-[300px]">
+              <div className="w-full overflow-x-auto custom-scrollbar">
+                <div className="min-w-[800px]">
                   <Chart
                     options={chartOptions}
                     series={chartSeries}

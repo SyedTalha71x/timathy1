@@ -237,3 +237,25 @@ html, body {
   font-weight: 700;
   font-style: normal;
 }
+
+@media (max-width: 768px) {
+  .custom_scrollbar {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #6b7280 #374151; /* Light Dark Gray */
+  }
+
+  /* Scrollbar for Webkit Browsers (Chrome, Safari) */
+  .custom_scrollbar::-webkit-scrollbar {
+    height: 6px; /* Thin scrollbar */
+  }
+
+  .custom_scrollbar::-webkit-scrollbar-thumb {
+    background-color: #6b7280; /* Light Dark Gray */
+    border-radius: 4px;
+  }
+
+  .custom_scrollbar::-webkit-scrollbar-track {
+    background-color: #374151; /* Slightly Darker Gray */
+  }
+}
