@@ -64,7 +64,7 @@ const Calendar = () => {
           <div className="absolute inset-0">
             {hours.map((hour) => (
               <div key={hour} className="relative h-[60px] border-t border-gray-800 border-dashed">
-                <span className="absolute -top-3 -left-8 text-gray-400 text-xs">{hour}</span>
+                <span className="absolute -top-3 -left-10 text-gray-400 text-xs">{hour}</span>
               </div>
             ))}
           </div>
@@ -74,7 +74,7 @@ const Calendar = () => {
             return (
               <div
                 key={event.id}
-                className={`absolute rounded-2xl ${event.color} p-3 overflow-hidden`}
+                className={`absolute rounded-2xl  ${event.color} lg:p-2 p-1 overflow-hidden`}
                 style={{
                   top: `${top}px`,
                   height: `${height}px`,
