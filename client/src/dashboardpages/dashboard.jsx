@@ -13,6 +13,7 @@ import {
   CheckSquare,
   MessageCircle,
   X,
+  Clock
 } from "lucide-react";
 import Rectangle1 from "../../public/Rectangle 1.png";
 import Image10 from "../../public/image10.png";
@@ -38,53 +39,46 @@ export default function Dashboard() {
         show: false,
       },
       background: "transparent",
-      responsive: [
-        {
-          breakpoint: 480,
-          options: {
-            chart: {
-              height: 250,
-            },
-            xaxis: {
-              labels: {
-                rotate: -45,
-                style: {
-                  fontSize: "10px",
-                },
-              },
-            },
-          },
-        },
-      ],
+      fontFamily: 'Inter, sans-serif',
     },
-    colors: ["#1E90FF", "#FFA500"],
+    colors: ["#FF843E", "#3F74FF"],
     stroke: {
       curve: 'smooth',
-      width: 3
+      width: 3,
     },
     markers: {
-      size: 5,
-      hover: {
-        size: 7
-      }
+      size: 0,
     },
     xaxis: {
-      categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       labels: {
         style: {
-          colors: "#fff",
+          colors: "#999999",
+          fontSize: '12px',
         },
+      },
+      axisBorder: {
+        show: false
+      },
+      axisTicks: {
+        show: false
       },
     },
     yaxis: {
+      min: 0,
+      max: 500,
+      tickAmount: 5,
       labels: {
         style: {
-          colors: "#fff",
+          colors: "#999999",
+          fontSize: '12px',
         },
-      },
+        formatter: (value) => Math.round(value)
+      }
     },
     grid: {
-      borderColor: "#333",
+      borderColor: "#333333",
+      strokeDashArray: 3,
       xaxis: {
         lines: {
           show: true
@@ -97,26 +91,46 @@ export default function Dashboard() {
       }
     },
     legend: {
+      show: true,
+      position: 'top',
+      horizontalAlign: 'right',
+      offsetY: -60,
+      offsetX: -200,
       labels: {
-        colors: "#fff",
+        colors: "#ffffff",
       },
-      position: "top",
-      horizontalAlign: "left",
-      floating: true,
+      itemMargin: {
+        horizontal: 10
+      }
     },
-    theme: {
-      mode: "dark",
+    title: {
+      text: "User",
+      align: 'left',
+      style: {
+        fontSize: '16px',
+        fontWeight: 'bold',
+        color: '#ffffff'
+      }
+    },
+    subtitle: {
+      text: "↑ 45% more in 2024",  
+      align: 'left',
+      style: {
+        fontSize: '12px',
+        color: '#ffffff',
+        fontWeight: 'bolder'
+      }
     }
   };
-
+  
   const chartSeries = [
     {
       name: "Comp1",
-      data: [30, 40, 45, 50, 49, 60],
+      data: [50, 280, 200, 450, 250, 400, 300, 200, 450],
     },
     {
       name: "Comp2",
-      data: [20, 30, 35, 40, 38, 50],
+      data: [100, 150, 200, 100, 150, 300, 400, 100, 400],
     },
   ];
 
@@ -154,8 +168,8 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <div className="p-4 md:p-6 bg-zinc-800 rounded-xl overflow-hidden">
-              <div className="w-full max-w-full overflow-x-auto">
+            <div className="p-4 md:p-6 bg-[#2F2F2F] rounded-3xl overflow-hidden">
+              <div className="w-full max-w-full ">
                 <div className="min-w-[300px]">
                   <Chart
                     options={chartOptions}
@@ -202,7 +216,10 @@ export default function Dashboard() {
                         <h3 className="font-semibold text-sm md:text-base">
                           {appointment.name}
                         </h3>
-                        <p className="text-xs md:text-sm text-white/70">
+                        <p className="text-xs flex gap-1 items-center md:text-sm text-white/70">
+                        <div>
+                          <Clock size={15} />
+                        </div>
                           {appointment.time} | {appointment.date}
                         </p>
                       </div>
@@ -263,7 +280,10 @@ export default function Dashboard() {
                       Hey! Did you think the NFT marketplace for Alice app
                       design?
                     </p>
-                    <p className="text-xs mt-2 open_sans_font text-zinc-400">
+                    <p className="text-xs mt-2 flex gap-1 items-center open_sans_font text-zinc-400">
+                      <div>
+                        <Clock size={15} />
+                      </div>
                       Today | 05:30 PM
                     </p>
                   </div>

@@ -1,4 +1,4 @@
-import { MoreHorizontal, X } from "lucide-react"
+import { MoreHorizontal, X , Clock} from "lucide-react"
 import { useState, useEffect } from "react"
 import Avatar from "../../public/avatar.png"
 import Calendar from "../components/calender"
@@ -111,7 +111,10 @@ export default function Appointments() {
                         </div>
                         <div className="text-white">
                           <p className="font-semibold">{appointment.name}</p>
-                          <p className="text-sm opacity-80">
+                          <p className="text-sm flex gap-1 items-center opacity-80">
+                            <div>
+                              <Clock size={15} />
+                            </div>
                             {appointment.time} | {appointment.date}
                           </p>
                         </div>

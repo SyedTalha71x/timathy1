@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, Search, ThumbsUp, MoreVertical, Star, Mic, Smile } from "lucide-react";
-import image1 from '../../public/Rectangle 1.png'
-import image2 from '../../public/avatar3.png'
+import {
+  Menu,
+  X,
+  Search,
+  ThumbsUp,
+  MoreVertical,
+  Star,
+  Mic,
+  Smile,
+  Clock,
+} from "lucide-react";
+import image1 from "../../public/Rectangle 1.png";
+import image2 from "../../public/avatar3.png";
 
 export default function Messages() {
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
@@ -16,26 +26,32 @@ export default function Messages() {
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && 
-          !dropdownRef.current.contains(event.target) && 
-          !buttonRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        !buttonRef.current.contains(event.target)
+      ) {
         setActiveDropdownId(null);
       }
 
-      if (chatDropdownRef.current && 
-          !chatDropdownRef.current.contains(event.target)) {
+      if (
+        chatDropdownRef.current &&
+        !chatDropdownRef.current.contains(event.target)
+      ) {
         setShowChatDropdown(false);
       }
 
-      if (groupDropdownRef.current && 
-          !groupDropdownRef.current.contains(event.target)) {
+      if (
+        groupDropdownRef.current &&
+        !groupDropdownRef.current.contains(event.target)
+      ) {
         setShowGroupDropdown(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -45,33 +61,33 @@ export default function Messages() {
       time: "Today | 05:30 PM",
       active: true,
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image1
+      logo: image1,
     },
     {
       name: "Group 1",
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image2
+      logo: image2,
     },
     {
       name: "Jerry Haffer",
       time: "Today | 05:30 PM",
       verified: true,
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image1
+      logo: image1,
     },
     {
       name: "David Eison",
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image2
+      logo: image2,
     },
     {
       name: "Mary Freund",
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image2
-    }
+      logo: image2,
+    },
   ];
 
   const handleNewChat = () => {
@@ -98,7 +114,9 @@ export default function Messages() {
 
       <div
         className={`fixed md:relative inset-y-0 left-0 md:w-[380px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${
-          isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          isMessagesOpen
+            ? "translate-x-0"
+            : "-translate-x-full md:translate-x-0"
         } bg-black z-40`}
       >
         <div className="p-4 h-full flex flex-col">
@@ -126,7 +144,9 @@ export default function Messages() {
             <div className="relative">
               <button
                 ref={buttonRef}
-                onClick={() => setActiveDropdownId(activeDropdownId ? null : "main")}
+                onClick={() =>
+                  setActiveDropdownId(activeDropdownId ? null : "main")
+                }
                 className="p-2 hover:bg-gray-800 rounded-full"
                 aria-label="More options"
               >
@@ -134,7 +154,10 @@ export default function Messages() {
               </button>
 
               {activeDropdownId === "main" && (
-                <div ref={dropdownRef} className="absolute right-5 top-5 cursor-pointer mt-1 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                <div
+                  ref={dropdownRef}
+                  className="absolute right-5 top-5 cursor-pointer mt-1 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10"
+                >
                   <button
                     className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
                     onClick={handleNewChat}
@@ -159,16 +182,26 @@ export default function Messages() {
               )}
 
               {showChatDropdown && (
-                <div ref={chatDropdownRef} className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg shadow-lg z-20 mt-2">
+                <div
+                  ref={chatDropdownRef}
+                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg shadow-lg z-20 mt-2"
+                >
                   <div className="p-3">
                     {[...Array(5)].map((_, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
-                        <img src={image1} alt="User" className="w-8 h-8 rounded-full" />
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-lg cursor-pointer"
+                      >
+                        <img
+                          src={image1}
+                          alt="User"
+                          className="w-8 h-8 rounded-full"
+                        />
                         <span className="text-sm">Jennifer Markus</span>
                         <input type="checkbox" className="ml-auto" />
                       </div>
                     ))}
-                    <button 
+                    <button
                       className="w-full mt-2 py-1.5 text-sm px-4 cursor-pointer bg-[#FF843E] text-white rounded-full hover:bg-orange-600"
                       onClick={() => setShowChatDropdown(false)}
                     >
@@ -179,16 +212,26 @@ export default function Messages() {
               )}
 
               {showGroupDropdown && (
-                <div ref={groupDropdownRef} className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg shadow-lg z-20 mt-2">
+                <div
+                  ref={groupDropdownRef}
+                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg shadow-lg z-20 mt-2"
+                >
                   <div className="p-3">
                     {[...Array(5)].map((_, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
-                        <img src={image1} alt="User" className="w-8 h-8 rounded-full" />
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-lg cursor-pointer"
+                      >
+                        <img
+                          src={image1}
+                          alt="User"
+                          className="w-8 h-8 rounded-full"
+                        />
                         <span className="text-sm">Jennifer Markus</span>
                         <input type="checkbox" className="ml-auto" />
                       </div>
                     ))}
-                    <button 
+                    <button
                       className="w-full mt-2 py-1.5 text-sm px-4 cursor-pointer bg-[#FF843E] text-white rounded-full hover:bg-orange-600"
                       onClick={() => setShowGroupDropdown(false)}
                     >
@@ -213,8 +256,8 @@ export default function Messages() {
             {chatList.map((chat, index) => (
               <div
                 key={index}
-                className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-lg ${
-                  chat.active ? "bg-gray-800" : "hover:bg-gray-800/50"
+                className={`flex items-start gap-3 p-5 border-b border-slate-700 rounded-lg ${
+                  chat.active ? "bg-[#181818]" : "hover:bg-[#181818]"
                 } cursor-pointer`}
               >
                 <div>
@@ -240,7 +283,10 @@ export default function Messages() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <p className="truncate">{chat.message}</p>
-                    <span className="flex-shrink-0">{chat.time}</span>
+                  </div>
+                  <div className="flex mt-1 text-gray-400 items-center gap-1">
+                    <Clock size={15} />
+                    <span className=" text-sm text-gray-400">{chat.time}</span>
                   </div>
                 </div>
               </div>
@@ -269,10 +315,16 @@ export default function Messages() {
             <span className="font-medium">Jennifer Markus</span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="text-blue-500 hover:text-blue-400" aria-label="Star conversation">
+            <button
+              className="text-blue-500 hover:text-blue-400"
+              aria-label="Star conversation"
+            >
               <Star className="w-5 h-5" />
             </button>
-            <button className="hover:text-gray-300" aria-label="Search conversation">
+            <button
+              className="hover:text-gray-300"
+              aria-label="Search conversation"
+            >
               <Search className="w-5 h-5" />
             </button>
           </div>
@@ -302,7 +354,10 @@ export default function Messages() {
 
         <div className="p-4 border-t border-gray-800">
           <div className="flex items-center gap-2 bg-black rounded-lg p-2">
-            <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Add emoji">
+            <button
+              className="p-2 hover:bg-gray-700 rounded-full"
+              aria-label="Add emoji"
+            >
               <Smile className="w-5 h-5 text-gray-200" />
             </button>
             <input
@@ -311,10 +366,16 @@ export default function Messages() {
               className="flex-1 bg-transparent focus:outline-none text-sm min-w-0"
             />
             <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Voice message">
+              <button
+                className="p-2 hover:bg-gray-700 rounded-full"
+                aria-label="Voice message"
+              >
                 <Mic className="w-5 h-5 text-gray-200" />
               </button>
-              <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Send thumbs up">
+              <button
+                className="p-2 hover:bg-gray-700 rounded-full"
+                aria-label="Send thumbs up"
+              >
                 <ThumbsUp className="w-5 h-5 text-gray-200" />
               </button>
             </div>
