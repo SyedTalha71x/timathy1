@@ -32,7 +32,7 @@ export default function Dashboard() {
 
   const chartOptions = {
     chart: {
-      type: "bar",
+      type: "line",
       height: 300,
       toolbar: {
         show: false,
@@ -44,11 +44,6 @@ export default function Dashboard() {
           options: {
             chart: {
               height: 250,
-            },
-            plotOptions: {
-              bar: {
-                columnWidth: "70%",
-              },
             },
             xaxis: {
               labels: {
@@ -63,12 +58,15 @@ export default function Dashboard() {
       ],
     },
     colors: ["#1E90FF", "#FFA500"],
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: "50%",
-        borderRadius: 5,
-      },
+    stroke: {
+      curve: 'smooth',
+      width: 3
+    },
+    markers: {
+      size: 5,
+      hover: {
+        size: 7
+      }
     },
     xaxis: {
       categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
@@ -87,6 +85,16 @@ export default function Dashboard() {
     },
     grid: {
       borderColor: "#333",
+      xaxis: {
+        lines: {
+          show: true
+        }
+      },
+      yaxis: {
+        lines: {
+          show: true
+        }
+      }
     },
     legend: {
       labels: {
@@ -98,7 +106,7 @@ export default function Dashboard() {
     },
     theme: {
       mode: "dark",
-    },
+    }
   };
 
   const chartSeries = [
@@ -131,7 +139,7 @@ export default function Dashboard() {
                 >
                   <BarChart3 />
                 </button>
-                <h1 className="text-xl md:text-2xl oxanium_font ">Dashboard</h1>
+                <h1 className="text-xl md:text-2xl oxanium_font">Dashboard</h1>
               </div>
               <button
                 onClick={toggleRightSidebar}
@@ -146,23 +154,21 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {/* Chart Section */}
             <div className="p-4 md:p-6 bg-zinc-800 rounded-xl overflow-hidden">
               <div className="w-full max-w-full overflow-x-auto">
                 <div className="min-w-[300px]">
                   <Chart
                     options={chartOptions}
                     series={chartSeries}
-                    type="bar"
+                    type="line"
                     height={300}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Appointments Section */}
             <div>
-              <h2 className="text-lg md:text-xl open_sans_font_700  mb-4">
+              <h2 className="text-lg md:text-xl open_sans_font_700 mb-4">
                 Appointment
               </h2>
               <div className="space-y-4">
@@ -212,7 +218,6 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* Right Sidebar with Scrolling */}
       <aside
         className={`
         fixed top-0 right-0 bottom-0 w-[85vw] sm:w-80 lg:w-80 bg-[#181818] z-50 
@@ -248,7 +253,7 @@ export default function Dashboard() {
                       className="rounded-full h-10 w-10 md:h-12 md:w-12"
                     />
                     <div>
-                      <h3 className=" open_sans_font text-sm md:text-base">
+                      <h3 className="open_sans_font text-sm md:text-base">
                         Jennifer Markus
                       </h3>
                     </div>

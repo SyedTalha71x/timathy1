@@ -7,6 +7,25 @@ export default function Appointments() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  
+  // Get the dates for previous, current and next month
+  const currentDate = new Date(2025, 1) // February 2025
+  const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
+  const lastDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
+  const prevMonthLastDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate()
+  
+  // Calculate previous month dates
+  const prevMonthDays = firstDay === 0 ? 6 : firstDay - 1
+  const prevDates = Array.from({ length: prevMonthDays }, (_, i) => prevMonthLastDate - prevMonthDays + i + 1)
+  
+  // Current month dates
+  const currentDates = Array.from({ length: lastDate }, (_, i) => i + 1)
+  
+  const totalDaysNeeded = 42 // 6 rows * 7 days
+  const nextMonthDays = totalDaysNeeded - (prevDates.length + currentDates.length)
+  const nextDates = Array.from({ length: nextMonthDays }, (_, i) => i + 1)
+
+  const calendarDates = [...prevDates, ...currentDates, ...nextDates]
 
   const appointments = [
     {
@@ -56,15 +75,24 @@ export default function Appointments() {
             <div className="bg-[#000000] rounded-xl p-4">
                 <div className="mb-4">
                   <h2 className="text-white mb-4">Month 2000</h2>
-                  <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-400">
+                  <div className="grid grid-cols-7 gap-4 text-center text-xs">
                     {days.map((day) => (
-                      <div key={day}>{day}</div>
+                      <div key={day} className="text-gray-400 mb-2">{day}</div>
                     ))}
-                    {Array.from({ length: 35 }, (_, i) => (
-                      <div key={i} className="aspect-square flex items-center justify-center text-gray-400 text-sm">
-                        {i + 1}
-                      </div>
-                    ))}
+                    {calendarDates.map((date, i) => {
+                      const isPrevMonth = i < prevDates.length
+                      const isNextMonth = i >= prevDates.length + currentDates.length
+                      return (
+                        <div
+                          key={i}
+                          className={`aspect-square flex items-center justify-center text-sm
+                            ${isPrevMonth || isNextMonth ? 'text-gray-600' : 'text-white'}
+                          `}
+                        >
+                          {date}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
