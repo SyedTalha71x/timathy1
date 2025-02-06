@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css"; // Import styles for the date picker
+import { useState } from "react"
+import { ChevronDown } from "lucide-react"
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css" // Import styles for the date picker
+import "../customCss/marketing-table-style.css"
 
 export default function MarketingTable() {
-  const [isDateOpen, setIsDateOpen] = useState(false);
-  const [startDate, setStartDate] = useState(new Date());
-  
+  const [isDateOpen, setIsDateOpen] = useState(false)
+  const [startDate, setStartDate] = useState(new Date())
+
   const campaigns = [
     {
       id: 1,
@@ -48,7 +49,7 @@ export default function MarketingTable() {
       cpc: { value: "$0.01", label: "Per click" },
       time: { value: "May 12 2024 - May 20 2024", label: "7 days" },
     },
-  ];
+  ]
 
   return (
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] lg:p-6 md:p-5 sm:p-2 p-1">
@@ -69,7 +70,6 @@ export default function MarketingTable() {
                 onChange={(date) => setStartDate(date)}
                 inline
                 dateFormat="MMM dd, yyyy"
-                className="text-white bg-black rounded-xl"
               />
             </div>
           )}
@@ -87,10 +87,7 @@ export default function MarketingTable() {
 
             <div className="space-y-4 open_sans_font">
               {campaigns.map((campaign) => (
-                <div
-                  key={campaign.id}
-                  className="grid grid-cols-5 bg-[#141414] rounded-xl p-4"
-                >
+                <div key={campaign.id} className="grid grid-cols-5 bg-[#141414] rounded-xl p-4">
                   <div>
                     <span className="text-white">{campaign.name}</span>
                   </div>
@@ -117,5 +114,6 @@ export default function MarketingTable() {
         </div>
       </div>
     </div>
-  );
+  )
 }
+

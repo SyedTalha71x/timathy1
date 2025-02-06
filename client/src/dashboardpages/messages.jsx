@@ -1,60 +1,77 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  Menu,
-  X,
-  Search,
-  ThumbsUp,
-  MoreVertical,
-  Star,
-  Mic,
-  Smile,
-  Clock,
-  PlusCircle,
-} from "lucide-react";
-import image1 from "../../public/Rectangle 1.png";
-import image2 from "../../public/avatar3.png";
+/* eslint-disable no-unused-vars */
+import { useState, useEffect, useRef } from "react"
+import { Menu, X, Search, ThumbsUp, MoreVertical, Star, Mic, Smile, Clock, PlusCircle } from "lucide-react"
+import image1 from "../../public/Rectangle 1.png"
+import image2 from "../../public/avatar3.png"
+import gsap from "gsap"
+import '../customCss/marketing-table-style.css'
 
 export default function Messages() {
-  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
-  const [activeDropdownId, setActiveDropdownId] = useState(null);
-  const [showChatDropdown, setShowChatDropdown] = useState(false);
-  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
+  const [isMessagesOpen, setIsMessagesOpen] = useState(false)
+  const [activeDropdownId, setActiveDropdownId] = useState(null)
+  const [showChatDropdown, setShowChatDropdown] = useState(false)
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
-  const dropdownRef = useRef(null);
-  const chatDropdownRef = useRef(null);
-  const groupDropdownRef = useRef(null);
-  const buttonRef = useRef(null);
+  const inputRef = useRef(null)
+  const searchInputRef = useRef(null)
+  const dropdownRef = useRef(null)
+  const chatDropdownRef = useRef(null)
+  const groupDropdownRef = useRef(null)
+  const buttonRef = useRef(null)
+
+  const handleSearchClick = () => {
+    setIsSearchOpen(!isSearchOpen)
+  }
+
+  useEffect(() => {
+    if (searchInputRef.current) {
+      gsap.to(searchInputRef.current, {
+        width: isSearchOpen ? 200 : 0,
+        opacity: isSearchOpen ? 1 : 0,
+        duration: 0.3,
+        ease: "power2.inOut",
+      })
+    }
+  }, [isSearchOpen])
 
   useEffect(() => {
     function handleClickOutside(event) {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target) &&
+        buttonRef.current &&
         !buttonRef.current.contains(event.target)
       ) {
-        setActiveDropdownId(null);
+        setActiveDropdownId(null)
       }
 
-      if (
-        chatDropdownRef.current &&
-        !chatDropdownRef.current.contains(event.target)
-      ) {
-        setShowChatDropdown(false);
+      if (chatDropdownRef.current && !chatDropdownRef.current.contains(event.target)) {
+        setShowChatDropdown(false)
       }
 
-      if (
-        groupDropdownRef.current &&
-        !groupDropdownRef.current.contains(event.target)
-      ) {
-        setShowGroupDropdown(false);
+      if (groupDropdownRef.current && !groupDropdownRef.current.contains(event.target)) {
+        setShowGroupDropdown(false)
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+  const handleNewChat = () => {
+    setShowChatDropdown(true)
+    setShowGroupDropdown(false)
+    setActiveDropdownId(null)
+  }
+
+  const handleNewGroup = () => {
+    setShowGroupDropdown(true)
+    setShowChatDropdown(false)
+    setActiveDropdownId(null)
+  }
 
   const chatList = [
     {
@@ -89,19 +106,7 @@ export default function Messages() {
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
       logo: image2,
     },
-  ];
-
-  const handleNewChat = () => {
-    setShowChatDropdown(true);
-    setShowGroupDropdown(false);
-    setActiveDropdownId(null);
-  };
-
-  const handleNewGroup = () => {
-    setShowGroupDropdown(true);
-    setShowChatDropdown(false);
-    setActiveDropdownId(null);
-  };
+  ]
 
   return (
     <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
@@ -115,9 +120,7 @@ export default function Messages() {
 
       <div
         className={`fixed md:relative inset-y-0 left-0 md:w-[380px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${
-          isMessagesOpen
-            ? "translate-x-0"
-            : "-translate-x-full md:translate-x-0"
+          isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } bg-black z-40`}
       >
         <div className="p-4 h-full flex flex-col">
@@ -134,9 +137,7 @@ export default function Messages() {
 
           <div className="flex gap-2 items-center justify-between mb-4">
             <div className="flex gap-2">
-              <button className="px-6 py-2 text-sm bg-white text-black rounded-xl">
-                All
-              </button>
+              <button className="px-6 py-2 text-sm bg-white text-black rounded-xl">All</button>
               <button className="px-6 py-2 text-sm text-gray-200 border border-slate-300 hover:bg-gray-800 rounded-xl">
                 Unread
               </button>
@@ -145,9 +146,7 @@ export default function Messages() {
             <div className="relative">
               <button
                 ref={buttonRef}
-                onClick={() =>
-                  setActiveDropdownId(activeDropdownId ? null : "main")
-                }
+                onClick={() => setActiveDropdownId(activeDropdownId ? null : "main")}
                 className="p-2 hover:bg-gray-800 rounded-full"
                 aria-label="More options"
               >
@@ -166,10 +165,7 @@ export default function Messages() {
                     New Chat
                   </button>
                   <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto" />
-                  <button
-                    className="w-full px-4 py-2 text-sm hover:bg-gray-800 text-left"
-                    onClick={handleNewGroup}
-                  >
+                  <button className="w-full px-4 py-2 text-sm hover:bg-gray-800 text-left" onClick={handleNewGroup}>
                     New Group
                   </button>
                   <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto" />
@@ -193,11 +189,7 @@ export default function Messages() {
                         key={index}
                         className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl  cursor-pointer"
                       >
-                        <img
-                          src={image1}
-                          alt="User"
-                          className="w-8 h-8 rounded-full"
-                        />
+                        <img src={image1 || "/placeholder.svg"} alt="User" className="w-8 h-8 rounded-full" />
                         <span className="text-sm">Jennifer Markus</span>
                         <input type="checkbox" className="ml-auto" />
                       </div>
@@ -223,11 +215,7 @@ export default function Messages() {
                         key={index}
                         className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl  cursor-pointer"
                       >
-                        <img
-                          src={image1}
-                          alt="User"
-                          className="w-8 h-8 rounded-full"
-                        />
+                        <img src={image1 || "/placeholder.svg"} alt="User" className="w-8 h-8 rounded-full" />
                         <span className="text-sm">Jennifer Markus</span>
                         <input type="checkbox" className="ml-auto" />
                       </div>
@@ -263,7 +251,7 @@ export default function Messages() {
               >
                 <div>
                   <img
-                    src={chat.logo}
+                    src={chat.logo || "/placeholder.svg"}
                     className="h-10 w-10 rounded-full"
                     alt={`${chat.name}'s avatar`}
                   />
@@ -308,7 +296,7 @@ export default function Messages() {
             </button>
             <div>
               <img
-                src={image1}
+                src={image1 || "/placeholder.svg"}
                 className="h-12 w-12 rounded-full object-center"
                 alt="Current chat avatar"
               />
@@ -316,18 +304,25 @@ export default function Messages() {
             <span className="font-medium">Jennifer Markus</span>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              className="text-blue-500 hover:text-blue-400"
-              aria-label="Star conversation"
-            >
+            <button className="text-blue-500 hover:text-blue-400" aria-label="Star conversation">
               <Star className="w-5 h-5" />
             </button>
-            <button
-              className="hover:text-gray-300"
-              aria-label="Search conversation"
-            >
-              <Search className="w-5 h-5" />
-            </button>
+            <div className="relative flex items-center">
+              <button className="hover:text-gray-300 z-10" aria-label="Search conversation" onClick={handleSearchClick}>
+                <Search className="w-5 h-5" />
+              </button>
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search..."
+                className="absolute right-0 bg-gray-800 text-white rounded-md py-1 px-2 text-sm focus:outline-none search-input-animation"
+                style={{
+                  width: isSearchOpen ? 200 : 0,
+                  opacity: isSearchOpen ? 1 : 0,
+                  visibility: isSearchOpen ? "visible" : "hidden",
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -355,10 +350,7 @@ export default function Messages() {
 
         <div className="p-4 border-t border-gray-800">
           <div className="flex items-center gap-2 bg-black rounded-xl p-2">
-            <button
-              className="p-2 hover:bg-gray-700 rounded-full"
-              aria-label="Add emoji"
-            >
+            <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Add emoji">
               <Smile className="w-5 h-5 text-gray-200" />
             </button>
             <input
@@ -370,16 +362,10 @@ export default function Messages() {
               <button>
                 <PlusCircle size={20} className="cursor-pointer" />
               </button>
-              <button
-                className="p-2 hover:bg-gray-700 rounded-full"
-                aria-label="Voice message"
-              >
+              <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Voice message">
                 <Mic className="w-5 h-5 text-gray-200" />
               </button>
-              <button
-                className="p-2 hover:bg-gray-700 rounded-full"
-                aria-label="Send thumbs up"
-              >
+              <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Send thumbs up">
                 <ThumbsUp className="w-5 h-5 text-gray-200" />
               </button>
             </div>
@@ -387,5 +373,6 @@ export default function Messages() {
         </div>
       </div>
     </div>
-  );
+  )
 }
+
