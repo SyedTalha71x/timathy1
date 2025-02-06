@@ -209,7 +209,7 @@ export default function ContractList() {
             </div>
 
             <div className="px-4 pb-2">
-              <button className="flex gap-2 w-full sm:w-auto px-4 py-2 bg-[#F27A30] cursor-pointer hover:bg-[#e06b21] text-white rounded-xl text-sm transition-colors">
+              <button className="flex gap-2 w-full text-center sm:w-auto px-4 py-2 bg-[#F27A30] cursor-pointer hover:bg-[#e06b21] text-white rounded-xl text-sm transition-colors">
                 View Template
               </button>
             </div>
