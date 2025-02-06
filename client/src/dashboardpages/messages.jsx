@@ -256,7 +256,7 @@ export default function Messages() {
             {chatList.map((chat, index) => (
               <div
                 key={index}
-                className={`flex items-start gap-3 p-5 border-b border-slate-700 rounded-lg ${
+                className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-lg ${
                   chat.active ? "bg-[#181818]" : "hover:bg-[#181818]"
                 } cursor-pointer`}
               >
