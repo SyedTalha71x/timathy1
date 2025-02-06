@@ -64,7 +64,7 @@ export default function Appointments() {
             <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-[#FF843E] cursor-pointer open_sans_font text-white w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
+              className="bg-[#FF843E] cursor-pointer open_sans_font text-white w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl  text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
             >
               + Add appointment
             </button>
@@ -197,7 +197,7 @@ export default function Appointments() {
                       <input
                         type="text"
                         placeholder="Input"
-                        className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                        className="w-full bg-[#101010] text-sm rounded-xl  px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                       />
                     </div>
                   ))}
@@ -205,7 +205,7 @@ export default function Appointments() {
 
                 <div className="space-y-1.5">
                   <label className="text-sm text-gray-200 block">Select</label>
-                  <select className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200">
+                  <select className="w-full bg-[#101010] text-sm rounded-xl  px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200">
                     <option value="">Select</option>
                   </select>
                 </div>
@@ -215,14 +215,14 @@ export default function Appointments() {
             <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-4 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200"
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200"
               >
                 Save
               </button>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-full sm:w-auto px-4 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors duration-200"
+                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors duration-200"
               >
                 Delete
               </button>

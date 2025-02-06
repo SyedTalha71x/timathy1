@@ -59,7 +59,7 @@ function App() {
               <div className="w-24 h-24 rounded-2xl overflow-hidden mb-4">
                 <img src={Profile || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
               </div>
-              <button className="bg-[#3F74FF] open_sans_font hover:bg-blue-700 text-white px-6 text-sm py-1.5 rounded-3xl transition-colors duration-200">
+              <button className="bg-[#3F74FF] open_sans_font hover:bg-blue-700 text-white px-6 text-sm py-1.5 rounded-xl  transition-colors duration-200">
                 Upload picture
               </button>
             </div>
@@ -81,7 +81,7 @@ function App() {
                     <input
                       type={type}
                       id={id}
-                      className="w-full px-4 py-3 rounded-xl bg-[#101010] border-none outline-none text-sm transition-colors duration-200 focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-xl  bg-[#101010] border-none outline-none text-sm transition-colors duration-200 focus:ring-2 focus:ring-blue-500"
                       placeholder={placeholder}
                     />
                   </div>

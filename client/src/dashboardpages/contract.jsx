@@ -79,7 +79,7 @@ export default function ContractList() {
         {contracts.map((contract) => (
           <div
             key={contract.id}
-            className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-[#141414] p-4 rounded-lg hover:bg-[#333333] transition-colors gap-4 sm:gap-0"
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-[#141414] p-4 rounded-xl  hover:bg-[#333333] transition-colors gap-4 sm:gap-0"
           >
             <div className="flex-1">
               <h3 className="text-white font-medium open_sans_font_700">{contract.title}</h3>
@@ -107,7 +107,7 @@ export default function ContractList() {
                 </button>
 
                 {activeDropdownId === contract.id && (
-                  <div className="dropdown-menu absolute right-5  top-5 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                  <div className="dropdown-menu absolute right-5  top-5 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  border border-gray-800 shadow-lg overflow-hidden z-10">
                     <button
                       className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
                       onClick={(e) => {
@@ -119,7 +119,7 @@ export default function ContractList() {
                     </button>
                     <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto"></div>
                     <button
-                      className="w-full px-4 py-2 text-red-500 text-sm hover:bg-gray-800 text-left"
+                      className="w-full px-4 py-2  text-red-500 text-sm hover:bg-gray-800 text-left"
                       onClick={(e) => {
                         e.stopPropagation()
                         setActiveDropdownId(null)
@@ -143,7 +143,7 @@ export default function ContractList() {
                 <h2 className="text-base open_sans_font_700 text-white">Add Contract</h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-lg"
+                  className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-xl "
                 >
                   <X size={16} />
                 </button>
@@ -159,7 +159,7 @@ export default function ContractList() {
                       <input
                         type="text"
                         placeholder={label}
-                        className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                        className="w-full bg-[#101010] text-sm rounded-xl  px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                       />
                     </div>
                   ))}
@@ -167,7 +167,7 @@ export default function ContractList() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs text-gray-200 block pl-1">Input</label>
-                  <select className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none">
+                  <select className="w-full bg-[#101010] text-sm rounded-xl  px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none">
                     <option value="">Select</option>
                   </select>
                 </div>
@@ -178,12 +178,12 @@ export default function ContractList() {
                     <input
                       type="text"
                       placeholder="Input"
-                      className="w-14 bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      className="w-14 bg-[#101010] text-sm rounded-xl  px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                     />
                     <input
                       type="text"
                       placeholder="Input"
-                      className="w-full bg-[#101010] text-sm rounded-lg px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      className="w-full bg-[#101010] text-sm rounded-xl  px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                     />
                   </div>
                 </div>
@@ -209,7 +209,7 @@ export default function ContractList() {
             </div>
 
             <div className="px-4 pb-2">
-              <button className="flex gap-2 px-4 py-2 bg-[#F27A30] cursor-pointer hover:bg-[#e06b21] text-white rounded-xl text-sm transition-colors">
+              <button className="flex gap-2 w-full sm:w-auto px-4 py-2 bg-[#F27A30] cursor-pointer hover:bg-[#e06b21] text-white rounded-xl text-sm transition-colors">
                 View Template
               </button>
             </div>

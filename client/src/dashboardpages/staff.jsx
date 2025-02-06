@@ -96,7 +96,7 @@ export default function StaffComponent() {
             <div className="flex items-center gap-4 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-[#FF843E] text-white open_sans_font px-6 sm:px-10 py-2 rounded-full text-sm flex-1 sm:flex-none"
+                className="bg-[#FF843E] text-white open_sans_font px-6 sm:px-10 py-2 rounded-xl text-sm flex-1 sm:flex-none"
               >
                 + Add Roles
               </button>
@@ -124,7 +124,7 @@ export default function StaffComponent() {
                     />
 
                     {activeDropdownId === task.id && (
-                      <div className="dropdown-menu absolute right-3 top-2 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                      <div className="dropdown-menu absolute right-3 top-2 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  border border-gray-800 shadow-lg overflow-hidden z-10">
                         <button
                           className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
                           onClick={(e) => {
@@ -166,7 +166,7 @@ export default function StaffComponent() {
                 </p>
                 <button
                   onClick={() => handleViewDetails(task)}
-                  className="text-white border border-slate-500 bg-black rounded-full py-1.5 px-6 sm:px-8 hover:text-white text-sm w-fit"
+                  className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-6 sm:px-8 hover:text-white text-sm w-fit"
                 >
                   View details
                 </button>
@@ -210,7 +210,7 @@ export default function StaffComponent() {
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className="bg-[#1C1C1C] rounded-lg p-4 relative"
+                className="bg-[#1C1C1C] rounded-xl  p-4 relative"
               >
                 <button
                   onClick={() => removeNotification(notification.id)}
@@ -256,7 +256,7 @@ export default function StaffComponent() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <button className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-3xl text-sm">
+                  <button className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm">
                     Upload picture
                   </button>
                 </div>
@@ -269,7 +269,7 @@ export default function StaffComponent() {
                     <input
                       type="text"
                       placeholder="Enter first name"
-                      className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     />
                   </div>
                   <div>
@@ -279,7 +279,7 @@ export default function StaffComponent() {
                     <input
                       type="text"
                       placeholder="Enter last name"
-                      className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     />
                   </div>
                 </div>
@@ -292,7 +292,7 @@ export default function StaffComponent() {
                     <input
                       type="email"
                       placeholder="Enter email"
-                      className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     />
                   </div>
                   <div>
@@ -302,7 +302,7 @@ export default function StaffComponent() {
                     <input
                       type="tel"
                       placeholder="Enter phone number"
-                      className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     />
                   </div>
                 </div>
@@ -315,12 +315,12 @@ export default function StaffComponent() {
                     <input
                       type="text"
                       placeholder="Input"
-                      className="w-[30%] bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      className="w-[30%] bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     />
                     <input
                       type="text"
                       placeholder="Input"
-                      className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     />
                   </div>
                 </div>
@@ -328,7 +328,7 @@ export default function StaffComponent() {
                   <label className="text-sm text-gray-200 block mb-2">
                     Input
                   </label>
-                  <select className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors">
+                  <select className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors">
                     <option value="">Select</option>
                   </select>
                 </div>
@@ -336,14 +336,14 @@ export default function StaffComponent() {
                 <div className="flex flex-row gap-3 pt-2">
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-3xl hover:bg-[#3F74FF]/90 transition-colors"
+                    className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
                   >
                     Save
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-red-500 border-2 border-slate-500 rounded-3xl text-sm hover:bg-slate-800 transition-colors"
+                    className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-red-500 border-2 border-slate-500 rounded-xl text-sm hover:bg-slate-800 transition-colors"
                   >
                     Delete
                   </button>

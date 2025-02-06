@@ -43,11 +43,11 @@ export default function NavBar() {
         isScrolled ? "bg-black bg-opacity-80" : "bg-transparent"
       }`}
     >
-
-<div
-            className={`${isMenuOpen ? 'block' : 'hidden'} fixed inset-0 bg-black/40  z-40 transition-opacity`}
-          ></div>
-          
+      <div
+        className={`${
+          isMenuOpen ? "block" : "hidden"
+        } fixed inset-0 bg-black/40  z-40 transition-opacity`}
+      ></div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
@@ -91,13 +91,13 @@ export default function NavBar() {
           <div className="hidden md:flex items-center space-x-4 button_links">
             <Link
               to={"/login"}
-              className="px-8 text-sm py-2 text-white border-2 border-blue-500  rounded-2xl transition-all duration-500 ease-in-out hover:bg-[#3F74FF]"
+              className="px-8 text-sm py-2 text-white border-2 border-blue-500  rounded-xl  transition-all duration-500 ease-in-out hover:bg-[#3F74FF]"
             >
               Login
             </Link>
             <Link
               to={"/register"}
-              className="px-10 text-sm py-2 bg-[#3F74FF] border-2 border-blue-500  text-white rounded-2xl hover:bg-blue-700 transition-all duration-500 ease-in-out"
+              className="px-10 text-sm py-2 bg-[#3F74FF] border-2 border-blue-500  text-white rounded-xl  hover:bg-blue-700 transition-all duration-500 ease-in-out"
             >
               Register
             </Link>
@@ -105,18 +105,17 @@ export default function NavBar() {
         </div>
       </div>
 
-
       <div
         className={`${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         } fixed top-0 left-0 w-64 h-full bg-[#141414] bg-opacity-90 transition-transform duration-500 ease-in-out z-40`}
       >
-          <button
-              onClick={() => setIsMenuOpen(false)}
-              className="absolute  bottom-3 left-26 text-white cursor-pointer text-4xl focus:outline-none"
-            >
-              &times;
-            </button>
+        <button
+          onClick={() => setIsMenuOpen(false)}
+          className="absolute  bottom-3 left-26 text-white cursor-pointer text-4xl focus:outline-none"
+        >
+          &times;
+        </button>
 
         <div className="flex flex-col items-center space-y-8 mt-20 nav_links">
           <a href="/" className="text-white hover:text-gray-300">
@@ -132,13 +131,13 @@ export default function NavBar() {
           <div className="flex flex-col items-center space-y-4 mt-10 button_links">
             <Link
               to={"/login"}
-              className="px-8 text-sm py-2 text-white border-2 border-blue-500  rounded-2xl transition-all duration-500 ease-in-out hover:bg-[#3F74FF]"
+              className="px-8 text-sm py-2 text-white border-2 border-blue-500  rounded-xl  transition-all duration-500 ease-in-out hover:bg-[#3F74FF]"
             >
               Login
             </Link>
             <Link
               to={"/register"}
-              className="px-10 text-sm py-2 bg-[#3F74FF]  text-white rounded-2xl hover:bg-blue-700 transition-all duration-500 ease-in-out"
+              className="px-10 text-sm py-2 bg-[#3F74FF]  text-white rounded-xl  hover:bg-blue-700 transition-all duration-500 ease-in-out"
             >
               Register
             </Link>

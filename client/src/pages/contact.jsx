@@ -29,7 +29,7 @@ export default function ContactSection() {
 
         <div className="relative mx-auto max-w-[1000px] h-[600px]">
           {/* Image panel - hidden on small screens */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-3xl overflow-hidden transform origin-right hidden md:block">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-xl overflow-hidden transform origin-right hidden md:block">
             {/* Multiple gradient layers for depth */}
             <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/10 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-tr from-black/20 via-transparent to-transparent" />
@@ -41,7 +41,7 @@ export default function ContactSection() {
           </div>
 
           <div
-            className="lg:absolute lg:right-24 lg:top-1/2 lg:-translate-y-1/4 lg:w-[500px] md:absolute md:right-24 md:top-1/2 md:-translate-y-1/4 md:w-[500px] sm:w-full sm:flex sm:justify-center sm:items-center flex-col rounded-3xl p-10"
+            className="lg:absolute lg:right-24 lg:top-1/2 lg:-translate-y-1/4 lg:w-[500px] md:absolute md:right-24 md:top-1/2 md:-translate-y-1/4 md:w-[500px] sm:w-full sm:flex sm:justify-center sm:items-center flex-col rounded-xl  p-10"
             style={{
               background:
                 "linear-gradient(145deg, #1a1a1a 0%, rgba(0,0,0,0.95) 100%)",
@@ -55,19 +55,19 @@ export default function ContactSection() {
               <input
                 type="text"
                 placeholder="Name"
-                className="w-full rounded-3xl bg-gradient-to-r from-neutral-800/80 to-neutral-800/40 px-4 py-2 text-sm text-white placeholder-gray-400 outline-none"
+                className="w-full rounded-xl  bg-gradient-to-r from-neutral-800/80 to-neutral-800/40 px-4 py-2 text-sm text-white placeholder-gray-400 outline-none"
                 required
               />
               <input
                 type="email"
                 placeholder="Email"
-                className="w-full rounded-3xl bg-gradient-to-r from-neutral-800/80 to-neutral-800/40 px-4 py-2 text-sm text-white placeholder-gray-400 outline-none"
+                className="w-full rounded-xl  bg-gradient-to-r from-neutral-800/80 to-neutral-800/40 px-4 py-2 text-sm text-white placeholder-gray-400 outline-none"
                 required
               />
               <input
                 type="tel"
                 placeholder="Phone no"
-                className="w-full rounded-3xl bg-gradient-to-r from-neutral-800/80 to-neutral-800/40 px-4 py-2 text-sm text-white placeholder-gray-400 outline-none"
+                className="w-full rounded-xl  bg-gradient-to-r from-neutral-800/80 to-neutral-800/40 px-4 py-2 text-sm text-white placeholder-gray-400 outline-none"
                 required
               />
               <textarea
@@ -78,7 +78,7 @@ export default function ContactSection() {
               />
               <button
                 type="submit"
-                className="w-full rounded-3xl bg-[#3F74FF]  px-6 py-2 text-white font-medium hover:from-blue-700 hover:to-blue-600 transition-all duration-200"
+                className="w-full rounded-xl  bg-[#3F74FF]  px-6 py-2 text-white font-medium hover:from-blue-700 hover:to-blue-600 transition-all duration-200"
               >
                 Submit
               </button>

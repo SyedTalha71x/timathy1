@@ -101,7 +101,7 @@ export default function PaymentForm() {
 
           <button
             type="submit"
-            className="w-full open_sans_font bg-[#3F74FF] text-sm cursor-pointer hover:bg-blue-700 transition-all duration-500 ease-in-out text-white py-2 rounded-2xl"
+            className="w-full open_sans_font bg-[#3F74FF] text-sm cursor-pointer hover:bg-blue-700 transition-all duration-500 ease-in-out text-white py-2 rounded-xl"
           >
             Add payment
           </button>

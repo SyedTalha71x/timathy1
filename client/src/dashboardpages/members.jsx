@@ -65,7 +65,7 @@ export default function Members() {
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-[#FF843E] flex gap-2 cursor-pointer text-white px-6 py-2.5 rounded-full text-sm hover:bg-[#FF843E]/90 transition-colors"
+              className="bg-[#FF843E] flex gap-2 cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm hover:bg-[#FF843E]/90 transition-colors"
             >
               +{" "}
               <span className="lg:block open_sans_font hidden">
@@ -76,132 +76,135 @@ export default function Members() {
         </div>
 
         {isModalOpen && (
-          <div className="fixed open_sans_font inset-0 cursor-pointer w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
-            <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                    Add Member
-                  </h2>
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
+  <div className="fixed inset-0 cursor-pointer w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
+    <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-white open_sans_font_700 text-lg font-semibold">
+            Add Member
+          </h2>
+          <button
+            onClick={() => setIsModalOpen(false)}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-                <form className="space-y-3">
-                  <div className="flex flex-col items-start">
-                    <div className="w-24 h-24 rounded-2xl overflow-hidden mb-4">
-                      <img
-                        src={Profile || "/placeholder.svg"}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <button className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-3xl text-sm">
-                      Upload picture
-                    </button>
-                  </div>
+        <form className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]">
+          <div className="flex flex-col items-start">
+            <div className="w-24 h-24 rounded-2xl overflow-hidden mb-4">
+              <img
+                src={Profile || "/placeholder.svg"}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <button className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm">
+              Upload picture
+            </button>
+          </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Enter first name"
-                        className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Enter last name"
-                        className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      />
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-1 gap-4">
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        placeholder="Enter email"
-                        className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Phone No
-                      </label>
-                      <input
-                        type="tel"
-                        placeholder="Enter phone number"
-                        className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      />
-                    </div>
-                  </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">
+                First Name
+              </label>
+              <input
+                type="text"
+                placeholder="Enter first name"
+                className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">
+                Last Name
+              </label>
+              <input
+                type="text"
+                placeholder="Enter last name"
+                className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              />
+            </div>
+          </div>
 
-                  <div>
-                    <div className="w-full">
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Input
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Input"
-                          className="w-1/3 bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Input"
-                          className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                        />
-                      </div>
-                    </div>
-                  </div>
+          <div className="grid grid-cols-2 sm:grid-cols-1 gap-4">
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="Enter email"
+                className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">
+                Phone No
+              </label>
+              <input
+                type="tel"
+                placeholder="Enter phone number"
+                className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              />
+            </div>
+          </div>
 
-                  <div className="">
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Input
-                      </label>
-                      <select className="w-full bg-[#101010] text-sm rounded-lg px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors">
-                        <option value="">Select</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-row gap-3 pt-2">
-                    <button
-                      type="submit"
-                      className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-3xl hover:bg-[#3F74FF]/90 transition-colors"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsModalOpen(false)}
-                      className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-red-500 border-2 border-slate-500 rounded-3xl text-sm hover:bg-slate-800 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </form>
+          <div>
+            <div className="w-full">
+              <label className="text-sm text-gray-200 block mb-2">
+                Input
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Input"
+                  className="w-1/3 bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                />
+                <input
+                  type="text"
+                  placeholder="Input"
+                  className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                />
               </div>
             </div>
           </div>
-        )}
+
+          <div className="">
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">
+                Input
+              </label>
+              <select className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors">
+                <option value="">Select</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-row gap-3 pt-2">
+            <button
+              type="submit"
+              className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-3xl hover:bg-[#3F74FF]/90 transition-colors"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-red-500 border-2 border-slate-500 rounded-3xl text-sm hover:bg-slate-800 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
         {isShowDetails && selectedTask && (
           <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -298,7 +301,7 @@ export default function Members() {
                       </button>
 
                       {activeDropdownId === task.id && (
-                        <div className="absolute right-5 top-4 mt-1 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                        <div className="absolute right-5 top-4 mt-1 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  border border-gray-800 shadow-lg overflow-hidden z-10">
                           <button
                             className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
                             onClick={() => setActiveDropdownId(null)}
@@ -353,7 +356,7 @@ export default function Members() {
           {notifications.map((notification) => (
             <div
               key={notification.id}
-              className="bg-[#1C1C1C] rounded-lg p-4 relative"
+              className="bg-[#1C1C1C] rounded-xl  p-4 relative"
             >
               <button
                 onClick={() => removeNotification(notification.id)}

@@ -98,13 +98,13 @@ export default function TodoApp() {
 
   return (
     <>
-      <div className="flex rounded-3xl bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden">
+      <div className="flex rounded-3xl  bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden">
         <div className="flex-1 lg:p-6 md:p-6 sm:p-5 p-5">
           <div className="lg:pb-36 md:pb-32 sm:pb-16 pb-16">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-white oxanium_font">To-Do</h1>
               <div className="flex items-center gap-3">
-                <button onClick={() => setIsModalOpen(true)} className="bg-[#FF843E] cursor-pointer text-white px-4 sm:px-10 py-2 rounded-full text-sm flex items-center gap-2">
+                <button onClick={() => setIsModalOpen(true)} className="bg-[#FF843E] cursor-pointer text-white px-4 sm:px-10 py-2 rounded-xl text-sm flex items-center gap-2">
                   <Plus size={18} />
                   <span className="open_sans_font">Add task</span>
                 </button>
@@ -129,7 +129,7 @@ export default function TodoApp() {
                             <MoreHorizontal size={20} className="cursor-pointer" />
                           </button>
                           {activeDropdownId === task.id && (
-                            <div className="dropdown-menu absolute right-3 top-2 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10 sm:hidden">
+                            <div className="dropdown-menu absolute right-3 top-2 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  border border-gray-800 shadow-lg overflow-hidden z-10 sm:hidden">
                               <button className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left" onClick={(e) => {
                                 e.stopPropagation();
                                 setActiveDropdownId(null);
@@ -166,7 +166,7 @@ export default function TodoApp() {
                               <MoreHorizontal size={20} className="cursor-pointer" />
                             </button>
                             {activeDropdownId === task.id && (
-                              <div className="dropdown-menu absolute right-3 top-2 mt-2 w-32 bg-[#1C1C1C] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                              <div className="dropdown-menu absolute right-3 top-2 mt-2 w-32 bg-[#1C1C1C] rounded-xl  border border-gray-800 shadow-lg overflow-hidden z-10">
                                 <button className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left" onClick={(e) => {
                                   e.stopPropagation();
                                   setActiveDropdownId(null);
@@ -218,7 +218,7 @@ export default function TodoApp() {
 
       {isModalOpen && (
         <div className="fixed inset-0 open_sans_font w-screen h-screen bg-black/50 flex items-center p-3 sm:p-4 md:p-6 justify-center z-[1000]">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md p-4 sm:p-5 md:p-6 lg:p-6 relative">
+          <div className="bg-[#181818] rounded-2xl w-full max-w-md p-4 sm:p-5 md:p-6 lg:p-6 relative">
             <div className="flex justify-between items-center mb-5 sm:mb-6">
               <h2 className="text-white text-lg open_sans_font_700 font-semibold">Add task</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 cursor-pointer hover:text-white">
@@ -231,14 +231,14 @@ export default function TodoApp() {
                 {Array(4).fill("").map((_, index) => (
                   <div key={index}>
                     <label className="text-sm text-gray-200">Input</label>
-                    <input type="text" placeholder="Input" className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
+                    <input type="text" placeholder="Input" className="w-full bg-[#101010] mt-1 text-sm rounded-xl  px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
                   </div>
                 ))}
               </div>
 
               <div>
                 <label className="text-sm text-gray-200">Select Input</label>
-                <select className="w-full bg-[#101010] mt-1 text-sm rounded-lg px-4 py-2.5 text-white outline-none">
+                <select className="w-full bg-[#101010] mt-1 text-sm rounded-xl  px-4 py-2.5 text-white outline-none">
                   <option value="">Select</option>
                 </select>
               </div>
@@ -246,16 +246,16 @@ export default function TodoApp() {
               <div>
                 <label className="text-sm text-gray-200">Input</label>
                 <div className="flex gap-2">
-                  <input type="text" placeholder="Input" className="w-24 bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
-                  <input type="text" placeholder="Input" className="w-full bg-[#101010] text-sm rounded-lg px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
+                  <input type="text" placeholder="Input" className="w-24 bg-[#101010] text-sm rounded-xl  px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
+                  <input type="text" placeholder="Input" className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-2.5 text-white placeholder-gray-500 outline-none"/>
                 </div>
               </div>
 
               <div className="flex justify-start gap-3 mt-6">
-                <button type="submit" className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-3xl hover:bg-[#3F74FF]/90 cursor-pointer">
+                <button type="submit" className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl  hover:bg-[#3F74FF]/90 cursor-pointer">
                   Save
                 </button>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-2 bg-black text-red-500 border-slate-500 border-2 rounded-3xl text-sm cursor-pointer">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-2 bg-black text-red-500 border-slate-500 border-2 rounded-xl  text-sm cursor-pointer">
                   Delete
                 </button>
               </div>
@@ -303,10 +303,10 @@ export default function TodoApp() {
               <div className="space-y-3">
                 <p className="text-gray-400 text-sm">Assign to & priority</p>
                 <div className="flex flex-col justify-start items-start gap-2">
-                  <button className="bg-[#3F74FF]  text-white px-6 py-2 rounded-2xl  text-sm">
+                  <button className="bg-[#3F74FF]  text-white px-6 py-2 rounded-xl   text-sm">
                     Assignee
                   </button>
-                  <span className="bg-black  text-white px-6 py-2 rounded-2xl border-[1px] border-slate-600 text-sm">
+                  <span className="bg-black  text-white px-6 py-2 rounded-xl  border-[1px] border-slate-600 text-sm">
                     P1
                   </span>
                 </div>

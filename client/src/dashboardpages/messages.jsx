@@ -9,6 +9,7 @@ import {
   Mic,
   Smile,
   Clock,
+  PlusCircle,
 } from "lucide-react";
 import image1 from "../../public/Rectangle 1.png";
 import image2 from "../../public/avatar3.png";
@@ -156,7 +157,7 @@ export default function Messages() {
               {activeDropdownId === "main" && (
                 <div
                   ref={dropdownRef}
-                  className="absolute right-5 top-5 cursor-pointer mt-1 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10"
+                  className="absolute right-5 top-5 cursor-pointer mt-1 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  border border-gray-800 shadow-lg overflow-hidden z-10"
                 >
                   <button
                     className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
@@ -184,13 +185,13 @@ export default function Messages() {
               {showChatDropdown && (
                 <div
                   ref={chatDropdownRef}
-                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg shadow-lg z-20 mt-2"
+                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  shadow-lg z-20 mt-2"
                 >
                   <div className="p-3">
                     {[...Array(5)].map((_, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-lg cursor-pointer"
+                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl  cursor-pointer"
                       >
                         <img
                           src={image1}
@@ -214,13 +215,13 @@ export default function Messages() {
               {showGroupDropdown && (
                 <div
                   ref={groupDropdownRef}
-                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-lg shadow-lg z-20 mt-2"
+                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  shadow-lg z-20 mt-2"
                 >
                   <div className="p-3">
                     {[...Array(5)].map((_, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-lg cursor-pointer"
+                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl  cursor-pointer"
                       >
                         <img
                           src={image1}
@@ -252,11 +253,11 @@ export default function Messages() {
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-2">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
             {chatList.map((chat, index) => (
               <div
                 key={index}
-                className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-lg ${
+                className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${
                   chat.active ? "bg-[#181818]" : "hover:bg-[#181818]"
                 } cursor-pointer`}
               >
@@ -333,7 +334,7 @@ export default function Messages() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div className="flex gap-3">
             <div className="flex flex-col gap-1">
-              <div className="bg-black rounded-2xl text-sm p-4 max-w-md">
+              <div className="bg-black rounded-xl text-sm p-4 max-w-md">
                 <p>Oh, hello! All perfectly.</p>
                 <p>I will check it and get back to you soon.</p>
               </div>
@@ -343,7 +344,7 @@ export default function Messages() {
 
           <div className="flex gap-3 justify-end">
             <div className="flex flex-col gap-1 items-end">
-              <div className="bg-[#3F74FF] rounded-2xl p-4 text-sm max-w-md">
+              <div className="bg-[#3F74FF] rounded-xl p-4 text-sm max-w-md">
                 <p>Yes, hello! All perfectly.</p>
                 <p>I will check it and get back to you soon.</p>
               </div>
@@ -353,7 +354,7 @@ export default function Messages() {
         </div>
 
         <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center gap-2 bg-black rounded-lg p-2">
+          <div className="flex items-center gap-2 bg-black rounded-xl p-2">
             <button
               className="p-2 hover:bg-gray-700 rounded-full"
               aria-label="Add emoji"
@@ -365,7 +366,10 @@ export default function Messages() {
               placeholder="Type your message here..."
               className="flex-1 bg-transparent focus:outline-none text-sm min-w-0"
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <button>
+                <PlusCircle size={20} className="cursor-pointer" />
+              </button>
               <button
                 className="p-2 hover:bg-gray-700 rounded-full"
                 aria-label="Voice message"

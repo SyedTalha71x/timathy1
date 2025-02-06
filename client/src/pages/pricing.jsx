@@ -24,7 +24,7 @@ export default function PricingSection() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-3xl pricing_cards_font bg-black p-8">
+          <div className="rounded-xl  pricing_cards_font bg-black p-8">
             <div className="mb-6 flex items-center justify-center rounded-full bg-gray-500 w-12 h-12">
               <Tag className="text-white text-4xl" />
             </div>
@@ -64,12 +64,12 @@ export default function PricingSection() {
                 </li>
               </ul>
             </div>
-            <button className="w-full rounded-2xl border border-gray-600 py-3 text-sm font-medium text-white  hover:bg-[#3F74FF] transition-all ease-in-out duration-500">
+            <button className="w-full rounded-xl  border border-gray-600 py-3 text-sm font-medium text-white  hover:bg-[#3F74FF] transition-all ease-in-out duration-500">
               Get started
             </button>
           </div>
 
-          <div className="rounded-3xl pricing_cards_font bg-black p-8">
+          <div className="rounded-xl  pricing_cards_font bg-black p-8">
           <div className="mb-6 flex items-center justify-center rounded-full bg-gray-500 w-12 h-12">
               <Tag className="text-white text-4xl" />
             </div>
@@ -112,12 +112,12 @@ export default function PricingSection() {
                 </li>
               </ul>
             </div>
-            <button className="w-full rounded-2xl bg-[#3F74FF] transition-all ease-in-out duration-500 py-3 text-sm font-medium text-white  hover:bg-blue-700">
+            <button className="w-full rounded-xl  bg-[#3F74FF] transition-all ease-in-out duration-500 py-3 text-sm font-medium text-white  hover:bg-blue-700">
               Get started
             </button>
           </div>
 
-          <div className="rounded-3xl pricing_cards_font bg-black p-8">
+          <div className="rounded-xl  pricing_cards_font bg-black p-8">
           <div className="mb-6 flex items-center justify-center rounded-full bg-gray-500 w-12 h-12">
               <Tag className="text-white text-4xl" />
             </div>
@@ -156,7 +156,7 @@ export default function PricingSection() {
                 </li>
               </ul>
             </div>
-            <button className="w-full rounded-2xl border border-gray-600 py-3 text-sm font-medium text-white  hover:bg-[#3F74FF] transition-all ease-in-out duration-500">
+            <button className="w-full rounded-xl  border border-gray-600 py-3 text-sm font-medium text-white  hover:bg-[#3F74FF] transition-all ease-in-out duration-500">
               Get started
             </button>
           </div>

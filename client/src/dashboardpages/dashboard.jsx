@@ -325,7 +325,7 @@ export default function Dashboard() {
               {[1, 2, 3].map((task) => (
                 <div
                   key={task}
-                  className="p-3 md:p-4 bg-black rounded-xl flex items-center justify-between"
+                  className="p-3 md:p-4 bg-black rounded-xl  flex items-center justify-between"
                 >
                   <div>
                     <h3 className="font-semibold open_sans_font text-sm md:text-base">
@@ -335,7 +335,7 @@ export default function Dashboard() {
                       Description
                     </p>
                   </div>
-                  <button className="px-4 md:px-6 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-2xl text-xs md:text-sm">
+                  <button className="px-4 md:px-6 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs md:text-sm">
                     <img src={Image10} alt="" className="w-4 h-4" />
                     Jack
                   </button>

@@ -49,7 +49,7 @@ export default function MarketingTable() {
       <div className="rounded-xl lg:p-6 md:p-5 sm:p-4 p-4 w-full overflow-hidden">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl oxanium_font text-white">Marketing</h1>
-          <button className="flex open_sans_font items-center gap-2 bg-black text-white px-7 py-2 rounded-lg text-sm">
+          <button className="flex open_sans_font items-center gap-2 bg-black text-white px-7 py-2 rounded-xl text-sm">
             Date
             <ChevronDown size={16} />
           </button>
@@ -69,7 +69,7 @@ export default function MarketingTable() {
               {campaigns.map((campaign) => (
                 <div
                   key={campaign.id}
-                  className="grid grid-cols-5 bg-[#141414] rounded-2xl p-4"
+                  className="grid grid-cols-5 bg-[#141414] rounded-xl p-4"
                 >
                   <div>
                     <span className="text-white">{campaign.name}</span>
