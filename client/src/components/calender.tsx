@@ -41,7 +41,7 @@ const Calendar = () => {
     }
   
     return (
-      <div className="w-full h-[600px] bg-black rounded-2xl p-4">
+      <div className="w-full h-[600px] bg-black rounded-2xl p-4 ">
         <div className="relative h-full">
           <div className="grid grid-cols-4 gap-4 mb-2 text-gray-300 text-sm">
             {days.map(({ day, date }, index) => (

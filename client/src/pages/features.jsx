@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Frame6 from "../../public/Frame 6.png";
-import Frame7 from "../../public/Frame 6 (1).png";
-import Frame8 from "../../public/Frame 6 (2).png";
+import Frame6 from "../../public/Frame 6.svg";
+import Frame7 from "../../public/Frame 6 (1).svg";
+import Frame8 from "../../public/Frame 6 (2).svg";
 import Feature from "../../public/Features.png";
 
 export default function Features() {
@@ -39,7 +39,7 @@ export default function Features() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 mt-[10%]">
           <div className={`rounded-3xl p-8 transition-all duration-300 hover:scale-105 ${currentFeature === 0 ? "bg-orange-500" : "bg-[#141414]"}`}>
             <div className="flex items-center mb-4 features_cards">
-              <img src={Frame6} className="bg-white/10 rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
+              <img src={Frame6} className=" rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
               <h3 className="text-xl text-white">Feature 1</h3>
             </div>
             <p className="text-gray-200 text-md">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
@@ -47,7 +47,7 @@ export default function Features() {
 
           <div className={`rounded-3xl p-8 transition-all duration-300 hover:scale-105 ${currentFeature === 1 ? "bg-gray-800" : "bg-[#141414]"}`}>
             <div className="flex items-center mb-4 features_cards">
-              <img src={Frame7} className="bg-white/10 rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
+              <img src={Frame7} className=" rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
               <h3 className="text-xl text-white">Feature 2</h3>
             </div>
             <p className="text-gray-200 text-md">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
@@ -55,7 +55,7 @@ export default function Features() {
 
           <div className={`rounded-3xl p-8 transition-all duration-300 hover:scale-105 ${currentFeature === 2 ? "bg-blue-600" : "bg-[#141414]"}`}>
             <div className="flex items-center mb-4 features_cards">
-              <img src={Frame8} className="bg-white/10 rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
+              <img src={Frame8} className=" rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
               <h3 className="text-xl text-white">Feature 3</h3>
             </div>
             <p className="text-gray-200 text-md">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
@@ -63,7 +63,7 @@ export default function Features() {
 
           <div className={`rounded-3xl p-8 transition-all duration-300 hover:scale-105 ${currentFeature === 3 ? "bg-green-500" : "bg-[#141414]"}`}>
             <div className="flex items-center mb-4 features_cards">
-              <img src={Frame6} className="bg-white/10 rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
+              <img src={Frame8} className=" rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
               <h3 className="text-xl text-white">Feature 4</h3>
             </div>
             <p className="text-gray-200 text-md">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
@@ -71,7 +71,7 @@ export default function Features() {
 
           <div className={`rounded-3xl p-8 transition-all duration-300 hover:scale-105 ${currentFeature === 4 ? "bg-purple-600" : "bg-[#141414]"}`}>
             <div className="flex items-center mb-4 features_cards">
-              <img src={Frame7} className="bg-white/10 rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
+              <img src={Frame6} className=" rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
               <h3 className="text-xl text-white">Feature 5</h3>
             </div>
             <p className="text-gray-200 text-md">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
@@ -79,7 +79,7 @@ export default function Features() {
 
           <div className={`rounded-3xl p-8 transition-all duration-300 hover:scale-105 ${currentFeature === 5 ? "bg-red-500" : "bg-[#141414]"}`}>
             <div className="flex items-center mb-4 features_cards">
-              <img src={Frame8} className="bg-white/10 rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
+              <img src={Frame7} className=" rounded-xl  w-12 h-12 flex items-center justify-center mr-3" />
               <h3 className="text-xl text-white">Feature 6</h3>
             </div>
             <p className="text-gray-200 text-md">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>

@@ -247,11 +247,11 @@ export default function StaffComponent() {
                 </button>
               </div>
 
-              <form className="space-y-3">
+              <form className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]">
                 <div className="flex flex-col items-start">
-                  <div className="w-24 h-24 rounded-2xl overflow-hidden mb-4">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
                     <img
-                      src={Profile || "/placeholder.svg"}
+                      src={Profile }
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />

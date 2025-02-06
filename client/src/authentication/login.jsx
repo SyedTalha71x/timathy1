@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useState } from "react";
 import Art from "../../public/Art.png";
@@ -38,7 +39,7 @@ export default function SignInPage() {
                 <input
                   type="text"
                   placeholder="Studio name"
-                  className="w-full rounded-lg bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  className="w-full rounded-xl  bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
                   value={formData.studioName}
                   onChange={(e) =>
                     setFormData({ ...formData, studioName: e.target.value })
@@ -49,7 +50,7 @@ export default function SignInPage() {
                 <input
                   type="email"
                   placeholder="Email"
-                  className="w-full rounded-lg bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  className="w-full rounded-xl  bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
@@ -60,7 +61,7 @@ export default function SignInPage() {
                 <input
                   type="password"
                   placeholder="Password"
-                  className="w-full rounded-lg bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  className="w-full rounded-xl  bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
@@ -81,10 +82,10 @@ export default function SignInPage() {
                   <span className="bg-gray-900 px-2 text-gray-400">or</span>
                 </div>
               </div>
-
+{/* 
               <button
                 type="button"
-                className="flex w-full login_btn items-center justify-center cursor-pointer rounded-lg border border-gray-700 transition-all duration-500 ease-in-out bg-black px-4 py-3 text-white hover:bg-gray-700"
+                className="flex w-full login_btn items-center justify-center cursor-pointer rounded-xl  border border-gray-700 transition-all duration-500 ease-in-out bg-black px-4 py-3 text-white hover:bg-gray-700"
               >
                 <img src={GoogleImage} alt="" className="mr-2" />
                 Sign in with Google
@@ -92,16 +93,16 @@ export default function SignInPage() {
 
               <button
                 type="button"
-                className="flex w-full login_btn items-center cursor-pointer justify-center rounded-lg border border-gray-700 bg-black transition-all duration-500 ease-in-out px-4 py-3 text-white hover:bg-gray-700"
+                className="flex w-full login_btn items-center cursor-pointer justify-center rounded-xl  border border-gray-700 bg-black transition-all duration-500 ease-in-out px-4 py-3 text-white hover:bg-gray-700"
               >
                 <img src={FacebookImage} alt="" className="mr-2" />
                 Sign in with Facebook
-              </button>
+              </button> */}
 
               <button
               onClick={redirect}
                 type="submit"
-                className="w-full rounded-2xl login_btn cursor-pointer bg-[#3F74FF] px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
+                className="w-full rounded-xl login_btn cursor-pointer bg-[#3F74FF] px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
               >
                 Sign In
               </button>

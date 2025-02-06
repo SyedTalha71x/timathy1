@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useState } from "react";
 import Art from "../../public/Art1.png";
@@ -37,7 +38,7 @@ export default function Register() {
                 <input
                   type="email"
                   placeholder="Email"
-                  className="w-full rounded-lg bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  className="w-full rounded-xl  bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
@@ -48,7 +49,7 @@ export default function Register() {
                 <input
                   type="password"
                   placeholder="Password"
-                  className="w-full rounded-lg bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  className="w-full rounded-xl  bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
@@ -65,9 +66,9 @@ export default function Register() {
                 </div>
               </div>
 
-              <button
+              {/* <button
                 type="button"
-                className="flex w-full register_btn items-center justify-center cursor-pointer rounded-lg border border-gray-700 transition-all duration-500 ease-in-out bg-black px-4 py-3 text-white hover:bg-gray-700"
+                className="flex w-full register_btn items-center justify-center cursor-pointer rounded-xl  border border-gray-700 transition-all duration-500 ease-in-out bg-black px-4 py-3 text-white hover:bg-gray-700"
               >
                 <img src={GoogleImage} alt="" className="mr-2" />
                 Sign up with Google
@@ -75,16 +76,16 @@ export default function Register() {
 
               <button
                 type="button"
-                className="flex w-full register_btn items-center cursor-pointer justify-center rounded-lg border border-gray-700 bg-black transition-all duration-500 ease-in-out px-4 py-3 text-white hover:bg-gray-700"
+                className="flex w-full register_btn items-center cursor-pointer justify-center rounded-xl  border border-gray-700 bg-black transition-all duration-500 ease-in-out px-4 py-3 text-white hover:bg-gray-700"
               >
                 <img src={FacebookImage} alt="" className="mr-2" />
                 Sign up with Facebook
-              </button>
+              </button> */}
 
               <button
               onClick={redirect}
                 type="submit"
-                className="w-full register_btn rounded-2xl cursor-pointer bg-[#3F74FF] px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
+                className="w-full register_btn rounded-xl cursor-pointer bg-[#3F74FF] px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
               >
                 Sign Up
               </button>

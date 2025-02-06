@@ -1,6 +1,12 @@
-import { ChevronDown } from "lucide-react"
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css"; // Import styles for the date picker
 
 export default function MarketingTable() {
+  const [isDateOpen, setIsDateOpen] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  
   const campaigns = [
     {
       id: 1,
@@ -42,21 +48,35 @@ export default function MarketingTable() {
       cpc: { value: "$0.01", label: "Per click" },
       time: { value: "May 12 2024 - May 20 2024", label: "7 days" },
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] lg:p-6 md:p-5 sm:p-2 p-1">
       <div className="rounded-xl lg:p-6 md:p-5 sm:p-4 p-4 w-full overflow-hidden">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8 relative">
           <h1 className="text-2xl oxanium_font text-white">Marketing</h1>
-          <button className="flex open_sans_font items-center gap-2 bg-black text-white px-7 py-2 rounded-xl text-sm">
+          <button
+            className="flex open_sans_font items-center gap-2 cursor-pointer bg-black text-white px-7 py-2 rounded-xl text-sm"
+            onClick={() => setIsDateOpen((prev) => !prev)}
+          >
             Date
             <ChevronDown size={16} />
           </button>
+          {isDateOpen && (
+            <div className="absolute top-full right-16 z-20 bg-black text-white p-4 rounded-xl mt-2">
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => setStartDate(date)}
+                inline
+                dateFormat="MMM dd, yyyy"
+                className="text-white bg-black rounded-xl"
+              />
+            </div>
+          )}
         </div>
 
-        <div className="overflow-x-auto ">
-          <div className="min-w-[1200px]  md:min-w-[800px] w-full">
+        <div className="overflow-x-auto">
+          <div className="min-w-[1200px] md:min-w-[800px] w-full">
             <div className="grid grid-cols-5 text-sm text-white pb-4">
               <div className="font-medium open_sans_font_700">Name</div>
               <div className="font-medium open_sans_font_700">Reach</div>
@@ -97,5 +117,5 @@ export default function MarketingTable() {
         </div>
       </div>
     </div>
-  )
+  );
 }
