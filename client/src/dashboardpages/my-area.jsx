@@ -279,7 +279,7 @@ export default function MyArea() {
 
           <div className="mb-8 mt-8 lg:mt-0">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl open_sans_font_700">Messages</h2>
+              <h2 className="text-lg md:text-xl open_sans_font_700">Communications</h2>
             </div>
             <div className="space-y-4">
               {[1, 2].map((message) => (
