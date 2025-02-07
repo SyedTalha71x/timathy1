@@ -54,7 +54,7 @@ const Sidebar = () => {
           </button>
           <span className="text-white font-semibold"></span>
         </div>
-        <div className="flex items-center gap-2">
+        <div onClick={redirect} className="flex items-center gap-2">
           <img src="/girl.png" alt="Profile" className="w-8 h-8 rounded-full" />
         </div>
       </div>
