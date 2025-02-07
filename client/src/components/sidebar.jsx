@@ -36,6 +36,10 @@ const Sidebar = () => {
   const redirectToHome = () =>{
     window.location.href = "/"
   }
+  const redirect = () =>{
+    window.location.href = "/dashboard/edit-profile";
+
+  }
   return (
     <>
       <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between md:hidden z-40">
@@ -73,7 +77,7 @@ const Sidebar = () => {
         <div className="flex flex-col h-full overflow-y-auto mt-10">
           <div className="p-4 hidden md:block">
             <div className="flex flex-col text-center justify-center items-center gap-3">
-              <div className="relative">
+              <div className="relative cursor-pointer" onClick={redirect}>
                 <img src="/girl.png" alt="Profile" className="rounded-2xl h-full w-full" />
                 <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 border-2 border-zinc-800 rounded-full"></span>
               </div>
@@ -87,10 +91,10 @@ const Sidebar = () => {
           <nav className="flex-1 overflow-y-auto">
             <ul className="space-y-2 p-4">
               {[
-                { icon: Home, label: "Dashboard", to: "/dashboard/main-dashboard" },
-                { icon: Users, label: "Profile", to: "/dashboard/profile" },
+                { icon: Home, label: "My Area", to: "/dashboard/my-area" },
+                // { icon: Users, label: "Profile", to: "/dashboard/profile" },
                 { icon: Calendar, label: "Appointments", to: "/dashboard/appointments" },
-                { icon: MessageCircle, label: "Messages", to: "/dashboard/messages" },
+                { icon: MessageCircle, label: "Communication", to: "/dashboard/communication" },
                 { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
                 { icon: Users, label: "Members", to: "/dashboard/members" },
                 { icon: Users, label: "Staff", to: "/dashboard/staff" },

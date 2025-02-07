@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
 import Chart from "react-apexcharts"
@@ -8,7 +6,7 @@ import Rectangle1 from "../../public/Rectangle 1.png"
 import Image10 from "../../public/image10.png"
 import Avatar from "../../public/avatar.png"
 
-export default function Dashboard() {
+export default function MyArea() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
@@ -175,7 +173,7 @@ export default function Dashboard() {
                 <button onClick={toggleSidebar} className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden">
                   <BarChart3 />
                 </button>
-                <h1 className="text-xl md:text-2xl oxanium_font">Dashboard</h1>
+                <h1 className="text-xl md:text-2xl oxanium_font">My Area</h1>
               </div>
               <button
                 onClick={toggleRightSidebar}
@@ -195,7 +193,7 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <h2 className="text-lg md:text-xl open_sans_font_700 mb-4">Appointment</h2>
+              <h2 className="text-lg md:text-xl open_sans_font_700 mb-4">Upcoming Appointments</h2>
               <div className="space-y-4">
                 {appointments.map((appointment, index) => (
                   <div

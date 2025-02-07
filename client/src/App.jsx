@@ -7,14 +7,14 @@ import Register from './authentication/register'
 import Profile from './pages/profile'
 
 import Dashboardlayout from "./layouts/dashboard-layout";
-import Dashboard from './dashboardpages/dashboard'
+import MyArea from './dashboardpages/my-area'
 import ProfileDashboard from './dashboardpages/profile'
 import Appointments from "./dashboardpages/appointments";
 import ToDo  from './dashboardpages/todo'
 import Members from './dashboardpages/members'
 import Staff from './dashboardpages/staff'
 import Marketing from './dashboardpages/marketing'
-import Messages from "./dashboardpages/messages";
+import Communication from "./dashboardpages/communications";
 import Payment from "./dashboardpages/payment"
 import Contract from './dashboardpages/contract'
 
@@ -34,14 +34,14 @@ function App() {
 
 
         <Route path="/dashboard" element={<Dashboardlayout />}>
-          <Route path="main-dashboard" element={<Dashboard />} />
-          <Route path="profile" element={<ProfileDashboard />} />
+          <Route path="my-area" element={<MyArea />} />
+          <Route path="edit-profile" element={<ProfileDashboard />} />
           <Route path="appointments" element={<Appointments />} />
           <Route path="to-do" element={<ToDo />} />
           <Route path="members" element={<Members />} />
           <Route path="staff" element={<Staff />} />
           <Route path="marketing" element={<Marketing />} />
-          <Route path="messages" element={<Messages />} />
+          <Route path="communication" element={<Communication />} />
           <Route path="payment" element={<Payment />} />
           <Route path="contract" element={<Contract />} />
 

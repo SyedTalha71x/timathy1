@@ -17,7 +17,7 @@ export default function SignInPage() {
   };
 
   const redirect = () =>{
-    window.location.href = "/dashboard/main-dashboard";
+    window.location.href = "/dashboard/my-area";
   }
 
   return (

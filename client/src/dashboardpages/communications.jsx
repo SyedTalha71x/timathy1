@@ -6,7 +6,7 @@ import image2 from "../../public/avatar3.png"
 import gsap from "gsap"
 import '../customCss/marketing-table-style.css'
 
-export default function Messages() {
+export default function Communications() {
   const [isMessagesOpen, setIsMessagesOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [showChatDropdown, setShowChatDropdown] = useState(false)
@@ -125,7 +125,7 @@ export default function Messages() {
       >
         <div className="p-4 h-full flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Messages</h1>
+            <h1 className="text-2xl font-bold">Communications</h1>
             <button
               onClick={() => setIsMessagesOpen(false)}
               className="md:hidden text-gray-400 hover:text-gray-300"
