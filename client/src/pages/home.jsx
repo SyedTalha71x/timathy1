@@ -98,7 +98,7 @@ export default function Home() {
       </main>
 
       <Features />
-      <Pricing />
+      {/* <Pricing /> */}
       <Overview />
       <Contact />
     </>
