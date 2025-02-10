@@ -317,7 +317,7 @@ export default function MyArea() {
                 </div>
               ))}
               <Link
-                to={"/dashboard/communications"}
+                to={"/dashboard/communication"}
                 className="text-sm md:text-md open_sans_font text-white flex justify-center items-center text-center hover:underline"
               >
                 See all
