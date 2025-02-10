@@ -36,8 +36,8 @@ export default function PricingSection() {
               <span className="ml-1 text-gray-400">/per month</span>
             </div>
             <div className="mb-8">
-              <p className="mb-4 text-sm font-medium text-white">Features</p>
-              <ul className="space-y-3 text-sm text-gray-400">
+              {/* <p className="mb-4 text-sm font-medium text-white">Features</p> */}
+              {/* <ul className="space-y-3 text-sm text-gray-400">
                 <li className="flex items-center">
                   <div className="mr-2 h-1 w-1 rounded-full bg-gray-400" />
                   Employee directory
@@ -62,7 +62,7 @@ export default function PricingSection() {
                   <div className="mr-2 h-1 w-1 rounded-full bg-gray-400" />
                   Reporting and analytics
                 </li>
-              </ul>
+              </ul> */}
             </div>
             <button className="w-full rounded-xl  border border-gray-600 py-3 text-sm font-medium text-white  hover:bg-[#3F74FF] transition-all ease-in-out duration-500">
               Get started
@@ -84,8 +84,8 @@ export default function PricingSection() {
               <span className="ml-1 text-gray-400">/per month</span>
             </div>
             <div className="mb-8">
-              <p className="mb-4 text-sm font-medium text-white">Features</p>
-              <ul className="space-y-3 text-sm text-gray-400">
+              {/* <p className="mb-4 text-sm font-medium text-white">Features</p> */}
+              {/* <ul className="space-y-3 text-sm text-gray-400">
                 <li className="flex items-center">
                   <div className="mr-2 h-1 w-1 rounded-full bg-gray-400" />
                   Advanced employee directory
@@ -110,7 +110,7 @@ export default function PricingSection() {
                   <div className="mr-2 h-1 w-1 rounded-full bg-gray-400" />
                   Advanced analytics
                 </li>
-              </ul>
+              </ul> */}
             </div>
             <button className="w-full rounded-xl  bg-[#3F74FF] transition-all ease-in-out duration-500 py-3 text-sm font-medium text-white  hover:bg-blue-700">
               Get started
@@ -128,8 +128,8 @@ export default function PricingSection() {
               <span className="ml-1 text-gray-400">/per month</span>
             </div>
             <div className="mb-8">
-              <p className="mb-4 text-sm font-medium text-white">Features</p>
-              <ul className="space-y-3 text-sm text-gray-400">
+              {/* <p className="mb-4 text-sm font-medium text-white">Features</p> */}
+              {/* <ul className="space-y-3 text-sm text-gray-400">
                 <li className="flex items-center">
                   <div className="mr-2 h-1 w-1 rounded-full bg-gray-400" />
                   Employee directory
@@ -154,7 +154,7 @@ export default function PricingSection() {
                   <div className="mr-2 h-1 w-1 rounded-full bg-gray-400" />
                   Reporting and analytics
                 </li>
-              </ul>
+              </ul> */}
             </div>
             <button className="w-full rounded-xl  border border-gray-600 py-3 text-sm font-medium text-white  hover:bg-[#3F74FF] transition-all ease-in-out duration-500">
               Get started

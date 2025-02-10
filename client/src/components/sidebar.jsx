@@ -1,6 +1,7 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { Calendar, Home, MessageCircle, LogOut, Menu, X, Users, CheckSquare } from "lucide-react"
+import { Calendar, Home, MessageCircle, LogOut, Menu, X, Users, CheckSquare, Settings } from "lucide-react"
 import { MdOutlinePayment } from "react-icons/md"
 import { RiContractLine } from "react-icons/ri"
 
@@ -38,8 +39,8 @@ const Sidebar = () => {
   }
   const redirect = () =>{
     window.location.href = "/dashboard/edit-profile";
-
   }
+
   return (
     <>
       <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between md:hidden z-40">
@@ -81,9 +82,10 @@ const Sidebar = () => {
                 <img src="/girl.png" alt="Profile" className="rounded-2xl h-full w-full" />
                 <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 border-2 border-zinc-800 rounded-full"></span>
               </div>
-              <div>
+              <div className="flex flex-col gap-0.5">
                 <h2 className="open_sans_font_700 text-white">Samantha</h2>
-                <p className="text-sm open_sans_font text-zinc-400">samantha@gmail.com</p>
+                <p className="text-sm open_sans_font text-zinc-400">Administrator</p>
+                <p className="text-xs open_sans_font text-zinc-400">samantha@gmail.com</p>
               </div>
             </div>
           </div>
@@ -92,7 +94,6 @@ const Sidebar = () => {
             <ul className="space-y-2 p-4">
               {[
                 { icon: Home, label: "My Area", to: "/dashboard/my-area" },
-                // { icon: Users, label: "Profile", to: "/dashboard/profile" },
                 { icon: Calendar, label: "Appointments", to: "/dashboard/appointments" },
                 { icon: MessageCircle, label: "Communication", to: "/dashboard/communication" },
                 { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
@@ -100,7 +101,7 @@ const Sidebar = () => {
                 { icon: Users, label: "Staff", to: "/dashboard/staff" },
                 { icon: RiContractLine, label: "Contract", to: "/dashboard/contract" },
                 { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
-                { icon: MdOutlinePayment, label: "Payment", to: "/dashboard/payment" },
+                { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
               ].map((item) => (
                 <li key={item.label}>
                   <button
@@ -141,4 +142,3 @@ const Sidebar = () => {
 }
 
 export default Sidebar
-

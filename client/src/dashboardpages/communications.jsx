@@ -12,6 +12,7 @@ export default function Communications() {
   const [showChatDropdown, setShowChatDropdown] = useState(false)
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [chatType, setChatType] = useState("employee") // 'employee' or 'member'
 
   const inputRef = useRef(null)
   const searchInputRef = useRef(null)
@@ -73,7 +74,7 @@ export default function Communications() {
     setActiveDropdownId(null)
   }
 
-  const chatList = [
+  const employeeChatList = [
     {
       name: "Jennifer Markus",
       time: "Today | 05:30 PM",
@@ -82,17 +83,20 @@ export default function Communications() {
       logo: image1,
     },
     {
-      name: "Group 1",
-      time: "Today | 05:30 PM",
-      message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image2,
-    },
-    {
       name: "Jerry Haffer",
       time: "Today | 05:30 PM",
       verified: true,
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
       logo: image1,
+    },
+  ]
+
+  const memberChatList = [
+    {
+      name: "Group 1",
+      time: "Today | 05:30 PM",
+      message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
+      logo: image2,
     },
     {
       name: "David Eison",
@@ -107,6 +111,8 @@ export default function Communications() {
       logo: image2,
     },
   ]
+
+  const chatList = chatType === "employee" ? employeeChatList : memberChatList
 
   return (
     <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
@@ -137,9 +143,21 @@ export default function Communications() {
 
           <div className="flex gap-2 items-center justify-between mb-4">
             <div className="flex gap-2">
-              <button className="px-6 py-2 text-sm bg-white text-black rounded-xl">All</button>
-              <button className="px-6 py-2 text-sm text-gray-200 border border-slate-300 hover:bg-gray-800 rounded-xl">
-                Unread
+              <button
+                className={`px-6 py-2 text-sm ${
+                  chatType === "employee" ? "bg-white text-black" : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+                } rounded-xl`}
+                onClick={() => setChatType("employee")}
+              >
+                Employee
+              </button>
+              <button
+                className={`px-6 py-2 text-sm ${
+                  chatType === "member" ? "bg-white text-black" : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+                } rounded-xl`}
+                onClick={() => setChatType("member")}
+              >
+                Member
               </button>
             </div>
 
@@ -375,4 +393,3 @@ export default function Communications() {
     </div>
   )
 }
-

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
 import { BarChart3, MoreVertical, MessageCircle, X, Clock } from "lucide-react"
 import Rectangle1 from "../../public/Rectangle 1.png"
@@ -11,6 +11,7 @@ export default function MyArea() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
   const dropdownRef = useRef(null)
+  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
@@ -19,6 +20,14 @@ export default function MyArea() {
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
   }
+
+  const redirectToTodos = () =>{
+      navigate("/dashboard/to-do")
+  }
+
+  const redirectToCommunication = () =>{
+    navigate("/dashboard/communication")
+}
 
   const toggleDropdown = (index) => {
     setOpenDropdownIndex(openDropdownIndex === index ? null : index)
@@ -279,11 +288,11 @@ export default function MyArea() {
 
           <div className="mb-8 mt-8 lg:mt-0">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl open_sans_font_700">Communications</h2>
+              <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer" onClick={redirectToCommunication}>Communications</h2>
             </div>
             <div className="space-y-4">
               {[1, 2].map((message) => (
-                <div key={message} className="p-3 md:p-4 bg-black rounded-xl">
+                <div onClick={redirectToCommunication} key={message} className="p-3 md:p-4 cursor-pointer bg-black rounded-xl">
                   <div className="flex items-center gap-3 mb-2">
                     <img
                       src={Rectangle1 || "/placeholder.svg"}
@@ -308,7 +317,7 @@ export default function MyArea() {
                 </div>
               ))}
               <Link
-                to="#"
+                to={"/dashboard/communications"}
                 className="text-sm md:text-md open_sans_font text-white flex justify-center items-center text-center hover:underline"
               >
                 See all
@@ -317,10 +326,10 @@ export default function MyArea() {
           </div>
 
           <div>
-            <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 mb-4">TO-DO</h2>
+            <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer mb-4" onClick={redirectToTodos}>TO-DO</h2>
             <div className="space-y-4 open_sans_font">
               {[1, 2, 3].map((task) => (
-                <div key={task} className="p-3 md:p-4 bg-black rounded-xl  flex items-center justify-between">
+                <div onClick={redirectToTodos} key={task} className="p-3 md:p-4 cursor-pointer bg-black rounded-xl  flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold open_sans_font text-sm md:text-base">Task</h3>
                     <p className="text-xs open_sans_font md:text-sm text-zinc-400">Description</p>

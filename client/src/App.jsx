@@ -17,6 +17,7 @@ import Marketing from './dashboardpages/marketing'
 import Communication from "./dashboardpages/communications";
 import Payment from "./dashboardpages/payment"
 import Contract from './dashboardpages/contract'
+import Configuration from './dashboardpages/configuration'
 
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
           <Route path="communication" element={<Communication />} />
           <Route path="payment" element={<Payment />} />
           <Route path="contract" element={<Contract />} />
+          <Route path="configuration" element={<Configuration />} />
 
         </Route>
       </Routes>
