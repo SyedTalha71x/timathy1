@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { StatsCard } from "../components/stats-card";
 import MenImage from "../../public/men.png";
 import BackgroundImage from "../../public/black-smooth-textured-paper-background.png";
