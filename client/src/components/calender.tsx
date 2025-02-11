@@ -11,6 +11,9 @@ const Calendar = () => {
     { day: "Tues", date: "03" },
     { day: "Wed", date: "04" },
     { day: "Thu", date: "05" },
+    { day: "Fri", date: "06" },
+    { day: "Sat", date: "07" },
+    { day: "Sun", date: "08" },
   ]
 
   const events = [
@@ -43,7 +46,7 @@ const Calendar = () => {
   return (
     <div className="w-full h-[600px] bg-black rounded-2xl p-10">
       <div className="relative h-full">
-        <div className="grid grid-cols-4 gap-4 mb-2 text-gray-300 text-sm">
+        <div className="grid grid-cols-7 overflow-x-auto gap-4 mb-2 text-gray-300 text-sm">
           {days.map(({ day, date }, index) => (
             <div key={index} className="text-center">
               <div>{day}</div>
@@ -53,8 +56,8 @@ const Calendar = () => {
         </div>
 
         <div className="relative h-[calc(100%-2rem)]">
-          <div className="absolute inset-0 grid grid-cols-4 gap-4">
-            {Array(4)
+          <div className="absolute inset-0 grid grid-cols-7 gap-4">
+            {Array(7)
               .fill(null)
               .map((_, index) => (
                 <div key={index} className="border-l border-gray-800 border-dashed h-full" />
@@ -74,12 +77,12 @@ const Calendar = () => {
             return (
               <div
                 key={event.id}
-                className={`absolute rounded-2xl  ${event.color} lg:p-2 p-1 overflow-hidden`}
+                className={`absolute rounded-2xl ${event.color} lg:p-2 p-1 overflow-hidden`}
                 style={{
                   top: `${top}px`,
                   height: `${height}px`,
-                  left: `calc(${event.day * 25}% + 2px)`,
-                  width: "calc(25% - 4px)",
+                  left: `calc(${event.day * (100 / 7)}% + 2px)`,
+                  width: "calc(100% / 7 - 4px)",
                 }}
               >
                 <div className="text-white text-sm font-medium mb-1 truncate">{event.title}</div>
@@ -100,4 +103,3 @@ const Calendar = () => {
 }
 
 export default Calendar
-

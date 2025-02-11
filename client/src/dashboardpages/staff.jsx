@@ -1,72 +1,53 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import { MoreHorizontal, X, Bell } from "lucide-react";
 import Staff from "../../public/avatar3.png";
 import Profile from "../../public/avatar3.png";
+import EmployeeCalendar from "../components/employee-calender";
+import toast, { Toaster } from "react-hot-toast";
 
-export default function StaffComponent() {
+export default function StaffManagement() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [isShowDetails, setIsShowDetails] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedStaff, setSelectedStaff] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeDropdownId, setActiveDropdownId] = useState(null);
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [staffToRemove, setStaffToRemove] = useState(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        !event.target.closest(".dropdown-trigger") &&
-        !event.target.closest(".dropdown-menu")
-      ) {
-        setActiveDropdownId(null);
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
-  const [tasks] = useState([
+  const [staffMembers, setStaffMembers] = useState([
     {
       id: 1,
-      title: "Natalia Brown",
+      firstName: "Natalia",
+      lastName: "Brown",
       role: "Telephone operator",
-      description: "Minim dolor in amet nulla laboris enim dolore.",
-      image: Staff,
+      email: "natalia.brown@example.com",
+      phone: "+1234567890",
+      description:
+        "Experienced telephone operator with excellent communication skills.",
+      img: Staff,
+      userId: "natalia.telephone-operator",
+      schedule: {
+        Monday: "9:00-17:00",
+        Tuesday: "9:00-17:00",
+        Wednesday: "9:00-17:00",
+        Thursday: "9:00-17:00",
+        Friday: "9:00-17:00",
+      },
     },
-    {
-      id: 2,
-      title: "Natalia Brown",
-      role: "Telephone operator",
-      description: "Minim dolor in amet nulla laboris enim dolore.",
-      image: Staff,
-    },
-    {
-      id: 3,
-      title: "Natalia Brown",
-      role: "Telephone operator",
-      description: "Minim dolor in amet nulla laboris enim dolore.",
-      image: Staff,
-    },
-    {
-      id: 4,
-      title: "Natalia Brown",
-      role: "Telephone operator",
-      description: "Minim dolor in amet nulla laboris enim dolore.",
-      image: Staff,
-    },
+    // Add more staff members here...
   ]);
 
   const [notifications, setNotifications] = useState([
     {
       id: 1,
-      heading: "Heading",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
+      heading: "New Staff Member",
+      description: "John Doe has been added to the staff.",
     },
     {
       id: 2,
-      heading: "Heading",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
+      heading: "Schedule Update",
+      description: "Sarah's work hours have been updated for next week.",
     },
   ]);
 
@@ -74,18 +55,38 @@ export default function StaffComponent() {
     setNotifications(notifications.filter((n) => n.id !== id));
   };
 
-  const handleViewDetails = (task) => {
-    setSelectedTask(task);
+  const handleEdit = (staff) => {
+    setSelectedStaff(staff);
     setIsShowDetails(true);
   };
 
-  const toggleDropdown = (taskId, event) => {
-    event.stopPropagation();
-    setActiveDropdownId(activeDropdownId === taskId ? null : taskId);
+  const handleRemovalStaff = (staff) => {
+    setStaffToRemove(staff);
+    setIsRemoveModalOpen(true);
+  };
+
+  const confirmRemoveStaff = () => {
+    setStaffMembers(
+      staffMembers.filter((member) => member.id !== staffToRemove.id)
+    );
+    setIsRemoveModalOpen(false);
+    setStaffToRemove(null);
+    setIsShowDetails(false);
+    toast.success("Staff member deleted successfully");
   };
 
   return (
     <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
       <div className="flex relative rounded-3xl cursor-pointer bg-[#1C1C1C] text-white">
         <div className="flex-1 min-w-0 p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -98,7 +99,7 @@ export default function StaffComponent() {
                 onClick={() => setIsModalOpen(true)}
                 className="bg-[#FF843E] text-white open_sans_font px-6 sm:px-10 py-2 rounded-xl text-sm flex-1 sm:flex-none"
               >
-                + Add Roles
+                + Add Staff
               </button>
               <button
                 onClick={() => setIsRightSidebarOpen(true)}
@@ -111,64 +112,34 @@ export default function StaffComponent() {
           </div>
 
           <div className="grid grid-cols-1 open_sans_font md:grid-cols-2 mt-8 sm:mt-[10%] gap-4 max-w-5xl mx-auto">
-            {tasks.map((task) => (
+            {staffMembers.map((staff) => (
               <div
-                key={task.id}
+                key={staff.id}
                 className="bg-[#141414] rounded-xl p-4 sm:p-6 flex flex-col items-center text-center"
               >
                 <div className="relative w-full mb-4">
-                  <button className="absolute right-0 top-0 text-gray-400 hover:text-white">
-                    <MoreHorizontal
-                      size={20}
-                      onClick={(e) => toggleDropdown(task.id, e)}
-                    />
-
-                    {activeDropdownId === task.id && (
-                      <div className="dropdown-menu absolute right-3 top-2 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  border border-gray-800 shadow-lg overflow-hidden z-10">
-                        <button
-                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveDropdownId(null);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto"></div>
-                        <button
-                          className="w-full px-4 py-2 text-red-500 text-sm  hover:bg-gray-800 text-left"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveDropdownId(null);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </button>
                   <img
-                    src={task.image || "/placeholder.svg"}
+                    src={staff.img || "/placeholder.svg"}
                     width={80}
                     height={80}
                     className="h-16 w-16 sm:h-20 sm:w-20 rounded-full mx-auto"
-                    alt={task.title}
+                    alt={`${staff.firstName} ${staff.lastName}`}
                   />
                 </div>
                 <h3 className="text-white font-medium text-base sm:text-lg mb-1">
-                  {task.title}
+                  {staff.firstName} {staff.lastName}
                 </h3>
                 <p className="text-gray-400 text-xs sm:text-sm mb-2">
-                  {task.role}
+                  {staff.role}
                 </p>
                 <p className="text-gray-400 text-xs sm:text-sm mb-4">
-                  {task.description}
+                  {staff.description}
                 </p>
                 <button
-                  onClick={() => handleViewDetails(task)}
+                  onClick={() => handleEdit(staff)}
                   className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-6 sm:px-8 hover:text-white text-sm w-fit"
                 >
-                  View details
+                  Edit
                 </button>
               </div>
             ))}
@@ -231,194 +202,467 @@ export default function StaffComponent() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
-          {" "}
-          <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white text-lg open_sans_font_700">
-                  Add Member
-                </h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <form className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]">
-                <div className="flex flex-col items-start">
-                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
-                    <img
-                      src={Profile }
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <button className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm">
-                    Upload picture
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter first name"
-                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter last name"
-                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-1 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="Enter email"
-                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      Phone No
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="Enter phone number"
-                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">
-                    Input
-                  </label>
-                  <div className="flex gap-1.5">
-                    <input
-                      type="text"
-                      placeholder="Input"
-                      className="w-[30%] bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Input"
-                      className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">
-                    Input
-                  </label>
-                  <select className="w-full bg-[#101010] text-sm rounded-xl  px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors">
-                    <option value="">Select</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-row gap-3 pt-2">
-                  <button
-                    type="submit"
-                    className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-red-500 border-2 border-slate-500 rounded-xl text-sm hover:bg-slate-800 transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+        <AddStaffModal
+          setIsModalOpen={setIsModalOpen}
+          staffMembers={staffMembers}
+          setStaffMembers={setStaffMembers}
+        />
       )}
 
-      {isShowDetails && selectedTask && (
-        <div className="fixed open_sans_font inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          {" "}
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
-            <div className="p-6">
+      {isShowDetails && selectedStaff && (
+        <EditStaffModal
+          staff={selectedStaff}
+          setIsShowDetails={setIsShowDetails}
+          setSelectedStaff={setSelectedStaff}
+          staffMembers={staffMembers}
+          setStaffMembers={setStaffMembers}
+          handleRemovalStaff={handleRemovalStaff}
+        />
+      )}
+
+      {isRemoveModalOpen && (
+        <div
+          className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6"
+          onClick={() => setIsRemoveModalOpen(false)}
+        >
+          <div
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">
+                Confirm Removal
+              </h2>
               <button
-                onClick={() => {
-                  setIsShowDetails(false);
-                  setSelectedTask(null);
-                }}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                onClick={() => setIsRemoveModalOpen(false)}
+                className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
               >
-                <X size={20} />
+                <X size={18} className="sm:w-5 sm:h-5" />
               </button>
+            </div>
 
-              <div className="space-y-6">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden">
-                  <img
-                    src={Profile}
-                    alt="Profile"
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+            <div className="px-4 sm:px-6 py-4">
+              <p className="text-white text-sm">
+                Are you sure you want to remove this staff member?
+              </p>
+            </div>
 
-                <div>
-                  <h3 className="text-white open_sans_font_700 text-xl font-bold mb-3">
-                    Staff Name
-                  </h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">
-                    Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-                    Rerum facere quod earum iusto itaque accusantium molestias
-                    nisi fugiat laboriosam perspiciatis.
-                  </p>
-                </div>
-
-                <div className="h-px bg-slate-500" />
-
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-gray-400 px-4 py-1.5 text-sm">
-                    Roles
-                  </span>
-                  <span className="text-gray-400 px-4 py-1.5 text-sm">
-                    Roles
-                  </span>
-                </div>
-
-                <div className="h-px bg-slate-500" />
-                <div className="m-3">
-                  <div>
-                    <span className="text-sm text-gray-400">Permissions</span>
-                  </div>
-
-                  <div className="mt-2">
-                    <button className="py-2 px-7 cursor-pointer text-white bg-[#3F74FF] rounded-xl text-sm">
-                      Permission 1
-                    </button>
-                  </div>
-                </div>
-              </div>
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
+              <button
+                onClick={confirmRemoveStaff}
+                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors duration-200"
+              >
+                Yes, Remove
+              </button>
+              <button
+                onClick={() => setIsRemoveModalOpen(false)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors duration-200"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       )}
     </>
+  );
+}
+
+function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
+  const [newStaff, setNewStaff] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    role: "",
+    description: "",
+    img: null,
+    schedule: {},
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewStaff((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImgUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewStaff((prev) => ({ ...prev, img: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const userId = `${newStaff.firstName.toLowerCase()}.${newStaff.role
+      .toLowerCase()
+      .replace(/\s+/g, "-")}`;
+    const newStaffMember = {
+      ...newStaff,
+      id: staffMembers.length + 1,
+      userId,
+    };
+    setStaffMembers([...staffMembers, newStaffMember]);
+    setIsModalOpen(false);
+    toast.success("Staff member added successfully");
+  };
+
+  const handleScheduleSave = (schedule) => {
+    setNewStaff((prev) => ({ ...prev, schedule }));
+  };
+
+  return (
+    <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
+      <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-lg open_sans_font_700">Add Staff</h2>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]"
+          >
+            <div className="flex flex-col items-start">
+              <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
+                <img
+                  src={newStaff.img || Profile}
+                  alt="Profile"
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <input
+                type="file"
+                accept="img/*"
+                onChange={handleImgUpload}
+                className="hidden"
+                id="avatar-upload"
+              />
+              <label
+                htmlFor="avatar-upload"
+                className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
+              >
+                Upload picture
+              </label>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={newStaff.firstName}
+                  onChange={handleInputChange}
+                  placeholder="Enter first name"
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={newStaff.lastName}
+                  onChange={handleInputChange}
+                  placeholder="Enter last name"
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={newStaff.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter email"
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">
+                  Phone No
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={newStaff.phone}
+                  onChange={handleInputChange}
+                  placeholder="Enter phone number"
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Role</label>
+              <select
+                name="role"
+                value={newStaff.role}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              >
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={newStaff.description}
+                onChange={handleInputChange}
+                placeholder="Enter description"
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                rows={3}
+              />
+            </div>
+
+            <EmployeeCalendar
+              staffMember={newStaff}
+              onSaveSchedule={handleScheduleSave}
+            />
+
+            <div className="flex flex-row gap-3 pt-2">
+              <button
+                type="submit"
+                className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-red-500 border-2 border-slate-500 rounded-xl text-sm hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditStaffModal({
+  staff,
+  setIsShowDetails,
+  setSelectedStaff,
+  staffMembers,
+  setStaffMembers,
+  handleRemovalStaff,
+}) {
+  const [editedStaff, setEditedStaff] = useState(staff);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditedStaff((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImgUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditedStaff((prev) => ({ ...prev, img: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const updatedStaffMembers = staffMembers.map((s) =>
+      s.id === editedStaff.id ? editedStaff : s
+    );
+    setStaffMembers(updatedStaffMembers);
+    setIsShowDetails(false);
+    setSelectedStaff(null);
+    toast.success("Staff member updated successfully");
+  };
+
+  const handleScheduleSave = (schedule) => {
+    setEditedStaff((prev) => ({ ...prev, schedule }));
+  };
+
+  return (
+    <div className="fixed open_sans_font inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
+        <div className="p-6">
+          <button
+            onClick={() => {
+              setIsShowDetails(false);
+              setSelectedStaff(null);
+            }}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
+
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-6 custom-scrollbar overflow-y-auto max-h-[70vh]"
+          >
+            <div className="flex flex-col items-start">
+              <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
+                <img
+                  src={editedStaff.img || Profile}
+                  alt="Profile"
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <input
+                type="file"
+                accept="img/*"
+                onChange={handleImgUpload}
+                className="hidden"
+                id="edit-avatar-upload"
+              />
+              <label
+                htmlFor="edit-avatar-upload"
+                className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
+              >
+                Change picture
+              </label>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={editedStaff.firstName}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={editedStaff.lastName}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={editedStaff.email}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">
+                Phone No
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={editedStaff.phone}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+            <div>
+  <label className="text-sm text-gray-200 block mb-2">Role</label>
+  <select
+    name="role"
+    value={editedStaff.role}
+    onChange={handleInputChange}
+    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+    required
+  >
+    <option value="admin">Admin</option>
+    <option value="manager">Manager</option>
+  </select>
+</div>
+
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={editedStaff.description}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                rows={3}
+              />
+            </div>
+
+            <EmployeeCalendar
+              staffMember={editedStaff}
+              onSaveSchedule={handleScheduleSave}
+            />
+
+            <div className="flex flex-row gap-3 pt-2">
+              <button
+                type="submit"
+                className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRemovalStaff(editedStaff)}
+                className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-red-500 border-2 border-slate-500 rounded-xl text-sm hover:bg-slate-800 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
