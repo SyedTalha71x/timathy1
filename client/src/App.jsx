@@ -18,6 +18,7 @@ import Communication from "./dashboardpages/communications";
 import Payment from "./dashboardpages/payment"
 import Contract from './dashboardpages/contract'
 import Configuration from './dashboardpages/configuration'
+import Leets from './dashboardpages/leets'
 
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
           <Route path="payment" element={<Payment />} />
           <Route path="contract" element={<Contract />} />
           <Route path="configuration" element={<Configuration />} />
+          <Route path="leets" element={<Leets />} />
 
         </Route>
       </Routes>

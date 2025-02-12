@@ -1,5 +1,4 @@
-"use client";
-
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Chart from "react-apexcharts";

@@ -102,6 +102,8 @@ const Sidebar = () => {
                 { icon: RiContractLine, label: "Contract", to: "/dashboard/contract" },
                 { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
                 { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
+                { icon: RiContractLine, label: "Leets", to: "/dashboard/leets" },
+
               ].map((item) => (
                 <li key={item.label}>
                   <button

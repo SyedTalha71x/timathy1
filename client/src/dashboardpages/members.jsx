@@ -217,57 +217,59 @@ export default function Members() {
 
       <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative">
         <div className="flex-1 min-w-0 p-6 pb-36">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
-  <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
-  <div className="flex items-center gap-3 w-full sm:w-auto">
-    <div className="relative filter-dropdown flex-1 sm:flex-none">
-      <button
-        onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-        className={`flex w-full sm:w-auto cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]`}
-      >
-        <span className="truncate">
-          {
-            filterOptions.find(
-              (opt) =>
-                (opt.id === "expired" && showExpiredContracts) ||
-                (opt.id === filterStatus && !showExpiredContracts)
-            )?.label
-          }
-        </span>
-        <ChevronDown
-          size={16}
-          className={`transform transition-transform flex-shrink-0 ${
-            isFilterDropdownOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-      {isFilterDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-full sm:w-64 rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
-          {filterOptions.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => handleFilterSelect(option.id)}
-              className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
-                (option.id === "expired" && showExpiredContracts) ||
-                (option.id === filterStatus && !showExpiredContracts)
-                  ? "bg-[#000000]"
-                  : ""
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-    <button
-      onClick={() => setIsRightSidebarOpen(true)}
-      className="text-gray-400 hover:text-white lg:hidden p-2"
-    >
-      <Bell size={24} />
-    </button>
-  </div>
-</div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
+            <h1 className="text-xl sm:text-2xl oxanium_font text-white">
+              Members
+            </h1>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="relative filter-dropdown flex-1 sm:flex-none">
+                <button
+                  onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                  className={`flex w-full sm:w-auto cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]`}
+                >
+                  <span className="truncate">
+                    {
+                      filterOptions.find(
+                        (opt) =>
+                          (opt.id === "expired" && showExpiredContracts) ||
+                          (opt.id === filterStatus && !showExpiredContracts)
+                      )?.label
+                    }
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`transform transition-transform flex-shrink-0 ${
+                      isFilterDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {isFilterDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-full sm:w-64 rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
+                    {filterOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => handleFilterSelect(option.id)}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
+                          (option.id === "expired" && showExpiredContracts) ||
+                          (option.id === filterStatus && !showExpiredContracts)
+                            ? "bg-[#000000]"
+                            : ""
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setIsRightSidebarOpen(true)}
+                className="text-gray-400 hover:text-white lg:hidden p-2"
+              >
+                <Bell size={24} />
+              </button>
+            </div>
+          </div>
           <div className="flex flex-col space-y-4 mb-6">
             <div className="flex gap-3">
               <div className="relative flex-1">
