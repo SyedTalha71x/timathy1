@@ -1,50 +1,85 @@
-import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import Chart from "react-apexcharts";
-import { BarChart3, MoreVertical, MessageCircle, X, Clock } from "lucide-react";
-import Rectangle1 from "../../public/Rectangle 1.png";
-import Image10 from "../../public/image10.png";
-import Avatar from "../../public/avatar.png";
+"use client"
+
+import { useState, useEffect, useRef } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import Chart from "react-apexcharts"
+import { BarChart3, MoreVertical, MessageCircle, X, Clock, ChevronDown } from "lucide-react"
+import Rectangle1 from "../../public/Rectangle 1.png"
+import Image10 from "../../public/image10.png"
+import Avatar from "../../public/avatar.png"
 
 export default function MyArea() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null);
-  const dropdownRef = useRef(null);
-  const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [selectedMemberType, setSelectedMemberType] = useState("All members")
+  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
+  const dropdownRef = useRef(null)
+  const chartDropdownRef = useRef(null)
+  const navigate = useNavigate()
+
+  const memberTypes = {
+    "All members": {
+      data: [
+        [50, 280, 200, 450, 250, 400, 300, 200, 450],
+        [100, 150, 200, 100, 150, 300, 400, 100, 400],
+      ],
+      growth: "4%",
+      title: "Members",
+    },
+    "Checked in": {
+      data: [
+        [30, 180, 150, 350, 200, 300, 250, 150, 350],
+        [80, 120, 150, 80, 120, 250, 300, 80, 300],
+      ],
+      growth: "2%",
+      title: "Checked In Members",
+    },
+    "Cancelled appointment": {
+      data: [
+        [20, 100, 50, 100, 50, 100, 50, 50, 100],
+        [20, 30, 50, 20, 30, 50, 100, 20, 100],
+      ],
+      growth: "-1%",
+      title: "Cancelled Appointments",
+    },
+  }
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+    setIsSidebarOpen(!isSidebarOpen)
+  }
 
   const toggleRightSidebar = () => {
-    setIsRightSidebarOpen(!isRightSidebarOpen);
-  };
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
 
   const redirectToTodos = () => {
-    navigate("/dashboard/to-do");
-  };
+    navigate("/dashboard/to-do")
+  }
 
   const redirectToCommunication = () => {
-    navigate("/dashboard/communication");
-  };
+    navigate("/dashboard/communication")
+  }
 
   const toggleDropdown = (index) => {
-    setOpenDropdownIndex(openDropdownIndex === index ? null : index);
-  };
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownIndex(null);
+        setOpenDropdownIndex(null)
       }
-    };
+      if (chartDropdownRef.current && !chartDropdownRef.current.contains(event.target)) {
+        setIsChartDropdownOpen(false)
+      }
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   const chartOptions = {
     chart: {
@@ -56,26 +91,21 @@ export default function MyArea() {
       background: "transparent",
       fontFamily: "Inter, sans-serif",
     },
-    colors: ["#FF843E", "#3F74FF"],
+    colors: ["#FF6B1A", "#2E5BFF"],
     stroke: {
       curve: "smooth",
-      width: 3,
+      width: 4,
+      opacity: 1,
     },
     markers: {
-      size: 0,
+      size: 1,
+      strokeWidth: 0,
+      hover: {
+        size: 6,
+      },
     },
     xaxis: {
-      categories: [
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       labels: {
         style: {
           colors: "#999999",
@@ -136,7 +166,7 @@ export default function MyArea() {
       },
     },
     title: {
-      text: "User",
+      text: memberTypes[selectedMemberType].title,
       align: "left",
       style: {
         fontSize: "16px",
@@ -145,7 +175,7 @@ export default function MyArea() {
       },
     },
     subtitle: {
-      text: "↑ 45% more in 2024",
+      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
       align: "left",
       style: {
         fontSize: "12px",
@@ -153,18 +183,18 @@ export default function MyArea() {
         fontWeight: "bolder",
       },
     },
-  };
+  }
 
   const chartSeries = [
     {
       name: "Comp1",
-      data: [50, 280, 200, 450, 250, 400, 300, 200, 450],
+      data: memberTypes[selectedMemberType].data[0],
     },
     {
       name: "Comp2",
-      data: [100, 150, 200, 100, 150, 300, 400, 100, 400],
+      data: memberTypes[selectedMemberType].data[1],
     },
-  ];
+  ]
 
   const appointments = [
     {
@@ -172,32 +202,31 @@ export default function MyArea() {
       time: "10:00",
       date: "Mon | 02-01-2025",
       color: "bg-[#3F74FF]",
+      status: "check-in"
     },
     {
       name: "Alexandra",
       time: "12:00",
       date: "Mon | 02-01-2025",
       color: "bg-[#CE4B55]",
+      status: "check-out"
     },
-  ];
+  ]
+
+  const handleAction = (index, action) => {
+    console.log(`${action} appointment ${index}`)
+    // Add your check-in/check-out logic here
+  }
 
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
-      {isRightSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={toggleRightSidebar}
-        />
-      )}
+      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={toggleRightSidebar} />}
       <main className="flex-1 min-w-0 overflow-x-hidden">
         <div className="p-4 md:p-6">
           <div className="grid gap-4 md:gap-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <button
-                  onClick={toggleSidebar}
-                  className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden"
-                >
+                <button onClick={toggleSidebar} className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden">
                   <BarChart3 />
                 </button>
                 <h1 className="text-xl md:text-2xl oxanium_font">My Area</h1>
@@ -207,36 +236,47 @@ export default function MyArea() {
                 className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg lg:hidden"
                 aria-label="Toggle Messages"
               >
-                {isRightSidebarOpen ? (
-                  <X size={24} />
-                ) : (
-                  <MessageCircle size={24} />
-                )}
+                {isRightSidebarOpen ? <X size={24} /> : <MessageCircle size={24} />}
               </button>
             </div>
 
             <div className="p-4 md:p-6 bg-[#2F2F2F] rounded-xl overflow-hidden">
+              <div className="relative mb-4" ref={chartDropdownRef}>
+                <button
+                  onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
+                  className="flex items-center gap-2 px-4 py-2 bg-black rounded-xl text-white text-sm"
+                >
+                  {selectedMemberType}
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                {isChartDropdownOpen && (
+                  <div className="absolute z-10 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg">
+                    {Object.keys(memberTypes).map((type) => (
+                      <button
+                        key={type}
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
+                        onClick={() => {
+                          setSelectedMemberType(type)
+                          setIsChartDropdownOpen(false)
+                        }}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="w-full overflow-x-auto custom-scrollbar">
                 <div className="min-w-[800px]">
-                  <Chart
-                    options={chartOptions}
-                    series={chartSeries}
-                    type="line"
-                    height={300}
-                  />
+                  <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
                 </div>
               </div>
             </div>
 
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg md:text-xl open_sans_font_700 ">
-                  Upcoming Appointments
-                </h2>
-                <Link
-                  to={"/dashboard/appointments"}
-                  className="cursor-pointer hover:underline  font-medium"
-                >
+                <h2 className="text-lg md:text-xl open_sans_font_700">Upcoming Appointments</h2>
+                <Link to={"/dashboard/appointments"} className="cursor-pointer hover:underline font-medium">
                   See all
                 </Link>
               </div>
@@ -244,7 +284,7 @@ export default function MyArea() {
                 {appointments.map((appointment, index) => (
                   <div
                     key={index}
-                    className={`${appointment.color} p-3 md:p-4 open_sans_font rounded-xl flex items-center justify-between relative`}
+                    className={`${appointment.color} p-3 md:p-4 open_sans_font rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center">
@@ -255,57 +295,59 @@ export default function MyArea() {
                         />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-sm md:text-base">
-                          {appointment.name}
-                        </h3>
+                        <h3 className="font-semibold text-sm md:text-base">{appointment.name}</h3>
                         <p className="text-xs flex gap-1 items-center md:text-sm text-white/70">
-                          <div>
-                            <Clock size={15} />
-                          </div>
+                          <Clock size={15} />
                           {appointment.time} | {appointment.date}
                         </p>
                       </div>
                     </div>
 
-                    <div
-                      className="relative"
-                      ref={dropdownRef}
-                    >
+                    <div className="flex items-center gap-2 ml-auto">
                       <button
-                        className="p-2 hover:bg-white/10 rounded-xl"
-                        onClick={() => toggleDropdown(index)}
+                        onClick={() => handleAction(index, appointment.status)}
+                        className={`px-5 py-1.5 cursor-pointer ${
+                          appointment.status === 'check-in' 
+                            ? 'bg-black' 
+                            : 'bg-black'
+                        } text-white text-xs md:text-sm rounded-xl cursor-pointer transition-colors min-w-[80px]`}
                       >
-                        <MoreVertical size={18} className="cursor-pointer" />
+                        {appointment.status === 'check-in' ? 'Check In' : 'Check Out'}
                       </button>
-                      {openDropdownIndex === index && (
-                        <div className="absolute right-5 top-3 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  z-10">
-                          <ul className="py-1">
-                            <li>
-                              <button
-                                className="block w-full text-left px-4 py-2 text-sm text-white cursor-pointer"
-                                onClick={() => {
-                                  console.log("Cancel appointment");
-                                  setOpenDropdownIndex(null);
-                                }}
-                              >
-                                Cancel
-                              </button>
-                            </li>
-                            <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto"></div>
-                            <li>
-                              <button
-                                className="block w-full text-left px-4 py-2 text-sm text-red-500 cursor-pointer"
-                                onClick={() => {
-                                  console.log("Remove appointment");
-                                  setOpenDropdownIndex(null);
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </li>
-                          </ul>
-                        </div>
-                      )}
+                      <div className="relative" ref={dropdownRef}>
+                        <button className="p-2 hover:bg-white/10 rounded-xl" onClick={() => toggleDropdown(index)}>
+                          <MoreVertical size={18} className="cursor-pointer" />
+                        </button>
+                        {openDropdownIndex === index && (
+                          <div className="absolute right-0 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl z-10">
+                            <ul className="py-1">
+                              <li>
+                                <button
+                                  className="block w-full text-left px-4 py-2 text-sm text-white cursor-pointer hover:bg-white/10"
+                                  onClick={() => {
+                                    console.log("Cancel appointment")
+                                    setOpenDropdownIndex(null)
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              </li>
+                              <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto"></div>
+                              <li>
+                                <button
+                                  className="block w-full text-left px-4 py-2 text-sm text-red-500 cursor-pointer hover:bg-white/10"
+                                  onClick={() => {
+                                    console.log("Remove appointment")
+                                    setOpenDropdownIndex(null)
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </li>
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -319,11 +361,7 @@ export default function MyArea() {
         className={`
         fixed top-0 right-0 bottom-0 w-[85vw] sm:w-80 lg:w-80 bg-[#181818] z-50 
         lg:static lg:block overflow-y-auto
-        ${
-          isRightSidebarOpen
-            ? "translate-x-0"
-            : "translate-x-full lg:translate-x-0"
-        }
+        ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
         transition-transform duration-500 ease-in-out
       `}
       >
@@ -338,10 +376,7 @@ export default function MyArea() {
 
           <div className="mb-8 mt-8 lg:mt-0">
             <div className="flex items-center justify-between mb-4">
-              <h2
-                className="text-lg md:text-xl open_sans_font_700 cursor-pointer"
-                onClick={redirectToCommunication}
-              >
+              <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer" onClick={redirectToCommunication}>
                 Communications
               </h2>
             </div>
@@ -359,20 +394,15 @@ export default function MyArea() {
                       className="rounded-full h-10 w-10 md:h-12 md:w-12"
                     />
                     <div>
-                      <h3 className="open_sans_font text-sm md:text-base">
-                        Jennifer Markus
-                      </h3>
+                      <h3 className="open_sans_font text-sm md:text-base">Jennifer Markus</h3>
                     </div>
                   </div>
                   <div>
                     <p className="text-xs md:text-sm open_sans_font text-zinc-400">
-                      Hey! Did you think the NFT marketplace for Alice app
-                      design?
+                      Hey! Did you think the NFT marketplace for Alice app design?
                     </p>
                     <p className="text-xs mt-2 flex gap-1 items-center open_sans_font text-zinc-400">
-                      <div>
-                        <Clock size={15} />
-                      </div>
+                      <Clock size={15} />
                       Today | 05:30 PM
                     </p>
                   </div>
@@ -399,22 +429,14 @@ export default function MyArea() {
                 <div
                   onClick={redirectToTodos}
                   key={task}
-                  className="p-3 md:p-4 cursor-pointer bg-black rounded-xl  flex items-center justify-between"
+                  className="p-3 md:p-4 cursor-pointer bg-black rounded-xl flex items-center justify-between"
                 >
                   <div>
-                    <h3 className="font-semibold open_sans_font text-sm md:text-base">
-                      Task
-                    </h3>
-                    <p className="text-xs open_sans_font md:text-sm text-zinc-400">
-                      Description
-                    </p>
+                    <h3 className="font-semibold open_sans_font text-sm md:text-base">Task</h3>
+                    <p className="text-xs open_sans_font md:text-sm text-zinc-400">Description</p>
                   </div>
                   <button className="px-4 md:px-6 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs md:text-sm">
-                    <img
-                      src={Image10 || "/placeholder.svg"}
-                      alt=""
-                      className="w-4 h-4"
-                    />
+                    <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
                     Jack
                   </button>
                 </div>
@@ -431,5 +453,6 @@ export default function MyArea() {
         </div>
       </aside>
     </div>
-  );
+  )
 }
+
