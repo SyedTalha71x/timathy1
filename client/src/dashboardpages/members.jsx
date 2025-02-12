@@ -1,7 +1,5 @@
-"use client"
-
 import { useEffect, useState } from "react"
-import { X, Bell, Search, AlertTriangle } from "lucide-react"
+import { X, Bell, Search, AlertTriangle, ChevronDown } from "lucide-react"
 import Profile from "../../public/image10.png"
 import toast, { Toaster } from "react-hot-toast"
 
@@ -12,6 +10,8 @@ export default function Members() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [showExpiredContracts, setShowExpiredContracts] = useState(false)
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
+
   const [editForm, setEditForm] = useState({
     firstName: "",
     lastName: "",
@@ -100,6 +100,31 @@ export default function Members() {
     },
   ])
 
+  const filterOptions = [
+    { id: 'all', label: `All Members (${members.length})` },
+    { id: 'active', label: `Active Members (${members.filter(m => m.isActive).length})` },
+    { id: 'inactive', label: `Inactive Members (${members.filter(m => !m.isActive).length})` },
+    { 
+      id: 'expired', 
+      label: `Expired Contracts (${members.filter(m => !m.isActive && m.inactiveReason.toLowerCase() === "contract terminated").length})`
+    }
+  ]
+
+  // const getFilterBgColor = (filter) => {
+  //   switch (filter) {
+  //     case 'all':
+  //       return 'bg-[#FF843E]';
+  //     case 'active':
+  //       return 'bg-[#152619]';
+  //     case 'inactive':
+  //       return 'bg-[#261515]';
+  //     case 'expired':
+  //       return 'bg-[#1B2236]';
+  //     default:
+  //       return 'bg-[#2F2F2F]';
+  //   }
+  // }
+
   const filteredAndSortedMembers = () => {
     let filtered = members.filter(
       (member) =>
@@ -131,6 +156,17 @@ export default function Members() {
     },
   ])
 
+  const handleFilterSelect = (filterId) => {
+    if (filterId === 'expired') {
+      setShowExpiredContracts(true)
+      setFilterStatus('all')
+    } else {
+      setShowExpiredContracts(false)
+      setFilterStatus(filterId)
+    }
+    setIsFilterDropdownOpen(false)
+  }
+
   const removeNotification = (id) => {
     setNotifications(notifications.filter((n) => n.id !== id))
   }
@@ -140,87 +176,98 @@ export default function Members() {
     setIsEditModalOpen(true)
   }
 
-  const handleFilterClick = (status) => {
-    setFilterStatus(status)
-    setShowExpiredContracts(false)
-  }
+  // const handleFilterClick = (status) => {
+  //   setFilterStatus(status)
+  //   setShowExpiredContracts(false)
+  // }
 
-  const handleExpiredContractsClick = () => {
-    setShowExpiredContracts(true)
-    setFilterStatus("all")
-  }
+  // const handleExpiredContractsClick = () => {
+  //   setShowExpiredContracts(true)
+  //   setFilterStatus("all")
+  // }
 
   return (
     <>
-     <Toaster
-    position="top-right"
-    toastOptions={{
-      duration: 2000,
-      style: {
-        background: '#333',
-        color: '#fff',
-      },
-    }}
-  />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+        }}
+      />
    
-    <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative">
-      <div className="flex-1 min-w-0 p-6 pb-36">
+      <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative">
+        <div className="flex-1 min-w-0 p-6 pb-36">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl oxanium_font text-white">Members</h1>
-          <button onClick={() => setIsRightSidebarOpen(true)} className="text-gray-400 hover:text-white lg:hidden">
-            <Bell size={24} />
-          </button>
+  <h1 className="text-2xl oxanium_font text-white">Members</h1>
+
+  <div className="flex items-center gap-3">
+    <div className="relative filter-dropdown">
+      <button
+        onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+        className={`flex cursor-pointer items-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000]`}
+      >
+        <span>
+          {filterOptions.find(opt => 
+            (opt.id === 'expired' && showExpiredContracts) || 
+            (opt.id === filterStatus && !showExpiredContracts)
+          )?.label}
+        </span>
+        <ChevronDown
+          size={16} 
+          className={`transform transition-transform ${isFilterDropdownOpen ? 'rotate-180' : ''}`} 
+        />
+      </button>
+      
+      {isFilterDropdownOpen && (
+        <div className="absolute right-0 mt-2 w-64 rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
+          {filterOptions.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => handleFilterSelect(option.id)}
+              className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
+                (option.id === 'expired' && showExpiredContracts) || 
+                (option.id === filterStatus && !showExpiredContracts)
+                  ? 'bg-[#000000]'
+                  : ''
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
+      )}
+    </div>
 
-        <div className="flex flex-col space-y-4 mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search members..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#101010] pl-10 pr-4 py-3 text-sm outline-none rounded-xl text-white placeholder-gray-500  border border-transparent "
-            />
+    <button 
+      onClick={() => setIsRightSidebarOpen(true)} 
+      className="text-gray-400 hover:text-white lg:hidden"
+    >
+      <Bell size={24} />
+    </button>
+  </div>
+</div>
+
+
+          <div className="flex flex-col space-y-4 mb-6">
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search members..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#101010] pl-10 pr-4 py-3 text-sm outline-none rounded-xl text-white placeholder-gray-500 border border-transparent"
+                />
+              </div>
+              
+            
+            </div>
           </div>
-
-          <div className="grid lg:grid-cols-4 grid-cols-2 gap-2 cursor-pointer ">
-            <button
-              onClick={() => handleFilterClick("all")}
-              className={`px-4 text-sm cursor-pointer py-2 rounded-xl ${
-                filterStatus === "all" && !showExpiredContracts ? "bg-[#FF843E]" : "bg-[#101010]"
-              }`}
-            >
-              All Members ({members.length})
-            </button>
-            <button
-              onClick={() => handleFilterClick("active")}
-              className={`px-4 text-sm cursor-pointer py-2 rounded-xl ${
-                filterStatus === "active" ? "bg-green-900" : "bg-[#101010]"
-              }`}
-            >
-              Active Members ({members.filter((m) => m.isActive).length})
-            </button>
-            <button
-              onClick={() => handleFilterClick("inactive")}
-              className={`px-4 text-sm cursor-pointer py-2 rounded-xl ${
-                filterStatus === "inactive" ? "bg-red-900" : "bg-[#101010]"
-              }`}
-            >
-              Inactive Members ({members.filter((m) => !m.isActive).length})
-            </button>
-            <button
-              onClick={handleExpiredContractsClick}
-              className={`px-4 text-sm cursor-pointer py-2 rounded-xl ${
-                showExpiredContracts ? "bg-[#3F74FF]" : "bg-[#101010]"
-              }`}
-            >
-              Expired Contracts (
-              {members.filter((m) => !m.isActive && m.inactiveReason.toLowerCase() === "contract terminated").length})
-            </button>
-          </div>
-        </div>
-
         {isEditModalOpen && selectedMember && (
           <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
             <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">

@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { X, Bell, Plus } from "lucide-react";
+import { X, Bell, Plus, ChevronDown } from "lucide-react";
 import AddTaskModal from "../components/add-task-modal";
 import TaskItem from "../components/task-item";
 import Notification from "../components/notification";
@@ -8,6 +7,7 @@ import Notification from "../components/notification";
 export default function TodoApp() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("ongoing");
   const [tasks, setTasks] = useState([
     {
@@ -50,6 +50,17 @@ export default function TodoApp() {
     },
   ]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.status-dropdown')) {
+        setIsStatusDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const removeNotification = (id) => {
     setNotifications(notifications.filter((n) => n.id !== id));
   };
@@ -78,15 +89,28 @@ export default function TodoApp() {
 
   const filteredTasks = tasks.filter((task) => task.status === activeFilter);
 
+  // const getStatusBgColor = (status) => {
+  //   switch (status) {
+  //     case 'completed':
+  //       return 'bg-[#152619]';
+  //     case 'ongoing':
+  //       return 'bg-[#1B2236]';
+  //     case 'canceled':
+  //       return 'bg-[#261515]';
+  //     default:
+  //       return 'bg-[#000000]';
+  //   }
+  // };
+
   return (
     <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden">
       <div className="flex-1 p-4 sm:p-6">
         <div className="pb-16 sm:pb-24 lg:pb-36">
-          <div className="flex  justify-between items-start sm:items-center mb-6 gap-4">
+          <div className="flex justify-between items-start mb-6 gap-4">
             <h1 className="text-2xl font-bold text-white oxanium_font">
               To-Do
             </h1>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col justify-end items-end  gap-3">
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="bg-[#FF843E] cursor-pointer text-white px-4 sm:px-10 py-2 rounded-xl text-sm flex items-center gap-2"
@@ -94,6 +118,33 @@ export default function TodoApp() {
                 <Plus size={18} />
                 <span className="open_sans_font">Add task</span>
               </button>
+              <div className="relative status-dropdown">
+                <button
+                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  className={`flex items-center cursor-pointer gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30  bg-[#000000]`}
+                >
+                  <span className="capitalize">{activeFilter}</span>
+                  <ChevronDown size={16} className={`transform transition-transform cursor-pointer duration-500 ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isStatusDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-lg bg-[#2F2F2F]/50 backdrop-blur-3xl shadow-lg z-50 border border-slate-300/30">
+                    {["ongoing", "completed", "canceled"].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setActiveFilter(status);
+                          setIsStatusDropdownOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
+                          activeFilter === status ? 'bg-[#000000]' : ''
+                        }`}
+                      >
+                        <span className="capitalize">{status}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button
                 onClick={() => setIsNotificationOpen(true)}
                 className="lg:hidden text-gray-400 hover:text-white"
@@ -101,33 +152,6 @@ export default function TodoApp() {
                 <Bell size={20} />
               </button>
             </div>
-          </div>
-
-          <div className="mb-4 flex flex-wrap gap-2 cursor-pointer">
-            {["ongoing", "completed", "canceled"].map((filter) => {
-              const bgColor =
-                filter === "completed"
-                  ? "bg-[#152619] border border-slate-300/30 cursor-pointer"
-                  : filter === "ongoing"
-                  ? "bg-[#1B2236] border border-slate-300/30 cursor-pointer"
-                  : filter === "canceled"
-                  ? "bg-[#261515] border border-slate-300/30 cursor-pointer"
-                  : "bg-gray-800";
-
-              return (
-                <button
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-4 py-2 cursor-pointer rounded-xl text-sm ${
-                    activeFilter === filter
-                      ? `${bgColor} text-white`
-                      : "bg-[#2F2F2F] text-gray-300"
-                  }`}
-                >
-                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                </button>
-              );
-            })}
           </div>
 
           <div className="bg-black rounded-xl open_sans_font p-3 mt-4 sm:mt-8 lg:mt-16">

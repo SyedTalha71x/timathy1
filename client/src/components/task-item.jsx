@@ -38,8 +38,8 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
 
   const handleRemoveTask = () => {
     onRemove(task.id);
-    toast.success("Task has been deleted!");
     setIsDropdownOpen(false);
+    toast.success("Task has been deleted!");
   };
 
   const handleUpdateTask = (updatedTask) => {
