@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars */
-import { MoreHorizontal, X, Clock, AlertTriangle, ChevronDown } from "lucide-react"
+import { MoreHorizontal, X, Clock, AlertTriangle, ChevronDown, Info } from "lucide-react"
 import { useState, useEffect } from "react"
 import Avatar from "../../public/avatar.png"
 import Calendar from "../components/calender"
 import toast, { Toaster } from "react-hot-toast"
+import { AppointmentDetailsModal } from "../components/view-appointment-details"
 
 export default function Appointments() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -14,6 +15,7 @@ export default function Appointments() {
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false)
   const [appointmentToRemove, setAppointmentToRemove] = useState(null)
+  const [isShowDetails, setisShowDetails] = useState(false)
   const [appointments, setAppointments] = useState([
     {
       id: 1,
@@ -101,6 +103,7 @@ export default function Appointments() {
   const handleAppointmentClick = (appointment) => {
     setSelectedAppointment(appointment)
   }
+
 
   const handleAppointmentChange = (changes) => {
     const updatedAppointment = { ...selectedAppointment, ...changes }
@@ -207,9 +210,8 @@ export default function Appointments() {
                     <div
                       key={appointment.id}
                       className={`${appointment.color} rounded-xl cursor-pointer p-4`}
-                      onClick={() => handleAppointmentClick(appointment)}
+                      // onClick={() => handleAppointmentClick(appointment)}
                     >
-                      {/* Modified appointment card layout */}
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -233,7 +235,7 @@ export default function Appointments() {
                           >
                             {checkedInMembers.includes(appointment.id) ? 'Check Out' : 'Check In'}
                           </button>
-                          <div className="relative">
+                          <div className="relative flex flex-col items-center">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -243,6 +245,9 @@ export default function Appointments() {
                             >
                               <MoreHorizontal size={20} />
                             </button>
+                            <div>
+                              <Info size={18} className="text-white cursor-pointer" onClick={()=>setisShowDetails(true)}/>
+                            </div>
 
                             {activeDropdownId === appointment.id && (
                               <div className="absolute right-0 cursor-pointer mt-1 w-32 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
@@ -282,6 +287,8 @@ export default function Appointments() {
         </div>
       </main>
 
+
+    
       {isModalOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
