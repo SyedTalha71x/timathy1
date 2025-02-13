@@ -158,13 +158,13 @@ export default function Appointments() {
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
             <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               {/* <ViewSelector /> */}
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-[#FF843E] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
+                className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
               >
                 + Add appointment
               </button>
@@ -206,65 +206,68 @@ export default function Appointments() {
                   {appointments.map((appointment) => (
                     <div
                       key={appointment.id}
-                      className={`${appointment.color} rounded-xl cursor-pointer p-4 flex items-center justify-between`}
+                      className={`${appointment.color} rounded-xl cursor-pointer p-4`}
                       onClick={() => handleAppointmentClick(appointment)}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                          <img src={Avatar} alt="" className="w-full h-full rounded-full" />
+                      {/* Modified appointment card layout */}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <img src={Avatar} alt="" className="w-full h-full rounded-full" />
+                          </div>
+                          <div className="text-white">
+                            <p className="font-semibold">{appointment.name}</p>
+                            <p className="text-sm flex gap-1 items-center opacity-80">
+                              <Clock size={15} />
+                              {appointment.time} | {appointment.date}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-white">
-                          <p className="font-semibold">{appointment.name}</p>
-                          <p className="text-sm flex gap-1 items-center opacity-80">
-                            <Clock size={15} />
-                            {appointment.time} | {appointment.date}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleCheckIn(appointment.id)
-                          }}
-                          className="px-3 py-1 rounded-lg text-sm cursor-pointer bg-black text-white hover:bg-black/80 transition-colors"
-                        >
-                          {checkedInMembers.includes(appointment.id) ? 'Check Out' : 'Check In'}
-                        </button>
-                        <div className="relative">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              setActiveDropdownId(activeDropdownId === appointment.id ? null : appointment.id)
+                              handleCheckIn(appointment.id)
                             }}
-                            className="text-white/80 hover:text-white"
+                            className="w-full sm:w-auto px-3 py-1 rounded-lg text-sm cursor-pointer bg-black text-white hover:bg-black/80 transition-colors whitespace-nowrap"
                           >
-                            <MoreHorizontal size={20} />
+                            {checkedInMembers.includes(appointment.id) ? 'Check Out' : 'Check In'}
                           </button>
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setActiveDropdownId(activeDropdownId === appointment.id ? null : appointment.id)
+                              }}
+                              className="text-white/80 hover:text-white"
+                            >
+                              <MoreHorizontal size={20} />
+                            </button>
 
-                          {activeDropdownId === appointment.id && (
-                            <div className="absolute right-0 cursor-pointer mt-1 w-32 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
-                              <button
-                                className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleAppointmentClick(appointment)
-                                }}
-                              >
-                                Edit
-                              </button>
-                              <div className="h-[1px] bg-gray-800 w-full"></div>
-                              <button
-                                className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleRemoveAppointment(appointment)
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          )}
+                            {activeDropdownId === appointment.id && (
+                              <div className="absolute right-0 cursor-pointer mt-1 w-32 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                                <button
+                                  className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleAppointmentClick(appointment)
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <div className="h-[1px] bg-gray-800 w-full"></div>
+                                <button
+                                  className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleRemoveAppointment(appointment)
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

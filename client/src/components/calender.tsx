@@ -54,9 +54,7 @@ const Calendar = () => {
 
   return (
     <div className="h-full w-full">
-      {/* Outer container with fixed width */}
       <div className="max-w-full overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-        {/* Inner container with minimum width */}
         <div className="min-w-[768px]">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -78,13 +76,27 @@ const Calendar = () => {
             slotDuration="01:00:00"
             eventContent={(eventInfo) => {
               const event = eventInfo.event;
+              const startTime = event.start ? event.start.toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: false 
+              }) : '';
+              const endTime = event.end ? event.end.toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: false 
+              }) : '';
+              
               return (
                 <div className="p-1 h-full overflow-hidden">
-                  <div className="font-semibold text-xs sm:text-sm truncate">{event.title}</div>
-                  <div className="text-xs opacity-90 hidden sm:block truncate">{event.extendedProps.type}</div>
-                  <div className="text-xs mt-1 hidden sm:block">
-                    {event.start ? event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : ''} - 
-                    {event.end ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : ''}
+                  <div className="font-semibold text-xs sm:text-sm truncate">
+                    {event.title}
+                  </div>
+                  <div className="text-xs opacity-90 truncate">
+                    {event.extendedProps.type}
+                  </div>
+                  <div className="text-xs mt-1">
+                    {startTime} - {endTime}
                   </div>
                 </div>
               );
@@ -104,7 +116,6 @@ const Calendar = () => {
         </div>
       </div>
       <style>{`
-        /* Make sure the parent container allows scrolling */
         .overflow-x-auto {
           -webkit-overflow-scrolling: touch;
           overflow-x: auto;
@@ -112,7 +123,6 @@ const Calendar = () => {
           margin-bottom: 12px;
         }
 
-        /* Show scrollbar on all browsers */
         .overflow-x-auto::-webkit-scrollbar {
           -webkit-appearance: none;
           height: 7px;
@@ -157,6 +167,9 @@ const Calendar = () => {
           }
           .fc-header-toolbar {
             margin-bottom: 0.5rem !important;
+          }
+          .fc-event {
+            min-height: 50px !important;
           }
         }
         .fc-day-today {
