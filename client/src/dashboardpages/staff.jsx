@@ -6,6 +6,8 @@ import Staff from "../../public/avatar3.png";
 import Profile from "../../public/avatar3.png";
 import EmployeeCalendar from "../components/employee-calender";
 import toast, { Toaster } from "react-hot-toast";
+import Modal from "../components/modal";
+import Calendar from "../components/calender";
 
 export default function StaffManagement() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
@@ -14,6 +16,10 @@ export default function StaffManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
   const [staffToRemove, setStaffToRemove] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const openModal = () => setIsModalVisible(true);
+  const closeModal = () => setIsModalVisible(false);
 
   const [staffMembers, setStaffMembers] = useState([
     {
@@ -21,6 +27,25 @@ export default function StaffManagement() {
       firstName: "Natalia",
       lastName: "Brown",
       role: "Telephone operator",
+      email: "natalia.brown@example.com",
+      phone: "+1234567890",
+      description:
+        "Experienced telephone operator with excellent communication skills.",
+      img: Staff,
+      userId: "natalia.telephone-operator",
+      schedule: {
+        Monday: "9:00-17:00",
+        Tuesday: "9:00-17:00",
+        Wednesday: "9:00-17:00",
+        Thursday: "9:00-17:00",
+        Friday: "9:00-17:00",
+      },
+    },
+    {
+      id: 2,
+      firstName: "Natalia",
+      lastName: "Brown",
+      role: "Trainer",
       email: "natalia.brown@example.com",
       phone: "+1234567890",
       description:
@@ -89,7 +114,7 @@ export default function StaffManagement() {
       />
       <div className="flex relative rounded-3xl cursor-pointer bg-[#1C1C1C] text-white">
         <div className="flex-1 min-w-0 p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
             <h1 className="text-xl sm:text-2xl oxanium_font text-white">
               Staff management
             </h1>
@@ -101,6 +126,7 @@ export default function StaffManagement() {
               >
                 + Add Staff
               </button>
+
               <button
                 onClick={() => setIsRightSidebarOpen(true)}
                 className="p-2 hover:bg-black/20 rounded-full transition-colors"
@@ -109,6 +135,18 @@ export default function StaffManagement() {
                 <Bell size={24} className="lg:hidden block" />
               </button>
             </div>
+          </div>
+
+          <div className="flex justify-end items-end max-w-4xl mx-auto lg:mr-8 mr-0">
+            <button
+              onClick={openModal}
+              className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer"
+            >
+              View Calender{" "}
+            </button>
+            <Modal isVisible={isModalVisible} onClose={closeModal}>
+              <Calendar />
+            </Modal>
           </div>
 
           <div className="grid grid-cols-1 open_sans_font md:grid-cols-2 mt-8 sm:mt-[10%] gap-4 max-w-5xl mx-auto">
@@ -613,19 +651,18 @@ function EditStaffModal({
               />
             </div>
             <div>
-  <label className="text-sm text-gray-200 block mb-2">Role</label>
-  <select
-    name="role"
-    value={editedStaff.role}
-    onChange={handleInputChange}
-    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-    required
-  >
-    <option value="admin">Admin</option>
-    <option value="manager">Manager</option>
-  </select>
-</div>
-
+              <label className="text-sm text-gray-200 block mb-2">Role</label>
+              <select
+                name="role"
+                value={editedStaff.role}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              >
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+              </select>
+            </div>
 
             <div>
               <label className="text-sm text-gray-200 block mb-2">

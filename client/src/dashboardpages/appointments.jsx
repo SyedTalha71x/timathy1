@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { MoreHorizontal, X, Clock, AlertTriangle } from "lucide-react"
+import { MoreHorizontal, X, Clock, AlertTriangle, ChevronDown } from "lucide-react"
 import { useState, useEffect } from "react"
 import Avatar from "../../public/avatar.png"
 import Calendar from "../components/calender"
@@ -8,7 +8,8 @@ import toast, { Toaster } from "react-hot-toast"
 export default function Appointments() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
-  const [view, setView] = useState("month") // 'day', 'week', 'month'
+  const [view, setView] = useState("week")
+  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
   const [checkedInMembers, setCheckedInMembers] = useState([])
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false)
@@ -38,30 +39,51 @@ export default function Appointments() {
       type: "Cardio",
       note: "",
     },
+    {
+      id: 3,
+      name: "Marcus",
+      time: "14:00",
+      date: "Mon | 02-01-2025",
+      color: "bg-[#50C878]",
+      startTime: "14:00",
+      endTime: "16:00",
+      day: 2,
+      type: "Yoga",
+      note: "",
+    },
+    {
+      id: 4,
+      name: "John",
+      time: "14:00",
+      date: "Mon | 02-01-2025",
+      color: "bg-[#50C878]",
+      startTime: "14:00",
+      endTime: "16:00",
+      day: 2,
+      type: "Yoga",
+      note: "",
+    },
+    
   ])
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-  // Get the dates for previous, current and next month
-  const currentDate = new Date(2025, 1) // February 2025
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  const currentDate = new Date(2025, 1)
   const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
   const lastDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
   const prevMonthLastDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate()
-
-  // Calculate previous month dates
   const prevMonthDays = firstDay === 0 ? 6 : firstDay - 1
   const prevDates = Array.from({ length: prevMonthDays }, (_, i) => prevMonthLastDate - prevMonthDays + i + 1)
-
-  // Current month dates
   const currentDates = Array.from({ length: lastDate }, (_, i) => i + 1)
-
-  const totalDaysNeeded = 42 // 6 rows * 7 days
+  const totalDaysNeeded = 35 // Reduced to 5 rows * 7 days
   const nextMonthDays = totalDaysNeeded - (prevDates.length + currentDates.length)
   const nextDates = Array.from({ length: nextMonthDays }, (_, i) => i + 1)
-
   const calendarDates = [...prevDates, ...currentDates, ...nextDates]
 
   useEffect(() => {
-    const handleClickOutside = () => setActiveDropdownId(null)
+    const handleClickOutside = () => {
+      setActiveDropdownId(null)
+      setIsViewDropdownOpen(false)
+    }
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
@@ -69,8 +91,10 @@ export default function Appointments() {
   const handleCheckIn = (id) => {
     if (checkedInMembers.includes(id)) {
       setCheckedInMembers(checkedInMembers.filter((memberId) => memberId !== id))
+      toast.success('Member checked out successfully')
     } else {
       setCheckedInMembers([...checkedInMembers, id])
+      toast.success('Member checked in successfully')
     }
   }
 
@@ -79,11 +103,13 @@ export default function Appointments() {
   }
 
   const handleAppointmentChange = (changes) => {
-    // Implement logic to update the appointment
     const updatedAppointment = { ...selectedAppointment, ...changes }
-    const updatedAppointments = appointments.map((app) => (app.id === updatedAppointment.id ? updatedAppointment : app))
+    const updatedAppointments = appointments.map((app) => 
+      app.id === updatedAppointment.id ? updatedAppointment : app
+    )
     setAppointments(updatedAppointments)
     setSelectedAppointment(null)
+    toast.success('Appointment updated successfully')
   }
 
   const handleRemoveAppointment = (appointment) => {
@@ -93,54 +119,66 @@ export default function Appointments() {
   }
 
   const confirmRemoveAppointment = () => {
-    // Logic to remove the appointment
     setAppointments(appointments.filter((app) => app.id !== appointmentToRemove.id))
     setIsRemoveModalOpen(false)
     setAppointmentToRemove(null)
     toast.success('Appointment removed successfully')
   }
 
+  const ViewSelector = () => (
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
+      <button
+        onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
+        className="bg-[#000000] text-white px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors duration-500 flex items-center gap-2"
+      >
+        {view.charAt(0).toUpperCase() + view.slice(1)} View
+        <ChevronDown size={16} />
+      </button>
+      
+      {isViewDropdownOpen && (
+        <div className="absolute top-full mt-1 right-0 w-32 bg-[#1C1C1C]/30 backdrop-blur-3xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+          {['day', 'week', 'month'].map((v) => (
+            <button
+              key={v}
+              className="w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-gray-800 text-left capitalize"
+              onClick={() => {
+                setView(v)
+                setIsViewDropdownOpen(false)
+              }}
+            >
+              {v} View
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+
   return (
-    <>
-    <Toaster
-    position="top-right"
-    toastOptions={{
-      duration: 2000,
-      style: {
-        background: '#333',
-        color: '#fff',
-      },
-    }}
-  />
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 sm:gap-0 mb-6 sm:mb-8">
+          <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setView(view === "month" ? "week" : view === "week" ? "day" : "month")}
-                className="bg-[#3F74FF] cursor-pointer open_sans_font text-white px-4 py-2.5 sm:py-2 rounded-xl text-sm font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200"
-              >
-                {view === "month" ? "Week View" : view === "week" ? "Day View" : "Month View"}
-              </button>
+              {/* <ViewSelector /> */}
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-[#FF843E] cursor-pointer open_sans_font text-white px-4 py-2.5 sm:py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
+                className="bg-[#FF843E] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
               >
                 + Add appointment
               </button>
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-6 open_sans_font">
-            <div className="lg:w-[38%] w-full space-y-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="lg:w-[50%] w-full space-y-6 ">
               <div className="bg-[#000000] rounded-xl p-4">
                 <div className="mb-4">
-                  <h2 className="text-white mb-4">February 2025</h2>
-                  <div className="grid grid-cols-7 gap-2 text-center text-xs">
+                  <h2 className="text-white text-sm mb-4">February 2025</h2>
+                  <div className="grid grid-cols-7 gap-1 text-center text-xs">
                     {days.map((day) => (
-                      <div key={day} className="text-gray-400 mb-2">
+                      <div key={day} className="text-gray-400 mb-1">
                         {day}
                       </div>
                     ))}
@@ -150,7 +188,7 @@ export default function Appointments() {
                       return (
                         <div
                           key={i}
-                          className={`aspect-square flex items-center justify-center text-sm
+                          className={`aspect-square flex items-center justify-center text-xs
                             ${isPrevMonth || isNextMonth ? "text-gray-600" : "text-white"}
                           `}
                         >
@@ -163,17 +201,17 @@ export default function Appointments() {
               </div>
 
               <div>
-                <h2 className="text-white mb-4 open_sans_font_700">Upcoming Appointments</h2>
-                <div className="space-y-3">
+                <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
+                <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]">
                   {appointments.map((appointment) => (
                     <div
                       key={appointment.id}
-                      className={`${appointment.color} open_sans_font rounded-xl p-4 flex items-center justify-between`}
+                      className={`${appointment.color} rounded-xl cursor-pointer p-4 flex items-center justify-between`}
                       onClick={() => handleAppointmentClick(appointment)}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                          <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
+                          <img src={Avatar} alt="" className="w-full h-full rounded-full" />
                         </div>
                         <div className="text-white">
                           <p className="font-semibold">{appointment.name}</p>
@@ -182,40 +220,40 @@ export default function Appointments() {
                             {appointment.time} | {appointment.date}
                           </p>
                         </div>
-                        {appointment.note && (
-                          <div className="relative group">
-                            <AlertTriangle size={15} className="text-yellow-400" />
-                            <div className="absolute hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg mt-2">
-                              {appointment.note}
-                            </div>
-                          </div>
-                        )}
                       </div>
-                      <div className="relative">
+                      <div className="flex items-center gap-2">
                         <button
-                          className="text-white/80 cursor-pointer hover:text-white"
                           onClick={(e) => {
                             e.stopPropagation()
-                            setActiveDropdownId(activeDropdownId === appointment.id ? null : appointment.id)
+                            handleCheckIn(appointment.id)
                           }}
+                          className="px-3 py-1 rounded-lg text-sm cursor-pointer bg-black text-white hover:bg-black/80 transition-colors"
                         >
-                          <MoreHorizontal size={20} className="cursor-pointer" />
+                          {checkedInMembers.includes(appointment.id) ? 'Check Out' : 'Check In'}
                         </button>
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setActiveDropdownId(activeDropdownId === appointment.id ? null : appointment.id)
+                            }}
+                            className="text-white/80 hover:text-white"
+                          >
+                            <MoreHorizontal size={20} />
+                          </button>
 
-                        {activeDropdownId === appointment.id && (
-                          <>
-                            <div
-                              className="absolute top-0 right-8 cursor-pointer bg-[#2F2F2F]/10 backdrop-blur-xl"
-                              onClick={() => setActiveDropdownId(null)}
-                            />
-                            <div className="absolute right-4 top-2 mt-1 w-32 bg-[#1C1C1C] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                          {activeDropdownId === appointment.id && (
+                            <div className="absolute right-0 cursor-pointer mt-1 w-32 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
                               <button
-                                className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                onClick={() => setActiveDropdownId(null)}
+                                className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleAppointmentClick(appointment)
+                                }}
                               >
-                                Cancel
+                                Edit
                               </button>
-                              <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto"></div>
+                              <div className="h-[1px] bg-gray-800 w-full"></div>
                               <button
                                 className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
                                 onClick={(e) => {
@@ -226,8 +264,8 @@ export default function Appointments() {
                                 Remove
                               </button>
                             </div>
-                          </>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -235,90 +273,82 @@ export default function Appointments() {
               </div>
             </div>
 
-            <div className="w-full open_sans_font bg-[#000000] rounded-xl p-4 overflow-hidden overflow-y-auto">
-              <Calendar view={view} />
-            </div>
+            <div className="w-full bg-[#000000] rounded-xl p-4 overflow-hidden">
+            <Calendar view={view} appointments={appointments} />            </div>
           </div>
         </div>
       </main>
 
       {isModalOpen && (
         <div
-          className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">Add appointment</h2>
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">Add appointment</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
               >
-                <X size={18} className="sm:w-5 sm:h-5" />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="px-4 sm:px-6 py-4 max-h-[calc(100vh-180px)] overflow-y-auto">
+            <div className="p-6 max-h-[calc(100vh-180px)] overflow-y-auto">
               <form className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Member</label>
+                  <label className="text-sm text-gray-200">Member</label>
                   <input
                     type="text"
                     placeholder="Search member..."
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Appointment Type</label>
-                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200">
+                  <label className="text-sm text-gray-200">Appointment Type</label>
+                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
                     <option value="">Select type</option>
                     <option value="Strength Training">Strength Training</option>
                     <option value="Cardio">Cardio</option>
+                    <option value="Yoga">Yoga</option>
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Date & Time</label>
+                  <label className="text-sm text-gray-200">Date & Time</label>
                   <input
                     type="datetime-local"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Duration (minutes)</label>
+                  <label className="text-sm text-gray-200">Duration (minutes)</label>
                   <input
                     type="number"
                     placeholder="60"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Available Slots</label>
-                  <div className="text-white text-sm">
-                    {/* This should be populated with actual available slots data */}
-                    Available slots will be shown here.
-                  </div>
                 </div>
               </form>
             </div>
 
-            <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
+            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200"
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
               >
                 Save
               </button>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors duration-200"
+                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
               >
                 Cancel
               </button>
@@ -329,77 +359,87 @@ export default function Appointments() {
 
       {selectedAppointment && (
         <div
-          className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
           onClick={() => setSelectedAppointment(null)}
         >
           <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">Edit Appointment</h2>
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">Edit Appointment</h2>
               <button
                 onClick={() => setSelectedAppointment(null)}
-                className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
               >
-                <X size={18} className="sm:w-5 sm:h-5" />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="px-4 sm:px-6 py-4 max-h-[calc(100vh-180px)] overflow-y-auto">
+            <div className="p-6 max-h-[calc(100vh-180px)] overflow-y-auto">
               <form className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Member</label>
+                  <label className="text-sm text-gray-200">Member</label>
                   <input
                     type="text"
                     value={selectedAppointment.name}
                     readOnly
-                    className="w-full bg-[#101010] text-sm rounded-xl  px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Appointment Type</label>
+                  <label className="text-sm text-gray-200">Appointment Type</label>
                   <select
                     value={selectedAppointment.type}
                     onChange={(e) => handleAppointmentChange({ type: e.target.value })}
-                    className="w-full bg-[#101010] text-sm rounded-xl  px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   >
                     <option value="Strength Training">Strength Training</option>
                     <option value="Cardio">Cardio</option>
+                    <option value="Yoga">Yoga</option>
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200 block">Date & Time</label>
+                  <label className="text-sm text-gray-200">Date & Time</label>
                   <input
                     type="datetime-local"
                     value={`${selectedAppointment.date}T${selectedAppointment.time}`}
-                    onChange={(e) =>
-                      handleAppointmentChange({
-                        date: e.target.value.split("T")[0],
-                        time: e.target.value.split("T")[1],
-                      })
-                    }
-                    className="w-full bg-[#101010] text-sm rounded-xl  px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    onChange={(e) => handleAppointmentChange({
+                      date: e.target.value.split("T")[0],
+                      time: e.target.value.split("T")[1],
+                    })}
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200">Note</label>
+                  <textarea
+                    value={selectedAppointment.note}
+                    onChange={(e) => handleAppointmentChange({ note: e.target.value })}
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[100px]"
                   />
                 </div>
               </form>
             </div>
 
-            <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
+            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
               <button
-                type="submit"
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200"
+                onClick={() => {
+                  handleAppointmentChange({})
+                  setSelectedAppointment(null)
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
               >
                 Save Changes
               </button>
               <button
-                type="button"
                 onClick={() => setSelectedAppointment(null)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors duration-200"
+                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
               >
-                Cancel Appointment
+                Cancel
               </button>
             </div>
           </div>
@@ -408,37 +448,39 @@ export default function Appointments() {
 
       {isRemoveModalOpen && (
         <div
-          className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
           onClick={() => setIsRemoveModalOpen(false)}
         >
           <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">Confirm Removal</h2>
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">Confirm Removal</h2>
               <button
                 onClick={() => setIsRemoveModalOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
               >
-                <X size={18} className="sm:w-5 sm:h-5" />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="px-4 sm:px-6 py-4">
-              <p className="text-white text-sm">Are you sure you want to remove this appointment?</p>
+            <div className="p-6">
+              <p className="text-white text-sm">
+                Are you sure you want to remove this appointment with {appointmentToRemove?.name}?
+              </p>
             </div>
 
-            <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
+            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
               <button
                 onClick={confirmRemoveAppointment}
-                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors duration-200"
+                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors"
               >
                 Yes, Remove
               </button>
               <button
                 onClick={() => setIsRemoveModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors duration-200"
+                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
@@ -446,9 +488,17 @@ export default function Appointments() {
           </div>
         </div>
       )}
-    </div>
-    </>
 
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+        }}
+      />
+    </div>
   )
 }
-
