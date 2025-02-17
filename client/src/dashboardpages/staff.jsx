@@ -127,17 +127,17 @@ export default function StaffManagement() {
                 + Add Staff
               </button>
 
-              <button
+              {/* <button
                 onClick={() => setIsRightSidebarOpen(true)}
                 className="p-2 hover:bg-black/20 rounded-full transition-colors"
                 aria-label="Open notifications"
               >
                 <Bell size={24} className="lg:hidden block" />
-              </button>
+              </button> */}
             </div>
           </div>
 
-          <div className="flex justify-end items-end max-w-4xl mx-auto lg:mr-8 mr-0">
+          <div className="flex justify-end items-end max-w-4xl mx-auto  mr-0">
             <button
               onClick={openModal}
               className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer"
@@ -184,12 +184,12 @@ export default function StaffManagement() {
           </div>
         </div>
 
-        {isRightSidebarOpen && (
+        {/* {isRightSidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setIsRightSidebarOpen(false)}
           />
-        )}
+        )} */}
 
         <aside
           className={`

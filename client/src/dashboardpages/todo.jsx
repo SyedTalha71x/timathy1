@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { X, Bell, Plus, ChevronDown } from "lucide-react";
 import AddTaskModal from "../components/add-task-modal";
@@ -145,12 +146,12 @@ export default function TodoApp() {
                   </div>
                 )}
               </div>
-              <button
+              {/* <button
                 onClick={() => setIsNotificationOpen(true)}
                 className="lg:hidden text-gray-400 hover:text-white"
               >
                 <Bell size={20} />
-              </button>
+              </button> */}
             </div>
           </div>
 

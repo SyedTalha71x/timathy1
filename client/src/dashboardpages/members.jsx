@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { X, Bell, Search, AlertTriangle, ChevronDown } from "lucide-react";
 import Profile from "../../public/image10.png";
@@ -262,12 +263,12 @@ export default function Members() {
                   </div>
                 )}
               </div>
-              <button
+              {/* <button
                 onClick={() => setIsRightSidebarOpen(true)}
                 className="text-gray-400 hover:text-white lg:hidden p-2"
               >
                 <Bell size={24} />
-              </button>
+              </button> */}
             </div>
           </div>
           <div className="flex flex-col space-y-4 mb-6">
@@ -488,12 +489,12 @@ export default function Members() {
           </div>
         </div>
 
-        {isRightSidebarOpen && (
+        {/* {isRightSidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setIsRightSidebarOpen(false)}
           />
-        )}
+        )} */}
 
         <aside
           className={`w-80 bg-[#181818] p-6 fixed top-0 bottom-0 right-0 z-50 lg:static lg:block ${

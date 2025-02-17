@@ -47,7 +47,7 @@ function App() {
           <Route path="payment" element={<Payment />} />
           <Route path="contract" element={<Contract />} />
           <Route path="configuration" element={<Configuration />} />
-          <Route path="leets" element={<Leets />} />
+          <Route path="leads" element={<Leets />} />
 
         </Route>
       </Routes>

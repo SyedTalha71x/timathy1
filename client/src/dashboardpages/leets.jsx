@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Bell, Edit2, Menu, Plus, X } from "lucide-react";
+import { Bell, Edit2, Menu, Plus, X , Clock} from "lucide-react";
 import { useState } from "react";
 import Avatar from "../../public/avatar.png";
 import { AddPartiesModal } from "../components/add-parties-modal";
@@ -111,12 +111,12 @@ export default function Leets() {
             >
               <span>Add Parties</span>
             </button>
-            <button
+            {/* <button
               onClick={() => setIsRightSidebarOpen(true)}
               className="text-gray-400 hover:text-white lg:hidden p-2"
             >
               <Bell size={24} />
-            </button>
+            </button> */}
           </div>
         </div>
 

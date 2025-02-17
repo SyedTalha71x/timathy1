@@ -1,26 +1,33 @@
+
 /* eslint-disable no-unused-vars */
-import { MoreHorizontal, X, Clock, AlertTriangle, ChevronDown, Info } from "lucide-react"
+import { MoreHorizontal, X, Clock, ChevronDown, Info, Search } from "lucide-react"
 import { useState, useEffect } from "react"
 import Avatar from "../../public/avatar.png"
 import Calendar from "../components/calender"
+import MiniCalendar from "../components/mini-calender"
 import toast, { Toaster } from "react-hot-toast"
-import { AppointmentDetailsModal } from "../components/view-appointment-details"
+import { CiWarning } from "react-icons/ci"
 
 export default function Appointments() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [view, setView] = useState("week")
+  const [selectedDate, setSelectedDate] = useState(new Date())
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
   const [checkedInMembers, setCheckedInMembers] = useState([])
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false)
   const [appointmentToRemove, setAppointmentToRemove] = useState(null)
   const [isShowDetails, setisShowDetails] = useState(false)
+  const [activeNoteId, setActiveNoteId] = useState(null)
+  const [checkedOutMembers, setCheckedOutMembers] = useState([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedMember, setSelectedMember] = useState(null)
   const [appointments, setAppointments] = useState([
     {
       id: 1,
       name: "Yolanda",
-      time: "10:00",
+      time: "10:00 - 14:00",
       date: "Mon | 02-01-2025",
       color: "bg-[#4169E1]",
       startTime: "10:00",
@@ -28,6 +35,7 @@ export default function Appointments() {
       day: 0,
       type: "Strength Training",
       note: "Prefers morning sessions",
+      status: "pending",
     },
     {
       id: 2,
@@ -40,6 +48,7 @@ export default function Appointments() {
       day: 1,
       type: "Cardio",
       note: "",
+      status: "pending",
     },
     {
       id: 3,
@@ -52,6 +61,7 @@ export default function Appointments() {
       day: 2,
       type: "Yoga",
       note: "",
+      status: "pending",
     },
     {
       id: 4,
@@ -64,55 +74,48 @@ export default function Appointments() {
       day: 2,
       type: "Yoga",
       note: "",
+      status: "pending",
     },
-    
   ])
 
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-  const currentDate = new Date(2025, 1)
-  const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
-  const lastDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
-  const prevMonthLastDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate()
-  const prevMonthDays = firstDay === 0 ? 6 : firstDay - 1
-  const prevDates = Array.from({ length: prevMonthDays }, (_, i) => prevMonthLastDate - prevMonthDays + i + 1)
-  const currentDates = Array.from({ length: lastDate }, (_, i) => i + 1)
-  const totalDaysNeeded = 35 // Reduced to 5 rows * 7 days
-  const nextMonthDays = totalDaysNeeded - (prevDates.length + currentDates.length)
-  const nextDates = Array.from({ length: nextMonthDays }, (_, i) => i + 1)
-  const calendarDates = [...prevDates, ...currentDates, ...nextDates]
+  const filteredAppointments = appointments.filter((appointment) =>
+    selectedMember ? appointment.name === selectedMember : true,
+  )
 
   useEffect(() => {
     const handleClickOutside = () => {
       setActiveDropdownId(null)
       setIsViewDropdownOpen(false)
+      setActiveNoteId(null)
     }
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
 
-  const handleCheckIn = (id) => {
-    if (checkedInMembers.includes(id)) {
-      setCheckedInMembers(checkedInMembers.filter((memberId) => memberId !== id))
-      toast.success('Member checked out successfully')
-    } else {
-      setCheckedInMembers([...checkedInMembers, id])
-      toast.success('Member checked in successfully')
-    }
+  const handleCheckInOut = (appointmentId) => {
+    setAppointments((prevAppointments) =>
+      prevAppointments.map((appointment) => {
+        if (appointment.id === appointmentId) {
+          if (appointment.status === "pending") {
+            toast.success("Member checked out successfully")
+            return { ...appointment, status: "checked-out" }
+          }
+        }
+        return appointment
+      }),
+    )
   }
 
   const handleAppointmentClick = (appointment) => {
     setSelectedAppointment(appointment)
   }
 
-
   const handleAppointmentChange = (changes) => {
     const updatedAppointment = { ...selectedAppointment, ...changes }
-    const updatedAppointments = appointments.map((app) => 
-      app.id === updatedAppointment.id ? updatedAppointment : app
-    )
+    const updatedAppointments = appointments.map((app) => (app.id === updatedAppointment.id ? updatedAppointment : app))
     setAppointments(updatedAppointments)
     setSelectedAppointment(null)
-    toast.success('Appointment updated successfully')
+    toast.success("Appointment updated successfully")
   }
 
   const handleRemoveAppointment = (appointment) => {
@@ -125,46 +128,33 @@ export default function Appointments() {
     setAppointments(appointments.filter((app) => app.id !== appointmentToRemove.id))
     setIsRemoveModalOpen(false)
     setAppointmentToRemove(null)
-    toast.success('Appointment removed successfully')
+    toast.success("Appointment removed successfully")
   }
 
-  const ViewSelector = () => (
-    <div className="relative" onClick={(e) => e.stopPropagation()}>
-      <button
-        onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-        className="bg-[#000000] text-white px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors duration-500 flex items-center gap-2"
-      >
-        {view.charAt(0).toUpperCase() + view.slice(1)} View
-        <ChevronDown size={16} />
-      </button>
-      
-      {isViewDropdownOpen && (
-        <div className="absolute top-full mt-1 right-0 w-32 bg-[#1C1C1C]/30 backdrop-blur-3xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
-          {['day', 'week', 'month'].map((v) => (
-            <button
-              key={v}
-              className="w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-gray-800 text-left capitalize"
-              onClick={() => {
-                setView(v)
-                setIsViewDropdownOpen(false)
-              }}
-            >
-              {v} View
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+  const handleDateSelect = (date) => {
+    setSelectedDate(date)
+    setView("day")
+  }
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase()
+    setSearchQuery(query)
+    if (query === "") {
+      setSelectedMember(null)
+    } else {
+      const foundMember = appointments.find((app) => app.name.toLowerCase().includes(query))
+      setSelectedMember(foundMember ? foundMember.name : null)
+    }
+  }
+
 
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">
         <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
             <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              {/* <ViewSelector /> */}
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
@@ -175,66 +165,85 @@ export default function Appointments() {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-[50%] w-full space-y-6 ">
-              <div className="bg-[#000000] rounded-xl p-4">
-                <div className="mb-4">
-                  <h2 className="text-white text-sm mb-4">February 2025</h2>
-                  <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                    {days.map((day) => (
-                      <div key={day} className="text-gray-400 mb-1">
-                        {day}
-                      </div>
-                    ))}
-                    {calendarDates.map((date, i) => {
-                      const isPrevMonth = i < prevDates.length
-                      const isNextMonth = i >= prevDates.length + currentDates.length
-                      return (
-                        <div
-                          key={i}
-                          className={`aspect-square flex items-center justify-center text-xs
-                            ${isPrevMonth || isNextMonth ? "text-gray-600" : "text-white"}
-                          `}
-                        >
-                          {date}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
+            <div className="lg:w-[50%] w-full space-y-6">
+              <MiniCalendar onDateSelect={handleDateSelect} />
+
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search member..."
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="w-full bg-[#000000] text-white rounded-xl px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               </div>
 
               <div>
                 <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
-                <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]">
-                  {appointments.map((appointment) => (
-                    <div
-                      key={appointment.id}
-                      className={`${appointment.color} rounded-xl cursor-pointer p-4`}
-                      // onClick={() => handleAppointmentClick(appointment)}
-                    >
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                            <img src={Avatar} alt="" className="w-full h-full rounded-full" />
+                <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[calc(100vh-300px)]">
+                  {filteredAppointments.map((appointment) => (
+                    <div key={appointment.id} className={`${appointment.color} rounded-xl cursor-pointer p-4 relative`}>
+                      {appointment.note !== "" && (
+                        <div className="absolute top-2 right-2">
+                          <div className="relative">
+                            <CiWarning
+                              size={18}
+                              className="text-white cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setActiveNoteId(activeNoteId === appointment.id ? null : appointment.id)
+                              }}
+                            />
+                            {activeNoteId === appointment.id && (
+                              <div className="absolute right-1 top-4 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
+                                <div className="flex items-start gap-2">
+                                  <Info className="text-yellow-500 shrink-0 mt-0.5" size={16} />
+                                  <p className="text-white text-sm">{appointment.note}</p>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="text-white">
+                        </div>
+                      )}
+
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
+                          </div>
+                          <div className="text-white flex-grow">
                             <p className="font-semibold">{appointment.name}</p>
                             <p className="text-sm flex gap-1 items-center opacity-80">
                               <Clock size={15} />
                               {appointment.time} | {appointment.date}
                             </p>
+                            <p className="text-sm mt-1">{appointment.type}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleCheckIn(appointment.id)
-                            }}
-                            className="w-full sm:w-auto px-3 py-1 rounded-lg text-sm cursor-pointer bg-black text-white hover:bg-black/80 transition-colors whitespace-nowrap"
-                          >
-                            {checkedInMembers.includes(appointment.id) ? 'Check Out' : 'Check In'}
-                          </button>
+                        <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                          {appointment.status !== "checked-out" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleCheckInOut(appointment.id)
+                              }}
+                              className={`w-full sm:w-auto px-3 py-1 rounded-lg text-sm cursor-pointer bg-black text-white hover:bg-black/80 transition-colors whitespace-nowrap ${
+                                appointment.status === "checked-out" ? "opacity-50 cursor-not-allowed" : ""
+                              }`}
+                              disabled={appointment.status === "checked-out"}
+                            >
+                              Check In
+                            </button>
+                          )}
+                          {appointment.status === "checked-out" && (
+                            <button
+                              className="w-full sm:w-auto px-3 py-1 rounded-lg text-sm bg-black text-white opacity-50 cursor-not-allowed whitespace-nowrap"
+                              disabled
+                            >
+                              Checked Out
+                            </button>
+                          )}
                           <div className="relative flex flex-col items-center">
                             <button
                               onClick={(e) => {
@@ -245,9 +254,6 @@ export default function Appointments() {
                             >
                               <MoreHorizontal size={20} />
                             </button>
-                            <div>
-                              <Info size={18} className="text-white cursor-pointer" onClick={()=>setisShowDetails(true)}/>
-                            </div>
 
                             {activeDropdownId === appointment.id && (
                               <div className="absolute right-0 cursor-pointer mt-1 w-32 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
@@ -281,14 +287,13 @@ export default function Appointments() {
               </div>
             </div>
 
-            <div className="w-full bg-[#000000] rounded-xl p-4 overflow-hidden">
-            <Calendar view={view} appointments={appointments} />            </div>
+            <div className="lg:w-[70%] w-full bg-[#000000] rounded-xl p-4 overflow-hidden">
+              <Calendar view={view} appointments={filteredAppointments} selectedDate={selectedDate} />
+            </div>
           </div>
         </div>
       </main>
 
-
-    
       {isModalOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -416,10 +421,12 @@ export default function Appointments() {
                   <input
                     type="datetime-local"
                     value={`${selectedAppointment.date}T${selectedAppointment.time}`}
-                    onChange={(e) => handleAppointmentChange({
-                      date: e.target.value.split("T")[0],
-                      time: e.target.value.split("T")[1],
-                    })}
+                    onChange={(e) =>
+                      handleAppointmentChange({
+                        date: e.target.value.split("T")[0],
+                        time: e.target.value.split("T")[1],
+                      })
+                    }
                     className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   />
                 </div>
@@ -504,11 +511,12 @@ export default function Appointments() {
         toastOptions={{
           duration: 2000,
           style: {
-            background: '#333',
-            color: '#fff',
+            background: "#333",
+            color: "#fff",
           },
         }}
       />
     </div>
   )
 }
+
