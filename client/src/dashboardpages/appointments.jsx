@@ -40,7 +40,7 @@ export default function Appointments() {
     {
       id: 2,
       name: "Alexandra",
-      time: "12:00",
+      time: "10:00 - 18:00",
       date: "Mon | 02-01-2025",
       color: "bg-[#FF6B6B]",
       startTime: "10:00",
@@ -53,7 +53,7 @@ export default function Appointments() {
     {
       id: 3,
       name: "Marcus",
-      time: "14:00",
+      time: "14:00 - 16:00",
       date: "Mon | 02-01-2025",
       color: "bg-[#50C878]",
       startTime: "14:00",
@@ -66,7 +66,7 @@ export default function Appointments() {
     {
       id: 4,
       name: "John",
-      time: "14:00",
+      time: "14:00 - 16:00",
       date: "Mon | 02-01-2025",
       color: "bg-[#50C878]",
       startTime: "14:00",

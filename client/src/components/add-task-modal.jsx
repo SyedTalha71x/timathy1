@@ -6,29 +6,29 @@ import { Toaster, toast } from "react-hot-toast"
 const assignees = ["Jack", "Jane", "John", "Jessica"]
 const roles = ["Trainer", "Manager", "Developer", "Designer"]
 
-export default function AddTaskModal({ onClose, onAddTask }) {
-  const [step, setStep] = useState(1)
+export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }) {
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
     assignee: "",
     role: "",
-    tags: [],
+    tags: [], // Keep as array for multiple selections
     dueDate: "",
+    dueTime: ""
   })
+
+  const [assignmentType, setAssignmentType] = useState("assignee")
 
   const handleSubmit = (e) => {
     e.preventDefault()
     
-    if (!newTask.dueDate) {
-      toast.error("Task not added. You must add a due date.")
-      return
-    }
-
     const taskToAdd = {
       ...newTask,
       id: Date.now(),
       status: "ongoing",
+      // Clear the field that wasn't selected (assignee or role)
+      assignee: assignmentType === "assignee" ? newTask.assignee : "",
+      role: assignmentType === "role" ? newTask.role : ""
     }
 
     onAddTask(taskToAdd)
@@ -39,130 +39,24 @@ export default function AddTaskModal({ onClose, onAddTask }) {
     }, 2000)
   }
 
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <>
-            <div>
-              <label className="text-sm text-gray-200">Assignee</label>
-              <select
-                value={newTask.assignee}
-                onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
-                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
-              >
-                <option value="">Select Assignee</option>
-                {assignees.map((assignee) => (
-                  <option key={assignee} value={assignee}>
-                    {assignee}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm text-gray-200">Role</label>
-              <select
-                value={newTask.role}
-                onChange={(e) => setNewTask({ ...newTask, role: e.target.value })}
-                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
-              >
-                <option value="">Select Role</option>
-                {roles.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={() => setStep(2)}
-              className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer"
-              disabled={!newTask.assignee || !newTask.role}
-            >
-              Next
-            </button>
-          </>
-        )
-      case 2:
-        return (
-          <>
-            <div>
-              <label className="text-sm text-gray-200">Task Title</label>
-              <input
-                type="text"
-                value={newTask.title}
-                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                placeholder="Task title"
-                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-200">Task Description</label>
-              <textarea
-                value={newTask.description}
-                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                placeholder="Task description"
-                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                rows={3}
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-200">Tags (comma-separated)</label>
-              <input
-                type="text"
-                value={newTask.tags.join(", ")}
-                onChange={(e) => setNewTask({ ...newTask, tags: e.target.value.split(",").map((tag) => tag.trim()) })}
-                placeholder="Tags"
-                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-              />
-            </div>
-            <div className="flex justify-between">
-              <button
-                onClick={() => setStep(1)}
-                className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90 cursor-pointer"
-              >
-                Back
-              </button>
-              <button
-                onClick={() => setStep(3)}
-                className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer"
-                disabled={!newTask.title}
-              >
-                Next
-              </button>
-            </div>
-          </>
-        )
-      case 3:
-        return (
-          <>
-            <div>
-              <label className="text-sm text-gray-200">Due Date</label>
-              <input
-                type="date"
-                value={newTask.dueDate}
-                onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-              />
-            </div>
-            <div className="flex justify-between">
-              <button
-                onClick={() => setStep(2)}
-                className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90 cursor-pointer"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer"
-              >
-                Save
-              </button>
-            </div>
-          </>
-        )
-    }
+  const handleAssignmentTypeChange = (type) => {
+    setAssignmentType(type)
+    setNewTask({
+      ...newTask,
+      assignee: "",
+      role: ""
+    })
   }
+
+  const handleTagChange = (e) => {
+    const value = e.target.value;
+    setNewTask(prev => ({
+      ...prev,
+      tags: prev.tags.includes(value)
+        ? prev.tags.filter(tag => tag !== value) // Remove if already selected
+        : [...prev.tags, value] // Add if not selected
+    }));
+  };
 
   return (
     <>
@@ -185,7 +79,177 @@ export default function AddTaskModal({ onClose, onAddTask }) {
             </button>
           </div>
 
-          <form className="space-y-4">{renderStep()}</form>
+          <form onSubmit={handleSubmit} className="space-y-4 custom-scrollbar max-h-[calc(100vh-180px)] overflow-y-auto">
+            <div>
+              <label className="text-sm text-gray-200">Task Title</label>
+              <input
+                type="text"
+                value={newTask.title}
+                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                placeholder="Task title"
+                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200">Task Description</label>
+              <textarea
+                value={newTask.description}
+                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                placeholder="Task description"
+                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 mb-2">Assignment Type</label>
+              <div className="flex gap-4 mt-1">
+                <button
+                  type="button"
+                  onClick={() => handleAssignmentTypeChange("assignee")}
+                  className={`px-4 py-2 rounded-xl text-sm ${
+                    assignmentType === "assignee" 
+                      ? "bg-[#3F74FF] text-white" 
+                      : "bg-[#2F2F2F] text-gray-200"
+                  }`}
+                >
+                  Assign to Person
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAssignmentTypeChange("role")}
+                  className={`px-4 py-2 rounded-xl text-sm ${
+                    assignmentType === "role" 
+                      ? "bg-[#3F74FF] text-white" 
+                      : "bg-[#2F2F2F] text-gray-200"
+                  }`}
+                >
+                  Assign to Role
+                </button>
+              </div>
+            </div>
+
+            {assignmentType === "assignee" && (
+              <div>
+                <label className="text-sm text-gray-200">Assignee</label>
+                <select
+                  value={newTask.assignee}
+                  onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
+                  className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                  required
+                >
+                  <option value="">Select Assignee</option>
+                  {assignees.map((assignee) => (
+                    <option key={assignee} value={assignee}>
+                      {assignee}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {assignmentType === "role" && (
+              <div>
+                <label className="text-sm text-gray-200">Role</label>
+                <select
+                  value={newTask.role}
+                  onChange={(e) => setNewTask({ ...newTask, role: e.target.value })}
+                  className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                  required
+                >
+                  <option value="">Select Role</option>
+                  {roles.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div>
+              <label className="text-sm text-gray-200">Tags</label>
+              <div className="relative">
+                <select
+                  value=""
+                  onChange={handleTagChange}
+                  className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                >
+                  <option value="">Select Tags</option>
+                  {configuredTags.map((tag) => (
+                    <option 
+                      key={tag} 
+                      value={tag}
+                      className={newTask.tags.includes(tag) ? "bg-[#3F74FF]" : ""}
+                    >
+                      {tag} {newTask.tags.includes(tag) ? "✓" : ""}
+                    </option>
+                  ))}
+                </select>
+                {newTask.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {newTask.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="bg-[#3F74FF] text-white px-2 py-1 rounded-lg text-sm flex items-center gap-1"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => setNewTask(prev => ({
+                            ...prev,
+                            tags: prev.tags.filter(t => t !== tag)
+                          }))}
+                          className="hover:text-gray-200"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-200">Due Date (Optional)</label>
+                <input
+                  type="date"
+                  value={newTask.dueDate}
+                  onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                  className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-200">Due Time (Optional)</label>
+                <input
+                  type="time"
+                  value={newTask.dueTime}
+                  onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
+                  className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90"
+              >
+                Save
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </>

@@ -1,10 +1,23 @@
-/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
-import { Menu, X, Search, ThumbsUp, MoreVertical, Star, Mic, Smile, Clock, PlusCircle } from "lucide-react"
-import image1 from "../../public/Rectangle 1.png"
-import image2 from "../../public/avatar3.png"
-import gsap from "gsap"
-import '../customCss/marketing-table-style.css'
+import {
+  Menu,
+  X,
+  Search,
+  ThumbsUp,
+  MoreVertical,
+  Star,
+  Mic,
+  Smile,
+  Clock,
+  PlusCircle,
+  Send,
+  Gift,
+  Calendar,
+} from "lucide-react"
+
+// Assume these imgs are in the public folder
+const img1 = "/Rectangle 1.png"
+const img2 = "/avatar3.png"
 
 export default function Communications() {
   const [isMessagesOpen, setIsMessagesOpen] = useState(false)
@@ -12,9 +25,11 @@ export default function Communications() {
   const [showChatDropdown, setShowChatDropdown] = useState(false)
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [chatType, setChatType] = useState("employee") // 'employee' or 'member'
+  const [chatType, setChatType] = useState("employee")
+  const [activeScreen, setActiveScreen] = useState("chat")
+  const [selectedMembers, setSelectedMembers] = useState([])
+  const [messageText, setMessageText] = useState("")
 
-  const inputRef = useRef(null)
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
   const chatDropdownRef = useRef(null)
@@ -24,17 +39,6 @@ export default function Communications() {
   const handleSearchClick = () => {
     setIsSearchOpen(!isSearchOpen)
   }
-
-  useEffect(() => {
-    if (searchInputRef.current) {
-      gsap.to(searchInputRef.current, {
-        width: isSearchOpen ? 200 : 0,
-        opacity: isSearchOpen ? 1 : 0,
-        duration: 0.3,
-        ease: "power2.inOut",
-      })
-    }
-  }, [isSearchOpen])
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -80,14 +84,16 @@ export default function Communications() {
       time: "Today | 05:30 PM",
       active: true,
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image1,
+      logo: img1,
+      isBirthday: true,
     },
     {
       name: "Jerry Haffer",
       time: "Today | 05:30 PM",
       verified: true,
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image1,
+      logo: img1,
+      isBirthday: false,
     },
   ]
 
@@ -96,23 +102,47 @@ export default function Communications() {
       name: "Group 1",
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image2,
+      logo: img2,
     },
     {
       name: "David Eison",
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image2,
+      logo: img2,
+      isBirthday: true,
     },
     {
       name: "Mary Freund",
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: image2,
+      logo: img2,
     },
   ]
 
   const chatList = chatType === "employee" ? employeeChatList : memberChatList
+
+  const predefinedMessages = [
+    "Hello! How can I assist you today?",
+    "Thank you for your message. We'll get back to you shortly.",
+    "Is there anything else I can help you with?",
+  ]
+
+  const handleSendMessage = () => {
+    // Logic to send message to selected members or all active members
+    console.log("Sending message:", messageText)
+    console.log("To members:", selectedMembers.length ? selectedMembers : "All active members")
+    setMessageText("")
+    setSelectedMembers([])
+    setActiveScreen("chat")
+  }
+
+  const handleBookAppointment = () => {
+    setActiveScreen("book-appointment")
+  }
+
+  const handleMemberSelect = (member) => {
+    setSelectedMembers((prev) => (prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]))
+  }
 
   return (
     <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
@@ -145,7 +175,9 @@ export default function Communications() {
             <div className="flex gap-2">
               <button
                 className={`px-6 py-2 text-sm ${
-                  chatType === "employee" ? "bg-white text-black" : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+                  chatType === "employee"
+                    ? "bg-white text-black"
+                    : "text-gray-200 border border-slate-300 hover:bg-gray-800"
                 } rounded-xl`}
                 onClick={() => setChatType("employee")}
               >
@@ -153,7 +185,9 @@ export default function Communications() {
               </button>
               <button
                 className={`px-6 py-2 text-sm ${
-                  chatType === "member" ? "bg-white text-black" : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+                  chatType === "member"
+                    ? "bg-white text-black"
+                    : "text-gray-200 border border-slate-300 hover:bg-gray-800"
                 } rounded-xl`}
                 onClick={() => setChatType("member")}
               >
@@ -174,7 +208,7 @@ export default function Communications() {
               {activeDropdownId === "main" && (
                 <div
                   ref={dropdownRef}
-                  className="absolute right-5 top-5 cursor-pointer mt-1 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  border border-gray-800 shadow-lg overflow-hidden z-10"
+                  className="absolute right-5 top-5 cursor-pointer mt-1 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg overflow-hidden z-10"
                 >
                   <button
                     className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
@@ -199,16 +233,22 @@ export default function Communications() {
               {showChatDropdown && (
                 <div
                   ref={chatDropdownRef}
-                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  shadow-lg z-20 mt-2"
+                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl shadow-lg z-20 mt-2"
                 >
                   <div className="p-3">
-                    {[...Array(5)].map((_, index) => (
+                    {chatList.map((chat, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl  cursor-pointer"
+                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl cursor-pointer"
                       >
-                        <img src={image1 || "/placeholder.svg"} alt="User" className="w-8 h-8 rounded-full" />
-                        <span className="text-sm">Jennifer Markus</span>
+                        <img
+                          src={chat.logo || "/placeholder.svg"}
+                          alt={`${chat.name}'s avatar`}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                        <span className="text-sm">{chat.name}</span>
                         <input type="checkbox" className="ml-auto" />
                       </div>
                     ))}
@@ -225,16 +265,22 @@ export default function Communications() {
               {showGroupDropdown && (
                 <div
                   ref={groupDropdownRef}
-                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl  shadow-lg z-20 mt-2"
+                  className="absolute right-5 top-5 w-64 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl shadow-lg z-20 mt-2"
                 >
                   <div className="p-3">
-                    {[...Array(5)].map((_, index) => (
+                    {chatList.map((chat, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl  cursor-pointer"
+                        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl cursor-pointer"
                       >
-                        <img src={image1 || "/placeholder.svg"} alt="User" className="w-8 h-8 rounded-full" />
-                        <span className="text-sm">Jennifer Markus</span>
+                        <img
+                          src={chat.logo || "/placeholder.svg"}
+                          alt={`${chat.name}'s avatar`}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                        <span className="text-sm">{chat.name}</span>
                         <input type="checkbox" className="ml-auto" />
                       </div>
                     ))}
@@ -266,13 +312,21 @@ export default function Communications() {
                 className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${
                   chat.active ? "bg-[#181818]" : "hover:bg-[#181818]"
                 } cursor-pointer`}
+                onClick={() => setActiveScreen("chat")}
               >
-                <div>
+                <div className="relative">
                   <img
                     src={chat.logo || "/placeholder.svg"}
-                    className="h-10 w-10 rounded-full"
                     alt={`${chat.name}'s avatar`}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
                   />
+                  {chat.isBirthday && (
+                    <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
+                      <Gift className="w-3 h-3 text-white" />
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
@@ -293,7 +347,7 @@ export default function Communications() {
                   </div>
                   <div className="flex mt-1 text-gray-400 items-center gap-1">
                     <Clock size={15} />
-                    <span className=" text-sm text-gray-400">{chat.time}</span>
+                    <span className="text-sm text-gray-400">{chat.time}</span>
                   </div>
                 </div>
               </div>
@@ -303,93 +357,222 @@ export default function Communications() {
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex items-center justify-between p-4 border-b border-gray-800">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsMessagesOpen(true)}
-              className="md:hidden text-gray-400 hover:text-gray-300"
-              aria-label="Open messages"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <div>
-              <img
-                src={image1 || "/placeholder.svg"}
-                className="h-12 w-12 rounded-full object-center"
-                alt="Current chat avatar"
-              />
+        {activeScreen === "chat" && (
+          <>
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsMessagesOpen(true)}
+                  className="md:hidden text-gray-400 hover:text-gray-300"
+                  aria-label="Open messages"
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
+                <div className="relative">
+                  <img
+                    src={img1 || "/placeholder.svg"}
+                    alt="Current chat avatar"
+                    width={48}
+                    height={48}
+                    className="rounded-full"
+                  />
+                  {employeeChatList[0].isBirthday && (
+                    <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
+                      <Gift className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                </div>
+                <span className="font-medium">Jennifer Markus</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="text-blue-500 hover:text-blue-400" aria-label="Star conversation">
+                  <Star className="w-5 h-5" />
+                </button>
+                <button
+                  className="text-blue-500 hover:text-blue-400"
+                  aria-label="Book appointment"
+                  onClick={handleBookAppointment}
+                >
+                  <Calendar className="w-5 h-5" />
+                </button>
+                <div className="relative flex items-center">
+                  <button
+                    className="hover:text-gray-300 z-10"
+                    aria-label="Search conversation"
+                    onClick={handleSearchClick}
+                  >
+                    <Search className="w-5 h-5" />
+                  </button>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Search..."
+                    className="absolute right-0 bg-gray-800 text-white rounded-md py-1 px-2 text-sm focus:outline-none search-input-animation"
+                    style={{
+                      width: isSearchOpen ? 200 : 0,
+                      opacity: isSearchOpen ? 1 : 0,
+                      visibility: isSearchOpen ? "visible" : "hidden",
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-            <span className="font-medium">Jennifer Markus</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="text-blue-500 hover:text-blue-400" aria-label="Star conversation">
-              <Star className="w-5 h-5" />
-            </button>
-            <div className="relative flex items-center">
-              <button className="hover:text-gray-300 z-10" aria-label="Search conversation" onClick={handleSearchClick}>
-                <Search className="w-5 h-5" />
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex gap-3">
+                <div className="flex flex-col gap-1">
+                  <div className="bg-black rounded-xl text-sm p-4 max-w-md">
+                    <p>Oh, hello! All perfectly.</p>
+                    <p>I will check it and get back to you soon.</p>
+                  </div>
+                  <span className="text-sm text-gray-400">04:45 PM</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <div className="flex flex-col gap-1 items-end">
+                  <div className="bg-[#3F74FF] rounded-xl p-4 text-sm max-w-md">
+                    <p>Yes, hello! All perfectly.</p>
+                    <p>I will check it and get back to you soon.</p>
+                  </div>
+                  <span className="text-sm text-gray-400">04:45 PM</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-800">
+              <div className="flex items-center gap-2 bg-black rounded-xl p-2">
+                <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Add emoji">
+                  <Smile className="w-5 h-5 text-gray-200" />
+                </button>
+                <input
+                  type="text"
+                  placeholder="Type your message here..."
+                  className="flex-1 bg-transparent focus:outline-none text-sm min-w-0"
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                />
+                <div className="flex items-center gap-1">
+                  <button>
+                    <PlusCircle size={20} className="cursor-pointer" />
+                  </button>
+                  <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Voice message">
+                    <Mic className="w-5 h-5 text-gray-200" />
+                  </button>
+                  <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Send thumbs up">
+                    <ThumbsUp className="w-5 h-5 text-gray-200" />
+                  </button>
+                  <button
+                    className="p-2 hover:bg-gray-700 rounded-full"
+                    aria-label="Send message"
+                    onClick={() => setActiveScreen("send-message")}
+                  >
+                    <Send className="w-5 h-5 text-gray-200" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeScreen === "send-message" && (
+          <div className="flex-1 flex flex-col p-4">
+            <h2 className="text-2xl font-bold mb-4">Send Message to Members</h2>
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">Select Members:</h3>
+              <div className="space-y-2">
+                {memberChatList.map((member, index) => (
+                  <div key={index} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`member-${index}`}
+                      checked={selectedMembers.includes(member.name)}
+                      onChange={() => handleMemberSelect(member.name)}
+                      className="mr-2"
+                    />
+                    <label htmlFor={`member-${index}`}>{member.name}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">Message:</h3>
+              <textarea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                className="w-full h-32 p-2 bg-gray-800 text-white rounded-md"
+                placeholder="Type your message here..."
+              ></textarea>
+            </div>
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">Predefined Messages:</h3>
+              <div className="space-y-2">
+                {predefinedMessages.map((message, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setMessageText(message)}
+                    className="block w-full text-left p-2 bg-gray-700 hover:bg-gray-600 rounded-md"
+                  >
+                    {message}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={handleSendMessage}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              >
+                Send Message
               </button>
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search..."
-                className="absolute right-0 bg-gray-800 text-white rounded-md py-1 px-2 text-sm focus:outline-none search-input-animation"
-                style={{
-                  width: isSearchOpen ? 200 : 0,
-                  opacity: isSearchOpen ? 1 : 0,
-                  visibility: isSearchOpen ? "visible" : "hidden",
+            </div>
+          </div>
+        )}
+
+        {activeScreen === "book-appointment" && (
+          <div className="flex-1 flex flex-col p-4">
+            <h2 className="text-2xl font-bold mb-4">Book Appointment</h2>
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">Select Date and Time:</h3>
+              <input type="datetime-local" className="w-full p-2 bg-gray-800 text-white rounded-md" />
+            </div>
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">Appointment Type:</h3>
+              <select className="w-full p-2 bg-gray-800 text-white rounded-md">
+                <option>Consultation</option>
+                <option>Follow-up</option>
+                <option>General Checkup</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">Notes:</h3>
+              <textarea
+                className="w-full h-32 p-2 bg-gray-800 text-white rounded-md"
+                placeholder="Add any additional notes or comments..."
+              ></textarea>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setActiveScreen("chat")}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  // Handle appointment booking logic here
+                  alert("Appointment booked successfully!")
+                  setActiveScreen("chat")
                 }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          <div className="flex gap-3">
-            <div className="flex flex-col gap-1">
-              <div className="bg-black rounded-xl text-sm p-4 max-w-md">
-                <p>Oh, hello! All perfectly.</p>
-                <p>I will check it and get back to you soon.</p>
-              </div>
-              <span className="text-sm text-gray-400">04:45 PM</span>
-            </div>
-          </div>
-
-          <div className="flex gap-3 justify-end">
-            <div className="flex flex-col gap-1 items-end">
-              <div className="bg-[#3F74FF] rounded-xl p-4 text-sm max-w-md">
-                <p>Yes, hello! All perfectly.</p>
-                <p>I will check it and get back to you soon.</p>
-              </div>
-              <span className="text-sm text-gray-400">04:45 PM</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center gap-2 bg-black rounded-xl p-2">
-            <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Add emoji">
-              <Smile className="w-5 h-5 text-gray-200" />
-            </button>
-            <input
-              type="text"
-              placeholder="Type your message here..."
-              className="flex-1 bg-transparent focus:outline-none text-sm min-w-0"
-            />
-            <div className="flex items-center gap-1">
-              <button>
-                <PlusCircle size={20} className="cursor-pointer" />
-              </button>
-              <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Voice message">
-                <Mic className="w-5 h-5 text-gray-200" />
-              </button>
-              <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Send thumbs up">
-                <ThumbsUp className="w-5 h-5 text-gray-200" />
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              >
+                Book Appointment
               </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
 }
+
