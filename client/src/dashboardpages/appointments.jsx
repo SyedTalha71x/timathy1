@@ -298,13 +298,13 @@ export default function Appointments() {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
+                className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
               >
                 + Add appointment
               </button>
               <button
                 onClick={() => setIsTrialModalOpen(true)}
-                className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200"
+                className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200"
               >
                 + Add trial training
               </button>
@@ -387,7 +387,7 @@ export default function Appointments() {
                             </button>
 
                             {activeDropdownId === appointment.id && (
-                              <div className="absolute right-0 cursor-pointer mt-1 w-32 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                              <div className="absolute right-0 cursor-pointer mt-1 w-42 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
                                 <button
                                   className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
                                   onClick={(e) => {
@@ -449,8 +449,8 @@ export default function Appointments() {
               </button>
             </div>
 
-            <div className="p-6 max-h-[calc(100vh-180px)] overflow-y-auto">
-              <form className="space-y-4">
+            <div className="p-6">
+              <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
                 <div className="space-y-1.5">
                   <label className="text-sm text-gray-200">Member</label>
                   <input
@@ -525,13 +525,7 @@ export default function Appointments() {
               >
                 Book Appointment
               </button>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
-              >
-                Cancel
-              </button>
+  
             </div>
           </div>
         </div>
@@ -556,8 +550,8 @@ export default function Appointments() {
               </button>
             </div>
 
-            <div className="p-6 max-h-[calc(100vh-180px)] overflow-y-auto">
-              <form className="space-y-4">
+            <div className="p-6 ">
+              <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
                 <div className="space-y-1.5">
                   <label className="text-sm text-gray-200">Lead</label>
                   <input
@@ -650,8 +644,8 @@ export default function Appointments() {
               </button>
             </div>
 
-            <div className="p-6 max-h-[calc(100vh-180px)] overflow-y-auto">
-              <form className="space-y-4">
+            <div className="p-6 ">
+              <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
                 <div className="space-y-1.5">
                   <label className="text-sm text-gray-200">Member</label>
                   <input

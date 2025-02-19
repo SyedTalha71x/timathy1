@@ -1,476 +1,533 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
-import { MoreHorizontal, X, Clock, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Chart from "react-apexcharts";
+import {
+  BarChart3,
+  MoreVertical,
+  MessageCircle,
+  X,
+  Clock,
+  ChevronDown,
+} from "lucide-react";
+import Rectangle1 from "../../public/Rectangle 1.png";
+import Image10 from "../../public/image10.png";
 import Avatar from "../../public/avatar.png";
-import toast, { Toaster } from "react-hot-toast";
-import moment from "moment";
-import { Calendar as BigCalendar, momentLocalizer } from "react-big-calendar";
-import "react-big-calendar/lib/css/react-big-calendar.css";
 
-const localizer = momentLocalizer(moment);
+export default function MyArea() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null);
+  const [selectedMemberType, setSelectedMemberType] = useState("All members");
+  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const chartDropdownRef = useRef(null);
+  const navigate = useNavigate();
 
-const Appointments = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeDropdownId, setActiveDropdownId] = useState(null);
-  const [view, setView] = useState("week");
-  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
-  const [checkedInMembers, setCheckedInMembers] = useState([]);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
-  const [appointmentToRemove, setAppointmentToRemove] = useState(null);
+  const memberTypes = {
+    "All members": {
+      data: [
+        [50, 280, 200, 450, 250, 400, 300, 200, 450],
+        [100, 150, 200, 100, 150, 300, 400, 100, 400],
+      ],
+      growth: "4%",
+      title: "Members",
+    },
+    "Checked in": {
+      data: [
+        [30, 180, 150, 350, 200, 300, 250, 150, 350],
+        [80, 120, 150, 80, 120, 250, 300, 80, 300],
+      ],
+      growth: "2%",
+      title: "Checked In Members",
+    },
+    "Cancelled appointment": {
+      data: [
+        [20, 100, 50, 100, 50, 100, 50, 50, 100],
+        [20, 30, 50, 20, 30, 50, 100, 20, 100],
+      ],
+      growth: "-1%",
+      title: "Cancelled Appointments",
+    },
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen);
+  };
+
+  const redirectToTodos = () => {
+    navigate("/dashboard/to-do");
+  };
+
+  const redirectToCommunication = () => {
+    navigate("/dashboard/communication");
+  };
+
+  const toggleDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownIndex(null);
+      }
+      if (
+        chartDropdownRef.current &&
+        !chartDropdownRef.current.contains(event.target)
+      ) {
+        setIsChartDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const chartOptions = {
+    chart: {
+      type: "line",
+      height: 300,
+      toolbar: {
+        show: false,
+      },
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
+    },
+    colors: ["#FF6B1A", "#2E5BFF"],
+    stroke: {
+      curve: "smooth",
+      width: 4,
+      opacity: 1,
+    },
+    markers: {
+      size: 1,
+      strokeWidth: 0,
+      hover: {
+        size: 6,
+      },
+    },
+    xaxis: {
+      categories: [
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ],
+      labels: {
+        style: {
+          colors: "#999999",
+          fontSize: "12px",
+        },
+      },
+      axisBorder: {
+        show: false,
+      },
+      axisTicks: {
+        show: false,
+      },
+    },
+    yaxis: {
+      min: 0,
+      max: 500,
+      tickAmount: 5,
+      labels: {
+        style: {
+          colors: "#999999",
+          fontSize: "12px",
+        },
+        formatter: (value) => Math.round(value),
+      },
+    },
+    grid: {
+      show: true,
+      borderColor: "#333333",
+      position: "back",
+      xaxis: {
+        lines: {
+          show: true,
+        },
+      },
+      yaxis: {
+        lines: {
+          show: true,
+        },
+      },
+      row: {
+        opacity: 0.1,
+      },
+      column: {
+        opacity: 0.1,
+      },
+    },
+    legend: {
+      show: true,
+      position: "top",
+      horizontalAlign: "right",
+      offsetY: -60,
+      offsetX: -200,
+      labels: {
+        colors: "#ffffff",
+      },
+      itemMargin: {
+        horizontal: 10,
+      },
+    },
+    title: {
+      text: memberTypes[selectedMemberType].title,
+      align: "left",
+      style: {
+        fontSize: "16px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      },
+    },
+    subtitle: {
+      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
+      align: "left",
+      style: {
+        fontSize: "12px",
+        color: "#ffffff",
+        fontWeight: "bolder",
+      },
+    },
+  };
+
+  const chartSeries = [
+    {
+      name: "Comp1",
+      data: memberTypes[selectedMemberType].data[0],
+    },
+    {
+      name: "Comp2",
+      data: memberTypes[selectedMemberType].data[1],
+    },
+  ];
+
   const [appointments, setAppointments] = useState([
     {
-      id: 1,
       name: "Yolanda",
-      start: new Date(2025, 1, 2, 10, 0), // Date object for start time
-      end: new Date(2025, 1, 2, 14, 0), // Date object for end time
-      color: "#4169E1",
-      type: "Strength Training",
-      note: "Prefers morning sessions",
+      time: "10:00",
+      date: "Mon | 02-01-2025",
+      color: "bg-[#3F74FF]",
+      status: "check-in",
+      isCheckedIn: false,
     },
     {
-      id: 2,
       name: "Alexandra",
-      start: new Date(2025, 1, 3, 10, 0),
-      end: new Date(2025, 1, 3, 18, 0),
-      color: "#FF6B6B",
-      type: "Cardio",
-      note: "",
-    },
-    {
-      id: 3,
-      name: "Marcus",
-      start: new Date(2025, 1, 4, 14, 0),
-      end: new Date(2025, 1, 4, 16, 0),
-      color: "#50C878",
-      type: "Yoga",
-      note: "",
-    },
-    {
-      id: 4,
-      name: "John",
-      start: new Date(2025, 1, 4, 14, 0),
-      end: new Date(2025, 1, 4, 16, 0),
-      color: "#50C878",
-      type: "Yoga",
-      note: "",
+      time: "12:00",
+      date: "Mon | 02-01-2025",
+      color: "bg-[#CE4B55]",
+      status: "check-out",
+      isCheckedIn: false,
     },
   ]);
 
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setActiveDropdownId(null);
-      setIsViewDropdownOpen(false);
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
-  const handleCheckIn = (id) => {
-    if (checkedInMembers.includes(id)) {
-      setCheckedInMembers(checkedInMembers.filter((memberId) => memberId !== id));
-      toast.success("Member checked out successfully");
-    } else {
-      setCheckedInMembers([...checkedInMembers, id]);
-      toast.success("Member checked in successfully");
-    }
+  const handleAction = (index, action) => {
+    setAppointments((prevAppointments) => {
+      const updatedAppointments = [...prevAppointments];
+      updatedAppointments[index] = {
+        ...updatedAppointments[index],
+        isCheckedIn: !updatedAppointments[index].isCheckedIn,
+      };
+      return updatedAppointments;
+    });
   };
-
-  const handleAppointmentClick = (appointment) => {
-    setSelectedAppointment(appointment);
-  };
-
-  const handleAppointmentChange = (changes) => {
-    const updatedAppointment = { ...selectedAppointment, ...changes };
-    const updatedAppointments = appointments.map((app) =>
-      app.id === updatedAppointment.id ? updatedAppointment : app
-    );
-    setAppointments(updatedAppointments);
-    setSelectedAppointment(null);
-    toast.success("Appointment updated successfully");
-  };
-
-  const handleRemoveAppointment = (appointment) => {
-    setAppointmentToRemove(appointment);
-    setIsRemoveModalOpen(true);
-    setActiveDropdownId(null);
-  };
-
-  const confirmRemoveAppointment = () => {
-    setAppointments(appointments.filter((app) => app.id !== appointmentToRemove.id));
-    setIsRemoveModalOpen(false);
-    setAppointmentToRemove(null);
-    toast.success("Appointment removed successfully");
-  };
-
-  const ViewSelector = () => (
-    <div className="relative" onClick={(e) => e.stopPropagation()}>
-      <button
-        onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-        className="bg-[#000000] text-white px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors duration-500 flex items-center gap-2"
-      >
-        {view.charAt(0).toUpperCase() + view.slice(1)} View
-        <ChevronDown size={16} />
-      </button>
-
-      {isViewDropdownOpen && (
-        <div className="absolute top-full mt-1 right-0 w-32 bg-[#1C1C1C]/30 backdrop-blur-3xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
-          {["day", "week", "month"].map((v) => (
-            <button
-              key={v}
-              className="w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-gray-800 text-left capitalize"
-              onClick={() => {
-                setView(v);
-                setIsViewDropdownOpen(false);
-              }}
-            >
-              {v} View
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 
   return (
-    <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
-      <main className="flex-1 min-w-0">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
-            <div className="flex items-center gap-2">
-              <ViewSelector />
+    <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
+      {isRightSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={toggleRightSidebar}
+        />
+      )}
+      <main className="flex-1 min-w-0 overflow-x-hidden">
+        <div className="p-4 md:p-6">
+          <div className="grid gap-4 md:gap-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={toggleSidebar}
+                  className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden"
+                >
+                  <BarChart3 />
+                </button>
+                <h1 className="text-xl md:text-2xl oxanium_font">My Area</h1>
+              </div>
               <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-[#FF843E] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
+                onClick={toggleRightSidebar}
+                className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg lg:hidden"
+                aria-label="Toggle Messages"
               >
-                + Add appointment
+                {isRightSidebarOpen ? (
+                  <X size={24} />
+                ) : (
+                  <MessageCircle size={24} />
+                )}
               </button>
             </div>
-          </div>
 
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-[50%] w-full space-y-6">
-              <div>
-                <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
-                <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]">
-                  {appointments.map((appointment) => (
-                    <div
-                      key={appointment.id}
-                      className="rounded-xl p-4 flex items-center justify-between"
-                      style={{ backgroundColor: appointment.color }}
-                      onClick={() => handleAppointmentClick(appointment)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                          <img src={Avatar} alt="" className="w-full h-full rounded-full" />
-                        </div>
-                        <div className="text-white">
-                          <p className="font-semibold">{appointment.name}</p>
-                          <p className="text-sm flex gap-1 items-center opacity-80">
-                            <Clock size={15} />
-                            {moment(appointment.start).format("HH:mm")} | {moment(appointment.start).format("ddd | MM-DD-YYYY")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCheckIn(appointment.id);
-                          }}
-                          className="px-3 py-1 rounded-lg text-sm bg-black text-white hover:bg-black/80 transition-colors"
-                        >
-                          {checkedInMembers.includes(appointment.id) ? "Check Out" : "Check In"}
-                        </button>
-                        <div className="relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveDropdownId(activeDropdownId === appointment.id ? null : appointment.id);
-                            }}
-                            className="text-white/80 hover:text-white"
-                          >
-                            <MoreHorizontal size={20} />
-                          </button>
-
-                          {activeDropdownId === appointment.id && (
-                            <div className="absolute right-0 mt-1 w-32 bg-[#1C1C1C] rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
-                              <button
-                                className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAppointmentClick(appointment);
-                                }}
-                              >
-                                Edit
-                              </button>
-                              <div className="h-[1px] bg-gray-800 w-full"></div>
-                              <button
-                                className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRemoveAppointment(appointment);
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            <div className="p-4 md:p-6 bg-[#2F2F2F] rounded-xl overflow-hidden">
+              <div className="relative mb-4" ref={chartDropdownRef}>
+                <button
+                  onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
+                  className="flex items-center gap-2 px-4 py-2 bg-black rounded-xl text-white text-sm"
+                >
+                  {selectedMemberType}
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                {isChartDropdownOpen && (
+                  <div className="absolute z-10 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg">
+                    {Object.keys(memberTypes).map((type) => (
+                      <button
+                        key={type}
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
+                        onClick={() => {
+                          setSelectedMemberType(type);
+                          setIsChartDropdownOpen(false);
+                        }}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="w-full overflow-x-auto custom-scrollbar">
+                <div className="min-w-[800px]">
+                  <Chart
+                    options={chartOptions}
+                    series={chartSeries}
+                    type="line"
+                    height={300}
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="w-full bg-[#000000] rounded-xl p-4 overflow-hidden">
-              <BigCalendar
-                localizer={localizer}
-                events={appointments}
-                startAccessor="start"
-                endAccessor="end"
-                style={{ height: 600 }}
-                views={["month", "week", "day"]}
-                defaultView="week"
-                onView={(view) => setView(view)}
-                selectable
-                onSelectEvent={(event) => handleAppointmentClick(event)}
-                eventPropGetter={(event) => ({
-                  style: { backgroundColor: event.color },
-                })}
-              />
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg md:text-xl open_sans_font_700">
+                  Upcoming Appointments
+                </h2>
+                <Link
+                  to={"/dashboard/appointments"}
+                  className="cursor-pointer hover:underline font-medium"
+                >
+                  See all
+                </Link>
+              </div>
+              <div className="space-y-4">
+                {appointments.map((appointment, index) => (
+                  <div
+                    key={index}
+                    className={`${appointment.color} p-3 md:p-4 open_sans_font rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center">
+                        <img
+                          src={Avatar || "/placeholder.svg"}
+                          alt=""
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm md:text-base">
+                          {appointment.name}
+                        </h3>
+                        <p className="text-xs flex gap-1 items-center md:text-sm text-white/70">
+                          <Clock size={15} />
+                          {appointment.time} | {appointment.date}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-auto">
+                      <button
+                        onClick={() => handleAction(index, appointment.status)}
+                        className={`px-5 py-1.5 cursor-pointer ${
+                          appointment.isCheckedIn ? "bg-green-600" : "bg-black"
+                        } text-white text-xs md:text-sm rounded-xl cursor-pointer transition-colors min-w-[80px]`}
+                      >
+                        {appointment.isCheckedIn
+                          ? appointment.status === "check-in"
+                            ? "Checked In"
+                            : "Checked Out"
+                          : appointment.status === "check-in"
+                          ? "Check In"
+                          : "Check Out"}
+                      </button>
+                      <div className="relative" ref={dropdownRef}>
+                        <button
+                          className="p-2 hover:bg-white/10 rounded-xl"
+                          onClick={() => toggleDropdown(index)}
+                        >
+                          <MoreVertical size={18} className="cursor-pointer" />
+                        </button>
+                        {openDropdownIndex === index && (
+                          <div className="absolute right-4 top-4 mt-2 w-32 bg-[#2F2F2F]/10 backdrop-blur-xl rounded-xl z-10">
+                            <ul className="py-1">
+                              <li>
+                                <button
+                                  className="block w-full text-left px-4 py-2 text-sm text-white cursor-pointer hover:bg-white/10"
+                                  onClick={() => {
+                                    console.log("Cancel appointment");
+                                    setOpenDropdownIndex(null);
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              </li>
+                              <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto"></div>
+                              <li>
+                                <button
+                                  className="block w-full text-left px-4 py-2 text-sm text-red-500 cursor-pointer hover:bg-white/10"
+                                  onClick={() => {
+                                    console.log("Remove appointment");
+                                    setOpenDropdownIndex(null);
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </li>
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </main>
 
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+      <aside
+        className={`
+        fixed top-0 right-0 bottom-0 w-[85vw] sm:w-80 lg:w-80 bg-[#181818] z-50 
+        lg:static lg:block overflow-y-auto
+        ${
+          isRightSidebarOpen
+            ? "translate-x-0"
+            : "translate-x-full lg:translate-x-0"
+        }
+        transition-transform duration-500 ease-in-out
+      `}
+      >
+        <div className="p-4 md:p-6 min-h-full">
+          <button
+            onClick={() => setIsRightSidebarOpen(false)}
+            className="absolute top-4 left-4 p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl lg:hidden"
+            aria-label="Close Messages"
           >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Add appointment</h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+            <X size={20} />
+          </button>
+
+          <div className="mb-8 mt-8 lg:mt-0">
+            <div className="flex items-center justify-between mb-4">
+              <h2
+                className="text-lg md:text-xl open_sans_font_700 cursor-pointer"
+                onClick={redirectToCommunication}
               >
-                <X size={20} />
-              </button>
+                Communications
+              </h2>
             </div>
-
-            <div className="p-6 max-h-[calc(100vh-180px)] overflow-y-auto">
-              <form className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Member</label>
-                  <input
-                    type="text"
-                    placeholder="Search member..."
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
+            <div className="space-y-4">
+              {[1, 2].map((message) => (
+                <div
+                  onClick={redirectToCommunication}
+                  key={message}
+                  className="p-3 md:p-4 cursor-pointer bg-black rounded-xl"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <img
+                      src={Rectangle1 || "/placeholder.svg"}
+                      alt="User"
+                      className="rounded-full h-10 w-10 md:h-12 md:w-12"
+                    />
+                    <div>
+                      <h3 className="open_sans_font text-sm md:text-base">
+                        Jennifer Markus
+                      </h3>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs md:text-sm open_sans_font text-zinc-400">
+                      Hey! Did you think the NFT marketplace for Alice app
+                      design?
+                    </p>
+                    <p className="text-xs mt-2 flex gap-1 items-center open_sans_font text-zinc-400">
+                      <Clock size={15} />
+                      Today | 05:30 PM
+                    </p>
+                  </div>
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Appointment Type</label>
-                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
-                    <option value="">Select type</option>
-                    <option value="Strength Training">Strength Training</option>
-                    <option value="Cardio">Cardio</option>
-                    <option value="Yoga">Yoga</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Duration (minutes)</label>
-                  <input
-                    type="number"
-                    placeholder="60"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-              </form>
+              ))}
+              <Link
+                to={"/dashboard/communication"}
+                className="text-sm md:text-md open_sans_font text-white flex justify-center items-center text-center hover:underline"
+              >
+                See all
+              </Link>
             </div>
+          </div>
 
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                type="submit"
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+          <div>
+            <h2
+              className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer mb-4"
+              onClick={redirectToTodos}
+            >
+              TO-DO
+            </h2>
+            <div className="space-y-4 open_sans_font">
+              {[1, 2, 3].map((task) => (
+                <div
+                  onClick={redirectToTodos}
+                  key={task}
+                  className="p-3 md:p-4 cursor-pointer bg-black rounded-xl flex items-center justify-between"
+                >
+                  <div>
+                    <h3 className="font-semibold open_sans_font text-sm md:text-base">
+                      Task
+                    </h3>
+                    <p className="text-xs open_sans_font md:text-sm text-zinc-400">
+                      Description
+                    </p>
+                  </div>
+                  <button className="px-4 md:px-6 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs md:text-sm">
+                    <img
+                      src={Image10 || "/placeholder.svg"}
+                      alt=""
+                      className="w-4 h-4"
+                    />
+                    Jack
+                  </button>
+                </div>
+              ))}
+
+              <Link
+                to={"/dashboard/to-do"}
+                className="text-sm md:text-md open_sans_font text-white flex justify-center items-center text-center hover:underline"
               >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
-              >
-                Cancel
-              </button>
+                See all
+              </Link>
             </div>
           </div>
         </div>
-      )}
-
-      {selectedAppointment && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setSelectedAppointment(null)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Edit Appointment</h2>
-              <button
-                onClick={() => setSelectedAppointment(null)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6 max-h-[calc(100vh-180px)] overflow-y-auto">
-              <form className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Member</label>
-                  <input
-                    type="text"
-                    value={selectedAppointment.name}
-                    readOnly
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Appointment Type</label>
-                  <select
-                    value={selectedAppointment.type}
-                    onChange={(e) => handleAppointmentChange({ type: e.target.value })}
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  >
-                    <option value="Strength Training">Strength Training</option>
-                    <option value="Cardio">Cardio</option>
-                    <option value="Yoga">Yoga</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={moment(selectedAppointment.start).format("YYYY-MM-DDTHH:mm")}
-                    onChange={(e) =>
-                      handleAppointmentChange({
-                        start: new Date(e.target.value),
-                        end: new Date(moment(e.target.value).add(2, "hours")),
-                      })
-                    }
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Note</label>
-                  <textarea
-                    value={selectedAppointment.note}
-                    onChange={(e) => handleAppointmentChange({ note: e.target.value })}
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[100px]"
-                  />
-                </div>
-              </form>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                onClick={() => {
-                  handleAppointmentChange({});
-                  setSelectedAppointment(null);
-                }}
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-              >
-                Save Changes
-              </button>
-              <button
-                onClick={() => setSelectedAppointment(null)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-      {isRemoveModalOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsRemoveModalOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Confirm Removal</h2>
-              <button
-                onClick={() => setIsRemoveModalOpen(false)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6">
-              <p className="text-white text-sm">
-                Are you sure you want to remove this appointment with {appointmentToRemove?.name}?
-              </p>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                onClick={confirmRemoveAppointment}
-                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors"
-              >
-                Yes, Remove
-              </button>
-              <button
-                onClick={() => setIsRemoveModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-        }}
-      />
+      </aside>
     </div>
-  )
+  );
 }
-
-export default Appointments
