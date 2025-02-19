@@ -38,7 +38,6 @@ export function AddPartiesModal({ isVisible, onClose, onSave }) {
 
   return (
     <>
-   
     <Toaster
     position="top-right"
     toastOptions={{

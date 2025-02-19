@@ -54,16 +54,16 @@ const Calendar = () => {
 
   return (
     <div className="h-full w-full">
-      <div className="max-w-full overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="max-w-full overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="min-w-[768px]">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
             initialDate="2025-02-03"
             headerToolbar={{
-              left: 'prev,next',
-              center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay'
+              left: "prev,next",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay",
             }}
             events={events}
             height="auto"
@@ -74,43 +74,44 @@ const Calendar = () => {
             allDaySlot={false}
             nowIndicator={true}
             slotDuration="01:00:00"
+            firstDay={1} // Start week on Monday
             eventContent={(eventInfo) => {
-              const event = eventInfo.event;
-              const startTime = event.start ? event.start.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                hour12: false 
-              }) : '';
-              const endTime = event.end ? event.end.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                hour12: false 
-              }) : '';
-              
+              const event = eventInfo.event
+              const startTime = event.start
+                ? event.start.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })
+                : ""
+              const endTime = event.end
+                ? event.end.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })
+                : ""
+
               return (
                 <div className="p-1 h-full overflow-hidden">
-                  <div className="font-semibold text-xs sm:text-sm truncate">
-                    {event.title}
-                  </div>
-                  <div className="text-xs opacity-90 truncate">
-                    {event.extendedProps.type}
-                  </div>
+                  <div className="font-semibold text-xs sm:text-sm truncate">{event.title}</div>
+                  <div className="text-xs opacity-90 truncate">{event.extendedProps.type}</div>
                   <div className="text-xs mt-1">
                     {startTime} - {endTime}
                   </div>
                 </div>
-              );
+              )
             }}
             slotLabelFormat={{
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
             }}
             dayHeaderFormat={{
-              weekday: 'short',
-              month: 'numeric',
-              day: 'numeric',
-              omitCommas: true
+              weekday: "short",
+              month: "numeric",
+              day: "numeric",
+              omitCommas: true,
             }}
           />
         </div>

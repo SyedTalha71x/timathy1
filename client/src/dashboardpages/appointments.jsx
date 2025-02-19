@@ -1,28 +1,36 @@
-
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-import { MoreHorizontal, X, Clock, ChevronDown, Info, Search } from "lucide-react"
-import { useState, useEffect } from "react"
+import { MoreHorizontal, X, Clock, Info, Search, AlertTriangle } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
 import Avatar from "../../public/avatar.png"
 import Calendar from "../components/calender"
 import MiniCalendar from "../components/mini-calender"
 import toast, { Toaster } from "react-hot-toast"
-import { CiWarning } from "react-icons/ci"
 
 export default function Appointments() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [view, setView] = useState("week")
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
   const [checkedInMembers, setCheckedInMembers] = useState([])
   const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false)
+  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
   const [appointmentToRemove, setAppointmentToRemove] = useState(null)
   const [isShowDetails, setisShowDetails] = useState(false)
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [checkedOutMembers, setCheckedOutMembers] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedMember, setSelectedMember] = useState(null)
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [notifyAction, setNotifyAction] = useState("")
+  const [freeAppointments, setFreeAppointments] = useState([])
+  const [appointmentTypes, setAppointmentTypes] = useState([
+    { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
+    { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
+    { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
+  ])
   const [appointments, setAppointments] = useState([
     {
       id: 1,
@@ -34,8 +42,14 @@ export default function Appointments() {
       endTime: "14:00",
       day: 0,
       type: "Strength Training",
-      note: "Prefers morning sessions",
+      specialNote: {
+        text: "Prefers morning sessions",
+        startDate: null,
+        endDate: null,
+        isImportant: false,
+      },
       status: "pending",
+      isTrial: false,
     },
     {
       id: 2,
@@ -47,8 +61,14 @@ export default function Appointments() {
       endTime: "18:00",
       day: 1,
       type: "Cardio",
-      note: "",
+      specialNote: {
+        text: "",
+        startDate: null,
+        endDate: null,
+        isImportant: false,
+      },
       status: "pending",
+      isTrial: false,
     },
     {
       id: 3,
@@ -60,8 +80,14 @@ export default function Appointments() {
       endTime: "16:00",
       day: 2,
       type: "Yoga",
-      note: "",
+      specialNote: {
+        text: "",
+        startDate: null,
+        endDate: null,
+        isImportant: false,
+      },
       status: "pending",
+      isTrial: false,
     },
     {
       id: 4,
@@ -73,10 +99,18 @@ export default function Appointments() {
       endTime: "16:00",
       day: 2,
       type: "Yoga",
-      note: "",
+      specialNote: {
+        text: "",
+        startDate: null,
+        endDate: null,
+        isImportant: false,
+      },
       status: "pending",
+      isTrial: false,
     },
   ])
+
+  const [openingHours, setOpeningHours] = useState({ start: "08:00:00", end: "19:00:00" })
 
   const filteredAppointments = appointments.filter((appointment) =>
     selectedMember ? appointment.name === selectedMember : true,
@@ -108,32 +142,72 @@ export default function Appointments() {
 
   const handleAppointmentClick = (appointment) => {
     setSelectedAppointment(appointment)
+    // Fetch free appointments here
+    setFreeAppointments([
+      { id: "free1", date: "2025-01-03", time: "10:00" },
+      { id: "free2", date: "2025-01-03", time: "11:00" },
+      { id: "free3", date: "2025-01-03", time: "14:00" },
+    ])
   }
 
   const handleAppointmentChange = (changes) => {
-    const updatedAppointment = { ...selectedAppointment, ...changes }
-    const updatedAppointments = appointments.map((app) => (app.id === updatedAppointment.id ? updatedAppointment : app))
-    setAppointments(updatedAppointments)
-    setSelectedAppointment(null)
-    toast.success("Appointment updated successfully")
+    setSelectedAppointment((prev) => {
+      const updatedAppointment = { ...prev, ...changes }
+      if (changes.specialNote) {
+        updatedAppointment.specialNote = { ...prev.specialNote, ...changes.specialNote }
+      }
+      return updatedAppointment
+    })
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("change")
   }
 
   const handleRemoveAppointment = (appointment) => {
     setAppointmentToRemove(appointment)
-    setIsRemoveModalOpen(true)
+    setIsConfirmCancelOpen(true)
     setActiveDropdownId(null)
   }
 
   const confirmRemoveAppointment = () => {
-    setAppointments(appointments.filter((app) => app.id !== appointmentToRemove.id))
-    setIsRemoveModalOpen(false)
-    setAppointmentToRemove(null)
-    toast.success("Appointment removed successfully")
+    setIsConfirmCancelOpen(false)
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("cancel")
+    // We'll handle the actual removal after user decides on notification
   }
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date)
-    setView("day")
+  const handleNotifyMember = (shouldNotify) => {
+    const changes = {}
+    let updatedAppointment
+    if (notifyAction === "change") {
+      updatedAppointment = { ...selectedAppointment, ...changes }
+      const updatedAppointments = appointments.map((app) =>
+        app.id === updatedAppointment.id ? updatedAppointment : app,
+      )
+      setAppointments(updatedAppointments)
+      setSelectedAppointment(null)
+      toast.success("Appointment updated successfully")
+    } else if (notifyAction === "cancel") {
+      setAppointments(appointments.filter((app) => app.id !== appointmentToRemove.id))
+      setAppointmentToRemove(null)
+      toast.success("Appointment removed successfully")
+    }
+
+    if (shouldNotify) {
+      // Here you would implement the actual notification logic
+      toast.success("Member notified successfully")
+    }
+
+    setIsNotifyMemberOpen(false)
+  }
+
+  const handleDateSelect = (info) => {
+    setIsModalOpen(true)
+    // You can set some initial state for the new appointment here
+    // For example:
+    // setNewAppointment({
+    //   date: info.startStr,
+    //   time: info.startStr.split('T')[1].slice(0, 5),
+    // })
   }
 
   const handleSearch = (e) => {
@@ -147,6 +221,73 @@ export default function Appointments() {
     }
   }
 
+  const handleEventClick = (info) => {
+    const appointment = appointments.find(app => app.id === info.event.id)
+    if (appointment) {
+      handleAppointmentClick(appointment)
+    }
+  }
+
+  const renderSpecialNoteIcon = useCallback(
+    (specialNote, appointmentId) => {
+      if (!specialNote.text) return null
+
+      const isActive =
+        specialNote.startDate === null ||
+        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+
+      if (!isActive) return null
+
+      const handleMouseEnter = () => {
+        setActiveNoteId(appointmentId)
+      }
+
+      const handleMouseLeave = () => {
+        setActiveNoteId(null)
+      }
+
+      return (
+        <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {specialNote.isImportant ? (
+            <AlertTriangle size={18} className="text-yellow-500 cursor-pointer" />
+          ) : (
+            <Info size={18} className="text-blue-500 cursor-pointer" />
+          )}
+          {activeNoteId === appointmentId && (
+            <div className="absolute right-0 top-6 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
+              <div className="flex items-start gap-2">
+                {specialNote.isImportant ? (
+                  <AlertTriangle className="text-yellow-500 shrink-0 mt-0.5" size={16} />
+                ) : (
+                  <Info className="text-blue-500 shrink-0 mt-0.5" size={16} />
+                )}
+                <p className="text-white text-sm">{specialNote.text}</p>
+              </div>
+              {specialNote.startDate && specialNote.endDate && (
+                <p className="text-xs text-gray-400 mt-2">
+                  Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                  {new Date(specialNote.endDate).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )
+    },
+    [activeNoteId],
+  )
+
+  const calendarEvents = appointments.map(appointment => ({
+    id: appointment.id,
+    title: appointment.name,
+    start: `${appointment.date.split('|')[1].trim()}T${appointment.startTime}`,
+    end: `${appointment.date.split('|')[1].trim()}T${appointment.endTime}`,
+    backgroundColor: appointment.color.split('-')[1].slice(1, -1),
+    borderColor: appointment.color.split('-')[1].slice(1, -1),
+    extendedProps: {
+      type: appointment.type
+    }
+  }))
 
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
@@ -160,6 +301,12 @@ export default function Appointments() {
                 className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
               >
                 + Add appointment
+              </button>
+              <button
+                onClick={() => setIsTrialModalOpen(true)}
+                className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200"
+              >
+                + Add trial training
               </button>
             </div>
           </div>
@@ -184,28 +331,9 @@ export default function Appointments() {
                 <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[calc(100vh-300px)]">
                   {filteredAppointments.map((appointment) => (
                     <div key={appointment.id} className={`${appointment.color} rounded-xl cursor-pointer p-4 relative`}>
-                      {appointment.note !== "" && (
-                        <div className="absolute top-2 right-2">
-                          <div className="relative">
-                            <CiWarning
-                              size={18}
-                              className="text-white cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setActiveNoteId(activeNoteId === appointment.id ? null : appointment.id)
-                              }}
-                            />
-                            {activeNoteId === appointment.id && (
-                              <div className="absolute right-1 top-4 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
-                                <div className="flex items-start gap-2">
-                                  <Info className="text-yellow-500 shrink-0 mt-0.5" size={16} />
-                                  <p className="text-white text-sm">{appointment.note}</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                      <div className="absolute top-2 right-2">
+                        {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                      </div>
 
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -218,7 +346,10 @@ export default function Appointments() {
                               <Clock size={15} />
                               {appointment.time} | {appointment.date}
                             </p>
-                            <p className="text-sm mt-1">{appointment.type}</p>
+                            <p className="text-sm mt-1">
+                              {appointment.isTrial ? "Trial - " : ""}
+                              {appointment.type}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
@@ -274,7 +405,7 @@ export default function Appointments() {
                                     handleRemoveAppointment(appointment)
                                   }}
                                 >
-                                  Remove
+                                  Cancel Appointment
                                 </button>
                               </div>
                             )}
@@ -288,7 +419,12 @@ export default function Appointments() {
             </div>
 
             <div className="lg:w-[70%] w-full bg-[#000000] rounded-xl p-4 overflow-hidden">
-              <Calendar view={view} appointments={filteredAppointments} selectedDate={selectedDate} />
+              <Calendar
+                events={calendarEvents}
+                onEventClick={handleEventClick}
+                onDateSelect={handleDateSelect}
+                openingHours={openingHours}
+              />
             </div>
           </div>
         </div>
@@ -328,9 +464,11 @@ export default function Appointments() {
                   <label className="text-sm text-gray-200">Appointment Type</label>
                   <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
                     <option value="">Select type</option>
-                    <option value="Strength Training">Strength Training</option>
-                    <option value="Cardio">Cardio</option>
-                    <option value="Yoga">Yoga</option>
+                    {appointmentTypes.map((type) => (
+                      <option key={type.name} value={type.name} className={type.color}>
+                        {type.name} ({type.duration} minutes)
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -343,12 +481,34 @@ export default function Appointments() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Duration (minutes)</label>
-                  <input
-                    type="number"
-                    placeholder="60"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  <label className="text-sm text-gray-200">Special Note</label>
+                  <textarea
+                    placeholder="Enter special note..."
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[100px]"
                   />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="isImportant" className="rounded text-[#3F74FF] focus:ring-[#3F74FF]" />
+                  <label htmlFor="isImportant" className="text-sm text-gray-200">
+                    Mark as important
+                  </label>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200">Note Duration</label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="date"
+                      placeholder="Start Date"
+                      className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                    />
+                    <input
+                      type="date"
+                      placeholder="End Date"
+                      className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                    />
+                  </div>
                 </div>
               </form>
             </div>
@@ -357,12 +517,111 @@ export default function Appointments() {
               <button
                 type="submit"
                 className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+                onClick={() => {
+                  setIsModalOpen(false)
+                  setIsNotifyMemberOpen(true)
+                  setNotifyAction("book")
+                }}
               >
-                Save
+                Book Appointment
               </button>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isTrialModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+          onClick={() => setIsTrialModalOpen(false)}
+        >
+          <div
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">Add Trial Training</h2>
+              <button
+                onClick={() => setIsTrialModalOpen(false)}
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 max-h-[calc(100vh-180px)] overflow-y-auto">
+              <form className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200">Lead</label>
+                  <input
+                    type="text"
+                    placeholder="Search lead..."
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="w-full px-3 py-2 bg-[#3F74FF] text-white rounded-xl text-sm font-medium hover:bg-[#3F74FF]/90 transition-colors"
+                  onClick={() => {
+                    // Open modal to create new lead
+                  }}
+                >
+                  + Create New Lead
+                </button>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200">Trial Type</label>
+                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
+                    <option value="">Select type</option>
+                    <option value="cardio">Cardio</option>
+                    <option value="strength">Strength</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200">Date & Time</label>
+                  <input
+                    type="datetime-local"
+                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200">Available Slots</label>
+                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
+                    <option value="">Select available time</option>
+                    {freeAppointments.map((app) => (
+                      <option key={app.id} value={`${app.date}T${app.time}`}>
+                        {app.date} at {app.time}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </form>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
+              <button
+                type="submit"
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+                onClick={() => {
+                  setIsTrialModalOpen(false)
+                  // Handle booking trial training
+                }}
+              >
+                Book Trial Training
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsTrialModalOpen(false)}
                 className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
               >
                 Cancel
@@ -410,9 +669,11 @@ export default function Appointments() {
                     onChange={(e) => handleAppointmentChange({ type: e.target.value })}
                     className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   >
-                    <option value="Strength Training">Strength Training</option>
-                    <option value="Cardio">Cardio</option>
-                    <option value="Yoga">Yoga</option>
+                    {appointmentTypes.map((type) => (
+                      <option key={type.name} value={type.name} className={type.color}>
+                        {type.name} ({type.duration} minutes)
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -432,22 +693,78 @@ export default function Appointments() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Note</label>
+                  <label className="text-sm text-gray-200">Special Note</label>
                   <textarea
-                    value={selectedAppointment.note}
-                    onChange={(e) => handleAppointmentChange({ note: e.target.value })}
+                    value={selectedAppointment.specialNote.text}
+                    onChange={(e) =>
+                      handleAppointmentChange({
+                        specialNote: { ...selectedAppointment.specialNote, text: e.target.value },
+                      })
+                    }
                     className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[100px]"
                   />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isImportant"
+                    checked={selectedAppointment.specialNote.isImportant}
+                    onChange={(e) =>
+                      handleAppointmentChange({
+                        specialNote: { ...selectedAppointment.specialNote, isImportant: e.target.checked },
+                      })
+                    }
+                    className="rounded text-[#3F74FF] focus:ring-[#3F74FF]"
+                  />
+                  <label htmlFor="isImportant" className="text-sm text-gray-200">
+                    Mark as important
+                  </label>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200">Note Duration</label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="date"
+                      value={selectedAppointment.specialNote.startDate || ""}
+                      onChange={(e) =>
+                        handleAppointmentChange({
+                          specialNote: { ...selectedAppointment.specialNote, startDate: e.target.value },
+                        })
+                      }
+                      className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                    />
+                    <input
+                      type="date"
+                      value={selectedAppointment.specialNote.endDate || ""}
+                      onChange={(e) =>
+                        handleAppointmentChange({
+                          specialNote: { ...selectedAppointment.specialNote, endDate: e.target.value },
+                        })
+                      }
+                      className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm text-gray-200">Available Appointments</label>
+                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
+                    <option value="">Select available time</option>
+                    {freeAppointments.map((app) => (
+                      <option key={app.id} value={`${app.date}T${app.time}`}>
+                        {app.date} at {app.time}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </form>
             </div>
 
             <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
               <button
-                onClick={() => {
-                  handleAppointmentChange({})
-                  setSelectedAppointment(null)
-                }}
+                onClick={() => handleAppointmentChange({})}
                 className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
               >
                 Save Changes
@@ -463,19 +780,19 @@ export default function Appointments() {
         </div>
       )}
 
-      {isRemoveModalOpen && (
+      {isConfirmCancelOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsRemoveModalOpen(false)}
+          onClick={() => setIsConfirmCancelOpen(false)}
         >
           <div
             className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Confirm Removal</h2>
+              <h2 className="text-lg font-semibold text-white">Confirm Cancellation</h2>
               <button
-                onClick={() => setIsRemoveModalOpen(false)}
+                onClick={() => setIsConfirmCancelOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
               >
                 <X size={20} />
@@ -484,7 +801,8 @@ export default function Appointments() {
 
             <div className="p-6">
               <p className="text-white text-sm">
-                Are you sure you want to remove this appointment with {appointmentToRemove?.name}?
+                Are you sure you want to cancel this appointment with {appointmentToRemove?.name} on{" "}
+                {appointmentToRemove?.date} at {appointmentToRemove?.time}?
               </p>
             </div>
 
@@ -493,13 +811,57 @@ export default function Appointments() {
                 onClick={confirmRemoveAppointment}
                 className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors"
               >
-                Yes, Remove
+                Yes, Cancel Appointment
               </button>
               <button
-                onClick={() => setIsRemoveModalOpen(false)}
+                onClick={() => setIsConfirmCancelOpen(false)}
                 className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
               >
-                Cancel
+                No, Keep Appointment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isNotifyMemberOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+          onClick={() => setIsNotifyMemberOpen(false)}
+        >
+          <div
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+              <button
+                onClick={() => setIsNotifyMemberOpen(false)}
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <p className="text-white text-sm">
+                Do you want to notify the member about this{" "}
+                {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
+              </p>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
+              <button
+                onClick={() => handleNotifyMember(true)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+              >
+                Yes, Notify Member
+              </button>
+              <button
+                onClick={() => handleNotifyMember(false)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+              >
+                No, Don't Notify
               </button>
             </div>
           </div>
