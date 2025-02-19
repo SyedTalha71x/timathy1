@@ -136,8 +136,12 @@ export default function Communications() {
     setActiveScreen("chat")
   }
 
-  const handleBookAppointment = () => {
-    setActiveScreen("book-appointment")
+  // const handleBookAppointment = () => {
+  //   setActiveScreen("book-appointment")
+  // }
+
+  const redirectToAppointment = () =>{
+    window.location.href = '/dashboard/appointments'
   }
 
   const handleMemberSelect = (member) => {
@@ -391,7 +395,7 @@ export default function Communications() {
                 <button
                   className="text-blue-500 hover:text-blue-400"
                   aria-label="Book appointment"
-                  onClick={handleBookAppointment}
+                  onClick={redirectToAppointment}
                 >
                   <Calendar className="w-5 h-5" />
                 </button>

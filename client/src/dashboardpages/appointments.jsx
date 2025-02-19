@@ -300,13 +300,13 @@ export default function Appointments() {
                 onClick={() => setIsModalOpen(true)}
                 className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
               >
-                + Add appointment
+                Add appointment
               </button>
               <button
                 onClick={() => setIsTrialModalOpen(true)}
                 className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200"
               >
-                + Add trial training
+                Add trial training
               </button>
             </div>
           </div>
