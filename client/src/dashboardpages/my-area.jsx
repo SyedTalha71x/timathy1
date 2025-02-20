@@ -1,49 +1,37 @@
-"use client";
+/* eslint-disable react/prop-types */
+"use client"
 
 /* eslint-disable no-unused-vars */
-import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import Chart from "react-apexcharts";
-import {
-  BarChart3,
-  MoreVertical,
-  X,
-  Clock,
-  ChevronDown,
-  Edit,
-  Check,
-  ExternalLink,
-  ArrowDown,
-  ArrowUp,
-} from "lucide-react";
-import Rectangle1 from "../../public/Rectangle 1.png";
-import Image10 from "../../public/image10.png";
-import Avatar from "../../public/avatar.png";
-import { FaArrowUp, FaEllipsisV } from "react-icons/fa";
-import { FaArrowDown } from "react-icons/fa";
+import { useState, useEffect, useRef } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import Chart from "react-apexcharts"
+import { BarChart3, MoreVertical, X, Clock, ChevronDown, Edit, Check, ArrowDown, ArrowUp, Plus } from "lucide-react"
+import Rectangle1 from "../../public/Rectangle 1.png"
+import Image10 from "../../public/image10.png"
+import Avatar from "../../public/avatar.png"
+import { FaArrowUp, FaEllipsisV } from "react-icons/fa"
+import { FaArrowDown } from "react-icons/fa"
 
 function EmployeeCheckInWidget() {
-  const [isCheckedIn, setIsCheckedIn] = useState(false);
-  const [checkInTime, setCheckInTime] = useState(null);
+  const [isCheckedIn, setIsCheckedIn] = useState(false)
+  const [checkInTime, setCheckInTime] = useState(null)
 
   const handleCheckInOut = () => {
     if (isCheckedIn) {
-      setIsCheckedIn(false);
-      setCheckInTime(null);
+      setIsCheckedIn(false)
+      setCheckInTime(null)
     } else {
-      setIsCheckedIn(true);
-      setCheckInTime(new Date());
+      setIsCheckedIn(true)
+      setCheckInTime(new Date())
     }
-  };
+  }
 
   return (
     <div className="p-4 bg-[#000000] rounded-xl">
       <h2 className="text-lg font-semibold mb-3">Employee Check-In</h2>
       <div className="flex flex-col gap-3">
         <div>
-          <p className="text-sm mb-1">
-            Status: {isCheckedIn ? "Checked In" : "Checked Out"}
-          </p>
+          <p className="text-sm mb-1">Status: {isCheckedIn ? "Checked In" : "Checked Out"}</p>
           {checkInTime && (
             <p className="text-xs text-zinc-400 flex items-center gap-1">
               <Clock size={14} />
@@ -61,33 +49,31 @@ function EmployeeCheckInWidget() {
         </button>
       </div>
     </div>
-  );
+  )
 }
 
 export default function MyArea() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null);
-  const [selectedMemberType, setSelectedMemberType] = useState("All members");
-  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const chartDropdownRef = useRef(null);
-  const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [selectedMemberType, setSelectedMemberType] = useState("All members")
+  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
+  const dropdownRef = useRef(null)
+  const chartDropdownRef = useRef(null)
+  const navigate = useNavigate()
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false)
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 },
     { id: "appointments", type: "appointments", position: 1 },
     { id: "employeeCheckIn", type: "employeeCheckIn", position: 2 },
-  ]);
-  const [customLinks, setCustomLinks] = useState([
-    { id: "link1", url: "https://example.com", title: "Example Store" },
-  ]);
+  ])
+  const [customLinks, setCustomLinks] = useState([{ id: "link1", url: "www.grocery.com", title: "Grocery Store" }])
   const [sidebarSections, setSidebarSections] = useState([
     { id: "communications", title: "Communications" },
     { id: "todo", title: "TO-DO" },
     { id: "birthday", title: "Upcoming Birthday" },
-  ]);
+  ])
 
   const memberTypes = {
     "All members": {
@@ -114,7 +100,7 @@ export default function MyArea() {
       growth: "-1%",
       title: "Cancelled Appointments",
     },
-  };
+  }
 
   const [appointments, setAppointments] = useState([
     {
@@ -133,106 +119,85 @@ export default function MyArea() {
       status: "check-out",
       isCheckedIn: false,
     },
-  ]);
+  ])
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen);
-  const redirectToTodos = () => navigate("/dashboard/to-do");
-  const redirectToCommunication = () => navigate("/dashboard/communication");
-  const toggleDropdown = (index) =>
-    setOpenDropdownIndex(openDropdownIndex === index ? null : index);
-  const toggleEditing = () => setIsEditing(!isEditing);
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
+  const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
+  const redirectToTodos = () => navigate("/dashboard/to-do")
+  const redirectToCommunication = () => navigate("/dashboard/communication")
+  const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  const toggleEditing = () => setIsEditing(!isEditing)
 
   const moveWidget = (id, direction) => {
     setWidgets((currentWidgets) => {
-      const index = currentWidgets.findIndex((w) => w.id === id);
-      if (
-        (direction === "up" && index === 0) ||
-        (direction === "down" && index === currentWidgets.length - 1)
-      ) {
-        return currentWidgets;
+      const index = currentWidgets.findIndex((w) => w.id === id)
+      if ((direction === "up" && index === 0) || (direction === "down" && index === currentWidgets.length - 1)) {
+        return currentWidgets
       }
-      const newWidgets = [...currentWidgets];
-      const swap = direction === "up" ? index - 1 : index + 1;
-      [newWidgets[index], newWidgets[swap]] = [
-        newWidgets[swap],
-        newWidgets[index],
-      ];
-      return newWidgets.map((w, i) => ({ ...w, position: i }));
-    });
-  };
+      const newWidgets = [...currentWidgets]
+      const swap = direction === "up" ? index - 1 : index + 1
+      ;[newWidgets[index], newWidgets[swap]] = [newWidgets[swap], newWidgets[index]]
+      return newWidgets.map((w, i) => ({ ...w, position: i }))
+    })
+  }
 
   const removeWidget = (id) => {
-    setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id));
-  };
+    setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
+  }
+
+  const [editingLink, setEditingLink] = useState(null)
 
   const addCustomLink = () => {
-    const newLink = { id: `link${customLinks.length + 1}`, url: "", title: "" };
-    setCustomLinks([...customLinks, newLink]);
-  };
+    setEditingLink({})
+  }
 
   const updateCustomLink = (id, field, value) => {
-    setCustomLinks((currentLinks) =>
-      currentLinks.map((link) =>
-        link.id === id ? { ...link, [field]: value } : link
-      )
-    );
-  };
+    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
+  }
 
   const removeCustomLink = (id) => {
-    setCustomLinks((currentLinks) =>
-      currentLinks.filter((link) => link.id !== id)
-    );
-  };
+    setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
+  }
 
   const handleAction = (index, action) => {
     setAppointments((prevAppointments) => {
-      const updatedAppointments = [...prevAppointments];
+      const updatedAppointments = [...prevAppointments]
       updatedAppointments[index] = {
         ...updatedAppointments[index],
         isCheckedIn: !updatedAppointments[index].isCheckedIn,
-      };
-      return updatedAppointments;
-    });
-  };
+      }
+      return updatedAppointments
+    })
+  }
 
   const moveSidebarSection = (id, direction) => {
     setSidebarSections((currentSections) => {
-      const index = currentSections.findIndex((section) => section.id === id);
-      if (
-        (direction === "up" && index === 0) ||
-        (direction === "down" && index === currentSections.length - 1)
-      ) {
-        return currentSections;
+      const index = currentSections.findIndex((section) => section.id === id)
+      if ((direction === "up" && index === 0) || (direction === "down" && index === currentSections.length - 1)) {
+        return currentSections
       }
-      const newSections = [...currentSections];
-      const swap = direction === "up" ? index - 1 : index + 1;
-      [newSections[index], newSections[swap]] = [
-        newSections[swap],
-        newSections[index],
-      ];
-      return newSections;
-    });
-  };
+      const newSections = [...currentSections]
+      const swap = direction === "up" ? index - 1 : index + 1
+      ;[newSections[index], newSections[swap]] = [newSections[swap], newSections[index]]
+      return newSections
+    })
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownIndex(null);
+        setOpenDropdownIndex(null)
       }
-      if (
-        chartDropdownRef.current &&
-        !chartDropdownRef.current.contains(event.target)
-      ) {
-        setIsChartDropdownOpen(false);
+      if (chartDropdownRef.current && !chartDropdownRef.current.contains(event.target)) {
+        setIsChartDropdownOpen(false)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   const chartOptions = {
     chart: {
@@ -247,17 +212,7 @@ export default function MyArea() {
     stroke: { curve: "smooth", width: 3 },
     markers: { size: 0 },
     xaxis: {
-      categories: [
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       labels: {
         style: { colors: "#999999", fontSize: "10px" },
         rotate: 0,
@@ -306,47 +261,126 @@ export default function MyArea() {
         },
       },
     ],
-  };
+  }
 
   const chartSeries = [
     { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
-  ];
+  ]
+
+  const WebsiteLinkModal = ({ link, onClose }) => {
+    const [title, setTitle] = useState(link?.title?.trim() || "")
+    const [url, setUrl] = useState(link?.url?.trim() || "")
+
+    const handleSave = () => {
+      if (!title.trim() || !url.trim()) return
+
+      if (link?.id) {
+        // Editing existing link
+        updateCustomLink(link.id, "title", title)
+        updateCustomLink(link.id, "url", url)
+      } else {
+        // Adding new link
+        const newLink = {
+          id: `link${Date.now()}`,
+          url: url.trim(),
+          title: title.trim(),
+        }
+        setCustomLinks((prev) => [...prev, newLink])
+      }
+      onClose()
+    }
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+          <div className="p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Website link</h2>
+              <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                  placeholder="Enter title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">URL</label>
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end mt-6">
+              <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700">
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={!title.trim() || !url.trim()}
+                className={`px-4 py-2 text-sm rounded-xl ${
+                  !title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
-      {isRightSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={toggleRightSidebar}
-        />
-      )}
+      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={toggleRightSidebar} />}
 
       <main className="flex-1 min-w-0 overflow-hidden">
         <div className="p-3 md:p-6 space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
-                onClick={toggleSidebar}
-                className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden"
-              >
+              <button onClick={toggleSidebar} className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden">
                 <BarChart3 />
               </button>
               <h1 className="text-xl font-bold">My Area</h1>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden"
-                onClick={toggleRightSidebar}
-              >
+              <button className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden" onClick={toggleRightSidebar}>
                 <FaEllipsisV />
               </button>
               <button
-                onClick={toggleEditing}
-                className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg"
+                onClick={() => {
+                  const newWidget = {
+                    id: `widget${widgets.length + 1}`,
+                    type: "custom",
+                    position: widgets.length,
+                  }
+                  setWidgets([...widgets, newWidget])
+                }}
+                className="py-2 px-6 bg-black text-white hover:bg-zinc-900 rounded-xl text-sm cursor-pointer flex items-center gap-1"
               >
-                {isEditing ? <Check /> : <Edit />}
+                <Plus size={16} />
+                <span className="hidden sm:inline">Add Widget</span>
+              </button>
+              <button
+                onClick={toggleEditing}
+                className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg flex items-center gap-1"
+              >
+                {isEditing ? <Check size={16} /> : <Edit size={16} />}
+                {/* <span className="hidden sm:inline">{isEditing ? "Done" : "Edit"}</span> */}
               </button>
             </div>
           </div>
@@ -359,22 +393,13 @@ export default function MyArea() {
                 <div key={widget.id} className="relative">
                   {isEditing && (
                     <div className="absolute top-2 right-2 z-10 flex gap-2">
-                      <button
-                        onClick={() => moveWidget(widget.id, "up")}
-                        className="p-2 bg-gray-800 rounded"
-                      >
+                      <button onClick={() => moveWidget(widget.id, "up")} className="p-2 bg-gray-800 rounded">
                         <FaArrowUp size={12} />
                       </button>
-                      <button
-                        onClick={() => moveWidget(widget.id, "down")}
-                        className="p-2 bg-gray-800 rounded"
-                      >
+                      <button onClick={() => moveWidget(widget.id, "down")} className="p-2 bg-gray-800 rounded">
                         <FaArrowDown size={12} />
                       </button>
-                      <button
-                        onClick={() => removeWidget(widget.id)}
-                        className="p-2 bg-gray-800 rounded"
-                      >
+                      <button onClick={() => removeWidget(widget.id)} className="p-2 bg-gray-800 rounded">
                         <X size={12} />
                       </button>
                     </div>
@@ -385,9 +410,7 @@ export default function MyArea() {
                     <div className="p-4 bg-[#2F2F2F] rounded-xl">
                       <div className="relative mb-4" ref={chartDropdownRef}>
                         <button
-                          onClick={() =>
-                            setIsChartDropdownOpen(!isChartDropdownOpen)
-                          }
+                          onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
                           className="flex items-center gap-2 px-4 py-2 bg-black rounded-xl text-white text-sm"
                         >
                           {selectedMemberType}
@@ -400,8 +423,8 @@ export default function MyArea() {
                                 key={type}
                                 className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
                                 onClick={() => {
-                                  setSelectedMemberType(type);
-                                  setIsChartDropdownOpen(false);
+                                  setSelectedMemberType(type)
+                                  setIsChartDropdownOpen(false)
                                 }}
                               >
                                 {type}
@@ -411,12 +434,7 @@ export default function MyArea() {
                         )}
                       </div>
                       <div className="w-full">
-                        <Chart
-                          options={chartOptions}
-                          series={chartSeries}
-                          type="line"
-                          height={350}
-                        />
+                        <Chart options={chartOptions} series={chartSeries} type="line" height={350} />
                       </div>
                     </div>
                   )}
@@ -425,42 +443,31 @@ export default function MyArea() {
                   {widget.type === "appointments" && (
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <h2 className="text-lg font-semibold">
-                          Upcoming Appointments
-                        </h2>
-                        <Link
-                          to="/dashboard/appointments"
-                          className="text-sm text-blue-400 hover:underline"
-                        >
+                        <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
+                        <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
                           See all
                         </Link>
                       </div>
                       <div className="space-y-3">
                         {appointments.map((appointment, index) => (
-                          <div
-                            key={index}
-                            className={`${appointment.color} p-4 rounded-xl`}
-                          >
+                          <div key={index} className={`${appointment.color} p-4 rounded-xl`}>
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full flex-shrink-0">
                                   <img
-                                    src={Avatar || "/placeholder.svg"}
+                                    src={Avatar}
                                     alt=""
                                     className="w-full h-full object-cover rounded-full"
                                   />
                                 </div>
                                 <div>
-                                  <h3 className="font-semibold text-sm text-white">
-                                    {appointment.name}
-                                  </h3>
+                                  <h3 className="font-semibold text-sm text-white">{appointment.name}</h3>
                                   <p className="text-xs flex items-center gap-1 text-white/70 mt-1">
                                     <Clock size={12} />
                                     {appointment.time} | {appointment.date}
                                   </p>
                                   <p className="text-sm text-white mt-1">
-                                    {appointment.description ||
-                                      "Strength Training"}
+                                    {appointment.description || "Strength Training"}
                                   </p>
                                 </div>
                               </div>
@@ -468,13 +475,9 @@ export default function MyArea() {
                               {/* Small screens: Check-in button below details, full width */}
                               <div className="flex  sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                                 <button
-                                  onClick={() =>
-                                    handleAction(index, appointment.status)
-                                  }
+                                  onClick={() => handleAction(index, appointment.status)}
                                   className={`w-full sm:w-auto px-4 py-2 text-xs font-medium rounded-xl ${
-                                    appointment.isCheckedIn
-                                      ? "bg-green-600"
-                                      : "bg-black"
+                                    appointment.isCheckedIn ? "bg-green-600" : "bg-black"
                                   }`}
                                 >
                                   {appointment.isCheckedIn
@@ -482,8 +485,8 @@ export default function MyArea() {
                                       ? "Checked In"
                                       : "Checked Out"
                                     : appointment.status === "check-in"
-                                    ? "Check In"
-                                    : "Check Out"}
+                                      ? "Check In"
+                                      : "Check Out"}
                                 </button>
 
                                 <div className="relative" ref={dropdownRef}>
@@ -500,8 +503,8 @@ export default function MyArea() {
                                           <button
                                             className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10"
                                             onClick={() => {
-                                              console.log("Cancel appointment");
-                                              setOpenDropdownIndex(null);
+                                              console.log("Cancel appointment")
+                                              setOpenDropdownIndex(null)
                                             }}
                                           >
                                             Cancel
@@ -511,8 +514,8 @@ export default function MyArea() {
                                           <button
                                             className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-white/10"
                                             onClick={() => {
-                                              console.log("Remove appointment");
-                                              setOpenDropdownIndex(null);
+                                              console.log("Remove appointment")
+                                              setOpenDropdownIndex(null)
                                             }}
                                           >
                                             Remove
@@ -531,66 +534,9 @@ export default function MyArea() {
                   )}
 
                   {/* EmployeeCheckIn Widget */}
-                  {widget.type === "employeeCheckIn" && (
-                    <EmployeeCheckInWidget />
-                  )}
+                  {widget.type === "employeeCheckIn" && <EmployeeCheckInWidget />}
                 </div>
               ))}
-          </div>
-
-          {/* Custom Links Section */}
-          <div className="p-4 bg-[#181818] rounded-xl space-y-4">
-            <h2 className="text-lg font-semibold">Custom Links</h2>
-            {customLinks.map((link) => (
-              <div key={link.id} className="flex flex-col gap-3">
-                <input
-                  type="text"
-                  value={link.title}
-                  onChange={(e) =>
-                    updateCustomLink(link.id, "title", e.target.value)
-                  }
-                  placeholder="Link Title"
-                  className="bg-[#101010] text-sm p-3 rounded-xl outline-none w-full"
-                  disabled={!isEditing}
-                />
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={link.url}
-                    onChange={(e) =>
-                      updateCustomLink(link.id, "url", e.target.value)
-                    }
-                    placeholder="https://example.com"
-                    className="bg-[#101010] text-sm p-3 rounded-xl outline-none flex-1"
-                    disabled={!isEditing}
-                  />
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 bg-blue-600 rounded-xl"
-                  >
-                    <ExternalLink size={16} />
-                  </a>
-                  {isEditing && (
-                    <button
-                      onClick={() => removeCustomLink(link.id)}
-                      className="p-3 bg-red-600 rounded-xl"
-                    >
-                      <X size={16} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-            {isEditing && (
-              <button
-                onClick={addCustomLink}
-                className="w-full py-2.5 text-sm bg-blue-600 rounded-xl font-medium"
-              >
-                Add Link
-              </button>
-            )}
           </div>
         </div>
       </main>
@@ -662,15 +608,12 @@ export default function MyArea() {
                               className="rounded-full h-10 w-10 md:h-12 md:w-12"
                             />
                             <div>
-                              <h3 className="open_sans_font text-sm md:text-base">
-                                Jennifer Markus
-                              </h3>
+                              <h3 className="open_sans_font text-sm md:text-base">Jennifer Markus</h3>
                             </div>
                           </div>
                           <div>
                             <p className="text-xs md:text-sm open_sans_font text-zinc-400">
-                              Hey! Did you think the NFT marketplace for Alice
-                              app design?
+                              Hey! Did you think the NFT marketplace for Alice app design?
                             </p>
                             <p className="text-xs mt-2 flex gap-1 items-center open_sans_font text-zinc-400">
                               <Clock size={15} />
@@ -705,19 +648,11 @@ export default function MyArea() {
                       className="p-3 md:p-4 cursor-pointer bg-black rounded-xl flex items-center justify-between"
                     >
                       <div>
-                        <h3 className="font-semibold open_sans_font text-sm md:text-base">
-                          Task
-                        </h3>
-                        <p className="text-xs open_sans_font md:text-sm text-zinc-400">
-                          Description
-                        </p>
+                        <h3 className="font-semibold open_sans_font text-sm md:text-base">Task</h3>
+                        <p className="text-xs open_sans_font md:text-sm text-zinc-400">Description</p>
                       </div>
                       <button className="px-4 md:px-6 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs md:text-sm">
-                        <img
-                          src={Image10 || "/placeholder.svg"}
-                          alt=""
-                          className="w-4 h-4"
-                        />
+                        <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
                         Jack
                       </button>
                     </div>
@@ -733,38 +668,88 @@ export default function MyArea() {
               )}
 
               {section.id === "birthday" && (
-                <div className="space-y-4 open_sans_font">
-                  <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer mb-4">
-                    Upcoming Birthday
-                  </h2>
-                  {[1, 2, 3].map((task) => (
-                    <div
-                      key={task}
-                      className="p-3 md:p-4 cursor-pointer bg-black rounded-xl flex items-center gap-3"
-                    >
-                      <div>
-                        <img
-                          src={Avatar || "/placeholder.svg"}
-                          className="h-10 w-10"
-                          alt=""
-                        />
+                <>
+                  <div className="space-y-4 open_sans_font">
+                    <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer mb-4">
+                      Upcoming Birthday
+                    </h2>
+                    {[1, 2, 3].map((task) => (
+                      <div key={task} className="p-3 md:p-4 cursor-pointer bg-black rounded-xl flex items-center gap-3">
+                        <div>
+                          <img src={Avatar || "/placeholder.svg"} className="h-10 w-10" alt="" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold open_sans_font text-md">Yolando</h3>
+                          <p className="text-xs open_sans_font text-zinc-400">Mon | 02 01 2025</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold open_sans_font text-md">
-                          Yolando
-                        </h3>
-                        <p className="text-xs open_sans_font text-zinc-400">
-                          Mon | 02 01 2025
-                        </p>
+                    ))}
+                  </div>
+
+                  {/* Website Links */}
+                  <div className="mt-8">
+                    <div className=" space-y-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer mb-2">Website Links</h2>
                       </div>
+                      {customLinks.map((link) => (
+                        <div key={link.id} className="p-4 bg-black rounded-xl">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <h3 className="text-md font-medium">{link.title}</h3>
+                              <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
+                            </div>
+                            <div className="relative">
+                              <button
+                                onClick={() => toggleDropdown(link.id)}
+                                className="p-2 hover:bg-zinc-800 rounded-lg"
+                              >
+                                <MoreVertical size={16} />
+                              </button>
+                              {openDropdownIndex === link.id && (
+                                <div className="absolute top-5 right-4 w-36 bg-[#2F2F2F] rounded-xl shadow-lg z-10">
+                                  <div className="py-1">
+                                    <button
+                                      onClick={() => {
+                                        setOpenDropdownIndex(null)
+                                        setEditingLink(link)
+                                      }}
+                                      className="w-full px-4 py-2 text-sm text-left hover:bg-zinc-700"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        removeCustomLink(link.id)
+                                        setOpenDropdownIndex(null)
+                                      }}
+                                      className="w-full px-4 py-2 text-sm text-left text-red-500 hover:bg-zinc-700"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        onClick={addCustomLink}
+                        className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
+                      >
+                        Add website link...
+                      </button>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                </>
               )}
             </div>
           ))}
         </div>
       </aside>
+      {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
     </div>
-  );
+  )
 }
+
