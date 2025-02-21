@@ -15,7 +15,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 
 function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selectedDate }) {
   const calendarRef = useRef(null);
-  
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false);
+  const [notifyAction, setNotifyAction] = useState('change');
+  const [eventInfo, setEventInfo] = useState(null);
+
   // Update calendar view when selectedDate changes
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
@@ -31,6 +34,36 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
       }
     }
   }, [selectedDate]);
+
+  const handleEventDrop = (info) => {
+    setEventInfo(info);
+    setIsNotifyMemberOpen(true);
+  };
+
+  const handleNotifyMember = (shouldNotify) => {
+    setIsNotifyMemberOpen(false);
+    if (shouldNotify) {
+      // Implement notification logic here
+      console.log("Notify member about the new time:", eventInfo.event.start);
+      // Assuming the notification is successful
+      toast.success("Member notified successfully!");
+      // Fix the appointment to the new time/date
+      const updatedAppointments = appointments.map(appointment => {
+        if (appointment.id === eventInfo.event.id) {
+          return {
+            ...appointment,
+            date: eventInfo.event.start.toISOString().split('T')[0],
+            startTime: eventInfo.event.start.toTimeString().split(' ')[0],
+            endTime: eventInfo.event.end.toTimeString().split(' ')[0],
+          };
+        }
+        return appointment;
+      });
+      // Update the appointments state or call a function to update the backend
+      // For example, if you have a function to update the state:
+      // setAppointments(updatedAppointments);
+    }
+  };
 
   const calendarEvents = appointments
     .filter(appointment => 
@@ -56,168 +89,217 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
 
   return (
     <>
-    <div className="h-full w-full">
-      <div className="max-w-full overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
-        <div className="min-w-[768px]">
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
-            initialDate={selectedDate || "2025-02-03"}
-            headerToolbar={{
-              left: "prev,next",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay",
-            }}
-            events={calendarEvents}
-            height="auto"
-            selectable={true}
-            editable={true}
-            slotMinTime="08:00:00"
-            slotMaxTime="19:00:00"
-            allDaySlot={false}
-            nowIndicator={true}
-            slotDuration="01:00:00"
-            firstDay={1}
-            eventClick={onEventClick}
-            select={onDateSelect}
-            eventContent={(eventInfo) => (
-              <div className="p-1 h-full overflow-hidden">
-                <div className="font-semibold text-xs sm:text-sm truncate">
-                  {eventInfo.event.title}
+      <div className="h-full w-full">
+        <div className="max-w-full overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+          <div className="min-w-[768px]">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="timeGridWeek"
+              initialDate={selectedDate || "2025-02-03"}
+              headerToolbar={{
+                left: "prev,next",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              events={calendarEvents}
+              height="auto"
+              selectable={true}
+              editable={true}
+              eventResizable={false} // Disable event resizing
+              eventDrop={handleEventDrop} // Handle event drop
+              slotMinTime="08:00:00"
+              slotMaxTime="19:00:00"
+              allDaySlot={false}
+              nowIndicator={true}
+              slotDuration="01:00:00"
+              firstDay={1}
+              eventClick={onEventClick}
+              select={onDateSelect}
+              eventContent={(eventInfo) => (
+                <div className="p-1 h-full overflow-hidden">
+                  <div className="font-semibold text-xs sm:text-sm truncate">
+                    {eventInfo.event.title}
+                  </div>
+                  <div className="text-xs opacity-90 truncate">
+                    {eventInfo.event.extendedProps.type}
+                  </div>
+                  <div className="text-xs mt-1">{eventInfo.timeText}</div>
                 </div>
-                <div className="text-xs opacity-90 truncate">
-                  {eventInfo.event.extendedProps.type}
-                </div>
-                <div className="text-xs mt-1">{eventInfo.timeText}</div>
-              </div>
-            )}
-          />
+              )}
+            />
+          </div>
         </div>
       </div>
-    </div>
-    <style>{`
-      .overflow-x-auto {
-        -webkit-overflow-scrolling: touch;
-        overflow-x: auto;
-        overflow-y: hidden;
-        margin-bottom: 12px;
-      }
 
-      .overflow-x-auto::-webkit-scrollbar {
-        -webkit-appearance: none;
-        height: 7px;
-      }
+      {isNotifyMemberOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+          onClick={() => setIsNotifyMemberOpen(false)}
+        >
+          <div
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+              <button
+                onClick={() => setIsNotifyMemberOpen(false)}
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-      .overflow-x-auto::-webkit-scrollbar-thumb {
-        border-radius: 4px;
-        background-color: rgba(255, 255, 255, .2);
-      }
+            <div className="p-6">
+              <p className="text-white text-sm">
+                Do you want to notify the member about this{" "}
+                {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
+              </p>
+            </div>
 
-      .overflow-x-auto::-webkit-scrollbar-track {
-        background-color: rgba(0, 0, 0, .3);
-        border-radius: 4px;
-      }
+            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
+              <button
+                onClick={() => handleNotifyMember(true)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+              >
+                Yes, Notify Member
+              </button>
+              <button
+                onClick={() => handleNotifyMember(false)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+              >
+                No, Don't Notify
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      .fc {
-        background-color: transparent !important;
-        color: white !important;
-        font-size: 0.875rem !important;
-      }
-      .fc-theme-standard td, 
-      .fc-theme-standard th {
-        border-color: #333 !important;
-      }
-      .fc-theme-standard .fc-scrollgrid {
-        border-color: #333 !important;
-      }
-      .fc-timegrid-slot {
-        height: 48px !important;
-      }
-      @media (max-width: 640px) {
-        .fc-toolbar {
-          flex-direction: column !important;
-          gap: 0.5rem !important;
+      <Toaster position="top-right" autoClose={3000} />
+      <style>{`
+        .overflow-x-auto {
+          -webkit-overflow-scrolling: touch;
+          overflow-x: auto;
+          overflow-y: hidden;
+          margin-bottom: 12px;
         }
-        .fc-toolbar-title {
+
+        .overflow-x-auto::-webkit-scrollbar {
+          -webkit-appearance: none;
+          height: 7px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-thumb {
+          border-radius: 4px;
+          background-color: rgba(255, 255, 255, .2);
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-track {
+          background-color: rgba(0, 0, 0, .3);
+          border-radius: 4px;
+        }
+
+        .fc {
+          background-color: transparent !important;
+          color: white !important;
           font-size: 0.875rem !important;
         }
-        .fc-button {
-          padding: 0.25rem 0.5rem !important;
+        .fc-theme-standard td, 
+        .fc-theme-standard th {
+          border-color: #333 !important;
+        }
+        .fc-theme-standard .fc-scrollgrid {
+          border-color: #333 !important;
+        }
+        .fc-timegrid-slot {
+          height: 48px !important;
+        }
+        @media (max-width: 640px) {
+          .fc-toolbar {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+          }
+          .fc-toolbar-title {
+            font-size: 0.875rem !important;
+          }
+          .fc-button {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.75rem !important;
+          }
+          .fc-header-toolbar {
+            margin-bottom: 0.5rem !important;
+          }
+          .fc-event {
+            min-height: 50px !important;
+          }
+        }
+        .fc-day-today {
+          background-color: rgba(255, 255, 255, 0.05) !important;
+        }
+        .fc-button-primary {
+          background-color: #333 !important;
+          border-color: #444 !important;
+          color: white !important;
+        }
+        .fc-button-primary:hover {
+          background-color: #444 !important;
+        }
+        .fc-button-active {
+          background-color: #555 !important;
+        }
+        .fc-timegrid-slot {
+          background-color: transparent !important;
+        }
+        .fc-timegrid-slot-label {
+          color: #9CA3AF !important;
           font-size: 0.75rem !important;
         }
-        .fc-header-toolbar {
-          margin-bottom: 0.5rem !important;
+        .fc-col-header-cell {
+          background-color: transparent !important;
+        }
+        .fc-toolbar-title {
+          color: white !important;
+        }
+        .fc-scrollgrid-section-header th {
+          background-color: transparent !important;
         }
         .fc-event {
-          min-height: 50px !important;
+          border-radius: 4px !important;
+          margin: 1px !important;
         }
-      }
-      .fc-day-today {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-      }
-      .fc-button-primary {
-        background-color: #333 !important;
-        border-color: #444 !important;
-        color: white !important;
-      }
-      .fc-button-primary:hover {
-        background-color: #444 !important;
-      }
-      .fc-button-active {
-        background-color: #555 !important;
-      }
-      .fc-timegrid-slot {
-        background-color: transparent !important;
-      }
-      .fc-timegrid-slot-label {
-        color: #9CA3AF !important;
-        font-size: 0.75rem !important;
-      }
-      .fc-col-header-cell {
-        background-color: transparent !important;
-      }
-      .fc-toolbar-title {
-        color: white !important;
-      }
-      .fc-scrollgrid-section-header th {
-        background-color: transparent !important;
-      }
-      .fc-event {
-        border-radius: 4px !important;
-        margin: 1px !important;
-      }
-      .fc-event-main {
-        padding: 1px !important;
-      }
-      .fc-event-time {
-        display: none !important;
-      }
-      .fc-col-header-cell-cushion {
-        color: #9CA3AF !important;
-        padding: 4px 2px !important;
-      }
-      .fc-scrollgrid-sync-inner {
-        background-color: transparent !important;
-      }
-      .fc-view {
-        border-radius: 8px !important;
-        overflow: hidden !important;
-      }
-      .fc-toolbar-chunk {
-        display: flex !important;
-        gap: 0.25rem !important;
-      }
-      @media (max-width: 640px) {
+        .fc-event-main {
+          padding: 1px !important;
+        }
+        .fc-event-time {
+          display: none !important;
+        }
+        .fc-col-header-cell-cushion {
+          color: #9CA3AF !important;
+          padding: 4px 2px !important;
+        }
+        .fc-scrollgrid-sync-inner {
+          background-color: transparent !important;
+        }
+        .fc-view {
+          border-radius: 8px !important;
+          overflow: hidden !important;
+        }
         .fc-toolbar-chunk {
-          justify-content: center !important;
+          display: flex !important;
+          gap: 0.25rem !important;
         }
-        .fc-direction-ltr .fc-toolbar > * > :not(:first-child) {
-          margin-left: 0.25rem !important;
+        @media (max-width: 640px) {
+          .fc-toolbar-chunk {
+            justify-content: center !important;
+          }
+          .fc-direction-ltr .fc-toolbar > * > :not(:first-child) {
+            margin-left: 0.25rem !important;
+          }
         }
-      }
-    `}</style></>
-  )
+      `}</style>
+    </>
+  );
 }
 
 
@@ -413,28 +495,54 @@ export default function Appointments() {
   const [filteredAppointments, setFilteredAppointments] = useState(appointments)
 
   const handleDateSelect = (date) => {
-    setSelectedDate(date)
-    
+    // Ensure the date is a valid Date object
+    if (!(date instanceof Date)) {
+      console.error("Invalid date object:", date);
+      return;
+    }
+  
+    // Set the selected date
+    setSelectedDate(date);
+  
     // Format the selected date to dd-mm-yyyy
-    const formattedSelectedDate = formatDate(date)
-    
+    const formattedSelectedDate = formatDate(date);
+  
     // Filter appointments for the selected date
     const appointmentsForDate = appointments.filter(appointment => {
-      // Extract date from appointment string and convert to dd-mm-yyyy format
-      const appointmentDate = appointment.date.split('|')[1].trim()
-      return appointmentDate === formattedSelectedDate
-    })
-    
-    setFilteredAppointments(appointmentsForDate.length > 0 ? appointmentsForDate : [])
-  }
+      // Ensure the appointment.date string is in the correct format
+      if (!appointment.date || typeof appointment.date !== 'string' || !appointment.date.includes('|')) {
+        console.error("Invalid appointment date format:", appointment.date);
+        return false;
+      }
   
-  // Helper function to format date
+      // Extract date from appointment string and convert to dd-mm-yyyy format
+      const appointmentDate = appointment.date.split('|')[1].trim();
+  
+      // Ensure the extracted date is in the correct format
+      if (!appointmentDate || appointmentDate.length !== 10) {
+        console.error("Invalid appointment date format:", appointment.date);
+        return false;
+      }
+  
+      return appointmentDate === formattedSelectedDate;
+    });
+  
+    // Set filtered appointments
+    setFilteredAppointments(appointmentsForDate.length > 0 ? appointmentsForDate : []);
+  };
+  
   const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const year = date.getFullYear()
-    return `${day}-${month}-${year}`
-  }
+    // Ensure the input is a valid Date object
+    if (!(date instanceof Date)) {
+      console.error("Invalid date object passed to formatDate:", date);
+      return "Invalid Date";
+    }
+  
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -466,6 +574,9 @@ export default function Appointments() {
       }),
     )
   }
+
+
+
 
   const handleCheckIn = (appointmentId) => {
     setAppointments((prevAppointments) =>
@@ -757,10 +868,10 @@ export default function Appointments() {
 
             <div className="lg:w-[70%] w-full bg-[#000000] rounded-xl p-4 overflow-hidden">
               <Calendar
-                  appointments={appointments}
-                  onEventClick={handleAppointmentClick}
-                  onDateSelect={handleDateSelect}
-                  searchQuery={searchQuery}
+                 appointments={appointments}
+                 onDateSelect={handleDateSelect}
+                 searchQuery={searchQuery}
+                 select={handleDateSelect}
               />
             </div>
           </div>
@@ -1236,4 +1347,6 @@ export default function Appointments() {
     </div>
   )
 }
+
+
 
