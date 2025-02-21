@@ -54,7 +54,6 @@ const saveButtonStyle = {
   fontSize: "14px",
 }
 
-
 const ConfigurationPage = () => {
   const [studioName, setStudioName] = useState("")
   const [studioLocation, setStudioLocation] = useState("")
@@ -93,6 +92,8 @@ const ConfigurationPage = () => {
     color: "#1890ff",
   })
 
+  const [appointmentIntervals, setAppointmentIntervals] = useState({})
+
   const handleAddOpeningHour = () => {
     setOpeningHours([...openingHours, { day: "", startTime: "", endTime: "" }])
   }
@@ -107,7 +108,7 @@ const ConfigurationPage = () => {
   }
 
   const handleAddAppointmentType = () => {
-    setAppointmentTypes([...appointmentTypes, { name: "", duration: 30, capacity: 1, color: "#1890ff" }])
+    setAppointmentTypes([...appointmentTypes, { name: "", duration: 30, capacity: 1, color: "#1890ff", interval: 30 }])
   }
 
   const handleAddTag = () => {
@@ -147,6 +148,12 @@ const ConfigurationPage = () => {
 
   const handleAddContractSection = () => {
     setContractSections([...contractSections, { title: "", content: "", editable: true }])
+  }
+
+  const handleUpdateAppointmentType = (index, field, value) => {
+    const updatedTypes = [...appointmentTypes]
+    updatedTypes[index][field] = value
+    setAppointmentTypes(updatedTypes)
   }
 
   return (
@@ -260,7 +267,6 @@ const ConfigurationPage = () => {
                 <InputNumber
                   min={0}
                   max={100}
-
                   value={maxCapacity}
                   onChange={(value) => setMaxCapacity(value || 0)}
                   style={inputStyle}
@@ -367,45 +373,34 @@ const ConfigurationPage = () => {
                     <Input
                       placeholder="Appointment Type Name"
                       value={type.name}
-                      onChange={(e) => {
-                        const updatedTypes = [...appointmentTypes]
-                        updatedTypes[index].name = e.target.value
-                        setAppointmentTypes(updatedTypes)
-                      }}
+                      onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
                       className="w-full sm:w-64"
                       style={inputStyle}
                     />
-                    <Input
-                      type="number"
+                    <InputNumber
                       placeholder="Duration (minutes)"
                       value={type.duration}
-                      onChange={(e) => {
-                        const updatedTypes = [...appointmentTypes]
-                        updatedTypes[index].duration = Number.parseInt(e.target.value, 10) || 0
-                        setAppointmentTypes(updatedTypes)
-                      }}
-                      className="w-full sm:w-40"
+                      onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
+                      className="w-full sm:w-32"
                       style={inputStyle}
                     />
-                    <Input
-                      type="number"
+                    <InputNumber
                       placeholder="Capacity (1-100)"
                       value={type.capacity}
-                      onChange={(e) => {
-                        const updatedTypes = [...appointmentTypes]
-                        updatedTypes[index].capacity = Number.parseInt(e.target.value, 10) || 0
-                        setAppointmentTypes(updatedTypes)
-                      }}
-                      className="w-full sm:w-40"
+                      onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
+                      className="w-full sm:w-32"
                       style={inputStyle}
                     />
                     <ColorPicker
                       value={type.color}
-                      onChange={(color) => {
-                        const updatedTypes = [...appointmentTypes]
-                        updatedTypes[index].color = color
-                        setAppointmentTypes(updatedTypes)
-                      }}
+                      onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
+                    />
+                    <InputNumber
+                      placeholder="Interval (minutes)"
+                      value={type.interval}
+                      onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
+                      className="w-full sm:w-32"
+                      style={inputStyle}
                     />
                     <Button
                       danger

@@ -1,6 +1,4 @@
 /* eslint-disable no-unused-vars */
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import {
   Menu,
