@@ -1,3 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+"use client"
+
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
@@ -12,85 +15,144 @@ import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import TrialPlanningModal from "../components/add-trial"
+import AddAppointmentModal from "../components/add-appointment-modal"
 
-function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selectedDate }) {
-  const calendarRef = useRef(null);
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false);
-  const [notifyAction, setNotifyAction] = useState('change');
-  const [eventInfo, setEventInfo] = useState(null);
+function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selectedDate, setAppointments }) {
+  const formatDate = (date) => {
+    const day = String(date.getDate()).padStart(2, "0")
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const year = date.getFullYear()
+    return `${year}-${month}-${day}`
+  }
+  const calendarRef = useRef(null)
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [notifyAction, setNotifyAction] = useState("change")
+  const [eventInfo, setEventInfo] = useState(null)
+  const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
+  const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
+  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
+  const [freeAppointments, setFreeAppointments] = useState([])
 
-  // Update calendar view when selectedDate changes
+  // Sample appointment types - you can replace this with your actual data
+  const appointmentTypes = [
+    { name: "Regular Training", duration: 60, color: "bg-blue-500" },
+    { name: "Consultation", duration: 30, color: "bg-green-500" },
+    { name: "Assessment", duration: 45, color: "bg-purple-500" },
+  ]
+
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.gotoDate(selectedDate);
-      
-      // Determine which view to show based on current view
-      const currentView = calendarApi.view.type;
-      if (currentView.includes('timeGrid')) {
-        calendarApi.changeView('timeGridDay', selectedDate);
+      const calendarApi = calendarRef.current.getApi()
+      calendarApi.gotoDate(selectedDate)
+
+      const currentView = calendarApi.view.type
+      if (currentView.includes("timeGrid")) {
+        calendarApi.changeView("timeGridDay", selectedDate)
       } else {
-        calendarApi.gotoDate(selectedDate);
+        calendarApi.gotoDate(selectedDate)
       }
     }
-  }, [selectedDate]);
+  }, [selectedDate])
+
+  const handleTrialSubmit = (trialData) => {
+    const newTrial = {
+      id: appointments.length + 1,
+      ...trialData,
+      status: "pending",
+      isTrial: true,
+    }
+    setAppointments([...appointments, newTrial])
+    toast.success("Trial training booked successfully")
+    setIsTrialModalOpen(false)
+  }
+
+  const handleAppointmentSubmit = (appointmentData) => {
+    const newAppointment = {
+      id: appointments.length + 1,
+      ...appointmentData,
+      status: "scheduled",
+    }
+    setAppointments([...appointments, newAppointment])
+    toast.success("Appointment booked successfully")
+    setIsAppointmentModalOpen(false)
+  }
 
   const handleEventDrop = (info) => {
-    setEventInfo(info);
-    setIsNotifyMemberOpen(true);
-  };
+    setEventInfo(info)
+    setIsNotifyMemberOpen(true)
+  }
+
+  const handleDateSelect = (selectInfo) => {
+    setSelectedSlotInfo(selectInfo)
+    setIsTypeSelectionOpen(true)
+  }
+
+  const handleTypeSelection = (type) => {
+    setIsTypeSelectionOpen(false)
+    if (type === "trial") {
+      setIsTrialModalOpen(true)
+    } else if (type === "appointment") {
+      setIsAppointmentModalOpen(true)
+    } else if (selectedSlotInfo && onDateSelect) {
+      onDateSelect({ ...selectedSlotInfo, eventType: type })
+    }
+  }
 
   const handleNotifyMember = (shouldNotify) => {
-    setIsNotifyMemberOpen(false);
+    setIsNotifyMemberOpen(false)
     if (shouldNotify) {
-      // Implement notification logic here
-      console.log("Notify member about the new time:", eventInfo.event.start);
-      // Assuming the notification is successful
-      toast.success("Member notified successfully!");
-      // Fix the appointment to the new time/date
-      const updatedAppointments = appointments.map(appointment => {
+      console.log("Notify member about the new time:", eventInfo.event.start)
+      toast.success("Member notified successfully!")
+      const updatedAppointments = appointments.map((appointment) => {
         if (appointment.id === eventInfo.event.id) {
           return {
             ...appointment,
-            date: eventInfo.event.start.toISOString().split('T')[0],
-            startTime: eventInfo.event.start.toTimeString().split(' ')[0],
-            endTime: eventInfo.event.end.toTimeString().split(' ')[0],
-          };
+            date: eventInfo.event.start.toISOString().split("T")[0],
+            startTime: eventInfo.event.start.toTimeString().split(" ")[0],
+            endTime: eventInfo.event.end.toTimeString().split(" ")[0],
+          }
         }
-        return appointment;
-      });
-      // Update the appointments state or call a function to update the backend
-      // For example, if you have a function to update the state:
-      // setAppointments(updatedAppointments);
+        return appointment
+      })
+      setAppointments(updatedAppointments)
     }
-  };
+  }
 
   const calendarEvents = appointments
-    .filter(appointment => 
-      searchQuery ? appointment.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
-    )
-    .map((appointment) => {
-      const [_, datePart] = appointment.date.split("|");
-      const [day, month, year] = datePart.trim().split("-");
-      const dateStr = `${year}-${month}-${day}`;
-      
-      return {
-        id: appointment.id,
-        title: appointment.name,
-        start: `${dateStr}T${appointment.startTime}:00`,
-        end: `${dateStr}T${appointment.endTime}:00`,
-        backgroundColor: appointment.color.split("bg-[")[1].slice(0, -1),
-        borderColor: appointment.color.split("bg-[")[1].slice(0, -1),
-        extendedProps: {
-          type: appointment.type,
-        },
-      };
-    });
+  .filter((appointment) => {
+    // Filter by search query
+    const nameMatch = appointment.name.toLowerCase().includes(searchQuery.toLowerCase());
 
+    // Filter by selected date (if any)
+    const [_, appointmentDate] = appointment.date.split("|");
+    const formattedAppointmentDate = appointmentDate.trim(); // Format: dd-mm-yyyy
+    const dateMatch = !selectedDate || formattedAppointmentDate === selectedDate;
+
+    return nameMatch && dateMatch;
+  })
+  .map((appointment) => {
+    const [_, datePart] = appointment.date.split("|");
+    const [day, month, year] = datePart.trim().split("-");
+    const dateStr = `${year}-${month}-${day}`; // Format: yyyy-mm-dd for FullCalendar
+
+    return {
+      id: appointment.id,
+      title: appointment.name,
+      start: `${dateStr}T${appointment.startTime}:00`,
+      end: `${dateStr}T${appointment.endTime}:00`,
+      backgroundColor: appointment.color.split("bg-[")[1].slice(0, -1),
+      borderColor: appointment.color.split("bg-[")[1].slice(0, -1),
+      extendedProps: {
+        type: appointment.type,
+      },
+    };
+  });
   return (
     <>
       <div className="h-full w-full">
-        <div className="max-w-full overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="max-w-7xl overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
           <div className="min-w-[768px]">
             <FullCalendar
               ref={calendarRef}
@@ -106,8 +168,8 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
               height="auto"
               selectable={true}
               editable={true}
-              eventResizable={false} // Disable event resizing
-              eventDrop={handleEventDrop} // Handle event drop
+              eventResizable={false}
+              eventDrop={handleEventDrop}
               slotMinTime="08:00:00"
               slotMaxTime="19:00:00"
               allDaySlot={false}
@@ -115,15 +177,11 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
               slotDuration="01:00:00"
               firstDay={1}
               eventClick={onEventClick}
-              select={onDateSelect}
+              select={handleDateSelect}
               eventContent={(eventInfo) => (
                 <div className="p-1 h-full overflow-hidden">
-                  <div className="font-semibold text-xs sm:text-sm truncate">
-                    {eventInfo.event.title}
-                  </div>
-                  <div className="text-xs opacity-90 truncate">
-                    {eventInfo.event.extendedProps.type}
-                  </div>
+                  <div className="font-semibold text-xs sm:text-sm truncate">{eventInfo.event.title}</div>
+                  <div className="text-xs opacity-90 truncate">{eventInfo.event.extendedProps.type}</div>
                   <div className="text-xs mt-1">{eventInfo.timeText}</div>
                 </div>
               )}
@@ -132,6 +190,63 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
         </div>
       </div>
 
+      <TrialPlanningModal
+        isOpen={isTrialModalOpen}
+        onClose={() => setIsTrialModalOpen(false)}
+        freeAppointments={freeAppointments}
+        onSubmit={handleTrialSubmit}
+        selectedDate={selectedSlotInfo?.start}
+      />
+
+      <AddAppointmentModal
+        isOpen={isAppointmentModalOpen}
+        onClose={() => setIsAppointmentModalOpen(false)}
+        appointmentTypes={appointmentTypes}
+        onSubmit={handleAppointmentSubmit}
+        setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+        setNotifyAction={setNotifyAction}
+        selectedDate={selectedSlotInfo?.start}
+      />
+
+      {/* Type Selection Modal */}
+      {isTypeSelectionOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+          onClick={() => setIsTypeSelectionOpen(false)}
+        >
+          <div
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">Select Event Type</h2>
+              <button
+                onClick={() => setIsTypeSelectionOpen(false)}
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <button
+                onClick={() => handleTypeSelection("trial")}
+                className="w-full px-5 py-3 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer transition-colors"
+              >
+                Trial Planning
+              </button>
+              <button
+                onClick={() => handleTypeSelection("appointment")}
+                className="w-full px-5 py-3 bg-[#FF843E] text-sm font-medium text-white rounded-xl hover:bg-orange-700 cursor-pointer transition-colors"
+              >
+                Appointment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notify Member Modal */}
       {isNotifyMemberOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -175,7 +290,6 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
           </div>
         </div>
       )}
-
       <Toaster position="top-right" autoClose={3000} />
       <style>{`
         .overflow-x-auto {
@@ -299,9 +413,8 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
         }
       `}</style>
     </>
-  );
+  )
 }
-
 
 function MiniCalendar({ onDateSelect, selectedDate }) {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -327,12 +440,11 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
 
   // Format date to dd-mm-yyyy
   const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const year = date.getFullYear()
-    return `${day}-${month}-${year}`
-  }
-
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`; // Format: dd-mm-yyyy
+  };
   const isSameDay = (date1, date2) => {
     return formatDate(date1) === formatDate(date2)
   }
@@ -367,7 +479,7 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
           const currentDateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
           const isToday = isSameDay(currentDateObj, today)
           const isSelected = selectedDate && isSameDay(currentDateObj, selectedDate)
-          
+
           return (
             <button
               key={day}
@@ -387,13 +499,12 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
   )
 }
 
-
 export default function Appointments() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [view, setView] = useState("week")
-  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState(null)
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
   const [checkedInMembers, setCheckedInMembers] = useState([])
   const [selectedAppointment, setSelectedAppointment] = useState(null)
@@ -485,64 +596,42 @@ export default function Appointments() {
       status: "pending",
       isTrial: false,
     },
-  ]);
+  ])
 
   const [openingHours, setOpeningHours] = useState({
     start: "08:00:00",
     end: "19:00:00",
   })
-  
+
   const [filteredAppointments, setFilteredAppointments] = useState(appointments)
 
   const handleDateSelect = (date) => {
-    // Ensure the date is a valid Date object
-    if (!(date instanceof Date)) {
-      console.error("Invalid date object:", date);
-      return;
-    }
+    setSelectedDate(date)
   
-    // Set the selected date
-    setSelectedDate(date);
+    // If no date is selected, show all appointments
+    if (!date) {
+      setFilteredAppointments(appointments)
+      return
+    }
   
     // Format the selected date to dd-mm-yyyy
-    const formattedSelectedDate = formatDate(date);
+    const formattedSelectedDate = formatDate(date)
   
     // Filter appointments for the selected date
-    const appointmentsForDate = appointments.filter(appointment => {
-      // Ensure the appointment.date string is in the correct format
-      if (!appointment.date || typeof appointment.date !== 'string' || !appointment.date.includes('|')) {
-        console.error("Invalid appointment date format:", appointment.date);
-        return false;
-      }
-  
-      // Extract date from appointment string and convert to dd-mm-yyyy format
-      const appointmentDate = appointment.date.split('|')[1].trim();
-  
-      // Ensure the extracted date is in the correct format
-      if (!appointmentDate || appointmentDate.length !== 10) {
-        console.error("Invalid appointment date format:", appointment.date);
-        return false;
-      }
-  
-      return appointmentDate === formattedSelectedDate;
-    });
+    const appointmentsForDate = appointments.filter((appointment) => {
+      const appointmentDate = appointment.date.split("|")[1].trim()
+      return appointmentDate === formattedSelectedDate
+    })
   
     // Set filtered appointments
-    setFilteredAppointments(appointmentsForDate.length > 0 ? appointmentsForDate : []);
-  };
-  
+    setFilteredAppointments(appointmentsForDate.length > 0 ? appointmentsForDate : [])
+  }
   const formatDate = (date) => {
-    // Ensure the input is a valid Date object
-    if (!(date instanceof Date)) {
-      console.error("Invalid date object passed to formatDate:", date);
-      return "Invalid Date";
-    }
-  
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
+    const day = String(date.getDate()).padStart(2, "0")
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const year = date.getFullYear()
+    return `${day}-${month}-${year}`
+  }
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -555,11 +644,17 @@ export default function Appointments() {
   }, [])
 
   useEffect(() => {
-    const filtered = appointments.filter((appointment) =>
-      appointment.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    setFilteredAppointments(filtered)
-  }, [searchQuery, appointments])
+    const filtered = appointments.filter((appointment) => {
+      // Filter by search query
+      const nameMatch = appointment.name.toLowerCase().includes(searchQuery.toLowerCase());
+  
+      // Filter by selected date (if any)
+      const dateMatch = !selectedDate || appointment.date.split("|")[1].trim() === formatDate(selectedDate);
+  
+      return nameMatch && dateMatch;
+    });
+    setFilteredAppointments(filtered);
+  }, [searchQuery, appointments, selectedDate, formatDate]);
 
   const handleCheckInOut = (appointmentId) => {
     setAppointments((prevAppointments) =>
@@ -575,8 +670,27 @@ export default function Appointments() {
     )
   }
 
+  const handleAppointmentSubmit = (appointmentData) => {
+    // Add new appointment to the list
+    const newAppointment = {
+      id: appointments.length + 1,
+      ...appointmentData,
+      status: "pending",
+    }
+    setAppointments([...appointments, newAppointment])
+    toast.success("Appointment booked successfully")
+  }
 
-
+  const handleTrialSubmit = (trialData) => {
+    const newTrial = {
+      id: appointments.length + 1,
+      ...trialData,
+      status: "pending",
+      isTrial: true,
+    }
+    setAppointments([...appointments, newTrial])
+    toast.success("Trial training booked successfully")
+  }
 
   const handleCheckIn = (appointmentId) => {
     setAppointments((prevAppointments) =>
@@ -586,25 +700,23 @@ export default function Appointments() {
           const updatedAppointment = {
             ...appointment,
             isCheckedIn: !appointment.isCheckedIn,
-          };
-  
+          }
+
           // If the appointment is checked in, automatically revert after 3 seconds
           if (updatedAppointment.isCheckedIn) {
             setTimeout(() => {
               setAppointments((prevAppointments) =>
-                prevAppointments.map((app) =>
-                  app.id === appointmentId ? { ...app, isCheckedIn: false } : app
-                )
-              );
-            }, 3000);
+                prevAppointments.map((app) => (app.id === appointmentId ? { ...app, isCheckedIn: false } : app)),
+              )
+            }, 3000)
           }
-  
-          return updatedAppointment;
+
+          return updatedAppointment
         }
-        return appointment;
-      })
-    );
-  };
+        return appointment
+      }),
+    )
+  }
 
   const handleAppointmentClick = (appointment) => {
     setSelectedAppointment(appointment)
@@ -744,9 +856,9 @@ export default function Appointments() {
     backgroundColor: appointment.color.split("bg-[")[1].replace("]", ""),
     borderColor: appointment.color.split("bg-[")[1].replace("]", ""),
     extendedProps: {
-      type: appointment.type
-    }
-  }));
+      type: appointment.type,
+    },
+  }))
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">
@@ -789,7 +901,10 @@ export default function Appointments() {
                 <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[calc(100vh-300px)]">
                   {filteredAppointments.length > 0 ? (
                     filteredAppointments.map((appointment, index) => (
-                      <div key={appointment.id} className={`${appointment.color} rounded-xl cursor-pointer p-4 relative`}>
+                      <div
+                        key={appointment.id}
+                        className={`${appointment.color} rounded-xl cursor-pointer p-4 relative`}
+                      >
                         <div className="absolute top-2 right-2">
                           {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                         </div>
@@ -868,209 +983,32 @@ export default function Appointments() {
 
             <div className="lg:w-[70%] w-full bg-[#000000] rounded-xl p-4 overflow-hidden">
               <Calendar
-                 appointments={appointments}
-                 onDateSelect={handleDateSelect}
-                 searchQuery={searchQuery}
-                 select={handleDateSelect}
+                appointments={appointments}
+                onDateSelect={handleDateSelect}
+                searchQuery={searchQuery}
+                selectedDate={selectedDate}
+                setAppointments={setAppointments}
               />
             </div>
           </div>
         </div>
       </main>
 
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Add appointment</h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                <X size={20} />
-              </button>
-            </div>
+      <AddAppointmentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        appointmentTypes={appointmentTypes}
+        onSubmit={handleAppointmentSubmit}
+        setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+        setNotifyAction={setNotifyAction}
+      />
 
-            <div className="p-6">
-              <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Member</label>
-                  <input
-                    type="text"
-                    placeholder="Search member..."
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Appointment Type</label>
-                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
-                    <option value="">Select type</option>
-                    {appointmentTypes.map((type) => (
-                      <option key={type.name} value={type.name} className={type.color}>
-                        {type.name} ({type.duration} minutes)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Special Note</label>
-                  <textarea
-                    placeholder="Enter special note..."
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[100px]"
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input type="checkbox" id="isImportant" className="rounded text-[#3F74FF] focus:ring-[#3F74FF]" />
-                  <label htmlFor="isImportant" className="text-sm text-gray-200">
-                    Mark as important
-                  </label>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Note Duration</label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="date"
-                      placeholder="Start Date"
-                      className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                    />
-                    <input
-                      type="date"
-                      placeholder="End Date"
-                      className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                    />
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                type="submit"
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-                onClick={() => {
-                  setIsModalOpen(false)
-                  setIsNotifyMemberOpen(true)
-                  setNotifyAction("book")
-                }}
-              >
-                Book Appointment
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isTrialModalOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsTrialModalOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Add Trial Training</h2>
-              <button
-                onClick={() => setIsTrialModalOpen(false)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6 ">
-              <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Lead</label>
-                  <input
-                    type="text"
-                    placeholder="Search lead..."
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className="w-full px-3 py-2 bg-[#3F74FF] text-white rounded-xl text-sm font-medium hover:bg-[#3F74FF]/90 transition-colors"
-                  onClick={() => {
-                    // Open modal to create new lead
-                  }}
-                >
-                  + Create New Lead
-                </button>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Trial Type</label>
-                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
-                    <option value="">Select type</option>
-                    <option value="cardio">Cardio</option>
-                    <option value="strength">Strength</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Available Slots</label>
-                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
-                    <option value="">Select available time</option>
-                    {freeAppointments.map((app) => (
-                      <option key={app.id} value={`${app.date}T${app.time}`}>
-                        {app.date} at {app.time}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </form>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                type="submit"
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-                onClick={() => {
-                  setIsTrialModalOpen(false)
-                  // Handle booking trial training
-                }}
-              >
-                Book Trial Training
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsTrialModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <TrialPlanningModal
+        isOpen={isTrialModalOpen}
+        onClose={() => setIsTrialModalOpen(false)}
+        freeAppointments={freeAppointments}
+        onSubmit={handleTrialSubmit}
+      />
 
       {selectedAppointment && (
         <div
@@ -1347,6 +1285,4 @@ export default function Appointments() {
     </div>
   )
 }
-
-
 
