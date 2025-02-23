@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
-"use client"
-
 import { X, Search, Tag } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Avatar from "../../public/avatar.png"
 import { AddLeadModal } from "../components/add-lead-modal"
 import { EditLeadModal } from "../components/edit-lead-modal"
@@ -16,9 +14,12 @@ export default function Leets() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [filterOption, setFilterOption] = useState("all")
-  const [leads, setLeads] = useState([
+  const [leads, setLeads] = useState([])
+
+  // Hardcoded initial leads
+  const hardcodedLeads = [
     {
-      id: 1,
+      id: "h1", // Adding 'h' prefix to distinguish hardcoded leads
       firstName: "John",
       surname: "Smith",
       email: "john.smith@example.com",
@@ -26,9 +27,10 @@ export default function Leets() {
       trialPeriod: "Trial Period",
       hasTrialTraining: true,
       avatar: Avatar,
+      source: "hardcoded"
     },
     {
-      id: 2,
+      id: "h2",
       firstName: "Sarah",
       surname: "Wilson",
       email: "sarah.wilson@example.com",
@@ -36,9 +38,10 @@ export default function Leets() {
       trialPeriod: "Trial Period",
       hasTrialTraining: false,
       avatar: Avatar,
+      source: "hardcoded"
     },
     {
-      id: 3,
+      id: "h3",
       firstName: "Michael",
       surname: "Brown",
       email: "michael.brown@example.com",
@@ -46,9 +49,10 @@ export default function Leets() {
       trialPeriod: "Trial Period",
       hasTrialTraining: true,
       avatar: Avatar,
+      source: "hardcoded"
     },
     {
-      id: 4,
+      id: "h4",
       firstName: "Emma",
       surname: "Davis",
       email: "emma.davis@example.com",
@@ -56,8 +60,25 @@ export default function Leets() {
       trialPeriod: "Trial Period",
       hasTrialTraining: false,
       avatar: Avatar,
+      source: "hardcoded"
     },
-  ])
+  ]
+
+  // Load and combine leads on component mount
+  useEffect(() => {
+    const storedLeads = localStorage.getItem('leads')
+    let combinedLeads = [...hardcodedLeads]
+    
+    if (storedLeads) {
+      const parsedStoredLeads = JSON.parse(storedLeads).map(lead => ({
+        ...lead,
+        source: "localStorage"
+      }))
+      combinedLeads = [...hardcodedLeads, ...parsedStoredLeads]
+    }
+    
+    setLeads(combinedLeads)
+  }, [])
 
   const [notifications, setNotifications] = useState([
     {
@@ -85,50 +106,57 @@ export default function Leets() {
   }
 
   const handleSaveEdit = (data) => {
-    setLeads(
-      leads.map((lead) =>
-        lead.id === data.id
-          ? {
-              ...lead,
-              firstName: data.firstName,
-              surname: data.surname,
-              email: data.email,
-              phoneNumber: data.phoneNumber,
-              trialPeriod: data.trialPeriod,
-              hasTrialTraining: data.hasTrialTraining,
-              avatar: data.avatar,
-            }
-          : lead,
-      ),
+    const updatedLeads = leads.map((lead) =>
+      lead.id === data.id
+        ? {
+            ...lead,
+            firstName: data.firstName,
+            surname: data.surname,
+            email: data.email,
+            phoneNumber: data.phoneNumber,
+            trialPeriod: data.trialPeriod,
+            hasTrialTraining: data.hasTrialTraining,
+            avatar: data.avatar,
+          }
+        : lead
     )
+    setLeads(updatedLeads)
+    
+    // Only update localStorage with non-hardcoded leads
+    const localStorageLeads = updatedLeads.filter(lead => lead.source === "localStorage")
+    localStorage.setItem('leads', JSON.stringify(localStorageLeads))
   }
 
   const handleDeleteLead = (id) => {
-    setLeads(leads.filter((lead) => lead.id !== id))
-  }
-
-  const removeNotification = (id) => {
-    setNotifications(notifications.filter((notification) => notification.id !== id))
-  }
-
-  const toggleRightSidebar = () => {
-    setIsRightSidebarOpen(!isRightSidebarOpen)
+    const leadToDelete = leads.find(lead => lead.id === id)
+    const updatedLeads = leads.filter((lead) => lead.id !== id)
+    setLeads(updatedLeads)
+    
+    // Only update localStorage if the deleted lead was from localStorage
+    if (leadToDelete?.source === "localStorage") {
+      const localStorageLeads = updatedLeads.filter(lead => lead.source === "localStorage")
+      localStorage.setItem('leads', JSON.stringify(localStorageLeads))
+    }
   }
 
   const handleSaveLead = (data) => {
-    setLeads([
-      ...leads,
-      {
-        id: leads.length + 1,
-        firstName: data.firstName,
-        surname: data.surname,
-        email: data.email,
-        phoneNumber: data.phoneNumber,
-        trialPeriod: data.trialPeriod,
-        hasTrialTraining: data.hasTrialTraining,
-        avatar: data.avatar,
-      },
-    ])
+    const newLead = {
+      id: `l${Date.now()}`, // 'l' prefix for localStorage leads
+      firstName: data.firstName,
+      surname: data.surname,
+      email: data.email,
+      phoneNumber: data.phoneNumber,
+      trialPeriod: data.trialPeriod,
+      hasTrialTraining: data.hasTrialTraining,
+      avatar: data.avatar,
+      source: "localStorage"
+    }
+    const updatedLeads = [...leads, newLead]
+    setLeads(updatedLeads)
+    
+    // Store only localStorage leads
+    const localStorageLeads = updatedLeads.filter(lead => lead.source === "localStorage")
+    localStorage.setItem('leads', JSON.stringify(localStorageLeads))
   }
 
   const filteredLeads = leads.filter((lead) => {
@@ -197,6 +225,9 @@ export default function Leets() {
                       <span className="text-green-500 text-xs">Trial Training Arranged</span>
                     </div>
                   )}
+                  {/* <div className="text-xs text-gray-500 mt-1">
+                    Source: {lead.source === "hardcoded" ? "Default" : "Added"}
+                  </div> */}
                 </div>
               </div>
               <div className="flex md:flex-row flex-col gap-2 md:mt-0 mt-3">
@@ -245,10 +276,6 @@ export default function Leets() {
         leadData={selectedLead}
       />
 
-      {isRightSidebarOpen && (
-        <div className="fixed inset-0 bg-black z-40 lg:hidden" onClick={() => setIsRightSidebarOpen(false)} />
-      )}
-
       <aside
         className={`
           fixed top-0 right-0 bottom-0 w-[320px] bg-[#181818] p-6 z-50 
@@ -271,7 +298,7 @@ export default function Leets() {
               className="bg-[#1C1C1C] rounded-lg p-4 relative transform transition-all duration-200 hover:scale-[1.02]"
             >
               <button
-                onClick={() => removeNotification(notification.id)}
+                // onClick={() => removeNotification(notification.id)}
                 className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors duration-200"
               >
                 <X size={16} />
@@ -285,4 +312,3 @@ export default function Leets() {
     </div>
   )
 }
-

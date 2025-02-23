@@ -23,8 +23,9 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     const day = String(date.getDate()).padStart(2, "0")
     const month = String(date.getMonth() + 1).padStart(2, "0")
     const year = date.getFullYear()
-    return `${year}-${month}-${day}`
+    return `${day}-${month}-${year}`
   }
+
   const calendarRef = useRef(null)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("change")
@@ -42,7 +43,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     { name: "Assessment", duration: 45, color: "bg-purple-500" },
   ]
 
-  useEffect(() => {
+useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
       calendarApi.gotoDate(selectedDate)
@@ -55,6 +56,8 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
       }
     }
   }, [selectedDate])
+
+
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
@@ -80,6 +83,8 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   }
 
   const handleEventDrop = (info) => {
+    console.log('Event Dropped');
+    
     setEventInfo(info)
     setIsNotifyMemberOpen(true)
   }
@@ -123,32 +128,37 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   const calendarEvents = appointments
   .filter((appointment) => {
     // Filter by search query
-    const nameMatch = appointment.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const nameMatch = appointment.name.toLowerCase().includes(searchQuery.toLowerCase())
 
-    // Filter by selected date (if any)
-    const [_, appointmentDate] = appointment.date.split("|");
-    const formattedAppointmentDate = appointmentDate.trim(); // Format: dd-mm-yyyy
-    const dateMatch = !selectedDate || formattedAppointmentDate === selectedDate;
+    // Filter by selected date
+    let dateMatch = true
+    if (selectedDate) {
+      const [_, datePart] = appointment.date.split("|")
+      const appointmentDate = datePart.trim() // Format: dd-mm-yyyy
+      const formattedSelectedDate = formatDate(new Date(selectedDate))
+      dateMatch = appointmentDate === formattedSelectedDate
+    }
 
-    return nameMatch && dateMatch;
+    return nameMatch && dateMatch
   })
   .map((appointment) => {
-    const [_, datePart] = appointment.date.split("|");
-    const [day, month, year] = datePart.trim().split("-");
-    const dateStr = `${year}-${month}-${day}`; // Format: yyyy-mm-dd for FullCalendar
+    const [_, datePart] = appointment.date.split("|")
+    const [day, month, year] = datePart.trim().split("-")
+    const dateStr = `${year}-${month}-${day}` // Format: yyyy-mm-dd for FullCalendar
 
     return {
       id: appointment.id,
       title: appointment.name,
-      start: `${dateStr}T${appointment.startTime}:00`,
-      end: `${dateStr}T${appointment.endTime}:00`,
+      start: `${dateStr}T${appointment.startTime}`,
+      end: `${dateStr}T${appointment.endTime}`,
       backgroundColor: appointment.color.split("bg-[")[1].slice(0, -1),
       borderColor: appointment.color.split("bg-[")[1].slice(0, -1),
       extendedProps: {
         type: appointment.type,
       },
-    };
-  });
+    }
+  })
+  
   return (
     <>
       <div className="h-full w-full">

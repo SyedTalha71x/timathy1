@@ -1,200 +1,202 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
-import { X } from "lucide-react";
-import Avatar from "../../public/avatar.png";
-import toast, { Toaster } from "react-hot-toast";
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect } from 'react';
+import { X, Search, Plus } from 'lucide-react';
+import AddPartiesModal from './add-lead-modal'
+import toast, { Toaster } from 'react-hot-toast';
 
-
-export function AddPartiesModal({ isVisible, onClose, onSave }) {
-  const [avatar, setAvatar] = useState(Avatar);
+const TrialTrainingModal = ({ isOpen, onClose }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [leads, setLeads] = useState([]);
+  const [filteredLeads, setFilteredLeads] = useState([]);
+  const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
   const [formData, setFormData] = useState({
-    firstName: "",
-    surname: "",
-    email: "",
-    phoneCode: "+1",
-    phoneNumber: "",
-    trialPeriod: "",
+    trialType: '',
+    dateTime: '',
+    slot: ''
   });
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(reader.result);
-      };
-      reader.readAsDataURL(file);
+  // Load leads from localStorage on mount
+  useEffect(() => {
+    const storedLeads = localStorage.getItem('leads');
+    if (storedLeads) {
+      setLeads(JSON.parse(storedLeads));
+      setFilteredLeads(JSON.parse(storedLeads));
     }
+  }, []);
+
+  // Filter leads based on search query
+  useEffect(() => {
+    if (leads.length) {
+      const filtered = leads.filter(lead => 
+        `${lead.firstName} ${lead.surname}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        lead.email.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredLeads(filtered);
+    }
+  }, [searchQuery, leads]);
+
+  const handleSaveLead = (newLead) => {
+    const leadWithId = { ...newLead, id: Date.now(), hasTrialTraining: false };
+    const updatedLeads = [...leads, leadWithId];
+    setLeads(updatedLeads);
+    localStorage.setItem('leads', JSON.stringify(updatedLeads));
+    setSelectedLead(leadWithId);
+    setIsAddLeadModalOpen(false);
+    toast.success('Lead has been created');
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ ...formData, avatar });
-    toast.success("Leet has been added");
+    if (!selectedLead || !formData.trialType || !formData.dateTime) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Update lead with trial training info
+    const updatedLeads = leads.map(lead => {
+      if (lead.id === selectedLead.id) {
+        return {
+          ...lead,
+          hasTrialTraining: true,
+          trialDetails: {
+            type: formData.trialType,
+            dateTime: formData.dateTime,
+            slot: formData.slot
+          }
+        };
+      }
+      return lead;
+    });
+
+    localStorage.setItem('leads', JSON.stringify(updatedLeads));
+    toast.success('Trial training has been booked');
     onClose();
   };
 
-  if (!isVisible) return null;
+  if (!isOpen) return null;
 
   return (
     <>
-    <Toaster
-    position="top-right"
-    toastOptions={{
-      duration: 2000,
-      style: {
-        background: '#333',
-        color: '#fff',
-      },
-    }}
-    />
-    <div className="fixed inset-0 z-[100]">
-      <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+        }}
       />
+      <div className="fixed inset-0 z-[100]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="relative w-full max-w-md bg-[#1C1C1C] rounded-xl shadow-xl p-6">
-            <h1 className="font-bold text-lg">Add Leet</h1>
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-4 text-gray-200 hover:text-white"
-          >
-            <X className="h-8 w-8" />
-          </button>
+        <div className="fixed inset-0 flex items-center justify-center">
+          <div className="relative w-full max-w-md bg-[#1C1C1C] rounded-xl shadow-xl p-6">
+            <h1 className="font-bold text-lg">Book Trial Training</h1>
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 text-gray-200 hover:text-white"
+            >
+              <X className="h-8 w-8" />
+            </button>
 
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4 custom-scrollbar mt-10 overflow-y-auto max-h-[70vh]"
-          >
-            <div className="flex flex-col items-start">
-              <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
-                <img
-                  src={Avatar}
-                  alt="Profile"
-                  width={96}
-                  height={96}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <input
-                type="file"
-                accept="img/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="avatar-upload"
-              />
-              <label
-                htmlFor="avatar-upload"
-                className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
-              >
-                Upload picture
-              </label>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-200 mb-1">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.firstName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, firstName: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-[#101010] border border-gray-800 rounded-lg text-white outline-none text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-200 mb-1">
-                  Surname
-                </label>
-                <input
-                  type="text"
-                  value={formData.surname}
-                  onChange={(e) =>
-                    setFormData({ ...formData, surname: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-[#101010] border border-gray-800 rounded-lg text-white outline-none text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-200 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-[#101010] border border-gray-800 rounded-lg text-white outline-none text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-200 mb-1">
-                  Phone No
-                </label>
-                <div className="flex gap-2">
+            <form onSubmit={handleSubmit} className="space-y-4 custom-scrollbar mt-10 overflow-y-auto max-h-[70vh]">
+              <div className="space-y-2">
+                <label className="block text-sm text-gray-200 mb-1">Search Lead</label>
+                <div className="relative">
                   <input
                     type="text"
-                    value={formData.phoneCode}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phoneCode: e.target.value })
-                    }
-                    className="w-16 px-3 py-2 bg-[#101010] border border-gray-800 rounded-lg text-white outline-none text-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by name or email..."
+                    className="w-full px-3 py-2 pl-10 bg-[#101010] border border-gray-800 rounded-lg text-white outline-none text-sm"
                   />
-                  <input
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phoneNumber: e.target.value })
-                    }
-                    className="flex-1 px-3 py-2 bg-[#101010] border border-gray-800 rounded-lg text-white outline-none text-sm"
-                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 </div>
+
+                {searchQuery && filteredLeads.length > 0 && (
+                  <div className="mt-2 bg-[#101010] rounded-lg border border-gray-800 max-h-40 overflow-y-auto">
+                    {filteredLeads.map(lead => (
+                      <div
+                        key={lead.id}
+                        onClick={() => setSelectedLead(lead)}
+                        className={`p-3 cursor-pointer hover:bg-[#252525] ${
+                          selectedLead?.id === lead.id ? 'bg-[#252525]' : ''
+                        }`}
+                      >
+                        <div className="font-medium">{`${lead.firstName} ${lead.surname}`}</div>
+                        <div className="text-sm text-gray-400">{lead.email}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {(!searchQuery || filteredLeads.length === 0) && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddLeadModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-lg hover:bg-[#3F74FF]/90 transition-colors"
+                >
+                  <Plus size={18} />
+                  <span>Create New Lead</span>
+                </button>
+              )}
+
+              <div>
+                <label className="block text-sm text-gray-200 mb-1">Trial Type</label>
+                <select
+                  value={formData.trialType}
+                  onChange={(e) => setFormData({ ...formData, trialType: e.target.value })}
+                  className="w-full px-3 py-2 bg-[#101010] border border-gray-800 rounded-lg text-white outline-none text-sm"
+                >
+                  <option value="">Select type</option>
+                  <option value="cardio">Cardio</option>
+                  <option value="strength">Strength</option>
+                  <option value="flexibility">Flexibility</option>
+                </select>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-200 mb-1">
-                  Trial period time
-                </label>
+                <label className="block text-sm text-gray-200 mb-1">Date & Time</label>
                 <input
-                  type="text"
-                  value={formData.trialPeriod}
-                  onChange={(e) =>
-                    setFormData({ ...formData, trialPeriod: e.target.value })
-                  }
+                  type="datetime-local"
+                  value={formData.dateTime}
+                  onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
                   className="w-full px-3 py-2 bg-[#101010] border border-gray-800 rounded-lg text-white outline-none text-sm"
                 />
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2 pt-4">
-              <button
-                type="submit"
-                className="flex-1 px-2 py-2 bg-[#3B82F6] text-white cursor-pointer text-sm rounded-lg hover:bg-[#2563EB] transition-colors"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-2 py-2 bg-black text-red-600 cursor-pointer text-sm rounded-lg hover:bg-gray-900 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </form>
+              <div className="flex gap-2 pt-4">
+                <button
+                  type="submit"
+                  disabled={!selectedLead || !formData.trialType || !formData.dateTime}
+                  className="flex-1 px-2 py-2 bg-[#3B82F6] text-white cursor-pointer text-sm rounded-lg hover:bg-[#2563EB] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Book Trial
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 px-2 py-2 bg-black text-red-600 cursor-pointer text-sm rounded-lg hover:bg-gray-900 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+
+      <AddPartiesModal
+        isVisible={isAddLeadModalOpen}
+        onClose={() => setIsAddLeadModalOpen(false)}
+        onSave={handleSaveLead}
+      />
     </>
   );
-}
+};
+
+export default TrialTrainingModal;

@@ -32,7 +32,7 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
     <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
       <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Add New Lead</h2>
+          <h2 className="text-xl text-white font-bold">Add New Lead</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X size={24} />
           </button>
