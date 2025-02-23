@@ -84,8 +84,9 @@ useEffect(() => {
   }
 
   const handleEventDrop = (info) => {
+    console.log("Event dropped:", info);
     if (confirm('Are you sure you want to move this appointment?')) {
-      // Handle the event drop
+      // Update the appointment date and time
       const updatedAppointments = appointments.map((appointment) => {
         if (appointment.id === parseInt(info.event.id)) {
           return {
@@ -98,8 +99,17 @@ useEffect(() => {
         }
         return appointment;
       });
+  
+      // Update the appointments state
       setAppointments(updatedAppointments);
+  
+      // Set the event info to be used in the notify modal
+      setEventInfo(info);
+  
+      // Open the notify modal
+      setIsNotifyMemberOpen(true);
     } else {
+      // Revert the event if the user cancels
       info.revert();
     }
   };
@@ -161,6 +171,7 @@ useEffect(() => {
     const [day, month, year] = datePart.trim().split("-")
     const dateStr = `${year}-${month}-${day}` // Format: yyyy-mm-dd for FullCalendar
 
+    
     return {
       id: appointment.id,
       title: appointment.name,
@@ -172,6 +183,7 @@ useEffect(() => {
         type: appointment.type,
       },
     }
+   
   })
   
   return (
@@ -179,38 +191,38 @@ useEffect(() => {
       <div className="h-full w-full">
         <div className="max-w-7xl overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
           <div className="min-w-[768px]">
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="timeGridWeek"
-              initialDate={selectedDate || "2025-02-03"}
-              headerToolbar={{
-                left: "prev,next",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek,timeGridDay",
-              }}
-              events={calendarEvents}
-              height="auto"
-              selectable={true}
-              editable={true}
-              eventResizable={false}
-              eventDrop={handleEventDrop}
-              slotMinTime="08:00:00"
-              slotMaxTime="19:00:00"
-              allDaySlot={false}
-              nowIndicator={true}
-              slotDuration="01:00:00"
-              firstDay={1}
-              eventClick={onEventClick}
-              select={handleDateSelect}
-              eventContent={(eventInfo) => (
-                <div className="p-1 h-full overflow-hidden">
-                  <div className="font-semibold text-xs sm:text-sm truncate">{eventInfo.event.title}</div>
-                  <div className="text-xs opacity-90 truncate">{eventInfo.event.extendedProps.type}</div>
-                  <div className="text-xs mt-1">{eventInfo.timeText}</div>
-                </div>
-              )}
-            />
+          <FullCalendar
+  ref={calendarRef}
+  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // Ensure interactionPlugin is included
+  initialView="timeGridWeek"
+  initialDate={selectedDate || "2025-02-03"}
+  headerToolbar={{
+    left: "prev,next",
+    center: "title",
+    right: "dayGridMonth,timeGridWeek,timeGridDay",
+  }}
+  events={calendarEvents}
+  height="auto"
+  selectable={true}
+  editable={true} // Ensure this is true
+  eventResizable={false}
+  eventDrop={handleEventDrop} // Ensure this is correctly set
+  slotMinTime="08:00:00"
+  slotMaxTime="19:00:00"
+  allDaySlot={false}
+  nowIndicator={true}
+  slotDuration="01:00:00"
+  firstDay={1}
+  eventClick={onEventClick}
+  select={handleDateSelect}
+  eventContent={(eventInfo) => (
+    <div className="p-1 h-full overflow-hidden">
+      <div className="font-semibold text-xs sm:text-sm truncate">{eventInfo.event.title}</div>
+      <div className="text-xs opacity-90 truncate">{eventInfo.event.extendedProps.type}</div>
+      <div className="text-xs mt-1">{eventInfo.timeText}</div>
+    </div>
+  )}
+/>
           </div>
         </div>
       </div>
