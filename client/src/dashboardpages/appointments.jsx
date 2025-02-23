@@ -26,6 +26,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     return `${day}-${month}-${year}`
   }
 
+
   const calendarRef = useRef(null)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("change")
@@ -83,11 +84,25 @@ useEffect(() => {
   }
 
   const handleEventDrop = (info) => {
-    console.log('Event Dropped');
-    
-    setEventInfo(info)
-    setIsNotifyMemberOpen(true)
-  }
+    if (confirm('Are you sure you want to move this appointment?')) {
+      // Handle the event drop
+      const updatedAppointments = appointments.map((appointment) => {
+        if (appointment.id === parseInt(info.event.id)) {
+          return {
+            ...appointment,
+            date: `${info.event.start.toLocaleDateString('en-US', { weekday: 'short' })} | ${formatDate(info.event.start)}`,
+            startTime: info.event.start.toTimeString().split(' ')[0],
+            endTime: info.event.end.toTimeString().split(' ')[0],
+            time: `${info.event.start.toTimeString().split(' ')[0]} - ${info.event.end.toTimeString().split(' ')[0]}`
+          };
+        }
+        return appointment;
+      });
+      setAppointments(updatedAppointments);
+    } else {
+      info.revert();
+    }
+  };
 
   const handleDateSelect = (selectInfo) => {
     setSelectedSlotInfo(selectInfo)
