@@ -174,14 +174,42 @@ const Sidebar = () => {
         <div className="flex flex-col h-full overflow-y-auto mt-10">
           <div className="p-4 hidden md:block">
             <div className="flex flex-col text-center justify-center items-center gap-3">
-              <div className="relative cursor-pointer" onClick={redirect}>
+              <div className="relative cursor-pointer" >
                 <img
+                onClick={toggleDropdown}
                   src="/girl.png"
                   alt="Profile"
                   className="rounded-2xl h-full w-full"
                 />
                 <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 border-2 border-zinc-800 rounded-full"></span>
               </div>
+
+              {isDropdownOpen && (
+            <div className="absolute right-14 top-34 w-36 bg-[#222222]/40 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+              <div
+                className="py-2"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="options-menu"
+              >
+                <button
+                  onClick={handleEditProfile}
+                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                  role="menuitem"
+                >
+                  Edit Profile
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                  role="menuitem"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
+
               <div className="flex flex-col gap-0.5">
                 <h2 className="open_sans_font_700 text-white">Samantha</h2>
                 <p className="text-sm open_sans_font text-zinc-400">
