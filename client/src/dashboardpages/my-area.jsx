@@ -12,7 +12,6 @@ import Avatar from "../../public/avatar.png"
 import { DndProvider, useDrag, useDrop } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import { TouchBackend } from "react-dnd-touch-backend"
-import { WidgetSelectionModal } from "../components/widget-selection-modal"
 function EmployeeCheckInWidget() {
   const [isCheckedIn, setIsCheckedIn] = useState(false)
   const [checkInTime, setCheckInTime] = useState(null)
@@ -374,7 +373,7 @@ export default function MyArea() {
     },
     subtitle: {
       text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
-      align: "left", 
+      align: "left",
       style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
     },
     tooltip: {
@@ -383,12 +382,11 @@ export default function MyArea() {
         fontSize: "12px",
         fontFamily: "Inter, sans-serif",
       },
-      custom: function({ series, seriesIndex, dataPointIndex, w }) {
-        return '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
-          '<span style="color: black;">' + 
-          series[seriesIndex][dataPointIndex] +
-          '</span></div>';
-      }
+      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
+        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
+        '<span style="color: black;">' +
+        series[seriesIndex][dataPointIndex] +
+        "</span></div>",
     },
   }
 
@@ -475,115 +473,114 @@ export default function MyArea() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const DndBackend = isMobile ? TouchBackend : HTML5Backend
 
- const handleAddWidget = (widgetType) => {
-  // Define widget categories
-  const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn'];
-  const sidebarWidgets = ['communication', 'todo', 'birthdays', 'websiteLink'];
+  const handleAddWidget = (widgetType) => {
+    // Define widget categories
+    const mainAreaWidgets = ["chart", "appointments", "employeeCheckIn"]
+    const sidebarWidgets = ["communication", "todo", "birthdays", "websiteLink"]
 
-  if (mainAreaWidgets.includes(widgetType)) {
-    // Handle main area widgets
-    const newWidget = {
-      id: `widget${Date.now()}`,
-      type: widgetType,
-      position: widgets.length
-    };
-    setWidgets(currentWidgets => [...currentWidgets, newWidget]);
-  } else if (sidebarWidgets.includes(widgetType)) {
-    // Map widget types to their corresponding section IDs and titles
-    const sectionMapping = {
-      communication: { id: 'communications', title: 'Communications' },
-      todo: { id: 'todo', title: 'TO-DO' },
-      birthdays: { id: 'birthday', title: 'Upcoming Birthday' },
-      websiteLink: { id: 'websiteLinks', title: 'Website Links' }
-    };
+    if (mainAreaWidgets.includes(widgetType)) {
+      // Handle main area widgets
+      const newWidget = {
+        id: `widget${Date.now()}`,
+        type: widgetType,
+        position: widgets.length,
+      }
+      setWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    } else if (sidebarWidgets.includes(widgetType)) {
+      // Map widget types to their corresponding section IDs and titles
+      const sectionMapping = {
+        communication: { id: "communications", title: "Communications" },
+        todo: { id: "todo", title: "TO-DO" },
+        birthdays: { id: "birthday", title: "Upcoming Birthday" },
+        websiteLink: { id: "websiteLinks", title: "Website Links" },
+      }
 
-    const mappedSection = sectionMapping[widgetType];
-    
-    // Check if section already exists
-    const sectionExists = sidebarSections.some(section => section.id === mappedSection.id);
+      const mappedSection = sectionMapping[widgetType]
 
-    if (!sectionExists) {
-      // Add new section to sidebar
-      setSidebarSections(currentSections => {
-        const newSection = {
-          id: mappedSection.id,
-          title: mappedSection.title
-        };
-        return [...currentSections, newSection];
-      });
+      // Check if section already exists
+      const sectionExists = sidebarSections.some((section) => section.id === mappedSection.id)
 
-      // Initialize default data based on widget type
-      switch (widgetType) {
-        case 'communication':
-          setCommunications(prev => prev || [
-            {
-              id: 1,
-              name: "Jennifer Markus",
-              message: "Hey! Did you think the NFT marketplace for Alice app design?",
-              time: "Today | 05:30 PM",
-              avatar: Rectangle1,
-            },
-            {
-              id: 2,
-              name: "Jennifer Markus",
-              message: "Hey! Did you think the NFT marketplace for Alice app design?",
-              time: "Today | 05:30 PM",
-              avatar: Rectangle1,
-            }
-          ]);
-          break;
-        case 'todo':
-          setTodos(prev => prev || [
-            {
-              id: 1,
-              title: "Task",
-              description: "Description",
-              assignee: "Jack",
-            },
-            {
-              id: 2,
-              title: "Task",
-              description: "Description",
-              assignee: "Jack",
-            }
-          ]);
-          break;
-        case 'birthdays':
-          setBirthdays(prev => prev || [
-            {
-              id: 1,
-              name: "Yolando",
-              date: "Mon | 02 01 2025",
-              avatar: Avatar,
-            }
-          ]);
-          break;
-        case 'websiteLink':
-          setCustomLinks(prev => prev || [
-            {
-              id: `link${Date.now()}`,
-              url: "www.example.com",
-              title: "New Link"
-            }
-          ]);
-          break;
+      if (!sectionExists) {
+        // Add new section to sidebar
+        setSidebarSections((currentSections) => {
+          const newSection = {
+            id: mappedSection.id,
+            title: mappedSection.title,
+          }
+          return [...currentSections, newSection]
+        })
+
+        // Initialize default data based on widget type
+        switch (widgetType) {
+          case "communication":
+            setCommunications(
+              (prev) =>
+                prev || [
+                  {
+                    id: 1,
+                    name: "Jennifer Markus",
+                    message: "Hey! Did you think the NFT marketplace for Alice app design?",
+                    time: "Today | 05:30 PM",
+                    avatar: Rectangle1,
+                  },
+                ],
+            )
+            break
+          case "todo":
+            setTodos(
+              (prev) =>
+                prev || [
+                  {
+                    id: 1,
+                    title: "Task",
+                    description: "Description",
+                    assignee: "Jack",
+                  },
+                ],
+            )
+            break
+          case "birthdays":
+            setBirthdays(
+              (prev) =>
+                prev || [
+                  {
+                    id: 1,
+                    name: "Yolando",
+                    date: "Mon | 02 01 2025",
+                    avatar: Avatar,
+                  },
+                ],
+            )
+            break
+          case "websiteLink":
+            setCustomLinks(
+              (prev) =>
+                prev || [
+                  {
+                    id: `link${Date.now()}`,
+                    url: "www.example.com",
+                    title: "New Link",
+                  },
+                ],
+            )
+            break
+        }
       }
     }
-  }
 
-  setIsWidgetModalOpen(false);
-};
+    setIsWidgetModalOpen(false)
+  }
   const canAddWidget = (widgetType) => {
-    const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn', 'websiteLink'];
-    const sidebarWidgets = ['communication', 'todo', 'birthdays'];
-  
+    const mainAreaWidgets = ["chart", "appointments", "employeeCheckIn", "websiteLink"]
+    const sidebarWidgets = ["communication", "todo", "birthdays"]
+
     if (mainAreaWidgets.includes(widgetType)) {
-      return !widgets.some(widget => widget.type === widgetType);
+      return !widgets.some((widget) => widget.type === widgetType)
     } else if (sidebarWidgets.includes(widgetType)) {
-      return !sidebarSections.some(section => section.id === widgetType);
+      return !sidebarSections.some((section) => section.id === widgetType)
     }
-    return false;
-  };
+    return false
+  }
 
   return (
     <DndProvider backend={DndBackend}>
@@ -1105,9 +1102,50 @@ export default function MyArea() {
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
           onSelectWidget={handleAddWidget}
+          canAddWidget={canAddWidget}
         />
       </div>
     </DndProvider>
+  )
+}
+
+function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, canAddWidget }) {
+  const widgetOptions = [
+    { id: "chart", type: "chart", name: "Chart" },
+    { id: "appointments", type: "appointments", name: "Appointments" },
+    { id: "employeeCheckIn", type: "employeeCheckIn", name: "Employee Check-In" },
+    { id: "communication", type: "communication", name: "Communications" },
+    { id: "todo", type: "todo", name: "To-Do" },
+    { id: "birthdays", type: "birthdays", name: "Birthdays" },
+    { id: "websiteLink", type: "websiteLink", name: "Website Link" },
+  ]
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md mx-4">
+        <div className="p-4">
+          <div className="space-y-2">
+            {widgetOptions.map((widget) => (
+              <button
+                key={widget.id}
+                onClick={() => {
+                  onSelectWidget(widget.type)
+                  onClose()
+                }}
+                disabled={!canAddWidget(widget.type)}
+                className={`w-full p-3 text-left ${
+                  canAddWidget(widget.type) ? "text-zinc-300 hover:bg-zinc-800" : "text-zinc-600 cursor-not-allowed"
+                } rounded-lg transition-colors`}
+              >
+                {widget.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
