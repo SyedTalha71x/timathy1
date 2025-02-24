@@ -543,7 +543,7 @@ const ConfigurationPage = () => {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Tags</h3>
+              <h3 className="text-lg font-medium">TO-DO Tags</h3>
               <div className="space-y-4">
                 {tags.map((tag, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
