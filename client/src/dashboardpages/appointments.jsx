@@ -1,6 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client";
-
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
@@ -95,6 +93,8 @@ function Calendar({
 
   const handleEventDrop = (info) => {
     console.log("Event dropped:", info);
+  
+    // Confirm with the user if they want to move the appointment
     if (confirm("Are you sure you want to move this appointment?")) {
       // Update the appointment date and time
       const updatedAppointments = appointments.map((appointment) => {
@@ -113,13 +113,13 @@ function Calendar({
         }
         return appointment;
       });
-
+  
       // Update the appointments state
       setAppointments(updatedAppointments);
-
+  
       // Set the event info to be used in the notify modal
       setEventInfo(info);
-
+  
       // Open the notify modal
       setIsNotifyMemberOpen(true);
     } else {
@@ -149,6 +149,8 @@ function Calendar({
     if (shouldNotify) {
       console.log("Notify member about the new time:", eventInfo.event.start);
       toast.success("Member notified successfully!");
+  
+      // Update the appointment date and time in the state
       const updatedAppointments = appointments.map((appointment) => {
         if (appointment.id === eventInfo.event.id) {
           return {
@@ -160,6 +162,7 @@ function Calendar({
         }
         return appointment;
       });
+  
       setAppointments(updatedAppointments);
     }
   };
@@ -208,42 +211,42 @@ function Calendar({
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           <div className="min-w-[768px]">
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} 
-              initialView="timeGridWeek"
-              initialDate={selectedDate || "2025-02-03"}
-              headerToolbar={{
-                left: "prev,next",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek,timeGridDay",
-              }}
-              events={calendarEvents}
-              height="auto"
-              selectable={true}
-              editable={true} 
-              eventResizable={false}
-              eventDrop={handleEventDrop} 
-              slotMinTime="08:00:00"
-              slotMaxTime="19:00:00"
-              allDaySlot={false}
-              nowIndicator={true}
-              slotDuration="01:00:00"
-              firstDay={1}
-              eventClick={onEventClick}
-              select={handleDateSelect}
-              eventContent={(eventInfo) => (
-                <div className="p-1 h-full overflow-hidden">
-                  <div className="font-semibold text-xs sm:text-sm truncate">
-                    {eventInfo.event.title}
-                  </div>
-                  <div className="text-xs opacity-90 truncate">
-                    {eventInfo.event.extendedProps.type}
-                  </div>
-                  <div className="text-xs mt-1">{eventInfo.timeText}</div>
-                </div>
-              )}
-            />
+          <FullCalendar
+  ref={calendarRef}
+  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+  initialView="timeGridWeek"
+  initialDate={selectedDate || "2025-02-03"}
+  headerToolbar={{
+    left: "prev,next",
+    center: "title",
+    right: "dayGridMonth,timeGridWeek,timeGridDay",
+  }}
+  events={calendarEvents}
+  height="auto"
+  selectable={true}
+  editable={true} // Allow events to be editable (draggable)
+  eventResizable={false}
+  eventDrop={handleEventDrop} // Handle event drop
+  slotMinTime="08:00:00"
+  slotMaxTime="19:00:00"
+  allDaySlot={false}
+  nowIndicator={true}
+  slotDuration="01:00:00"
+  firstDay={1}
+  eventClick={onEventClick}
+  select={handleDateSelect}
+  eventContent={(eventInfo) => (
+    <div className="p-1 h-full overflow-hidden">
+      <div className="font-semibold text-xs sm:text-sm truncate">
+        {eventInfo.event.title}
+      </div>
+      <div className="text-xs opacity-90 truncate">
+        {eventInfo.event.extendedProps.type}
+      </div>
+      <div className="text-xs mt-1">{eventInfo.timeText}</div>
+    </div>
+  )}
+/>
           </div>
         </div>
       </div>
@@ -308,55 +311,53 @@ function Calendar({
 
       {/* Notify Member Modal */}
       {isNotifyMemberOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+  <div
+    className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+    onClick={() => setIsNotifyMemberOpen(false)}
+  >
+    <div
+      className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+        <button
           onClick={() => setIsNotifyMemberOpen(false)}
+          className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
         >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Notify Member
-              </h2>
-              <button
-                onClick={() => setIsNotifyMemberOpen(false)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                <X size={20} />
-              </button>
-            </div>
+          <X size={20} />
+        </button>
+      </div>
 
-            <div className="p-6">
-              <p className="text-white text-sm">
-                Do you want to notify the member about this{" "}
-                {notifyAction === "change"
-                  ? "change"
-                  : notifyAction === "cancel"
-                  ? "cancellation"
-                  : "booking"}
-                ?
-              </p>
-            </div>
+      <div className="p-6">
+        <p className="text-white text-sm">
+          Do you want to notify the member about this{" "}
+          {notifyAction === "change"
+            ? "change"
+            : notifyAction === "cancel"
+            ? "cancellation"
+            : "booking"}
+          ?
+        </p>
+      </div>
 
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                onClick={() => handleNotifyMember(true)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-              >
-                Yes, Notify Member
-              </button>
-              <button
-                onClick={() => handleNotifyMember(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
-              >
-                No, Don't Notify
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
+        <button
+          onClick={() => handleNotifyMember(true)}
+          className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+        >
+          Yes, Notify Member
+        </button>
+        <button
+          onClick={() => handleNotifyMember(false)}
+          className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+        >
+          No, Don't Notify
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       <Toaster position="top-right" autoClose={3000} />
       <style>{`
         .overflow-x-auto {

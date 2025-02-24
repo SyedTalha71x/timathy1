@@ -498,11 +498,24 @@ export default function MyArea() {
             websiteLink: 'Website Links',
           };
   
-          return [...current, { id: widgetType, title: sectionTitleMap[widgetType] }];
+          // Find the position to insert the new widget
+          const insertIndex = current.findIndex((section) => section.id === widgetType);
+          const newSection = { id: widgetType, title: sectionTitleMap[widgetType] };
+  
+          if (insertIndex === -1) {
+            // If the widget type doesn't exist, add it at the end
+            return [...current, newSection];
+          } else {
+            // If the widget type exists, insert it at the correct position
+            const newSections = [...current];
+            newSections.splice(insertIndex, 0, newSection);
+            return newSections;
+          }
         }
         return current;
       });
   
+      // Add corresponding content to the state
       switch (widgetType) {
         case 'communication':
           setCommunications((current) => [
