@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 
-  const widgetOptions = [
+const widgetOptions = [
     { id: "graph", name: "Graph", type: "chart" },
     { id: "communication", name: "Communication", type: "communication" },
     { id: "todo", name: "TO-DO", type: "todo" },

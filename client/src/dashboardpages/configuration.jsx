@@ -15,6 +15,7 @@ import {
   InputNumber,
   Tabs,
   Divider,
+  DatePicker,
 } from "antd"
 import { SaveOutlined, PlusOutlined, DeleteOutlined, UploadOutlined } from "@ant-design/icons"
 
@@ -56,8 +57,14 @@ const saveButtonStyle = {
 
 const ConfigurationPage = () => {
   const [studioName, setStudioName] = useState("")
-  const [studioLocation, setStudioLocation] = useState("")
+  const [studioOperator, setStudioOperator] = useState("")
+  const [studioStreet, setStudioStreet] = useState("")
+  const [studioZipCode, setStudioZipCode] = useState("")
+  const [studioCity, setStudioCity] = useState("")
+  const [studioWebsite, setStudioWebsite] = useState("")
   const [openingHours, setOpeningHours] = useState([])
+  const [closingDays, setClosingDays] = useState([])
+  const [logo, setLogo] = useState([])
   const [roles, setRoles] = useState([])
   const [appointmentTypes, setAppointmentTypes] = useState([])
   const [tags, setTags] = useState([])
@@ -71,7 +78,6 @@ const ConfigurationPage = () => {
   })
 
   const [maxCapacity, setMaxCapacity] = useState(10)
-  const [logo, setLogo] = useState([])
   const [contractTypes, setContractTypes] = useState([])
   const [contractSections, setContractSections] = useState([
     { title: "Personal Information", content: "", editable: true },
@@ -103,6 +109,15 @@ const ConfigurationPage = () => {
     setOpeningHours(updatedHours)
   }
 
+  const handleAddClosingDay = () => {
+    setClosingDays([...closingDays, { date: null, description: "" }])
+  }
+
+  const handleRemoveClosingDay = (index) => {
+    const updatedDays = closingDays.filter((_, i) => i !== index)
+    setClosingDays(updatedDays)
+  }
+
   const handleAddRole = () => {
     setRoles([...roles, { name: "", permissions: [] }])
   }
@@ -120,7 +135,7 @@ const ConfigurationPage = () => {
   }
 
   const handleSaveConfiguration = () => {
-    if (!studioName || !studioLocation) {
+    if (!studioName || !studioStreet || !studioZipCode || !studioCity) {
       notification.error({ message: "Please fill in all required fields." })
       return
     }
@@ -188,6 +203,51 @@ const ConfigurationPage = () => {
                 />
               </Form.Item>
 
+              <Form.Item label={<span className="text-white">Studio Operator</span>}>
+                <Input
+                  value={studioOperator}
+                  onChange={(e) => setStudioOperator(e.target.value)}
+                  placeholder="Enter studio operator name"
+                  style={inputStyle}
+                />
+              </Form.Item>
+
+              <Form.Item label={<span className="text-white">Street (with number)</span>} required>
+                <Input
+                  value={studioStreet}
+                  onChange={(e) => setStudioStreet(e.target.value)}
+                  placeholder="Enter street and number"
+                  style={inputStyle}
+                />
+              </Form.Item>
+
+              <Form.Item label={<span className="text-white">ZIP Code</span>} required>
+                <Input
+                  value={studioZipCode}
+                  onChange={(e) => setStudioZipCode(e.target.value)}
+                  placeholder="Enter ZIP code"
+                  style={inputStyle}
+                />
+              </Form.Item>
+
+              <Form.Item label={<span className="text-white">City</span>} required>
+                <Input
+                  value={studioCity}
+                  onChange={(e) => setStudioCity(e.target.value)}
+                  placeholder="Enter city"
+                  style={inputStyle}
+                />
+              </Form.Item>
+
+              <Form.Item label={<span className="text-white">Studio Website</span>}>
+                <Input
+                  value={studioWebsite}
+                  onChange={(e) => setStudioWebsite(e.target.value)}
+                  placeholder="Enter studio website URL"
+                  style={inputStyle}
+                />
+              </Form.Item>
+
               <Form.Item label={<span className="text-white">Studio Logo</span>}>
                 <Upload accept="image/*" maxCount={1} onChange={handleLogoUpload} fileList={logo}>
                   <Button icon={<UploadOutlined />} style={buttonStyle}>
@@ -195,14 +255,7 @@ const ConfigurationPage = () => {
                   </Button>
                 </Upload>
               </Form.Item>
-              <Form.Item label={<span className="text-white">Studio Location</span>} required>
-                <Input
-                  value={studioLocation}
-                  onChange={(e) => setStudioLocation(e.target.value)}
-                  placeholder="Enter studio location"
-                  style={inputStyle}
-                />
-              </Form.Item>
+
               <Form.Item label={<span className="text-white">Opening Hours</span>}>
                 <div className="space-y-4">
                   {openingHours.map((hour, index) => (
@@ -267,6 +320,55 @@ const ConfigurationPage = () => {
                     style={buttonStyle}
                   >
                     Add Opening Hour
+                  </Button>
+                </div>
+              </Form.Item>
+
+              <Form.Item label={<span className="text-white">Closing Days</span>}>
+                <div className="space-y-4">
+                  {closingDays.map((day, index) => (
+                    <div key={index} className="flex flex-wrap gap-4 items-center">
+                      <DatePicker
+                        placeholder="Select date"
+                        value={day.date}
+                        onChange={(date) => {
+                          const updatedDays = [...closingDays]
+                          updatedDays[index].date = date
+                          setClosingDays(updatedDays)
+                        }}
+                        className="w-full sm:w-40"
+                        style={inputStyle}
+                      />
+                      <Input
+                        placeholder="Description (e.g., Public Holiday)"
+                        value={day.description}
+                        onChange={(e) => {
+                          const updatedDays = [...closingDays]
+                          updatedDays[index].description = e.target.value
+                          setClosingDays(updatedDays)
+                        }}
+                        className="w-full sm:flex-1"
+                        style={inputStyle}
+                      />
+                      <Button
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleRemoveClosingDay(index)}
+                        className="w-full sm:w-auto"
+                        style={buttonStyle}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="dashed"
+                    onClick={handleAddClosingDay}
+                    icon={<PlusOutlined />}
+                    className="w-full sm:w-auto"
+                    style={buttonStyle}
+                  >
+                    Add Closing Day
                   </Button>
                 </div>
               </Form.Item>
@@ -760,7 +862,7 @@ const ConfigurationPage = () => {
         <Button
           type="primary"
           icon={<SaveOutlined />}
-          onClick={() => notification.success({ message: "Configuration saved successfully!" })}
+          onClick={handleSaveConfiguration}
           size="large"
           style={saveButtonStyle}
         >
