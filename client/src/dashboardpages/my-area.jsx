@@ -475,101 +475,104 @@ export default function MyArea() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const DndBackend = isMobile ? TouchBackend : HTML5Backend
 
-  const handleAddWidget = (widgetType) => {
-    const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn'];
-  
-    if (mainAreaWidgets.includes(widgetType)) {
-      // Left side widgets
-      const newWidget = {
-        id: `widget${Date.now()}`,
-        type: widgetType,
-        position: widgets.length,
-      };
-      setWidgets((currentWidgets) => [...currentWidgets, newWidget]);
-    } else {
-      // Right side widgets (sidebar)
-      setSidebarSections((current) => {
-        const sectionExists = current.some((section) => section.id === widgetType);
-        if (!sectionExists) {
-          const sectionTitleMap = {
-            communication: 'Communications',
-            todo: 'TO-DO',
-            birthdays: 'Upcoming Birthday',
-            websiteLink: 'Website Links',
-          };
-  
-          // Find the position to insert the new widget
-          const insertIndex = current.findIndex((section) => section.id === widgetType);
-          const newSection = { id: widgetType, title: sectionTitleMap[widgetType] };
-  
-          if (insertIndex === -1) {
-            // If the widget type doesn't exist, add it at the end
-            return [...current, newSection];
-          } else {
-            // If the widget type exists, insert it at the correct position
-            const newSections = [...current];
-            newSections.splice(insertIndex, 0, newSection);
-            return newSections;
-          }
-        }
-        return current;
+ const handleAddWidget = (widgetType) => {
+  // Define widget categories
+  const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn'];
+  const sidebarWidgets = ['communication', 'todo', 'birthdays', 'websiteLink'];
+
+  if (mainAreaWidgets.includes(widgetType)) {
+    // Handle main area widgets
+    const newWidget = {
+      id: `widget${Date.now()}`,
+      type: widgetType,
+      position: widgets.length
+    };
+    setWidgets(currentWidgets => [...currentWidgets, newWidget]);
+  } else if (sidebarWidgets.includes(widgetType)) {
+    // Map widget types to their corresponding section IDs and titles
+    const sectionMapping = {
+      communication: { id: 'communications', title: 'Communications' },
+      todo: { id: 'todo', title: 'TO-DO' },
+      birthdays: { id: 'birthday', title: 'Upcoming Birthday' },
+      websiteLink: { id: 'websiteLinks', title: 'Website Links' }
+    };
+
+    const mappedSection = sectionMapping[widgetType];
+    
+    // Check if section already exists
+    const sectionExists = sidebarSections.some(section => section.id === mappedSection.id);
+
+    if (!sectionExists) {
+      // Add new section to sidebar
+      setSidebarSections(currentSections => {
+        const newSection = {
+          id: mappedSection.id,
+          title: mappedSection.title
+        };
+        return [...currentSections, newSection];
       });
-  
-      // Add corresponding content to the state
+
+      // Initialize default data based on widget type
       switch (widgetType) {
         case 'communication':
-          setCommunications((current) => [
-            ...current,
+          setCommunications(prev => prev || [
             {
-              id: `communication${Date.now()}`,
+              id: 1,
               name: "Jennifer Markus",
-              message: "Hey! Did you check the NFT marketplace for Alice app design?",
+              message: "Hey! Did you think the NFT marketplace for Alice app design?",
               time: "Today | 05:30 PM",
               avatar: Rectangle1,
             },
+            {
+              id: 2,
+              name: "Jennifer Markus",
+              message: "Hey! Did you think the NFT marketplace for Alice app design?",
+              time: "Today | 05:30 PM",
+              avatar: Rectangle1,
+            }
           ]);
           break;
-  
         case 'todo':
-          setTodos((current) => [
-            ...current,
+          setTodos(prev => prev || [
             {
-              id: `todo${Date.now()}`,
-              title: "Review Design",
-              description: "Review the new dashboard design",
+              id: 1,
+              title: "Task",
+              description: "Description",
               assignee: "Jack",
             },
+            {
+              id: 2,
+              title: "Task",
+              description: "Description",
+              assignee: "Jack",
+            }
           ]);
           break;
-  
         case 'birthdays':
-          setBirthdays((current) => [
-            ...current,
+          setBirthdays(prev => prev || [
             {
-              id: `birthday${Date.now()}`,
+              id: 1,
               name: "Yolando",
               date: "Mon | 02 01 2025",
               avatar: Avatar,
-            },
+            }
           ]);
           break;
-  
         case 'websiteLink':
-          setCustomLinks((current) => [
-            ...current,
+          setCustomLinks(prev => prev || [
             {
               id: `link${Date.now()}`,
               url: "www.example.com",
-              title: "New Website",
-            },
+              title: "New Link"
+            }
           ]);
           break;
       }
     }
-  
-    setIsWidgetModalOpen(false);
-  };
-  
+  }
+
+  setIsWidgetModalOpen(false);
+};
   const canAddWidget = (widgetType) => {
     const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn', 'websiteLink'];
     const sidebarWidgets = ['communication', 'todo', 'birthdays'];

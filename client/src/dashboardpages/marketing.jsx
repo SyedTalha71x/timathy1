@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Copy } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Import styles for the date picker
 import "../customCss/marketing-table-style.css";
@@ -12,6 +12,10 @@ const MarketingTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const campaignsPerPage = 4; // Number of campaigns per page
   const navigate = useNavigate();
+  const [isCopied, setIsCopied] = useState(false); // State to manage copy feedback
+
+  const trialTrainingUrl = "https://example.com/trial-training"; // Replace with your actual URL
+
 
   const campaigns = [
     {
@@ -66,6 +70,14 @@ const MarketingTable = () => {
     window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top when page changes
   };
 
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(trialTrainingUrl).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset the copied state after 2 seconds
+    });
+  };
+
+
   const handleMetaLogin = () => {
     // Implement Meta login logic here
     setMetaLoggedIn(true);
@@ -113,6 +125,22 @@ const MarketingTable = () => {
               />
             </div>
           )}
+        </div>
+
+        <div className="flex items-center lg:flex-row flex-col gap-2 mb-8">
+          <input
+            type="text"
+            value={trialTrainingUrl}
+            readOnly
+            className="flex-1 bg-[#141414] text-white rounded-xl p-2 pr-10 outline-none"
+          />
+          <button
+            onClick={handleCopyUrl}
+            className="flex items-center gap-2 text-sm bg-[#F27A30] text-white px-4 py-2 rounded-xl hover:bg-[#e6691d] transition-colors"
+          >
+            <Copy size={16} />
+            {isCopied ? "Copied!" : "Copy URL"}
+          </button>
         </div>
 
         <div className="overflow-x-auto">
