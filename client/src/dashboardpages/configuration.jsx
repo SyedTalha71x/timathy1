@@ -156,6 +156,21 @@ const ConfigurationPage = () => {
     setAppointmentTypes(updatedTypes)
   }
 
+  const createEmployeePassword = () => {
+    const password = Math.random().toString(36).slice(-8)
+    return password
+  }
+
+  const handleEmployeePlanning = () => {
+    // Implement employee planning logic here
+    notification.info({ message: "Employee planning feature opened" })
+  }
+
+  const handleEmployeeOverview = () => {
+    // Implement employee check-in/out overview logic here
+    notification.info({ message: "Employee check-in/out overview opened" })
+  }
+
   return (
     <div className="max-w-7xl mx-auto lg:p-10 p-5 rounded-3xl space-y-8 bg-[#181818] min-h-screen text-white">
       <h1 className="lg:text-3xl text-2xl font-bold oxanium_font">Studio Configuration</h1>
@@ -470,6 +485,33 @@ const ConfigurationPage = () => {
                   Add Tag
                 </Button>
               </div>
+            </div>
+
+            <div className="space-y-4 mt-10">
+              <h3 className="text-lg font-medium">Employee Management</h3>
+              <Form layout="vertical">
+                <Form.Item label={<span className="text-white">Username</span>}>
+                  <Input style={inputStyle} />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">User ID</span>}>
+                  <Input style={inputStyle} />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">Street (with number)</span>}>
+                  <Input style={inputStyle} />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">ZIP Code</span>}>
+                  <Input style={inputStyle} />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">City</span>}>
+                  <Input style={inputStyle} />
+                </Form.Item>
+              </Form>
+              {/* <Button onClick={handleEmployeePlanning} style={buttonStyle}>
+                Employee Planning
+              </Button>
+              <Button onClick={handleEmployeeOverview} style={buttonStyle}>
+                Employee Check-in/out Overview
+              </Button> */}
             </div>
           </div>
         </TabPane>

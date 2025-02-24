@@ -5,7 +5,7 @@
 import { useState } from "react"
 import { X } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
-import Avatar from '../../public/default-avatar.avif'
+import Avatar from "../../public/default-avatar.avif"
 
 export default function StaffManagement() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -30,7 +30,7 @@ export default function StaffManagement() {
       email: "natalia.brown@example.com",
       phone: "+1234567890",
       description: "Experienced telephone operator with excellent communication skills.",
-      img:null,
+      img: null,
       userId: "natalia.telephone-operator",
       username: "natalia.brown",
       street: "123 Main St",
@@ -261,6 +261,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     street: "",
     zipCode: "",
     city: "",
+    password: "",
   })
 
   const handleInputChange = (e) => {
@@ -277,6 +278,10 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
       }
       reader.readAsDataURL(file)
     }
+  }
+
+  function createPassword() {
+    return Math.random().toString(36).slice(-8)
   }
 
   const handleSubmit = (e) => {
@@ -402,6 +407,33 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                 placeholder="Enter username"
                 className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={newStaff.password}
+                onChange={handleInputChange}
+                placeholder="Enter password"
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">User ID</label>
+              <input
+                type="text"
+                name="userId"
+                value={newStaff.userId}
+                onChange={handleInputChange}
+                placeholder="Enter user ID"
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+                disabled
               />
             </div>
 
@@ -625,6 +657,18 @@ function EditStaffModal({
             </div>
 
             <div>
+              <label className="text-sm text-gray-200 block mb-2">User ID</label>
+              <input
+                type="text"
+                name="userId"
+                value={editedStaff.userId}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Note: User ID can only be changed in the Configuration tab.</p>
+
+            <div>
               <label className="text-sm text-gray-200 block mb-2">Street</label>
               <input
                 type="text"
@@ -695,28 +739,28 @@ function EditStaffModal({
 }
 
 function EmployeePlanningModal({ staffMembers, onClose }) {
-  const [selectedStaff, setSelectedStaff] = useState(null);
-  const [schedule, setSchedule] = useState({});
+  const [selectedStaff, setSelectedStaff] = useState(null)
+  const [schedule, setSchedule] = useState({})
 
   const handleStaffSelect = (staff) => {
-    setSelectedStaff(staff);
+    setSelectedStaff(staff)
     setSchedule({
       Monday: "9:00-17:00",
       Tuesday: "9:00-17:00",
       Wednesday: "9:00-17:00",
       Thursday: "9:00-17:00",
       Friday: "9:00-17:00",
-    });
-  };
+    })
+  }
 
   const handleScheduleChange = (day, value) => {
-    setSchedule((prev) => ({ ...prev, [day]: value }));
-  };
+    setSchedule((prev) => ({ ...prev, [day]: value }))
+  }
 
   const handleSave = () => {
-    console.log("Saving schedule for", selectedStaff.firstName, schedule);
-    onClose();
-  };
+    console.log("Saving schedule for", selectedStaff.firstName, schedule)
+    onClose()
+  }
 
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -746,7 +790,10 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
             {selectedStaff ? (
               <div className="space-y-2">
                 {Object.entries(schedule).map(([day, hours]) => (
-                  <div key={day} className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                  <div
+                    key={day}
+                    className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2"
+                  >
                     <span className="w-24 text-sm md:text-base">{day}</span>
                     <input
                       type="text"
@@ -756,8 +803,8 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                     />
                   </div>
                 ))}
-                <button 
-                  onClick={handleSave} 
+                <button
+                  onClick={handleSave}
                   className="mt-4 bg-blue-500 text-white px-4 py-2 rounded text-sm md:text-base w-full sm:w-auto"
                 >
                   Save Schedule
@@ -768,41 +815,41 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
             )}
           </div>
         </div>
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={onClose}
           className="mt-6 bg-gray-500 text-white px-4 py-2 rounded text-sm md:text-base w-full sm:w-auto"
         >
           Close
         </button>
       </div>
     </div>
-  );
+  )
 }
 
 function AttendanceOverviewModal({ staffMembers, onClose }) {
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedPeriod, setSelectedPeriod] = useState("month")
+  const [selectedDate, setSelectedDate] = useState(new Date())
 
   const dummyAttendanceData = staffMembers.map((staff) => ({
     ...staff,
     checkIn: "09:00",
     checkOut: "17:00",
     hoursWorked: 8,
-  }));
+  }))
 
   const handlePeriodChange = (period) => {
-    setSelectedPeriod(period);
-  };
+    setSelectedPeriod(period)
+  }
 
   const handleDateChange = (date) => {
-    setSelectedDate(date);
-  };
+    setSelectedDate(date)
+  }
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl">
         <h2 className="text-xl font-bold mb-4">Attendance Overview</h2>
-        
+
         {/* Controls */}
         <div className="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
           <select
@@ -836,7 +883,9 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
             <tbody>
               {dummyAttendanceData.map((staff) => (
                 <tr key={staff.id} className="text-sm md:text-base">
-                  <td className="py-2">{staff.firstName} {staff.lastName}</td>
+                  <td className="py-2">
+                    {staff.firstName} {staff.lastName}
+                  </td>
                   <td className="py-2">{staff.checkIn}</td>
                   <td className="py-2">{staff.checkOut}</td>
                   <td className="py-2">{staff.hoursWorked}</td>
@@ -846,13 +895,14 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
           </table>
         </div>
 
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={onClose}
           className="mt-6 bg-gray-500 text-white px-4 py-2 rounded-xl text-sm md:text-base w-full sm:w-auto"
         >
           Close
         </button>
       </div>
     </div>
-  );
+  )
 }
+

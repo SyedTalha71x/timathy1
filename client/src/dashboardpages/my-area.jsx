@@ -476,74 +476,87 @@ export default function MyArea() {
   const DndBackend = isMobile ? TouchBackend : HTML5Backend
 
   const handleAddWidget = (widgetType) => {
-    // Define which widgets belong in the main area vs sidebar
-    const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn', 'websiteLink'];
-    const sidebarWidgets = ['communication', 'todo', 'birthdays'];
+    const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn'];
   
     if (mainAreaWidgets.includes(widgetType)) {
-      // Handle main area widgets
-      const widgetOrder = {
-        chart: 0,
-        appointments: 1,
-        employeeCheckIn: 2,
-        websiteLink: 3
-      };
-  
+      // Left side widgets
       const newWidget = {
         id: `widget${Date.now()}`,
         type: widgetType,
-        position: widgetOrder[widgetType]
+        position: widgets.length,
       };
+      setWidgets((currentWidgets) => [...currentWidgets, newWidget]);
+    } else {
+      // Right side widgets (sidebar)
+      setSidebarSections((current) => {
+        const sectionExists = current.some((section) => section.id === widgetType);
+        if (!sectionExists) {
+          const sectionTitleMap = {
+            communication: 'Communications',
+            todo: 'TO-DO',
+            birthdays: 'Upcoming Birthday',
+            websiteLink: 'Website Links',
+          };
   
-      setWidgets(currentWidgets => {
-        const updatedWidgets = [...currentWidgets, newWidget];
-        return updatedWidgets
-          .sort((a, b) => {
-            const posA = widgetOrder[a.type] ?? Number.MAX_VALUE;
-            const posB = widgetOrder[b.type] ?? Number.MAX_VALUE;
-            return posA - posB;
-          })
-          .map((widget, index) => ({
-            ...widget,
-            position: index
-          }));
-      });
-    } else if (sidebarWidgets.includes(widgetType)) {
-      // Handle sidebar widgets
-      const sidebarOrder = {
-        communication: 0,
-        todo: 1,
-        birthdays: 2
-      };
-  
-      setSidebarSections(currentSections => {
-        // Check if section already exists
-        const sectionExists = currentSections.some(section => section.id === widgetType);
-        if (sectionExists) {
-          return currentSections;
+          return [...current, { id: widgetType, title: sectionTitleMap[widgetType] }];
         }
-  
-        const newSection = {
-          id: widgetType,
-          title: widgetType === 'todo' ? 'TO-DO' : 
-                 widgetType === 'birthdays' ? 'Upcoming Birthday' : 
-                 'Communications'
-        };
-  
-        const updatedSections = [...currentSections, newSection];
-        return updatedSections
-          .sort((a, b) => {
-            const posA = sidebarOrder[a.id] ?? Number.MAX_VALUE;
-            const posB = sidebarOrder[b.id] ?? Number.MAX_VALUE;
-            return posA - posB;
-          });
+        return current;
       });
+  
+      switch (widgetType) {
+        case 'communication':
+          setCommunications((current) => [
+            ...current,
+            {
+              id: `communication${Date.now()}`,
+              name: "Jennifer Markus",
+              message: "Hey! Did you check the NFT marketplace for Alice app design?",
+              time: "Today | 05:30 PM",
+              avatar: Rectangle1,
+            },
+          ]);
+          break;
+  
+        case 'todo':
+          setTodos((current) => [
+            ...current,
+            {
+              id: `todo${Date.now()}`,
+              title: "Review Design",
+              description: "Review the new dashboard design",
+              assignee: "Jack",
+            },
+          ]);
+          break;
+  
+        case 'birthdays':
+          setBirthdays((current) => [
+            ...current,
+            {
+              id: `birthday${Date.now()}`,
+              name: "Yolando",
+              date: "Mon | 02 01 2025",
+              avatar: Avatar,
+            },
+          ]);
+          break;
+  
+        case 'websiteLink':
+          setCustomLinks((current) => [
+            ...current,
+            {
+              id: `link${Date.now()}`,
+              url: "www.example.com",
+              title: "New Website",
+            },
+          ]);
+          break;
+      }
     }
   
-    // Close the widget selection modal
     setIsWidgetModalOpen(false);
   };
-
+  
   const canAddWidget = (widgetType) => {
     const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn', 'websiteLink'];
     const sidebarWidgets = ['communication', 'todo', 'birthdays'];
