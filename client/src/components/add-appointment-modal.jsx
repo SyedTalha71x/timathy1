@@ -60,12 +60,12 @@ const AddAppointmentModal = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm text-gray-200">Date & Time</label>
-              <input
-                type="datetime-local"
-                className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-              />
-            </div>
+  <label className="text-sm text-gray-200">Date & Time</label>
+  <input
+    type="datetime-local"
+    className="white-calendar-icon w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+  />
+</div>
 
             <div className="space-y-1.5">
               <label className="text-sm text-gray-200">Special Note</label>
@@ -92,12 +92,12 @@ const AddAppointmentModal = ({
                 <input
                   type="date"
                   placeholder="Start Date"
-                  className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  className="w-1/2 bg-[#101010] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                 />
                 <input
                   type="date"
                   placeholder="End Date"
-                  className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  className="w-1/2 bg-[#101010] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                 />
               </div>
             </div>

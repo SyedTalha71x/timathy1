@@ -9,11 +9,10 @@ import { BarChart3, MoreVertical, X, Clock, ChevronDown, Edit, Check, ArrowDown,
 import Rectangle1 from "../../public/Rectangle 1.png"
 import Image10 from "../../public/image10.png"
 import Avatar from "../../public/avatar.png"
-import { FaEllipsisV } from "react-icons/fa"
 import { DndProvider, useDrag, useDrop } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import { TouchBackend } from "react-dnd-touch-backend"
-
+import { WidgetSelectionModal } from "../components/widget-selection-modal"
 function EmployeeCheckInWidget() {
   const [isCheckedIn, setIsCheckedIn] = useState(false)
   const [checkInTime, setCheckInTime] = useState(null)
@@ -113,6 +112,7 @@ export default function MyArea() {
   const dropdownRef = useRef(null)
   const chartDropdownRef = useRef(null)
   const navigate = useNavigate()
+  const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
 
   const [isEditing, setIsEditing] = useState(false)
   const [widgets, setWidgets] = useState([
@@ -125,6 +125,53 @@ export default function MyArea() {
     { id: "communications", title: "Communications" },
     { id: "todo", title: "TO-DO" },
     { id: "birthday", title: "Upcoming Birthday" },
+  ])
+
+  const [communications, setCommunications] = useState([
+    {
+      id: 1,
+      name: "Jennifer Markus",
+      message: "Hey! Did you think the NFT marketplace for Alice app design?",
+      time: "Today | 05:30 PM",
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Alex Johnson",
+      message: "The new dashboard looks great! When can we review it?",
+      time: "Today | 03:15 PM",
+      avatar: Rectangle1,
+    },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review Design",
+      description: "Review the new dashboard design",
+      assignee: "Jack",
+    },
+    {
+      id: 2,
+      title: "Team Meeting",
+      description: "Weekly team sync",
+      assignee: "Jack",
+    },
+  ])
+
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "Yolando",
+      date: "Mon | 02 01 2025",
+      avatar: Avatar,
+    },
+    {
+      id: 2,
+      name: "Alexandra",
+      date: "Tue | 02 02 2025",
+      avatar: Avatar,
+    },
   ])
 
   const memberTypes = {
@@ -327,16 +374,21 @@ export default function MyArea() {
     },
     subtitle: {
       text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
-      align: "left",
+      align: "left", 
       style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
     },
     tooltip: {
-      theme: "light",
+      theme: "dark",
       style: {
         fontSize: "12px",
         fontFamily: "Inter, sans-serif",
-        color: "#000000",
       },
+      custom: function({ series, seriesIndex, dataPointIndex, w }) {
+        return '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
+          '<span style="color: black;">' + 
+          series[seriesIndex][dataPointIndex] +
+          '</span></div>';
+      }
     },
   }
 
@@ -423,6 +475,87 @@ export default function MyArea() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const DndBackend = isMobile ? TouchBackend : HTML5Backend
 
+  const handleAddWidget = (widgetType) => {
+    // Define which widgets belong in the main area vs sidebar
+    const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn', 'websiteLink'];
+    const sidebarWidgets = ['communication', 'todo', 'birthdays'];
+  
+    if (mainAreaWidgets.includes(widgetType)) {
+      // Handle main area widgets
+      const widgetOrder = {
+        chart: 0,
+        appointments: 1,
+        employeeCheckIn: 2,
+        websiteLink: 3
+      };
+  
+      const newWidget = {
+        id: `widget${Date.now()}`,
+        type: widgetType,
+        position: widgetOrder[widgetType]
+      };
+  
+      setWidgets(currentWidgets => {
+        const updatedWidgets = [...currentWidgets, newWidget];
+        return updatedWidgets
+          .sort((a, b) => {
+            const posA = widgetOrder[a.type] ?? Number.MAX_VALUE;
+            const posB = widgetOrder[b.type] ?? Number.MAX_VALUE;
+            return posA - posB;
+          })
+          .map((widget, index) => ({
+            ...widget,
+            position: index
+          }));
+      });
+    } else if (sidebarWidgets.includes(widgetType)) {
+      // Handle sidebar widgets
+      const sidebarOrder = {
+        communication: 0,
+        todo: 1,
+        birthdays: 2
+      };
+  
+      setSidebarSections(currentSections => {
+        // Check if section already exists
+        const sectionExists = currentSections.some(section => section.id === widgetType);
+        if (sectionExists) {
+          return currentSections;
+        }
+  
+        const newSection = {
+          id: widgetType,
+          title: widgetType === 'todo' ? 'TO-DO' : 
+                 widgetType === 'birthdays' ? 'Upcoming Birthday' : 
+                 'Communications'
+        };
+  
+        const updatedSections = [...currentSections, newSection];
+        return updatedSections
+          .sort((a, b) => {
+            const posA = sidebarOrder[a.id] ?? Number.MAX_VALUE;
+            const posB = sidebarOrder[b.id] ?? Number.MAX_VALUE;
+            return posA - posB;
+          });
+      });
+    }
+  
+    // Close the widget selection modal
+    setIsWidgetModalOpen(false);
+  };
+
+  const canAddWidget = (widgetType) => {
+    const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn', 'websiteLink'];
+    const sidebarWidgets = ['communication', 'todo', 'birthdays'];
+  
+    if (mainAreaWidgets.includes(widgetType)) {
+      return !widgets.some(widget => widget.type === widgetType);
+    } else if (sidebarWidgets.includes(widgetType)) {
+      return !sidebarSections.some(section => section.id === widgetType);
+    }
+    return false;
+  };
+
   return (
     <DndProvider backend={DndBackend}>
       <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
@@ -442,20 +575,7 @@ export default function MyArea() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden"
-                  onClick={toggleRightSidebar}
-                >
-                  <FaEllipsisV />
-                </button>
-                <button
-                  onClick={() => {
-                    const newWidget = {
-                      id: `widget${widgets.length + 1}`,
-                      type: "custom",
-                      position: widgets.length,
-                    }
-                    setWidgets([...widgets, newWidget])
-                  }}
+                  onClick={() => setIsWidgetModalOpen(true)}
                   className="py-2 px-6 bg-black text-white hover:bg-zinc-900 rounded-xl text-sm cursor-pointer flex items-center gap-1"
                 >
                   <Plus size={16} />
@@ -609,6 +729,118 @@ export default function MyArea() {
 
                     {/* EmployeeCheckIn Widget */}
                     {widget.type === "employeeCheckIn" && <EmployeeCheckInWidget />}
+
+                    {widget.type === "communication" && (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Communications</h2>
+                          <Link to="/dashboard/communication" className="text-sm text-white hover:underline">
+                            See all
+                          </Link>
+                        </div>
+                        <div className="space-y-3">
+                          {communications.map((comm) => (
+                            <div
+                              key={comm.id}
+                              onClick={redirectToCommunication}
+                              className="p-4 bg-black rounded-xl cursor-pointer"
+                            >
+                              <div className="flex items-center gap-3 mb-2">
+                                <img
+                                  src={comm.avatar || "/placeholder.svg"}
+                                  alt=""
+                                  className="rounded-full h-10 w-10"
+                                />
+                                <div>
+                                  <h3 className="font-semibold text-sm">{comm.name}</h3>
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-sm text-zinc-400">{comm.message}</p>
+                                <p className="text-xs mt-2 flex gap-1 items-center text-zinc-400">
+                                  <Clock size={12} />
+                                  {comm.time}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "todo" && (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">TO-DO</h2>
+                          <Link to="/dashboard/to-do" className="text-sm text-white hover:underline">
+                            See all
+                          </Link>
+                        </div>
+                        <div className="space-y-3">
+                          {todos.map((todo) => (
+                            <div
+                              key={todo.id}
+                              onClick={redirectToTodos}
+                              className="p-4 bg-black rounded-xl flex items-center justify-between cursor-pointer"
+                            >
+                              <div>
+                                <h3 className="font-semibold text-sm">{todo.title}</h3>
+                                <p className="text-xs text-zinc-400">{todo.description}</p>
+                              </div>
+                              <button className="px-4 py-1.5 flex items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
+                                <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
+                                {todo.assignee}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "birthdays" && (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Upcoming Birthdays</h2>
+                        </div>
+                        <div className="space-y-3">
+                          {birthdays.map((birthday) => (
+                            <div key={birthday.id} className="p-4 bg-black rounded-xl flex items-center gap-3">
+                              <img
+                                src={birthday.avatar || "/placeholder.svg"}
+                                alt=""
+                                className="h-10 w-10 rounded-full"
+                              />
+                              <div>
+                                <h3 className="font-semibold text-sm">{birthday.name}</h3>
+                                <p className="text-xs text-zinc-400">{birthday.date}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "websiteLink" && (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Website Links</h2>
+                        </div>
+                        <div className="space-y-3">
+                          {customLinks.map((link) => (
+                            <div key={link.id} className="p-4 bg-black rounded-xl">
+                              <h3 className="text-sm font-medium">{link.title}</h3>
+                              <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
+                            </div>
+                          ))}
+                          <button
+                            onClick={addCustomLink}
+                            className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
+                          >
+                            Add website link...
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </DraggableWidget>
                 ))}
             </div>
@@ -735,7 +967,6 @@ export default function MyArea() {
                 {section.id === "birthday" && (
                   <>
                     <div className="space-y-4 open_sans_font">
-                    
                       {[1, 2, 3].map((task) => (
                         <div
                           key={task}
@@ -841,6 +1072,11 @@ export default function MyArea() {
           </div>
         </aside>
         {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
+        <WidgetSelectionModal
+          isOpen={isWidgetModalOpen}
+          onClose={() => setIsWidgetModalOpen(false)}
+          onSelectWidget={handleAddWidget}
+        />
       </div>
     </DndProvider>
   )

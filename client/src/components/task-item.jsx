@@ -1,8 +1,7 @@
-"use client"
-
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
-import { MoreHorizontal, Tag, Calendar } from "lucide-react"
+import { MoreHorizontal, Tag, Calendar } from 'lucide-react'
 import Avatar from "../../public/image10.png"
 import EditTaskModal from "./edit-task-modal"
 import { Toaster, toast } from "react-hot-toast"
@@ -10,44 +9,21 @@ import { Toaster, toast } from "react-hot-toast"
 export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   const toggleDropdown = (e) => {
     e.stopPropagation()
     setIsDropdownOpen(!isDropdownOpen)
   }
 
-  const handleCheckboxChange = () => {
-    const newStatus = task.status === "completed" ? "ongoing" : "completed"
+  const handleStatusChange = (newStatus) => {
     onStatusChange(task.id, newStatus)
-
-    if (newStatus === "completed") {
-      toast.success("Task has been completed!")
-    } else {
-      toast.info("Task is now ongoing!")
-    }
-  }
-
-  const handleCancelTask = () => {
-    onStatusChange(task.id, "canceled")
-    toast.success("Task has been cancelled Successfully!")
+    toast.success(`Task is now ${newStatus}!`)
     setIsDropdownOpen(false)
   }
 
   const handleEditTask = () => {
     setIsEditModalOpen(true)
     setIsDropdownOpen(false)
-  }
-
-  const handleRemoveTask = () => {
-    setIsDeleteModalOpen(true)
-    setIsDropdownOpen(false)
-  }
-
-  const handleConfirmDelete = () => {
-    onRemove(task.id)
-    setIsDeleteModalOpen(false)
-    toast.success("Task has been deleted!")
   }
 
   const handleUpdateTask = (updatedTask) => {
@@ -71,14 +47,12 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
         <div className="flex flex-col gap-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
-              {task.status !== "canceled" && (
-                <input
-                  type="checkbox"
-                  checked={task.status === "completed"}
-                  onChange={handleCheckboxChange}
-                  className="mt-1 form-checkbox h-4 w-4 cursor-pointer text-[#FF843E] rounded-full border-gray-300 focus:ring-[#FF843E]"
-                />
-              )}
+              <input
+                type="checkbox"
+                checked={task.status === "completed"}
+                onChange={() => handleStatusChange(task.status === "completed" ? "ongoing" : "completed")}
+                className="mt-1 form-checkbox h-4 w-4 cursor-pointer text-[#FF843E] rounded-full border-gray-300 focus:ring-[#FF843E]"
+              />
               <div className="flex-grow">
                 <h3 className="text-white font-medium text-sm">{task.title}</h3>
                 <p className="text-gray-400 text-xs mt-1">{task.description}</p>
@@ -103,23 +77,35 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
                 </button>
                 {isDropdownOpen && (
                   <div className="absolute right-0 top-8 w-48 bg-[#2F2F2F] rounded-xl shadow-lg z-50 border border-gray-700">
-                    <button
-                      className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-gray-700 rounded-t-xl"
-                      onClick={handleCancelTask}
-                    >
-                      Cancel Task
-                    </button>
+                    {task.status !== "canceled" && (
+                      <button
+                        className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-gray-700 rounded-t-xl"
+                        onClick={() => handleStatusChange("canceled")}
+                      >
+                        Cancel Task
+                      </button>
+                    )}
+                    {task.status === "canceled" && (
+                      <>
+                        <button
+                          className="w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-gray-700 rounded-t-xl"
+                          onClick={() => handleStatusChange("ongoing")}
+                        >
+                          Move to Ongoing
+                        </button>
+                        <button
+                          className="w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-gray-700"
+                          onClick={() => handleStatusChange("completed")}
+                        >
+                          Mark as Completed
+                        </button>
+                      </>
+                    )}
                     <button
                       className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-gray-700"
                       onClick={handleEditTask}
                     >
                       Edit Task
-                    </button>
-                    <button
-                      className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-gray-700 rounded-b-xl"
-                      onClick={handleRemoveTask}
-                    >
-                      Delete Task
                     </button>
                   </div>
                 )}
@@ -159,31 +145,7 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
         {isEditModalOpen && (
           <EditTaskModal task={task} onClose={() => setIsEditModalOpen(false)} onUpdateTask={handleUpdateTask} />
         )}
-
-        {isDeleteModalOpen && (
-          <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-[#2F2F2F] rounded-xl p-6 w-80">
-              <h2 className="text-white text-lg font-semibold mb-4">Confirm Deletion</h2>
-              <p className="text-gray-300 mb-6">Are you sure you want to delete this task?</p>
-              <div className="flex justify-end gap-4">
-                <button
-                  onClick={() => setIsDeleteModalOpen(false)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   )
 }
-

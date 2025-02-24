@@ -1,64 +1,74 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client"
+"use client";
 
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-import { MoreHorizontal, X, Clock, Info, Search, AlertTriangle } from "lucide-react"
-import { useState, useEffect, useCallback, useRef } from "react"
-import Avatar from "../../public/avatar.png"
-// import Calendar from "../components/calender";
-// import MiniCalendar from "../components/mini-calender";
-import toast, { Toaster } from "react-hot-toast"
-import FullCalendar from "@fullcalendar/react"
-import dayGridPlugin from "@fullcalendar/daygrid"
-import timeGridPlugin from "@fullcalendar/timegrid"
-import interactionPlugin from "@fullcalendar/interaction"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import TrialPlanningModal from "../components/add-trial"
-import AddAppointmentModal from "../components/add-appointment-modal"
+import {
+  MoreHorizontal,
+  X,
+  Clock,
+  Info,
+  Search,
+  AlertTriangle,
+} from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import Avatar from "../../public/avatar.png";
+import toast, { Toaster } from "react-hot-toast";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import TrialPlanningModal from "../components/add-trial";
+import AddAppointmentModal from "../components/add-appointment-modal";
+import SelectedAppointmentModal from "../components/selected-appointment-modal";
 
-function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selectedDate, setAppointments }) {
+function Calendar({
+  appointments,
+  onEventClick,
+  onDateSelect,
+  searchQuery,
+  selectedDate,
+  setAppointments,
+}) {
   const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, "0")
-    const month = String(date.getMonth() + 1).padStart(2, "0")
-    const year = date.getFullYear()
-    return `${day}-${month}-${year}`
-  }
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
 
-
-  const calendarRef = useRef(null)
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
-  const [notifyAction, setNotifyAction] = useState("change")
-  const [eventInfo, setEventInfo] = useState(null)
-  const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
-  const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
-  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
-  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
-  const [freeAppointments, setFreeAppointments] = useState([])
+  const calendarRef = useRef(null);
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false);
+  const [notifyAction, setNotifyAction] = useState("change");
+  const [eventInfo, setEventInfo] = useState(null);
+  const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false);
+  const [selectedSlotInfo, setSelectedSlotInfo] = useState(null);
+  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [freeAppointments, setFreeAppointments] = useState([]);
 
   // Sample appointment types - you can replace this with your actual data
   const appointmentTypes = [
     { name: "Regular Training", duration: 60, color: "bg-blue-500" },
     { name: "Consultation", duration: 30, color: "bg-green-500" },
     { name: "Assessment", duration: 45, color: "bg-purple-500" },
-  ]
+  ];
 
-useEffect(() => {
+  useEffect(() => {
     if (selectedDate && calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi()
-      calendarApi.gotoDate(selectedDate)
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.gotoDate(selectedDate);
 
-      const currentView = calendarApi.view.type
+      const currentView = calendarApi.view.type;
       if (currentView.includes("timeGrid")) {
-        calendarApi.changeView("timeGridDay", selectedDate)
+        calendarApi.changeView("timeGridDay", selectedDate);
       } else {
-        calendarApi.gotoDate(selectedDate)
+        calendarApi.gotoDate(selectedDate);
       }
     }
-  }, [selectedDate])
-
-
+  }, [selectedDate]);
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
@@ -66,46 +76,50 @@ useEffect(() => {
       ...trialData,
       status: "pending",
       isTrial: true,
-    }
-    setAppointments([...appointments, newTrial])
-    toast.success("Trial training booked successfully")
-    setIsTrialModalOpen(false)
-  }
+    };
+    setAppointments([...appointments, newTrial]);
+    toast.success("Trial training booked successfully");
+    setIsTrialModalOpen(false);
+  };
 
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
       id: appointments.length + 1,
       ...appointmentData,
       status: "scheduled",
-    }
-    setAppointments([...appointments, newAppointment])
-    toast.success("Appointment booked successfully")
-    setIsAppointmentModalOpen(false)
-  }
+    };
+    setAppointments([...appointments, newAppointment]);
+    toast.success("Appointment booked successfully");
+    setIsAppointmentModalOpen(false);
+  };
 
   const handleEventDrop = (info) => {
     console.log("Event dropped:", info);
-    if (confirm('Are you sure you want to move this appointment?')) {
+    if (confirm("Are you sure you want to move this appointment?")) {
       // Update the appointment date and time
       const updatedAppointments = appointments.map((appointment) => {
         if (appointment.id === parseInt(info.event.id)) {
           return {
             ...appointment,
-            date: `${info.event.start.toLocaleDateString('en-US', { weekday: 'short' })} | ${formatDate(info.event.start)}`,
-            startTime: info.event.start.toTimeString().split(' ')[0],
-            endTime: info.event.end.toTimeString().split(' ')[0],
-            time: `${info.event.start.toTimeString().split(' ')[0]} - ${info.event.end.toTimeString().split(' ')[0]}`
+            date: `${info.event.start.toLocaleDateString("en-US", {
+              weekday: "short",
+            })} | ${formatDate(info.event.start)}`,
+            startTime: info.event.start.toTimeString().split(" ")[0],
+            endTime: info.event.end.toTimeString().split(" ")[0],
+            time: `${info.event.start.toTimeString().split(" ")[0]} - ${
+              info.event.end.toTimeString().split(" ")[0]
+            }`,
           };
         }
         return appointment;
       });
-  
+
       // Update the appointments state
       setAppointments(updatedAppointments);
-  
+
       // Set the event info to be used in the notify modal
       setEventInfo(info);
-  
+
       // Open the notify modal
       setIsNotifyMemberOpen(true);
     } else {
@@ -115,26 +129,26 @@ useEffect(() => {
   };
 
   const handleDateSelect = (selectInfo) => {
-    setSelectedSlotInfo(selectInfo)
-    setIsTypeSelectionOpen(true)
-  }
+    setSelectedSlotInfo(selectInfo);
+    setIsTypeSelectionOpen(true);
+  };
 
   const handleTypeSelection = (type) => {
-    setIsTypeSelectionOpen(false)
+    setIsTypeSelectionOpen(false);
     if (type === "trial") {
-      setIsTrialModalOpen(true)
+      setIsTrialModalOpen(true);
     } else if (type === "appointment") {
-      setIsAppointmentModalOpen(true)
+      setIsAppointmentModalOpen(true);
     } else if (selectedSlotInfo && onDateSelect) {
-      onDateSelect({ ...selectedSlotInfo, eventType: type })
+      onDateSelect({ ...selectedSlotInfo, eventType: type });
     }
-  }
+  };
 
   const handleNotifyMember = (shouldNotify) => {
-    setIsNotifyMemberOpen(false)
+    setIsNotifyMemberOpen(false);
     if (shouldNotify) {
-      console.log("Notify member about the new time:", eventInfo.event.start)
-      toast.success("Member notified successfully!")
+      console.log("Notify member about the new time:", eventInfo.event.start);
+      toast.success("Member notified successfully!");
       const updatedAppointments = appointments.map((appointment) => {
         if (appointment.id === eventInfo.event.id) {
           return {
@@ -142,87 +156,94 @@ useEffect(() => {
             date: eventInfo.event.start.toISOString().split("T")[0],
             startTime: eventInfo.event.start.toTimeString().split(" ")[0],
             endTime: eventInfo.event.end.toTimeString().split(" ")[0],
-          }
+          };
         }
-        return appointment
-      })
-      setAppointments(updatedAppointments)
+        return appointment;
+      });
+      setAppointments(updatedAppointments);
     }
-  }
+  };
 
   const calendarEvents = appointments
-  .filter((appointment) => {
-    // Filter by search query
-    const nameMatch = appointment.name.toLowerCase().includes(searchQuery.toLowerCase())
+    .filter((appointment) => {
+      // Filter by search query
+      const nameMatch = appointment.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-    // Filter by selected date
-    let dateMatch = true
-    if (selectedDate) {
-      const [_, datePart] = appointment.date.split("|")
-      const appointmentDate = datePart.trim() // Format: dd-mm-yyyy
-      const formattedSelectedDate = formatDate(new Date(selectedDate))
-      dateMatch = appointmentDate === formattedSelectedDate
-    }
+      // Filter by selected date
+      let dateMatch = true;
+      if (selectedDate) {
+        const [_, datePart] = appointment.date.split("|");
+        const appointmentDate = datePart.trim(); // Format: dd-mm-yyyy
+        const formattedSelectedDate = formatDate(new Date(selectedDate));
+        dateMatch = appointmentDate === formattedSelectedDate;
+      }
 
-    return nameMatch && dateMatch
-  })
-  .map((appointment) => {
-    const [_, datePart] = appointment.date.split("|")
-    const [day, month, year] = datePart.trim().split("-")
-    const dateStr = `${year}-${month}-${day}` // Format: yyyy-mm-dd for FullCalendar
+      return nameMatch && dateMatch;
+    })
+    .map((appointment) => {
+      const [_, datePart] = appointment.date.split("|");
+      const [day, month, year] = datePart.trim().split("-");
+      const dateStr = `${year}-${month}-${day}`; // Format: yyyy-mm-dd for FullCalendar
 
-    
-    return {
-      id: appointment.id,
-      title: appointment.name,
-      start: `${dateStr}T${appointment.startTime}`,
-      end: `${dateStr}T${appointment.endTime}`,
-      backgroundColor: appointment.color.split("bg-[")[1].slice(0, -1),
-      borderColor: appointment.color.split("bg-[")[1].slice(0, -1),
-      extendedProps: {
-        type: appointment.type,
-      },
-    }
-   
-  })
-  
+      return {
+        id: appointment.id,
+        title: appointment.name,
+        start: `${dateStr}T${appointment.startTime}`,
+        end: `${dateStr}T${appointment.endTime}`,
+        backgroundColor: appointment.color.split("bg-[")[1].slice(0, -1),
+        borderColor: appointment.color.split("bg-[")[1].slice(0, -1),
+        extendedProps: {
+          type: appointment.type,
+        },
+      };
+    });
+
   return (
     <>
       <div className="h-full w-full">
-        <div className="max-w-7xl overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div
+          className="max-w-7xl overflow-x-auto"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           <div className="min-w-[768px]">
-          <FullCalendar
-  ref={calendarRef}
-  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // Ensure interactionPlugin is included
-  initialView="timeGridWeek"
-  initialDate={selectedDate || "2025-02-03"}
-  headerToolbar={{
-    left: "prev,next",
-    center: "title",
-    right: "dayGridMonth,timeGridWeek,timeGridDay",
-  }}
-  events={calendarEvents}
-  height="auto"
-  selectable={true}
-  editable={true} // Ensure this is true
-  eventResizable={false}
-  eventDrop={handleEventDrop} // Ensure this is correctly set
-  slotMinTime="08:00:00"
-  slotMaxTime="19:00:00"
-  allDaySlot={false}
-  nowIndicator={true}
-  slotDuration="01:00:00"
-  firstDay={1}
-  eventClick={onEventClick}
-  select={handleDateSelect}
-  eventContent={(eventInfo) => (
-    <div className="p-1 h-full overflow-hidden">
-      <div className="font-semibold text-xs sm:text-sm truncate">{eventInfo.event.title}</div>
-      <div className="text-xs opacity-90 truncate">{eventInfo.event.extendedProps.type}</div>
-      <div className="text-xs mt-1">{eventInfo.timeText}</div>
-    </div>
-  )}
-/>
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} 
+              initialView="timeGridWeek"
+              initialDate={selectedDate || "2025-02-03"}
+              headerToolbar={{
+                left: "prev,next",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              events={calendarEvents}
+              height="auto"
+              selectable={true}
+              editable={true} 
+              eventResizable={false}
+              eventDrop={handleEventDrop} 
+              slotMinTime="08:00:00"
+              slotMaxTime="19:00:00"
+              allDaySlot={false}
+              nowIndicator={true}
+              slotDuration="01:00:00"
+              firstDay={1}
+              eventClick={onEventClick}
+              select={handleDateSelect}
+              eventContent={(eventInfo) => (
+                <div className="p-1 h-full overflow-hidden">
+                  <div className="font-semibold text-xs sm:text-sm truncate">
+                    {eventInfo.event.title}
+                  </div>
+                  <div className="text-xs opacity-90 truncate">
+                    {eventInfo.event.extendedProps.type}
+                  </div>
+                  <div className="text-xs mt-1">{eventInfo.timeText}</div>
+                </div>
+              )}
+            />
           </div>
         </div>
       </div>
@@ -256,7 +277,9 @@ useEffect(() => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Select Event Type</h2>
+              <h2 className="text-lg font-semibold text-white">
+                Select Event Type
+              </h2>
               <button
                 onClick={() => setIsTypeSelectionOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -294,7 +317,9 @@ useEffect(() => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+              <h2 className="text-lg font-semibold text-white">
+                Notify Member
+              </h2>
               <button
                 onClick={() => setIsNotifyMemberOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -306,7 +331,12 @@ useEffect(() => {
             <div className="p-6">
               <p className="text-white text-sm">
                 Do you want to notify the member about this{" "}
-                {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
+                {notifyAction === "change"
+                  ? "change"
+                  : notifyAction === "cancel"
+                  ? "cancellation"
+                  : "booking"}
+                ?
               </p>
             </div>
 
@@ -450,30 +480,46 @@ useEffect(() => {
         }
       `}</style>
     </>
-  )
+  );
 }
 
 function MiniCalendar({ onDateSelect, selectedDate }) {
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const today = new Date()
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const today = new Date();
 
-  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
+  const daysInMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0
+  ).getDate();
+  const firstDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  ).getDay();
 
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
-  }
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    );
+  };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
-  }
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    );
+  };
 
   const handleDateClick = (day) => {
-    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-    onDateSelect(clickedDate)
-  }
+    const clickedDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      day
+    );
+    onDateSelect(clickedDate);
+  };
 
   // Format date to dd-mm-yyyy
   const formatDate = (date) => {
@@ -483,13 +529,16 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
     return `${day}-${month}-${year}`; // Format: dd-mm-yyyy
   };
   const isSameDay = (date1, date2) => {
-    return formatDate(date1) === formatDate(date2)
-  }
+    return formatDate(date1) === formatDate(date2);
+  };
 
   return (
     <div className="bg-[#000000] rounded-xl p-3 w-64">
       <div className="flex justify-between items-center mb-2">
-        <button onClick={handlePrevMonth} className="text-white hover:text-gray-300">
+        <button
+          onClick={handlePrevMonth}
+          className="text-white hover:text-gray-300"
+        >
           <ChevronLeft size={20} />
         </button>
         <h2 className="text-white text-sm font-semibold">
@@ -498,7 +547,10 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
             year: "numeric",
           })}
         </h2>
-        <button onClick={handleNextMonth} className="text-white hover:text-gray-300">
+        <button
+          onClick={handleNextMonth}
+          className="text-white hover:text-gray-300"
+        >
           <ChevronRight size={20} />
         </button>
       </div>
@@ -512,54 +564,63 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
           <div key={`empty-${i}`} />
         ))}
         {Array.from({ length: daysInMonth }, (_, i) => {
-          const day = i + 1
-          const currentDateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-          const isToday = isSameDay(currentDateObj, today)
-          const isSelected = selectedDate && isSameDay(currentDateObj, selectedDate)
+          const day = i + 1;
+          const currentDateObj = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            day
+          );
+          const isToday = isSameDay(currentDateObj, today);
+          const isSelected =
+            selectedDate && isSameDay(currentDateObj, selectedDate);
 
           return (
             <button
               key={day}
               onClick={() => handleDateClick(day)}
               className={`aspect-square flex items-center justify-center rounded-full text-xs
-                ${isToday ? "bg-blue-500 text-white" : "text-white hover:bg-gray-700"}
+                ${
+                  isToday
+                    ? "bg-blue-500 text-white"
+                    : "text-white hover:bg-gray-700"
+                }
                 ${isSelected ? "bg-[#3F74FF] text-white" : ""}
                 transition-all duration-200
               `}
             >
               {day}
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
 
 export default function Appointments() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
-  const [activeDropdownId, setActiveDropdownId] = useState(null)
-  const [view, setView] = useState("week")
-  const [selectedDate, setSelectedDate] = useState(null)
-  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
-  const [checkedInMembers, setCheckedInMembers] = useState([])
-  const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
-  const [appointmentToRemove, setAppointmentToRemove] = useState(null)
-  const [isShowDetails, setisShowDetails] = useState(false)
-  const [activeNoteId, setActiveNoteId] = useState(null)
-  const [checkedOutMembers, setCheckedOutMembers] = useState([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedMember, setSelectedMember] = useState(null)
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
-  const [notifyAction, setNotifyAction] = useState("")
-  const [freeAppointments, setFreeAppointments] = useState([])
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false);
+  const [activeDropdownId, setActiveDropdownId] = useState(null);
+  const [view, setView] = useState("week");
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
+  const [checkedInMembers, setCheckedInMembers] = useState([]);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
+  const [appointmentToRemove, setAppointmentToRemove] = useState(null);
+  const [isShowDetails, setisShowDetails] = useState(false);
+  const [activeNoteId, setActiveNoteId] = useState(null);
+  const [checkedOutMembers, setCheckedOutMembers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false);
+  const [notifyAction, setNotifyAction] = useState("");
+  const [freeAppointments, setFreeAppointments] = useState([]);
   const [appointmentTypes, setAppointmentTypes] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
     { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
     { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
-  ])
+  ]);
   const [appointments, setAppointments] = useState([
     {
       id: 1,
@@ -595,7 +656,7 @@ export default function Appointments() {
         isImportant: false,
       },
       status: "pending",
-      isTrial: false,
+      isTrial: true,
     },
     {
       id: 3,
@@ -633,61 +694,75 @@ export default function Appointments() {
       status: "pending",
       isTrial: false,
     },
-  ])
+  ]);
 
   const [openingHours, setOpeningHours] = useState({
     start: "08:00:00",
     end: "19:00:00",
-  })
+  });
 
-  const [filteredAppointments, setFilteredAppointments] = useState(appointments)
+  const [filteredAppointments, setFilteredAppointments] =
+    useState(appointments);
 
   const handleDateSelect = (date) => {
-    setSelectedDate(date)
-  
+    setSelectedDate(date);
+
     // If no date is selected, show all appointments
     if (!date) {
-      setFilteredAppointments(appointments)
-      return
+      setFilteredAppointments(appointments);
+      return;
     }
-  
+
     // Format the selected date to dd-mm-yyyy
-    const formattedSelectedDate = formatDate(date)
-  
+    const formattedSelectedDate = formatDate(date);
+
     // Filter appointments for the selected date
     const appointmentsForDate = appointments.filter((appointment) => {
-      const appointmentDate = appointment.date.split("|")[1].trim()
-      return appointmentDate === formattedSelectedDate
-    })
-  
+      const appointmentDate = appointment.date.split("|")[1].trim();
+      return appointmentDate === formattedSelectedDate;
+    });
+
     // Set filtered appointments
-    setFilteredAppointments(appointmentsForDate.length > 0 ? appointmentsForDate : [])
-  }
+    setFilteredAppointments(
+      appointmentsForDate.length > 0 ? appointmentsForDate : []
+    );
+  };
   const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, "0")
-    const month = String(date.getMonth() + 1).padStart(2, "0")
-    const year = date.getFullYear()
-    return `${day}-${month}-${year}`
-  }
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const formatDateForDisplay = (date) => {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
   useEffect(() => {
     const handleClickOutside = () => {
-      setActiveDropdownId(null)
-      setIsViewDropdownOpen(false)
-      setActiveNoteId(null)
-    }
-    document.addEventListener("click", handleClickOutside)
-    return () => document.removeEventListener("click", handleClickOutside)
-  }, [])
+      setActiveDropdownId(null);
+      setIsViewDropdownOpen(false);
+      setActiveNoteId(null);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const filtered = appointments.filter((appointment) => {
       // Filter by search query
-      const nameMatch = appointment.name.toLowerCase().includes(searchQuery.toLowerCase());
-  
+      const nameMatch = appointment.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
       // Filter by selected date (if any)
-      const dateMatch = !selectedDate || appointment.date.split("|")[1].trim() === formatDate(selectedDate);
-  
+      const dateMatch =
+        !selectedDate ||
+        appointment.date.split("|")[1].trim() === formatDate(selectedDate);
+
       return nameMatch && dateMatch;
     });
     setFilteredAppointments(filtered);
@@ -698,25 +773,29 @@ export default function Appointments() {
       prevAppointments.map((appointment) => {
         if (appointment.id === appointmentId) {
           if (appointment.status === "pending") {
-            toast.success("Member checked out successfully")
-            return { ...appointment, status: "checked-out" }
+            toast.success("Member checked out successfully");
+            return { ...appointment, status: "checked-out" };
           }
         }
-        return appointment
-      }),
-    )
-  }
+        return appointment;
+      })
+    );
+  };
 
   const handleAppointmentSubmit = (appointmentData) => {
-    // Add new appointment to the list
     const newAppointment = {
       id: appointments.length + 1,
       ...appointmentData,
       status: "pending",
-    }
-    setAppointments([...appointments, newAppointment])
-    toast.success("Appointment booked successfully")
-  }
+      isTrial: false,
+      // Format date properly when adding new appointment
+      date: `${new Date(appointmentData.date).toLocaleString("en-US", {
+        weekday: "short",
+      })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
+    };
+    setAppointments([...appointments, newAppointment]);
+    toast.success("Appointment booked successfully");
+  };
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
@@ -724,10 +803,14 @@ export default function Appointments() {
       ...trialData,
       status: "pending",
       isTrial: true,
-    }
-    setAppointments([...appointments, newTrial])
-    toast.success("Trial training booked successfully")
-  }
+      // Format date properly when adding new trial
+      date: `${new Date(trialData.date).toLocaleString("en-US", {
+        weekday: "short",
+      })} | ${formatDateForDisplay(new Date(trialData.date))}`,
+    };
+    setAppointments([...appointments, newTrial]);
+    toast.success("Trial training booked successfully");
+  };
 
   const handleCheckIn = (appointmentId) => {
     setAppointments((prevAppointments) =>
@@ -737,126 +820,142 @@ export default function Appointments() {
           const updatedAppointment = {
             ...appointment,
             isCheckedIn: !appointment.isCheckedIn,
-          }
+          };
 
           // If the appointment is checked in, automatically revert after 3 seconds
           if (updatedAppointment.isCheckedIn) {
             setTimeout(() => {
               setAppointments((prevAppointments) =>
-                prevAppointments.map((app) => (app.id === appointmentId ? { ...app, isCheckedIn: false } : app)),
-              )
-            }, 3000)
+                prevAppointments.map((app) =>
+                  app.id === appointmentId
+                    ? { ...app, isCheckedIn: false }
+                    : app
+                )
+              );
+            }, 3000);
           }
 
-          return updatedAppointment
+          return updatedAppointment;
         }
-        return appointment
-      }),
-    )
-  }
+        return appointment;
+      })
+    );
+  };
 
   const handleAppointmentClick = (appointment) => {
-    setSelectedAppointment(appointment)
+    setSelectedAppointment(appointment);
     // Fetch free appointments here
     setFreeAppointments([
       { id: "free1", date: "2025-01-03", time: "10:00" },
       { id: "free2", date: "2025-01-03", time: "11:00" },
       { id: "free3", date: "2025-01-03", time: "14:00" },
-    ])
-  }
+    ]);
+  };
 
   const handleAppointmentChange = (changes) => {
     setSelectedAppointment((prev) => {
-      const updatedAppointment = { ...prev, ...changes }
+      const updatedAppointment = { ...prev, ...changes };
       if (changes.specialNote) {
         updatedAppointment.specialNote = {
           ...prev.specialNote,
           ...changes.specialNote,
-        }
+        };
       }
-      return updatedAppointment
-    })
-  }
+      return updatedAppointment;
+    });
+  };
 
   const handleRemoveAppointment = (appointment) => {
-    setAppointmentToRemove(appointment)
-    setIsConfirmCancelOpen(true)
-    setActiveDropdownId(null)
-  }
+    setAppointmentToRemove(appointment);
+    setIsConfirmCancelOpen(true);
+    setActiveDropdownId(null);
+  };
 
   const confirmRemoveAppointment = () => {
-    setIsConfirmCancelOpen(false)
-    setIsNotifyMemberOpen(true)
-    setNotifyAction("cancel")
+    setIsConfirmCancelOpen(false);
+    setIsNotifyMemberOpen(true);
+    setNotifyAction("cancel");
     // We'll handle the actual removal after user decides on notification
-  }
+  };
 
   const handleNotifyMember = (shouldNotify) => {
-    const changes = {}
-    let updatedAppointment
+    const changes = {};
+    let updatedAppointment;
     if (notifyAction === "change") {
-      updatedAppointment = { ...selectedAppointment, ...changes }
+      updatedAppointment = { ...selectedAppointment, ...changes };
       const updatedAppointments = appointments.map((app) =>
-        app.id === updatedAppointment.id ? updatedAppointment : app,
-      )
-      setAppointments(updatedAppointments)
-      setSelectedAppointment(null)
-      toast.success("Appointment updated successfully")
+        app.id === updatedAppointment.id ? updatedAppointment : app
+      );
+      setAppointments(updatedAppointments);
+      setSelectedAppointment(null);
+      toast.success("Appointment updated successfully");
     } else if (notifyAction === "cancel") {
-      setAppointments(appointments.filter((app) => app.id !== appointmentToRemove.id))
-      setAppointmentToRemove(null)
-      toast.success("Appointment removed successfully")
+      setAppointments(
+        appointments.filter((app) => app.id !== appointmentToRemove.id)
+      );
+      setAppointmentToRemove(null);
+      toast.success("Appointment removed successfully");
     }
 
     if (shouldNotify) {
       // Here you would implement the actual notification logic
-      toast.success("Member notified successfully")
+      toast.success("Member notified successfully");
     }
 
-    setIsNotifyMemberOpen(false)
-  }
+    setIsNotifyMemberOpen(false);
+  };
 
   // Modified search handler to update both list and calendar
   const handleSearch = (e) => {
-    const query = e.target.value.toLowerCase()
-    setSearchQuery(query)
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
     if (query === "") {
-      setSelectedMember(null)
+      setSelectedMember(null);
     } else {
-      const foundMember = appointments.find((app) => app.name.toLowerCase().includes(query))
-      setSelectedMember(foundMember ? foundMember.name : null)
+      const foundMember = appointments.find((app) =>
+        app.name.toLowerCase().includes(query)
+      );
+      setSelectedMember(foundMember ? foundMember.name : null);
     }
-  }
+  };
 
   const handleEventClick = (info) => {
-    const appointment = appointments.find((app) => app.id === info.event.id)
+    const appointment = appointments.find((app) => app.id === info.event.id);
     if (appointment) {
-      handleAppointmentClick(appointment)
+      handleAppointmentClick(appointment);
     }
-  }
+  };
 
   const renderSpecialNoteIcon = useCallback(
     (specialNote, appointmentId) => {
-      if (!specialNote.text) return null
+      if (!specialNote.text) return null;
 
       const isActive =
         specialNote.startDate === null ||
-        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+        (new Date() >= new Date(specialNote.startDate) &&
+          new Date() <= new Date(specialNote.endDate));
 
-      if (!isActive) return null
+      if (!isActive) return null;
 
       const handleMouseEnter = () => {
-        setActiveNoteId(appointmentId)
-      }
+        setActiveNoteId(appointmentId);
+      };
 
       const handleMouseLeave = () => {
-        setActiveNoteId(null)
-      }
+        setActiveNoteId(null);
+      };
 
       return (
-        <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <div
+          className="relative"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           {specialNote.isImportant ? (
-            <AlertTriangle size={18} className="text-yellow-500 cursor-pointer" />
+            <AlertTriangle
+              size={18}
+              className="text-yellow-500 cursor-pointer"
+            />
           ) : (
             <Info size={18} className="text-blue-500 cursor-pointer" />
           )}
@@ -864,7 +963,10 @@ export default function Appointments() {
             <div className="absolute right-0 top-6 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
               <div className="flex items-start gap-2">
                 {specialNote.isImportant ? (
-                  <AlertTriangle className="text-yellow-500 shrink-0 mt-0.5" size={16} />
+                  <AlertTriangle
+                    className="text-yellow-500 shrink-0 mt-0.5"
+                    size={16}
+                  />
                 ) : (
                   <Info className="text-blue-500 shrink-0 mt-0.5" size={16} />
                 )}
@@ -872,17 +974,18 @@ export default function Appointments() {
               </div>
               {specialNote.startDate && specialNote.endDate && (
                 <p className="text-xs text-gray-400 mt-2">
-                  Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                  Valid from{" "}
+                  {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
                   {new Date(specialNote.endDate).toLocaleDateString()}
                 </p>
               )}
             </div>
           )}
         </div>
-      )
+      );
     },
-    [activeNoteId],
-  )
+    [activeNoteId]
+  );
 
   const calendarEvents = appointments.map((appointment) => ({
     id: appointment.id,
@@ -895,13 +998,15 @@ export default function Appointments() {
     extendedProps: {
       type: appointment.type,
     },
-  }))
+  }));
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
-            <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
+            <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">
+              Appointments
+            </h1>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -920,7 +1025,10 @@ export default function Appointments() {
 
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="lg:w-[50%] w-full space-y-6">
-              <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+              <MiniCalendar
+                onDateSelect={handleDateSelect}
+                selectedDate={selectedDate}
+              />
 
               <div className="relative">
                 <input
@@ -930,11 +1038,16 @@ export default function Appointments() {
                   onChange={handleSearch}
                   className="w-full bg-[#000000] text-white rounded-xl px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
                 />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
               </div>
 
               <div>
-                <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
+                <h2 className="text-white font-bold mb-4">
+                  Upcoming Appointments
+                </h2>
                 <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[calc(100vh-300px)]">
                   {filteredAppointments.length > 0 ? (
                     filteredAppointments.map((appointment, index) => (
@@ -943,23 +1056,37 @@ export default function Appointments() {
                         className={`${appointment.color} rounded-xl cursor-pointer p-4 relative`}
                       >
                         <div className="absolute top-2 right-2">
-                          {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                          {renderSpecialNoteIcon(
+                            appointment.specialNote,
+                            appointment.id
+                          )}
                         </div>
 
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                           <div className="flex items-center gap-3 w-full sm:w-auto">
                             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                              <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
+                              <img
+                                src={Avatar || "/placeholder.svg"}
+                                alt=""
+                                className="w-full h-full rounded-full"
+                              />
                             </div>
                             <div className="text-white flex-grow">
-                              <p className="font-semibold">{appointment.name}</p>
+                              <p className="font-semibold">
+                                {appointment.name}
+                              </p>
                               <p className="text-sm flex gap-1 items-center opacity-80">
                                 <Clock size={15} />
                                 {appointment.time} | {appointment.date}
                               </p>
                               <p className="text-sm mt-1">
-                                {appointment.isTrial ? "Trial - " : ""}
-                                {appointment.type}
+                                {appointment.isTrial ? (
+                                  <span className="font-medium text-yellow 500">
+                                    Trial Session
+                                  </span>
+                                ) : (
+                                  appointment.type
+                                )}
                               </p>
                             </div>
                           </div>
@@ -967,16 +1094,24 @@ export default function Appointments() {
                             <button
                               onClick={() => handleCheckIn(appointment.id)}
                               className={`w-full sm:w-auto px-4 py-2 text-xs font-medium rounded-xl ${
-                                appointment.isCheckedIn ? "bg-green-600 text-white" : "bg-black text-white"
+                                appointment.isCheckedIn
+                                  ? "bg-green-600 text-white"
+                                  : "bg-black text-white"
                               }`}
                             >
-                              {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                              {appointment.isCheckedIn
+                                ? "Checked In"
+                                : "Check In"}
                             </button>
                             <div className="relative flex flex-col items-center">
                               <button
                                 onClick={(e) => {
-                                  e.stopPropagation()
-                                  setActiveDropdownId(activeDropdownId === appointment.id ? null : appointment.id)
+                                  e.stopPropagation();
+                                  setActiveDropdownId(
+                                    activeDropdownId === appointment.id
+                                      ? null
+                                      : appointment.id
+                                  );
                                 }}
                                 className="text-white/80 hover:text-white"
                               >
@@ -988,8 +1123,8 @@ export default function Appointments() {
                                   <button
                                     className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
                                     onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleAppointmentClick(appointment)
+                                      e.stopPropagation();
+                                      handleAppointmentClick(appointment);
                                     }}
                                   >
                                     Edit
@@ -998,8 +1133,8 @@ export default function Appointments() {
                                   <button
                                     className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
                                     onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleRemoveAppointment(appointment)
+                                      e.stopPropagation();
+                                      handleRemoveAppointment(appointment);
                                     }}
                                   >
                                     Cancel Appointment
@@ -1012,7 +1147,9 @@ export default function Appointments() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-white text-center">No appointments for this date.</p>
+                    <p className="text-white text-center">
+                      No appointments for this date.
+                    </p>
                   )}
                 </div>
               </div>
@@ -1047,179 +1184,17 @@ export default function Appointments() {
         onSubmit={handleTrialSubmit}
       />
 
-      {selectedAppointment && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setSelectedAppointment(null)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Edit Appointment</h2>
-              <button
-                onClick={() => setSelectedAppointment(null)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6 ">
-              <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Member</label>
-                  <input
-                    type="text"
-                    value={selectedAppointment.name}
-                    readOnly
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Appointment Type</label>
-                  <select
-                    value={selectedAppointment.type}
-                    onChange={(e) => handleAppointmentChange({ type: e.target.value })}
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  >
-                    {appointmentTypes.map((type) => (
-                      <option key={type.name} value={type.name} className={type.color}>
-                        {type.name} ({type.duration} minutes)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={`${selectedAppointment.date}T${selectedAppointment.time}`}
-                    onChange={(e) =>
-                      handleAppointmentChange({
-                        date: e.target.value.split("T")[0],
-                        time: e.target.value.split("T")[1],
-                      })
-                    }
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Special Note</label>
-                  <textarea
-                    value={selectedAppointment.specialNote.text}
-                    onChange={(e) =>
-                      handleAppointmentChange({
-                        specialNote: {
-                          ...selectedAppointment.specialNote,
-                          text: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[100px]"
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="isImportant"
-                    checked={selectedAppointment.specialNote.isImportant}
-                    onChange={(e) =>
-                      handleAppointmentChange({
-                        specialNote: {
-                          ...selectedAppointment.specialNote,
-                          isImportant: e.target.checked,
-                        },
-                      })
-                    }
-                    className="rounded text-[#3F74FF] focus:ring-[#3F74FF]"
-                  />
-                  <label htmlFor="isImportant" className="text-sm text-gray-200">
-                    Mark as important
-                  </label>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Note Duration</label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="date"
-                      value={selectedAppointment.specialNote.startDate || ""}
-                      onChange={(e) =>
-                        handleAppointmentChange({
-                          specialNote: {
-                            ...selectedAppointment.specialNote,
-                            startDate: e.target.value,
-                          },
-                        })
-                      }
-                      className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                    />
-                    <input
-                      type="date"
-                      value={selectedAppointment.specialNote.endDate || ""}
-                      onChange={(e) =>
-                        handleAppointmentChange({
-                          specialNote: {
-                            ...selectedAppointment.specialNote,
-                            endDate: e.target.value,
-                          },
-                        })
-                      }
-                      className="w-1/2 bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Available Appointments</label>
-                  <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
-                    <option value="">Select available time</option>
-                    {freeAppointments.map((app) => (
-                      <option key={app.id} value={`${app.date}T${app.time}`}>
-                        {app.date} at {app.time}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </form>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                onClick={() => {
-                  // Save changes to the appointments list
-                  const updatedAppointments = appointments.map((app) =>
-                    app.id === selectedAppointment.id ? selectedAppointment : app,
-                  )
-                  setAppointments(updatedAppointments)
-
-                  // Show the notification popup
-                  setIsNotifyMemberOpen(true)
-                  setNotifyAction("change")
-
-                  // Close the edit modal
-                  setSelectedAppointment(null)
-                }}
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-              >
-                Save Changes
-              </button>
-              <button
-                onClick={() => setSelectedAppointment(null)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SelectedAppointmentModal
+        selectedAppointment={selectedAppointment}
+        setSelectedAppointment={setSelectedAppointment}
+        appointmentTypes={appointmentTypes}
+        freeAppointments={freeAppointments}
+        handleAppointmentChange={handleAppointmentChange}
+        appointments={appointments}
+        setAppointments={setAppointments}
+        setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+        setNotifyAction={setNotifyAction}
+      />
 
       {isConfirmCancelOpen && (
         <div
@@ -1231,7 +1206,9 @@ export default function Appointments() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Confirm Cancellation</h2>
+              <h2 className="text-lg font-semibold text-white">
+                Confirm Cancellation
+              </h2>
               <button
                 onClick={() => setIsConfirmCancelOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -1242,8 +1219,9 @@ export default function Appointments() {
 
             <div className="p-6">
               <p className="text-white text-sm">
-                Are you sure you want to cancel this appointment with {appointmentToRemove?.name} on{" "}
-                {appointmentToRemove?.date} at {appointmentToRemove?.time}?
+                Are you sure you want to cancel this appointment with{" "}
+                {appointmentToRemove?.name} on {appointmentToRemove?.date} at{" "}
+                {appointmentToRemove?.time}?
               </p>
             </div>
 
@@ -1275,7 +1253,9 @@ export default function Appointments() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+              <h2 className="text-lg font-semibold text-white">
+                Notify Member
+              </h2>
               <button
                 onClick={() => setIsNotifyMemberOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -1287,7 +1267,12 @@ export default function Appointments() {
             <div className="p-6">
               <p className="text-white text-sm">
                 Do you want to notify the member about this{" "}
-                {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
+                {notifyAction === "change"
+                  ? "change"
+                  : notifyAction === "cancel"
+                  ? "cancellation"
+                  : "booking"}
+                ?
               </p>
             </div>
 
@@ -1320,6 +1305,5 @@ export default function Appointments() {
         }}
       />
     </div>
-  )
+  );
 }
-

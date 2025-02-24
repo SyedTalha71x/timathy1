@@ -1,10 +1,48 @@
 /* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import { X, Search, Tag } from "lucide-react"
 import { useState, useEffect } from "react"
 import Avatar from "../../public/avatar.png"
 import { AddLeadModal } from "../components/add-lead-modal"
 import { EditLeadModal } from "../components/edit-lead-modal"
 import { ViewLeadDetailsModal } from "../components/view-lead-details"
+
+// Pagination component
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  return (
+    <div className="flex justify-center items-center gap-2 mt-4">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="px-3 py-1 rounded-lg bg-[#141414] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#242424] transition-colors"
+      >
+        Previous
+      </button>
+      <div className="flex gap-1">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-1 rounded-lg transition-colors ${
+              currentPage === page
+                ? "bg-[#FF5733] text-white"
+                : "bg-[#141414] text-white hover:bg-[#242424]"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="px-3 py-1 rounded-lg bg-[#141414] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#242424] transition-colors"
+      >
+        Next
+      </button>
+    </div>
+  )
+}
 
 export default function Leets() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -15,11 +53,13 @@ export default function Leets() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterOption, setFilterOption] = useState("all")
   const [leads, setLeads] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const leadsPerPage = 5
 
   // Hardcoded initial leads
   const hardcodedLeads = [
     {
-      id: "h1", // Adding 'h' prefix to distinguish hardcoded leads
+      id: "h1",
       firstName: "John",
       surname: "Smith",
       email: "john.smith@example.com",
@@ -141,7 +181,7 @@ export default function Leets() {
 
   const handleSaveLead = (data) => {
     const newLead = {
-      id: `l${Date.now()}`, // 'l' prefix for localStorage leads
+      id: `l${Date.now()}`,
       firstName: data.firstName,
       surname: data.surname,
       email: data.email,
@@ -162,10 +202,29 @@ export default function Leets() {
   const filteredLeads = leads.filter((lead) => {
     const fullName = `${lead.firstName} ${lead.surname}`.toLowerCase()
     const matchesSearch =
-      fullName.includes(searchQuery.toLowerCase()) || lead.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = filterOption === "all" || (filterOption === "trial" && lead.hasTrialTraining)
+      fullName.includes(searchQuery.toLowerCase()) ||
+      lead.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesFilter =
+      filterOption === "all" ||
+      (filterOption === "trial" && lead.hasTrialTraining)
     return matchesSearch && matchesFilter
   })
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredLeads.length / leadsPerPage)
+  const startIndex = (currentPage - 1) * leadsPerPage
+  const paginatedLeads = filteredLeads.slice(startIndex, startIndex + leadsPerPage)
+
+  // Reset to first page when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, filterOption])
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+    // Scroll to top of the leads list
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
@@ -204,14 +263,14 @@ export default function Leets() {
         </div>
 
         <div className="space-y-4 bg-[#000000] p-4 rounded-xl max-w-4xl mx-auto">
-          {filteredLeads.map((lead) => (
+          {paginatedLeads.map((lead) => (
             <div
               key={lead.id}
               className="bg-[#141414] rounded-lg p-5 flex md:flex-row flex-col items-center justify-between"
             >
               <div className="flex md:flex-row flex-col items-center gap-3">
                 <img
-                  src={lead.avatar || "/placeholder.svg"}
+                  src={lead.avatar || Avatar}
                   alt={`${lead.firstName} ${lead.surname}'s avatar`}
                   className="w-14 h-14 rounded-full bg-zinc-800"
                 />
@@ -225,9 +284,6 @@ export default function Leets() {
                       <span className="text-green-500 text-xs">Trial Training Arranged</span>
                     </div>
                   )}
-                  {/* <div className="text-xs text-gray-500 mt-1">
-                    Source: {lead.source === "hardcoded" ? "Default" : "Added"}
-                  </div> */}
                 </div>
               </div>
               <div className="flex md:flex-row flex-col gap-2 md:mt-0 mt-3">
@@ -252,6 +308,14 @@ export default function Leets() {
               </div>
             </div>
           ))}
+
+          {filteredLeads.length > leadsPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       </main>
 
@@ -298,7 +362,6 @@ export default function Leets() {
               className="bg-[#1C1C1C] rounded-lg p-4 relative transform transition-all duration-200 hover:scale-[1.02]"
             >
               <button
-                // onClick={() => removeNotification(notification.id)}
                 className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors duration-200"
               >
                 <X size={16} />

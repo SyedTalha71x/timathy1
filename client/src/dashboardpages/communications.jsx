@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
 import {
@@ -46,11 +48,16 @@ export default function Communications() {
     },
   ])
 
+  const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
+  const [selectedRecipients, setSelectedRecipients] = useState([])
+  const [selectAll, setSelectAll] = useState(false)
+
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
   const chatDropdownRef = useRef(null)
   const groupDropdownRef = useRef(null)
   const buttonRef = useRef(null)
+  const recipientDropdownRef = useRef(null)
 
   const handleSearchClick = () => {
     setIsSearchOpen(!isSearchOpen)
@@ -73,6 +80,10 @@ export default function Communications() {
 
       if (groupDropdownRef.current && !groupDropdownRef.current.contains(event.target)) {
         setShowGroupDropdown(false)
+      }
+
+      if (recipientDropdownRef.current && !recipientDropdownRef.current.contains(event.target)) {
+        setShowRecipientDropdown(false)
       }
     }
 
@@ -158,6 +169,11 @@ export default function Communications() {
 
   const handleMemberSelect = (member) => {
     setSelectedMembers((prev) => (prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]))
+  }
+
+  const handleSelectAll = () => {
+    setSelectAll(!selectAll)
+    setSelectedRecipients(selectAll ? [] : chatList)
   }
 
   return (
@@ -503,7 +519,7 @@ export default function Communications() {
 
                 <div className="space-y-4">
                   {/* Message Preview */}
-                  <div className="bg-black rounded-xl p-4 text-white  text-sm">
+                  <div className="bg-black rounded-xl p-4 text-white text-sm">
                     <p>Oh, hello! All perfectly.</p>
                     <p>I will check it and get back to you soon.</p>
                   </div>
@@ -521,14 +537,65 @@ export default function Communications() {
                     ))}
                   </div>
 
-                  {/* Add Recipient Button */}
-                  <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-                    Add recipient
-                  </button>
+                  {/* Add Recipient Button and Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowRecipientDropdown(!showRecipientDropdown)}
+                      className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                    >
+                      Add recipient
+                    </button>
 
-                  {/* Recipients */}
+                    {showRecipientDropdown && (
+                      <div
+                        ref={recipientDropdownRef}
+                        className="absolute left-0 right-0 mt-2 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-50 max-h-[250px] overflow-y-auto custom-scrollbar"
+                      >
+                        <div className="p-2 border-b border-gray-800 flex items-center justify-between">
+                          <span className="text-sm text-gray-300">Select all</span>
+                          <input
+                            type="checkbox"
+                            checked={selectAll}
+                            onChange={handleSelectAll}
+                            className="rounded border-gray-600 bg-transparent"
+                          />
+                        </div>
+                        {chatList.map((chat, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 hover:bg-[#2F2F2F] cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={chat.logo || "/placeholder.svg"}
+                                alt={chat.name}
+                                className="h-8 w-8 rounded-full"
+                              />
+                              <span className="text-sm text-gray-300">{chat.name}</span>
+                            </div>
+                            <input
+                              type="checkbox"
+                              checked={selectedRecipients.includes(chat)}
+                              onChange={() => {
+                                const isSelected = selectedRecipients.includes(chat)
+                                setSelectedRecipients(
+                                  isSelected
+                                    ? selectedRecipients.filter((r) => r !== chat)
+                                    : [...selectedRecipients, chat],
+                                )
+                                setSelectAll(false)
+                              }}
+                              className="rounded border-gray-600 bg-transparent"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Selected Recipients */}
                   <div className="space-y-2">
-                    {chatList.slice(0, 2).map((recipient, i) => (
+                    {selectedRecipients.map((recipient, i) => (
                       <div key={i} className="flex items-center justify-between bg-[#222222] rounded-xl p-3">
                         <div className="flex items-center gap-2">
                           <img
@@ -540,24 +607,9 @@ export default function Communications() {
                         </div>
                         <button
                           className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center"
-                          onClick={() => handleSendMessage()}
+                          onClick={() => setSelectedRecipients(selectedRecipients.filter((r) => r !== recipient))}
                         >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="text-white"
-                          >
-                            <path
-                              d="M1.33325 8H14.6666M14.6666 8L7.99992 1.33334M14.6666 8L7.99992 14.6667"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
+                          <X className="h-4 w-4 text-white" />
                         </button>
                       </div>
                     ))}

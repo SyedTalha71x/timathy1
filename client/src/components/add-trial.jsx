@@ -159,7 +159,7 @@ const TrialTrainingModal = ({ isOpen, onClose }) => {
               type="datetime-local"
               value={formData.dateTime}
               onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
-              className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white"
+              className="w-full bg-[#101010] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white"
             />
           </div>
 

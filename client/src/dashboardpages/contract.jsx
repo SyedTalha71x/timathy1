@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { MoreVertical, Plus, ChevronDown, DollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -60,95 +61,163 @@ const initialContracts = [
     cancelReason: "Financial Reasons",
     isDigital: false,
   },
-]
+];
+
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  return (
+    <div className="flex justify-center items-center gap-2 mt-6">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="px-3 py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800"
+      >
+        Previous
+      </button>
+      <div className="flex gap-1">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-1.5 rounded-xl transition-colors border ${
+              currentPage === page
+                ? "bg-[#F27A30] text-white border-transparent"
+                : "bg-black text-white border-gray-800 hover:bg-gray-900"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="px-3 py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800"
+      >
+        Next
+      </button>
+    </div>
+  );
+};
 
 export default function ContractList() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isShowDetails, setIsShowDetails] = useState(false)
-  const [selectedContract, setSelectedContract] = useState(null)
-  const [activeDropdownId, setActiveDropdownId] = useState(null)
-  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
-  const [selectedFilter, setSelectedFilter] = useState("All Contracts")
-  const [contracts, setContracts] = useState(initialContracts)
-  const [filteredContracts, setFilteredContracts] = useState(contracts)
-  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false)
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
-  const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isShowDetails, setIsShowDetails] = useState(false);
+  const [selectedContract, setSelectedContract] = useState(null);
+  const [activeDropdownId, setActiveDropdownId] = useState(null);
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState("All Contracts");
+  const [contracts, setContracts] = useState(initialContracts);
+  const [filteredContracts, setFilteredContracts] = useState(initialContracts); // Initialize with all contracts
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const contractsPerPage = 3; // Reduced for testing purposes
+
+  // Update filtered contracts when selectedFilter or contracts change
+  useEffect(() => {
+    if (selectedFilter === "All Contracts") {
+      setFilteredContracts(contracts);
+    } else {
+      setFilteredContracts(
+        contracts.filter((contract) => contract.status === selectedFilter)
+      );
+    }
+    setCurrentPage(1); // Reset to the first page when filter changes
+  }, [selectedFilter, contracts]);
+
+  const totalPages = Math.ceil(filteredContracts.length / contractsPerPage);
+  const startIndex = (currentPage - 1) * contractsPerPage;
+  const paginatedContracts = filteredContracts.slice(
+    startIndex,
+    startIndex + contractsPerPage
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Scroll to top of the contracts list
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest(".dropdown-trigger") && !event.target.closest(".dropdown-menu")) {
-        setActiveDropdownId(null)
+      if (
+        !event.target.closest(".dropdown-trigger") &&
+        !event.target.closest(".dropdown-menu")
+      ) {
+        setActiveDropdownId(null);
       }
       if (!event.target.closest(".filter-dropdown")) {
-        setFilterDropdownOpen(false)
+        setFilterDropdownOpen(false);
       }
-    }
+    };
 
-    document.addEventListener("click", handleClickOutside)
-    return () => document.removeEventListener("click", handleClickOutside)
-  }, [])
-
-  useEffect(() => {
-    if (selectedFilter === "All Contracts") {
-      setFilteredContracts(contracts)
-    } else {
-      setFilteredContracts(contracts.filter((contract) => contract.status === selectedFilter))
-    }
-  }, [selectedFilter, contracts])
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const handleViewDetails = (contract) => {
-    setSelectedContract(contract)
-    setIsShowDetails(true)
-  }
+    setSelectedContract(contract);
+    setIsShowDetails(true);
+  };
 
   const toggleDropdown = (contractId, event) => {
-    event.stopPropagation()
-    setActiveDropdownId(activeDropdownId === contractId ? null : contractId)
-  }
+    event.stopPropagation();
+    setActiveDropdownId(activeDropdownId === contractId ? null : contractId);
+  };
 
   const handleCancelContract = (contractId) => {
-    setSelectedContract(contracts.find((contract) => contract.id === contractId))
-    setIsCancelModalOpen(true)
-  }
+    setSelectedContract(
+      contracts.find((contract) => contract.id === contractId)
+    );
+    setIsCancelModalOpen(true);
+  };
 
   const handlePauseContract = (contractId) => {
-    setSelectedContract(contracts.find((contract) => contract.id === contractId))
-    setIsPauseModalOpen(true)
-  }
+    setSelectedContract(
+      contracts.find((contract) => contract.id === contractId)
+    );
+    setIsPauseModalOpen(true);
+  };
 
   const handlePauseReasonSubmit = () => {
-    setIsPauseModalOpen(false)
-    setIsShowDetails(false)
-    setSelectedContract(null)
-    toast.success("Contract has been paused")
-  }
+    setIsPauseModalOpen(false);
+    setIsShowDetails(false);
+    setSelectedContract(null);
+    toast.success("Contract has been paused");
+  };
 
   const handleCancelSubmit = ({ reason, cancelDate }) => {
-    setIsCancelModalOpen(false)
+    setIsCancelModalOpen(false);
     if (selectedContract) {
       const updatedContracts = contracts.map((contract) =>
-        contract.id === selectedContract.id ? { ...contract, status: "Cancelled", cancelReason: reason } : contract,
-      )
-      setContracts(updatedContracts)
+        contract.id === selectedContract.id
+          ? { ...contract, status: "Cancelled", cancelReason: reason }
+          : contract
+      );
+      setContracts(updatedContracts);
     }
-    setIsShowDetails(false)
-    setSelectedContract(null)
-    toast.success("Contract has been cancelled")
-  }
+    setIsShowDetails(false);
+    setSelectedContract(null);
+    toast.success("Contract has been cancelled");
+  };
 
   const handleEditContract = (contractId) => {
-    setSelectedContract(contracts.find((contract) => contract.id === contractId))
-    setIsEditModalOpen(true)
-  }
+    setSelectedContract(
+      contracts.find((contract) => contract.id === contractId)
+    );
+    setIsEditModalOpen(true);
+  };
 
   const handleSaveEditedContract = (updatedContract) => {
-    const updatedContracts = contracts.map((c) => (c.id === updatedContract.id ? updatedContract : c))
-    setContracts(updatedContracts)
-    setIsEditModalOpen(false)
-    toast.success("Contract updated successfully")
-  }
+    const updatedContracts = contracts.map((c) =>
+      c.id === updatedContract.id ? updatedContract : c
+    );
+    setContracts(updatedContracts);
+    setIsEditModalOpen(false);
+    toast.success("Contract updated successfully");
+  };
 
   return (
     <>
@@ -177,13 +246,19 @@ export default function ContractList() {
               </button>
               {filterDropdownOpen && (
                 <div className="absolute right-0 text-sm mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
-                  {["All Contracts", "Active", "Paused", "Inactive", "Cancelled"].map((filter) => (
+                  {[
+                    "All Contracts",
+                    "Active",
+                    "Paused",
+                    "Inactive",
+                    "Cancelled",
+                  ].map((filter) => (
                     <button
                       key={filter}
                       className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
                       onClick={() => {
-                        setSelectedFilter(filter)
-                        setFilterDropdownOpen(false)
+                        setSelectedFilter(filter);
+                        setFilterDropdownOpen(false);
                       }}
                     >
                       {filter}
@@ -212,25 +287,31 @@ export default function ContractList() {
         </div>
 
         <div className="space-y-3">
-          {filteredContracts.map((contract) => (
+          {paginatedContracts.map((contract) => (
             <div
               key={contract.id}
               className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4"
             >
               <div className="flex flex-col items-start justify-start">
-                <span className="text-white font-medium">{contract.memberName}</span>
-                <span className="text-sm text-gray-400">{contract.contractType}</span>
+                <span className="text-white font-medium">
+                  {contract.memberName}
+                </span>
+                <span className="text-sm text-gray-400">
+                  {contract.contractType}
+                </span>
                 <span className="text-sm text-gray-400">
                   {contract.startDate} - {contract.endDate}
                 </span>
-                <span className="text-sm text-gray-400">{contract.isDigital ? "Digital" : "Analog"}</span>
+                <span className="text-sm text-gray-400">
+                  {contract.isDigital ? "Digital" : "Analog"}
+                </span>
                 <span
                   className={`text-sm ${
                     contract.status === "Active"
                       ? "text-green-500"
                       : contract.status === "Paused"
-                        ? "text-yellow-500"
-                        : "text-red-500"
+                      ? "text-yellow-500"
+                      : "text-red-500"
                   }`}
                 >
                   {contract.status}
@@ -283,6 +364,14 @@ export default function ContractList() {
               </div>
             </div>
           ))}
+
+          {filteredContracts.length > contractsPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
 
         {/* Add Contract Modal */}
@@ -290,8 +379,8 @@ export default function ContractList() {
           <AddContractModal
             onClose={() => setIsModalOpen(false)}
             onSave={() => {
-              setIsModalOpen(false)
-              toast.success("Contract added successfully")
+              setIsModalOpen(false);
+              toast.success("Contract added successfully");
             }}
           />
         )}
@@ -301,8 +390,8 @@ export default function ContractList() {
           <ContractDetailsModal
             contract={selectedContract}
             onClose={() => {
-              setIsShowDetails(false)
-              setSelectedContract(null)
+              setIsShowDetails(false);
+              setSelectedContract(null);
             }}
             onPause={() => handlePauseContract(selectedContract.id)}
             onCancel={() => handleCancelContract(selectedContract.id)}
@@ -311,16 +400,24 @@ export default function ContractList() {
 
         {/* Pause Contract Modal */}
         {isPauseModalOpen && (
-          <PauseContractModal onClose={() => setIsPauseModalOpen(false)} onSubmit={handlePauseReasonSubmit} />
+          <PauseContractModal
+            onClose={() => setIsPauseModalOpen(false)}
+            onSubmit={handlePauseReasonSubmit}
+          />
         )}
 
         {/* Cancel Contract Modal */}
         {isCancelModalOpen && (
-          <CancelContractModal onClose={() => setIsCancelModalOpen(false)} onSubmit={handleCancelSubmit} />
+          <CancelContractModal
+            onClose={() => setIsCancelModalOpen(false)}
+            onSubmit={handleCancelSubmit}
+          />
         )}
 
         {/* Finances Modal */}
-        {isFinanceModalOpen && <FinancesModal onClose={() => setIsFinanceModalOpen(false)} />}
+        {isFinanceModalOpen && (
+          <FinancesModal onClose={() => setIsFinanceModalOpen(false)} />
+        )}
 
         {/* Edit Contract Modal */}
         {isEditModalOpen && selectedContract && (
@@ -332,6 +429,5 @@ export default function ContractList() {
         )}
       </div>
     </>
-  )
+  );
 }
-

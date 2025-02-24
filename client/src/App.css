@@ -259,3 +259,25 @@ html, body {
     background-color: #374151; /* Slightly Darker Gray */
   }
 }
+
+.white-calendar-icon::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Make input, input number, and select text white */
+.white-text input,
+.white-text .ant-input,
+.white-text .ant-input-number-input,
+.white-text .ant-select-selector,
+.white-text .ant-select-selection-item,
+.white-text .ant-select-selection-placeholder {
+  color: white !important;
+  background-color: #101010 !important;
+}
+
+/* Color picker's text (if applicable) */
+.white-text .ant-input::placeholder,
+.white-text .ant-input-number-input::placeholder,
+.white-text .ant-select-selection-placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}

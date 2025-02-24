@@ -260,7 +260,7 @@ const ConfigurationPage = () => {
         </TabPane>
 
         <TabPane tab="Resources" key="2">
-          <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6">
+          <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6 white-text">
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Maximum Capacity</h3>
               <Form.Item label={<span className="text-white">Default Maximum Capacity</span>}>
@@ -475,7 +475,7 @@ const ConfigurationPage = () => {
         </TabPane>
 
         <TabPane tab="Contracts" key="3">
-          <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6">
+          <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6 white-text">
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Contract Settings</h3>
               <Form layout="vertical">
@@ -714,7 +714,7 @@ const ConfigurationPage = () => {
         </TabPane>
       </Tabs>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-4">
         <Button
           type="primary"
           icon={<SaveOutlined />}
