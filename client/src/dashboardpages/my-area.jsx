@@ -475,78 +475,16 @@ export default function MyArea() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const DndBackend = isMobile ? TouchBackend : HTML5Backend
 
+
   const handleAddWidget = (widgetType) => {
-    // Define which widgets belong in the main area vs sidebar
-    const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn', 'websiteLink'];
-    const sidebarWidgets = ['communication', 'todo', 'birthdays'];
-  
-    if (mainAreaWidgets.includes(widgetType)) {
-      // Handle main area widgets
-      const newWidget = {
-        id: `widget${Date.now()}`,
-        type: widgetType,
-        position: widgets.length
-      };
-  
-      setWidgets(currentWidgets => [...currentWidgets, newWidget]);
-    } else if (sidebarWidgets.includes(widgetType)) {
-      // Handle sidebar widgets
-      const sectionData = {
-        communication: {
-          id: 'communications',
-          title: 'Communications',
-          data: communications,
-          setData: setCommunications
-        },
-        todo: {
-          id: 'todo',
-          title: 'TO-DO',
-          data: todos,
-          setData: setTodos
-        },
-        birthdays: {
-          id: 'birthday',
-          title: 'Upcoming Birthday',
-          data: birthdays,
-          setData: setBirthdays
-        }
-      };
-  
-      // First check if section already exists
-      const sectionExists = sidebarSections.some(section => 
-        section.id === (widgetType === 'communication' ? 'communications' : 
-                       widgetType === 'birthdays' ? 'birthday' : widgetType)
-      );
-  
-      if (!sectionExists) {
-        // Add new section to sidebar
-        setSidebarSections(currentSections => {
-          const newSection = {
-            id: widgetType === 'communication' ? 'communications' : 
-                widgetType === 'birthdays' ? 'birthday' : widgetType,
-            title: sectionData[widgetType].title
-          };
-          return [...currentSections, newSection];
-        });
-  
-        // Initialize with default data if needed
-        if (widgetType === 'communication') {
-          setCommunications(prevComm => prevComm);
-        } else if (widgetType === 'todo') {
-          setTodos(prevTodos => prevTodos);
-        } else if (widgetType === 'birthdays') {
-          setBirthdays(prevBirthdays => prevBirthdays);
-        }
-      }
+    const newWidget = {
+      id: `widget${Date.now()}`,
+      type: widgetType,
+      position: widgets.length,
     }
-  
-    // Handle website links separately
-    if (widgetType === 'websiteLink') {
-      setCustomLinks(prevLinks => prevLinks);
-    }
-  
-    setIsWidgetModalOpen(false);
-  };
+    setWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    setIsWidgetModalOpen(false)
+  }
 
   const canAddWidget = (widgetType) => {
     const mainAreaWidgets = ['chart', 'appointments', 'employeeCheckIn', 'websiteLink'];

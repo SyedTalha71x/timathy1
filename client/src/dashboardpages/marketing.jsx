@@ -132,7 +132,7 @@ const MarketingTable = () => {
             type="text"
             value={trialTrainingUrl}
             readOnly
-            className="flex-1 bg-[#141414] text-white rounded-xl p-2 pr-10 outline-none"
+            className="flex-1 bg-[#141414] text-sm text-white rounded-xl p-2 pr-10 outline-none"
           />
           <button
             onClick={handleCopyUrl}
