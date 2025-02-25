@@ -316,7 +316,6 @@ export default function Members() {
                         />
                       </div>
                     </div>
-
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Email</label>
                       <input

@@ -247,6 +247,7 @@ export default function StaffManagement() {
   )
 }
 
+
 function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   const [newStaff, setNewStaff] = useState({
     firstName: "",
@@ -289,7 +290,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     const newStaffMember = {
       ...newStaff,
       id: staffMembers.length + 1,
-      userId: newStaff.username, // Set userId same as username
+      userId: newStaff.username, 
     }
     setStaffMembers([...staffMembers, newStaffMember])
     setIsModalOpen(false)

@@ -1,6 +1,6 @@
+/* eslint-disable no-unused-vars */
 "use client"
 
-/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
 import {
   Menu,
@@ -18,6 +18,8 @@ import {
   Calendar,
   Plus,
 } from "lucide-react"
+import data from "@emoji-mart/data"
+import Picker from "@emoji-mart/react"
 
 // Assume these imgs are in the public folder
 const img1 = "/Rectangle 1.png"
@@ -51,6 +53,8 @@ export default function Communications() {
   const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
   const [selectedRecipients, setSelectedRecipients] = useState([])
   const [selectAll, setSelectAll] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showMediaUpload, setShowMediaUpload] = useState(false)
 
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
@@ -58,6 +62,7 @@ export default function Communications() {
   const groupDropdownRef = useRef(null)
   const buttonRef = useRef(null)
   const recipientDropdownRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   const handleSearchClick = () => {
     setIsSearchOpen(!isSearchOpen)
@@ -174,6 +179,20 @@ export default function Communications() {
   const handleSelectAll = () => {
     setSelectAll(!selectAll)
     setSelectedRecipients(selectAll ? [] : chatList)
+  }
+
+  const handleEmojiSelect = (emoji) => {
+    setMessageText((prevText) => prevText + emoji.native)
+    setShowEmojiPicker(false)
+  }
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+      // Handle file upload logic here
+      console.log("File uploaded:", file.name)
+      setShowMediaUpload(false)
+    }
   }
 
   return (
@@ -473,7 +492,11 @@ export default function Communications() {
 
             <div className="p-4 border-t border-gray-800">
               <div className="flex items-center gap-2 bg-black rounded-xl p-2">
-                <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Add emoji">
+                <button
+                  className="p-2 hover:bg-gray-700 rounded-full"
+                  aria-label="Add emoji"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                >
                   <Smile className="w-5 h-5 text-gray-200" />
                 </button>
                 <input
@@ -484,7 +507,7 @@ export default function Communications() {
                   onChange={(e) => setMessageText(e.target.value)}
                 />
                 <div className="flex items-center gap-1">
-                  <button>
+                  <button onClick={() => setShowMediaUpload(!showMediaUpload)}>
                     <PlusCircle size={20} className="cursor-pointer" />
                   </button>
                   <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Voice message">
@@ -502,6 +525,28 @@ export default function Communications() {
                   </button>
                 </div>
               </div>
+              {showEmojiPicker && (
+                <div className="absolute bottom-16 right-4">
+                  <Picker data={data} onEmojiSelect={handleEmojiSelect} />
+                </div>
+              )}
+              {showMediaUpload && (
+                <div className="absolute bottom-14 right-22  bg-gray-800 p-2 rounded-md">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    accept="image/*,video/*"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current.click()}
+                    className="bg-blue-500 text-white px-4 py-2 text-sm rounded-md"
+                  >
+                    Upload Media
+                  </button>
+                </div>
+              )}
             </div>
           </>
         )}
