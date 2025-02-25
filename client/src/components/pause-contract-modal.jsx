@@ -47,7 +47,7 @@ export function PauseContractModal({ onClose, onSubmit }) {
               id="startDate"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
+              className="w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
             />
           </div>
           <div className="space-y-2">
@@ -59,7 +59,7 @@ export function PauseContractModal({ onClose, onSubmit }) {
               id="endDate"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
+              className="w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
             />
           </div>
           <button

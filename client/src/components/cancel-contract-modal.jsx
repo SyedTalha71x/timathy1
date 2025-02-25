@@ -46,7 +46,7 @@ export function CancelContractModal({ onClose, onSubmit }) {
               id="cancelDate"
               value={cancelDate}
               onChange={(e) => setCancelDate(e.target.value)}
-              className="w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
+              className="w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
             />
           </div>
           <p className="text-sm text-gray-400">
