@@ -496,13 +496,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
               >
                 Save
               </button>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-red-500 border-2 border-slate-500 rounded-xl text-sm hover:bg-slate-800 transition-colors"
-              >
-                Cancel
-              </button>
+            
             </div>
           </form>
         </div>
@@ -897,7 +891,7 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
 
         <button
           onClick={onClose}
-          className="mt-6 bg-gray-500 text-white px-4 py-2 rounded-xl text-sm md:text-base w-full sm:w-auto"
+          className="mt-6 bg-gray-500 cursor-pointer text-white px-8 py-2 rounded-xl text-sm w-full sm:w-auto"
         >
           Close
         </button>

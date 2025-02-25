@@ -1115,7 +1115,7 @@ export default function Appointments() {
                     ))
                   ) : (
                     <p className="text-white text-center">
-                      No appointments for this date.
+                      No appointments scheduled for this date.
                     </p>
                   )}
                 </div>

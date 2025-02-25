@@ -236,7 +236,7 @@ const EditTaskModal = ({
                   onChange={(e) =>
                     setEditedTask({ ...editedTask, dueDate: e.target.value })
                   }
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                  className="w-full bg-[#101010] white-calendar-icon mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
                   required
                 />
               </div>
@@ -250,7 +250,7 @@ const EditTaskModal = ({
                   onChange={(e) =>
                     setEditedTask({ ...editedTask, dueTime: e.target.value })
                   }
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                  className="w-full bg-[#101010] white-calendar-icon mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
                 />
               </div>
             </div>

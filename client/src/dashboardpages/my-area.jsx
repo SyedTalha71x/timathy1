@@ -1,7 +1,5 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
@@ -13,6 +11,8 @@ import { DndProvider, useDrag, useDrop } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import { TouchBackend } from "react-dnd-touch-backend"
 import { WidgetSelectionModal } from "../components/widget-selection-modal"
+import { Toaster , toast} from "react-hot-toast"
+
 function EmployeeCheckInWidget() {
   const [isCheckedIn, setIsCheckedIn] = useState(false)
   const [checkInTime, setCheckInTime] = useState(null)
@@ -484,6 +484,7 @@ export default function MyArea() {
     }
     setWidgets((currentWidgets) => [...currentWidgets, newWidget])
     setIsWidgetModalOpen(false)
+    toast.success(`${widgetType} widget has been added Successfully`)
   }
 
   const canAddWidget = (widgetType) => {
@@ -499,6 +500,18 @@ export default function MyArea() {
   };
 
   return (
+    <>
+     <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
+   
     <DndProvider backend={DndBackend}>
       <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
         {isRightSidebarOpen && (
@@ -1021,6 +1034,7 @@ export default function MyArea() {
         />
       </div>
     </DndProvider>
+    </>
   )
 }
 

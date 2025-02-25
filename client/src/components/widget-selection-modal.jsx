@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import { X } from "lucide-react"
 
 const widgetOptions = [
     { id: "graph", name: "Graph", type: "chart" },
@@ -14,7 +15,10 @@ const widgetOptions = [
   
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md mx-4">
+        <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md mx-4 p-3">
+          <div className="flex justify-end items-end">
+            <X onClick={onClose} size={20} className="cursor-pointer"/>
+          </div>
           <div className="p-4">
             <div className="space-y-2">
               {widgetOptions.map((widget) => (

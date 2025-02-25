@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { X, Search, AlertTriangle, ChevronDown, Cake, Eye, FileText } from "lucide-react"
 import DefaultAvatar from "../../public/default-avatar.avif"
@@ -414,7 +412,7 @@ export default function Members() {
                           name="noteStartDate"
                           value={editForm.noteStartDate}
                           onChange={handleInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                         />
                       </div>
                       <div>
@@ -424,7 +422,7 @@ export default function Members() {
                           name="noteEndDate"
                           value={editForm.noteEndDate}
                           onChange={handleInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                         />
                       </div>
                     </div>
@@ -511,7 +509,7 @@ export default function Members() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
+              <div className="text-red-600 text-center text-sm cursor-pointer">
                 <p className="text-gray-400">
                   {filterStatus === "active"
                     ? "No active members found."
