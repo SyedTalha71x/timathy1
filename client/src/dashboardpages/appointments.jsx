@@ -93,14 +93,14 @@ function Calendar({
 
   const handleEventDrop = (info) => {
     console.log("Event dropped:", info);
-    setEventInfo(info)
-    setIsNotifyMemberOpen(true)
-  }
+    setEventInfo(info);
+    setIsNotifyMemberOpen(true);
+  };
 
   const handleDateSelect = (selectInfo) => {
-    setSelectedSlotInfo(selectInfo)
-    setIsTypeSelectionOpen(true)
-  }
+    setSelectedSlotInfo(selectInfo);
+    setIsTypeSelectionOpen(true);
+  };
 
   const handleTypeSelection = (type) => {
     setIsTypeSelectionOpen(false);
@@ -197,7 +197,7 @@ function Calendar({
               selectable={true}
               editable={true} // Allow events to be editable (draggable)
               // eventResizable={false}
-             eventDragStop={handleEventDrop}
+              eventDragStop={handleEventDrop}
               slotMinTime="08:00:00"
               slotMaxTime="19:00:00"
               allDaySlot={false}
@@ -291,7 +291,9 @@ function Calendar({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+              <h2 className="text-lg font-semibold text-white">
+                Notify Member
+              </h2>
               <button
                 onClick={() => setIsNotifyMemberOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -303,7 +305,12 @@ function Calendar({
             <div className="p-6">
               <p className="text-white text-sm">
                 Do you want to notify the member about this{" "}
-                {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
+                {notifyAction === "change"
+                  ? "change"
+                  : notifyAction === "cancel"
+                  ? "cancellation"
+                  : "booking"}
+                ?
               </p>
             </div>
 
@@ -546,14 +553,15 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
               key={day}
               onClick={() => handleDateClick(day)}
               className={`aspect-square flex items-center justify-center rounded-full text-xs
-                ${
-                  isToday
-                    ? "bg-blue-500 text-white"
-                    : "text-white hover:bg-gray-700"
-                }
-                ${isSelected ? "bg-[#3F74FF] text-white" : ""}
-                transition-all duration-200
-              `}
+              ${
+                isToday && !isSelected
+                  ? "bg-orange-400 text-white"
+                  : isSelected
+                  ? "bg-[#3F74FF] text-white"
+                  : "text-white hover:bg-gray-700"
+              }
+              transition-all duration-200
+            `}
             >
               {day}
             </button>
@@ -735,20 +743,6 @@ export default function Appointments() {
     setFilteredAppointments(filtered);
   }, [searchQuery, appointments, selectedDate, formatDate]);
 
-  const handleCheckInOut = (appointmentId) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.map((appointment) => {
-        if (appointment.id === appointmentId) {
-          if (appointment.status === "pending") {
-            toast.success("Member checked out successfully");
-            return { ...appointment, status: "checked-out" };
-          }
-        }
-        return appointment;
-      })
-    );
-  };
-
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
       id: appointments.length + 1,
@@ -781,31 +775,11 @@ export default function Appointments() {
 
   const handleCheckIn = (appointmentId) => {
     setAppointments((prevAppointments) =>
-      prevAppointments.map((appointment) => {
-        if (appointment.id === appointmentId) {
-          // Toggle the check-in status
-          const updatedAppointment = {
-            ...appointment,
-            isCheckedIn: !appointment.isCheckedIn,
-          };
-
-          // If the appointment is checked in, automatically revert after 3 seconds
-          if (updatedAppointment.isCheckedIn) {
-            setTimeout(() => {
-              setAppointments((prevAppointments) =>
-                prevAppointments.map((app) =>
-                  app.id === appointmentId
-                    ? { ...app, isCheckedIn: false }
-                    : app
-                )
-              );
-            }, 3000);
-          }
-
-          return updatedAppointment;
-        }
-        return appointment;
-      })
+      prevAppointments.map((appointment) =>
+        appointment.id === appointmentId
+          ? { ...appointment, isCheckedIn: true } // Only set to true, no toggling back to false
+          : appointment
+      )
     );
   };
 
@@ -883,13 +857,6 @@ export default function Appointments() {
         app.name.toLowerCase().includes(query)
       );
       setSelectedMember(foundMember ? foundMember.name : null);
-    }
-  };
-
-  const handleEventClick = (info) => {
-    const appointment = appointments.find((app) => app.id === info.event.id);
-    if (appointment) {
-      handleAppointmentClick(appointment);
     }
   };
 
@@ -991,13 +958,13 @@ export default function Appointments() {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-[50%] w-full space-y-6">
+            <div className="lg:w-[40%] w-full space-y-6">
               <MiniCalendar
                 onDateSelect={handleDateSelect}
                 selectedDate={selectedDate}
               />
 
-              <div className="relative">
+              <div className="relative w-64">
                 <input
                   type="text"
                   placeholder="Search member..."
