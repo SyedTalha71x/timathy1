@@ -595,9 +595,9 @@ const ConfigurationPage = () => {
                 <Form.Item label={<span className="text-white">Username</span>}>
                   <Input style={inputStyle} />
                 </Form.Item>
-                <Form.Item label={<span className="text-white">User ID</span>}>
+                {/* <Form.Item label={<span className="text-white">User ID</span>}>
                   <Input style={inputStyle} />
-                </Form.Item>
+                </Form.Item> */}
                 <Form.Item label={<span className="text-white">Street (with number)</span>}>
                   <Input style={inputStyle} />
                 </Form.Item>

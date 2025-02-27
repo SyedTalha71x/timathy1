@@ -6,6 +6,7 @@ import Avatar from "../../public/avatar.png";
 import { AddLeadModal } from "../components/add-lead-modal";
 import { EditLeadModal } from "../components/edit-lead-modal";
 import { ViewLeadDetailsModal } from "../components/view-lead-details";
+import toast, { Toaster } from "react-hot-toast";
 
 // Pagination component
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
@@ -44,6 +45,76 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   );
 };
 
+const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-[#1C1C1C] p-6 rounded-lg">
+        <h3 className="text-lg font-bold mb-4">{message}</h3>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="bg-gray-500 text-sm text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="bg-red-500 text-sm text-white px-4 py-2 rounded-lg hover:bg-red-600"
+          >
+            Yes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Lead Status Badge component
+const StatusBadge = ({ status }) => {
+  let icon, text, color;
+  
+  switch (status) {
+    case "active":
+      icon = "🟢";
+      text = "Active prospect";
+      color = "text-green-500";
+      break;
+    case "passive":
+      icon = "🟡";
+      text = "Passive prospect";
+      color = "text-yellow-500";
+      break;
+    case "uninterested":
+      icon = "🔴";
+      text = "Uninterested";
+      color = "text-red-500";
+      break;
+    default:
+      icon = "⚪";
+      text = "Unknown";
+      color = "text-gray-500";
+  }
+
+  return (
+    <div className={`flex items-center mt-1 ${color}`}>
+      <span className="mr-1">{icon}</span>
+      <span className="text-xs">{text}</span>
+    </div>
+  );
+};
+
+// Format date helper function
+const formatDate = (timestamp) => {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
 export default function Leets() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -52,11 +123,14 @@ export default function Leets() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOption, setFilterOption] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [leads, setLeads] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 5;
+  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
+  const [leadToDeleteId, setLeadToDeleteId] = useState(null);
 
-  // Hardcoded initial leads
+  // Hardcoded initial leads with status and createdAt fields
   const hardcodedLeads = [
     {
       id: "h1",
@@ -68,6 +142,8 @@ export default function Leets() {
       hasTrialTraining: true,
       avatar: Avatar,
       source: "hardcoded",
+      status: "active",
+      createdAt: "2025-01-15T10:30:00Z",
     },
     {
       id: "h2",
@@ -79,6 +155,8 @@ export default function Leets() {
       hasTrialTraining: false,
       avatar: Avatar,
       source: "hardcoded",
+      status: "passive",
+      createdAt: "2025-01-20T14:45:00Z",
     },
     {
       id: "h3",
@@ -90,6 +168,8 @@ export default function Leets() {
       hasTrialTraining: true,
       avatar: Avatar,
       source: "hardcoded",
+      status: "active",
+      createdAt: "2025-01-25T09:15:00Z",
     },
     {
       id: "h4",
@@ -101,6 +181,8 @@ export default function Leets() {
       hasTrialTraining: false,
       avatar: Avatar,
       source: "hardcoded",
+      status: "uninterested",
+      createdAt: "2025-02-01T11:20:00Z",
     },
   ];
 
@@ -157,6 +239,7 @@ export default function Leets() {
             trialPeriod: data.trialPeriod,
             hasTrialTraining: data.hasTrialTraining,
             avatar: data.avatar,
+            status: data.status || lead.status,
           }
         : lead
     );
@@ -167,13 +250,15 @@ export default function Leets() {
       (lead) => lead.source === "localStorage"
     );
     localStorage.setItem("leads", JSON.stringify(localStorageLeads));
+    
+    toast.success('Lead has been updated');
   };
 
   const handleDeleteLead = (id) => {
     const leadToDelete = leads.find((lead) => lead.id === id);
     const updatedLeads = leads.filter((lead) => lead.id !== id);
     setLeads(updatedLeads);
-
+  
     // Only update localStorage if the deleted lead was from localStorage
     if (leadToDelete?.source === "localStorage") {
       const localStorageLeads = updatedLeads.filter(
@@ -181,9 +266,12 @@ export default function Leets() {
       );
       localStorage.setItem("leads", JSON.stringify(localStorageLeads));
     }
+
+    toast.success('Lead has been deleted');
   };
 
   const handleSaveLead = (data) => {
+    const now = new Date().toISOString();
     const newLead = {
       id: `l${Date.now()}`,
       firstName: data.firstName,
@@ -194,6 +282,8 @@ export default function Leets() {
       hasTrialTraining: data.hasTrialTraining,
       avatar: data.avatar,
       source: "localStorage",
+      status: data.status || "passive", // Default status
+      createdAt: now,
     };
     const updatedLeads = [...leads, newLead];
     setLeads(updatedLeads);
@@ -203,6 +293,8 @@ export default function Leets() {
       (lead) => lead.source === "localStorage"
     );
     localStorage.setItem("leads", JSON.stringify(localStorageLeads));
+    
+    toast.success('Lead has been added');
   };
 
   const filteredLeads = leads.filter((lead) => {
@@ -210,10 +302,19 @@ export default function Leets() {
     const matchesSearch =
       fullName.includes(searchQuery.toLowerCase()) ||
       lead.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter =
+      
+    // Filter by trial training status
+    const matchesTrialFilter =
       filterOption === "all" ||
-      (filterOption === "trial" && lead.hasTrialTraining);
-    return matchesSearch && matchesFilter;
+      (filterOption === "trial" && lead.hasTrialTraining) ||
+      (filterOption === "notrial" && !lead.hasTrialTraining);
+      
+    // Filter by lead status
+    const matchesStatusFilter =
+      statusFilter === "all" ||
+      lead.status === statusFilter;
+      
+    return matchesSearch && matchesTrialFilter && matchesStatusFilter;
   });
 
   // Calculate pagination
@@ -227,7 +328,7 @@ export default function Leets() {
   // Reset to first page when filter or search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterOption]);
+  }, [searchQuery, filterOption, statusFilter]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -236,6 +337,18 @@ export default function Leets() {
   };
 
   return (
+    <>
+    <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
+   
     <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
       <main className="flex-1 min-w-0 p-6">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0 mb-6">
@@ -266,16 +379,41 @@ export default function Leets() {
               size={18}
             />
           </div>
+          
+          {/* Trial Training Filter */}
           <select
             value={filterOption}
             onChange={(e) => setFilterOption(e.target.value)}
             className="bg-[#141414] text-sm outline-none text-white rounded-xl px-4 py-2"
           >
             <option value="all" className="text-sm">
-              All Leads
+              All Training Status
             </option>
             <option value="trial" className="text-sm">
               Trial Training Arranged
+            </option>
+            <option value="notrial" className="text-sm">
+              Trial Training Not Agreed
+            </option>
+          </select>
+          
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="bg-[#141414] text-sm outline-none text-white rounded-xl px-4 py-2"
+          >
+            <option value="all" className="text-sm">
+              All Prospects
+            </option>
+            <option value="active" className="text-sm">
+              🟢 Active Prospects
+            </option>
+            <option value="passive" className="text-sm">
+              🟡 Passive Prospects
+            </option>
+            <option value="uninterested" className="text-sm">
+              🔴 Uninterested
             </option>
           </select>
         </div>
@@ -295,14 +433,31 @@ export default function Leets() {
                 <div className="flex flex-col md:text-left text-center">
                   <span className="font-bold text-md">{`${lead.firstName} ${lead.surname}`}</span>
                   <div className="text-gray-400 text-sm">{lead.email}</div>
-                  <div className="text-gray-400 text-sm">
+                  {/* <div className="text-gray-400 text-sm">
                     {lead.phoneNumber}
+                  </div> */}
+                  
+                  {/* Added date information */}
+                  <div className="text-gray-500 text-xs mt-1">
+                    Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
                   </div>
-                  {lead.hasTrialTraining && (
+                  
+                  {/* Status badge */}
+                  <StatusBadge status={lead.status} />
+                  
+                  {/* Trial training tag */}
+                  {lead.hasTrialTraining ? (
                     <div className="flex items-center mt-1">
                       <Tag size={14} className="text-green-500 mr-1" />
                       <span className="text-green-500 text-xs">
                         Trial Training Arranged
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center mt-1">
+                      <Tag size={14} className="text-yellow-500 mr-1" />
+                      <span className="text-yellow-500 text-xs">
+                        Trial Training Not Agreed
                       </span>
                     </div>
                   )}
@@ -322,7 +477,10 @@ export default function Leets() {
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDeleteLead(lead.id)}
+                  onClick={() => {
+                    setLeadToDeleteId(lead.id);
+                    setIsDeleteConfirmationModalOpen(true);
+                  }}
                   className="text-red-500 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
                 >
                   Delete
@@ -374,6 +532,16 @@ export default function Leets() {
         leadData={selectedLead}
       />
 
+      <ConfirmationModal
+        isVisible={isDeleteConfirmationModalOpen}
+        onClose={() => setIsDeleteConfirmationModalOpen(false)}
+        onConfirm={() => {
+          handleDeleteLead(leadToDeleteId);
+          setIsDeleteConfirmationModalOpen(false);
+        }}
+        message="Are you sure you want to delete this lead?"
+      />
+
       <aside
         className={`
           fixed top-0 right-0 bottom-0 w-[320px] bg-[#181818] p-6 z-50 
@@ -414,5 +582,6 @@ export default function Leets() {
         </div>
       </aside>
     </div>
+    </>
   );
 }
