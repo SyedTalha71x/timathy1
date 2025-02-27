@@ -1,6 +1,4 @@
 /* eslint-disable no-unused-vars */
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import {
   Menu,
@@ -20,6 +18,8 @@ import {
 } from "lucide-react"
 import data from "@emoji-mart/data"
 import Picker from "@emoji-mart/react"
+import { IoIosMegaphone } from "react-icons/io";
+
 
 // Assume these imgs are in the public folder
 const img1 = "/Rectangle 1.png"
@@ -225,7 +225,7 @@ export default function Communications() {
           <div className="flex gap-2 items-center justify-between mb-4">
             <div className="flex gap-2">
               <button
-                className={`px-6 py-2 text-sm ${
+                className={`px-5 py-2 text-sm ${
                   chatType === "employee"
                     ? "bg-white text-black"
                     : "text-gray-200 border border-slate-300 hover:bg-gray-800"
@@ -235,7 +235,7 @@ export default function Communications() {
                 Employee
               </button>
               <button
-                className={`px-6 py-2 text-sm ${
+                className={`px-5 py-2 text-sm ${
                   chatType === "member"
                     ? "bg-white text-black"
                     : "text-gray-200 border border-slate-300 hover:bg-gray-800"
@@ -243,6 +243,11 @@ export default function Communications() {
                 onClick={() => setChatType("member")}
               >
                 Member
+              </button>
+              <button
+                className={`px-4 py-2 text-sm border border-slate-300  rounded-xl`}
+              >
+                Email
               </button>
             </div>
 
@@ -408,7 +413,7 @@ export default function Communications() {
             onClick={() => setActiveScreen("send-message")}
             className="absolute bottom-6 right-6 p-3 bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg"
           >
-            <Plus className="w-5 h-5 text-white" />
+            <IoIosMegaphone className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
@@ -443,14 +448,14 @@ export default function Communications() {
               </div>
               <div className="flex items-center gap-2">
                 <button className="text-blue-500 hover:text-blue-400" aria-label="Star conversation">
-                  <Star className="w-5 h-5" />
+                  <Star className="w-6 h-6" />
                 </button>
                 <button
                   className="text-blue-500 hover:text-blue-400"
                   aria-label="Book appointment"
                   onClick={redirectToAppointment}
                 >
-                  <Calendar className="w-5 h-5" />
+                  <Calendar className="w-6 h-6" />
                 </button>
                 <div className="relative flex items-center">
                   <button
@@ -458,7 +463,7 @@ export default function Communications() {
                     aria-label="Search conversation"
                     onClick={handleSearchClick}
                   >
-                    <Search className="w-5 h-5" />
+                    <Search className="w-6 h-6" />
                   </button>
                   <input
                     ref={searchInputRef}
@@ -508,7 +513,7 @@ export default function Communications() {
                 />
                 <div className="flex items-center gap-1">
                   <button onClick={() => setShowMediaUpload(!showMediaUpload)}>
-                    <PlusCircle size={20} className="cursor-pointer" />
+                    <IoIosMegaphone size={20} className="cursor-pointer" />
                   </button>
                   <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Voice message">
                     <Mic className="w-5 h-5 text-gray-200" />

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { ChevronDown, Copy } from "lucide-react";
 import DatePicker from "react-datepicker";
@@ -100,12 +101,12 @@ const MarketingTable = () => {
             >
               {metaLoggedIn ? "Logged In" : "Login with Meta"}
             </button>
-            <button
+            {/* <button
               className="flex justify-center open_sans_font items-center gap-2 cursor-pointer bg-green-600 text-white px-7 py-2 rounded-xl text-sm w-full lg:w-auto"
               onClick={handleTrialTrainingBooking}
             >
               Book Trial Training
-            </button>
+            </button> */}
             <button
               className="flex justify-center open_sans_font items-center gap-2 cursor-pointer bg-black text-white px-7 py-2 rounded-xl text-sm w-full lg:w-auto"
               onClick={() => setIsDateOpen((prev) => !prev)}

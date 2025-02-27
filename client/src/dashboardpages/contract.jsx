@@ -113,19 +113,30 @@ export default function ContractList() {
   const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState(""); // Added searchTerm state
   const contractsPerPage = 3; // Reduced for testing purposes
 
   // Update filtered contracts when selectedFilter or contracts change
   useEffect(() => {
-    if (selectedFilter === "All Contracts") {
-      setFilteredContracts(contracts);
-    } else {
-      setFilteredContracts(
-        contracts.filter((contract) => contract.status === selectedFilter)
+    let filtered = contracts;
+
+    // Apply status filter
+    if (selectedFilter !== "All Contracts") {
+      filtered = filtered.filter(
+        (contract) => contract.status === selectedFilter
       );
     }
+
+    // Apply search filter
+    if (searchTerm.trim() !== "") {
+      filtered = filtered.filter((contract) =>
+        contract.memberName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredContracts(filtered);
     setCurrentPage(1); // Reset to the first page when filter changes
-  }, [selectedFilter, contracts]);
+  }, [selectedFilter, contracts, searchTerm]);
 
   const totalPages = Math.ceil(filteredContracts.length / contractsPerPage);
   const startIndex = (currentPage - 1) * contractsPerPage;
@@ -251,7 +262,7 @@ export default function ContractList() {
                     "Active",
                     "Paused",
                     "Inactive",
-                    "Cancelled",
+                    // "Cancelled",
                   ].map((filter) => (
                     <button
                       key={filter}
@@ -267,6 +278,7 @@ export default function ContractList() {
                 </div>
               )}
             </div>
+
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -284,6 +296,17 @@ export default function ContractList() {
               </button>
             </div>
           </div>
+        </div>
+
+        <div className="relative w-full mb-2 ">
+          {" "}
+          <input
+            type="text"
+            placeholder="Search for any contract..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-black text-sm text-white px-4 py-2.5 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#F27A30]"
+          />
         </div>
 
         <div className="space-y-3">
@@ -344,7 +367,7 @@ export default function ContractList() {
                         Edit
                       </button>
                       <button className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left">
-                        Extend Contract
+                        Renew Contract{" "}
                       </button>
                       <button
                         className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
@@ -364,6 +387,14 @@ export default function ContractList() {
               </div>
             </div>
           ))}
+
+          {paginatedContracts.length === 0 && (
+            <div className="bg-[#141414] p-6 rounded-xl text-center">
+              <p className="text-gray-400">
+                No contracts found matching your criteria.
+              </p>
+            </div>
+          )}
 
           {filteredContracts.length > contractsPerPage && (
             <Pagination
