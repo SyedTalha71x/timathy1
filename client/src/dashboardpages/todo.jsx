@@ -53,13 +53,13 @@ export default function TodoApp() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.status-dropdown')) {
+      if (!event.target.closest(".status-dropdown")) {
         setIsStatusDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const removeNotification = (id) => {
@@ -86,6 +86,15 @@ export default function TodoApp() {
 
   const handleAddTask = (newTask) => {
     setTasks([...tasks, newTask]);
+  };
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'ongoing': return 'bg-yellow-600 text-white';
+      case 'completed': return 'bg-green-500 text-white';
+      case 'canceled': return 'bg-red-600 text-white';
+      default: return '';
+    }
   };
 
   const filteredTasks = tasks.filter((task) => task.status === activeFilter);
@@ -120,32 +129,35 @@ export default function TodoApp() {
                 <span className="open_sans_font">Add task</span>
               </button>
               <div className="relative status-dropdown">
-                <button
-                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                  className={`flex items-center cursor-pointer gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30  bg-[#000000]`}
-                >
-                  <span className="capitalize">{activeFilter}</span>
-                  <ChevronDown size={16} className={`transform transition-transform cursor-pointer duration-500 ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isStatusDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-lg bg-[#2F2F2F]/50 backdrop-blur-3xl shadow-lg z-50 border border-slate-300/30">
-                    {["ongoing", "completed", "canceled"].map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => {
-                          setActiveFilter(status);
-                          setIsStatusDropdownOpen(false);
-                        }}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
-                          activeFilter === status ? 'bg-[#000000]' : ''
-                        }`}
-                      >
-                        <span className="capitalize">{status}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+      <button
+        onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+        className={`flex items-center cursor-pointer gap-2 px-4 py-2 rounded-xl text-sm ${getStatusColor(activeFilter)} border border-slate-300/30`}
+      >
+        <span className="capitalize">{activeFilter}</span>
+        <ChevronDown
+          size={16}
+          className={`transform transition-transform cursor-pointer duration-500 ${
+            isStatusDropdownOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {isStatusDropdownOpen && (
+        <div className="absolute right-0 mt-2 w-48 rounded-lg backdrop-blur-3xl bg-[#2F2F2F]/40 shadow-lg z-50 border border-slate-300/30">
+          {["ongoing", "completed", "canceled"].map((status) => (
+            <button
+              key={status}
+              onClick={() => {
+                setActiveFilter(status);
+                setIsStatusDropdownOpen(false);
+              }}
+              className={`w-full px-4 py-2 text-left text-sm ${getStatusColor(status)}`}
+            >
+              <span className="capitalize">{status}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
               {/* <button
                 onClick={() => setIsNotificationOpen(true)}
                 className="lg:hidden text-gray-400 hover:text-white"

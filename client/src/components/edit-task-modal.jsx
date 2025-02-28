@@ -9,13 +9,20 @@ const EditTaskModal = ({
   onUpdateTask,
   configuredTags = [],
 }) => {
+  // Initialize the task data, converting single assignee/role to arrays if needed
   const [editedTask, setEditedTask] = useState({
     ...task,
+    // Convert single values to arrays if coming from old format
+    assignees: task.assignees || (task.assignee ? [task.assignee] : []),
+    roles: task.roles || (task.role ? [task.role] : []),
     dueTime: task.dueTime || "",
   });
+  
+  // Determine assignment type based on which array has items
   const [assignmentType, setAssignmentType] = useState(
-    task.assignee ? "assignee" : "role"
+    task.assignees?.length > 0 || task.assignee ? "assignee" : "role"
   );
+  
   const assignees = ["John Doe", "Jane Smith", "Peter Jones"]; // Example assignees
   const roles = ["Developer", "Designer", "Manager"]; // Example roles
 
@@ -30,8 +37,12 @@ const EditTaskModal = ({
     if (onUpdateTask) {
       const updatedTask = {
         ...editedTask,
-        assignee: assignmentType === "assignee" ? editedTask.assignee : "",
-        role: assignmentType === "role" ? editedTask.role : "",
+        // Clear the array that's not being used
+        assignees: assignmentType === "assignee" ? editedTask.assignees : [],
+        roles: assignmentType === "role" ? editedTask.roles : [],
+        // Include these for backward compatibility
+        assignee: assignmentType === "assignee" ? editedTask.assignees[0] || "" : "",
+        role: assignmentType === "role" ? editedTask.roles[0] || "" : "",
       };
       onUpdateTask(updatedTask);
       toast.success("Task has been updated successfully!");
@@ -49,18 +60,44 @@ const EditTaskModal = ({
     setAssignmentType(type);
     setEditedTask((prev) => ({
       ...prev,
-      assignee: "",
-      role: "",
+      assignees: [],
+      roles: [],
     }));
   };
 
   const handleTagChange = (e) => {
     const value = e.target.value;
+    if (value === "") return;
+    
     setEditedTask((prev) => ({
       ...prev,
       tags: prev.tags.includes(value)
         ? prev.tags.filter((tag) => tag !== value)
         : [...prev.tags, value],
+    }));
+  };
+  
+  const handleAssigneeChange = (e) => {
+    const value = e.target.value;
+    if (value === "") return;
+    
+    setEditedTask(prev => ({
+      ...prev,
+      assignees: prev.assignees.includes(value)
+        ? prev.assignees.filter(assignee => assignee !== value) // Remove if already selected
+        : [...prev.assignees, value] // Add if not selected
+    }));
+  };
+
+  const handleRoleChange = (e) => {
+    const value = e.target.value;
+    if (value === "") return;
+    
+    setEditedTask(prev => ({
+      ...prev,
+      roles: prev.roles.includes(value)
+        ? prev.roles.filter(role => role !== value) // Remove if already selected
+        : [...prev.roles, value] // Add if not selected
     }));
   };
 
@@ -76,9 +113,9 @@ const EditTaskModal = ({
           },
         }}
       />
-      <div className="fixed inset-0 bg-black/50  flex justify-center items-center z-50">
+      <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
         <div className="bg-[#181818] rounded-xl w-[500px] p-6">
-        <div className="flex justify-between items-center mb-5 sm:mb-6">
+          <div className="flex justify-between items-center mb-5 sm:mb-6">
             <h2 className="text-white text-lg open_sans_font_700 font-semibold">Edit task</h2>
             <button onClick={onClose} className="text-gray-400 cursor-pointer hover:text-white">
               <X size={20} />
@@ -125,7 +162,7 @@ const EditTaskModal = ({
                       : "bg-[#2F2F2F] text-gray-200"
                   }`}
                 >
-                  Assign to Person
+                  Assign to People
                 </button>
                 <button
                   type="button"
@@ -136,50 +173,101 @@ const EditTaskModal = ({
                       : "bg-[#2F2F2F] text-gray-200"
                   }`}
                 >
-                  Assign to Role
+                  Assign to Roles
                 </button>
               </div>
             </div>
+            
             {assignmentType === "assignee" && (
               <div>
-                <label className="text-sm text-gray-200">Assignee</label>
+                <label className="text-sm text-gray-200">Assignees</label>
                 <select
-                  value={editedTask.assignee}
-                  onChange={(e) =>
-                    setEditedTask({ ...editedTask, assignee: e.target.value })
-                  }
+                  value=""
+                  onChange={handleAssigneeChange}
                   className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
-                  required
+                  required={editedTask.assignees.length === 0}
                 >
-                  <option value="">Select Assignee</option>
+                  <option value="">Select Assignees</option>
                   {assignees.map((assignee) => (
-                    <option key={assignee} value={assignee}>
-                      {assignee}
+                    <option 
+                      key={assignee} 
+                      value={assignee}
+                      className={editedTask.assignees.includes(assignee) ? "bg-[#3F74FF]" : ""}
+                    >
+                      {assignee} {editedTask.assignees.includes(assignee) ? "✓" : ""}
                     </option>
                   ))}
                 </select>
+                {editedTask.assignees.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {editedTask.assignees.map((assignee) => (
+                      <span
+                        key={assignee}
+                        className="bg-[#3F74FF] text-white px-2 py-1 rounded-lg text-sm flex items-center gap-1"
+                      >
+                        {assignee}
+                        <button
+                          type="button"
+                          onClick={() => setEditedTask(prev => ({
+                            ...prev,
+                            assignees: prev.assignees.filter(a => a !== assignee)
+                          }))}
+                          className="hover:text-gray-200"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
+            
             {assignmentType === "role" && (
               <div>
-                <label className="text-sm text-gray-200">Role</label>
+                <label className="text-sm text-gray-200">Roles</label>
                 <select
-                  value={editedTask.role}
-                  onChange={(e) =>
-                    setEditedTask({ ...editedTask, role: e.target.value })
-                  }
+                  value=""
+                  onChange={handleRoleChange}
                   className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
-                  required
+                  required={editedTask.roles.length === 0}
                 >
-                  <option value="">Select Role</option>
+                  <option value="">Select Roles</option>
                   {roles.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
+                    <option 
+                      key={role} 
+                      value={role}
+                      className={editedTask.roles.includes(role) ? "bg-[#3F74FF]" : ""}
+                    >
+                      {role} {editedTask.roles.includes(role) ? "✓" : ""}
                     </option>
                   ))}
                 </select>
+                {editedTask.roles.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {editedTask.roles.map((role) => (
+                      <span
+                        key={role}
+                        className="bg-[#3F74FF] text-white px-2 py-1 rounded-lg text-sm flex items-center gap-1"
+                      >
+                        {role}
+                        <button
+                          type="button"
+                          onClick={() => setEditedTask(prev => ({
+                            ...prev,
+                            roles: prev.roles.filter(r => r !== role)
+                          }))}
+                          className="hover:text-gray-200"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
+            
             <div>
               <label className="text-sm text-gray-200">Tags</label>
               <div className="relative">

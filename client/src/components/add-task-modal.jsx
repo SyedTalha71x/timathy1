@@ -10,9 +10,9 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
-    assignee: "",
-    role: "",
-    tags: [], // Keep as array for multiple selections
+    assignees: [], // Changed to array for multiple selections
+    roles: [], // Changed to array for multiple selections
+    tags: [],
     dueDate: "",
     dueTime: ""
   })
@@ -26,9 +26,9 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
       ...newTask,
       id: Date.now(),
       status: "ongoing",
-      // Clear the field that wasn't selected (assignee or role)
-      assignee: assignmentType === "assignee" ? newTask.assignee : "",
-      role: assignmentType === "role" ? newTask.role : ""
+      // Keep the arrays but clear the one not being used
+      assignees: assignmentType === "assignee" ? newTask.assignees : [],
+      roles: assignmentType === "role" ? newTask.roles : []
     }
 
     onAddTask(taskToAdd)
@@ -43,8 +43,8 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
     setAssignmentType(type)
     setNewTask({
       ...newTask,
-      assignee: "",
-      role: ""
+      assignees: [],
+      roles: []
     })
   }
 
@@ -55,6 +55,30 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
       tags: prev.tags.includes(value)
         ? prev.tags.filter(tag => tag !== value) // Remove if already selected
         : [...prev.tags, value] // Add if not selected
+    }));
+  };
+
+  const handleAssigneeChange = (e) => {
+    const value = e.target.value;
+    if (value === "") return; // Skip empty selections
+    
+    setNewTask(prev => ({
+      ...prev,
+      assignees: prev.assignees.includes(value)
+        ? prev.assignees.filter(assignee => assignee !== value) // Remove if already selected
+        : [...prev.assignees, value] // Add if not selected
+    }));
+  };
+
+  const handleRoleChange = (e) => {
+    const value = e.target.value;
+    if (value === "") return; // Skip empty selections
+    
+    setNewTask(prev => ({
+      ...prev,
+      roles: prev.roles.includes(value)
+        ? prev.roles.filter(role => role !== value) // Remove if already selected
+        : [...prev.roles, value] // Add if not selected
     }));
   };
 
@@ -115,7 +139,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                       : "bg-[#2F2F2F] text-gray-200"
                   }`}
                 >
-                  Assign to Person
+                  Assign to People
                 </button>
                 <button
                   type="button"
@@ -126,46 +150,98 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                       : "bg-[#2F2F2F] text-gray-200"
                   }`}
                 >
-                  Assign to Role
+                  Assign to Roles
                 </button>
               </div>
             </div>
 
             {assignmentType === "assignee" && (
               <div>
-                <label className="text-sm text-gray-200">Assignee</label>
+                <label className="text-sm text-gray-200">Assignees</label>
                 <select
-                  value={newTask.assignee}
-                  onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
+                  value=""
+                  onChange={handleAssigneeChange}
                   className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
-                  required
+                  required={newTask.assignees.length === 0}
                 >
-                  <option value="">Select Assignee</option>
+                  <option value="">Select Assignees</option>
                   {assignees.map((assignee) => (
-                    <option key={assignee} value={assignee}>
-                      {assignee}
+                    <option 
+                      key={assignee} 
+                      value={assignee}
+                      className={newTask.assignees.includes(assignee) ? "bg-[#3F74FF]" : ""}
+                    >
+                      {assignee} {newTask.assignees.includes(assignee) ? "✓" : ""}
                     </option>
                   ))}
                 </select>
+                {newTask.assignees.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {newTask.assignees.map((assignee) => (
+                      <span
+                        key={assignee}
+                        className="bg-[#3F74FF] text-white px-2 py-1 rounded-lg text-sm flex items-center gap-1"
+                      >
+                        {assignee}
+                        <button
+                          type="button"
+                          onClick={() => setNewTask(prev => ({
+                            ...prev,
+                            assignees: prev.assignees.filter(a => a !== assignee)
+                          }))}
+                          className="hover:text-gray-200"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {assignmentType === "role" && (
               <div>
-                <label className="text-sm text-gray-200">Role</label>
+                <label className="text-sm text-gray-200">Roles</label>
                 <select
-                  value={newTask.role}
-                  onChange={(e) => setNewTask({ ...newTask, role: e.target.value })}
+                  value=""
+                  onChange={handleRoleChange}
                   className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
-                  required
+                  required={newTask.roles.length === 0}
                 >
-                  <option value="">Select Role</option>
+                  <option value="">Select Roles</option>
                   {roles.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
+                    <option 
+                      key={role} 
+                      value={role}
+                      className={newTask.roles.includes(role) ? "bg-[#3F74FF]" : ""}
+                    >
+                      {role} {newTask.roles.includes(role) ? "✓" : ""}
                     </option>
                   ))}
                 </select>
+                {newTask.roles.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {newTask.roles.map((role) => (
+                      <span
+                        key={role}
+                        className="bg-[#3F74FF] text-white px-2 py-1 rounded-lg text-sm flex items-center gap-1"
+                      >
+                        {role}
+                        <button
+                          type="button"
+                          onClick={() => setNewTask(prev => ({
+                            ...prev,
+                            roles: prev.roles.filter(r => r !== role)
+                          }))}
+                          className="hover:text-gray-200"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -220,7 +296,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                   type="date"
                   value={newTask.dueDate}
                   onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                  className="w-full bg-[#101010] white-calendar-icon mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
                 />
               </div>
               <div>
@@ -229,7 +305,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                   type="time"
                   value={newTask.dueTime}
                   onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
-                  className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                  className="w-full bg-[#101010] white-calendar-icon mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
                 />
               </div>
             </div>

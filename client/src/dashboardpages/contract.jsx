@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { MoreVertical, Plus, ChevronDown, DollarSign } from "lucide-react";
+import { MoreVertical, Plus, ChevronDown, DollarSign, ArrowUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import { AddContractModal } from "../components/add-contract-modal";
@@ -105,18 +105,20 @@ export default function ContractList() {
   const [selectedContract, setSelectedContract] = useState(null);
   const [activeDropdownId, setActiveDropdownId] = useState(null);
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All Contracts");
+  const [selectedSort, setSelectedSort] = useState("Default");
   const [contracts, setContracts] = useState(initialContracts);
-  const [filteredContracts, setFilteredContracts] = useState(initialContracts); // Initialize with all contracts
+  const [filteredContracts, setFilteredContracts] = useState(initialContracts);
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState(""); // Added searchTerm state
-  const contractsPerPage = 3; // Reduced for testing purposes
+  const [searchTerm, setSearchTerm] = useState("");
+  const contractsPerPage = 3;
 
-  // Update filtered contracts when selectedFilter or contracts change
+  // Update filtered contracts when selectedFilter, contracts, or searchTerm change
   useEffect(() => {
     let filtered = contracts;
 
@@ -134,9 +136,26 @@ export default function ContractList() {
       );
     }
 
+    // Apply sorting
+    switch (selectedSort) {
+      case "Alphabetical":
+        filtered = [...filtered].sort((a, b) => 
+          a.memberName.localeCompare(b.memberName)
+        );
+        break;
+      case "Expiring Soon":
+        filtered = [...filtered].sort((a, b) => 
+          new Date(a.endDate) - new Date(b.endDate)
+        );
+        break;
+      default:
+        // Default sorting (by ID or original order)
+        break;
+    }
+
     setFilteredContracts(filtered);
-    setCurrentPage(1); // Reset to the first page when filter changes
-  }, [selectedFilter, contracts, searchTerm]);
+    setCurrentPage(1); // Reset to the first page when filter or sort changes
+  }, [selectedFilter, contracts, searchTerm, selectedSort]);
 
   const totalPages = Math.ceil(filteredContracts.length / contractsPerPage);
   const startIndex = (currentPage - 1) * contractsPerPage;
@@ -161,6 +180,9 @@ export default function ContractList() {
       }
       if (!event.target.closest(".filter-dropdown")) {
         setFilterDropdownOpen(false);
+      }
+      if (!event.target.closest(".sort-dropdown")) {
+        setSortDropdownOpen(false);
       }
     };
 
@@ -279,6 +301,37 @@ export default function ContractList() {
               )}
             </div>
 
+            {/* Sort Dropdown */}
+            <div className="relative sort-dropdown w-full sm:w-auto">
+              <button
+                onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                className="bg-black text-sm cursor-pointer text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 min-w-[150px]"
+              >
+                <span>Sort: {selectedSort}</span>
+                <ArrowUpDown className="w-4 h-4" />
+              </button>
+              {sortDropdownOpen && (
+                <div className="absolute right-0 text-sm mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
+                  {[
+                    "Default",
+                    "Alphabetical",
+                    "Expiring Soon",
+                  ].map((sortOption) => (
+                    <button
+                      key={sortOption}
+                      className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
+                      onClick={() => {
+                        setSelectedSort(sortOption);
+                        setSortDropdownOpen(false);
+                      }}
+                    >
+                      {sortOption}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -310,82 +363,81 @@ export default function ContractList() {
         </div>
 
         <div className="space-y-3">
-        {paginatedContracts.map((contract) => (
-  <div
-    key={contract.id}
-    className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4"
-  >
-    <div className="flex flex-col items-start justify-start">
-      {/* Status Tag */}
-      <span
-        className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${
-          contract.status === "Active"
-            ? "bg-green-600 text-white"
-            : contract.status === "Paused"
-            ? "bg-yellow-600 text-white"
-            : "bg-red-600 text-white"
-        }`}
-      >
-        {contract.status}
-        {contract.pauseReason && ` (${contract.pauseReason})`}
-        {contract.cancelReason && ` (${contract.cancelReason})`}
-      </span>
-
-      <span className="text-white font-medium">{contract.memberName}</span>
-      <span className="text-sm text-gray-400">{contract.contractType}</span>
-      <span className="text-sm text-gray-400">
-        {contract.startDate} - {contract.endDate}
-      </span>
-      <span className="text-sm text-gray-400">
-        {contract.isDigital ? "Digital" : "Analog"}
-      </span>
-    </div>
-
-    <div className="flex items-center gap-3">
-      <button
-        onClick={() => handleViewDetails(contract)}
-        className="px-4 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex-grow sm:flex-grow-0"
-      >
-        View details
-      </button>
-      <div className="relative">
-        <button
-          onClick={(e) => toggleDropdown(contract.id, e)}
-          className="dropdown-trigger p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
-        >
-          <MoreVertical className="w-5 h-5 text-gray-400 cursor-pointer" />
-        </button>
-
-        {activeDropdownId === contract.id && (
-          <div className="dropdown-menu absolute right-0 sm:right-3 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
-            <button
-              className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-              onClick={() => handleEditContract(contract.id)}
+          {paginatedContracts.map((contract) => (
+            <div
+              key={contract.id}
+              className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4"
             >
-              Edit
-            </button>
-            <button className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left">
-              Renew Contract{" "}
-            </button>
-            <button
-              className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-              onClick={() => handlePauseContract(contract.id)}
-            >
-              Pause Contract
-            </button>
-            <button
-              className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
-              onClick={() => handleCancelContract(contract.id)}
-            >
-              Cancel Contract
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-))}
+              <div className="flex flex-col items-start justify-start">
+                {/* Status Tag */}
+                <span
+                  className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${
+                    contract.status === "Active"
+                      ? "bg-green-600 text-white"
+                      : contract.status === "Paused"
+                      ? "bg-yellow-600 text-white"
+                      : "bg-red-600 text-white"
+                  }`}
+                >
+                  {contract.status}
+                  {contract.pauseReason && ` (${contract.pauseReason})`}
+                  {contract.cancelReason && ` (${contract.cancelReason})`}
+                </span>
 
+                <span className="text-white font-medium">{contract.memberName}</span>
+                <span className="text-sm text-gray-400">{contract.contractType}</span>
+                <span className="text-sm text-gray-400">
+                  {contract.startDate} - {contract.endDate}
+                </span>
+                <span className="text-sm text-gray-400">
+                  {contract.isDigital ? "Digital" : "Analog"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleViewDetails(contract)}
+                  className="px-4 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex-grow sm:flex-grow-0"
+                >
+                  View details
+                </button>
+                <div className="relative">
+                  <button
+                    onClick={(e) => toggleDropdown(contract.id, e)}
+                    className="dropdown-trigger p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+                  >
+                    <MoreVertical className="w-5 h-5 text-gray-400 cursor-pointer" />
+                  </button>
+
+                  {activeDropdownId === contract.id && (
+                    <div className="dropdown-menu absolute right-0 sm:right-3 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
+                      <button
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                        onClick={() => handleEditContract(contract.id)}
+                      >
+                        Edit
+                      </button>
+                      <button className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left">
+                        Renew Contract{" "}
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                        onClick={() => handlePauseContract(contract.id)}
+                      >
+                        Pause Contract
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
+                        onClick={() => handleCancelContract(contract.id)}
+                      >
+                        Cancel Contract
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
 
           {paginatedContracts.length === 0 && (
             <div className="bg-[#141414] p-6 rounded-xl text-center">

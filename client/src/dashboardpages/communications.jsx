@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
 import {
@@ -10,16 +12,15 @@ import {
   Mic,
   Smile,
   Clock,
-  PlusCircle,
   Send,
   Gift,
   Calendar,
   Plus,
+  XCircle,
 } from "lucide-react"
 import data from "@emoji-mart/data"
 import Picker from "@emoji-mart/react"
-import { IoIosMegaphone } from "react-icons/io";
-
+import { IoIosMegaphone } from "react-icons/io"
 
 // Assume these imgs are in the public folder
 const img1 = "/Rectangle 1.png"
@@ -55,6 +56,7 @@ export default function Communications() {
   const [selectAll, setSelectAll] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showMediaUpload, setShowMediaUpload] = useState(false)
+  const [chatList, setChatList] = useState([])
 
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
@@ -112,6 +114,7 @@ export default function Communications() {
 
   const employeeChatList = [
     {
+      id: 1,
       name: "Jennifer Markus",
       time: "Today | 05:30 PM",
       active: true,
@@ -120,6 +123,7 @@ export default function Communications() {
       isBirthday: true,
     },
     {
+      id: 2,
       name: "Jerry Haffer",
       time: "Today | 05:30 PM",
       verified: true,
@@ -131,12 +135,14 @@ export default function Communications() {
 
   const memberChatList = [
     {
+      id: 3,
       name: "Group 1",
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
       logo: img2,
     },
     {
+      id: 4,
       name: "David Eison",
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
@@ -144,6 +150,7 @@ export default function Communications() {
       isBirthday: true,
     },
     {
+      id: 5,
       name: "Mary Freund",
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
@@ -151,7 +158,13 @@ export default function Communications() {
     },
   ]
 
-  const chatList = chatType === "employee" ? employeeChatList : memberChatList
+  useEffect(() => {
+    setChatList(chatType === "employee" ? employeeChatList : memberChatList)
+  }, [chatType])
+
+  const handleCloseChat = (chatId) => {
+    setChatList((prevList) => prevList.filter((chat) => chat.id !== chatId))
+  }
 
   const predefinedMessages = ["Hi all tomorrow is off", "Hi all tomorrow is off", "Hi all tomorrow is off"]
 
@@ -244,11 +257,7 @@ export default function Communications() {
               >
                 Member
               </button>
-              <button
-                className={`px-4 py-2 text-sm border border-slate-300  rounded-xl`}
-              >
-                Email
-              </button>
+              <button className={`px-4 py-2 text-sm border border-slate-300  rounded-xl`}>Email</button>
             </div>
 
             <div className="relative">
@@ -367,7 +376,7 @@ export default function Communications() {
                 key={index}
                 className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${
                   chat.active ? "bg-[#181818]" : "hover:bg-[#181818]"
-                } cursor-pointer`}
+                } cursor-pointer relative group`}
                 onClick={() => setActiveScreen("chat")}
               >
                 <div className="relative">
@@ -406,8 +415,30 @@ export default function Communications() {
                     <span className="text-sm text-gray-400">{chat.time}</span>
                   </div>
                 </div>
+                <button
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 bg-gray-700 hover:bg-gray-600 rounded-full"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleCloseChat(chat.id)
+                  }}
+                  aria-label="Close chat"
+                >
+                  <XCircle className="w-4 h-4 text-gray-300" />
+                </button>
               </div>
             ))}
+            {chatList.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-40 text-gray-400">
+                <p className="mb-2">No chats available</p>
+                <button
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-2"
+                  onClick={handleNewChat}
+                >
+                  <Plus className="w-4 h-4" />
+                  Start a new chat
+                </button>
+              </div>
+            )}
           </div>
           <button
             onClick={() => setActiveScreen("send-message")}
@@ -438,7 +469,7 @@ export default function Communications() {
                     height={48}
                     className="rounded-full"
                   />
-                  {employeeChatList[0].isBirthday && (
+                  {employeeChatList[0]?.isBirthday && (
                     <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
                       <Gift className="w-3 h-3 text-white" />
                     </div>
@@ -477,6 +508,13 @@ export default function Communications() {
                     }}
                   />
                 </div>
+                <button
+                  className="text-gray-400 hover:text-gray-300 p-1 rounded-full hover:bg-gray-800"
+                  onClick={() => setActiveScreen("chat")}
+                  aria-label="Close current chat"
+                >
+                  <X className="w-6 h-6" />
+                </button>
               </div>
             </div>
 
