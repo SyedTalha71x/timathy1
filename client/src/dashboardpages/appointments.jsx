@@ -9,6 +9,8 @@ import {
   Info,
   Search,
   AlertTriangle,
+  Edit,
+  User,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Avatar from "../../public/avatar.png";
@@ -46,6 +48,11 @@ function Calendar({
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const [freeAppointments, setFreeAppointments] = useState([]);
+  // New state for the appointment action modal
+  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] = useState(false);
+  const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false);
 
   // Sample appointment types - you can replace this with your actual data
   const appointmentTypes = [
@@ -116,11 +123,8 @@ function Calendar({
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false);
     if (shouldNotify) {
-      // Implement notification logic here
       console.log("Notify member about the new time:", eventInfo.event.start);
-      // Assuming the notification is successful
       toast.success("Member notified successfully!");
-      // Fix the appointment to the new time/date
       const updatedAppointments = appointments.map((appointment) => {
         if (appointment.id === eventInfo.event.id) {
           return {
@@ -132,9 +136,75 @@ function Calendar({
         }
         return appointment;
       });
-      // Update the appointments state or call a function to update the backend
-      // For example, if you have a function to update the state:
-      // setAppointments(updatedAppointments);
+    }
+  };
+
+  // New handler for event clicks
+  const handleEventClick = (clickInfo) => {
+    // Find the full appointment details from the appointments array
+    const appointmentId = parseInt(clickInfo.event.id);
+    const appointment = appointments.find(app => app.id === appointmentId);
+    
+    if (appointment) {
+      setSelectedAppointment(appointment);
+      setIsAppointmentActionModalOpen(true);
+    }
+    
+    // Call the original onEventClick if provided
+    if (onEventClick) {
+      onEventClick(clickInfo);
+    }
+  };
+
+  // Handle edit appointment
+  const handleEditAppointment = () => {
+    setIsAppointmentActionModalOpen(false);
+    setIsEditAppointmentModalOpen(true);
+  };
+
+  // Handle edit appointment submit
+  const handleEditAppointmentSubmit = (editedData) => {
+    const updatedAppointments = appointments.map(app => 
+      app.id === selectedAppointment.id ? { ...app, ...editedData } : app
+    );
+    setAppointments(updatedAppointments);
+    toast.success("Appointment updated successfully");
+    setIsEditAppointmentModalOpen(false);
+  };
+
+  // Handle cancel appointment
+  const handleCancelAppointment = () => {
+    setIsAppointmentActionModalOpen(false);
+    setNotifyAction("cancel");
+    setIsNotifyMemberOpen(true);
+    
+    // We'll use the same notification handler but add additional logic for cancellation
+    setEventInfo({
+      event: {
+        id: selectedAppointment.id,
+        start: new Date(),
+        end: new Date()
+      }
+    });
+  };
+
+  // Handle view member details
+  const handleViewMemberDetails = () => {
+    setIsAppointmentActionModalOpen(false);
+    setIsMemberDetailsModalOpen(true);
+  };
+
+  // Actually cancel the appointment after notification decision
+  const actuallyHandleCancelAppointment = (shouldNotify) => {
+    const updatedAppointments = appointments.filter(
+      app => app.id !== selectedAppointment.id
+    );
+    setAppointments(updatedAppointments);
+    toast.success("Appointment cancelled successfully");
+    
+    if (shouldNotify) {
+      console.log("Notifying member about cancellation");
+      // Additional notification logic would go here
     }
   };
 
@@ -204,7 +274,7 @@ function Calendar({
               nowIndicator={true}
               slotDuration="01:00:00"
               firstDay={1}
-              eventClick={onEventClick}
+              eventClick={handleEventClick} // Use our custom handler
               select={handleDateSelect}
               eventContent={(eventInfo) => (
                 <div className="p-1 h-full overflow-hidden">
@@ -239,6 +309,10 @@ function Calendar({
         setNotifyAction={setNotifyAction}
         selectedDate={selectedSlotInfo?.start}
       />
+
+
+
+
 
       {/* Type Selection Modal */}
       {isTypeSelectionOpen && (
@@ -280,7 +354,64 @@ function Calendar({
         </div>
       )}
 
-      {/* Notify Member Modal */}
+      {/* New Appointment Action Modal */}
+      {isAppointmentActionModalOpen && selectedAppointment && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+          onClick={() => setIsAppointmentActionModalOpen(false)}
+        >
+          <div
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">
+                Appointment Options
+              </h2>
+              <button
+                onClick={() => setIsAppointmentActionModalOpen(false)}
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-2">
+              <div className="mb-4">
+                <h3 className="text-white font-medium">{selectedAppointment.name}</h3>
+                <p className="text-gray-400 text-sm">{selectedAppointment.type}</p>
+                <p className="text-gray-400 text-sm">
+                  {selectedAppointment.date && selectedAppointment.date.split('|')[1]} • 
+                  {selectedAppointment.startTime} - {selectedAppointment.endTime}
+                </p>
+              </div>
+              
+              <button
+                // onClick={handleEditAppointment}
+                className="w-full px-5 py-3 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer transition-colors flex items-center justify-center"
+              >
+                <Edit className="mr-2" size={16} /> Edit Appointment
+              </button>
+              
+              <button
+                // onClick={handleCancelAppointment}
+                className="w-full px-5 py-3 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 cursor-pointer transition-colors flex items-center justify-center"
+              >
+                <X className="mr-2" size={16} /> Cancel Appointment
+              </button>
+              
+              <button
+                // onClick={handleViewMemberDetails}
+                className="w-full px-5 py-3 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 cursor-pointer transition-colors flex items-center justify-center"
+              >
+                <User className="mr-2" size={16} /> View Member Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notify Member Modal - Modified to handle cancellations */}
       {isNotifyMemberOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -316,13 +447,27 @@ function Calendar({
 
             <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
               <button
-                onClick={() => handleNotifyMember(true)}
+                onClick={() => {
+                  if (notifyAction === "cancel") {
+                    actuallyHandleCancelAppointment(true);
+                  } else {
+                    handleNotifyMember(true);
+                  }
+                  setIsNotifyMemberOpen(false);
+                }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
               >
                 Yes, Notify Member
               </button>
               <button
-                onClick={() => handleNotifyMember(false)}
+                onClick={() => {
+                  if (notifyAction === "cancel") {
+                    actuallyHandleCancelAppointment(false);
+                  } else {
+                    handleNotifyMember(false);
+                  }
+                  setIsNotifyMemberOpen(false);
+                }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
               >
                 No, Don't Notify
@@ -333,6 +478,7 @@ function Calendar({
       )}
       <Toaster position="top-right" autoClose={3000} />
       <style>{`
+
         .overflow-x-auto {
           -webkit-overflow-scrolling: touch;
           overflow-x: auto;
@@ -456,6 +602,7 @@ function Calendar({
     </>
   );
 }
+
 
 function MiniCalendar({ onDateSelect, selectedDate }) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -891,7 +1038,7 @@ export default function Appointments() {
               className="text-yellow-500 cursor-pointer"
             />
           ) : (
-            <Info size={18} className="text-blue-500 cursor-pointer" />
+            <Info size={18} className="text-white cursor-pointer" />
           )}
           {activeNoteId === appointmentId && (
             <div className="absolute right-0 top-6 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
@@ -989,7 +1136,7 @@ export default function Appointments() {
                         key={appointment.id}
                         className={`${appointment.color} rounded-xl cursor-pointer p-4 relative`}
                       >
-                        <div className="absolute top-2 right-2">
+                        <div className="absolute p-2 top-1 right-2">
                           {renderSpecialNoteIcon(
                             appointment.specialNote,
                             appointment.id
@@ -1053,7 +1200,7 @@ export default function Appointments() {
                               </button>
 
                               {activeDropdownId === appointment.id && (
-                                <div className="absolute right-0 cursor-pointer mt-1 w-42 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
+                                <div className="absolute right-0 cursor-pointer mt-1 w-46 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
                                   <button
                                     className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
                                     onClick={(e) => {
@@ -1064,6 +1211,15 @@ export default function Appointments() {
                                     Edit
                                   </button>
                                   <div className="h-[1px] bg-gray-800 w-full"></div>
+                               
+                                  <button
+                                    className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                  >
+                                    View Member Details
+                                  </button>
                                   <button
                                     className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
                                     onClick={(e) => {

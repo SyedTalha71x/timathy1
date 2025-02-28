@@ -38,7 +38,7 @@ const SelectedAppointmentModal = ({
         </div>
 
         <div className="p-6">
-          <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
+          <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[60vh]">
             <div className="space-y-1.5">
               <label className="text-sm text-gray-200">Member</label>
               <input
@@ -196,12 +196,7 @@ const SelectedAppointmentModal = ({
           >
             Save Changes
           </button>
-          <button
-            onClick={() => setSelectedAppointment(null)}
-            className="w-full sm:w-auto px-5 py-2.5 bg-black text-red-500 border-2 border-slate-500 rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors"
-          >
-            Cancel
-          </button>
+          
         </div>
       </div>
     </div>
