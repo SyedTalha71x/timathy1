@@ -1,5 +1,8 @@
+/* eslint-disable no-unused-vars */
+"use client"
+
 import { useEffect, useState } from "react"
-import { X, Search, AlertTriangle, ChevronDown, Cake, Eye, FileText } from "lucide-react"
+import { X, Search, ChevronDown, Cake, Eye, FileText } from "lucide-react"
 import DefaultAvatar from "../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
 
@@ -11,6 +14,8 @@ export default function Members() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
+  const [sortBy, setSortBy] = useState("alphabetical") // "alphabetical" or "expiring"
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
 
   const [editForm, setEditForm] = useState({
     firstName: "",
@@ -26,6 +31,8 @@ export default function Members() {
     noteStartDate: "",
     noteEndDate: "",
     noteImportance: "unimportant",
+    contractStart: "",
+    contractEnd: "",
   })
 
   useEffect(() => {
@@ -44,6 +51,8 @@ export default function Members() {
         noteStartDate: selectedMember.noteStartDate,
         noteEndDate: selectedMember.noteEndDate,
         noteImportance: selectedMember.noteImportance,
+        contractStart: selectedMember.contractStart,
+        contractEnd: selectedMember.contractEnd,
       })
     }
   }, [selectedMember])
@@ -82,7 +91,6 @@ export default function Members() {
       firstName: "John",
       lastName: "Doe",
       title: "John Doe",
-      description: "Software Developer",
       email: "john@example.com",
       phone: "+1234567890",
       street: "123 Main St",
@@ -97,13 +105,14 @@ export default function Members() {
       dateOfBirth: "1990-05-15",
       about: "Experienced developer with a passion for clean code.",
       joinDate: "2022-03-01",
+      contractStart: "2022-03-01",
+      contractEnd: "2023-03-01",
     },
     {
       id: 2,
       firstName: "Jane",
       lastName: "Smith",
       title: "Jane Smith",
-      description: "Project Manager",
       email: "jane@example.com",
       phone: "+1234567891",
       street: "456 Oak St",
@@ -118,6 +127,8 @@ export default function Members() {
       dateOfBirth: "1985-08-22",
       about: "Certified PMP with 10 years of experience in IT project management.",
       joinDate: "2021-11-15",
+      contractStart: "2021-11-15",
+      contractEnd: "2024-04-15",
     },
   ])
 
@@ -133,15 +144,38 @@ export default function Members() {
     },
   ]
 
+  const sortOptions = [
+    { id: "alphabetical", label: "Alphabetical" },
+    { id: "expiring", label: "Contracts Expiring Soon" },
+  ]
+
+  const isContractExpiringSoon = (contractEnd) => {
+    if (!contractEnd) return false
+
+    const today = new Date()
+    const endDate = new Date(contractEnd)
+    const oneMonthFromNow = new Date()
+    oneMonthFromNow.setMonth(today.getMonth() + 1)
+
+    return endDate <= oneMonthFromNow && endDate >= today
+  }
+
   const filteredAndSortedMembers = () => {
-    let filtered = members.filter(
-      (member) =>
-        member.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.description.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+    let filtered = members.filter((member) => member.title.toLowerCase().includes(searchQuery.toLowerCase()))
 
     if (filterStatus !== "all") {
       filtered = filtered.filter((member) => (filterStatus === "active" ? member.isActive : !member.isActive))
+    }
+
+    // Sort members
+    if (sortBy === "alphabetical") {
+      filtered.sort((a, b) => a.title.localeCompare(b.title))
+    } else if (sortBy === "expiring") {
+      filtered.sort((a, b) => {
+        if (!a.contractEnd) return 1
+        if (!b.contractEnd) return -1
+        return new Date(a.contractEnd) - new Date(b.contractEnd)
+      })
     }
 
     return filtered
@@ -165,6 +199,11 @@ export default function Members() {
     setIsFilterDropdownOpen(false)
   }
 
+  const handleSortSelect = (sortId) => {
+    setSortBy(sortId)
+    setIsSortDropdownOpen(false)
+  }
+
   const removeNotification = (id) => {
     setNotifications(notifications.filter((n) => n.id !== id))
   }
@@ -180,6 +219,7 @@ export default function Members() {
   }
 
   const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return ""
     const today = new Date()
     const birthDate = new Date(dateOfBirth)
     let age = today.getFullYear() - birthDate.getFullYear()
@@ -191,13 +231,20 @@ export default function Members() {
   }
 
   const isBirthday = (dateOfBirth) => {
+    if (!dateOfBirth) return false
     const today = new Date()
     const birthDate = new Date(dateOfBirth)
     return today.getMonth() === birthDate.getMonth() && today.getDate() === birthDate.getDate()
   }
 
-  const redirectToContract = () =>{
-    window.location.href = '/dashboard/contract'
+  const redirectToContract = () => {
+    window.location.href = "/dashboard/contract"
+  }
+
+  const handleAvatarChange = (e) => {
+    e.preventDefault()
+    // In a real app, you would handle file upload here
+    toast.success("Avatar update functionality would be implemented here")
   }
 
   return (
@@ -239,6 +286,34 @@ export default function Members() {
                         onClick={() => handleFilterSelect(option.id)}
                         className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
                           option.id === filterStatus ? "bg-[#000000]" : ""
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="relative sort-dropdown flex-1 sm:flex-none">
+                <button
+                  onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                  className={`flex w-full sm:w-auto cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]`}
+                >
+                  <span className="truncate">Sort: {sortOptions.find((opt) => opt.id === sortBy)?.label}</span>
+                  <ChevronDown
+                    size={16}
+                    className={`transform transition-transform flex-shrink-0 ${isSortDropdownOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {isSortDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-full sm:w-64 rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => handleSortSelect(option.id)}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
+                          option.id === sortBy ? "bg-[#000000]" : ""
                         }`}
                       >
                         {option.label}
@@ -289,9 +364,25 @@ export default function Members() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <button className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm">
+                      <input
+                        type="file"
+                        id="avatar"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => {
+                          // Handle file selection logic here
+                          if (e.target.files && e.target.files[0]) {
+                            // In a real app, you would handle the file upload
+                            toast.success("Avatar selected successfully")
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="avatar"
+                        className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer"
+                      >
                         Update picture
-                      </button>
+                      </label>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -379,8 +470,31 @@ export default function Members() {
                         name="dateOfBirth"
                         value={editForm.dateOfBirth}
                         onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Contract Start</label>
+                        <input
+                          type="date"
+                          name="contractStart"
+                          value={editForm.contractStart}
+                          onChange={handleInputChange}
+                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Contract End</label>
+                        <input
+                          type="date"
+                          name="contractEnd"
+                          value={editForm.contractEnd}
+                          onChange={handleInputChange}
+                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -465,7 +579,9 @@ export default function Members() {
                         />
                         <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row items-center gap-2">
-                            <h3 className="text-white font-medium truncate text-lg sm:text-base">{member.title}</h3>
+                            <h3 className="text-white font-medium truncate text-lg sm:text-base">
+                              {member.title} ({calculateAge(member.dateOfBirth)})
+                            </h3>
                             <div className="flex items-center gap-2">
                               <span
                                 className={`px-2 py-0.5 text-xs rounded-full ${
@@ -478,13 +594,15 @@ export default function Members() {
                             </div>
                           </div>
                           <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left">
-                            {member.description} (Age: {calculateAge(member.dateOfBirth)})
+                            Contract: {member.contractStart} -{" "}
+                            <span className={isContractExpiringSoon(member.contractEnd) ? "text-red-500" : ""}>
+                              {member.contractEnd}
+                            </span>
                           </p>
                           {member.note && (
-                            <div className="flex items-center justify-center sm:justify-start gap-1 text-yellow-500 text-sm mt-1">
-                              <AlertTriangle size={13} />
-                              <span className="text-sm">{member.note}</span>
-                            </div>
+                            <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left">
+                              Note: {member.note}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -575,8 +693,15 @@ export default function Members() {
                     className="w-24 h-24 rounded-full object-cover"
                   />
                   <div>
-                    <h3 className="text-xl font-semibold">{selectedMember.title}</h3>
-                    <p className="text-gray-400">{selectedMember.description}</p>
+                    <h3 className="text-xl font-semibold">
+                      {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
+                    </h3>
+                    <p className="text-gray-400">
+                      Contract: {selectedMember.contractStart} -
+                      <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
+                        {selectedMember.contractEnd}
+                      </span>
+                    </p>
                   </div>
                 </div>
 
@@ -627,9 +752,7 @@ export default function Members() {
 
                 <div className="flex justify-end gap-4 mt-6">
                   <button
-                    onClick={ 
-                      redirectToContract
-                    }
+                    onClick={redirectToContract}
                     className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
                   >
                     <FileText size={16} />

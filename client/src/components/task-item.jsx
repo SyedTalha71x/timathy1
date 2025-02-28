@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react";
 import { MoreHorizontal, Tag, Calendar } from "lucide-react";
@@ -9,6 +8,7 @@ import { Toaster, toast } from "react-hot-toast";
 export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const toggleDropdown = (e) => {
     e.stopPropagation();
@@ -30,6 +30,18 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
     const taskWithStatus = { ...updatedTask, status: task.status };
     onUpdate(taskWithStatus);
   };
+
+  const openDeleteConfirmation = () => {
+    setIsDeleteModalOpen(true);
+    setIsDropdownOpen(false);
+
+  };
+
+  const handleDeleteTask = () => {
+    onRemove(task.id);
+    setIsDeleteModalOpen(false);
+  };  
+
 
   return (
     <>
@@ -113,10 +125,16 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
                           Move to Ongoing
                         </button>
                         <button
-                          className="w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-gray-700 rounded-b-xl"
+                          className="w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-gray-700"
                           onClick={() => handleStatusChange("completed")}
                         >
                           Mark as Completed
+                        </button>
+                        <button
+                          className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-gray-700 rounded-b-xl"
+                          onClick={openDeleteConfirmation}
+                        >
+                          Delete Task
                         </button>
                       </>
                     )}
@@ -165,6 +183,31 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
             onClose={() => setIsEditModalOpen(false)}
             onUpdateTask={handleUpdateTask}
           />
+        )}
+
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-[#1E1E1E] rounded-xl p-6 max-w-md w-full mx-4">
+              <h3 className="text-white text-lg font-medium mb-2">Confirm Delete</h3>
+              <p className="text-gray-300 text-sm mb-6">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="bg-[#2F2F2F] text-sm text-gray-300 px-4 py-2 rounded-xl  hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteTask}
+                  className="bg-red-600 text-sm text-white px-4 py-2 rounded-xl  hover:bg-red-700"
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </>
