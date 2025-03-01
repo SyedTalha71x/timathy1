@@ -584,10 +584,6 @@ export default function Appointments() {
     },
   ]);
 
-  const [openingHours, setOpeningHours] = useState({
-    start: "08:00:00",
-    end: "19:00:00",
-  });
 
   const [filteredAppointments, setFilteredAppointments] =
     useState(appointments);
@@ -834,18 +830,6 @@ export default function Appointments() {
     [activeNoteId]
   );
 
-  const calendarEvents = appointments.map((appointment) => ({
-    id: appointment.id,
-    title: appointment.name,
-    date: appointment.date, // Keep the original date format for transformation
-    startTime: appointment.startTime,
-    endTime: appointment.endTime,
-    backgroundColor: appointment.color.split("bg-[")[1].replace("]", ""),
-    borderColor: appointment.color.split("bg-[")[1].replace("]", ""),
-    extendedProps: {
-      type: appointment.type,
-    },
-  }));
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">

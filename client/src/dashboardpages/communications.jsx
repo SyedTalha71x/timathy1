@@ -1,6 +1,6 @@
+/* eslint-disable no-unused-vars */
 "use client"
 
-/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
 import {
   Menu,
@@ -57,6 +57,8 @@ export default function Communications() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showMediaUpload, setShowMediaUpload] = useState(false)
   const [chatList, setChatList] = useState([])
+  const [broadcastMessage, setBroadcastMessage] = useState("")
+  const [broadcastTitle, setBroadcastTitle] = useState("")
 
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
@@ -206,6 +208,27 @@ export default function Communications() {
       console.log("File uploaded:", file.name)
       setShowMediaUpload(false)
     }
+  }
+
+  const handleBroadcast = () => {
+    if (!broadcastTitle.trim() || !broadcastMessage.trim()) {
+      alert("Please enter both a title and a message for the broadcast.")
+      return
+    }
+
+    // In a real application, you would send this to your backend
+    console.log("Broadcasting message to recipients:", selectedRecipients)
+    console.log("Broadcast title:", broadcastTitle)
+    console.log("Broadcast message:", broadcastMessage)
+
+    // Reset form and close modal
+    setBroadcastTitle("")
+    setBroadcastMessage("")
+    setSelectedRecipients([])
+    setActiveScreen("chat")
+
+    // Show success message
+    alert(`Broadcast sent to ${selectedRecipients.length} recipients`)
   }
 
   return (
@@ -523,7 +546,9 @@ export default function Communications() {
                 <div key={message.id} className={`flex gap-3 ${message.sender === "You" ? "justify-end" : ""}`}>
                   <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""}`}>
                     <div
-                      className={`rounded-xl p-4 text-sm max-w-md ${message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"}`}
+                      className={`rounded-xl p-4 text-sm max-w-md ${
+                        message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
+                      }`}
                     >
                       <p>{message.content}</p>
                     </div>
@@ -599,39 +624,46 @@ export default function Communications() {
             <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
               <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-medium">New message</h2>
+                  <h2 className="text-lg font-medium">New Broadcast</h2>
                   <button onClick={() => setActiveScreen("chat")} className="p-2 hover:bg-zinc-700 rounded-lg">
                     <X size={16} />
                   </button>
                 </div>
 
                 <div className="space-y-4">
-                  {/* Message Preview */}
-                  <div className="bg-black rounded-xl p-4 text-white text-sm">
-                    <p>Oh, hello! All perfectly.</p>
-                    <p>I will check it and get back to you soon.</p>
+                  <div>
+                    <label htmlFor="broadcastTitle" className="block text-sm font-medium text-gray-400 mb-1">
+                      Broadcast Title
+                    </label>
+                    <input
+                      type="text"
+                      id="broadcastTitle"
+                      value={broadcastTitle}
+                      onChange={(e) => setBroadcastTitle(e.target.value)}
+                      className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                      placeholder="Enter broadcast title"
+                    />
                   </div>
 
-                  {/* Suggested Messages */}
-                  <div className="space-y-2 max-h-[120px] overflow-y-auto custom-scrollbar">
-                    {predefinedMessages.map((msg, i) => (
-                      <button
-                        key={i}
-                        className="w-full text-left text-sm py-2 px-4 bg-[#222222] hover:bg-[#2a2a2a] text-gray-300 rounded-xl"
-                        onClick={() => setMessageText(msg)}
-                      >
-                        {msg}
-                      </button>
-                    ))}
+                  <div>
+                    <label htmlFor="broadcastMessage" className="block text-sm font-medium text-gray-400 mb-1">
+                      Broadcast Message
+                    </label>
+                    <textarea
+                      id="broadcastMessage"
+                      value={broadcastMessage}
+                      onChange={(e) => setBroadcastMessage(e.target.value)}
+                      className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm h-32 resize-none"
+                      placeholder="Type your broadcast message here..."
+                    />
                   </div>
 
-                  {/* Add Recipient Button and Dropdown */}
                   <div className="relative">
                     <button
                       onClick={() => setShowRecipientDropdown(!showRecipientDropdown)}
                       className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
                     >
-                      Add recipient
+                      Select Recipients
                     </button>
 
                     {showRecipientDropdown && (
@@ -664,15 +696,7 @@ export default function Communications() {
                             <input
                               type="checkbox"
                               checked={selectedRecipients.includes(chat)}
-                              onChange={() => {
-                                const isSelected = selectedRecipients.includes(chat)
-                                setSelectedRecipients(
-                                  isSelected
-                                    ? selectedRecipients.filter((r) => r !== chat)
-                                    : [...selectedRecipients, chat],
-                                )
-                                setSelectAll(false)
-                              }}
+                              onChange={() => handleMemberSelect(chat)}
                               className="rounded border-gray-600 bg-transparent"
                             />
                           </div>
@@ -681,7 +705,6 @@ export default function Communications() {
                     )}
                   </div>
 
-                  {/* Selected Recipients */}
                   <div className="space-y-2">
                     {selectedRecipients.map((recipient, i) => (
                       <div key={i} className="flex items-center justify-between bg-[#222222] rounded-xl p-3">
@@ -695,13 +718,20 @@ export default function Communications() {
                         </div>
                         <button
                           className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center"
-                          onClick={() => setSelectedRecipients(selectedRecipients.filter((r) => r !== recipient))}
+                          onClick={() => handleMemberSelect(recipient)}
                         >
                           <X className="h-4 w-4 text-white" />
                         </button>
                       </div>
                     ))}
                   </div>
+
+                  <button
+                    onClick={handleBroadcast}
+                    className="w-full py-3 bg-[#FF843E] text-white rounded-xl hover:bg-orange-600"
+                  >
+                    Send Broadcast
+                  </button>
                 </div>
               </div>
             </div>
