@@ -551,7 +551,7 @@ export default function Communications() {
                 />
                 <div className="flex items-center gap-1">
                   <button onClick={() => setShowMediaUpload(!showMediaUpload)}>
-                    <IoIosMegaphone size={20} className="cursor-pointer" />
+                    <Plus size={20} className="cursor-pointer" />
                   </button>
                   <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Voice message">
                     <Mic className="w-5 h-5 text-gray-200" />

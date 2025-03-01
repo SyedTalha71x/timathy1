@@ -16,6 +16,31 @@ const SelectedAppointmentModal = ({
 }) => {
   if (!selectedAppointment) return null;
 
+  // Filter available time slots based on selected date
+  const getAvailableSlots = (selectedDate) => {
+    if (!selectedDate) return [];
+    
+    const slots = freeAppointments.filter(app => app.date === selectedDate);
+    
+    // Add the current appointment's time to available slots if it's on this date
+    if (selectedDate === selectedAppointment.date) {
+      const existingTime = {
+        id: 'current',
+        time: selectedAppointment.time,
+        date: selectedAppointment.date
+      };
+      
+      // Check if the time already exists in the list
+      const timeExists = slots.some(slot => slot.time === existingTime.time);
+      
+      if (!timeExists) {
+        slots.push(existingTime);
+      }
+    }
+    
+    return slots;
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -73,18 +98,38 @@ const SelectedAppointmentModal = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm text-gray-200">Date & Time</label>
+              <label className="text-sm text-gray-200">Date</label>
               <input
-                type="datetime-local"
-                value={`${selectedAppointment.date}T${selectedAppointment.time}`}
+                type="date"
+                value={selectedAppointment.date}
                 onChange={(e) =>
                   handleAppointmentChange({
-                    date: e.target.value.split("T")[0],
-                    time: e.target.value.split("T")[1],
+                    date: e.target.value,
                   })
                 }
                 className="w-full bg-[#101010] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm text-gray-200">
+                Available Time Slots
+              </label>
+              <select 
+                value={selectedAppointment.time}
+                onChange={(e) =>
+                  handleAppointmentChange({
+                    time: e.target.value,
+                  })
+                }
+                className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+              >
+                {getAvailableSlots(selectedAppointment.date).map((slot) => (
+                  <option key={slot.id || `slot-${slot.time}`} value={slot.time}>
+                    {slot.time}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-1.5">
@@ -157,20 +202,6 @@ const SelectedAppointmentModal = ({
                 />
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm text-gray-200">
-                Available Appointments
-              </label>
-              <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
-                <option value="">Select available time</option>
-                {freeAppointments.map((app) => (
-                  <option key={app.id} value={`${app.date}T${app.time}`}>
-                    {app.date} at {app.time}
-                  </option>
-                ))}
-              </select>
-            </div>
           </form>
         </div>
 
@@ -196,7 +227,6 @@ const SelectedAppointmentModal = ({
           >
             Save Changes
           </button>
-          
         </div>
       </div>
     </div>
