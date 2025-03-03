@@ -575,10 +575,9 @@ export default function Members() {
                           <Info size={18} />
                         </div>
                         {/* Tooltip that appears on hover - Added */}
-                        <div className="absolute right-0 w-64 p-3 mt-2 bg-[#2F2F2F] rounded-lg shadow-lg 
+                        <div className="absolute right-2 top-2 w-64 p-3 bg-[#2F2F2F] rounded-lg shadow-lg 
                           invisible group-hover:visible opacity-0 group-hover:opacity-100 
                           transition-opacity duration-300 z-20 text-sm">
-                          <p className="font-semibold mb-1">Special Note:</p>
                           <p>{member.note}</p>
                           {member.noteStartDate && member.noteEndDate && (
                             <p className="text-xs text-gray-400 mt-2">
