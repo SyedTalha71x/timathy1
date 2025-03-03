@@ -20,7 +20,7 @@ import Contract from './dashboardpages/contract'
 import Configuration from './dashboardpages/configuration'
 import Leets from './dashboardpages/leets'
 import TrialTraining from "./dashboardpages/trialtraining";
-
+import Selling from "./dashboardpages/selling";
 
 function App() {
   const location = useLocation();
@@ -50,6 +50,7 @@ function App() {
           <Route path="configuration" element={<Configuration />} />
           <Route path="leads" element={<Leets />} />
           <Route path="trialtraining" element={<TrialTraining />} />
+          <Route path="selling" element={<Selling />} />
 
         </Route>
       </Routes>

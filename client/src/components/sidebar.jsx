@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { CiShoppingCart } from "react-icons/ci";
+
 import {
   Calendar,
   Home,
@@ -11,6 +13,7 @@ import {
   Users,
   CheckSquare,
   Settings,
+  ShoppingCart,
 } from "lucide-react";
 import { RiContractLine } from "react-icons/ri";
 import { MdOutlineLeaderboard } from "react-icons/md";
@@ -171,7 +174,7 @@ const Sidebar = () => {
           </button>
         </div>
 
-        <div className="flex flex-col h-full overflow-y-auto mt-10">
+        <div className="flex flex-col h-full overflow-y-auto mt-5">
           <div className="p-4 hidden md:block">
             <div className="flex flex-col text-center justify-center items-center gap-3">
               <div className="relative cursor-pointer" >
@@ -220,7 +223,7 @@ const Sidebar = () => {
             </div>
           </div>
 
-          <nav className="flex-1 overflow-y-auto">
+          <nav className="flex-1 overflow-y-auto  ">
             <ul className="space-y-2 p-4">
               {[
                 { icon: Home, label: "My Area", to: "/dashboard/my-area" },
@@ -251,6 +254,11 @@ const Sidebar = () => {
                   icon: MdOutlineLeaderboard,
                   label: "Leads",
                   to: "/dashboard/leads",
+                },
+                {
+                  icon: ShoppingCart,
+                  label: "Selling",
+                  to: "/dashboard/selling",
                 },
                 {
                   icon: Settings,
