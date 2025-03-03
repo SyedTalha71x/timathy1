@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
-"use client"
-
 import { useEffect, useState } from "react"
-import { X, Search, ChevronDown, Cake, Eye, FileText } from "lucide-react"
+import { X, Search, ChevronDown, Cake, Eye, FileText, Info } from "lucide-react"
 import DefaultAvatar from "../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
 
@@ -569,7 +567,28 @@ export default function Members() {
             {filteredAndSortedMembers().length > 0 ? (
               <div className="space-y-3">
                 {filteredAndSortedMembers().map((member) => (
-                  <div key={member.id} className="bg-[#161616] rounded-xl p-4">
+                  <div key={member.id} className="bg-[#161616] rounded-xl p-6 relative">
+                    {/* Info icon for special note - Added */}
+                    {member.note && (
+                      <div className="absolute top-2 right-3 z-10 group">
+                        <div className={`text-${member.noteImportance === 'important' ? 'red-500' : 'blue-500'}`}>
+                          <Info size={18} />
+                        </div>
+                        {/* Tooltip that appears on hover - Added */}
+                        <div className="absolute right-0 w-64 p-3 mt-2 bg-[#2F2F2F] rounded-lg shadow-lg 
+                          invisible group-hover:visible opacity-0 group-hover:opacity-100 
+                          transition-opacity duration-300 z-20 text-sm">
+                          <p className="font-semibold mb-1">Special Note:</p>
+                          <p>{member.note}</p>
+                          {member.noteStartDate && member.noteEndDate && (
+                            <p className="text-xs text-gray-400 mt-2">
+                              Valid: {member.noteStartDate} to {member.noteEndDate}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
                         <img
@@ -599,11 +618,6 @@ export default function Members() {
                               {member.contractEnd}
                             </span>
                           </p>
-                          {member.note && (
-                            <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left">
-                              Note: {member.note}
-                            </p>
-                          )}
                         </div>
                       </div>
                       <div className="flex items-center justify-center sm:justify-end gap-3 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
