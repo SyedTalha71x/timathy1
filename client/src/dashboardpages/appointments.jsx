@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unescaped-entities */
@@ -24,6 +25,7 @@ import TrialPlanningModal from "../components/add-trial";
 import AddAppointmentModal from "../components/add-appointment-modal";
 import SelectedAppointmentModal from "../components/selected-appointment-modal";
 import MiniCalendar from "../components/mini-calender";
+
 
 function Calendar({
   appointments,
@@ -209,6 +211,12 @@ function Calendar({
     }
   };
 
+  // Helper function to determine if an event is in the past
+  const isEventInPast = (eventStart) => {
+    const now = new Date();
+    return new Date(eventStart) < now;
+  };
+
   const calendarEvents = appointments
     .filter((appointment) => {
       // Filter by search query
@@ -231,16 +239,33 @@ function Calendar({
       const [_, datePart] = appointment.date.split("|");
       const [day, month, year] = datePart.trim().split("-");
       const dateStr = `${year}-${month}-${day}`; // Format: yyyy-mm-dd for FullCalendar
+      
+      // Create ISO date strings for event start and end
+      const startDateTimeStr = `${dateStr}T${appointment.startTime}`;
+      
+      // Determine if the event is in the past
+      const isPastEvent = isEventInPast(startDateTimeStr);
+      
+      // Get the base color
+      let backgroundColor = appointment.color.split("bg-[")[1].slice(0, -1);
+      
+      // If it's a past event, adjust the color to be grayed out
+      if (isPastEvent) {
+        // Use a gray color for past events
+        backgroundColor = "#9CA3AF"; // gray-400
+      }
 
       return {
         id: appointment.id,
         title: appointment.name,
-        start: `${dateStr}T${appointment.startTime}`,
+        start: startDateTimeStr,
         end: `${dateStr}T${appointment.endTime}`,
-        backgroundColor: appointment.color.split("bg-[")[1].slice(0, -1),
-        borderColor: appointment.color.split("bg-[")[1].slice(0, -1),
+        backgroundColor: backgroundColor,
+        borderColor: backgroundColor,
+        isPast: isPastEvent, // Add this flag to use in eventContent
         extendedProps: {
           type: appointment.type,
+          isPast: isPastEvent
         },
       };
     });
@@ -278,20 +303,37 @@ function Calendar({
               eventClick={handleEventClick} // Use our custom handler
               select={handleDateSelect}
               eventContent={(eventInfo) => (
-                <div className="p-1 h-full overflow-hidden">
+                <div 
+                  className={`p-1 h-full overflow-hidden ${
+                    eventInfo.event.extendedProps.isPast ? 'opacity-70' : ''
+                  }`}
+                >
                   <div className="font-semibold text-xs sm:text-sm truncate">
                     {eventInfo.event.title}
                   </div>
                   <div className="text-xs opacity-90 truncate">
+                    {eventInfo.event.extendedProps.isPast ? 'Past: ' : ''}
                     {eventInfo.event.extendedProps.type}
                   </div>
                   <div className="text-xs mt-1">{eventInfo.timeText}</div>
                 </div>
               )}
+              eventClassNames={(eventInfo) => {
+                // Add classes based on whether event is in the past
+                return eventInfo.event.extendedProps.isPast ? 'past-event' : '';
+              }}
             />
           </div>
         </div>
       </div>
+
+      {/* Add some CSS for past events */}
+      <style jsx>{`
+        :global(.past-event) {
+          cursor: default !important;
+          /* Additional styling for past events */
+        }
+      `}</style>
 
       <TrialPlanningModal
         isOpen={isTrialModalOpen}
@@ -310,10 +352,6 @@ function Calendar({
         setNotifyAction={setNotifyAction}
         selectedDate={selectedSlotInfo?.start}
       />
-
-
-
-
 
       {/* Type Selection Modal */}
       {isTypeSelectionOpen && (
@@ -385,24 +423,37 @@ function Calendar({
                   {selectedAppointment.date && selectedAppointment.date.split('|')[1]} • 
                   {selectedAppointment.startTime} - {selectedAppointment.endTime}
                 </p>
+                {isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`) && (
+                  <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>
+                )}
               </div>
               
               <button
-                // onClick={handleEditAppointment}
-                className="w-full px-5 py-3 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer transition-colors flex items-center justify-center"
+                onClick={handleEditAppointment}
+                className={`w-full px-5 py-3 ${
+                  isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`) 
+                    ? 'bg-gray-600 cursor-not-allowed' 
+                    : 'bg-[#3F74FF] hover:bg-[#3F74FF]/90 cursor-pointer'
+                } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
+                disabled={isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`)}
               >
                 <Edit className="mr-2" size={16} /> Edit Appointment
               </button>
               
               <button
-                // onClick={handleCancelAppointment}
-                className="w-full px-5 py-3 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 cursor-pointer transition-colors flex items-center justify-center"
+                onClick={handleCancelAppointment}
+                className={`w-full px-5 py-3 ${
+                  isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`) 
+                    ? 'bg-gray-600 cursor-not-allowed' 
+                    : 'bg-red-600 hover:bg-red-700 cursor-pointer'
+                } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
+                disabled={isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`)}
               >
                 <X className="mr-2" size={16} /> Cancel Appointment
               </button>
               
               <button
-                // onClick={handleViewMemberDetails}
+                onClick={handleViewMemberDetails}
                 className="w-full px-5 py-3 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 cursor-pointer transition-colors flex items-center justify-center"
               >
                 <User className="mr-2" size={16} /> View Member Details
@@ -532,7 +583,7 @@ export default function Appointments() {
       id: 2,
       name: "Alexandra",
       time: "10:00 - 18:00",
-      date: "Tue | 04-02-2025",
+      date: "Tue | 04-07-2025",
       color: "bg-[#FF6B6B]",
       startTime: "10:00",
       endTime: "18:00",

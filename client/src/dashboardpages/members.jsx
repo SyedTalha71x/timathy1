@@ -262,7 +262,7 @@ export default function Members() {
         <div className="flex-1 min-w-0 p-6 pb-36">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
             <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center md:flex-row flex-col gap-3 w-full sm:w-auto">
               <div className="relative filter-dropdown flex-1 sm:flex-none">
                 <button
                   onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
