@@ -12,6 +12,9 @@ import {
   AlertTriangle,
   Edit,
   User,
+  ZoomOut,
+  ZoomIn,
+  RotateCcw,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Avatar from "../../public/avatar.png";
@@ -35,6 +38,10 @@ function Calendar({
   selectedDate,
   setAppointments,
 }) {
+
+  const [calendarSize, setCalendarSize] = useState(100)
+  const [calendarHeight, setCalendarHeight] = useState("auto")
+
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -77,6 +84,28 @@ function Calendar({
       }
     }
   }, [selectedDate]);
+
+  const zoomIn = () => {
+    setCalendarSize((prev) => Math.min(prev + 10, 150)) // Max 150%
+  }
+
+  const zoomOut = () => {
+    setCalendarSize((prev) => Math.max(prev - 10, 70)) // Min 70%
+  }
+
+  const resetZoom = () => {
+    setCalendarSize(100) // Reset to default
+  }
+
+  const handleViewChange = (viewInfo) => {
+    if (viewInfo.view.type === "dayGridMonth") {
+      setCalendarHeight("auto")
+    } else {
+      // For week and day views, set a fixed height that will scale with zoom
+      setCalendarHeight("650px")
+    }
+  }
+
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
@@ -144,7 +173,6 @@ function Calendar({
 
   // New handler for event clicks
   const handleEventClick = (clickInfo) => {
-    // Find the full appointment details from the appointments array
     const appointmentId = parseInt(clickInfo.event.id);
     const appointment = appointments.find(app => app.id === appointmentId);
     
@@ -153,19 +181,16 @@ function Calendar({
       setIsAppointmentActionModalOpen(true);
     }
     
-    // Call the original onEventClick if provided
     if (onEventClick) {
       onEventClick(clickInfo);
     }
   };
 
-  // Handle edit appointment
   const handleEditAppointment = () => {
     setIsAppointmentActionModalOpen(false);
     setIsEditAppointmentModalOpen(true);
   };
 
-  // Handle edit appointment submit
   const handleEditAppointmentSubmit = (editedData) => {
     const updatedAppointments = appointments.map(app => 
       app.id === selectedAppointment.id ? { ...app, ...editedData } : app
@@ -273,11 +298,41 @@ function Calendar({
   return (
     <>
       <div className="h-full w-full">
-        <div
-          className="max-w-7xl overflow-x-auto"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          <div className="min-w-[768px]">
+        {/* Zoom controls */}
+        <div className="flex items-center justify-end mb-2 gap-2">
+          <div className="text-sm text-gray-500">Size: {calendarSize}%</div>
+          <button
+            onClick={zoomOut}
+            className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700"
+            aria-label="Zoom out"
+          >
+            <ZoomOut size={18} />
+          </button>
+          <button
+            onClick={resetZoom}
+            className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700"
+            aria-label="Reset zoom"
+          >
+            <RotateCcw size={18} />
+          </button>
+          <button
+            onClick={zoomIn}
+            className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700"
+            aria-label="Zoom in"
+          >
+            <ZoomIn size={18} />
+          </button>
+        </div>
+
+        <div className="max-w-7xl overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+          <div
+            className="min-w-[768px] transition-all duration-300 ease-in-out"
+            style={{
+              transform: `scale(${calendarSize / 100})`,
+              transformOrigin: "top left",
+              width: `${10000 / calendarSize}%`, // Adjust container width to maintain layout
+            }}
+          >
             <FullCalendar
               ref={calendarRef}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -289,10 +344,9 @@ function Calendar({
                 right: "dayGridMonth,timeGridWeek,timeGridDay",
               }}
               events={calendarEvents}
-              height="auto"
+              height={calendarHeight}
               selectable={true}
-              editable={true} // Allow events to be editable (draggable)
-              // eventResizable={false}
+              editable={true}
               eventDragStop={handleEventDrop}
               slotMinTime="08:00:00"
               slotMaxTime="19:00:00"
@@ -300,27 +354,24 @@ function Calendar({
               nowIndicator={true}
               slotDuration="01:00:00"
               firstDay={1}
-              eventClick={handleEventClick} // Use our custom handler
+              eventClick={handleEventClick}
               select={handleDateSelect}
+              viewDidMount={handleViewChange}
+              datesSet={handleViewChange}
               eventContent={(eventInfo) => (
-                <div 
-                  className={`p-1 h-full overflow-hidden ${
-                    eventInfo.event.extendedProps.isPast ? 'opacity-70' : ''
-                  }`}
+                <div
+                  className={`p-1 h-full overflow-hidden ${eventInfo.event.extendedProps.isPast ? "opacity-70" : ""}`}
                 >
-                  <div className="font-semibold text-xs sm:text-sm truncate">
-                    {eventInfo.event.title}
-                  </div>
+                  <div className="font-semibold text-xs sm:text-sm truncate">{eventInfo.event.title}</div>
                   <div className="text-xs opacity-90 truncate">
-                    {eventInfo.event.extendedProps.isPast ? 'Past: ' : ''}
+                    {eventInfo.event.extendedProps.isPast ? "Past: " : ""}
                     {eventInfo.event.extendedProps.type}
                   </div>
                   <div className="text-xs mt-1">{eventInfo.timeText}</div>
                 </div>
               )}
               eventClassNames={(eventInfo) => {
-                // Add classes based on whether event is in the past
-                return eventInfo.event.extendedProps.isPast ? 'past-event' : '';
+                return eventInfo.event.extendedProps.isPast ? "past-event" : ""
               }}
             />
           </div>
@@ -331,7 +382,6 @@ function Calendar({
       <style jsx>{`
         :global(.past-event) {
           cursor: default !important;
-          /* Additional styling for past events */
         }
       `}</style>
 
@@ -364,9 +414,7 @@ function Calendar({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Select Event Type
-              </h2>
+              <h2 className="text-lg font-semibold text-white">Select Event Type</h2>
               <button
                 onClick={() => setIsTypeSelectionOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -393,7 +441,7 @@ function Calendar({
         </div>
       )}
 
-      {/* New Appointment Action Modal */}
+      {/* Appointment Action Modal */}
       {isAppointmentActionModalOpen && selectedAppointment && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -404,9 +452,7 @@ function Calendar({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Appointment Options
-              </h2>
+              <h2 className="text-lg font-semibold text-white">Appointment Options</h2>
               <button
                 onClick={() => setIsAppointmentActionModalOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -420,38 +466,46 @@ function Calendar({
                 <h3 className="text-white font-medium">{selectedAppointment.name}</h3>
                 <p className="text-gray-400 text-sm">{selectedAppointment.type}</p>
                 <p className="text-gray-400 text-sm">
-                  {selectedAppointment.date && selectedAppointment.date.split('|')[1]} • 
-                  {selectedAppointment.startTime} - {selectedAppointment.endTime}
+                  {selectedAppointment.date && selectedAppointment.date.split("|")[1]} •{selectedAppointment.startTime}{" "}
+                  - {selectedAppointment.endTime}
                 </p>
-                {isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`) && (
-                  <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>
-                )}
+                {isEventInPast(
+                  `${selectedAppointment.date.split("|")[1].trim().split("-").reverse().join("-")}T${selectedAppointment.startTime}`,
+                ) && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
               </div>
-              
+
               <button
                 onClick={handleEditAppointment}
                 className={`w-full px-5 py-3 ${
-                  isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`) 
-                    ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'bg-[#3F74FF] hover:bg-[#3F74FF]/90 cursor-pointer'
+                  isEventInPast(
+                    `${selectedAppointment.date.split("|")[1].trim().split("-").reverse().join("-")}T${selectedAppointment.startTime}`,
+                  )
+                    ? "bg-gray-600 cursor-not-allowed"
+                    : "bg-[#3F74FF] hover:bg-[#3F74FF]/90 cursor-pointer"
                 } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
-                disabled={isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`)}
+                disabled={isEventInPast(
+                  `${selectedAppointment.date.split("|")[1].trim().split("-").reverse().join("-")}T${selectedAppointment.startTime}`,
+                )}
               >
                 <Edit className="mr-2" size={16} /> Edit Appointment
               </button>
-              
+
               <button
                 onClick={handleCancelAppointment}
                 className={`w-full px-5 py-3 ${
-                  isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`) 
-                    ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'bg-red-600 hover:bg-red-700 cursor-pointer'
+                  isEventInPast(
+                    `${selectedAppointment.date.split("|")[1].trim().split("-").reverse().join("-")}T${selectedAppointment.startTime}`,
+                  )
+                    ? "bg-gray-600 cursor-not-allowed"
+                    : "bg-red-600 hover:bg-red-700 cursor-pointer"
                 } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
-                disabled={isEventInPast(`${selectedAppointment.date.split('|')[1].trim().split('-').reverse().join('-')}T${selectedAppointment.startTime}`)}
+                disabled={isEventInPast(
+                  `${selectedAppointment.date.split("|")[1].trim().split("-").reverse().join("-")}T${selectedAppointment.startTime}`,
+                )}
               >
                 <X className="mr-2" size={16} /> Cancel Appointment
               </button>
-              
+
               <button
                 onClick={handleViewMemberDetails}
                 className="w-full px-5 py-3 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 cursor-pointer transition-colors flex items-center justify-center"
@@ -463,7 +517,7 @@ function Calendar({
         </div>
       )}
 
-      {/* Notify Member Modal - Modified to handle cancellations */}
+      {/* Notify Member Modal */}
       {isNotifyMemberOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -474,9 +528,7 @@ function Calendar({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Notify Member
-              </h2>
+              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
               <button
                 onClick={() => setIsNotifyMemberOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -488,12 +540,7 @@ function Calendar({
             <div className="p-6">
               <p className="text-white text-sm">
                 Do you want to notify the member about this{" "}
-                {notifyAction === "change"
-                  ? "change"
-                  : notifyAction === "cancel"
-                  ? "cancellation"
-                  : "booking"}
-                ?
+                {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
               </p>
             </div>
 
@@ -501,11 +548,11 @@ function Calendar({
               <button
                 onClick={() => {
                   if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(true);
+                    actuallyHandleCancelAppointment(true)
                   } else {
-                    handleNotifyMember(true);
+                    handleNotifyMember(true)
                   }
-                  setIsNotifyMemberOpen(false);
+                  setIsNotifyMemberOpen(false)
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
               >
@@ -514,11 +561,11 @@ function Calendar({
               <button
                 onClick={() => {
                   if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(false);
+                    actuallyHandleCancelAppointment(false)
                   } else {
-                    handleNotifyMember(false);
+                    handleNotifyMember(false)
                   }
-                  setIsNotifyMemberOpen(false);
+                  setIsNotifyMemberOpen(false)
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
               >
@@ -528,7 +575,7 @@ function Calendar({
           </div>
         </div>
       )}
-      <Toaster position="top-right" autoClose={3000} />
+      <Toaster position="top-right" />
     </>
   );
 }
@@ -565,7 +612,7 @@ export default function Appointments() {
       id: 1,
       name: "Yolanda",
       time: "10:00 - 14:00",
-      date: "Mon | 03-02-2025",
+      date: "Mon | 03-08-2025",
       color: "bg-[#4169E1]",
       startTime: "10:00",
       endTime: "14:00",
@@ -583,7 +630,7 @@ export default function Appointments() {
       id: 2,
       name: "Alexandra",
       time: "10:00 - 18:00",
-      date: "Tue | 04-07-2025",
+      date: "Tue | 04-02-2025",
       color: "bg-[#FF6B6B]",
       startTime: "10:00",
       endTime: "18:00",
@@ -889,7 +936,7 @@ export default function Appointments() {
             <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">
               Appointments
             </h1>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center md:flex-row flex-col gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
@@ -901,6 +948,11 @@ export default function Appointments() {
                 className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200"
               >
                 Add trial training
+              </button>
+              <button
+                className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200"
+              >
+                Free Dates
               </button>
             </div>
           </div>

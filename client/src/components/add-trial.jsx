@@ -136,7 +136,7 @@ const TrialTrainingModal = ({ isOpen, onClose, trialTypes = [], freeTimeSlots = 
         </div>
 
         <div className="p-6">
-          <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
+          <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[60vh]">
             <div className="space-y-1.5">
               <label className="text-sm text-gray-200">Lead</label>
               <div className="relative">

@@ -15,7 +15,7 @@ import {
   Settings,
   ShoppingCart,
 } from "lucide-react";
-import { RiContractLine } from "react-icons/ri";
+import { RiContractLine, RiStockFill } from "react-icons/ri";
 import { MdOutlineLeaderboard } from "react-icons/md";
 import { Bell } from "lucide-react";
 
@@ -259,6 +259,11 @@ const Sidebar = () => {
                   icon: ShoppingCart,
                   label: "Selling",
                   to: "/dashboard/selling",
+                },
+                {
+                  icon: RiStockFill,
+                  label: "Finances",
+                  to: "/dashboard/finances",
                 },
                 {
                   icon: Settings,

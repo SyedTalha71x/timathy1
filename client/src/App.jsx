@@ -21,6 +21,7 @@ import Configuration from './dashboardpages/configuration'
 import Leets from './dashboardpages/leets'
 import TrialTraining from "./dashboardpages/trialtraining";
 import Selling from "./dashboardpages/selling";
+import Finances from "./dashboardpages/finances";
 
 function App() {
   const location = useLocation();
@@ -51,6 +52,7 @@ function App() {
           <Route path="leads" element={<Leets />} />
           <Route path="trialtraining" element={<TrialTraining />} />
           <Route path="selling" element={<Selling />} />
+          <Route path="finances" element={<Finances />} />
 
         </Route>
       </Routes>

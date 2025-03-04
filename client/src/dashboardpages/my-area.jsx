@@ -85,6 +85,9 @@ const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEdit
 
   drag(drop(ref))
 
+  // Check if this is the website links widget
+  const isWebsiteLinksWidget = widgets[index].type === "websiteLink"
+
   return (
     <div
       ref={ref}
@@ -112,9 +115,12 @@ const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEdit
           >
             <ArrowDown size={12} />
           </button>
-          <button onClick={() => removeWidget(id)} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700">
-            <X size={12} />
-          </button>
+          {/* Only show remove button if it's not the website links widget */}
+          {!isWebsiteLinksWidget && (
+            <button onClick={() => removeWidget(id)} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700">
+              <X size={12} />
+            </button>
+          )}
         </div>
       )}
       {children}
@@ -254,6 +260,14 @@ export default function MyArea() {
   }
 
   const removeWidget = (id) => {
+    // Check if the widget is the website links widget
+    const widgetToRemove = widgets.find((w) => w.id === id)
+    if (widgetToRemove && widgetToRemove.type === "websiteLink") {
+      // Don't allow removal of website links widget
+      toast.error("Website links widget cannot be removed")
+      return
+    }
+
     setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
   }
 
@@ -494,7 +508,7 @@ export default function MyArea() {
     toast.success(`${widgetType} widget has been added Successfully`)
   }
 
-  // Fix 3: Update canAddWidget to properly check if a widget is already added
+  // Updated canAddWidget function to check if a widget type is already added
   const canAddWidget = (widgetType) => {
     return !widgets.some((widget) => widget.type === widgetType)
   }

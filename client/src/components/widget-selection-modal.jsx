@@ -1,43 +1,55 @@
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 
-const widgetOptions = [
-    { id: "graph", name: "Graph", type: "chart" },
-    { id: "communication", name: "Communication", type: "communication" },
-    { id: "todo", name: "TO-DO", type: "todo" },
-    { id: "appointments", name: "Appointments", type: "appointments" },
-    { id: "websiteLink", name: "Website link", type: "websiteLink" },
-    { id: "birthdays", name: "Birthdays", type: "birthdays" },
+export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, canAddWidget }) {
+  if (!isOpen) return null
+
+  const widgetOptions = [
+    { id: "chart", name: "Chart", description: "Display data in a chart format" },
+    { id: "appointments", name: "Appointments", description: "Show upcoming appointments" },
+    { id: "employeeCheckIn", name: "Employee Check-In", description: "Check in/out functionality" },
+    { id: "websiteLink", name: "Website Links", description: "Quick access to important websites" },
+    { id: "communication", name: "Communications", description: "Recent messages and communications" },
+    { id: "todo", name: "TO-DO", description: "Tasks and to-do items" },
+    { id: "birthdays", name: "Birthdays", description: "Upcoming birthdays" },
   ]
-  
-  export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget }) {
-    if (!isOpen) return null
-  
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md mx-4 p-3">
-          <div className="flex justify-end items-end">
-            <X onClick={onClose} size={20} className="cursor-pointer"/>
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-[#181818] rounded-xl custom-scrollbar w-full max-w-md mx-4 max-h-[70vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Add Widget</h2>
+            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+              <X size={16} />
+            </button>
           </div>
-          <div className="p-4">
-            <div className="space-y-2">
-              {widgetOptions.map((widget) => (
+          <div className="space-y-3">
+            {widgetOptions.map((widget) => {
+              const isAvailable = canAddWidget(widget.id)
+              return (
                 <button
                   key={widget.id}
-                  onClick={() => {
-                    onSelectWidget(widget.type)
-                    onClose()
-                  }}
-                  className="w-full p-3 text-left text-zinc-300 hover:bg-zinc-800 rounded-lg transition-colors"
+                  onClick={() => isAvailable && onSelectWidget(widget.id)}
+                  disabled={!isAvailable}
+                  className={`w-full p-3 rounded-xl text-left flex flex-col ${
+                    isAvailable
+                      ? "bg-black hover:bg-zinc-900 cursor-pointer"
+                      : "bg-black/50 cursor-not-allowed opacity-60"
+                  }`}
                 >
-                  {widget.name}
+                  <span className="font-medium">{widget.name}</span>
+                  <span className="text-xs text-zinc-400">{widget.description}</span>
+                  {!isAvailable && (
+                    <span className="text-xs text-yellow-500 mt-1">Already added to your dashboard</span>
+                  )}
                 </button>
-              ))}
-            </div>
+              )
+            })}
           </div>
         </div>
       </div>
-    )
-  }
-  
-  
+    </div>
+  )
+}
+

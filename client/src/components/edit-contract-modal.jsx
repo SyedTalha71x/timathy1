@@ -1,40 +1,70 @@
-import { FileUp, Trash2, X } from "lucide-react"
+import { FileUp, Trash2, X, FileText, Printer } from "lucide-react"
 import { useState } from "react"
+import Contract1 from '../../public/contract1.png'
+
 
 /* eslint-disable react/prop-types */
 export function EditContractModal({ contract, onClose, onSave }) {
-    const [editedContract, setEditedContract] = useState({ ...contract })
-    const [files, setFiles] = useState(contract.files || [])
-  
-    const handleInputChange = (e) => {
-      const { name, value } = e.target
-      setEditedContract((prev) => ({ ...prev, [name]: value }))
-    }
-  
-    const handleFileUpload = (event) => {
-      const uploadedFiles = Array.from(event.target.files)
-      setFiles((prevFiles) => [...prevFiles, ...uploadedFiles])
-    }
-  
-    const handleDeleteFile = (index) => {
-      setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
-    }
-  
-    const handleSave = () => {
-      onSave({ ...editedContract, files })
-      onClose()
-    }
-  
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
-        <div className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-white text-xl font-semibold">Edit Contract</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
-              <X size={24} />
-            </button>
+  const [editedContract, setEditedContract] = useState({ ...contract })
+  const [files, setFiles] = useState(contract.files || [])
+  const [showContractImage, setShowContractImage] = useState(false)
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setEditedContract((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleFileUpload = (event) => {
+    const uploadedFiles = Array.from(event.target.files)
+    setFiles((prevFiles) => [...prevFiles, ...uploadedFiles])
+  }
+
+  const handleDeleteFile = (index) => {
+    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
+  }
+
+  const handleSave = () => {
+    onSave({ ...editedContract, files })
+    onClose()
+  }
+
+  const handlePrintContract = () => {
+    window.print()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
+      <div className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-white text-xl font-semibold">Edit Contract</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X size={24} />
+          </button>
+        </div>
+
+        {showContractImage ? (
+          <div className="space-y-4">
+            <div className="bg-white rounded-lg overflow-hidden">
+              <img src={Contract1} alt="Contract Document" className="w-full h-auto" />
+            </div>
+
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={() => setShowContractImage(false)}
+                className="px-3 py-1.5 bg-gray-800 text-white rounded-lg text-sm"
+              >
+                Back to Edit
+              </button>
+              <button
+                onClick={handlePrintContract}
+                className="px-3 py-1.5 bg-[#3F74FF] text-white rounded-lg text-sm flex items-center gap-1"
+              >
+                <Printer size={14} />
+                Print
+              </button>
+            </div>
           </div>
-  
+        ) : (
           <div className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
             <div className="space-y-2">
               <label htmlFor="memberName" className="block text-sm font-medium text-gray-400">
@@ -75,7 +105,7 @@ export function EditContractModal({ contract, onClose, onSave }) {
                 name="startDate"
                 value={editedContract.startDate || ""}
                 onChange={handleInputChange}
-                className="w-full bg-[#141414] text-white text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#3F74FF] outline-none"
+                className="w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#3F74FF] outline-none"
               />
             </div>
             <div className="space-y-2">
@@ -88,7 +118,7 @@ export function EditContractModal({ contract, onClose, onSave }) {
                 name="endDate"
                 value={editedContract.endDate || ""}
                 onChange={handleInputChange}
-                className="w-full bg-[#141414] text-white text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#3F74FF] outline-none"
+                className="w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#3F74FF] outline-none"
               />
             </div>
             <div className="space-y-2">
@@ -166,11 +196,28 @@ export function EditContractModal({ contract, onClose, onSave }) {
                 </div>
               </>
             )}
-  
+
+            <button
+              type="button"
+              onClick={() => setShowContractImage(true)}
+              className="w-full px-4 py-2 bg-[#2F2F2F] text-sm font-medium text-white rounded-lg hover:bg-[#3a3a3a] transition-colors duration-200 flex items-center justify-center gap-2 mt-4"
+            >
+              <FileText size={16} />
+              View Contract
+            </button>
+
             <div>
               <label htmlFor="file-upload" className="block text-sm font-medium text-gray-400 mb-2">
                 Upload Contract File
               </label>
+              <input
+                id="file-upload"
+                type="file"
+                className="hidden"
+                onChange={handleFileUpload}
+                accept=".pdf"
+                multiple
+              />
               <div className="flex items-center justify-center w-full">
                 <label
                   htmlFor="file-upload"
@@ -183,18 +230,10 @@ export function EditContractModal({ contract, onClose, onSave }) {
                     </p>
                     <p className="text-xs text-gray-500">PDF (MAX. 10MB)</p>
                   </div>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                    accept=".pdf"
-                    multiple
-                  />
                 </label>
               </div>
             </div>
-  
+
             {files.length === 0 ? (
               <div className="bg-green-500/10 border border-green-500 rounded-lg p-4">
                 <p className="text-green-500 text-sm">No files uploaded for this contract yet.</p>
@@ -217,7 +256,7 @@ export function EditContractModal({ contract, onClose, onSave }) {
                 </ul>
               </div>
             )}
-  
+
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={onClose}
@@ -233,9 +272,9 @@ export function EditContractModal({ contract, onClose, onSave }) {
               </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
-    )
-  }
-  
-  
+    </div>
+  )
+}
+

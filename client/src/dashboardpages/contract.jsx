@@ -1,15 +1,12 @@
-"use client"
-
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { MoreVertical, Plus, ChevronDown, DollarSign, ArrowUpDown } from "lucide-react"
+import { MoreVertical, Plus, ChevronDown, ArrowUpDown } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
 import { AddContractModal } from "../components/add-contract-modal"
 import { ContractDetailsModal } from "../components/contract-details-modal"
 import { PauseContractModal } from "../components/pause-contract-modal"
 import { CancelContractModal } from "../components/cancel-contract-modal"
-import { FinancesModal } from "../components/finances-modal"
 import { EditContractModal } from "../components/edit-contract-modal"
 
 const initialContracts = [
@@ -62,6 +59,24 @@ const initialContracts = [
     pauseReason: null,
     cancelReason: "Financial Reasons",
     isDigital: false,
+  },
+]
+
+// Sample lead data for pre-filling contracts
+const sampleLeads = [
+  {
+    id: "lead-1",
+    name: "Michael Brown",
+    email: "michael@example.com",
+    phone: "5551234567",
+    interestedIn: "Premium",
+  },
+  {
+    id: "lead-2",
+    name: "Sarah Wilson",
+    email: "sarah@example.com",
+    phone: "5559876543",
+    interestedIn: "Basic",
   },
 ]
 
@@ -120,6 +135,7 @@ export default function ContractList() {
   const [searchTerm, setSearchTerm] = useState("")
   const contractsPerPage = 3
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
+  const [selectedLead, setSelectedLead] = useState(null)
 
   // Update filtered contracts when selectedFilter, contracts, or searchTerm change
   useEffect(() => {
@@ -231,6 +247,37 @@ export default function ContractList() {
     toast.success("Contract updated successfully")
   }
 
+  const handleAddContract = () => {
+    // Randomly select a lead for pre-filling (in a real app, this would be selected by the user)
+    const randomLead = sampleLeads[Math.floor(Math.random() * sampleLeads.length)]
+    setSelectedLead(randomLead)
+    setIsModalOpen(true)
+  }
+
+  const handleSaveNewContract = (contractData) => {
+    // Create a new contract with the provided data
+    const newContract = {
+      id: `12321-${contracts.length + 1}`,
+      memberName: contractData.fullName,
+      contractType: contractData.rateType || "Basic",
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
+      status: "Active",
+      pauseReason: null,
+      cancelReason: null,
+      isDigital: contractData.isDigital,
+      email: contractData.email,
+      phone: contractData.phone,
+      iban: contractData.iban,
+      sepaMandate: contractData.sepaMandate,
+      files: contractData.signedFile ? [contractData.signedFile] : [],
+    }
+
+    setContracts([...contracts, newContract])
+    setIsModalOpen(false)
+    toast.success("Contract added successfully")
+  }
+
   return (
     <>
       <Toaster
@@ -309,19 +356,19 @@ export default function ContractList() {
 
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={handleAddContract}
                 className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5" />
                 <span>Add Contract</span>
               </button>
-              <button
+              {/* <button
                 onClick={() => setIsFinanceModalOpen(true)}
                 className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
               >
                 <DollarSign className="w-5 h-5" />
                 <span>Finances</span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -426,11 +473,12 @@ export default function ContractList() {
         {/* Add Contract Modal */}
         {isModalOpen && (
           <AddContractModal
-            onClose={() => setIsModalOpen(false)}
-            onSave={() => {
+            onClose={() => {
               setIsModalOpen(false)
-              toast.success("Contract added successfully")
+              setSelectedLead(null)
             }}
+            onSave={handleSaveNewContract}
+            leadData={selectedLead}
           />
         )}
 
@@ -455,15 +503,6 @@ export default function ContractList() {
         {/* Cancel Contract Modal */}
         {isCancelModalOpen && (
           <CancelContractModal onClose={() => setIsCancelModalOpen(false)} onSubmit={handleCancelSubmit} />
-        )}
-
-        {/* Finances Modal */}
-        {isFinanceModalOpen && (
-          <FinancesModal
-            onClose={() => setIsFinanceModalOpen(false)}
-            selectedPeriod={selectedPeriod}
-            onPeriodChange={setSelectedPeriod}
-          />
         )}
 
         {/* Edit Contract Modal */}
