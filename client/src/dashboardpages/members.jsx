@@ -617,6 +617,12 @@ export default function Members() {
                               {member.contractEnd}
                             </span>
                           </p>
+                         {member.note && <div className="text-sm flex items-center gap-1 text-gray-200 mt-1">
+                            <div>
+                              <Info size={15} className="text-orange-400"/>
+                            </div>
+                            {member.note}
+                          </div>}
                         </div>
                       </div>
                       <div className="flex items-center justify-center sm:justify-end gap-3 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">

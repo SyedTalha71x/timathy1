@@ -553,9 +553,7 @@ export default function Communications() {
       </div>
     </div>
 
-    {/* Main Content Area */}
     <div className="flex-1 flex flex-col min-w-0">
-      {/* Welcome Screen (shown when no chat is selected) */}
       {!selectedChat && activeScreen === "chat" && (
         <div className="flex flex-col items-center justify-center h-full text-center p-6">
           <button
@@ -579,7 +577,6 @@ export default function Communications() {
         </div>
       )}
 
-      {/* Chat Screen (shown when a chat is selected) */}
       {selectedChat && activeScreen === "chat" && (
         <>
           <div className="flex items-center justify-between p-4 border-b border-gray-800">
@@ -593,7 +590,7 @@ export default function Communications() {
               </button>
               <div className="relative">
                 <img
-                  src={selectedChat.logo || "/placeholder.svg?height=48&width=48"}
+                  src={selectedChat.logo}
                   alt="Current chat avatar"
                   width={48}
                   height={48}
