@@ -2,10 +2,13 @@
 /* eslint-disable no-unused-vars */
 "use client"
 
-import { useState } from "react"
-import { X } from "lucide-react"
+import { useState, createContext, useContext } from "react"
+import { X, Calendar, Users, Clock } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../public/default-avatar.avif"
+
+// Create a context to share staff members data
+const StaffContext = createContext(null)
 
 export default function StaffManagement() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -39,8 +42,26 @@ export default function StaffManagement() {
       street: "123 Main St",
       zipCode: "12345",
       city: "Anytown",
+      vacationEntitlement: 30,
+      birthday: "1990-05-10",
     },
-    // Add more staff members here...
+    {
+      id: 2,
+      firstName: "John",
+      lastName: "Doe",
+      role: "Software Engineer",
+      email: "john.doe@example.com",
+      phone: "+9876543210",
+      description: "A skilled software engineer.",
+      img: null,
+      userId: "john.software-engineer",
+      username: "john.doe",
+      street: "456 Oak Ave",
+      zipCode: "67890",
+      city: "Othertown",
+      vacationEntitlement: 25,
+      birthday: "1992-11-20",
+    },
   ])
 
   const handleLeaveRequest = (staffId, startDate, endDate) => {
@@ -104,208 +125,211 @@ export default function StaffManagement() {
   }
 
   return (
-    <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
-      <div className="flex relative rounded-3xl cursor-pointer bg-[#1C1C1C] text-white">
-        <div className="flex-1 min-w-0 p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
-            <h1 className="text-xl sm:text-2xl oxanium_font text-white">Staff management</h1>
+    <StaffContext.Provider value={{ staffMembers, setStaffMembers }}>
+      <>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 2000,
+            style: {
+              background: "#333",
+              color: "#fff",
+            },
+          }}
+        />
+        <div className="flex relative rounded-3xl cursor-pointer bg-[#1C1C1C] text-white">
+          <div className="flex-1 min-w-0 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
+              <h1 className="text-xl sm:text-2xl oxanium_font text-white">Staff management</h1>
 
-            <div className="flex items-center gap-4 w-full sm:w-auto">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-[#FF843E] text-white open_sans_font px-6 sm:px-10 py-2 rounded-xl text-sm flex-1 sm:flex-none"
-              >
-                + Add Staff
-              </button>
-            </div>
-          </div>
-
-          <div className="flex justify-end flex-col lg:flex-row items-end max-w-4xl mx-auto mr-0 gap-2">
-            <button
-              onClick={() => setIsPlanningModalOpen(true)}
-              className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer"
-            >
-              Employee Planning
-            </button>
-            <button
-              onClick={() => setIsAttendanceModalOpen(true)}
-              className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer"
-            >
-              Attendance Overview
-            </button>
-
-            <button
-              onClick={() => setIsLeaveRequestModalOpen(true)}
-              className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer"
-            >
-              Request Leave
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 open_sans_font md:grid-cols-2 mt-8 sm:mt-[10%] gap-4 max-w-5xl mx-auto">
-            {staffMembers.map((staff) => (
-              <div key={staff.id} className="bg-[#141414] rounded-xl p-4 sm:p-6 flex flex-col items-center text-center">
-                <div className="relative w-full mb-4">
-                  <img
-                    src={staff.img || Avatar}
-                    width={80}
-                    height={80}
-                    className="h-16 w-16 sm:h-20 sm:w-20 rounded-full mx-auto"
-                    alt={`${staff.firstName} ${staff.lastName}`}
-                  />
-                </div>
-                <h3 className="text-white font-medium text-base sm:text-lg mb-1">
-                  {staff.firstName} {staff.lastName}
-                </h3>
-                <p className="text-gray-400 text-xs sm:text-sm mb-2">{staff.role}</p>
-                <p className="text-gray-400 text-xs sm:text-sm mb-4">{staff.description}</p>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={() => handleEdit(staff)}
-                    className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedStaff(staff)
-                      setIsVacationRequestModalOpen(true)
-                    }}
-                    className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm"
-                  >
-                    Request Vacation
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <aside
-          className={`
-          w-80 bg-[#181818] p-6 md:rounded-3xl rounded-none fixed top-0 bottom-0 right-0 z-50 lg:static lg:block
-          ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
-          transition-transform duration-500 ease-in-out
-          `}
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl sm:text-2xl oxanium_font font-bold">Notifications</h2>
-            <button
-              onClick={() => setIsRightSidebarOpen(false)}
-              className="lg:hidden p-2 hover:bg-black/20 rounded-full transition-colors"
-              aria-label="Close notifications"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          <div className="space-y-4 open_sans_font">
-            {notifications.map((notification) => (
-              <div key={notification.id} className="bg-[#1C1C1C] rounded-xl  p-4 relative">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
                 <button
-                  onClick={() => removeNotification(notification.id)}
-                  className="absolute top-4 right-4 text-zinc-500 hover:text-white"
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-[#FF843E] text-white open_sans_font px-6 sm:px-10 py-2 rounded-xl text-sm flex-1 sm:flex-none"
                 >
-                  <X size={16} />
+                  + Add Staff
                 </button>
-                <h3 className="font-semibold open_sans_font_700 mb-2">{notification.heading}</h3>
-                <p className="text-sm text-zinc-400">{notification.description}</p>
               </div>
-            ))}
+            </div>
+
+            <div className="flex justify-end flex-col lg:flex-row items-end max-w-4xl mx-auto mr-0 gap-2">
+              <button
+                onClick={() => setIsPlanningModalOpen(true)}
+                className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                Employee Planning
+              </button>
+              <button
+                onClick={() => setIsAttendanceModalOpen(true)}
+                className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Users className="h-4 w-4" />
+                Attendance Overview
+              </button>
+
+              <button
+                onClick={() => setIsLeaveRequestModalOpen(true)}
+                className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Clock className="h-4 w-4" />
+                Request Vacation
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 open_sans_font md:grid-cols-2 mt-8 sm:mt-[10%] gap-4 max-w-5xl mx-auto">
+              {staffMembers.map((staff) => (
+                <div
+                  key={staff.id}
+                  className="bg-[#141414] rounded-xl p-4 sm:p-6 flex flex-col items-center text-center"
+                >
+                  <div className="relative w-full mb-4">
+                    <img
+                      src={staff.img || Avatar}
+                      width={80}
+                      height={80}
+                      className="h-16 w-16 sm:h-20 sm:w-20 rounded-full mx-auto"
+                      alt={`${staff.firstName} ${staff.lastName}`}
+                    />
+                  </div>
+                  <h3 className="text-white font-medium text-base sm:text-lg mb-1">
+                    {staff.firstName} {staff.lastName}
+                  </h3>
+                  <p className="text-gray-400 text-xs sm:text-sm mb-2">{staff.role}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm mb-4">{staff.description}</p>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => handleEdit(staff)}
+                      className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </aside>
-      </div>
 
-      {isModalOpen && (
-        <AddStaffModal setIsModalOpen={setIsModalOpen} staffMembers={staffMembers} setStaffMembers={setStaffMembers} />
-      )}
-
-      {isShowDetails && selectedStaff && (
-        <EditStaffModal
-          staff={selectedStaff}
-          setIsShowDetails={setIsShowDetails}
-          setSelectedStaff={setSelectedStaff}
-          staffMembers={staffMembers}
-          setStaffMembers={setStaffMembers}
-          handleRemovalStaff={handleRemovalStaff}
-        />
-      )}
-
-      {isRemoveModalOpen && (
-        <div
-          className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6"
-          onClick={() => setIsRemoveModalOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
-            onClick={(e) => e.stopPropagation()}
+          <aside
+            className={`
+            w-80 bg-[#181818] p-6 md:rounded-3xl rounded-none fixed top-0 bottom-0 right-0 z-50 lg:static lg:block
+            ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
+            transition-transform duration-500 ease-in-out
+            `}
           >
-            <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">Confirm Removal</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl sm:text-2xl oxanium_font font-bold">Notifications</h2>
               <button
-                onClick={() => setIsRemoveModalOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
+                onClick={() => setIsRightSidebarOpen(false)}
+                className="lg:hidden p-2 hover:bg-black/20 rounded-full transition-colors"
+                aria-label="Close notifications"
               >
-                <X size={18} className="sm:w-5 sm:h-5" />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="px-4 sm:px-6 py-4">
-              <p className="text-white text-sm">Are you sure you want to remove this staff member?</p>
+            <div className="space-y-4 open_sans_font">
+              {notifications.map((notification) => (
+                <div key={notification.id} className="bg-[#1C1C1C] rounded-xl  p-4 relative">
+                  <button
+                    onClick={() => removeNotification(notification.id)}
+                    className="absolute top-4 right-4 text-zinc-500 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                  <h3 className="font-semibold open_sans_font_700 mb-2">{notification.heading}</h3>
+                  <p className="text-sm text-zinc-400">{notification.description}</p>
+                </div>
+              ))}
             </div>
+          </aside>
+        </div>
 
-            <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
-              <button
-                onClick={confirmRemoveStaff}
-                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors duration-200"
-              >
-                Yes, Remove
-              </button>
-              <button
-                onClick={() => setIsRemoveModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors duration-200"
-              >
-                Cancel
-              </button>
+        {isModalOpen && (
+          <AddStaffModal
+            setIsModalOpen={setIsModalOpen}
+            staffMembers={staffMembers}
+            setStaffMembers={setStaffMembers}
+          />
+        )}
+
+        {isShowDetails && selectedStaff && (
+          <EditStaffModal
+            staff={selectedStaff}
+            setIsShowDetails={setIsShowDetails}
+            setSelectedStaff={setSelectedStaff}
+            staffMembers={staffMembers}
+            setStaffMembers={setStaffMembers}
+            handleRemovalStaff={handleRemovalStaff}
+          />
+        )}
+
+        {isRemoveModalOpen && (
+          <div
+            className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6"
+            onClick={() => setIsRemoveModalOpen(false)}
+          >
+            <div
+              className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
+                <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">Confirm Removal</h2>
+                <button
+                  onClick={() => setIsRemoveModalOpen(false)}
+                  className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
+                >
+                  <X size={18} className="sm:w-5 sm:h-5" />
+                </button>
+              </div>
+
+              <div className="px-4 sm:px-6 py-4">
+                <p className="text-white text-sm">Are you sure you want to remove this staff member?</p>
+              </div>
+
+              <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
+                <button
+                  onClick={confirmRemoveStaff}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors duration-200"
+                >
+                  Yes, Remove
+                </button>
+                <button
+                  onClick={() => setIsRemoveModalOpen(false)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {isPlanningModalOpen && (
-        <EmployeePlanningModal staffMembers={staffMembers} onClose={() => setIsPlanningModalOpen(false)} />
-      )}
+        {isPlanningModalOpen && (
+          <EmployeePlanningModal staffMembers={staffMembers} onClose={() => setIsPlanningModalOpen(false)} />
+        )}
 
-      {isAttendanceModalOpen && (
-        <AttendanceOverviewModal staffMembers={staffMembers} onClose={() => setIsAttendanceModalOpen(false)} />
-      )}
+        {isAttendanceModalOpen && (
+          <AttendanceOverviewModal staffMembers={staffMembers} onClose={() => setIsAttendanceModalOpen(false)} />
+        )}
 
-      {isLeaveRequestModalOpen && (
-        <LeaveRequestModal
-          staffMembers={staffMembers}
-          onClose={() => setIsLeaveRequestModalOpen(false)}
-          onSubmit={handleLeaveRequest}
-        />
-      )}
+        {isLeaveRequestModalOpen && (
+          <VacationRequestModal
+            staffMember={staffMembers[0]} // Default to first staff member
+            onClose={() => setIsLeaveRequestModalOpen(false)}
+            onSubmit={handleVacationRequest}
+          />
+        )}
 
-      {isVacationRequestModalOpen && selectedStaff && (
-        <VacationRequestModal
-          staffMember={selectedStaff}
-          onClose={() => setIsVacationRequestModalOpen(false)}
-          onSubmit={handleVacationRequest}
-        />
-      )}
-    </>
+        {isVacationRequestModalOpen && selectedStaff && (
+          <VacationRequestModal
+            staffMember={selectedStaff}
+            onClose={() => setIsVacationRequestModalOpen(false)}
+            onSubmit={handleVacationRequest}
+          />
+        )}
+      </>
+    </StaffContext.Provider>
   )
 }
 
@@ -739,13 +763,10 @@ function EditStaffModal({
                 onChange={handleInputChange}
                 className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                 required
-              >
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="employee">Employee</option>
-              </select>
+              />
             </div>
-            <div>
+
+<div>
               <label className="text-sm text-gray-200 block mb-2">Vacation Entitlement (Days)</label>
               <input
                 type="number"
@@ -768,17 +789,6 @@ function EditStaffModal({
                 required
               />
             </div>
-            {/* <div>
-              <label className="text-sm text-gray-200 block mb-2">User ID</label>
-              <input
-                type="text"
-                name="userId"
-                value={editedStaff.userId}
-                onChange={handleInputChange}
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-1">Note: User ID can only be changed in the Configuration tab.</p> */}
             <div>
               <label className="text-sm text-gray-200 block mb-2">Password</label>
               <div className="relative">
@@ -890,6 +900,8 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
   const [viewMode, setViewMode] = useState("week") // "day", "week", "month"
   const [currentDate, setCurrentDate] = useState(new Date())
   const [shifts, setShifts] = useState({})
+  const [draggedShift, setDraggedShift] = useState(null)
+  const [selectedShift, setSelectedShift] = useState(null)
 
   // Generate dates for the current view
   const getDatesForView = () => {
@@ -949,6 +961,38 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
       ...prev,
       [dateStr]: value,
     }))
+  }
+
+  const handleDeleteShift = (dateStr) => {
+    setShifts((prev) => {
+      const newShifts = { ...prev }
+      delete newShifts[dateStr]
+      return newShifts
+    })
+    toast.success("Shift deleted")
+  }
+
+  const handleDragStart = (dateStr) => {
+    setDraggedShift({ dateStr, value: shifts[dateStr] })
+  }
+
+  const handleDragOver = (e, dateStr) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e, targetDateStr) => {
+    e.preventDefault()
+    if (draggedShift && draggedShift.dateStr !== targetDateStr) {
+      // Move the shift
+      setShifts((prev) => {
+        const newShifts = { ...prev }
+        newShifts[targetDateStr] = draggedShift.value
+        delete newShifts[draggedShift.dateStr]
+        return newShifts
+      })
+      toast.success("Shift moved successfully")
+      setDraggedShift(null)
+    }
   }
 
   const handlePrevious = () => {
@@ -1082,32 +1126,55 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between p-2 bg-[#1C1C1C] rounded-lg">
                         <span className="text-sm font-medium">{formatDate(currentDate)}</span>
-                        <input
-                          type="text"
-                          value={shifts[currentDate.toISOString().split("T")[0]] || ""}
-                          onChange={(e) => handleShiftChange(currentDate.toISOString().split("T")[0], e.target.value)}
-                          placeholder="9:00-17:00"
-                          className="bg-[#242424] rounded px-3 py-1 text-sm w-32"
-                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={shifts[currentDate.toISOString().split("T")[0]] || ""}
+                            onChange={(e) => handleShiftChange(currentDate.toISOString().split("T")[0], e.target.value)}
+                            placeholder="9:00-17:00"
+                            className="bg-[#242424] rounded px-3 py-1 text-sm w-32"
+                          />
+                          <button
+                            onClick={() => handleDeleteShift(currentDate.toISOString().split("T")[0])}
+                            className="text-red-400 hover:text-red-300 text-sm"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ) : viewMode === "week" ? (
                     <div className="space-y-2">
-                      {getDatesForView().map((date) => (
-                        <div
-                          key={date.toISOString()}
-                          className={`flex items-center justify-between p-2 rounded-lg ${isWeekend(date) ? "bg-[#1a1a1a]" : "bg-[#1C1C1C]"}`}
-                        >
-                          <span className="text-sm font-medium">{formatDate(date)}</span>
-                          <input
-                            type="text"
-                            value={shifts[date.toISOString().split("T")[0]] || ""}
-                            onChange={(e) => handleShiftChange(date.toISOString().split("T")[0], e.target.value)}
-                            placeholder="9:00-17:00"
-                            className="bg-[#242424] rounded px-3 py-1 text-sm w-32"
-                          />
-                        </div>
-                      ))}
+                      {getDatesForView().map((date) => {
+                        const dateStr = date.toISOString().split("T")[0]
+                        return (
+                          <div
+                            key={dateStr}
+                            className={`flex items-center justify-between p-2 rounded-lg ${isWeekend(date) ? "bg-[#1a1a1a]" : "bg-[#1C1C1C]"}`}
+                            draggable={!!shifts[dateStr]}
+                            onDragStart={() => handleDragStart(dateStr)}
+                            onDragOver={(e) => handleDragOver(e, dateStr)}
+                            onDrop={(e) => handleDrop(e, dateStr)}
+                          >
+                            <span className="text-sm font-medium">{formatDate(date)}</span>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={shifts[dateStr] || ""}
+                                onChange={(e) => handleShiftChange(dateStr, e.target.value)}
+                                placeholder="9:00-17:00"
+                                className="bg-[#242424] rounded px-3 py-1 text-sm w-32"
+                              />
+                              <button
+                                onClick={() => handleDeleteShift(dateStr)}
+                                className="text-red-400 hover:text-red-300 text-sm"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   ) : (
                     <div
@@ -1126,17 +1193,29 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                           <div
                             key={dateStr}
                             className={`p-1 rounded min-h-[70px] min-w-[80px] ${isWeekend(date) ? "bg-[#1a1a1a]" : "bg-[#1C1C1C]"}`}
+                            draggable={!!shifts[dateStr]}
+                            onDragStart={() => handleDragStart(dateStr)}
+                            onDragOver={(e) => handleDragOver(e, dateStr)}
+                            onDrop={(e) => handleDrop(e, dateStr)}
                           >
                             <div className="flex justify-between items-start">
                               <span className="text-xs">{date.getDate()}</span>
-                              <input
-                                type="text"
-                                value={shifts[dateStr] || ""}
-                                onChange={(e) => handleShiftChange(dateStr, e.target.value)}
-                                placeholder="9-5"
-                                className="bg-[#242424] rounded px-2 py-0.5 text-xs w-full mt-1"
-                              />
+                              {shifts[dateStr] && (
+                                <button
+                                  onClick={() => handleDeleteShift(dateStr)}
+                                  className="text-red-400 hover:text-red-300 text-xs"
+                                >
+                                  ×
+                                </button>
+                              )}
                             </div>
+                            <input
+                              type="text"
+                              value={shifts[dateStr] || ""}
+                              onChange={(e) => handleShiftChange(dateStr, e.target.value)}
+                              placeholder="9-5"
+                              className="bg-[#242424] rounded px-2 py-0.5 text-xs w-full mt-1"
+                            />
                           </div>
                         )
                       })}
@@ -1176,6 +1255,7 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
   const [selectedPeriod, setSelectedPeriod] = useState("month")
   const [startDate, setStartDate] = useState(new Date())
   const [endDate, setEndDate] = useState(new Date())
+  const [selectedStaffId, setSelectedStaffId] = useState("all")
 
   const dummyAttendanceData = staffMembers.map((staff) => ({
     ...staff,
@@ -1193,6 +1273,11 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
     const daysInPeriod = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1
     return staff.hoursWorked * daysInPeriod
   }
+
+  const filteredStaff =
+    selectedStaffId === "all"
+      ? dummyAttendanceData
+      : dummyAttendanceData.filter((staff) => staff.id === Number.parseInt(selectedStaffId))
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -1225,6 +1310,18 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
               className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full sm:w-auto"
             />
           )}
+          <select
+            value={selectedStaffId}
+            onChange={(e) => setSelectedStaffId(e.target.value)}
+            className="bg-[#141414] rounded px-3 py-2 text-sm md:text-base w-full sm:w-auto"
+          >
+            <option value="all">All Staff Members</option>
+            {staffMembers.map((staff) => (
+              <option key={staff.id} value={staff.id}>
+                {staff.firstName} {staff.lastName}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Table */}
@@ -1240,7 +1337,7 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
               </tr>
             </thead>
             <tbody>
-              {dummyAttendanceData.map((staff) => (
+              {filteredStaff.map((staff) => (
                 <tr key={staff.id} className="text-sm md:text-base">
                   <td className="py-2">
                     {staff.firstName} {staff.lastName}
@@ -1266,92 +1363,206 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
   )
 }
 
-function LeaveRequestModal({ staffMembers, onClose, onSubmit }) {
-  const [selectedStaff, setSelectedStaff] = useState(null)
+function VacationRequestModal({ staffMember, onClose, onSubmit }) {
   const [startDate, setStartDate] = useState(new Date())
   const [endDate, setEndDate] = useState(new Date())
+  const [showCalendar, setShowCalendar] = useState(true)
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [selectedStaffId, setSelectedStaffId] = useState(staffMember?.id || null)
+
+  // Get all staff members from the parent component
+  const { staffMembers } = useContext(StaffContext) || { staffMembers: [] }
+
+  // Dummy vacation data - in a real app, this would come from your backend
+  const [bookedVacations, setBookedVacations] = useState([
+    { id: 1, staffId: 1, startDate: new Date(2024, 0, 5), endDate: new Date(2024, 0, 10) },
+    { id: 2, staffId: 1, startDate: new Date(2024, 1, 15), endDate: new Date(2024, 1, 20) },
+    { id: 3, staffId: 2, startDate: new Date(2024, 3, 1), endDate: new Date(2024, 3, 5) },
+  ])
+
+  // Get the selected staff member
+  const selectedStaff = staffMembers.find((staff) => staff.id === selectedStaffId) || staffMember
+
+  // Calculate remaining vacation days
+  const remainingVacationDays = selectedStaff?.vacationEntitlement || 30 - 5 // Dummy calculation, replace with actual logic
 
   const handleSubmit = () => {
-    onSubmit(selectedStaff.id, startDate, endDate)
+    onSubmit(selectedStaffId, startDate, endDate)
     onClose()
   }
+
+  const handleDateClick = (date) => {
+    setStartDate(date)
+    setEndDate(date)
+    setShowCalendar(false)
+  }
+
+  const handleStaffChange = (e) => {
+    setSelectedStaffId(Number(e.target.value))
+  }
+
+  // Navigate to previous month
+  const goToPreviousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
+  }
+
+  // Navigate to next month
+  const goToNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
+  }
+
+  // Check if a date is already booked for the selected staff
+  const isDateBooked = (date) => {
+    return bookedVacations.some((vacation) => {
+      const vacationStart = new Date(vacation.startDate)
+      const vacationEnd = new Date(vacation.endDate)
+      return vacation.staffId === selectedStaffId && date >= vacationStart && date <= vacationEnd
+    })
+  }
+
+  // Generate calendar days for the current month view
+  const generateCalendarDays = () => {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+
+    const firstDayOfMonth = new Date(year, month, 1)
+    const lastDayOfMonth = new Date(year, month + 1, 0)
+
+    const daysInMonth = lastDayOfMonth.getDate()
+    const firstDayOfWeek = firstDayOfMonth.getDay() // 0 = Sunday, 1 = Monday, etc.
+
+    const days = []
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      days.push(null)
+    }
+
+    // Add days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i))
+    }
+
+    return days
+  }
+
+  const calendarDays = generateCalendarDays()
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Request Leave</h2>
-        <div className="space-y-4">
-          <select
-            value={selectedStaff?.id || ""}
-            onChange={(e) => setSelectedStaff(staffMembers.find((s) => s.id === Number.parseInt(e.target.value)))}
+        <h2 className="text-xl font-bold mb-4">Vacation Request</h2>
+
+        {/* Staff selection dropdown */}
+        <div className="mb-4">
+          <label className="text-sm text-gray-300 block mb-1">Staff Member</label>
+          <select 
+            value={selectedStaffId} 
+            onChange={handleStaffChange}
             className="bg-[#141414] rounded px-3 py-2 text-sm md:text-base w-full"
           >
-            <option value="">Select Staff Member</option>
-            {staffMembers.map((staff) => (
+            {staffMembers.map(staff => (
               <option key={staff.id} value={staff.id}>
                 {staff.firstName} {staff.lastName}
               </option>
             ))}
           </select>
-          <input
-            type="date"
-            value={startDate.toISOString().split("T")[0]}
-            onChange={(e) => setStartDate(new Date(e.target.value))}
-            className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
-          />
-          <input
-            type="date"
-            value={endDate.toISOString().split("T")[0]}
-            onChange={(e) => setEndDate(new Date(e.target.value))}
-            className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
-          />
-          <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm  w-full">
-            Submit Request
-          </button>
         </div>
-        <button onClick={onClose} className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-xl text-sm  w-full">
-          Close
-        </button>
-      </div>
-    </div>
-  )
-}
 
-function VacationRequestModal({ staffMember, onClose, onSubmit }) {
-  const [startDate, setStartDate] = useState(new Date())
-  const [endDate, setEndDate] = useState(new Date())
+        <div className="mb-4">
+          <p className="text-sm text-gray-300">
+            Remaining vacation days: <span className="font-bold text-white">{remainingVacationDays}</span>
+          </p>
+        </div>
 
-  const handleSubmit = () => {
-    onSubmit(staffMember.id, startDate, endDate)
-    onClose()
-  }
+        {showCalendar ? (
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <button 
+                onClick={goToPreviousMonth} 
+                className="text-gray-300 hover:text-white p-1"
+              >
+                &lt;
+              </button>
+              <h3 className="font-medium">
+                {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+              </h3>
+              <button 
+                onClick={goToNextMonth} 
+                className="text-gray-300 hover:text-white p-1"
+              >
+                &gt;
+              </button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                <div key={day} className="text-center text-xs font-medium py-1">
+                  {day}
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {calendarDays.map((day, index) => (
+                <div
+                  key={index}
+                  className={`
+                    text-center p-2 rounded-md text-sm
+                    ${!day ? "opacity-0" : "cursor-pointer"}
+                    ${day && isDateBooked(day) ? "bg-red-900/30" : ""}
+                    ${day && !isDateBooked(day) ? "hover:bg-blue-600/30" : ""}
+                    ${day && day.toDateString() === startDate.toDateString() ? "bg-blue-600" : ""}
+                  `}
+                  onClick={() => day && !isDateBooked(day) && handleDateClick(day)}
+                >
+                  {day ? day.getDate() : ""}
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 flex items-center justify-between text-xs">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-red-900/30 rounded-sm mr-1"></div>
+                <span>Booked</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-600 rounded-sm mr-1"></div>
+                <span>Selected</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-gray-300 block mb-1">Start Date</label>
+              <input
+                type="date"
+                value={startDate.toISOString().split("T")[0]}
+                onChange={(e) => setStartDate(new Date(e.target.value))}
+                className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-300 block mb-1">End Date</label>
+              <input
+                type="date"
+                value={endDate.toISOString().split("T")[0]}
+                onChange={(e) => setEndDate(new Date(e.target.value))}
+                className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
+              />
+            </div>
+            <button onClick={() => setShowCalendar(true)} className="text-blue-400 text-sm hover:underline">
+              Back to calendar view
+            </button>
+          </div>
+        )}
 
-  return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">
-          Vacation Request for {staffMember.firstName} {staffMember.lastName}
-        </h2>
-        <div className="space-y-4">
-          <input
-            type="date"
-            value={startDate.toISOString().split("T")[0]}
-            onChange={(e) => setStartDate(new Date(e.target.value))}
-            className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
-          />
-          <input
-            type="date"
-            value={endDate.toISOString().split("T")[0]}
-            onChange={(e) => setEndDate(new Date(e.target.value))}
-            className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
-          />
+        <div className="mt-4 space-y-2">
           <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm w-full">
             Submit Vacation Request
           </button>
+          <button onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded-xl text-sm w-full">
+            Close
+          </button>
         </div>
-        <button onClick={onClose} className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-xl text-sm w-full">
-          Close
-        </button>
       </div>
     </div>
   )
