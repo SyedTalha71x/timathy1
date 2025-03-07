@@ -1,7 +1,6 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-"use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Input,
   Select,
@@ -16,12 +15,16 @@ import {
   Tabs,
   Divider,
   DatePicker,
+  Collapse,
+  Alert,
 } from "antd"
-import { SaveOutlined, PlusOutlined, DeleteOutlined, UploadOutlined } from "@ant-design/icons"
+import dayjs from "dayjs"
+import { SaveOutlined, PlusOutlined, DeleteOutlined, UploadOutlined, CalendarOutlined } from "@ant-design/icons"
 
 const { Option } = Select
 const { TabPane } = Tabs
 const { TextArea } = Input
+const { Panel } = Collapse
 
 const inputStyle = {
   backgroundColor: "#101010",
@@ -55,15 +58,36 @@ const saveButtonStyle = {
   fontSize: "14px",
 }
 
+const sectionHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "12px 16px",
+  backgroundColor: "#202020",
+  borderRadius: "8px",
+  marginBottom: "16px",
+  cursor: "default",
+}
+
 const ConfigurationPage = () => {
+  // Basic studio information
   const [studioName, setStudioName] = useState("")
   const [studioOperator, setStudioOperator] = useState("")
   const [studioStreet, setStudioStreet] = useState("")
   const [studioZipCode, setStudioZipCode] = useState("")
   const [studioCity, setStudioCity] = useState("")
+  const [studioCountry, setStudioCountry] = useState("")
+  const [studioPhoneNo, setStudioPhoneNo] = useState("")
+  const [studioEmail, setStudioEmail] = useState("")
   const [studioWebsite, setStudioWebsite] = useState("")
+
+  // Opening hours and closing days
   const [openingHours, setOpeningHours] = useState([])
   const [closingDays, setClosingDays] = useState([])
+  const [publicHolidays, setPublicHolidays] = useState([])
+  const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
+
+  // Other studio settings
   const [logo, setLogo] = useState([])
   const [roles, setRoles] = useState([])
   const [appointmentTypes, setAppointmentTypes] = useState([])
@@ -77,6 +101,40 @@ const ConfigurationPage = () => {
     creditorName: "",
   })
 
+  // Countries for selection
+  const [countries, setCountries] = useState([
+    { code: "AT", name: "Austria" },
+    { code: "BE", name: "Belgium" },
+    { code: "BG", name: "Bulgaria" },
+    { code: "CA", name: "Canada" },
+    { code: "HR", name: "Croatia" },
+    { code: "CY", name: "Cyprus" },
+    { code: "CZ", name: "Czech Republic" },
+    { code: "DK", name: "Denmark" },
+    { code: "EE", name: "Estonia" },
+    { code: "FI", name: "Finland" },
+    { code: "FR", name: "France" },
+    { code: "DE", name: "Germany" },
+    { code: "GR", name: "Greece" },
+    { code: "HU", name: "Hungary" },
+    { code: "IE", name: "Ireland" },
+    { code: "IT", name: "Italy" },
+    { code: "LV", name: "Latvia" },
+    { code: "LT", name: "Lithuania" },
+    { code: "LU", name: "Luxembourg" },
+    { code: "MT", name: "Malta" },
+    { code: "NL", name: "Netherlands" },
+    { code: "PL", name: "Poland" },
+    { code: "PT", name: "Portugal" },
+    { code: "RO", name: "Romania" },
+    { code: "SK", name: "Slovakia" },
+    { code: "SI", name: "Slovenia" },
+    { code: "ES", name: "Spain" },
+    { code: "SE", name: "Sweden" },
+    { code: "GB", name: "United Kingdom" },
+    { code: "US", name: "United States" },
+  ])
+
   const [maxCapacity, setMaxCapacity] = useState(10)
   const [contractTypes, setContractTypes] = useState([])
   const [contractSections, setContractSections] = useState([
@@ -86,6 +144,7 @@ const ConfigurationPage = () => {
   const [noticePeriod, setNoticePeriod] = useState(30)
   const [extensionPeriod, setExtensionPeriod] = useState(12)
   const [additionalDocs, setAdditionalDocs] = useState([])
+  const [holidaysDialogVisible, setHolidaysDialogVisible] = useState(false);
   const [birthdayMessage, setBirthdayMessage] = useState({
     enabled: false,
     message: "Happy Birthday! 🎉 Best wishes from {studio_name}",
@@ -98,7 +157,123 @@ const ConfigurationPage = () => {
     color: "#1890ff",
   })
 
-  const [appointmentIntervals, setAppointmentIntervals] = useState({})
+  const [broadcastMessage, setbroadcastMessage] = useState({
+    title: "",
+    message: "",
+  })
+
+  const [emailConfig, setEmailConfig] = useState({
+    smtpServer: "",
+    smtpPort: 587,
+    emailAddress: "",
+    password: "",
+    useSSL: false,
+    senderName: "",
+  })
+
+  const [leadProspectCategories, setLeadProspectCategories] = useState([])
+
+  const [vatRates, setVatRates] = useState([
+    { name: "Standard", percentage: 19, description: "Standard VAT rate" },
+    {
+      name: "Reduced",
+      percentage: 7,
+      description: "Reduced VAT rate for essential goods",
+    },
+  ])
+
+  // Fetch public holidays when country changes
+  useEffect(() => {
+    if (studioCountry) {
+      fetchPublicHolidays(studioCountry)
+    }
+  }, [studioCountry])
+
+  // Function to fetch public holidays based on country
+  const fetchPublicHolidays = async (countryCode) => {
+    if (!countryCode) return
+
+    setIsLoadingHolidays(true)
+    try {
+      // Using Nager.Date API for public holidays
+      const currentYear = new Date().getFullYear()
+      const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentYear}/${countryCode}`)
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch holidays")
+      }
+
+      const data = await response.json()
+
+      // Process the holidays data
+      const holidays = data.map((holiday) => ({
+        date: holiday.date,
+        name: holiday.name,
+        countryCode: holiday.countryCode,
+      }))
+
+      setPublicHolidays(holidays)
+
+      notification.success({
+        message: "Holidays Loaded",
+        description: `Successfully loaded ${data.length} public holidays for ${countryCode}`,
+      })
+    } catch (error) {
+      console.error("Error fetching holidays:", error)
+      notification.error({
+        message: "Error Loading Holidays",
+        description: "Could not load public holidays. Please try again later.",
+      })
+    } finally {
+      setIsLoadingHolidays(false)
+    }
+  }
+
+  // Function to add public holidays to closing days
+  const addPublicHolidaysToClosingDays = (holidaysToProcess = publicHolidays) => {
+    if (holidaysToProcess.length === 0) {
+      notification.warning({
+        message: "No Holidays Available",
+        description: "Please select a country first to load public holidays.",
+      })
+      return
+    }
+  
+    // Filter out holidays that are already in closing days
+    const existingDates = closingDays.map((day) => day.date?.format("YYYY-MM-DD"))
+    const newHolidays = holidaysToProcess.filter((holiday) => !existingDates.includes(holiday.date))
+  
+    if (newHolidays.length === 0) {
+      notification.info({
+        message: "No New Holidays",
+        description: "All public holidays are already added to closing days.",
+      })
+      return
+    }
+  
+    // Add new holidays to closing days - using dayjs directly instead of DatePicker.dayjs
+    const holidaysToAdd = newHolidays.map((holiday) => ({
+      date: holiday.date ? dayjs(holiday.date) : null,
+      description: holiday.name,
+    }))
+  
+    setClosingDays([...closingDays, ...holidaysToAdd])
+  
+    notification.success({
+      message: "Holidays Added",
+      description: `Added ${holidaysToAdd.length} public holidays to closing days.`,
+    })
+  }
+
+  const renderSectionHeader = (title) => (
+    <div style={sectionHeaderStyle}>
+      <h3 className="text-lg font-medium m-0">{title}</h3>
+    </div>
+  )
+
+  const handleAddVatRate = () => {
+    setVatRates([...vatRates, { name: "", percentage: 0, description: "" }])
+  }
 
   const handleAddOpeningHour = () => {
     setOpeningHours([...openingHours, { day: "", startTime: "", endTime: "" }])
@@ -134,11 +309,42 @@ const ConfigurationPage = () => {
     setContractStatuses([...contractStatuses, { name: "" }])
   }
 
+  const validateClosingDays = () => {
+    // Check for duplicate dates
+    const dates = closingDays.map((day) => day.date?.format("YYYY-MM-DD")).filter(Boolean)
+    const uniqueDates = new Set(dates)
+
+    if (dates.length !== uniqueDates.size) {
+      notification.warning({
+        message: "Duplicate Dates",
+        description: "You have duplicate dates in your closing days. Please remove duplicates.",
+      })
+      return false
+    }
+
+    // Check for missing descriptions
+    const missingDescriptions = closingDays.some((day) => day.date && !day.description)
+    if (missingDescriptions) {
+      notification.warning({
+        message: "Missing Descriptions",
+        description: "Please provide descriptions for all closing days.",
+      })
+      return false
+    }
+
+    return true
+  }
+
   const handleSaveConfiguration = () => {
     if (!studioName || !studioStreet || !studioZipCode || !studioCity) {
-      notification.error({ message: "Please fill in all required fields." })
+      notification.error({ message: "Please fill in all required fields in Studio Data." })
       return
     }
+
+    if (!validateClosingDays()) {
+      return
+    }
+
     notification.success({ message: "Configuration saved successfully!" })
   }
 
@@ -171,19 +377,16 @@ const ConfigurationPage = () => {
     setAppointmentTypes(updatedTypes)
   }
 
-  const createEmployeePassword = () => {
-    const password = Math.random().toString(36).slice(-8)
-    return password
+  const handleViewBlankContract = () => {
+    console.log("check handle view blank contract")
   }
 
-  const handleEmployeePlanning = () => {
-    // Implement employee planning logic here
-    notification.info({ message: "Employee planning feature opened" })
+  const testEmailConnection = () => {
+    console.log("Test Email connection")
   }
 
-  const handleEmployeeOverview = () => {
-    // Implement employee check-in/out overview logic here
-    notification.info({ message: "Employee check-in/out overview opened" })
+  const handleAddLeadProspectCategory = () => {
+    setLeadProspectCategories([...leadProspectCategories, { name: "", circleColor: "#1890ff" }])
   }
 
   return (
@@ -208,6 +411,24 @@ const ConfigurationPage = () => {
                   value={studioOperator}
                   onChange={(e) => setStudioOperator(e.target.value)}
                   placeholder="Enter studio operator name"
+                  style={inputStyle}
+                />
+              </Form.Item>
+
+              <Form.Item label={<span className="text-white">Phone No</span>} required>
+                <Input
+                  value={studioPhoneNo}
+                  onChange={(e) => setStudioPhoneNo(e.target.value)}
+                  placeholder="Enter phone no"
+                  style={inputStyle}
+                />
+              </Form.Item>
+
+              <Form.Item label={<span className="text-white">Email</span>} required>
+                <Input
+                  value={studioEmail}
+                  onChange={(e) => setStudioEmail(e.target.value)}
+                  placeholder="Enter email"
                   style={inputStyle}
                 />
               </Form.Item>
@@ -239,6 +460,25 @@ const ConfigurationPage = () => {
                 />
               </Form.Item>
 
+              <Form.Item
+                label={<span className="text-white">Country</span>}
+                required
+                tooltip="Selecting a country will allow you to import public holidays"
+              >
+                <Select
+                  value={studioCountry}
+                  onChange={(value) => setStudioCountry(value)}
+                  placeholder="Select country"
+                  style={selectStyle}
+                >
+                  {countries.map((country) => (
+                    <Option key={country.code} value={country.code}>
+                      {country.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
               <Form.Item label={<span className="text-white">Studio Website</span>}>
                 <Input
                   value={studioWebsite}
@@ -255,131 +495,158 @@ const ConfigurationPage = () => {
                   </Button>
                 </Upload>
               </Form.Item>
-
-              <Form.Item label={<span className="text-white">Opening Hours</span>}>
-                <div className="space-y-4">
-                  {openingHours.map((hour, index) => (
-                    <div key={index} className="flex flex-wrap gap-4 items-center">
-                      <Select
-                        placeholder="Select day"
-                        value={hour.day}
-                        onChange={(value) => {
-                          const updatedHours = [...openingHours]
-                          updatedHours[index].day = value
-                          setOpeningHours(updatedHours)
-                        }}
-                        className="w-full sm:w-40"
-                        style={selectStyle}
-                      >
-                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                          <Option key={day} value={day}>
-                            {day}
-                          </Option>
-                        ))}
-                      </Select>
-                      <TimePicker
-                        format="HH:mm"
-                        placeholder="Start Time"
-                        value={hour.startTime}
-                        onChange={(time) => {
-                          const updatedHours = [...openingHours]
-                          updatedHours[index].startTime = time
-                          setOpeningHours(updatedHours)
-                        }}
-                        className="w-full sm:w-32"
-                        style={inputStyle}
-                      />
-                      <TimePicker
-                        format="HH:mm"
-                        placeholder="End Time"
-                        value={hour.endTime}
-                        onChange={(time) => {
-                          const updatedHours = [...openingHours]
-                          updatedHours[index].endTime = time
-                          setOpeningHours(updatedHours)
-                        }}
-                        className="w-full sm:w-32"
-                        style={inputStyle}
-                      />
-                      <Button
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => handleRemoveOpeningHour(index)}
-                        className="w-full sm:w-auto"
-                        style={buttonStyle}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="dashed"
-                    onClick={handleAddOpeningHour}
-                    icon={<PlusOutlined />}
-                    className="w-full sm:w-auto"
-                    style={buttonStyle}
-                  >
-                    Add Opening Hour
-                  </Button>
-                </div>
-              </Form.Item>
-
-              <Form.Item label={<span className="text-white">Closing Days</span>}>
-                <div className="space-y-4">
-                  {closingDays.map((day, index) => (
-                    <div key={index} className="flex flex-wrap gap-4 items-center">
-                      <DatePicker
-                        placeholder="Select date"
-                        value={day.date}
-                        onChange={(date) => {
-                          const updatedDays = [...closingDays]
-                          updatedDays[index].date = date
-                          setClosingDays(updatedDays)
-                        }}
-                        className="w-full sm:w-40"
-                        style={inputStyle}
-                      />
-                      <Input
-                        placeholder="Description (e.g., Public Holiday)"
-                        value={day.description}
-                        onChange={(e) => {
-                          const updatedDays = [...closingDays]
-                          updatedDays[index].description = e.target.value
-                          setClosingDays(updatedDays)
-                        }}
-                        className="w-full sm:flex-1"
-                        style={inputStyle}
-                      />
-                      <Button
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => handleRemoveClosingDay(index)}
-                        className="w-full sm:w-auto"
-                        style={buttonStyle}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="dashed"
-                    onClick={handleAddClosingDay}
-                    icon={<PlusOutlined />}
-                    className="w-full sm:w-auto"
-                    style={buttonStyle}
-                  >
-                    Add Closing Day
-                  </Button>
-                </div>
-              </Form.Item>
             </Form>
+
+            {/* Opening Hours Section */}
+            <Form.Item label={<span className="text-white">Opening Hours</span>}>
+              <div className="space-y-4">
+                {openingHours.map((hour, index) => (
+                  <div key={index} className="flex flex-wrap gap-4 items-center">
+                    <Select
+                      placeholder="Select day"
+                      value={hour.day}
+                      onChange={(value) => {
+                        const updatedHours = [...openingHours]
+                        updatedHours[index].day = value
+                        setOpeningHours(updatedHours)
+                      }}
+                      className="w-full sm:w-40"
+                      style={selectStyle}
+                    >
+                      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                        <Option key={day} value={day}>
+                          {day}
+                        </Option>
+                      ))}
+                    </Select>
+                    <TimePicker
+                      format="HH:mm"
+                      placeholder="Start Time"
+                      value={hour.startTime}
+                      onChange={(time) => {
+                        const updatedHours = [...openingHours]
+                        updatedHours[index].startTime = time
+                        setOpeningHours(updatedHours)
+                      }}
+                      className="w-full sm:w-32"
+                      style={inputStyle}
+                    />
+                    <TimePicker
+                      format="HH:mm"
+                      placeholder="End Time"
+                      value={hour.endTime}
+                      onChange={(time) => {
+                        const updatedHours = [...openingHours]
+                        updatedHours[index].endTime = time
+                        setOpeningHours(updatedHours)
+                      }}
+                      className="w-full sm:w-32"
+                      style={inputStyle}
+                    />
+                    <Button
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => handleRemoveOpeningHour(index)}
+                      className="w-full sm:w-auto"
+                      style={buttonStyle}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={handleAddOpeningHour}
+                  icon={<PlusOutlined />}
+                  className="w-full sm:w-auto"
+                  style={buttonStyle}
+                >
+                  Add Opening Hour
+                </Button>
+              </div>
+            </Form.Item>
+
+            <Form.Item label={<span className="text-white">Closing Days</span>}>
+              <div className="space-y-4">
+                {studioCountry && (
+                  <div className="mb-4">
+                    <Alert
+                      message="Public Holidays"
+                      description={
+                        <div>
+                          <p>
+                            You can automatically import public holidays for{" "}
+                            {countries.find((c) => c.code === studioCountry)?.name || studioCountry}.
+                          </p>
+                          <Button
+                            onClick={() => addPublicHolidaysToClosingDays()}
+                            loading={isLoadingHolidays}
+                            icon={<CalendarOutlined />}
+                            style={{ ...buttonStyle, marginTop: "8px", backgroundColor: "#FF843E" }}
+                          >
+                            Import Public Holidays
+                          </Button>
+                        </div>
+                      }
+                      type="info"
+                      showIcon
+                      style={{ backgroundColor: "#202020", border: "1px solid #303030" }}
+                    />
+                  </div>
+                )}
+
+                {closingDays.map((day, index) => (
+                  <div key={index} className="flex  flex-wrap gap-4 items-center">
+                    <DatePicker
+                      placeholder="Select date"
+                      value={day.date}
+                      onChange={(date) => {
+                        const updatedDays = [...closingDays]
+                        updatedDays[index].date = date
+                        setClosingDays(updatedDays)
+                      }}
+                      className="w-full sm:w-40 white-text"
+                      style={inputStyle}
+                    />
+                    <Input
+                      placeholder="Description (e.g., Public Holiday)"
+                      value={day.description}
+                      onChange={(e) => {
+                        const updatedDays = [...closingDays]
+                        updatedDays[index].description = e.target.value
+                        setClosingDays(updatedDays)
+                      }}
+                      className="w-full sm:flex-1"
+                      style={inputStyle}
+                    />
+                    <Button
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => handleRemoveClosingDay(index)}
+                      className="w-full sm:w-auto"
+                      style={buttonStyle}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={handleAddClosingDay}
+                  icon={<PlusOutlined />}
+                  className="w-full sm:w-auto"
+                  style={buttonStyle}
+                >
+                  Add Closing Day
+                </Button>
+              </div>
+            </Form.Item>
           </div>
         </TabPane>
 
         <TabPane tab="Resources" key="2">
           <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6 white-text">
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Maximum Capacity</h3>
               <Form.Item label={<span className="text-white">Default Maximum Capacity</span>}>
                 <InputNumber
                   min={0}
@@ -399,21 +666,36 @@ const ConfigurationPage = () => {
                 <Form.Item label={<span className="text-white">Name</span>}>
                   <Input
                     value={trialTraining.name}
-                    onChange={(e) => setTrialTraining({ ...trialTraining, name: e.target.value })}
+                    onChange={(e) =>
+                      setTrialTraining({
+                        ...trialTraining,
+                        name: e.target.value,
+                      })
+                    }
                     style={inputStyle}
                   />
                 </Form.Item>
                 <Form.Item label={<span className="text-white">Duration (minutes)</span>}>
                   <InputNumber
                     value={trialTraining.duration}
-                    onChange={(value) => setTrialTraining({ ...trialTraining, duration: value || 60 })}
+                    onChange={(value) =>
+                      setTrialTraining({
+                        ...trialTraining,
+                        duration: value || 60,
+                      })
+                    }
                     style={inputStyle}
                   />
                 </Form.Item>
                 <Form.Item label={<span className="text-white">Capacity</span>}>
                   <InputNumber
                     value={trialTraining.capacity}
-                    onChange={(value) => setTrialTraining({ ...trialTraining, capacity: value || 1 })}
+                    onChange={(value) =>
+                      setTrialTraining({
+                        ...trialTraining,
+                        capacity: value || 1,
+                      })
+                    }
                     max={maxCapacity}
                     style={inputStyle}
                   />
@@ -426,6 +708,60 @@ const ConfigurationPage = () => {
                 </Form.Item>
               </Form>
             </div>
+
+            <Divider className="border-[#303030]" />
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Lead Prospect Categories</h3>
+              <div className="space-y-4">
+                {leadProspectCategories.map((category, index) => (
+                  <div key={index} className="flex flex-wrap gap-4 items-center">
+                    <Input
+                      placeholder="Category Name"
+                      value={category.name}
+                      onChange={(e) => {
+                        const updatedCategories = [...leadProspectCategories]
+                        updatedCategories[index].name = e.target.value
+                        setLeadProspectCategories(updatedCategories)
+                      }}
+                      className="w-full sm:w-64"
+                      style={inputStyle}
+                    />
+                    <div className="flex items-center gap-2">
+                      <span className="text-white">Circle Color:</span>
+                      <ColorPicker
+                        value={category.circleColor}
+                        onChange={(color) => {
+                          const updatedCategories = [...leadProspectCategories]
+                          updatedCategories[index].circleColor = color
+                          setLeadProspectCategories(updatedCategories)
+                        }}
+                      />
+                    </div>
+                    <Button
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => setLeadProspectCategories(leadProspectCategories.filter((_, i) => i !== index))}
+                      className="w-full sm:w-auto"
+                      style={buttonStyle}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={handleAddLeadProspectCategory}
+                  icon={<PlusOutlined />}
+                  className="w-full sm:w-auto"
+                  style={buttonStyle}
+                >
+                  Add Lead Prospect Category
+                </Button>
+              </div>
+            </div>
+
+            <Divider className="border-[#303030]" />
 
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Roles</h3>
@@ -481,6 +817,8 @@ const ConfigurationPage = () => {
                 </Button>
               </div>
             </div>
+
+            <Divider className="border-[#303030]" />
 
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Appointment Types</h3>
@@ -542,6 +880,8 @@ const ConfigurationPage = () => {
               </div>
             </div>
 
+            <Divider className="border-[#303030]" />
+
             <div className="space-y-4">
               <h3 className="text-lg font-medium">TO-DO Tags</h3>
               <div className="space-y-4">
@@ -588,62 +928,12 @@ const ConfigurationPage = () => {
                 </Button>
               </div>
             </div>
-
-            <div className="space-y-4 mt-10">
-              <h3 className="text-lg font-medium">Employee Management</h3>
-              <Form layout="vertical">
-                <Form.Item label={<span className="text-white">Username</span>}>
-                  <Input style={inputStyle} />
-                </Form.Item>
-                {/* <Form.Item label={<span className="text-white">User ID</span>}>
-                  <Input style={inputStyle} />
-                </Form.Item> */}
-                <Form.Item label={<span className="text-white">Street (with number)</span>}>
-                  <Input style={inputStyle} />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">ZIP Code</span>}>
-                  <Input style={inputStyle} />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">City</span>}>
-                  <Input style={inputStyle} />
-                </Form.Item>
-              </Form>
-              {/* <Button onClick={handleEmployeePlanning} style={buttonStyle}>
-                Employee Planning
-              </Button>
-              <Button onClick={handleEmployeeOverview} style={buttonStyle}>
-                Employee Check-in/out Overview
-              </Button> */}
-            </div>
           </div>
         </TabPane>
 
         <TabPane tab="Contracts" key="3">
           <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6 white-text">
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Contract Settings</h3>
-              <Form layout="vertical">
-                <Form.Item label={<span className="text-white">Notice Period (days)</span>}>
-                  <InputNumber
-                    value={noticePeriod}
-                    onChange={(value) => setNoticePeriod(value || 30)}
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Extension Period (months)</span>}>
-                  <InputNumber
-                    value={extensionPeriod}
-                    onChange={(value) => setExtensionPeriod(value || 12)}
-                    style={inputStyle}
-                  />
-                </Form.Item>
-              </Form>
-            </div>
-
-            <Divider className="border-[#303030]" />
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Contract Types</h3>
               {contractTypes.map((type, index) => (
                 <div key={index} className="space-y-4 p-4 border border-[#303030] rounded-lg">
                   <Form layout="vertical">
@@ -678,6 +968,7 @@ const ConfigurationPage = () => {
                           setContractTypes(updated)
                         }}
                         style={inputStyle}
+                        precision={2}
                       />
                     </Form.Item>
                     <Form.Item label={<span className="text-white">Billing Period</span>}>
@@ -741,7 +1032,7 @@ const ConfigurationPage = () => {
                         style={inputStyle}
                       />
                     </Form.Item>
-                    <Form.Item label={<span className="text-white">Editable</span>}>
+                    <Form.Item label={<span className="text-white">Signature needed</span>}>
                       <Switch
                         checked={section.editable}
                         onChange={(checked) => {
@@ -770,7 +1061,12 @@ const ConfigurationPage = () => {
             <Divider className="border-[#303030]" />
 
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Additional Documents</h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Additional Documents</h3>
+                <Button onClick={handleViewBlankContract} style={buttonStyle}>
+                  View Blank Contract
+                </Button>
+              </div>
               <Upload
                 accept=".pdf"
                 multiple
@@ -786,20 +1082,115 @@ const ConfigurationPage = () => {
         </TabPane>
 
         <TabPane tab="Communication" key="4">
-          <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6">
+          <div className="bg-[#181818] white-text rounded-lg border border-[#303030] p-6 space-y-6">
+            <div className="space-y-4">
+              <Form layout="vertical">
+                <Form.Item label={<span className="text-white">SMTP Server</span>}>
+                  <Input
+                    value={emailConfig.smtpServer}
+                    onChange={(e) =>
+                      setEmailConfig({
+                        ...emailConfig,
+                        smtpServer: e.target.value,
+                      })
+                    }
+                    style={inputStyle}
+                    placeholder="smtp.example.com"
+                  />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">SMTP Port</span>}>
+                  <InputNumber
+                    value={emailConfig.smtpPort}
+                    onChange={(value) =>
+                      setEmailConfig({
+                        ...emailConfig,
+                        smtpPort: value || 587,
+                      })
+                    }
+                    style={inputStyle}
+                    placeholder="587"
+                  />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">Email Address</span>}>
+                  <Input
+                    value={emailConfig.emailAddress}
+                    onChange={(e) =>
+                      setEmailConfig({
+                        ...emailConfig,
+                        emailAddress: e.target.value,
+                      })
+                    }
+                    style={inputStyle}
+                    placeholder="studio@example.com"
+                  />
+                </Form.Item>
+                <Form.Item label={<span className="text-white white-text">Password</span>}>
+                  <Input.Password
+                    value={emailConfig.password}
+                    onChange={(e) =>
+                      setEmailConfig({
+                        ...emailConfig,
+                        password: e.target.value,
+                      })
+                    }
+                    style={inputStyle}
+                  />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">Use SSL/TLS</span>}>
+                  <Switch
+                    checked={emailConfig.useSSL}
+                    onChange={(checked) =>
+                      setEmailConfig({
+                        ...emailConfig,
+                        useSSL: checked,
+                      })
+                    }
+                  />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">Default Sender Name</span>}>
+                  <Input
+                    value={emailConfig.senderName}
+                    onChange={(e) =>
+                      setEmailConfig({
+                        ...emailConfig,
+                        senderName: e.target.value,
+                      })
+                    }
+                    style={inputStyle}
+                    placeholder="Your Studio Name"
+                  />
+                </Form.Item>
+                <Button type="primary" style={buttonStyle} onClick={testEmailConnection}>
+                  Test Connection
+                </Button>
+              </Form>
+            </div>
+
+            <Divider className="border-[#303030]" />
+
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Birthday Messages</h3>
               <Form layout="vertical">
                 <Form.Item label={<span className="text-white">Enable Birthday Messages</span>}>
                   <Switch
                     checked={birthdayMessage.enabled}
-                    onChange={(checked) => setBirthdayMessage({ ...birthdayMessage, enabled: checked })}
+                    onChange={(checked) =>
+                      setBirthdayMessage({
+                        ...birthdayMessage,
+                        enabled: checked,
+                      })
+                    }
                   />
                 </Form.Item>
                 <Form.Item label={<span className="text-white">Message Template</span>}>
                   <TextArea
                     value={birthdayMessage.message}
-                    onChange={(e) => setBirthdayMessage({ ...birthdayMessage, message: e.target.value })}
+                    onChange={(e) =>
+                      setBirthdayMessage({
+                        ...birthdayMessage,
+                        message: e.target.value,
+                      })
+                    }
                     rows={4}
                     style={inputStyle}
                     placeholder="Use {studio_name} as a placeholder for your studio name"
@@ -807,53 +1198,162 @@ const ConfigurationPage = () => {
                 </Form.Item>
               </Form>
             </div>
+
+            <Divider className="border-[#303030]" />
+
+            <div className="space-y-3">
+              <h3 className="text-lg font-medium">Broadcast Messages</h3>
+              <Form layout="vertical">
+                <Form.Item label={<span className="text-white">Title</span>}>
+                  <Input
+                    value={broadcastMessage.title}
+                    onChange={(e) => {
+                      setbroadcastMessage({
+                        ...broadcastMessage,
+                        title: e.target.value,
+                      })
+                    }}
+                    style={inputStyle}
+                  />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">Message</span>}>
+                  <TextArea
+                    value={broadcastMessage.message}
+                    onChange={(e) => {
+                      setbroadcastMessage({
+                        ...broadcastMessage,
+                        message: e.target.value,
+                      })
+                    }}
+                    rows={4}
+                    style={inputStyle}
+                  />
+                </Form.Item>
+              </Form>
+            </div>
           </div>
         </TabPane>
 
-        <TabPane tab="Payment" key="5">
+        <TabPane tab="Finances" key="5">
           <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6">
-            <Form layout="vertical" className="space-y-4">
-              <Form.Item label={<span className="text-white">Creditor Name</span>}>
-                <Input
-                  value={bankDetails.creditorName}
-                  onChange={(e) => setBankDetails({ ...bankDetails, creditorName: e.target.value })}
-                  placeholder="Enter creditor name"
-                  style={inputStyle}
-                />
-              </Form.Item>
-              <Form.Item label={<span className="text-white">Bank Name</span>}>
-                <Input
-                  value={bankDetails.bankName}
-                  onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })}
-                  placeholder="Enter bank name"
-                  style={inputStyle}
-                />
-              </Form.Item>
-              <Form.Item label={<span className="text-white">IBAN</span>}>
-                <Input
-                  value={bankDetails.iban}
-                  onChange={(e) => setBankDetails({ ...bankDetails, iban: e.target.value })}
-                  placeholder="Enter IBAN"
-                  style={inputStyle}
-                />
-              </Form.Item>
-              <Form.Item label={<span className="text-white">BIC</span>}>
-                <Input
-                  value={bankDetails.bic}
-                  onChange={(e) => setBankDetails({ ...bankDetails, bic: e.target.value })}
-                  placeholder="Enter BIC"
-                  style={inputStyle}
-                />
-              </Form.Item>
-              <Form.Item label={<span className="text-white">Creditor ID</span>}>
-                <Input
-                  value={bankDetails.creditorId}
-                  onChange={(e) => setBankDetails({ ...bankDetails, creditorId: e.target.value })}
-                  placeholder="Enter Creditor ID"
-                  style={inputStyle}
-                />
-              </Form.Item>
-            </Form>
+            <div className="space-y-4">
+              <Form layout="vertical" className="space-y-4">
+                <Form.Item label={<span className="text-white">Creditor Name</span>}>
+                  <Input
+                    value={bankDetails.creditorName}
+                    onChange={(e) =>
+                      setBankDetails({
+                        ...bankDetails,
+                        creditorName: e.target.value,
+                      })
+                    }
+                    placeholder="Enter creditor name"
+                    style={inputStyle}
+                  />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">IBAN</span>}>
+                  <Input
+                    value={bankDetails.iban}
+                    onChange={(e) => setBankDetails({ ...bankDetails, iban: e.target.value })}
+                    placeholder="Enter IBAN"
+                    style={inputStyle}
+                  />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">BIC</span>}>
+                  <Input
+                    value={bankDetails.bic}
+                    onChange={(e) => setBankDetails({ ...bankDetails, bic: e.target.value })}
+                    placeholder="Enter BIC"
+                    style={inputStyle}
+                  />
+                </Form.Item>
+                <Form.Item label={<span className="text-white">Creditor ID</span>}>
+                  <Input
+                    value={bankDetails.creditorId}
+                    onChange={(e) =>
+                      setBankDetails({
+                        ...bankDetails,
+                        creditorId: e.target.value,
+                      })
+                    }
+                    placeholder="Enter Creditor ID"
+                    style={inputStyle}
+                  />
+                </Form.Item>
+              </Form>
+            </div>
+
+            <Divider className="border-[#303030]" />
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-white">VAT Rates</h3>
+              <div className="space-y-4 white-text">
+                {vatRates.map((rate, index) => (
+                  <div key={index} className="flex flex-wrap gap-4 items-center">
+                    <Input
+                      placeholder="VAT Name (e.g. Standard, Reduced)"
+                      value={rate.name}
+                      onChange={(e) => {
+                        const updatedRates = [...vatRates]
+                        updatedRates[index].name = e.target.value
+                        setVatRates(updatedRates)
+                      }}
+                      className="w-full sm:w-64"
+                      style={inputStyle}
+                    />
+                    <InputNumber
+                      placeholder="Rate (%)"
+                      value={rate.percentage}
+                      min={0}
+                      max={100}
+                      formatter={(value) => `${value}%`}
+                      parser={(value) => value.replace("%", "")}
+                      onChange={(value) => {
+                        const updatedRates = [...vatRates]
+                        updatedRates[index].percentage = value || 0
+                        setVatRates(updatedRates)
+                      }}
+                      className="w-full sm:w-32"
+                      style={inputStyle}
+                    />
+                    <Input
+                      placeholder="Description (optional)"
+                      value={rate.description}
+                      onChange={(e) => {
+                        const updatedRates = [...vatRates]
+                        updatedRates[index].description = e.target.value
+                        setVatRates(updatedRates)
+                      }}
+                      className="w-full sm:flex-1"
+                      style={inputStyle}
+                    />
+                    <Button
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => setVatRates(vatRates.filter((_, i) => i !== index))}
+                      className="w-full sm:w-auto"
+                      style={buttonStyle}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={handleAddVatRate}
+                  icon={<PlusOutlined />}
+                  className="w-full sm:w-auto"
+                  style={buttonStyle}
+                >
+                  Add VAT Rate
+                </Button>
+              </div>
+              <div className="mt-4">
+                <p className="text-sm text-gray-400">
+                  VAT rates defined here will be available as options in the "Selling" menu's shopping basket.
+                </p>
+              </div>
+            </div>
           </div>
         </TabPane>
       </Tabs>
@@ -1056,6 +1556,35 @@ const styleOverrides = `
 
   .ant-upload-list-item-name {
     color: white !important;
+  }
+
+  /* Collapse Styles */
+  .ant-collapse {
+    background-color: #181818 !important;
+    border-color: #303030 !important;
+  }
+
+  .ant-collapse-header {
+    color: white !important;
+  }
+
+  .ant-collapse-content {
+    background-color: #181818 !important;
+    border-color: #303030 !important;
+  }
+
+  /* Alert Styles */
+  .ant-alert {
+    background-color: #202020 !important;
+    border-color: #303030 !important;
+  }
+
+  .ant-alert-message {
+    color: white !important;
+  }
+
+  .ant-alert-description {
+    color: rgba(255, 255, 255, 0.7) !important;
   }
 `
 

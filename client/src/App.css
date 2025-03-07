@@ -270,9 +270,16 @@ html, body {
 .white-text .ant-input-number-input,
 .white-text .ant-select-selector,
 .white-text .ant-select-selection-item,
-.white-text .ant-select-selection-placeholder {
+.white-text .ant-select-selection-placeholder,
+.white-text .ant-input-password input,
+.white-text .ant-picker-input input {
   color: white !important;
   background-color: #101010 !important;
+}
+
+.white-text .ant-input-password-icon,
+.white-text .ant-picker-suffix {
+  color: white !important;
 }
 
 /* Color picker's text (if applicable) */
