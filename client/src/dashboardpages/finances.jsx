@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react"
-import { Download, Calendar, ChevronDown } from "lucide-react"
+import { Download, Calendar, ChevronDown, RefreshCw } from "lucide-react"
+import CheckFundsModal from "../components/check-funds-modal"
+import SepaXmlModal from "../components/sepa-xml-modal"
 
 const financialData = {
   "This Month": {
@@ -186,6 +188,9 @@ export default function FinancesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filteredTransactions, setFilteredTransactions] = useState(financialData[selectedPeriod].transactions)
   const [currentPage, setCurrentPage] = useState(1)
+  const [sepaModalOpen, setSepaModalOpen] = useState(false)
+  const [financialState, setFinancialState] = useState(financialData)
+  const [checkFundsModalOpen, setCheckFundsModalOpen] = useState(false)
   const transactionsPerPage = 5
 
   useEffect(() => {
@@ -224,6 +229,95 @@ export default function FinancesPage() {
     })
   }
 
+  const handleGenerateXml = (selectedTransactions) => {
+    // In a real application, this would generate and download the XML file
+    console.log("Generating SEPA XML for:", selectedTransactions)
+    
+    // Update transaction statuses
+    const updatedFinancialState = { ...financialState }
+    const periodData = { ...updatedFinancialState[selectedPeriod] }
+    
+    // Update transaction statuses to "Check incoming funds"
+    periodData.transactions = periodData.transactions.map(tx => {
+      const selected = selectedTransactions.find(s => s.id === tx.id)
+      if (selected) {
+        return {
+          ...tx,
+          status: "Check incoming funds",
+          amount: selected.amount // Update amount if edited
+        }
+      }
+      return tx
+    })
+    
+    // Recalculate summary data
+    const successful = periodData.transactions
+      .filter(tx => tx.status === "Successful")
+      .reduce((sum, tx) => sum + tx.amount, 0)
+      
+    const pending = periodData.transactions
+      .filter(tx => tx.status === "Pending" || tx.status === "Check incoming funds")
+      .reduce((sum, tx) => sum + tx.amount, 0)
+      
+    const failed = periodData.transactions
+      .filter(tx => tx.status === "Failed")
+      .reduce((sum, tx) => sum + tx.amount, 0)
+      
+    periodData.successfulPayments = successful
+    periodData.pendingPayments = pending
+    periodData.failedPayments = failed
+    
+    updatedFinancialState[selectedPeriod] = periodData
+    setFinancialState(updatedFinancialState)
+    
+    // Simulate file download
+    alert("SEPA XML file generated successfully!")
+  }
+  
+  const handleUpdateStatuses = (updatedTransactions) => {
+    const updatedFinancialState = { ...financialState }
+    const periodData = { ...updatedFinancialState[selectedPeriod] }
+    
+    // Update transaction statuses
+    periodData.transactions = periodData.transactions.map(tx => {
+      const updated = updatedTransactions.find(u => u.id === tx.id)
+      if (updated) {
+        return {
+          ...tx,
+          status: updated.status
+        }
+      }
+      return tx
+    })
+    
+    // Recalculate summary data
+    const successful = periodData.transactions
+      .filter(tx => tx.status === "Successful")
+      .reduce((sum, tx) => sum + tx.amount, 0)
+      
+    const pending = periodData.transactions
+      .filter(tx => tx.status === "Pending" || tx.status === "Check incoming funds")
+      .reduce((sum, tx) => sum + tx.amount, 0)
+      
+    const failed = periodData.transactions
+      .filter(tx => tx.status === "Failed")
+      .reduce((sum, tx) => sum + tx.amount, 0)
+      
+    periodData.successfulPayments = successful
+    periodData.pendingPayments = pending
+    periodData.failedPayments = failed
+    
+    updatedFinancialState[selectedPeriod] = periodData
+    setFinancialState(updatedFinancialState)
+    
+    alert("Transaction statuses updated successfully!")
+  }
+  
+  // Check if there are any transactions with "Check incoming funds" status
+  const hasCheckingTransactions = financialState[selectedPeriod].transactions.some(
+    tx => tx.status === "Check incoming funds"
+  )
+
   return (
     <div className="bg-[#1C1C1C] p-4 md:p-6 rounded-3xl w-full">
       {/* Header with back button */}
@@ -245,7 +339,7 @@ export default function FinancesPage() {
             </button>
             {periodDropdownOpen && (
               <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg">
-                {Object.keys(financialData).map((period) => (
+                {Object.keys(financialState).map((period) => (
                   <button
                     key={period}
                     className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black text-left"
@@ -262,10 +356,27 @@ export default function FinancesPage() {
           </div>
 
           {/* Export button */}
-          <button className="bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto">
-            <Download className="w-4 h-4" />
-            <span>Generate Sepa Xml</span>
-          </button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            {/* SEPA XML button */}
+            <button 
+              onClick={() => setSepaModalOpen(true)}
+              className="bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
+            >
+              <Download className="w-4 h-4" />
+              <span>Generate Sepa Xml</span>
+            </button>
+            
+            {/* Check Funds button - only show if there are transactions to check */}
+            {hasCheckingTransactions && (
+              <button 
+                onClick={() => setCheckFundsModalOpen(true)}
+                className="bg-[#2F2F2F] text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#2F2F2F]/90 transition-colors w-full sm:w-auto"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Check Incoming Funds</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -274,25 +385,25 @@ export default function FinancesPage() {
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Total Revenue</h3>
           <p className="text-white text-xl font-semibold">
-            {formatCurrency(financialData[selectedPeriod].totalRevenue)}
+            {formatCurrency(financialState[selectedPeriod].totalRevenue)}
           </p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Successful Payments</h3>
           <p className="text-green-500 text-xl font-semibold">
-            {formatCurrency(financialData[selectedPeriod].successfulPayments)}
+            {formatCurrency(financialState[selectedPeriod].successfulPayments)}
           </p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Pending Payments</h3>
           <p className="text-yellow-500 text-xl font-semibold">
-            {formatCurrency(financialData[selectedPeriod].pendingPayments)}
+            {formatCurrency(financialState[selectedPeriod].pendingPayments)}
           </p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Failed Payments</h3>
           <p className="text-red-500 text-xl font-semibold">
-            {formatCurrency(financialData[selectedPeriod].failedPayments)}
+            {formatCurrency(financialState[selectedPeriod].failedPayments)}
           </p>
         </div>
       </div>
@@ -349,7 +460,9 @@ export default function FinancesPage() {
                         ? "bg-green-900/30 text-green-500"
                         : transaction.status === "Pending"
                           ? "bg-yellow-900/30 text-yellow-500"
-                          : "bg-red-900/30 text-red-500"
+                          : transaction.status === "Check incoming funds"
+                            ? "bg-blue-900/30 text-blue-500"
+                            : "bg-red-900/30 text-red-500"
                     }`}
                   >
                     {transaction.status}
@@ -402,6 +515,21 @@ export default function FinancesPage() {
           </button>
         </div>
       )}
+
+<SepaXmlModal 
+        isOpen={sepaModalOpen}
+        onClose={() => setSepaModalOpen(false)}
+        selectedPeriod={selectedPeriod}
+        transactions={financialState[selectedPeriod].transactions}
+        onGenerateXml={handleGenerateXml}
+      />
+      
+      <CheckFundsModal 
+        isOpen={checkFundsModalOpen}
+        onClose={() => setCheckFundsModalOpen(false)}
+        transactions={financialState[selectedPeriod].transactions}
+        onUpdateStatuses={handleUpdateStatuses}
+      />
     </div>
   )
 }
