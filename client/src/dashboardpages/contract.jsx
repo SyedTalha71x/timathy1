@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { MoreVertical, Plus, ChevronDown, ArrowUpDown } from "lucide-react"
@@ -124,7 +126,7 @@ export default function ContractList() {
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState("All Contracts")
-  const [selectedSort, setSelectedSort] = useState("Default")
+  const [selectedSort, setSelectedSort] = useState("Alphabetical") // Update 1: Changed initial state to "Alphabetical"
   const [contracts, setContracts] = useState(initialContracts)
   const [filteredContracts, setFilteredContracts] = useState(initialContracts)
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false)
@@ -153,14 +155,12 @@ export default function ContractList() {
 
     // Apply sorting
     switch (selectedSort) {
-      case "Alphabetical":
-        filtered = [...filtered].sort((a, b) => a.memberName.localeCompare(b.memberName))
-        break
       case "Expiring Soon":
         filtered = [...filtered].sort((a, b) => new Date(a.endDate) - new Date(b.endDate))
         break
       default:
-        // Default sorting (by ID or original order)
+        // Alphabetical sorting (default)
+        filtered = [...filtered].sort((a, b) => a.memberName.localeCompare(b.memberName))
         break
     }
 
@@ -338,18 +338,22 @@ export default function ContractList() {
               </button>
               {sortDropdownOpen && (
                 <div className="absolute right-0 text-sm mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
-                  {["Default", "Alphabetical", "Expiring Soon"].map((sortOption) => (
-                    <button
-                      key={sortOption}
-                      className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
-                      onClick={() => {
-                        setSelectedSort(sortOption)
-                        setSortDropdownOpen(false)
-                      }}
-                    >
-                      {sortOption}
-                    </button>
-                  ))}
+                  {["Alphabetical", "Expiring Soon"].map(
+                    (
+                      sortOption, // Update 3: Removed "Default" from sort options
+                    ) => (
+                      <button
+                        key={sortOption}
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
+                        onClick={() => {
+                          setSelectedSort(sortOption)
+                          setSortDropdownOpen(false)
+                        }}
+                      >
+                        {sortOption}
+                      </button>
+                    ),
+                  )}
                 </div>
               )}
             </div>
@@ -431,12 +435,6 @@ export default function ContractList() {
 
                   {activeDropdownId === contract.id && (
                     <div className="dropdown-menu absolute right-0 sm:right-3 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
-                      <button
-                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                        onClick={() => handleEditContract(contract.id)}
-                      >
-                        Edit
-                      </button>
                       <button className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left">
                         Renew Contract{" "}
                       </button>

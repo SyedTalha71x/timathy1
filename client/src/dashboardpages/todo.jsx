@@ -90,9 +90,9 @@ export default function TodoApp() {
 
   const getStatusColor = (status) => {
     switch(status) {
-      case 'ongoing': return 'bg-yellow-600 text-white';
-      case 'completed': return 'bg-green-500 text-white';
-      case 'canceled': return 'bg-red-600 text-white';
+      case 'ongoing': return ' text-white';
+      case 'completed': return ' text-white';
+      case 'canceled': return ' text-white';
       default: return '';
     }
   };

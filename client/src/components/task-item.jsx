@@ -34,7 +34,6 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
   const openDeleteConfirmation = () => {
     setIsDeleteModalOpen(true);
     setIsDropdownOpen(false);
-
   };
 
   const handleDeleteTask = () => {
@@ -42,6 +41,15 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
     setIsDeleteModalOpen(false);
   };  
 
+  // Function to get color based on status for the MoreHorizontal dots
+  const getStatusIconColor = (status) => {
+    switch(status) {
+      case 'ongoing': return 'text-yellow-500';
+      case 'completed': return 'text-green-500';
+      case 'canceled': return 'text-red-500';
+      default: return 'text-gray-400';
+    }
+  };
 
   return (
     <>
@@ -96,7 +104,7 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
               <div className="relative">
                 <button
                   onClick={toggleDropdown}
-                  className="text-gray-400 hover:text-white p-1"
+                  className={`hover:text-white p-1 ${getStatusIconColor(task.status)}`}
                 >
                   <MoreHorizontal size={18} className="cursor-pointer" />
                 </button>
@@ -119,13 +127,13 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
                     {task.status === "canceled" && (
                       <>
                         <button
-                          className="w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-gray-700"
+                          className="w-full text-left px-4 py-2 text-xs text-yellow-500 hover:bg-gray-700"
                           onClick={() => handleStatusChange("ongoing")}
                         >
                           Move to Ongoing
                         </button>
                         <button
-                          className="w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-gray-700"
+                          className="w-full text-left px-4 py-2 text-xs text-green-500 hover:bg-gray-700"
                           onClick={() => handleStatusChange("completed")}
                         >
                           Mark as Completed
@@ -195,13 +203,13 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setIsDeleteModalOpen(false)}
-                  className="bg-[#2F2F2F] text-sm text-gray-300 px-4 py-2 rounded-xl  hover:bg-gray-700"
+                  className="bg-[#2F2F2F] text-sm text-gray-300 px-4 py-2 rounded-xl hover:bg-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteTask}
-                  className="bg-red-600 text-sm text-white px-4 py-2 rounded-xl  hover:bg-red-700"
+                  className="bg-red-600 text-sm text-white px-4 py-2 rounded-xl hover:bg-red-700"
                 >
                   Yes
                 </button>

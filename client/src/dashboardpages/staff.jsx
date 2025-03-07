@@ -327,6 +327,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     city: "",
     password: "",
     vacationEntitlement: 30,
+    birthday: "", // Added new birthday field
   })
   const handlePasswordToggle = () => {
     setShowPassword(!showPassword)
@@ -419,6 +420,17 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                   required
                 />
               </div>
+            </div>
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Birthday</label>
+              <input
+                type="date"
+                name="birthday"
+                value={newStaff.birthday}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] white-calendar-icon text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -687,6 +699,17 @@ function EditStaffModal({
               </div>
             </div>
             <div>
+              <label className="text-sm text-gray-200 block mb-2">Birthday</label>
+              <input
+                type="date"
+                name="birthday"
+                value={editedStaff.birthday}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] white-calendar-icon text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+            <div>
               <label className="text-sm text-gray-200 block mb-2">Email</label>
               <input
                 type="email"
@@ -760,13 +783,22 @@ function EditStaffModal({
               <label className="text-sm text-gray-200 block mb-2">Password</label>
               <div className="relative">
                 {isChangingPassword ? (
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    placeholder="Enter new password"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      placeholder="Enter new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={handlePasswordToggle}
+                      className="absolute right-3 top-3 text-sm text-gray-400 hover:text-white"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
                 ) : (
                   <input
                     type="password"
@@ -779,6 +811,7 @@ function EditStaffModal({
                   type="button"
                   onClick={() => setIsChangingPassword(!isChangingPassword)}
                   className="absolute right-3 top-3 text-sm text-blue-500 hover:text-blue-400"
+                  style={{ right: isChangingPassword ? "60px" : "3px" }}
                 >
                   {isChangingPassword ? "Cancel" : "Change"}
                 </button>

@@ -407,13 +407,13 @@ export default function Leets() {
               All Prospects
             </option>
             <option value="active" className="text-sm">
-              🟢 Active Prospects
+              Active Prospects
             </option>
             <option value="passive" className="text-sm">
-              🟡 Passive Prospects
+              Passive Prospects
             </option>
             <option value="uninterested" className="text-sm">
-              🔴 Uninterested
+              Uninterested
             </option>
           </select>
         </div>
@@ -432,10 +432,10 @@ export default function Leets() {
                 />
                 <div className="flex flex-col md:text-left text-center">
                   <span className="font-bold text-md">{`${lead.firstName} ${lead.surname}`}</span>
-                  <div className="text-gray-400 text-sm">{lead.email}</div>
-                  {/* <div className="text-gray-400 text-sm">
+                  {/* <div className="text-gray-400 text-sm">{lead.email}</div> */}
+                  <div className="text-gray-400 text-sm">
                     {lead.phoneNumber}
-                  </div> */}
+                  </div>
                   
                   {/* Added date information */}
                   <div className="text-gray-500 text-xs mt-1">
@@ -464,6 +464,11 @@ export default function Leets() {
                 </div>
               </div>
               <div className="flex md:flex-row flex-col gap-2 md:mt-0 mt-3">
+              <button
+                  className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-[#3F74FF] rounded-xl"
+                >
+                  Add Trial Training
+                </button>
                 <button
                   onClick={() => handleViewLeadDetails(lead)}
                   className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"

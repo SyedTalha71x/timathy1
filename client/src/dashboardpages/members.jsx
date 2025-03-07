@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react"
 import { X, Search, ChevronDown, Cake, Eye, FileText, Info } from "lucide-react"
@@ -472,26 +474,57 @@ export default function Members() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Contract Start</label>
-                        <input
-                          type="date"
-                          name="contractStart"
-                          value={editForm.contractStart}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
+                    <div className="border border-slate-700 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="text-sm text-gray-200 font-medium">Special Note</label>
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id="noteImportance"
+                            checked={editForm.noteImportance === "important"}
+                            onChange={(e) => {
+                              setEditForm({
+                                ...editForm,
+                                noteImportance: e.target.checked ? "important" : "unimportant",
+                              })
+                            }}
+                            className="mr-2 h-4 w-4 accent-[#FF843E]"
+                          />
+                          <label htmlFor="noteImportance" className="text-sm text-gray-200">
+                            Important
+                          </label>
+                        </div>
                       </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Contract End</label>
-                        <input
-                          type="date"
-                          name="contractEnd"
-                          value={editForm.contractEnd}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
+
+                      <textarea
+                        name="note"
+                        value={editForm.note}
+                        onChange={handleInputChange}
+                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                        placeholder="Enter special note..."
+                      />
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Start Date</label>
+                          <input
+                            type="date"
+                            name="noteStartDate"
+                            value={editForm.noteStartDate}
+                            onChange={handleInputChange}
+                            className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">End Date</label>
+                          <input
+                            type="date"
+                            name="noteEndDate"
+                            value={editForm.noteEndDate}
+                            onChange={handleInputChange}
+                            className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -503,52 +536,6 @@ export default function Members() {
                         onChange={handleInputChange}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                       />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Special Note</label>
-                      <textarea
-                        name="note"
-                        value={editForm.note}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Note Start Date</label>
-                        <input
-                          type="date"
-                          name="noteStartDate"
-                          value={editForm.noteStartDate}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Note End Date</label>
-                        <input
-                          type="date"
-                          name="noteEndDate"
-                          value={editForm.noteEndDate}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Note Importance</label>
-                      <select
-                        name="noteImportance"
-                        value={editForm.noteImportance}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      >
-                        <option value="important">Important</option>
-                        <option value="unimportant">Unimportant</option>
-                      </select>
                     </div>
 
                     <button
@@ -563,99 +550,108 @@ export default function Members() {
             </div>
           )}
 
-          <div className="bg-black rounded-xl open_sans_font p-4">
-            {filteredAndSortedMembers().length > 0 ? (
-              <div className="space-y-3">
-                {filteredAndSortedMembers().map((member) => (
-                  <div key={member.id} className="bg-[#161616] rounded-xl p-6 relative">
-                    {/* Info icon for special note - Added */}
-                    {member.note && (
-                      <div className="absolute top-2 right-3 z-10 group">
-                        <div className={`text-${member.noteImportance === 'important' ? 'red-500' : 'blue-500'}`}>
-                          <Info size={18} />
-                        </div>
-                        {/* Tooltip that appears on hover - Added */}
-                        <div className="absolute right-2 top-2 w-64 p-3 bg-[#2F2F2F] rounded-lg shadow-lg 
-                          invisible group-hover:visible opacity-0 group-hover:opacity-100 
-                          transition-opacity duration-300 z-20 text-sm">
-                          <p>{member.note}</p>
-                          {member.noteStartDate && member.noteEndDate && (
-                            <p className="text-xs text-gray-400 mt-2">
-                              Valid: {member.noteStartDate} to {member.noteEndDate}
-                            </p>
-                          )}
-                        </div>
+<div className="bg-black rounded-xl open_sans_font p-4">
+  {filteredAndSortedMembers().length > 0 ? (
+    <div className="space-y-3">
+      {filteredAndSortedMembers().map((member) => (
+        <div key={member.id} className="bg-[#161616] rounded-xl p-6 relative">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
+              <img
+                src={member.image || DefaultAvatar}
+                className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 object-cover"
+                alt=""
+              />
+              <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <h3 className="text-white font-medium truncate text-lg sm:text-base">
+                    {member.title} ({calculateAge(member.dateOfBirth)})
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-0.5 text-xs rounded-full ${
+                        member.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
+                      }`}
+                    >
+                      {member.isActive ? "Active" : "Inactive"}
+                    </span>
+                    {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
+                  </div>
+                </div>
+                <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
+                  Contract: {member.contractStart} -{" "}
+                  <span className={isContractExpiringSoon(member.contractEnd) ? "text-red-500" : ""}>
+                    {member.contractEnd}
+                  </span>
+                  {isContractExpiringSoon(member.contractEnd) && (
+                    <Info size={16} className="text-red-500 ml-1" />
+                  )}
+                  
+                  {/* Moved the note icon with dropdown here */}
+                  {member.note && (
+                    <div className="ml-2 z-10 group">
+                      <div className={`text-${member.noteImportance === "important" ? "red-500" : "blue-500"}`}>
+                        <Info size={18} />
                       </div>
-                    )}
-                    
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
-                        <img
-                          src={member.image || DefaultAvatar}
-                          className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 object-cover"
-                          alt=""
-                        />
-                        <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row items-center gap-2">
-                            <h3 className="text-white font-medium truncate text-lg sm:text-base">
-                              {member.title} ({calculateAge(member.dateOfBirth)})
-                            </h3>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`px-2 py-0.5 text-xs rounded-full ${
-                                  member.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                                }`}
-                              >
-                                {member.isActive ? "Active" : "Inactive"}
-                              </span>
-                              {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
-                            </div>
-                          </div>
-                          <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left">
-                            Contract: {member.contractStart} -{" "}
-                            <span className={isContractExpiringSoon(member.contractEnd) ? "text-red-500" : ""}>
-                              {member.contractEnd}
-                            </span>
+                      {/* Tooltip that appears on hover */}
+                      <div
+                        className="absolute mt-2 w-64 p-3 bg-[#2F2F2F] rounded-lg shadow-lg 
+                        invisible group-hover:visible opacity-0 group-hover:opacity-100 
+                        transition-opacity duration-300 z-20 text-sm"
+                      >
+                        <p>{member.note}</p>
+                        {member.noteStartDate && member.noteEndDate && (
+                          <p className="text-xs text-gray-400 mt-2">
+                            Valid: {member.noteStartDate} to {member.noteEndDate}
                           </p>
-                         {member.note && <div className="text-sm flex items-center gap-1 text-gray-200 mt-1">
-                            <div>
-                              <Info size={15} className="text-orange-400"/>
-                            </div>
-                            {member.note}
-                          </div>}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-center sm:justify-end gap-3 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
-                        <button
-                          onClick={() => handleViewDetails(member)}
-                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
-                        >
-                          <Eye size={16} />
-                          View Details
-                        </button>
-                        <button
-                          onClick={() => handleEditMember(member)}
-                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto"
-                        >
-                          Edit
-                        </button>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-red-600 text-center text-sm cursor-pointer">
-                <p className="text-gray-400">
-                  {filterStatus === "active"
-                    ? "No active members found."
-                    : filterStatus === "inactive"
-                      ? "No inactive members found."
-                      : "No members found."}
+                  )}
                 </p>
+                
+                {/* Kept the duplicate note display as requested */}
+                {member.note && (
+                  <div className="text-sm flex items-center gap-1 text-gray-200 mt-1">
+                    <div>
+                      <Info size={15} className="text-orange-400" />
+                    </div>
+                    {member.note}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+            <div className="flex items-center justify-center sm:justify-end gap-3 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
+              <button
+                onClick={() => handleViewDetails(member)}
+                className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
+              >
+                <Eye size={16} />
+                View Details
+              </button>
+              <button
+                onClick={() => handleEditMember(member)}
+                className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto"
+              >
+                Edit
+              </button>
+            </div>
           </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="text-red-600 text-center text-sm cursor-pointer">
+      <p className="text-gray-400">
+        {filterStatus === "active"
+          ? "No active members found."
+          : filterStatus === "inactive"
+            ? "No inactive members found."
+            : "No members found."}
+      </p>
+    </div>
+  )}
+</div>
         </div>
 
         <aside
