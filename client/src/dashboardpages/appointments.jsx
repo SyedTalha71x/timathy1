@@ -28,6 +28,7 @@ import TrialPlanningModal from "../components/add-trial";
 import AddAppointmentModal from "../components/add-appointment-modal";
 import SelectedAppointmentModal from "../components/selected-appointment-modal";
 import MiniCalendar from "../components/mini-calender";
+import { useLocation } from "react-router-dom";
 
 
 function Calendar({
@@ -683,6 +684,7 @@ export default function Appointments() {
   ]);
 
 
+
   const [filteredAppointments, setFilteredAppointments] =
     useState(appointments);
 
@@ -732,23 +734,6 @@ export default function Appointments() {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    const filtered = appointments.filter((appointment) => {
-      // Filter by search query
-      const nameMatch = appointment.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-
-      // Filter by selected date (if any)
-      const dateMatch =
-        !selectedDate ||
-        appointment.date.split("|")[1].trim() === formatDate(selectedDate);
-
-      return nameMatch && dateMatch;
-    });
-    setFilteredAppointments(filtered);
-  }, [searchQuery, appointments, selectedDate, formatDate]);
 
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
