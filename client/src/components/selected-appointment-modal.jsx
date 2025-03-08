@@ -13,13 +13,21 @@ const SelectedAppointmentModal = ({
   appointments,
   setAppointments,
   setIsNotifyMemberOpen,
-  setNotifyAction
+  setNotifyAction,
+  onDelete
 }) => {
   if (!selectedAppointment) return null;
 
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [alternativeSlots, setAlternativeSlots] = useState([]);
   const [showRecurringOptions, setShowRecurringOptions] = useState(false);
+
+  const [isDeleteConfirm, setisDeleteConfirm] = useState(false)
+
+  const handleDelete = () => {   
+   onDelete(selectedAppointment.id)
+   setisDeleteConfirm(false)
+  }
   
   // Initialize recurring options
   const [recurringOptions, setRecurringOptions] = useState({
@@ -480,11 +488,52 @@ const SelectedAppointmentModal = ({
         <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
           <button
             onClick={checkAvailability}
-            className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 text-sm bg-[#3F74FF]  font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
           >
             {showRecurringOptions ? "Save Mass Bookings" : "Save Changes"}
           </button>
+          <button onClick={() => setisDeleteConfirm(true)} className='bg-black text-red-600 text-sm border-slate-600 py-2 px-6 rounded-xl cursor-pointer'>
+            Delete
+          </button>
         </div>
+
+        {isDeleteConfirm && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
+              <div className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-white">Confirm Deletion</h2>
+                  <button
+                    onClick={() => setisDeleteConfirm(false)}
+                    className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="p-6">
+                  <p className="text-white text-sm">
+                    Are you sure you want to delete this appointment with {selectedAppointment.name} on{" "}
+                    {selectedAppointment.date} at {selectedAppointment.time}?
+                  </p>
+                </div>
+
+                <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
+                  <button
+                    onClick={handleDelete}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors"
+                  >
+                    Yes, Delete Appointment
+                  </button>
+                  <button
+                    onClick={() => setisDeleteConfirm(false)}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+                  >
+                    No, Keep Appointment
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
     </div>
   );

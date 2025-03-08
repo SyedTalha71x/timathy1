@@ -182,9 +182,9 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-xl outline-none bg-[#141414] border-gray-600 text-white text-sm p-2"
               >
-                <option value="active">🟢 Active prospect</option>
-                <option value="passive">🟡 Passive prospect</option>
-                <option value="uninterested">🔴 Uninterested</option>
+                <option value="active"> Active prospect</option>
+                <option value="passive">Passive prospect</option>
+                <option value="uninterested"> Uninterested</option>
               </select>
             </div>
           </div>

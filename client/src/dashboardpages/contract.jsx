@@ -1,8 +1,6 @@
-"use client"
-
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { MoreVertical, Plus, ChevronDown, ArrowUpDown } from "lucide-react"
+import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
 import { AddContractModal } from "../components/add-contract-modal"
@@ -10,6 +8,7 @@ import { ContractDetailsModal } from "../components/contract-details-modal"
 import { PauseContractModal } from "../components/pause-contract-modal"
 import { CancelContractModal } from "../components/cancel-contract-modal"
 import { EditContractModal } from "../components/edit-contract-modal"
+import { DocumentManagementModal } from "../components/document-management-modal"
 
 const initialContracts = [
   {
@@ -138,6 +137,7 @@ export default function ContractList() {
   const contractsPerPage = 3
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
   const [selectedLead, setSelectedLead] = useState(null)
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
 
   // Update filtered contracts when selectedFilter, contracts, or searchTerm change
   useEffect(() => {
@@ -276,6 +276,11 @@ export default function ContractList() {
     setContracts([...contracts, newContract])
     setIsModalOpen(false)
     toast.success("Contract added successfully")
+  }
+
+  const handleManageDocuments = (contract) => {
+    setSelectedContract(contract)
+    setIsDocumentModalOpen(true)
   }
 
   return (
@@ -425,6 +430,13 @@ export default function ContractList() {
                 >
                   View details
                 </button>
+                <button
+                  onClick={() => handleManageDocuments(contract)}
+                  className="p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors"
+                  title="Manage Documents"
+                >
+                  <FileText className="w-5 h-5" />
+                </button>
                 <div className="relative">
                   <button
                     onClick={(e) => toggleDropdown(contract.id, e)}
@@ -509,6 +521,17 @@ export default function ContractList() {
             contract={selectedContract}
             onClose={() => setIsEditModalOpen(false)}
             onSave={handleSaveEditedContract}
+          />
+        )}
+
+        {/* Document Management Modal */}
+        {isDocumentModalOpen && selectedContract && (
+          <DocumentManagementModal
+            contract={selectedContract}
+            onClose={() => {
+              setIsDocumentModalOpen(false)
+              setSelectedContract(null)
+            }}
           />
         )}
       </div>

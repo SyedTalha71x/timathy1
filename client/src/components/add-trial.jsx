@@ -1,15 +1,14 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
-import React, { useState, useEffect } from 'react';
-import { X, Search, Plus, Trash } from 'lucide-react';
-import { AddLeadModal } from '../components/add-lead-modal';
+import { Plus, Search, Trash, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AddLeadModal } from "./add-lead-modal";
 
-const TrialTrainingModal = ({ isOpen, onClose, trialTypes = [], freeTimeSlots = [] }) => {
+/* eslint-disable react/prop-types */
+const TrialTrainingModal = ({ isOpen, onClose, trialTypes = [], freeTimeSlots = [], selectedLead: initialSelectedLead }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [leads, setLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
   const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false);
-  const [selectedLead, setSelectedLead] = useState(null);
+  const [selectedLead, setSelectedLead] = useState(initialSelectedLead || null);
   const [recurringTrials, setRecurringTrials] = useState([{ 
     date: "", 
     timeSlot: "" 

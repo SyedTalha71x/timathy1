@@ -7,6 +7,7 @@ import { AddLeadModal } from "../components/add-lead-modal";
 import { EditLeadModal } from "../components/edit-lead-modal";
 import { ViewLeadDetailsModal } from "../components/view-lead-details";
 import toast, { Toaster } from "react-hot-toast";
+import TrialTrainingModal from "../components/add-trial";
 
 // Pagination component
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
@@ -74,32 +75,28 @@ const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
 // Lead Status Badge component
 const StatusBadge = ({ status }) => {
   let icon, text, color;
-  
+
   switch (status) {
     case "active":
-      icon = "🟢";
       text = "Active prospect";
       color = "text-green-500";
       break;
     case "passive":
-      icon = "🟡";
       text = "Passive prospect";
       color = "text-yellow-500";
       break;
     case "uninterested":
-      icon = "🔴";
       text = "Uninterested";
       color = "text-red-500";
       break;
     default:
-      icon = "⚪";
       text = "Unknown";
       color = "text-gray-500";
   }
 
   return (
     <div className={`flex items-center mt-1 ${color}`}>
-      <span className="mr-1">{icon}</span>
+      {/* <span className="mr-1">{icon}</span> */}
       <span className="text-xs">{text}</span>
     </div>
   );
@@ -127,8 +124,10 @@ export default function Leets() {
   const [leads, setLeads] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 5;
-  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false);
+  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] =
+    useState(false);
   const [leadToDeleteId, setLeadToDeleteId] = useState(null);
+  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false);
 
   // Hardcoded initial leads with status and createdAt fields
   const hardcodedLeads = [
@@ -250,15 +249,15 @@ export default function Leets() {
       (lead) => lead.source === "localStorage"
     );
     localStorage.setItem("leads", JSON.stringify(localStorageLeads));
-    
-    toast.success('Lead has been updated');
+
+    toast.success("Lead has been updated");
   };
 
   const handleDeleteLead = (id) => {
     const leadToDelete = leads.find((lead) => lead.id === id);
     const updatedLeads = leads.filter((lead) => lead.id !== id);
     setLeads(updatedLeads);
-  
+
     // Only update localStorage if the deleted lead was from localStorage
     if (leadToDelete?.source === "localStorage") {
       const localStorageLeads = updatedLeads.filter(
@@ -267,7 +266,7 @@ export default function Leets() {
       localStorage.setItem("leads", JSON.stringify(localStorageLeads));
     }
 
-    toast.success('Lead has been deleted');
+    toast.success("Lead has been deleted");
   };
 
   const handleSaveLead = (data) => {
@@ -293,8 +292,8 @@ export default function Leets() {
       (lead) => lead.source === "localStorage"
     );
     localStorage.setItem("leads", JSON.stringify(localStorageLeads));
-    
-    toast.success('Lead has been added');
+
+    toast.success("Lead has been added");
   };
 
   const filteredLeads = leads.filter((lead) => {
@@ -302,18 +301,17 @@ export default function Leets() {
     const matchesSearch =
       fullName.includes(searchQuery.toLowerCase()) ||
       lead.email.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
     // Filter by trial training status
     const matchesTrialFilter =
       filterOption === "all" ||
       (filterOption === "trial" && lead.hasTrialTraining) ||
       (filterOption === "notrial" && !lead.hasTrialTraining);
-      
+
     // Filter by lead status
     const matchesStatusFilter =
-      statusFilter === "all" ||
-      lead.status === statusFilter;
-      
+      statusFilter === "all" || lead.status === statusFilter;
+
     return matchesSearch && matchesTrialFilter && matchesStatusFilter;
   });
 
@@ -338,7 +336,7 @@ export default function Leets() {
 
   return (
     <>
-    <Toaster
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 2000,
@@ -348,207 +346,227 @@ export default function Leets() {
           },
         }}
       />
-   
-    <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
-      <main className="flex-1 min-w-0 p-6">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0 mb-6">
-          <h2 className="text-xl md:text-2xl oxanium_font font-bold">
-            Interested parties
-          </h2>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#FF5733] lg:text-sm text-xs w-full text-center hover:bg-[#E64D2E] text-white px-4 py-2 rounded-xl cursor-pointer transition-colors duration-200 flex justify-center items-center gap-1"
-            >
-              <span>Add Lead</span>
-            </button>
-          </div>
-        </div>
 
-        <div className="mb-4 flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-grow">
-            <input
-              type="text"
-              placeholder="Search leads..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
-            />
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={18}
-            />
+      <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
+        <main className="flex-1 min-w-0 p-6">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0 mb-6">
+            <h2 className="text-xl md:text-2xl oxanium_font font-bold">
+              Interested parties
+            </h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-[#FF5733] lg:text-sm text-xs w-full text-center hover:bg-[#E64D2E] text-white px-4 py-2 rounded-xl cursor-pointer transition-colors duration-200 flex justify-center items-center gap-1"
+              >
+                <span>Add Lead</span>
+              </button>
+            </div>
           </div>
-          
-          {/* Trial Training Filter */}
-          <select
-            value={filterOption}
-            onChange={(e) => setFilterOption(e.target.value)}
-            className="bg-[#141414] text-sm outline-none text-white rounded-xl px-4 py-2"
-          >
-            <option value="all" className="text-sm">
-              All Training Status
-            </option>
-            <option value="trial" className="text-sm">
-              Trial Training Arranged
-            </option>
-            <option value="notrial" className="text-sm">
-              Trial Training Not Agreed
-            </option>
-          </select>
-          
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#141414] text-sm outline-none text-white rounded-xl px-4 py-2"
-          >
-            <option value="all" className="text-sm">
-              All Prospects
-            </option>
-            <option value="active" className="text-sm">
-              Active Prospects
-            </option>
-            <option value="passive" className="text-sm">
-              Passive Prospects
-            </option>
-            <option value="uninterested" className="text-sm">
-              Uninterested
-            </option>
-          </select>
-        </div>
 
-        <div className="space-y-4 bg-[#000000] p-4 rounded-xl max-w-4xl mx-auto">
-          {paginatedLeads.map((lead) => (
-            <div
-              key={lead.id}
-              className="bg-[#141414] rounded-lg p-5 flex md:flex-row flex-col items-center justify-between"
+          <div className="mb-4 flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-grow">
+              <input
+                type="text"
+                placeholder="Search leads..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
+              />
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+            </div>
+
+            {/* Trial Training Filter */}
+            <select
+              value={filterOption}
+              onChange={(e) => setFilterOption(e.target.value)}
+              className="bg-[#141414] text-sm outline-none text-white rounded-xl px-4 py-2"
             >
-              <div className="flex md:flex-row flex-col items-center gap-3">
-                <img
-                  src={lead.avatar || Avatar}
-                  alt={`${lead.firstName} ${lead.surname}'s avatar`}
-                  className="w-14 h-14 rounded-full bg-zinc-800"
-                />
-                <div className="flex flex-col md:text-left text-center">
-                  <span className="font-bold text-md">{`${lead.firstName} ${lead.surname}`}</span>
-                  {/* <div className="text-gray-400 text-sm">{lead.email}</div> */}
-                  <div className="text-gray-400 text-sm">
-                    {lead.phoneNumber}
-                  </div>
-                  
-                  {/* Added date information */}
-                  <div className="text-gray-500 text-xs mt-1">
-                    Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
-                  </div>
-                  
-                  {/* Status badge */}
-                  <StatusBadge status={lead.status} />
-                  
-                  {/* Trial training tag */}
-                  {lead.hasTrialTraining ? (
-                    <div className="flex items-center mt-1">
-                      <Tag size={14} className="text-green-500 mr-1" />
-                      <span className="text-green-500 text-xs">
-                        Trial Training Arranged
-                      </span>
+              <option value="all" className="text-sm">
+                All Training Status
+              </option>
+              <option value="trial" className="text-sm">
+                Trial Training Arranged
+              </option>
+              <option value="notrial" className="text-sm">
+                Trial Training Not Agreed
+              </option>
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-[#141414] text-sm outline-none text-white rounded-xl px-4 py-2"
+            >
+              <option value="all" className="text-sm">
+                All Prospects
+              </option>
+              <option value="active" className="text-sm">
+                Active Prospects
+              </option>
+              <option value="passive" className="text-sm">
+                Passive Prospects
+              </option>
+              <option value="uninterested" className="text-sm">
+                Uninterested
+              </option>
+            </select>
+          </div>
+
+          <div className="space-y-4 bg-[#000000] p-4 rounded-xl max-w-4xl mx-auto">
+            {paginatedLeads.map((lead) => (
+              <div
+                key={lead.id}
+                className="bg-[#141414] rounded-lg p-5 flex md:flex-row flex-col items-center justify-between"
+              >
+                <div className="flex md:flex-row flex-col items-center gap-3">
+                  <img
+                    src={lead.avatar || Avatar}
+                    alt={`${lead.firstName} ${lead.surname}'s avatar`}
+                    className="w-14 h-14 rounded-full bg-zinc-800"
+                  />
+                  <div className="flex flex-col md:text-left text-center">
+                    <span className="font-bold text-md">{`${lead.firstName} ${lead.surname}`}</span>
+                    {/* <div className="text-gray-400 text-sm">{lead.email}</div> */}
+                    <div className="text-gray-400 text-sm">
+                      {lead.phoneNumber}
                     </div>
-                  ) : (
-                    <div className="flex items-center mt-1">
-                      <Tag size={14} className="text-yellow-500 mr-1" />
-                      <span className="text-yellow-500 text-xs">
-                        Trial Training Not Agreed
-                      </span>
+
+                    {/* Added date information */}
+                    <div className="text-gray-500 text-xs mt-1">
+                      Created:{" "}
+                      {lead.createdAt
+                        ? formatDate(lead.createdAt)
+                        : "Unknown date"}
                     </div>
-                  )}
+
+                    {/* Status badge */}
+                    <StatusBadge status={lead.status} />
+
+                    {/* Trial training tag */}
+                    {lead.hasTrialTraining ? (
+                      <div className="flex items-center mt-1">
+                        <Tag size={14} className="text-green-500 mr-1" />
+                        <span className="text-green-500 text-xs">
+                          Trial Training Arranged
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center mt-1">
+                        <Tag size={14} className="text-yellow-500 mr-1" />
+                        <span className="text-yellow-500 text-xs">
+                          Trial Training Not Agreed
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex md:flex-row flex-col gap-2 md:mt-0 mt-3">
+                  <button
+                    onClick={() => setIsTrialModalOpen(true)}
+                    className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-[#3F74FF] rounded-xl"
+                  >
+                    Add Trial Training
+                  </button>
+
+                  <button
+                    onClick={() => handleViewLeadDetails(lead)}
+                    className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => handleEditLead(lead)}
+                    className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLeadToDeleteId(lead.id);
+                      setIsDeleteConfirmationModalOpen(true);
+                    }}
+                    className="text-red-500 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
-              <div className="flex md:flex-row flex-col gap-2 md:mt-0 mt-3">
-              <button
-                  className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-[#3F74FF] rounded-xl"
-                >
-                  Add Trial Training
-                </button>
-                <button
-                  onClick={() => handleViewLeadDetails(lead)}
-                  className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
-                >
-                  View Details
-                </button>
-                <button
-                  onClick={() => handleEditLead(lead)}
-                  className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => {
-                    setLeadToDeleteId(lead.id);
-                    setIsDeleteConfirmationModalOpen(true);
-                  }}
-                  className="text-red-500 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
-                >
-                  Delete
-                </button>
+            ))}
+
+            <TrialTrainingModal
+              isOpen={isTrialModalOpen}
+              onClose={() => setIsTrialModalOpen(false)}
+              trialTypes={[
+                { name: "Cardio", duration: 30 },
+                { name: "Strength", duration: 45 },
+                { name: "Flexibility", duration: 60 },
+              ]}
+              freeTimeSlots={[
+                { id: "slot1", date: "2023-10-01", time: "10:00" },
+                { id: "slot2", date: "2023-10-01", time: "11:00" },
+                { id: "slot3", date: "2023-10-02", time: "14:00" },
+              ]}
+            />
+
+            {filteredLeads.length > 0 ? (
+              <>
+                {filteredLeads.length > leadsPerPage ? (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                ) : null}
+              </>
+            ) : (
+              <div className="text-red-600 text-center text-sm cursor-pointer">
+                Sorry, No Lead found
               </div>
-            </div>
-          ))}
+            )}
+          </div>
+        </main>
 
-          {filteredLeads.length > 0 ? (
-            <>
-              {filteredLeads.length > leadsPerPage ? (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
-              ) : null}
-            </>
-          ) : (
-            <div className="text-red-600 text-center text-sm cursor-pointer">
-              Sorry, No Lead found
-            </div>
-          )}
-        </div>
-      </main>
+        <AddLeadModal
+          isVisible={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveLead}
+        />
 
-      <AddLeadModal
-        isVisible={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveLead}
-      />
+        <EditLeadModal
+          isVisible={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedLead(null);
+          }}
+          onSave={handleSaveEdit}
+          leadData={selectedLead}
+        />
 
-      <EditLeadModal
-        isVisible={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedLead(null);
-        }}
-        onSave={handleSaveEdit}
-        leadData={selectedLead}
-      />
+        <ViewLeadDetailsModal
+          isVisible={isViewDetailsModalOpen}
+          onClose={() => {
+            setIsViewDetailsModalOpen(false);
+            setSelectedLead(null);
+          }}
+          leadData={selectedLead}
+        />
 
-      <ViewLeadDetailsModal
-        isVisible={isViewDetailsModalOpen}
-        onClose={() => {
-          setIsViewDetailsModalOpen(false);
-          setSelectedLead(null);
-        }}
-        leadData={selectedLead}
-      />
+        <ConfirmationModal
+          isVisible={isDeleteConfirmationModalOpen}
+          onClose={() => setIsDeleteConfirmationModalOpen(false)}
+          onConfirm={() => {
+            handleDeleteLead(leadToDeleteId);
+            setIsDeleteConfirmationModalOpen(false);
+          }}
+          message="Are you sure you want to delete this lead?"
+        />
 
-      <ConfirmationModal
-        isVisible={isDeleteConfirmationModalOpen}
-        onClose={() => setIsDeleteConfirmationModalOpen(false)}
-        onConfirm={() => {
-          handleDeleteLead(leadToDeleteId);
-          setIsDeleteConfirmationModalOpen(false);
-        }}
-        message="Are you sure you want to delete this lead?"
-      />
-
-      <aside
-        className={`
+        <aside
+          className={`
           fixed top-0 right-0 bottom-0 w-[320px] bg-[#181818] p-6 z-50 
           lg:static lg:w-80 lg:block lg:rounded-3xl
           transform ${
@@ -559,34 +577,34 @@ export default function Leets() {
           transition-all duration-500 ease-in-out
           overflow-y-auto
         `}
-      >
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold oxanium_font">Notification</h2>
-          <button
-            onClick={() => setIsRightSidebarOpen(false)}
-            className="text-gray-400 hover:text-white lg:hidden"
-          >
-            <X size={24} />
-          </button>
-        </div>
-        <div className="space-y-4">
-          {notifications.map((notification) => (
-            <div
-              key={notification.id}
-              className="bg-[#1C1C1C] rounded-lg p-4 relative transform transition-all duration-200 hover:scale-[1.02]"
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold oxanium_font">Notification</h2>
+            <button
+              onClick={() => setIsRightSidebarOpen(false)}
+              className="text-gray-400 hover:text-white lg:hidden"
             >
-              <button className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors duration-200">
-                <X size={16} />
-              </button>
-              <h3 className="mb-2">{notification.heading}</h3>
-              <p className="text-sm text-zinc-400">
-                {notification.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </aside>
-    </div>
+              <X size={24} />
+            </button>
+          </div>
+          <div className="space-y-4">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className="bg-[#1C1C1C] rounded-lg p-4 relative transform transition-all duration-200 hover:scale-[1.02]"
+              >
+                <button className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors duration-200">
+                  <X size={16} />
+                </button>
+                <h3 className="mb-2">{notification.heading}</h3>
+                <p className="text-sm text-zinc-400">
+                  {notification.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
     </>
   );
 }

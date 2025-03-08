@@ -851,6 +851,14 @@ export default function Appointments() {
     // No need to filter here, as it will be done by the useEffect
   }
 
+  const handleDeleteAppointment = (appointmentId) => {
+    setAppointments((prevAppointments) =>
+      prevAppointments.filter((appointment) => appointment.id !== appointmentId)
+    );
+    setSelectedAppointment(null); // Clear the selected appointment
+    toast.success("Appointment deleted successfully");
+  };
+
   const renderSpecialNoteIcon = useCallback(
     (specialNote, appointmentId) => {
       if (!specialNote.text) return null
@@ -1094,6 +1102,7 @@ export default function Appointments() {
         setAppointments={setAppointments}
         setIsNotifyMemberOpen={setIsNotifyMemberOpen}
         setNotifyAction={setNotifyAction}
+        onDelete={handleDeleteAppointment}
       />
 
       {isConfirmCancelOpen && (
