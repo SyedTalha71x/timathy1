@@ -1,49 +1,129 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, Plus, Trash } from "lucide-react";
+import { X } from "lucide-react";
 import { useState } from "react";
 
 const AddAppointmentModal = ({
   isOpen,
   onClose,
-  appointmentTypes = [], // Add default empty array
+  appointmentTypes = [],
   onSubmit,
   setIsNotifyMemberOpen,
   setNotifyAction,
-  freeAppointments = [] // Add default empty array to prevent undefined errors
+  freeAppointments = []
 }) => {
   if (!isOpen) return null;
-  const [recurringAppointments, setRecurringAppointments] = useState([{ 
-    date: "", 
-    timeSlot: "" 
-  }]);
+  const [showRecurringOptions, setShowRecurringOptions] = useState(false);
+  const [showAlternatives, setShowAlternatives] = useState(false);
+  const [alternativeSlots, setAlternativeSlots] = useState([]);
+  
+  // Single appointment state
+  const [appointmentData, setAppointmentData] = useState({
+    date: "",
+    timeSlot: "",
+    type: "",
+    member: "",
+    specialNote: "",
+    isImportant: false,
+    noteStartDate: "",
+    noteEndDate: ""
+  });
 
-  // Add another recurring appointment slot
-  const addRecurring = () => {
-    setRecurringAppointments([
-      ...recurringAppointments,
-      { date: "", timeSlot: "" }
-    ]);
+  // Recurring appointment options
+  const [recurringOptions, setRecurringOptions] = useState({
+    frequency: "weekly", // weekly, biweekly, monthly
+    dayOfWeek: "1", // 0-6 (Sunday-Saturday)
+    startDate: "",
+    occurrences: 5
+  });
+
+  // Update single appointment field
+  const updateAppointment = (field, value) => {
+    setAppointmentData({
+      ...appointmentData,
+      [field]: value
+    });
+    
+    // Reset alternatives when date or time changes
+    if (field === 'date' || field === 'timeSlot') {
+      setShowAlternatives(false);
+    }
   };
 
-  // Remove a recurring appointment slot
-  const removeRecurring = (index) => {
-    const updated = [...recurringAppointments];
-    updated.splice(index, 1);
-    setRecurringAppointments(updated);
+  // Update recurring options
+  const updateRecurringOptions = (field, value) => {
+    setRecurringOptions({
+      ...recurringOptions,
+      [field]: value
+    });
   };
 
-  // Update a specific recurring appointment
-  const updateRecurring = (index, field, value) => {
-    const updated = [...recurringAppointments];
-    updated[index][field] = value;
-    setRecurringAppointments(updated);
+  // Check availability and show alternatives if needed
+  const checkAvailability = () => {
+    const { date, timeSlot } = appointmentData;
+    
+    // This would be replaced with actual availability logic
+    // For this example, we'll just generate some alternative slots
+    const isAvailable = Math.random() > 0.5; // Simulate 50% chance of unavailability
+    
+    if (!isAvailable) {
+      // Generate alternative dates/times
+      const alternatives = generateAlternativeSlots(date, timeSlot);
+      setAlternativeSlots(alternatives);
+      setShowAlternatives(true);
+    } else {
+      // Proceed with booking
+      onClose();
+      setIsNotifyMemberOpen(true);
+      setNotifyAction("book");
+    }
+  };
+
+  // Generate alternative slots (example implementation)
+  const generateAlternativeSlots = (date, timeSlot) => {
+    // This would use your actual appointment data
+    // For demo purposes, we'll create sample alternatives
+    const baseDate = new Date(date);
+    const alternatives = [];
+    
+    // Add some time slots on the same day
+    const timeOptions = ["9:00 AM", "11:30 AM", "2:00 PM", "4:30 PM"];
+    timeOptions.forEach(time => {
+      if (time !== timeSlot) {
+        alternatives.push({
+          date: date,
+          time: time,
+          available: true
+        });
+      }
+    });
+    
+    // Add some slots on nearby dates
+    for (let i = 1; i <= 3; i++) {
+      const nextDay = new Date(baseDate);
+      nextDay.setDate(baseDate.getDate() + i);
+      const dateString = nextDay.toISOString().split('T')[0];
+      
+      alternatives.push({
+        date: dateString,
+        time: timeSlot,
+        available: true
+      });
+    }
+    
+    return alternatives;
+  };
+
+  // Select an alternative slot
+  const selectAlternative = (alt) => {
+    updateAppointment('date', alt.date);
+    updateAppointment('timeSlot', alt.time);
+    setShowAlternatives(false);
   };
 
   // Filter available time slots based on selected date
   const getAvailableSlots = (selectedDate) => {
-    // Ensure freeAppointments exists and is an array before filtering
     if (!selectedDate || !Array.isArray(freeAppointments)) return [];
     return freeAppointments.filter(app => app && app.date === selectedDate);
   };
@@ -68,19 +148,25 @@ const AddAppointmentModal = ({
         </div>
 
         <div className="p-6">
-          <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[60vh]">
+          <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]">
             <div className="space-y-1.5">
               <label className="text-sm text-gray-200">Member</label>
               <input
                 type="text"
                 placeholder="Search member..."
+                value={appointmentData.member}
+                onChange={(e) => updateAppointment("member", e.target.value)}
                 className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm text-gray-200">Appointment Type</label>
-              <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
+              <select 
+                className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                value={appointmentData.type}
+                onChange={(e) => updateAppointment("type", e.target.value)}
+              >
                 <option value="">Select type</option>
                 {appointmentTypes.map((type) => (
                   <option
@@ -94,74 +180,186 @@ const AddAppointmentModal = ({
               </select>
             </div>
 
-            {/* Recurring appointments section */}
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-sm text-gray-200">Appointment Dates & Times</label>
-                <button 
+                <label className="text-sm text-gray-200">Booking Type</label>
+              </div>
+              <div className="flex space-x-3">
+                <button
                   type="button"
-                  onClick={addRecurring}
-                  className="text-[#3F74FF] hover:text-[#5a8aff] text-sm flex items-center gap-1"
+                  onClick={() => setShowRecurringOptions(false)}
+                  className={`px-4 py-2 text-sm rounded-xl ${
+                    !showRecurringOptions 
+                      ? "bg-[#3F74FF] text-white" 
+                      : "bg-[#101010] text-gray-300"
+                  }`}
                 >
-                  <Plus size={16} /> Add another date
+                  Single
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRecurringOptions(true)}
+                  className={`px-4 py-2 text-sm rounded-xl ${
+                    showRecurringOptions 
+                      ? "bg-[#3F74FF] text-white" 
+                      : "bg-[#101010] text-gray-300"
+                  }`}
+                >
+                  Mass Booking
                 </button>
               </div>
-              
-              {recurringAppointments.map((appointment, index) => (
-                <div key={index} className="p-3 bg-[#101010] rounded-xl space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-200">Appointment {index + 1}</span>
-                    {recurringAppointments.length > 1 && (
-                      <button 
-                        type="button"
-                        onClick={() => removeRecurring(index)}
-                        className="text-red-500 hover:text-red-400"
-                      >
-                        <Trash size={16} />
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 gap-3">
-                    <div>
-                      <label className="text-xs text-gray-400">Date</label>
-                      <input
-                        type="date"
-                        value={appointment.date}
-                        onChange={(e) => updateRecurring(index, "date", e.target.value)}
-                        className="w-full bg-[#181818] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-xs text-gray-400">Available Time Slots</label>
-                      <select 
-                        value={appointment.timeSlot}
-                        onChange={(e) => updateRecurring(index, "timeSlot", e.target.value)}
-                        className="w-full bg-[#181818] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                        disabled={!appointment.date}
-                      >
-                        <option value="">Select time slot</option>
-                        {getAvailableSlots(appointment.date).map((slot) => (
-                          <option key={slot.id || `slot-${slot.time}`} value={slot.time}>
-                            {slot.time}
-                          </option>
-                        ))}
-                        {/* Show message if no time slots available */}
-                        {appointment.date && getAvailableSlots(appointment.date).length === 0 && (
-                          <option value="" disabled>No available slots for this date</option>
-                        )}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
+
+            {!showRecurringOptions ? (
+              // Single appointment
+              <div className="space-y-3 p-3 bg-[#101010] rounded-xl">
+                <div>
+                  <label className="text-xs text-gray-400">Date</label>
+                  <input
+                    type="date"
+                    value={appointmentData.date}
+                    onChange={(e) => updateAppointment("date", e.target.value)}
+                    className="w-full bg-[#181818] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-xs text-gray-400">Available Time Slots</label>
+                  <select 
+                    value={appointmentData.timeSlot}
+                    onChange={(e) => updateAppointment("timeSlot", e.target.value)}
+                    className="w-full bg-[#181818] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                    disabled={!appointmentData.date}
+                  >
+                    <option value="">Select time slot</option>
+                    {getAvailableSlots(appointmentData.date).map((slot) => (
+                      <option key={slot.id || `slot-${slot.time}`} value={slot.time}>
+                        {slot.time}
+                      </option>
+                    ))}
+                    {/* Show message if no time slots available */}
+                    {appointmentData.date && getAvailableSlots(appointmentData.date).length === 0 && (
+                      <option value="" disabled>No available slots for this date</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+            ) : (
+              // Mass booking options
+              <div className="space-y-3 p-3 bg-[#101010] rounded-xl">
+                <div>
+                  <label className="text-xs text-gray-400">Frequency</label>
+                  <select
+                    value={recurringOptions.frequency}
+                    onChange={(e) => updateRecurringOptions("frequency", e.target.value)}
+                    className="w-full bg-[#181818] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  >
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Bi-Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="text-xs text-gray-400">Day of Week</label>
+                  <select
+                    value={recurringOptions.dayOfWeek}
+                    onChange={(e) => updateRecurringOptions("dayOfWeek", e.target.value)}
+                    className="w-full bg-[#181818] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  >
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="0">Sunday</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="text-xs text-gray-400">Start Date</label>
+                  <input
+                    type="date"
+                    value={recurringOptions.startDate}
+                    onChange={(e) => updateRecurringOptions("startDate", e.target.value)}
+                    className="w-full bg-[#181818] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-xs text-gray-400">Number of Occurrences</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={recurringOptions.occurrences}
+                    onChange={(e) => updateRecurringOptions("occurrences", e.target.value)}
+                    className="w-full bg-[#181818] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-xs text-gray-400">Time Slot</label>
+                  <select 
+                    value={appointmentData.timeSlot}
+                    onChange={(e) => updateAppointment("timeSlot", e.target.value)}
+                    className="w-full bg-[#181818] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  >
+                    <option value="">Select time slot</option>
+                    <option value="9:00 AM">9:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="1:00 PM">1:00 PM</option>
+                    <option value="2:00 PM">2:00 PM</option>
+                    <option value="3:00 PM">3:00 PM</option>
+                    <option value="4:00 PM">4:00 PM</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Alternative slots section */}
+            {showAlternatives && (
+              <div className="space-y-1.5">
+                <label className="text-sm text-gray-200">Alternative Appointments</label>
+                <div className="bg-[#101010] rounded-xl p-3 overflow-x-auto">
+                  <table className="w-full text-sm text-gray-200">
+                    <thead>
+                      <tr className="border-b border-gray-800">
+                        <th className="text-left py-2 px-2">Date</th>
+                        <th className="text-left py-2 px-2">Time</th>
+                        <th className="text-right py-2 px-2">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {alternativeSlots.map((slot, index) => (
+                        <tr key={index} className="border-b border-gray-800">
+                          <td className="py-2 px-2">{new Date(slot.date).toLocaleDateString()}</td>
+                          <td className="py-2 px-2">{slot.time}</td>
+                          <td className="py-2 px-2 text-right">
+                            <button
+                              type="button"
+                              onClick={() => selectAlternative(slot)}
+                              className="text-[#3F74FF] hover:text-[#5a8aff] text-xs"
+                            >
+                              Select
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <label className="text-sm text-gray-200">Special Note</label>
               <textarea
                 placeholder="Enter special note..."
+                value={appointmentData.specialNote}
+                onChange={(e) => updateAppointment("specialNote", e.target.value)}
                 className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[100px]"
               />
             </div>
@@ -170,6 +368,8 @@ const AddAppointmentModal = ({
               <input
                 type="checkbox"
                 id="isImportant"
+                checked={appointmentData.isImportant}
+                onChange={(e) => updateAppointment("isImportant", e.target.checked)}
                 className="rounded text-[#3F74FF] focus:ring-[#3F74FF]"
               />
               <label htmlFor="isImportant" className="text-sm text-gray-200">
@@ -183,11 +383,15 @@ const AddAppointmentModal = ({
                 <input
                   type="date"
                   placeholder="Start Date"
+                  value={appointmentData.noteStartDate}
+                  onChange={(e) => updateAppointment("noteStartDate", e.target.value)}
                   className="w-1/2 bg-[#101010] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                 />
                 <input
                   type="date"
                   placeholder="End Date"
+                  value={appointmentData.noteEndDate}
+                  onChange={(e) => updateAppointment("noteEndDate", e.target.value)}
                   className="w-1/2 bg-[#101010] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                 />
               </div>
@@ -197,15 +401,11 @@ const AddAppointmentModal = ({
 
         <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
           <button
-            type="submit"
+            type="button"
             className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-            onClick={() => {
-              onClose();
-              setIsNotifyMemberOpen(true);
-              setNotifyAction("book");
-            }}
+            onClick={checkAvailability}
           >
-            Book Appointment{recurringAppointments.length > 1 ? 's' : ''}
+            {showRecurringOptions ? "Book Mass Appointments" : "Book Appointment"}
           </button>
         </div>
       </div>

@@ -223,7 +223,7 @@ const Sidebar = () => {
             </div>
           </div>
 
-          <nav className="flex-1 overflow-y-auto  ">
+          <nav className="flex-1 overflow-y-auto custom-scrollbar  ">
             <ul className="space-y-2 p-4">
               {[
                 { icon: Home, label: "My Area", to: "/dashboard/my-area" },
