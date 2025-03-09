@@ -57,14 +57,9 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
-      calendarApi.gotoDate(selectedDate)
-
-      const currentView = calendarApi.view.type
-      if (currentView.includes("timeGrid")) {
-        calendarApi.changeView("timeGridDay", selectedDate)
-      } else {
-        calendarApi.gotoDate(selectedDate)
-      }
+      
+      // Always change to day view when a date is selected from mini calendar
+      calendarApi.changeView("timeGridDay", selectedDate)
     }
   }, [selectedDate])
 
@@ -259,15 +254,9 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
       // Determine if the event is in the past
       const isPastEvent = isEventInPast(startDateTimeStr)
 
-      // Get the base color
+      // Get the original color
       let backgroundColor = appointment.color.split("bg-[")[1].slice(0, -1)
-
-      // If it's a past event, adjust the color to be grayed out
-      if (isPastEvent) {
-        // Use a gray color for past events
-        backgroundColor = "#9CA3AF" // gray-400
-      }
-
+      
       return {
         id: appointment.id,
         title: appointment.name,
@@ -279,6 +268,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
         extendedProps: {
           type: appointment.type,
           isPast: isPastEvent,
+          originalColor: backgroundColor
         },
       }
     })
@@ -349,7 +339,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
               datesSet={handleViewChange}
               eventContent={(eventInfo) => (
                 <div
-                  className={`p-1 h-full overflow-hidden ${eventInfo.event.extendedProps.isPast ? "opacity-70" : ""}`}
+                  className={`p-1 h-full overflow-hidden ${eventInfo.event.extendedProps.isPast ? "opacity-50" : ""}`}
                 >
                   <div className="font-semibold text-xs sm:text-sm truncate">{eventInfo.event.title}</div>
                   <div className="text-xs opacity-90 truncate">
@@ -360,17 +350,19 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
                 </div>
               )}
               eventClassNames={(eventInfo) => {
-                return eventInfo.event.extendedProps.isPast ? "past-event" : ""
+                const classes = eventInfo.event.extendedProps.isPast ? "past-event" : "";
+                return classes;
               }}
             />
           </div>
         </div>
       </div>
 
-      {/* Add some CSS for past events */}
+      {/* Add CSS for past events */}
       <style jsx>{`
         :global(.past-event) {
           cursor: default !important;
+          opacity: 0.6 !important;
         }
       `}</style>
 
@@ -858,63 +850,79 @@ export default function Appointments() {
   const renderSpecialNoteIcon = useCallback(
     (specialNote, appointmentId) => {
       if (!specialNote.text) return null
-
+  
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
-
+  
       if (!isActive) return null
-
-      const handleMouseEnter = (e) => {
+  
+      const handleNoteClick = (e) => {
         e.stopPropagation()
-        setActiveNoteId(appointmentId)
+        setActiveNoteId(activeNoteId === appointmentId ? null : appointmentId)
       }
-
-      const handleMouseLeave = (e) => {
-        e.stopPropagation()
-        setActiveNoteId(null)
-      }
-
+  
       return (
-        <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-          {specialNote.isImportant ? (
-            <div className="bg-red-500 rounded-full p-1 shadow-[0_0_0_1.5px_white]">
-              <AlertTriangle size={23} className="text-white cursor-pointer" />
-            </div>
-          ) : (
-            <div className="rounded-full ">
-              <Info size={23} className="text-white cursor-pointer" />
-            </div>
-          )}
+        <div className="relative">
+          <div 
+            className={`${specialNote.isImportant ? 'bg-red-500' : 'bg-blue-500'} rounded-full p-1 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            onClick={handleNoteClick}
+          >
+            {specialNote.isImportant ? (
+              <AlertTriangle size={23} className="text-white" />
+            ) : (
+              <Info size={23} className="text-white" />
+            )}
+          </div>
+          
           {activeNoteId === appointmentId && (
-            <div className="absolute left-0 top-6 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-start gap-2">
-                  {specialNote.isImportant ? (
-                    <AlertTriangle className="text-yellow-500 shrink-0 mt-0.5" size={16} />
-                  ) : (
-                    <Info className="text-blue-500 shrink-0 mt-0.5" size={16} />
-                  )}
-                  <div className="flex-1">
-                    <h4 className="text-sm font-medium text-white mb-1">Special Note</h4>
-                    <p className="text-white text-sm">{specialNote.text}</p>
-                  </div>
-                </div>
+            <div className="absolute left-0 top-6 w-64 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20">
+              {/* Header section with icon and title */}
+              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                {specialNote.isImportant ? (
+                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                ) : (
+                  <Info className="text-blue-500 shrink-0" size={18} />
+                )}
+                <h4 className="text-white font-medium">
+                  {specialNote.isImportant ? 'Important Note' : 'Special Note'}
+                </h4>
+              </div>
+              
+              {/* Note content */}
+              <div className="p-3">
+                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
+                
+                {/* Date validity section */}
                 {specialNote.startDate && specialNote.endDate && (
-                  <div className="bg-gray-800/50 p-2 rounded-md mt-1">
-                    <p className="text-xs text-gray-300">
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <Calendar size={12} />
                       Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
                       {new Date(specialNote.endDate).toLocaleDateString()}
                     </p>
                   </div>
                 )}
               </div>
+              
+              {/* Footer with close button */}
+              <div className="bg-gray-800/50 p-2 rounded-b-lg border-t border-gray-700 flex justify-end">
+                <button 
+                  className="text-xs text-gray-300 hover:text-white px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveNoteId(null);
+                  }}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           )}
         </div>
       )
     },
-    [activeNoteId],
+    [activeNoteId, setActiveNoteId]
   )
 
   return (
@@ -942,7 +950,7 @@ export default function Appointments() {
               >
                 Block Appointment
               </button>
-              <button className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200">
+              <button className="w-full sm:w-auto bg-gray-600 cursor-pointer text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-gray-700 transition-colors duration-200">
                 Free Dates
               </button>
             </div>
@@ -986,7 +994,7 @@ export default function Appointments() {
                             setIsAppointmentActionModalOpen(true)
                           }}
                         >
-                          <div className="flex items-center gap-2 ml-2 relative">
+                          <div className="flex items-center gap-2 ml-5 relative">
                             <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
                               <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
                             </div>
