@@ -113,10 +113,28 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   }
 
   const handleEventDrop = (info) => {
-    console.log("Event dropped:", info)
-    setEventInfo(info)
+    const { event } = info;
+  
+    // Calculate the duration of the event in milliseconds
+    const duration = event.end - event.start;
+  
+    // Update the appointment in the state
+    const updatedAppointments = appointments.map((appointment) => {
+      if (appointment.id === Number(event.id)) {
+        return {
+          ...appointment,
+          startTime: event.start.toTimeString().split(" ")[0], // New start time
+          endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0], // New end time (same duration)
+          date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`, // New date
+        };
+      }
+      return appointment;
+    });
+  
+    // Update the state with the new appointments
+    setAppointments(updatedAppointments);
     setIsNotifyMemberOpen(true)
-  }
+  };
 
   const handleDateSelect = (selectInfo) => {
     setSelectedSlotInfo(selectInfo)
@@ -176,16 +194,6 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     setIsEditAppointmentModalOpen(true)
   }
 
-  const handleEditAppointmentSubmit = (editedData) => {
-    const updatedAppointments = appointments.map((app) =>
-      app.id === selectedAppointment.id ? { ...app, ...editedData } : app,
-    )
-    setAppointments(updatedAppointments)
-    toast.success("Appointment updated successfully")
-    setIsEditAppointmentModalOpen(false)
-  }
-
-  // Handle cancel appointment
   const handleCancelAppointment = () => {
     setIsAppointmentActionModalOpen(false)
     setNotifyAction("cancel")
@@ -201,7 +209,6 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     })
   }
 
-  // Handle view member details
   const handleViewMemberDetails = () => {
     setIsAppointmentActionModalOpen(false)
     setIsMemberDetailsModalOpen(true)
@@ -276,67 +283,6 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
       }
     })
 
-  const renderSpecialNoteIcon = useCallback(
-    (specialNote, appointmentId) => {
-      if (!specialNote.text) return null
-
-      const isActive =
-        specialNote.startDate === null ||
-        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
-
-      if (!isActive) return null
-
-      const handleMouseEnter = (e) => {
-        e.stopPropagation()
-        setActiveNoteId(appointmentId)
-      }
-
-      const handleMouseLeave = (e) => {
-        e.stopPropagation()
-        setActiveNoteId(null)
-      }
-
-      return (
-        <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-          {specialNote.isImportant ? (
-            <div className="bg-red-500 rounded-full p-1 shadow-[0_0_0_1.5px_white]">
-              <AlertTriangle size={20} className="text-white cursor-pointer" />
-            </div>
-          ) : (
-            <div className="bg-blue-500 rounded-full p-1 shadow-[0_0_0_1.5px_white]">
-              <Info size={20} className="text-white cursor-pointer" />
-            </div>
-          )}
-          {activeNoteId === appointmentId && (
-            <div className="absolute left-0 top-6 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-start gap-2">
-                  {specialNote.isImportant ? (
-                    <AlertTriangle className="text-yellow-500 shrink-0 mt-0.5" size={16} />
-                  ) : (
-                    <Info className="text-blue-500 shrink-0 mt-0.5" size={16} />
-                  )}
-                  <div className="flex-1">
-                    <h4 className="text-sm font-medium text-white mb-1">Special Note</h4>
-                    <p className="text-white text-sm">{specialNote.text}</p>
-                  </div>
-                </div>
-                {specialNote.startDate && specialNote.endDate && (
-                  <div className="bg-gray-800/50 p-2 rounded-md mt-1">
-                    <p className="text-xs text-gray-300">
-                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
-                      {new Date(specialNote.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )
-    },
-    [activeNoteId],
-  )
 
   return (
     <>
@@ -390,7 +336,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
               height={calendarHeight}
               selectable={true}
               editable={true}
-              eventDragStop={handleEventDrop}
+              eventDrop={handleEventDrop}
               slotMinTime="08:00:00"
               slotMaxTime="19:00:00"
               allDaySlot={false}
