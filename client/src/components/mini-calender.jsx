@@ -120,4 +120,3 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
 }
 
 export default MiniCalendar;
-

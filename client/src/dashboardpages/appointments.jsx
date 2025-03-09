@@ -5,19 +5,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-import {
-  MoreHorizontal,
-  X,
-  Clock,
-  Info,
-  Search,
-  AlertTriangle,
-  Edit,
-  User,
-  ZoomOut,
-  ZoomIn,
-  RotateCcw,
-} from "lucide-react"
+import { X, Clock, Info, Search, AlertTriangle, Edit, User, ZoomOut, ZoomIn, RotateCcw } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import Avatar from "../../public/avatar.png"
 import toast, { Toaster } from "react-hot-toast"
@@ -34,6 +22,7 @@ import BlockAppointmentModal from "../components/block-appointment-modal"
 function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selectedDate, setAppointments }) {
   const [calendarSize, setCalendarSize] = useState(100)
   const [calendarHeight, setCalendarHeight] = useState("auto")
+  const [activeNoteId, setActiveNoteId] = useState(null)
 
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, "0")
@@ -286,6 +275,68 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
         },
       }
     })
+
+  const renderSpecialNoteIcon = useCallback(
+    (specialNote, appointmentId) => {
+      if (!specialNote.text) return null
+
+      const isActive =
+        specialNote.startDate === null ||
+        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+
+      if (!isActive) return null
+
+      const handleMouseEnter = (e) => {
+        e.stopPropagation()
+        setActiveNoteId(appointmentId)
+      }
+
+      const handleMouseLeave = (e) => {
+        e.stopPropagation()
+        setActiveNoteId(null)
+      }
+
+      return (
+        <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {specialNote.isImportant ? (
+            <div className="bg-red-500 rounded-full p-1 shadow-[0_0_0_1.5px_white]">
+              <AlertTriangle size={20} className="text-white cursor-pointer" />
+            </div>
+          ) : (
+            <div className="bg-blue-500 rounded-full p-1 shadow-[0_0_0_1.5px_white]">
+              <Info size={20} className="text-white cursor-pointer" />
+            </div>
+          )}
+          {activeNoteId === appointmentId && (
+            <div className="absolute left-0 top-6 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-start gap-2">
+                  {specialNote.isImportant ? (
+                    <AlertTriangle className="text-yellow-500 shrink-0 mt-0.5" size={16} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0 mt-0.5" size={16} />
+                  )}
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-white mb-1">Special Note</h4>
+                    <p className="text-white text-sm">{specialNote.text}</p>
+                  </div>
+                </div>
+                {specialNote.startDate && specialNote.endDate && (
+                  <div className="bg-gray-800/50 p-2 rounded-md mt-1">
+                    <p className="text-xs text-gray-300">
+                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                      {new Date(specialNote.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    },
+    [activeNoteId],
+  )
 
   return (
     <>
@@ -684,6 +735,7 @@ export default function Appointments() {
   const [filteredAppointments, setFilteredAppointments] = useState(appointments)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
   const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
+  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
 
   // Add useEffect to update filteredAppointments when appointments change
   useEffect(() => {
@@ -852,12 +904,10 @@ export default function Appointments() {
   }
 
   const handleDeleteAppointment = (appointmentId) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.filter((appointment) => appointment.id !== appointmentId)
-    );
-    setSelectedAppointment(null); // Clear the selected appointment
-    toast.success("Appointment deleted successfully");
-  };
+    setAppointments((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
+    setSelectedAppointment(null) // Clear the selected appointment
+    toast.success("Appointment deleted successfully")
+  }
 
   const renderSpecialNoteIcon = useCallback(
     (specialNote, appointmentId) => {
@@ -882,12 +932,16 @@ export default function Appointments() {
       return (
         <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {specialNote.isImportant ? (
-            <AlertTriangle size={18} className="text-yellow-500 cursor-pointer" />
+            <div className="bg-red-500 rounded-full p-1 shadow-[0_0_0_1.5px_white]">
+              <AlertTriangle size={23} className="text-white cursor-pointer" />
+            </div>
           ) : (
-            <Info size={18} className="text-white cursor-pointer" />
+            <div className="rounded-full ">
+              <Info size={23} className="text-white cursor-pointer" />
+            </div>
           )}
           {activeNoteId === appointmentId && (
-            <div className="absolute right-0 top-6 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
+            <div className="absolute left-0 top-6 w-64 bg-black backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg p-3 z-20">
               <div className="flex flex-col gap-2">
                 <div className="flex items-start gap-2">
                   {specialNote.isImportant ? (
@@ -970,87 +1024,54 @@ export default function Appointments() {
                     filteredAppointments.map((appointment, index) => (
                       <div
                         key={appointment.id}
-                        className={`${appointment.color} rounded-xl cursor-pointer p-4 relative`}
+                        className={`${appointment.color} rounded-xl cursor-pointer p-5 relative`}
                       >
-                        <div className="absolute p-2 top-1 right-2">
+                        <div
+                          className="absolute p-2 top-0 left-0 z-10"
+                          // style={{ transform: "translateY(-50%) translateX(-50%)" }}
+                        >
                           {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 w-full sm:w-auto">
-                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                        <div
+                          className="flex items-center justify-between gap-2 cursor-pointer"
+                          onClick={() => {
+                            setSelectedAppointment(appointment)
+                            setIsAppointmentActionModalOpen(true)
+                          }}
+                        >
+                          <div className="flex items-center gap-2 ml-2 relative">
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
                               <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
                             </div>
-                            <div className="text-white flex-grow">
+                            <div className="text-white">
                               <p className="font-semibold">{appointment.name}</p>
-                              <p className="text-sm flex gap-1 items-center opacity-80">
-                                <Clock size={15} />
-                                {appointment.time} | {appointment.date}
+                              <p className="text-xs flex gap-1 items-center opacity-80">
+                                <Clock size={14} />
+                                {appointment.time} | {appointment.date.split("|")[0]}
                               </p>
-                              <p className="text-sm mt-1">
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-white text-right">
+                              <p className="text-xs">
                                 {appointment.isTrial ? (
-                                  <span className="font-medium text-yellow 500">Trial Session</span>
+                                  <span className="font-medium text-yellow-500">Trial Session</span>
                                 ) : (
                                   appointment.type
                                 )}
                               </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleCheckIn(appointment.id)
-                              }}
-                              className={`w-full sm:w-auto px-4 py-2 text-xs font-medium rounded-xl ${
-                                appointment.isCheckedIn ? "bg-green-600 text-white" : "bg-black text-white"
-                              }`}
-                            >
-                              {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                            </button>
-                            <div className="relative flex flex-col items-center">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  setActiveDropdownId(activeDropdownId === appointment.id ? null : appointment.id)
+                                  handleCheckIn(appointment.id)
                                 }}
-                                className="text-white/80 hover:text-white"
+                                className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg ${
+                                  appointment.isCheckedIn ? "bg-gray-600 text-white" : "bg-black text-white"
+                                }`}
                               >
-                                <MoreHorizontal size={20} />
+                                {appointment.isCheckedIn ? "Checked In" : "Check In"}
                               </button>
-
-                              {activeDropdownId === appointment.id && (
-                                <div className="absolute right-0 cursor-pointer mt-1 w-46 bg-[#1C1C1C] backdrop-blur-xl rounded-lg border border-gray-800 shadow-lg overflow-hidden z-10">
-                                  <button
-                                    className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleAppointmentClick(appointment)
-                                    }}
-                                  >
-                                    Edit
-                                  </button>
-                                  <div className="h-[1px] bg-gray-800 w-full"></div>
-
-                                  <button
-                                    className="w-full px-4 py-2 text-sm text-white hover:bg-gray-800 text-left"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                    }}
-                                  >
-                                    View Member Details
-                                  </button>
-                                  <button
-                                    className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleRemoveAppointment(appointment)
-                                    }}
-                                  >
-                                    Cancel Appointment
-                                  </button>
-                                </div>
-                              )}
                             </div>
                           </div>
                         </div>
