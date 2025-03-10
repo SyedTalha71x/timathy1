@@ -396,12 +396,19 @@ function Calendar({
           </button>
           <button
             onClick={generateFreeDates}
-            className="p-1.5 rounded-md bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
+            className="p-1.5 rounded-md lg:block hidden bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
             aria-label="Show Free Dates"
           >
             Free Dates
           </button>
         </div>
+        <button
+            onClick={generateFreeDates}
+            className="p-1.5 rounded-md w-full lg:hidden block bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
+            aria-label="Show Free Dates"
+          >
+            Free Dates
+          </button>
 
         <div
           className="max-w-7xl overflow-x-auto"
@@ -1173,81 +1180,80 @@ export default function Appointments() {
                     Upcoming Appointments
                   </h2>
                   <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
-                    {filteredAppointments.length > 0 ? (
-                      filteredAppointments.map((appointment, index) => (
-                        <div
-                          key={appointment.id}
-                          className={`${appointment.color} rounded-xl cursor-pointer p-5 relative`}
-                        >
-                          <div className="absolute p-2 top-0 left-0 z-10">
-                            {renderSpecialNoteIcon(
-                              appointment.specialNote,
-                              appointment.id
-                            )}
-                          </div>
-
-                          <div
-                            className="flex items-center justify-between gap-2 cursor-pointer"
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setIsAppointmentActionModalOpen(true);
-                            }}
-                          >
-                            <div className="flex items-center gap-2 ml-5 relative">
-                              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
-                                <img
-                                  src={Avatar || "/placeholder.svg"}
-                                  alt=""
-                                  className="w-full h-full rounded-full"
-                                />
-                              </div>
-                              <div className="text-white">
-                                <p className="font-semibold">
-                                  {appointment.name}
-                                </p>
-                                <p className="text-xs flex gap-1 items-center opacity-80">
-                                  <Clock size={14} />
-                                  {appointment.time} |{" "}
-                                  {appointment.date.split("|")[0]}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center  gap-2">
-                              <div className="text-white text-right">
-                                <p className="text-xs">
-                                  {appointment.isTrial ? (
-                                    <span className="font-medium text-yellow-500">
-                                      Trial Session
-                                    </span>
-                                  ) : (
-                                    appointment.type
-                                  )}
-                                </p>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCheckIn(appointment.id);
-                                  }}
-                                  className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg ${
-                                    appointment.isCheckedIn
-                                      ? "bg-gray-600 text-white"
-                                      : "bg-black text-white"
-                                  }`}
-                                >
-                                  {appointment.isCheckedIn
-                                    ? "Checked In"
-                                    : "Check In"}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-white text-center">
-                        No appointments scheduled for this date.
-                      </p>
-                    )}
+                  {filteredAppointments.length > 0 ? (
+  filteredAppointments.map((appointment, index) => (
+    <div
+      key={appointment.id}
+      className={`${appointment.color} rounded-xl cursor-pointer p-5 relative`}
+    >
+      <div className="absolute p-2 top-0 left-0 z-10">
+        {renderSpecialNoteIcon(
+          appointment.specialNote,
+          appointment.id
+        )}
+      </div>
+      <div
+        className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
+        onClick={() => {
+          setSelectedAppointment(appointment);
+          setIsAppointmentActionModalOpen(true);
+        }}
+      >
+        <div className="flex items-center gap-2 ml-5 relative w-full sm:w-auto justify-center sm:justify-start">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+            <img
+              src={Avatar || "/placeholder.svg"}
+              alt=""
+              className="w-full h-full rounded-full"
+            />
+          </div>
+          <div className="text-white text-left">
+            <p className="font-semibold">
+              {appointment.name}
+            </p>
+            <p className="text-xs flex gap-1 items-center opacity-80 justify-center sm:justify-start">
+              <Clock size={14} />
+              {appointment.time} |{" "}
+              {appointment.date.split("|")[0]}
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+          <div className="text-white text-center sm:text-right w-full sm:w-auto">
+            <p className="text-xs">
+              {appointment.isTrial ? (
+                <span className="font-medium text-yellow-500">
+                  Trial Session
+                </span>
+              ) : (
+                appointment.type
+              )}
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCheckIn(appointment.id);
+              }}
+              className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
+                appointment.isCheckedIn
+                  ? "bg-gray-600 text-white"
+                  : "bg-black text-white"
+              }`}
+            >
+              {appointment.isCheckedIn
+                ? "Checked In"
+                : "Check In"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  ))
+) : (
+  <p className="text-white text-center">
+    No appointments scheduled for this date.
+  </p>
+)}
                   </div>
                 </div>
               </div>

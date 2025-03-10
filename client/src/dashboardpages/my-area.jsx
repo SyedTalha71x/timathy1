@@ -697,8 +697,8 @@ export default function MyArea() {
                               className={`${appointment.color} p-5 rounded-xl`}
                             >
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-8 h-8 rounded-full flex-shrink-0">
+                                <div className="flex  items-center gap-2">
+                                  <div className="w-10 h-10 rounded-full flex-shrink-0">
                                     <img
                                       src={Avatar || "/placeholder.svg"}
                                       alt=""
@@ -716,7 +716,7 @@ export default function MyArea() {
                                   </div>
                                 </div>
 
-                                <div className="flex sm:flex-row sm:items-center gap-2 mt-2 sm:mt-0">
+                                <div className="flex sm:flex-row sm:items-center justify-end gap-2 mt-2 sm:mt-0">
                                   <button
                                     onClick={() => handleCheckIn(index)}
                                     className={`px-3 py-1.5 text-xs font-medium rounded-xl ${
