@@ -1,11 +1,26 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/no-unescaped-entities */
 "use client"
 
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from "react"
-import { X, Plus, ShoppingBasket, Minus, Trash2, MoreVertical, AlertTriangle } from "lucide-react"
-import ProductImage from "../../public/product.svg"
+import {
+  X,
+  Plus,
+  ShoppingBasket,
+  Minus,
+  Trash2,
+  MoreVertical,
+  AlertTriangle,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Edit,
+  Check,
+} from "lucide-react"
+import ProductImage from "../../public/1_55ce827a-2b63-4b1d-aa55-2c2b6dc6c96e.webp"
 
+import MenJordanShows from "../../public/jd_product_list.webp"
 function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -52,10 +67,10 @@ function App() {
     },
     {
       id: 2,
-      name: "Snickers Off-White 2024",
-      brand: "NIKE",
-      price: 38.0,
-      image: ProductImage,
+      name: "Mens Jordan Trainer",
+      brand: "JORDAN",
+      price: 48.0,
+      image: MenJordanShows,
       details: "",
       articalNo: "456",
       paymentOption: "Card",
@@ -235,6 +250,84 @@ function App() {
     }
   }, [openDropdownId])
 
+  const [sortBy, setSortBy] = useState("name")
+  const [sortDirection, setSortDirection] = useState("asc")
+  const [isEditModeActive, setIsEditModeActive] = useState(false)
+
+  const sortProducts = (products, sortBy, sortDirection) => {
+    const sortedProducts = [...products].sort((a, b) => {
+      const comparison = a[sortBy] > b[sortBy] ? 1 : a[sortBy] < b[sortBy] ? -1 : 0
+      return sortDirection === "asc" ? comparison : -comparison
+    })
+    return sortedProducts
+  }
+
+  const moveProduct = (index, direction) => {
+    const newProducts = [...products]
+    let newIndex
+
+    // Calculate columns based on screen size (matching your grid-cols-1 md:grid-cols-2)
+    const columns = window.innerWidth >= 768 ? 2 : 1
+    const rows = Math.ceil(products.length / columns)
+
+    // Current position in grid
+    const currentRow = Math.floor(index / columns)
+    const currentCol = index % columns
+
+    if (direction === "up") {
+      // Move up one row, same column
+      const targetRow = (currentRow - 1 + rows) % rows
+      newIndex = targetRow * columns + currentCol
+      // If we're moving to the last row and it's not full
+      if (targetRow === rows - 1 && newIndex >= products.length) {
+        newIndex = products.length - 1
+      }
+    } else if (direction === "down") {
+      // Move down one row, same column
+      const targetRow = (currentRow + 1) % rows
+      newIndex = targetRow * columns + currentCol
+      // If calculated position is beyond array length
+      if (newIndex >= products.length) {
+        newIndex = currentCol // Wrap to top row
+      }
+    } else if (direction === "left") {
+      // Move left one column, same row
+      if (currentCol > 0) {
+        newIndex = index - 1
+      } else {
+        // Wrap to end of previous row or end of list
+        newIndex = currentRow > 0 ? currentRow * columns + (columns - 1) : products.length - 1
+      }
+    } else if (direction === "right") {
+      // Move right one column, same row
+      if (currentCol < columns - 1 && index < products.length - 1) {
+        newIndex = index + 1
+      } else {
+        // Wrap to beginning of next row or beginning of list
+        newIndex = (currentRow + 1) * columns < products.length ? (currentRow + 1) * columns : 0
+      }
+    }
+
+    // Ensure newIndex is within bounds
+    if (newIndex >= 0 && newIndex < products.length) {
+      // Swap the products
+      ;[newProducts[index], newProducts[newIndex]] = [newProducts[newIndex], newProducts[index]]
+      setProducts(newProducts)
+    }
+  }
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Force a re-render when window size changes to update grid calculations
+      setProducts([...products])
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [products])
+
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
       {/* Delete Confirmation Modal */}
@@ -409,7 +502,6 @@ function App() {
             <h1 className="text-xl md:text-2xl font-bold oxanium_font">Selling</h1>
 
             <div className="flex gap-3">
-             
               <button
                 onClick={openAddModal}
                 className="flex items-center gap-2 w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200"
@@ -420,86 +512,161 @@ function App() {
             </div>
           </div>
 
+          <div className="flex justify-end items-center mb-3">
+            <label htmlFor="sort-by" className="mr-2 text-sm text-gray-200 lg:block hidden">
+              Sort by:
+            </label>
+            <select
+              id="sort-by"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-[#101010] text-sm rounded-xl px-4 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+            >
+              <option value="name">Name</option>
+              <option value="price">Price</option>
+              {/* Add more sorting options as needed */}
+            </select>
+            <select
+              value={sortDirection}
+              onChange={(e) => setSortDirection(e.target.value)}
+              className="bg-[#101010] text-sm rounded-xl px-4 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors ml-2"
+            >
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+          </div>
+
           <div className="relative mb-4">
-                <input
-                  type="search"
-                  placeholder="Search by name or article number..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-[#181818] text-white rounded-xl px-4 py-2 w-full  text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
-                />
-              </div>
+            <input
+              type="search"
+              placeholder="Search by name or article number..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-[#181818] text-white rounded-xl px-4 py-2 w-full  text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+            />
+          </div>
+
+          <div className="flex justify-end items-center mb-3">
+            <button
+              onClick={() => setIsEditModeActive(!isEditModeActive)}
+              className={`p-2 cursor-pointer rounded-xl text-sm ${
+                isEditModeActive
+                  ? "bg-red-500 hover:bg-red-700 text-white"
+                  : "bg-[#333333] hover:bg-[#555555] text-gray-300"
+              } transition-colors`}
+            >
+              {isEditModeActive ? <Check size={20} /> : <Edit size={20} />}
+            </button>
+          </div>
 
           <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
-            {products
-              .filter(
+            {sortProducts(
+              products.filter(
                 (product) =>
                   searchQuery === "" ||
                   product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   product.articalNo.toLowerCase().includes(searchQuery.toLowerCase()),
-              )
-              .map((product) => (
-                <div key={product.id} className="w-full bg-[#181818] p-6 rounded-2xl overflow-hidden">
-                  <div className="relative">
-                    <img
-                      src={product.image || ProductImage}
-                      alt={product.name}
-                      className="object-cover h-full w-full rounded-2xl"
-                    />
+              ),
+              sortBy,
+              sortDirection,
+            ).map((product, index) => (
+              <div key={product.id} className="w-full bg-[#181818] p-6 rounded-2xl overflow-hidden relative">
+                {isEditModeActive && (
+                  <div className="absolute top-2 left-2 z-10 bg-black/70 rounded-lg p-1 flex flex-col gap-1">
                     <button
-                      onClick={() => addToCart(product)}
-                      className="absolute bottom-3 right-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
-                      aria-label="Add to cart"
+                      onClick={() => moveProduct(index, "up")}
+                      disabled={index === 0}
+                      className={`p-1.5 rounded-md ${index === 0 ? "text-gray-600" : "hover:bg-[#333333] text-white"}`}
+                      title="Move Up"
                     >
-                      <ShoppingBasket size={20} />
+                      <ArrowUp size={16} />
+                    </button>
+                    <button
+                      onClick={() => moveProduct(index, "down")}
+                      disabled={index === products.length - 1}
+                      className={`p-1.5 rounded-md ${index === products.length - 1 ? "text-gray-600" : "hover:bg-[#333333] text-white"}`}
+                      title="Move Down"
+                    >
+                      <ArrowDown size={16} />
+                    </button>
+                    <button
+                      onClick={() => moveProduct(index, "left")}
+                      disabled={index % 2 === 0}
+                      className={`p-1.5 rounded-md ${index % 2 === 0 ? "text-gray-600" : "hover:bg-[#333333] text-white"}`}
+                      title="Move Left"
+                    >
+                      <ArrowLeft size={16} />
+                    </button>
+                    <button
+                      onClick={() => moveProduct(index, "right")}
+                      disabled={index % 2 === 1 || index === products.length - 1}
+                      className={`p-1.5 rounded-md ${index % 2 === 1 || index === products.length - 1 ? "text-gray-600" : "hover:bg-[#333333] text-white"}`}
+                      title="Move Right"
+                    >
+                      <ArrowRight size={16} />
                     </button>
                   </div>
-                  <div className="p-4 flex justify-between">
-                    <div className="">
-                      <h3 className="text-lg font-medium mb-1 oxanium_font">{product.name}</h3>
-                      <p className="text-sm text-slate-200 mb-1 open_sans_font">{product.brand}</p>
-                      <p className="text-sm text-slate-400 mb-1 open_sans_font">Art. No: {product.articalNo}</p>
-                      <p className="text-lg font-bold text-gray-400 ">${product.price.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <div className="relative dropdown-container">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setOpenDropdownId(openDropdownId === product.id ? null : product.id)
-                          }}
-                          className="bg-black text-white rounded-xl py-1.5 px-3 border border-slate-600 text-sm cursor-pointer"
-                        >
-                          <MoreVertical size={16} />
-                        </button>
+                )}
+                <div className="relative">
+                  <img
+                    src={product.image || ProductImage}
+                    alt={product.name}
+                    className="object-cover h-full w-full rounded-2xl"
+                  />
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="absolute bottom-3 right-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
+                    aria-label="Add to cart"
+                  >
+                    <ShoppingBasket size={20} />
+                  </button>
+                </div>
+                <div className="p-4 flex justify-between">
+                  <div className="">
+                    <h3 className="text-lg font-medium mb-1 oxanium_font">{product.name}</h3>
+                    <p className="text-sm text-slate-200 mb-1 open_sans_font">{product.brand}</p>
+                    <p className="text-sm text-slate-400 mb-1 open_sans_font">Art. No: {product.articalNo}</p>
+                    <p className="text-lg font-bold text-gray-400 ">${product.price.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <div className="relative dropdown-container">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setOpenDropdownId(openDropdownId === product.id ? null : product.id)
+                        }}
+                        className="bg-black text-white rounded-xl py-1.5 px-3 border border-slate-600 text-sm cursor-pointer"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
 
-                        {openDropdownId === product.id && (
-                          <div className="absolute right-0 mt-2 w-36 bg-[#101010] rounded-xl shadow-lg z-10 border border-[#333333] overflow-hidden">
-                            <button
-                              onClick={() => {
-                                openEditModal(product)
-                                setOpenDropdownId(null)
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-[#181818] transition-colors"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                openDeleteModal(product)
-                                setOpenDropdownId(null)
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#181818] transition-colors"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      {openDropdownId === product.id && (
+                        <div className="absolute right-0 mt-2 w-36 bg-[#101010] rounded-xl shadow-lg z-10 border border-[#333333] overflow-hidden">
+                          <button
+                            onClick={() => {
+                              openEditModal(product)
+                              setOpenDropdownId(null)
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-[#181818] transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              openDeleteModal(product)
+                              setOpenDropdownId(null)
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#181818] transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         </div>
       </main>
