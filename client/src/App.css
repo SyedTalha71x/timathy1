@@ -272,9 +272,20 @@ html, body {
 .white-text .ant-select-selection-item,
 .white-text .ant-select-selection-placeholder,
 .white-text .ant-input-password input,
-.white-text .ant-picker-input input {
+.white-text .ant-picker-input input,
+.white-text .ant-input-number,
+.white-text .ant-input-number-input-wrap {
   color: white !important;
   background-color: #101010 !important;
+}
+
+.white-text .ant-input-number-handler-wrap {
+  background-color: #101010 !important;
+}
+
+.white-text .ant-input-number:hover,
+.white-text .ant-input-number:focus {
+  border-color: #ffffff !important;
 }
 
 .white-text .ant-input-password-icon,
@@ -288,6 +299,8 @@ html, body {
 .white-text .ant-select-selection-placeholder {
   color: rgba(255, 255, 255, 0.6) !important;
 }
+
+
 
 
 /* Custom scrollbar styles */

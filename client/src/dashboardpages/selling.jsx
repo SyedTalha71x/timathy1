@@ -17,10 +17,11 @@ import {
   ArrowRight,
   Edit,
   Check,
+  Move,
 } from "lucide-react"
 import ProductImage from "../../public/1_55ce827a-2b63-4b1d-aa55-2c2b6dc6c96e.webp"
-
 import MenJordanShows from "../../public/jd_product_list.webp"
+
 function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -46,6 +47,11 @@ function App() {
   const [discount, setDiscount] = useState(0)
   const [selectedVat, setSelectedVat] = useState(19)
   const [selectedMember, setSelectedMember] = useState("")
+
+  // Drag and drop state
+  const [draggedProduct, setDraggedProduct] = useState(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   // Members list (example)
   const members = [
@@ -316,6 +322,54 @@ function App() {
     }
   }
 
+  // Drag and drop handlers
+  const handleDragStart = (e, product, index) => {
+    if (!isEditModeActive) return
+
+    setDraggedProduct({ product, index })
+    setIsDragging(true)
+
+    // Set a ghost drag image
+    const ghostElement = document.createElement("div")
+    ghostElement.classList.add("ghost-drag")
+    ghostElement.innerHTML = `<div class="p-2 bg-[#3F74FF] text-white rounded-lg">${product.name}</div>`
+    document.body.appendChild(ghostElement)
+    ghostElement.style.position = "absolute"
+    ghostElement.style.top = "-1000px"
+    e.dataTransfer.setDragImage(ghostElement, 0, 0)
+
+    // Clean up the ghost element after drag starts
+    setTimeout(() => {
+      document.body.removeChild(ghostElement)
+    }, 0)
+  }
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault()
+    if (!isEditModeActive || draggedProduct === null) return
+
+    setDragOverIndex(index)
+  }
+
+  const handleDragEnd = () => {
+    if (!isEditModeActive || draggedProduct === null || dragOverIndex === null) {
+      setIsDragging(false)
+      setDraggedProduct(null)
+      setDragOverIndex(null)
+      return
+    }
+
+    // Reorder the products
+    const newProducts = [...products]
+    const [removed] = newProducts.splice(draggedProduct.index, 1)
+    newProducts.splice(dragOverIndex, 0, removed)
+
+    setProducts(newProducts)
+    setIsDragging(false)
+    setDraggedProduct(null)
+    setDragOverIndex(null)
+  }
+
   useEffect(() => {
     const handleResize = () => {
       // Force a re-render when window size changes to update grid calculations
@@ -553,11 +607,31 @@ function App() {
                 isEditModeActive
                   ? "bg-red-500 hover:bg-red-700 text-white"
                   : "bg-[#333333] hover:bg-[#555555] text-gray-300"
-              } transition-colors`}
+              } transition-colors flex items-center gap-2`}
             >
-              {isEditModeActive ? <Check size={20} /> : <Edit size={20} />}
+              {isEditModeActive ? (
+                <>
+                  <Check size={16} />
+                  <span className="hidden sm:inline">Done</span>
+                </>
+              ) : (
+                <>
+                  <Edit size={16} />
+                  <span className="hidden sm:inline">Edit Layout</span>
+                </>
+              )}
             </button>
           </div>
+
+          {isEditModeActive && (
+            <div className="bg-[#101010] p-3 rounded-xl mb-4 text-sm text-gray-300">
+              <div className="flex items-center gap-2 mb-2">
+                <Move size={16} className="text-[#3F74FF]" />
+                <span>Drag and drop products to rearrange them</span>
+              </div>
+              <p>You can also use the arrow buttons to move products in specific directions</p>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
             {sortProducts(
@@ -570,56 +644,72 @@ function App() {
               sortBy,
               sortDirection,
             ).map((product, index) => (
-              <div key={product.id} className="w-full bg-[#181818] p-6 rounded-2xl overflow-hidden relative">
+              <div
+                key={product.id}
+                className={`w-full bg-[#181818] p-6 rounded-2xl overflow-hidden relative ${
+                  isEditModeActive ? "cursor-move" : ""
+                } ${isDragging && draggedProduct?.index === index ? "opacity-50" : ""} ${
+                  isDragging && dragOverIndex === index ? "border-2 border-[#3F74FF]" : ""
+                }`}
+                draggable={isEditModeActive}
+                onDragStart={(e) => handleDragStart(e, product, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+              >
                 {isEditModeActive && (
                   <div className="absolute top-2 left-2 z-10 bg-black/70 rounded-lg p-1 flex flex-col gap-1">
                     <button
                       onClick={() => moveProduct(index, "up")}
-                      disabled={index === 0}
-                      className={`p-1.5 rounded-md ${index === 0 ? "text-gray-600" : "hover:bg-[#333333] text-white"}`}
+                      className="p-1.5 rounded-md hover:bg-[#333333] text-white"
                       title="Move Up"
                     >
                       <ArrowUp size={16} />
                     </button>
                     <button
                       onClick={() => moveProduct(index, "down")}
-                      disabled={index === products.length - 1}
-                      className={`p-1.5 rounded-md ${index === products.length - 1 ? "text-gray-600" : "hover:bg-[#333333] text-white"}`}
+                      className="p-1.5 rounded-md hover:bg-[#333333] text-white"
                       title="Move Down"
                     >
                       <ArrowDown size={16} />
                     </button>
                     <button
                       onClick={() => moveProduct(index, "left")}
-                      disabled={index % 2 === 0}
-                      className={`p-1.5 rounded-md ${index % 2 === 0 ? "text-gray-600" : "hover:bg-[#333333] text-white"}`}
+                      className="p-1.5 rounded-md hover:bg-[#333333] text-white"
                       title="Move Left"
                     >
                       <ArrowLeft size={16} />
                     </button>
                     <button
                       onClick={() => moveProduct(index, "right")}
-                      disabled={index % 2 === 1 || index === products.length - 1}
-                      className={`p-1.5 rounded-md ${index % 2 === 1 || index === products.length - 1 ? "text-gray-600" : "hover:bg-[#333333] text-white"}`}
+                      className="p-1.5 rounded-md hover:bg-[#333333] text-white"
                       title="Move Right"
                     >
                       <ArrowRight size={16} />
                     </button>
                   </div>
                 )}
+
+                {isEditModeActive && (
+                  <div className="absolute top-2 right-2 z-10 bg-[#3F74FF] text-white rounded-full p-1.5">
+                    <Move size={16} />
+                  </div>
+                )}
+
                 <div className="relative">
                   <img
                     src={product.image || ProductImage}
                     alt={product.name}
                     className="object-cover h-full w-full rounded-2xl"
                   />
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="absolute bottom-3 right-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
-                    aria-label="Add to cart"
-                  >
-                    <ShoppingBasket size={20} />
-                  </button>
+                  {!isEditModeActive && (
+                    <button
+                      onClick={() => addToCart(product)}
+                      className="absolute bottom-3 right-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
+                      aria-label="Add to cart"
+                    >
+                      <ShoppingBasket size={20} />
+                    </button>
+                  )}
                 </div>
                 <div className="p-4 flex justify-between">
                   <div className="">
@@ -628,42 +718,44 @@ function App() {
                     <p className="text-sm text-slate-400 mb-1 open_sans_font">Art. No: {product.articalNo}</p>
                     <p className="text-lg font-bold text-gray-400 ">${product.price.toFixed(2)}</p>
                   </div>
-                  <div>
-                    <div className="relative dropdown-container">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setOpenDropdownId(openDropdownId === product.id ? null : product.id)
-                        }}
-                        className="bg-black text-white rounded-xl py-1.5 px-3 border border-slate-600 text-sm cursor-pointer"
-                      >
-                        <MoreVertical size={16} />
-                      </button>
+                  {!isEditModeActive && (
+                    <div>
+                      <div className="relative dropdown-container">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setOpenDropdownId(openDropdownId === product.id ? null : product.id)
+                          }}
+                          className="bg-black text-white rounded-xl py-1.5 px-3 border border-slate-600 text-sm cursor-pointer"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
 
-                      {openDropdownId === product.id && (
-                        <div className="absolute right-0 mt-2 w-36 bg-[#101010] rounded-xl shadow-lg z-10 border border-[#333333] overflow-hidden">
-                          <button
-                            onClick={() => {
-                              openEditModal(product)
-                              setOpenDropdownId(null)
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-[#181818] transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => {
-                              openDeleteModal(product)
-                              setOpenDropdownId(null)
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#181818] transition-colors"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      )}
+                        {openDropdownId === product.id && (
+                          <div className="absolute right-0 mt-2 w-36 bg-[#101010] rounded-xl shadow-lg z-10 border border-[#333333] overflow-hidden">
+                            <button
+                              onClick={() => {
+                                openEditModal(product)
+                                setOpenDropdownId(null)
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-[#181818] transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                openDeleteModal(product)
+                                setOpenDropdownId(null)
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#181818] transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             ))}

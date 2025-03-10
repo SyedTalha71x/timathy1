@@ -28,12 +28,12 @@ const img1 = "/Rectangle 1.png"
 const img2 = "/avatar3.png"
 
 export default function Communications() {
-  const [isMessagesOpen, setIsMessagesOpen] = useState(false)
+  const [isMessagesOpen, setIsMessagesOpen] = useState(true)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [showChatDropdown, setShowChatDropdown] = useState(false)
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [chatType, setChatType] = useState("employee")
+  const [chatType, setChatType] = useState("member")
   const [activeScreen, setActiveScreen] = useState("chat")
   const [selectedMembers, setSelectedMembers] = useState([])
   const [messageText, setMessageText] = useState("")
@@ -45,8 +45,6 @@ export default function Communications() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showMediaUpload, setShowMediaUpload] = useState(false)
   const [chatList, setChatList] = useState([])
-  const [broadcastMessage, setBroadcastMessage] = useState("")
-  const [broadcastTitle, setBroadcastTitle] = useState("")
   const [searchMember, setSearchMember] = useState("")
   const [preConfiguredMessages, setPreConfiguredMessages] = useState([
     { id: 1, title: "Meeting Reminder", message: "This is a reminder about our upcoming meeting." },

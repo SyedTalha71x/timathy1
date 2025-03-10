@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
@@ -13,7 +15,6 @@ import {
   Switch,
   InputNumber,
   Tabs,
-  Divider,
   DatePicker,
   Collapse,
   Alert,
@@ -144,7 +145,7 @@ const ConfigurationPage = () => {
   const [noticePeriod, setNoticePeriod] = useState(30)
   const [extensionPeriod, setExtensionPeriod] = useState(12)
   const [additionalDocs, setAdditionalDocs] = useState([])
-  const [holidaysDialogVisible, setHolidaysDialogVisible] = useState(false);
+  const [holidaysDialogVisible, setHolidaysDialogVisible] = useState(false)
   const [birthdayMessage, setBirthdayMessage] = useState({
     enabled: false,
     message: "Happy Birthday! 🎉 Best wishes from {studio_name}",
@@ -238,11 +239,11 @@ const ConfigurationPage = () => {
       })
       return
     }
-  
+
     // Filter out holidays that are already in closing days
     const existingDates = closingDays.map((day) => day.date?.format("YYYY-MM-DD"))
     const newHolidays = holidaysToProcess.filter((holiday) => !existingDates.includes(holiday.date))
-  
+
     if (newHolidays.length === 0) {
       notification.info({
         message: "No New Holidays",
@@ -250,15 +251,15 @@ const ConfigurationPage = () => {
       })
       return
     }
-  
+
     // Add new holidays to closing days - using dayjs directly instead of DatePicker.dayjs
     const holidaysToAdd = newHolidays.map((holiday) => ({
       date: holiday.date ? dayjs(holiday.date) : null,
       description: holiday.name,
     }))
-  
+
     setClosingDays([...closingDays, ...holidaysToAdd])
-  
+
     notification.success({
       message: "Holidays Added",
       description: `Added ${holidaysToAdd.length} public holidays to closing days.`,
@@ -395,110 +396,111 @@ const ConfigurationPage = () => {
 
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="Studio Data" key="1">
-          <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6">
-            <Form layout="vertical" className="space-y-4">
-              <Form.Item label={<span className="text-white">Studio Name</span>} required>
-                <Input
-                  value={studioName}
-                  onChange={(e) => setStudioName(e.target.value)}
-                  placeholder="Enter studio name"
-                  style={inputStyle}
-                />
-              </Form.Item>
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Studio Information" key="1" className="bg-[#202020]">
+              <Form layout="vertical" className="space-y-4">
+                <Form.Item label={<span className="text-white">Studio Name</span>} required>
+                  <Input
+                    value={studioName}
+                    onChange={(e) => setStudioName(e.target.value)}
+                    placeholder="Enter studio name"
+                    style={inputStyle}
+                  />
+                </Form.Item>
 
-              <Form.Item label={<span className="text-white">Studio Operator</span>}>
-                <Input
-                  value={studioOperator}
-                  onChange={(e) => setStudioOperator(e.target.value)}
-                  placeholder="Enter studio operator name"
-                  style={inputStyle}
-                />
-              </Form.Item>
+                <Form.Item label={<span className="text-white">Studio Operator</span>}>
+                  <Input
+                    value={studioOperator}
+                    onChange={(e) => setStudioOperator(e.target.value)}
+                    placeholder="Enter studio operator name"
+                    style={inputStyle}
+                  />
+                </Form.Item>
 
-              <Form.Item label={<span className="text-white">Phone No</span>} required>
-                <Input
-                  value={studioPhoneNo}
-                  onChange={(e) => setStudioPhoneNo(e.target.value)}
-                  placeholder="Enter phone no"
-                  style={inputStyle}
-                />
-              </Form.Item>
+                <Form.Item label={<span className="text-white">Phone No</span>} required>
+                  <Input
+                    value={studioPhoneNo}
+                    onChange={(e) => setStudioPhoneNo(e.target.value)}
+                    placeholder="Enter phone no"
+                    style={inputStyle}
+                  />
+                </Form.Item>
 
-              <Form.Item label={<span className="text-white">Email</span>} required>
-                <Input
-                  value={studioEmail}
-                  onChange={(e) => setStudioEmail(e.target.value)}
-                  placeholder="Enter email"
-                  style={inputStyle}
-                />
-              </Form.Item>
+                <Form.Item label={<span className="text-white">Email</span>} required>
+                  <Input
+                    value={studioEmail}
+                    onChange={(e) => setStudioEmail(e.target.value)}
+                    placeholder="Enter email"
+                    style={inputStyle}
+                  />
+                </Form.Item>
 
-              <Form.Item label={<span className="text-white">Street (with number)</span>} required>
-                <Input
-                  value={studioStreet}
-                  onChange={(e) => setStudioStreet(e.target.value)}
-                  placeholder="Enter street and number"
-                  style={inputStyle}
-                />
-              </Form.Item>
+                <Form.Item label={<span className="text-white">Street (with number)</span>} required>
+                  <Input
+                    value={studioStreet}
+                    onChange={(e) => setStudioStreet(e.target.value)}
+                    placeholder="Enter street and number"
+                    style={inputStyle}
+                  />
+                </Form.Item>
 
-              <Form.Item label={<span className="text-white">ZIP Code</span>} required>
-                <Input
-                  value={studioZipCode}
-                  onChange={(e) => setStudioZipCode(e.target.value)}
-                  placeholder="Enter ZIP code"
-                  style={inputStyle}
-                />
-              </Form.Item>
+                <Form.Item label={<span className="text-white">ZIP Code</span>} required>
+                  <Input
+                    value={studioZipCode}
+                    onChange={(e) => setStudioZipCode(e.target.value)}
+                    placeholder="Enter ZIP code"
+                    style={inputStyle}
+                  />
+                </Form.Item>
 
-              <Form.Item label={<span className="text-white">City</span>} required>
-                <Input
-                  value={studioCity}
-                  onChange={(e) => setStudioCity(e.target.value)}
-                  placeholder="Enter city"
-                  style={inputStyle}
-                />
-              </Form.Item>
+                <Form.Item label={<span className="text-white">City</span>} required>
+                  <Input
+                    value={studioCity}
+                    onChange={(e) => setStudioCity(e.target.value)}
+                    placeholder="Enter city"
+                    style={inputStyle}
+                  />
+                </Form.Item>
 
-              <Form.Item
-                label={<span className="text-white">Country</span>}
-                required
-                tooltip="Selecting a country will allow you to import public holidays"
-              >
-                <Select
-                  value={studioCountry}
-                  onChange={(value) => setStudioCountry(value)}
-                  placeholder="Select country"
-                  style={selectStyle}
+                <Form.Item
+                  label={<span className="text-white">Country</span>}
+                  required
+                  tooltip="Selecting a country will allow you to import public holidays"
                 >
-                  {countries.map((country) => (
-                    <Option key={country.code} value={country.code}>
-                      {country.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
+                  <Select
+                    value={studioCountry}
+                    onChange={(value) => setStudioCountry(value)}
+                    placeholder="Select country"
+                    style={selectStyle}
+                  >
+                    {countries.map((country) => (
+                      <Option key={country.code} value={country.code}>
+                        {country.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
 
-              <Form.Item label={<span className="text-white">Studio Website</span>}>
-                <Input
-                  value={studioWebsite}
-                  onChange={(e) => setStudioWebsite(e.target.value)}
-                  placeholder="Enter studio website URL"
-                  style={inputStyle}
-                />
-              </Form.Item>
+                <Form.Item label={<span className="text-white">Studio Website</span>}>
+                  <Input
+                    value={studioWebsite}
+                    onChange={(e) => setStudioWebsite(e.target.value)}
+                    placeholder="Enter studio website URL"
+                    style={inputStyle}
+                  />
+                </Form.Item>
 
-              <Form.Item label={<span className="text-white">Studio Logo</span>}>
-                <Upload accept="image/*" maxCount={1} onChange={handleLogoUpload} fileList={logo}>
-                  <Button icon={<UploadOutlined />} style={buttonStyle}>
-                    Upload Logo
-                  </Button>
-                </Upload>
-              </Form.Item>
-            </Form>
+                <Form.Item label={<span className="text-white">Studio Logo</span>}>
+                  <Upload accept="image/*" maxCount={1} onChange={handleLogoUpload} fileList={logo}>
+                    <Button icon={<UploadOutlined />} style={buttonStyle}>
+                      Upload Logo
+                    </Button>
+                  </Upload>
+                </Form.Item>
+              </Form>
+            </Panel>
 
-            {/* Opening Hours Section */}
-            <Form.Item label={<span className="text-white">Opening Hours</span>}>
+            <Panel header="Opening Hours" key="2" className="bg-[#202020]">
               <div className="space-y-4">
                 {openingHours.map((hour, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
@@ -564,9 +566,9 @@ const ConfigurationPage = () => {
                   Add Opening Hour
                 </Button>
               </div>
-            </Form.Item>
+            </Panel>
 
-            <Form.Item label={<span className="text-white">Closing Days</span>}>
+            <Panel header="Closing Days" key="3" className="bg-[#202020]">
               <div className="space-y-4">
                 {studioCountry && (
                   <div className="mb-4">
@@ -596,7 +598,7 @@ const ConfigurationPage = () => {
                 )}
 
                 {closingDays.map((day, index) => (
-                  <div key={index} className="flex  flex-wrap gap-4 items-center">
+                  <div key={index} className="flex flex-wrap gap-4 items-center">
                     <DatePicker
                       placeholder="Select date"
                       value={day.date}
@@ -640,79 +642,84 @@ const ConfigurationPage = () => {
                   Add Closing Day
                 </Button>
               </div>
-            </Form.Item>
-          </div>
+            </Panel>
+          </Collapse>
         </TabPane>
 
         <TabPane tab="Resources" key="2">
-          <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6 white-text">
-            <div className="space-y-4">
-              <Form.Item label={<span className="text-white">Default Maximum Capacity</span>}>
-                <InputNumber
-                  min={0}
-                  max={100}
-                  value={maxCapacity}
-                  onChange={(value) => setMaxCapacity(value || 0)}
-                  style={inputStyle}
-                />
-              </Form.Item>
-            </div>
-
-            <Divider className="border-[#303030]" />
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Trial Training</h3>
-              <Form layout="vertical">
-                <Form.Item label={<span className="text-white">Name</span>}>
-                  <Input
-                    value={trialTraining.name}
-                    onChange={(e) =>
-                      setTrialTraining({
-                        ...trialTraining,
-                        name: e.target.value,
-                      })
-                    }
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Duration (minutes)</span>}>
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Capacity Settings" key="1" className="bg-[#202020] white-text">
+              <div className="space-y-4">
+                <Form.Item label={<span className="text-white">Default Maximum Capacity</span>}>
                   <InputNumber
-                    value={trialTraining.duration}
-                    onChange={(value) =>
-                      setTrialTraining({
-                        ...trialTraining,
-                        duration: value || 60,
-                      })
-                    }
+                    min={0}
+                    max={100}
+                    value={maxCapacity}
+                    onChange={(value) => setMaxCapacity(value || 0)}
                     style={inputStyle}
                   />
                 </Form.Item>
-                <Form.Item label={<span className="text-white">Capacity</span>}>
-                  <InputNumber
-                    value={trialTraining.capacity}
-                    onChange={(value) =>
-                      setTrialTraining({
-                        ...trialTraining,
-                        capacity: value || 1,
-                      })
-                    }
-                    max={maxCapacity}
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Color</span>}>
-                  <ColorPicker
-                    value={trialTraining.color}
-                    onChange={(color) => setTrialTraining({ ...trialTraining, color })}
-                  />
-                </Form.Item>
-              </Form>
-            </div>
+              </div>
+            </Panel>
 
-            <Divider className="border-[#303030]" />
+            <Panel header="Trial Training" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Name</span>}>
+                    <Input
+                      value={trialTraining.name}
+                      onChange={(e) =>
+                        setTrialTraining({
+                          ...trialTraining,
+                          name: e.target.value,
+                        })
+                      }
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white white-text">Duration (minutes)</span>}>
+                  <div className="white-text">
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Lead Prospect Categories</h3>
+                    <InputNumber
+                      value={trialTraining.duration}
+                      onChange={(value) =>
+                        setTrialTraining({
+                          ...trialTraining,
+                          duration: value || 60,
+                        })
+                      }
+                      style={inputStyle}
+                      />
+                      </div>
+                  </Form.Item>
+
+                  <Form.Item label={<span className="white-text">Capacity</span>}>
+                  <div className="white-text">
+
+                    <InputNumber
+                      value={trialTraining.capacity}
+                      onChange={(value) =>
+                        setTrialTraining({
+                          ...trialTraining,
+                          capacity: value || 1,
+                        })
+                      }
+                      max={maxCapacity}
+                      style={inputStyle}
+                      />
+                      </div>
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Color</span>}>
+                    <ColorPicker
+                      value={trialTraining.color}
+                      onChange={(color) => setTrialTraining({ ...trialTraining, color })}
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+
+            <Panel header="Lead Prospect Categories" key="3" className="bg-[#202020]">
               <div className="space-y-4">
                 {leadProspectCategories.map((category, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
@@ -759,12 +766,9 @@ const ConfigurationPage = () => {
                   Add Lead Prospect Category
                 </Button>
               </div>
-            </div>
+            </Panel>
 
-            <Divider className="border-[#303030]" />
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Roles</h3>
+            <Panel header="Roles" key="4" className="bg-[#202020]">
               <div className="space-y-4">
                 {roles.map((role, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
@@ -816,12 +820,9 @@ const ConfigurationPage = () => {
                   Add Role
                 </Button>
               </div>
-            </div>
+            </Panel>
 
-            <Divider className="border-[#303030]" />
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Appointment Types</h3>
+            <Panel header="Appointment Types" key="5" className="bg-[#202020]">
               <div className="space-y-4">
                 {appointmentTypes.map((type, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
@@ -829,21 +830,21 @@ const ConfigurationPage = () => {
                       placeholder="Appointment Type Name"
                       value={type.name}
                       onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
-                      className="w-full sm:w-64"
+                      className="w-full sm:w-64 white-text"
                       style={inputStyle}
                     />
                     <InputNumber
                       placeholder="Duration (minutes)"
                       value={type.duration}
                       onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
-                      className="w-full sm:w-32"
+                      className="w-full sm:w-32 white-text"
                       style={inputStyle}
                     />
                     <InputNumber
                       placeholder="Capacity (1-100)"
                       value={type.capacity}
                       onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
-                      className="w-full sm:w-32"
+                      className="w-full sm:w-32 white-text"
                       style={inputStyle}
                     />
                     <ColorPicker
@@ -854,7 +855,7 @@ const ConfigurationPage = () => {
                       placeholder="Interval (minutes)"
                       value={type.interval}
                       onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
-                      className="w-full sm:w-32"
+                      className="w-full sm:w-32 white-text"
                       style={inputStyle}
                     />
                     <Button
@@ -878,12 +879,9 @@ const ConfigurationPage = () => {
                   Add Appointment Type
                 </Button>
               </div>
-            </div>
+            </Panel>
 
-            <Divider className="border-[#303030]" />
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">TO-DO Tags</h3>
+            <Panel header="TO-DO Tags" key="6" className="bg-[#202020]">
               <div className="space-y-4">
                 {tags.map((tag, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
@@ -927,366 +925,380 @@ const ConfigurationPage = () => {
                   Add Tag
                 </Button>
               </div>
-            </div>
-          </div>
+            </Panel>
+          </Collapse>
         </TabPane>
 
         <TabPane tab="Contracts" key="3">
-          <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6 white-text">
-            <div className="space-y-4">
-              {contractTypes.map((type, index) => (
-                <div key={index} className="space-y-4 p-4 border border-[#303030] rounded-lg">
-                  <Form layout="vertical">
-                    <Form.Item label={<span className="text-white">Contract Name</span>}>
-                      <Input
-                        value={type.name}
-                        onChange={(e) => {
-                          const updated = [...contractTypes]
-                          updated[index].name = e.target.value
-                          setContractTypes(updated)
-                        }}
-                        style={inputStyle}
-                      />
-                    </Form.Item>
-                    <Form.Item label={<span className="text-white">Duration (months)</span>}>
-                      <InputNumber
-                        value={type.duration}
-                        onChange={(value) => {
-                          const updated = [...contractTypes]
-                          updated[index].duration = value || 0
-                          setContractTypes(updated)
-                        }}
-                        style={inputStyle}
-                      />
-                    </Form.Item>
-                    <Form.Item label={<span className="text-white">Cost</span>}>
-                      <InputNumber
-                        value={type.cost}
-                        onChange={(value) => {
-                          const updated = [...contractTypes]
-                          updated[index].cost = value || 0
-                          setContractTypes(updated)
-                        }}
-                        style={inputStyle}
-                        precision={2}
-                      />
-                    </Form.Item>
-                    <Form.Item label={<span className="text-white">Billing Period</span>}>
-                      <Select
-                        value={type.billingPeriod}
-                        onChange={(value) => {
-                          const updated = [...contractTypes]
-                          updated[index].billingPeriod = value
-                          setContractTypes(updated)
-                        }}
-                        style={selectStyle}
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Contract Types" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                {contractTypes.map((type, index) => (
+                  <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
+                    <Panel header={type.name || "New Contract Type"} key="1" className="bg-[#252525]">
+                      <Form layout="vertical">
+                        <Form.Item label={<span className="text-white">Contract Name</span>}>
+                          <Input
+                            value={type.name}
+                            onChange={(e) => {
+                              const updated = [...contractTypes]
+                              updated[index].name = e.target.value
+                              setContractTypes(updated)
+                            }}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white white-text">Duration (months)</span>}>
+                        <div className="white-text">
+
+                          <InputNumber
+                            value={type.duration}
+                            onChange={(value) => {
+                              const updated = [...contractTypes]
+                              updated[index].duration = value || 0
+                              setContractTypes(updated)
+                            }}
+                            style={inputStyle}
+                            />
+                            </div>
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white white-text">Cost</span>}>
+                        <div className="white-text">
+
+                          <InputNumber
+                            value={type.cost}
+                            onChange={(value) => {
+                              const updated = [...contractTypes]
+                              updated[index].cost = value || 0
+                              setContractTypes(updated)
+                            }}
+                            style={inputStyle}
+                            precision={2}
+                            />
+                            </div>
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Billing Period</span>}>
+                          <Select
+                            value={type.billingPeriod}
+                            onChange={(value) => {
+                              const updated = [...contractTypes]
+                              updated[index].billingPeriod = value
+                              setContractTypes(updated)
+                            }}
+                            style={selectStyle}
+                          >
+                            <Option value="weekly">Weekly</Option>
+                            <Option value="monthly">Monthly</Option>
+                            <Option value="annually">Annually</Option>
+                          </Select>
+                        </Form.Item>
+                      </Form>
+                      <Button
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => setContractTypes(contractTypes.filter((_, i) => i !== index))}
+                        style={buttonStyle}
                       >
-                        <Option value="weekly">Weekly</Option>
-                        <Option value="monthly">Monthly</Option>
-                        <Option value="annually">Annually</Option>
-                      </Select>
-                    </Form.Item>
-                  </Form>
-                  <Button
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => setContractTypes(contractTypes.filter((_, i) => i !== index))}
-                    style={buttonStyle}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-              <Button type="dashed" onClick={handleAddContractType} icon={<PlusOutlined />} style={buttonStyle}>
-                Add Contract Type
-              </Button>
-            </div>
-
-            <Divider className="border-[#303030]" />
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Contract Sections</h3>
-              {contractSections.map((section, index) => (
-                <div key={index} className="space-y-4 p-4 border border-[#303030] rounded-lg">
-                  <Form layout="vertical">
-                    <Form.Item label={<span className="text-white">Section Title</span>}>
-                      <Input
-                        value={section.title}
-                        onChange={(e) => {
-                          const updated = [...contractSections]
-                          updated[index].title = e.target.value
-                          setContractSections(updated)
-                        }}
-                        style={inputStyle}
-                      />
-                    </Form.Item>
-                    <Form.Item label={<span className="text-white">Content</span>}>
-                      <TextArea
-                        value={section.content}
-                        onChange={(e) => {
-                          const updated = [...contractSections]
-                          updated[index].content = e.target.value
-                          setContractSections(updated)
-                        }}
-                        rows={4}
-                        style={inputStyle}
-                      />
-                    </Form.Item>
-                    <Form.Item label={<span className="text-white">Signature needed</span>}>
-                      <Switch
-                        checked={section.editable}
-                        onChange={(checked) => {
-                          const updated = [...contractSections]
-                          updated[index].editable = checked
-                          setContractSections(updated)
-                        }}
-                      />
-                    </Form.Item>
-                  </Form>
-                  <Button
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => setContractSections(contractSections.filter((_, i) => i !== index))}
-                    style={buttonStyle}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-              <Button type="dashed" onClick={handleAddContractSection} icon={<PlusOutlined />} style={buttonStyle}>
-                Add Contract Section
-              </Button>
-            </div>
-
-            <Divider className="border-[#303030]" />
-
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Additional Documents</h3>
-                <Button onClick={handleViewBlankContract} style={buttonStyle}>
-                  View Blank Contract
+                        Remove
+                      </Button>
+                    </Panel>
+                  </Collapse>
+                ))}
+                <Button type="dashed" onClick={handleAddContractType} icon={<PlusOutlined />} style={buttonStyle}>
+                  Add Contract Type
                 </Button>
               </div>
-              <Upload
-                accept=".pdf"
-                multiple
-                onChange={({ fileList }) => setAdditionalDocs(fileList)}
-                fileList={additionalDocs}
-              >
-                <Button icon={<UploadOutlined />} style={buttonStyle}>
-                  Upload PDF Documents
+            </Panel>
+
+            <Panel header="Contract Sections" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                {contractSections.map((section, index) => (
+                  <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
+                    <Panel header={section.title || "New Section"} key="1" className="bg-[#252525]">
+                      <Form layout="vertical">
+                        <Form.Item label={<span className="text-white">Section Title</span>}>
+                          <Input
+                            value={section.title}
+                            onChange={(e) => {
+                              const updated = [...contractSections]
+                              updated[index].title = e.target.value
+                              setContractSections(updated)
+                            }}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Content</span>}>
+                          <TextArea
+                            value={section.content}
+                            onChange={(e) => {
+                              const updated = [...contractSections]
+                              updated[index].content = e.target.value
+                              setContractSections(updated)
+                            }}
+                            rows={4}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Signature needed</span>}>
+                          <Switch
+                            checked={section.editable}
+                            onChange={(checked) => {
+                              const updated = [...contractSections]
+                              updated[index].editable = checked
+                              setContractSections(updated)
+                            }}
+                          />
+                        </Form.Item>
+                      </Form>
+                      <Button
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => setContractSections(contractSections.filter((_, i) => i !== index))}
+                        style={buttonStyle}
+                      >
+                        Remove
+                      </Button>
+                    </Panel>
+                  </Collapse>
+                ))}
+                <Button type="dashed" onClick={handleAddContractSection} icon={<PlusOutlined />} style={buttonStyle}>
+                  Add Contract Section
                 </Button>
-              </Upload>
-            </div>
-          </div>
+              </div>
+            </Panel>
+
+            <Panel header="Additional Documents" key="3" className="bg-[#202020]">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg text-white font-medium">Additional Documents</h3>
+                  <Button onClick={handleViewBlankContract} style={buttonStyle}>
+                    View Blank Contract
+                  </Button>
+                </div>
+                <Upload
+                  accept=".pdf"
+                  multiple
+                  onChange={({ fileList }) => setAdditionalDocs(fileList)}
+                  fileList={additionalDocs}
+                >
+                  <Button icon={<UploadOutlined />} style={buttonStyle}>
+                    Upload PDF Documents
+                  </Button>
+                </Upload>
+              </div>
+            </Panel>
+          </Collapse>
         </TabPane>
 
         <TabPane tab="Communication" key="4">
-          <div className="bg-[#181818] white-text rounded-lg border border-[#303030] p-6 space-y-6">
-            <div className="space-y-4">
-              <Form layout="vertical">
-                <Form.Item label={<span className="text-white">SMTP Server</span>}>
-                  <Input
-                    value={emailConfig.smtpServer}
-                    onChange={(e) =>
-                      setEmailConfig({
-                        ...emailConfig,
-                        smtpServer: e.target.value,
-                      })
-                    }
-                    style={inputStyle}
-                    placeholder="smtp.example.com"
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">SMTP Port</span>}>
-                  <InputNumber
-                    value={emailConfig.smtpPort}
-                    onChange={(value) =>
-                      setEmailConfig({
-                        ...emailConfig,
-                        smtpPort: value || 587,
-                      })
-                    }
-                    style={inputStyle}
-                    placeholder="587"
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Email Address</span>}>
-                  <Input
-                    value={emailConfig.emailAddress}
-                    onChange={(e) =>
-                      setEmailConfig({
-                        ...emailConfig,
-                        emailAddress: e.target.value,
-                      })
-                    }
-                    style={inputStyle}
-                    placeholder="studio@example.com"
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white white-text">Password</span>}>
-                  <Input.Password
-                    value={emailConfig.password}
-                    onChange={(e) =>
-                      setEmailConfig({
-                        ...emailConfig,
-                        password: e.target.value,
-                      })
-                    }
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Use SSL/TLS</span>}>
-                  <Switch
-                    checked={emailConfig.useSSL}
-                    onChange={(checked) =>
-                      setEmailConfig({
-                        ...emailConfig,
-                        useSSL: checked,
-                      })
-                    }
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Default Sender Name</span>}>
-                  <Input
-                    value={emailConfig.senderName}
-                    onChange={(e) =>
-                      setEmailConfig({
-                        ...emailConfig,
-                        senderName: e.target.value,
-                      })
-                    }
-                    style={inputStyle}
-                    placeholder="Your Studio Name"
-                  />
-                </Form.Item>
-                <Button type="primary" style={buttonStyle} onClick={testEmailConnection}>
-                  Test Connection
-                </Button>
-              </Form>
-            </div>
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Email Configuration" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white white-text">SMTP Server</span>}>
+                    <Input
+                      value={emailConfig.smtpServer}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          smtpServer: e.target.value,
+                        })
+                      }
+                      className="white-text"
+                      style={inputStyle}
+                      placeholder="smtp.example.com"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white white-text">SMTP Port</span>}>
+                  <div className="white-text">
 
-            <Divider className="border-[#303030]" />
+                    <InputNumber
+                      value={emailConfig.smtpPort}
+                      onChange={(value) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          smtpPort: value || 587,
+                        })
+                      }
+                      style={inputStyle}
+                      placeholder="587"
+                      />
+                      </div>
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Email Address</span>}>
+                    <Input
+                      value={emailConfig.emailAddress}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          emailAddress: e.target.value,
+                        })
+                      }
+                      style={inputStyle}
+                      placeholder="studio@example.com"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white white-text">Password</span>}>
+                    <Input.Password
+                      value={emailConfig.password}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          password: e.target.value,
+                        })
+                      }
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Use SSL/TLS</span>}>
+                    <Switch
+                      checked={emailConfig.useSSL}
+                      onChange={(checked) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          useSSL: checked,
+                        })
+                      }
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Default Sender Name</span>}>
+                    <Input
+                      value={emailConfig.senderName}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          senderName: e.target.value,
+                        })
+                      }
+                      style={inputStyle}
+                      placeholder="Your Studio Name"
+                    />
+                  </Form.Item>
+                  <Button type="primary" style={buttonStyle} onClick={testEmailConnection}>
+                    Test Connection
+                  </Button>
+                </Form>
+              </div>
+            </Panel>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Birthday Messages</h3>
-              <Form layout="vertical">
-                <Form.Item label={<span className="text-white">Enable Birthday Messages</span>}>
-                  <Switch
-                    checked={birthdayMessage.enabled}
-                    onChange={(checked) =>
-                      setBirthdayMessage({
-                        ...birthdayMessage,
-                        enabled: checked,
-                      })
-                    }
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Message Template</span>}>
-                  <TextArea
-                    value={birthdayMessage.message}
-                    onChange={(e) =>
-                      setBirthdayMessage({
-                        ...birthdayMessage,
-                        message: e.target.value,
-                      })
-                    }
-                    rows={4}
-                    style={inputStyle}
-                    placeholder="Use {studio_name} as a placeholder for your studio name"
-                  />
-                </Form.Item>
-              </Form>
-            </div>
+            <Panel header="Birthday Messages" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Enable Birthday Messages</span>}>
+                    <Switch
+                      checked={birthdayMessage.enabled}
+                      onChange={(checked) =>
+                        setBirthdayMessage({
+                          ...birthdayMessage,
+                          enabled: checked,
+                        })
+                      }
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Message Template</span>}>
+                    <TextArea
+                      value={birthdayMessage.message}
+                      onChange={(e) =>
+                        setBirthdayMessage({
+                          ...birthdayMessage,
+                          message: e.target.value,
+                        })
+                      }
+                      rows={4}
+                      style={inputStyle}
+                      placeholder="Use {studio_name} as a placeholder for your studio name"
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
 
-            <Divider className="border-[#303030]" />
-
-            <div className="space-y-3">
-              <h3 className="text-lg font-medium">Broadcast Messages</h3>
-              <Form layout="vertical">
-                <Form.Item label={<span className="text-white">Title</span>}>
-                  <Input
-                    value={broadcastMessage.title}
-                    onChange={(e) => {
-                      setbroadcastMessage({
-                        ...broadcastMessage,
-                        title: e.target.value,
-                      })
-                    }}
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Message</span>}>
-                  <TextArea
-                    value={broadcastMessage.message}
-                    onChange={(e) => {
-                      setbroadcastMessage({
-                        ...broadcastMessage,
-                        message: e.target.value,
-                      })
-                    }}
-                    rows={4}
-                    style={inputStyle}
-                  />
-                </Form.Item>
-              </Form>
-            </div>
-          </div>
+            <Panel header="Broadcast Messages" key="3" className="bg-[#202020]">
+              <div className="space-y-3">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Title</span>}>
+                    <Input
+                      value={broadcastMessage.title}
+                      onChange={(e) => {
+                        setbroadcastMessage({
+                          ...broadcastMessage,
+                          title: e.target.value,
+                        })
+                      }}
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Message</span>}>
+                    <TextArea
+                      value={broadcastMessage.message}
+                      onChange={(e) => {
+                        setbroadcastMessage({
+                          ...broadcastMessage,
+                          message: e.target.value,
+                        })
+                      }}
+                      rows={4}
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+          </Collapse>
         </TabPane>
 
         <TabPane tab="Finances" key="5">
-          <div className="bg-[#181818] rounded-lg border border-[#303030] p-6 space-y-6">
-            <div className="space-y-4">
-              <Form layout="vertical" className="space-y-4">
-                <Form.Item label={<span className="text-white">Creditor Name</span>}>
-                  <Input
-                    value={bankDetails.creditorName}
-                    onChange={(e) =>
-                      setBankDetails({
-                        ...bankDetails,
-                        creditorName: e.target.value,
-                      })
-                    }
-                    placeholder="Enter creditor name"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">IBAN</span>}>
-                  <Input
-                    value={bankDetails.iban}
-                    onChange={(e) => setBankDetails({ ...bankDetails, iban: e.target.value })}
-                    placeholder="Enter IBAN"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">BIC</span>}>
-                  <Input
-                    value={bankDetails.bic}
-                    onChange={(e) => setBankDetails({ ...bankDetails, bic: e.target.value })}
-                    placeholder="Enter BIC"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Creditor ID</span>}>
-                  <Input
-                    value={bankDetails.creditorId}
-                    onChange={(e) =>
-                      setBankDetails({
-                        ...bankDetails,
-                        creditorId: e.target.value,
-                      })
-                    }
-                    placeholder="Enter Creditor ID"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-              </Form>
-            </div>
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Bank Details" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical" className="space-y-4">
+                  <Form.Item label={<span className="text-white">Creditor Name</span>}>
+                    <Input
+                      value={bankDetails.creditorName}
+                      onChange={(e) =>
+                        setBankDetails({
+                          ...bankDetails,
+                          creditorName: e.target.value,
+                        })
+                      }
+                      placeholder="Enter creditor name"
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">IBAN</span>}>
+                    <Input
+                      value={bankDetails.iban}
+                      onChange={(e) => setBankDetails({ ...bankDetails, iban: e.target.value })}
+                      placeholder="Enter IBAN"
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">BIC</span>}>
+                    <Input
+                      value={bankDetails.bic}
+                      onChange={(e) => setBankDetails({ ...bankDetails, bic: e.target.value })}
+                      placeholder="Enter BIC"
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Creditor ID</span>}>
+                    <Input
+                      value={bankDetails.creditorId}
+                      onChange={(e) =>
+                        setBankDetails({
+                          ...bankDetails,
+                          creditorId: e.target.value,
+                        })
+                      }
+                      placeholder="Enter Creditor ID"
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
 
-            <Divider className="border-[#303030]" />
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white">VAT Rates</h3>
+            <Panel header="VAT Rates" key="2" className="bg-[#202020]">
               <div className="space-y-4 white-text">
                 {vatRates.map((rate, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
@@ -1353,8 +1365,8 @@ const ConfigurationPage = () => {
                   VAT rates defined here will be available as options in the "Selling" menu's shopping basket.
                 </p>
               </div>
-            </div>
-          </div>
+            </Panel>
+          </Collapse>
         </TabPane>
       </Tabs>
 
@@ -1372,6 +1384,37 @@ const ConfigurationPage = () => {
     </div>
   )
 }
+
+const additionalStyles = `
+  /* Collapse Styles */
+  .ant-collapse {
+    background-color: #181818 !important;
+    border-color: #303030 !important;
+  }
+
+  .ant-collapse-header {
+    color: white !important;
+    background-color: #202020 !important;
+    padding: 12px 16px !important;
+    font-weight: 500 !important;
+  }
+
+  .ant-collapse-content {
+    background-color: #181818 !important;
+    border-color: #303030 !important;
+  }
+
+  .ant-collapse-item {
+    border-color: #303030 !important;
+    margin-bottom: 8px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+
+  .ant-collapse-arrow {
+    color: white !important;
+  }
+`
 
 const styleOverrides = `
   /* Select Component Styles */
@@ -1589,7 +1632,7 @@ const styleOverrides = `
 `
 
 const styleElement = document.createElement("style")
-styleElement.innerHTML = styleOverrides
+styleElement.innerHTML = styleOverrides + additionalStyles
 document.head.appendChild(styleElement)
 
 export default ConfigurationPage

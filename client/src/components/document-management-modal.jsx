@@ -29,7 +29,30 @@ export function DocumentManagementModal({ contract, onClose }) {
     const files = Array.from(e.target.files)
     if (files.length === 0) return
 
+    // Validate file types and sizes
+    const validTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+    ]
+
+    const invalidFiles = files.filter((file) => !validTypes.includes(file.type))
+    if (invalidFiles.length > 0) {
+      toast.error(`${invalidFiles.length} file(s) have unsupported formats`)
+      return
+    }
+
+    const largeFiles = files.filter((file) => file.size > 10 * 1024 * 1024) // 10MB limit
+    if (largeFiles.length > 0) {
+      toast.error(`${largeFiles.length} file(s) exceed the 10MB size limit`)
+      return
+    }
+
     setIsUploading(true)
+    toast.loading(`Uploading ${files.length} document(s)...`)
 
     // Simulate upload delay
     setTimeout(() => {
@@ -44,7 +67,8 @@ export function DocumentManagementModal({ contract, onClose }) {
 
       setDocuments([...displayDocuments, ...newDocs])
       setIsUploading(false)
-      toast.success("Document uploaded successfully")
+      toast.dismiss()
+      toast.success(`${files.length} document(s) uploaded successfully`)
     }, 1500)
   }
 
@@ -75,6 +99,48 @@ export function DocumentManagementModal({ contract, onClose }) {
       setDocuments(displayDocuments.filter((doc) => doc.id !== docId))
       toast.success("Document deleted successfully")
     }
+  }
+
+  // Add this function after the handleDelete function
+  const handlePrintContract = () => {
+    toast.loading("Generating contract PDF...")
+
+    // Simulate PDF generation
+    setTimeout(() => {
+      // Create a formatted contract name
+      const contractName = `${contract.memberName.replace(/\s+/g, "_")}_Contract.pdf`
+
+      // In a real implementation, this would generate a PDF with all contract details
+      // For demo purposes, we're creating a simple blob
+      const contractContent = `
+        CONTRACT AGREEMENT
+        ------------------
+        Member: ${contract.memberName}
+        Contract Type: ${contract.contractType}
+        Start Date: ${contract.startDate}
+        End Date: ${contract.endDate}
+        Status: ${contract.status}
+        
+        This is a generated contract for demonstration purposes.
+      `
+
+      const blob = new Blob([contractContent], { type: "application/pdf" })
+      const url = URL.createObjectURL(blob)
+
+      // Create download link
+      const a = document.createElement("a")
+      a.href = url
+      a.download = contractName
+      document.body.appendChild(a)
+      a.click()
+
+      // Clean up
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast.dismiss()
+      toast.success("Contract PDF generated successfully")
+    }, 1500)
   }
 
   const startEditing = (doc) => {
@@ -123,16 +189,38 @@ export function DocumentManagementModal({ contract, onClose }) {
             <p className="text-gray-300">
               <span className="font-medium text-white">{contract.memberName}</span>'s Contract Documents
             </p>
-            <button
-              onClick={handleUploadClick}
-              className="flex items-center text-sm justify-center gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
-            >
-              <Upload className="w-4 h-4" />
-              Upload Document
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                onClick={handlePrintContract}
+                className="flex items-center text-sm justify-center gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
+              >
+                <Printer className="w-4 h-4" />
+                Print Contract
+              </button>
+              <button
+                onClick={handleUploadClick}
+                className="flex items-center text-sm justify-center gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
+              >
+                <Upload className="w-4 h-4" />
+                Upload Document
+              </button>
+            </div>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
           </div>
         </div>
+
+        {displayDocuments.length === 0 && (
+          <div className="bg-[#141414] p-4 rounded-xl mb-4">
+            <h4 className="text-white font-medium mb-2">How to sign and upload your contract:</h4>
+            <ol className="text-gray-400 text-sm space-y-2 list-decimal pl-5">
+              <li>Click the "Print Contract" button to generate and download the contract PDF</li>
+              <li>Print the document on paper</li>
+              <li>Have all parties sign the printed document</li>
+              <li>Scan or take a clear photo of all signed pages</li>
+              <li>Click "Upload Document" to upload the signed contract</li>
+            </ol>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4">
           {isUploading && (

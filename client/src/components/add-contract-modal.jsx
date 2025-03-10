@@ -4,6 +4,28 @@
 
 import { X, FileText, Upload, Save, ArrowLeft } from "lucide-react"
 import { useState, useEffect } from "react"
+import toast from "react-hot-toast"
+
+// Add print-specific styles
+const printStyles = `
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .bg-white, .bg-white * {
+      visibility: visible;
+    }
+    .bg-white {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    button, .fixed {
+      display: none !important;
+    }
+  }
+`
 
 export function AddContractModal({ onClose, onSave, leadData = null }) {
   const [isDigital, setIsDigital] = useState(true)
@@ -79,13 +101,79 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
   const handleFileUpload = (e) => {
     const file = e.target.files[0]
     if (file) {
-      setContractData({ ...contractData, signedFile: file })
+      // Validate file type
+      const fileType = file.type
+      const validTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
+
+      if (!validTypes.includes(fileType)) {
+        toast.error("Please upload a PDF or image file")
+        return
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size should be less than 10MB")
+        return
+      }
+
+      toast.loading("Processing document...")
+
+      // Simulate processing delay
+      setTimeout(() => {
+        setContractData({ ...contractData, signedFile: file })
+        toast.dismiss()
+        toast.success("Signed contract uploaded successfully")
+      }, 1000)
     }
   }
 
   const handlePrintContract = () => {
-    // In a real implementation, this would generate a PDF for printing
-    window.print()
+    // Show loading state
+    toast.loading("Generating PDF contract...")
+
+    // Simulate PDF generation with contract data
+    setTimeout(() => {
+      // Create a formatted contract name
+      const contractName = `${contractData.vorname || ""}_${contractData.nachname || ""}_Contract.pdf`.replace(
+        /\s+/g,
+        "_",
+      )
+
+      // In a real implementation, this would generate a PDF with all contract details
+      // For demo purposes, we're creating a simple blob
+      const contractContent = `
+        CONTRACT AGREEMENT
+        ------------------
+        Member: ${contractData.vorname} ${contractData.nachname}
+        Contract Type: ${contractData.rateType}
+        Start Date: ${contractData.startDerMitgliedschaft}
+        IBAN: ${contractData.iban}
+        
+        This is a generated contract for demonstration purposes.
+      `
+
+      const blob = new Blob([contractContent], { type: "application/pdf" })
+      const url = URL.createObjectURL(blob)
+
+      // Create download link
+      const a = document.createElement("a")
+      a.href = url
+      a.download = contractName
+      document.body.appendChild(a)
+      a.click()
+
+      // Clean up
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast.dismiss()
+      toast.success("Contract PDF generated successfully")
+
+      // Open print dialog
+      setTimeout(() => {
+        window.print()
+      }, 500)
+    }, 1500)
   }
 
   const handleSaveContract = () => {
@@ -110,6 +198,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex open_sans_font items-center justify-center z-[1000]">
+      <style>{printStyles}</style>
       <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-800">
           <div className="flex justify-between items-center">
@@ -627,7 +716,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           <label htmlFor="acceptTerms" className="text-sm text-gray-700">
                             <span className="font-bold">LEISTUNGSBESCHREIBUNG & AGB</span>
                             <br />
-                            Hiermit stimme ich der angehängenen Leistungsbeschreibung & den allgemeinen
+                            Hiermit stimme ich der angehängten Leistungsbeschreibung & den allgemeinen
                             Geschäftsbedingungen (AGB) zu, soweit im Textfeld "Vertragsbemerkung" nichts anderes
                             schriftlich vereinbart wurde.
                           </label>
@@ -648,7 +737,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                             <span className="font-bold">DATENSCHUTZVEREINBARUNG</span>
                             <br />
                             Hiermit stimme ich der Erhebung und Verarbeitung meiner personenbezogenen Daten gem.
-                            angehängener Datenschutzvereinbarung durch die zu.
+                            angehängter Datenschutzvereinbarung durch die zu.
                           </label>
                         </div>
                       </div>
@@ -684,7 +773,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                       <div className="relative">
                         <input
                           type="file"
-                          accept=".pdf"
+                          accept=".pdf,.jpg,.jpeg,.png"
                           id="contract-file-analog"
                           onChange={handleFileUpload}
                           className="hidden"
@@ -697,6 +786,19 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           {contractData.signedFile ? contractData.signedFile.name : "Choose file..."}
                         </label>
                       </div>
+                      {contractData.signedFile && (
+                        <div className="mt-3 bg-[#141414] p-3 rounded-xl">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-[#3F74FF]" />
+                            <div>
+                              <p className="text-white text-sm">{contractData.signedFile.name}</p>
+                              <p className="text-xs text-gray-400">
+                                {(contractData.signedFile.size / 1024).toFixed(2)} KB • Uploaded just now
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
