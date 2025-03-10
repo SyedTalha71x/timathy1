@@ -23,6 +23,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   const [calendarSize, setCalendarSize] = useState(100)
   const [calendarHeight, setCalendarHeight] = useState("auto")
   const [activeNoteId, setActiveNoteId] = useState(null)
+  const [freeAppointments, setFreeAppointments] = useState([])
 
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, "0")
@@ -30,6 +31,58 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     const year = date.getFullYear()
     return `${day}-${month}-${year}`
   }
+
+  const generateFreeDates = () => {
+    const now = new Date();
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    const freeDates = [];
+
+    // Generate free slots for the next 3 weeks
+    for (let week = 0; week < 3; week++) {
+      const weekStart = new Date(startOfWeek);
+      weekStart.setDate(startOfWeek.getDate() + (week * 7));
+      
+      // Generate 3-4 random slots per week
+      const slotsPerWeek = 3 + Math.floor(Math.random() * 2); // Either 3 or 4 slots
+      
+      for (let i = 0; i < slotsPerWeek; i++) {
+        const randomDay = Math.floor(Math.random() * 7); // 0-6 (Sun-Sat)
+        const randomHour = 8 + Math.floor(Math.random() * 10); // Between 8 AM and 6 PM
+        const randomMinute = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, or 45 minutes
+        
+        const freeDate = new Date(weekStart);
+        freeDate.setDate(weekStart.getDate() + randomDay);
+        freeDate.setHours(randomHour, randomMinute, 0);
+        
+        // Skip dates in the past
+        if (freeDate < new Date()) continue;
+        
+        freeDates.push({
+          id: `free-${week}-${i}`,
+          title: 'Free Slot',
+          start: freeDate.toISOString(),
+          end: new Date(freeDate.getTime() + 60 * 60 * 1000).toISOString(), // 1 hour duration
+          backgroundColor: '#22c55e', // Green color
+          borderColor: '#16a34a',
+          extendedProps: {
+            isFree: true,
+            type: 'Free Slot'
+          },
+        });
+      }
+    }
+
+    // Clear previous free slots and set the new ones
+    setFreeAppointments(freeDates);
+    
+    // If the calendar reference exists, trigger a refetch of events
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.refetchEvents();
+    }
+    
+    toast.success(`${freeDates.length} free slots generated`);
+  };
 
   const calendarRef = useRef(null)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
@@ -39,7 +92,6 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
-  const [freeAppointments, setFreeAppointments] = useState([])
   // New state for the appointment action modal
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
@@ -169,8 +221,26 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     }
   }
 
+  // Handler for free slot click
+  const handleFreeSlotClick = (clickInfo) => {
+    if (clickInfo.event.extendedProps.isFree) {
+      setSelectedSlotInfo({
+        start: clickInfo.event.start,
+        end: clickInfo.event.end,
+      });
+      setIsTypeSelectionOpen(true);
+    }
+  };
+
   // New handler for event clicks
   const handleEventClick = (clickInfo) => {
+    // Check if it's a free slot first
+    if (clickInfo.event.extendedProps.isFree) {
+      handleFreeSlotClick(clickInfo);
+      return;
+    }
+    
+    // Otherwise, handle as regular appointment
     const appointmentId = Number.parseInt(clickInfo.event.id)
     const appointment = appointments.find((app) => app.id === appointmentId)
 
@@ -227,7 +297,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     return new Date(eventStart) < now
   }
 
-  const calendarEvents = appointments
+  const calendarEvents = [...appointments
     .filter((appointment) => {
       // Filter by search query
       const nameMatch = appointment.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -271,7 +341,10 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
           originalColor: backgroundColor
         },
       }
-    })
+    }),
+    // Add the free appointments to the events
+    ...freeAppointments
+  ];
 
 
   return (
@@ -301,6 +374,13 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
           >
             <ZoomIn size={18} />
           </button>
+          <button
+            onClick={generateFreeDates}
+            className="p-1.5 rounded-md bg-gray-600 cursor-pointer hover:bg-green-600 text-white ml-2 px-3 py-2 font-medium text-sm"
+            aria-label="Show Free Dates"
+          >
+            Show Free Dates
+          </button>
         </div>
 
         <div className="max-w-7xl overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
@@ -312,7 +392,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
               width: `${10000 / calendarSize}%`, // Adjust container width to maintain layout
             }}
           >
-            <FullCalendar
+             <FullCalendar
               ref={calendarRef}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="timeGridWeek"
@@ -350,19 +430,29 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
                 </div>
               )}
               eventClassNames={(eventInfo) => {
-                const classes = eventInfo.event.extendedProps.isPast ? "past-event" : "";
-                return classes;
+                if (eventInfo.event.extendedProps.isPast) {
+                  return "past-event";
+                }
+                if (eventInfo.event.extendedProps.isFree) {
+                  return "free-slot-event cursor-pointer";
+                }
+                return "";
               }}
             />
           </div>
         </div>
       </div>
 
-      {/* Add CSS for past events */}
+      {/* Add CSS for past events and free slots */}
       <style jsx>{`
         :global(.past-event) {
           cursor: default !important;
           opacity: 0.6 !important;
+        }
+        
+        :global(.free-slot-event) {
+          cursor: pointer !important;
+          border-left: 3px solid #15803d !important;
         }
       `}</style>
 
@@ -949,9 +1039,6 @@ export default function Appointments() {
                 className="w-full sm:w-auto bg-[#FF4D4F] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF4D4F]/90 transition-colors duration-200"
               >
                 Block Appointment
-              </button>
-              <button className="w-full sm:w-auto bg-gray-600 cursor-pointer text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-gray-700 transition-colors duration-200">
-                Free Dates
               </button>
             </div>
           </div>
