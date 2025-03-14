@@ -14,12 +14,15 @@ import {
   ArrowDown,
   ArrowUp,
   Plus,
+  Trash,
 } from "lucide-react";
 import Rectangle1 from "../../public/Rectangle 1.png";
 import Image10 from "../../public/image10.png";
 import Avatar from "../../public/avatar.png";
 import { Toaster, toast } from "react-hot-toast";
 import { WidgetSelectionModal } from "../components/widget-selection-modal";
+import { ExternalLink } from "lucide-react";
+
 function EmployeeCheckInWidget() {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [checkInTime, setCheckInTime] = useState(null);
@@ -59,7 +62,7 @@ function EmployeeCheckInWidget() {
         ) : (
           <button
             onClick={handleCheckInOut}
-            className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors bg-gray-600 text-white"
+            className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors bg-red-600 text-white"
           >
             Check Out
           </button>
@@ -79,10 +82,6 @@ const DraggableWidget = ({
   widgets,
 }) => {
   const ref = useRef(null);
-
-  // Check if this is the website links widget
-  const isWebsiteLinksWidget = widgets[index].type === "websiteLink";
-
   return (
     <div ref={ref} className="relative mb-4 w-full">
       {isEditing && (
@@ -101,15 +100,13 @@ const DraggableWidget = ({
           >
             <ArrowDown size={12} />
           </button>
-          {/* Only show remove button if it's not the website links widget */}
-          {!isWebsiteLinksWidget && (
-            <button
-              onClick={() => removeWidget(id)}
-              className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
-            >
-              <X size={12} />
-            </button>
-          )}
+
+          <button
+            onClick={() => removeWidget(id)}
+            className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
+          >
+            <X size={12} />
+          </button>
         </div>
       )}
       {children}
@@ -280,13 +277,13 @@ export default function MyArea() {
   };
 
   const removeWidget = (id) => {
-    // Check if the widget is the website links widget
-    const widgetToRemove = widgets.find((w) => w.id === id);
-    if (widgetToRemove && widgetToRemove.type === "websiteLink") {
-      // Don't allow removal of website links widget
-      toast.error("Website links widget cannot be removed");
-      return;
-    }
+    // // Check if the widget is the website links widget
+    // const widgetToRemove = widgets.find((w) => w.id === id);
+    // if (widgetToRemove && widgetToRemove.type === "websiteLink") {
+    //   // Don't allow removal of website links widget
+    //   toast.error("Website links widget cannot be removed");
+    //   return;
+    // }
 
     setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id));
   };
@@ -923,14 +920,22 @@ export default function MyArea() {
                           {customLinks.map((link) => (
                             <div
                               key={link.id}
-                              className="p-5 bg-black rounded-xl"
+                              className="p-5 bg-black rounded-xl flex items-center justify-between"
                             >
-                              <h3 className="text-sm font-medium">
-                                {link.title}
-                              </h3>
-                              <p className="text-xs mt-1 text-zinc-400">
-                                {link.url}
-                              </p>
+                              <div>
+                                <h3 className="text-sm font-medium">
+                                  {link.title}
+                                </h3>
+                                <p className="text-xs mt-1 text-zinc-400">
+                                  {link.url}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => window.open(link.url, "_blank")}
+                                className="p-2 hover:bg-zinc-700 rounded-lg"
+                              >
+                                <ExternalLink size={16} />
+                              </button>
                             </div>
                           ))}
                           <button
@@ -1121,38 +1126,19 @@ export default function MyArea() {
                         <h3 className="text-sm font-medium">{link.title}</h3>
                         <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
                       </div>
-                      {/* <div className="relative">
-                        <button
-                          onClick={() => toggleDropdown(link.id)}
-                          className="p-1.5 hover:bg-zinc-800 rounded-lg"
-                        >
-                          <MoreVertical size={16} />
-                        </button>
-                        {openDropdownIndex === link.id && (
-                          <div className="absolute top-5 right-4 w-36 bg-[#2F2F2F] rounded-xl shadow-lg z-10">
-                            <div className="py-1">
-                              <button
-                                onClick={() => {
-                                  setOpenDropdownIndex(null);
-                                  setEditingLink(link);
-                                }}
-                                className="w-full px-4 py-2 text-sm text-left hover:bg-zinc-700"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => {
-                                  removeCustomLink(link.id);
-                                  setOpenDropdownIndex(null);
-                                }}
-                                className="w-full px-4 py-2 text-sm text-left text-red-500 hover:bg-zinc-700"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div> */}
+                      <button
+                        onClick={() =>
+                          window.open(
+                            link.url.startsWith("http")
+                              ? link.url
+                              : `https://${link.url}`,
+                            "_blank"
+                          )
+                        }
+                        className="p-2 hover:bg-zinc-700 rounded-lg"
+                      >
+                        <ExternalLink size={16} />
+                      </button>
                     </div>
                     {isEditing && (
                       <div className="absolute top-2 right-2 z-10 flex gap-2">
@@ -1169,6 +1155,12 @@ export default function MyArea() {
                           disabled={index === customLinks.length - 1}
                         >
                           <ArrowDown size={12} />
+                        </button>
+                        <button
+                          onClick={() => removeCustomLink(link.id)}
+                          className="p-1 bg-gray-800 rounded hover:bg-gray-700 "
+                        >
+                          <X size={12} />
                         </button>
                       </div>
                     )}

@@ -20,6 +20,14 @@ const TrialTrainingModal = ({ isOpen, onClose, trialTypes = [], freeTimeSlots = 
     endDate: ''
   });
 
+  const updateSpecialNote = (field, value) => {
+    setSpecialNote({
+      ...specialNote,
+      [field]: value
+    });
+  };
+
+
   // Load leads from localStorage on mount
   useEffect(() => {
     const storedLeads = localStorage.getItem('leads');
@@ -260,46 +268,58 @@ const TrialTrainingModal = ({ isOpen, onClose, trialTypes = [], freeTimeSlots = 
               ))}
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm text-gray-200">Special Note</label>
+            <div className="border border-slate-700 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-sm text-gray-200 font-medium">
+                  Special Note
+                </label>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="isImportant"
+                    checked={specialNote.isImportant}
+                    onChange={(e) => updateSpecialNote("isImportant", e.target.checked)}
+                    className="mr-2 h-4 w-4 accent-[#FF843E]"
+                  />
+                  <label
+                    htmlFor="isImportant"
+                    className="text-sm text-gray-200"
+                  >
+                    Important
+                  </label>
+                </div>
+              </div>
+
               <textarea
-                value={specialNote}
-                onChange={(e) => setSpecialNote(e.target.value)}
+                value={specialNote.text}
+                onChange={(e) => updateSpecialNote("text", e.target.value)}
+                className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
                 placeholder="Enter special note..."
-                className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[100px]"
               />
-            </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="isImportant"
-                checked={isImportant}
-                onChange={(e) => setIsImportant(e.target.checked)}
-                className="rounded text-[#3F74FF] focus:ring-[#3F74FF]"
-              />
-              <label htmlFor="isImportant" className="text-sm text-gray-200">
-                Mark as important
-              </label>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm text-gray-200">Note Duration</label>
-              <div className="flex space-x-2">
-                <input
-                  type="date"
-                  value={noteDuration.startDate}
-                  onChange={(e) => setNoteDuration({...noteDuration, startDate: e.target.value})}
-                  placeholder="Start Date"
-                  className="w-1/2 bg-[#101010] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                />
-                <input
-                  type="date"
-                  value={noteDuration.endDate}
-                  onChange={(e) => setNoteDuration({...noteDuration, endDate: e.target.value})}
-                  placeholder="End Date"
-                  className="w-1/2 bg-[#101010] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={specialNote.startDate || ""}
+                    onChange={(e) => updateSpecialNote("startDate", e.target.value)}
+                    className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={specialNote.endDate || ""}
+                    onChange={(e) => updateSpecialNote("endDate", e.target.value)}
+                    className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
               </div>
             </div>
           </form>

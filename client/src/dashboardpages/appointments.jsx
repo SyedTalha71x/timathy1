@@ -1,5 +1,3 @@
-"use client";
-
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
@@ -87,45 +85,56 @@ function Calendar({
   const generateFreeDates = () => {
     const now = new Date();
     const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-    const freeDates = [];
-
+    const freeDates = new Set(); // Use a Set to store unique month-date pairs
+    const slots = [];
+  
     // Generate free slots for the next 3 weeks
     for (let week = 0; week < 3; week++) {
       const weekStart = new Date(startOfWeek);
       weekStart.setDate(weekStart.getDate() + week * 7);
-
+  
       // Generate 3-4 random slots per week
       const slotsPerWeek = 3 + Math.floor(Math.random() * 2); // Either 3 or 4 slots
-
+  
       for (let i = 0; i < slotsPerWeek; i++) {
         const randomDay = Math.floor(Math.random() * 7); // 0-6 (Sun-Sat)
         const randomHour = 8 + Math.floor(Math.random() * 10); // Between 8 AM and 6 PM
         const randomMinute = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, or 45 minutes
-
+  
         const freeDate = new Date(weekStart);
         freeDate.setDate(weekStart.getDate() + randomDay);
         freeDate.setHours(randomHour, randomMinute, 0);
-
+  
         // Skip dates in the past
         if (freeDate < new Date()) continue;
-
+  
         const formattedDate = formatDate(freeDate);
-        const formattedTime = freeDate
-          .toTimeString()
-          .split(" ")[0]
-          .substring(0, 5);
-
-        freeDates.push({
+        const formattedTime = freeDate.toTimeString().split(" ")[0].substring(0, 5);
+  
+        // Store unique month-date pairs
+        freeDates.add(
+          freeDate.toLocaleDateString("en-US", { month: "long", day: "numeric" })
+        );
+  
+        slots.push({
           id: `free-${week}-${i}`,
           date: formattedDate,
           time: formattedTime,
         });
       }
     }
-
-    setFreeAppointments(freeDates);
-    toast.success(`${freeDates.length} free slots generated`);
+  
+    setFreeAppointments(slots);
+  
+    if (slots.length > 0) {
+      toast.success(
+        `Free slots generated for ${Array.from(freeDates).join(", ")}. Proceed to these months in the calendar below to see available slots.`
+      );
+    } else {
+      toast.warning("No free slots available.");
+    }
   };
+  
 
   const zoomIn = () => {
     setCalendarSize((prev) => Math.min(prev + 10, 150)); // Max 150%
@@ -322,7 +331,7 @@ function Calendar({
         const nameMatch = appointment.name
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
-
+  
         // Filter by selected date
         let dateMatch = true;
         if (selectedDate) {
@@ -331,23 +340,23 @@ function Calendar({
           const formattedSelectedDate = formatDate(new Date(selectedDate));
           dateMatch = appointmentDate === formattedSelectedDate;
         }
-
+  
         return nameMatch && dateMatch;
       })
       .map((appointment) => {
         const [_, datePart] = appointment.date.split("|");
         const [day, month, year] = datePart.trim().split("-");
         const dateStr = `${year}-${month}-${day}`; // Format: yyyy-mm-dd for FullCalendar
-
+  
         // Create ISO date strings for event start and end
         const startDateTimeStr = `${dateStr}T${appointment.startTime}`;
-
+  
         // Determine if the event is in the past
         const isPastEvent = isEventInPast(startDateTimeStr);
-
+  
         // Get the original color
         const backgroundColor = appointment.color.split("bg-[")[1].slice(0, -1);
-
+  
         return {
           id: appointment.id,
           title: appointment.name,
@@ -364,7 +373,23 @@ function Calendar({
         };
       }),
     // Add the free appointments to the events
-    ...freeAppointments,
+    ...freeAppointments.map((freeSlot) => {
+      const [day, month, year] = freeSlot.date.split("-");
+      const dateStr = `${year}-${month}-${day}`; // Format: yyyy-mm-dd for FullCalendar
+      const startDateTimeStr = `${dateStr}T${freeSlot.time}`;
+  
+      return {
+        id: freeSlot.id,
+        title: "Free Slot",
+        start: startDateTimeStr,
+        end: new Date(new Date(startDateTimeStr).getTime() + 60 * 60 * 1000).toISOString(), // Assuming 1-hour duration
+        backgroundColor: "#15803d", // Green color for free slots
+        borderColor: "#15803d",
+        extendedProps: {
+          isFree: true, // Mark as free slot
+        },
+      };
+    }),
   ];
 
   return (
@@ -399,16 +424,16 @@ function Calendar({
             className="p-1.5 rounded-md lg:block hidden bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
             aria-label="Show Free Dates"
           >
-            Free Dates
+            Free Slots
           </button>
         </div>
         <button
-            onClick={generateFreeDates}
-            className="p-1.5 rounded-md w-full lg:hidden block bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
-            aria-label="Show Free Dates"
-          >
-            Free Dates
-          </button>
+          onClick={generateFreeDates}
+          className="p-1.5 rounded-md w-full lg:hidden block bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
+          aria-label="Show Free Dates"
+        >
+          Free Dates
+        </button>
 
         <div
           className="max-w-7xl overflow-x-auto"
@@ -1050,13 +1075,13 @@ export default function Appointments() {
           <div
             className={`${
               specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-1 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
-              <AlertTriangle size={23} className="text-white" />
+              <AlertTriangle size={18} className="text-white" />
             ) : (
-              <Info size={23} className="text-white" />
+              <Info size={18} className="text-white" />
             )}
           </div>
 
@@ -1141,7 +1166,7 @@ export default function Appointments() {
               </button>
               <button
                 onClick={() => setIsBlockModalOpen(true)}
-                className="w-full sm:w-auto bg-[#FF4D4F] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF4D4F]/90 transition-colors duration-200"
+                className="w-full sm:w-auto bg-gray-600 text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-gray-700/90 transition-colors duration-200"
               >
                 Block Appointment
               </button>
@@ -1180,80 +1205,83 @@ export default function Appointments() {
                     Upcoming Appointments
                   </h2>
                   <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
-                  {filteredAppointments.length > 0 ? (
-  filteredAppointments.map((appointment, index) => (
-    <div
-      key={appointment.id}
-      className={`${appointment.color} rounded-xl cursor-pointer p-5 relative`}
-    >
-      <div className="absolute p-2 top-0 left-0 z-10">
-        {renderSpecialNoteIcon(
-          appointment.specialNote,
-          appointment.id
-        )}
-      </div>
-      <div
-        className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
-        onClick={() => {
-          setSelectedAppointment(appointment);
-          setIsAppointmentActionModalOpen(true);
-        }}
-      >
-        <div className="flex items-center gap-2 ml-5 relative w-full sm:w-auto justify-center sm:justify-start">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
-            <img
-              src={Avatar || "/placeholder.svg"}
-              alt=""
-              className="w-full h-full rounded-full"
-            />
-          </div>
-          <div className="text-white text-left">
-            <p className="font-semibold">
-              {appointment.name}
-            </p>
-            <p className="text-xs flex gap-1 items-center opacity-80 justify-center sm:justify-start">
-              <Clock size={14} />
-              {appointment.time} |{" "}
-              {appointment.date.split("|")[0]}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
-          <div className="text-white text-center sm:text-right w-full sm:w-auto">
-            <p className="text-xs">
-              {appointment.isTrial ? (
-                <span className="font-medium text-yellow-500">
-                  Trial Session
-                </span>
-              ) : (
-                appointment.type
-              )}
-            </p>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCheckIn(appointment.id);
-              }}
-              className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
-                appointment.isCheckedIn
-                  ? "bg-gray-600 text-white"
-                  : "bg-black text-white"
-              }`}
-            >
-              {appointment.isCheckedIn
-                ? "Checked In"
-                : "Check In"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  ))
-) : (
-  <p className="text-white text-center">
-    No appointments scheduled for this date.
-  </p>
-)}
+                    {filteredAppointments.length > 0 ? (
+                      filteredAppointments.map((appointment, index) => (
+                        <div
+                          key={appointment.id}
+                          className={`${appointment.color} rounded-xl cursor-pointer p-5 relative`}
+                        >
+                          <div className="absolute p-2 top-0 left-0 z-10">
+                            {renderSpecialNoteIcon(
+                              appointment.specialNote,
+                              appointment.id
+                            )}
+                          </div>
+                          <div
+                            className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
+                            onClick={() => {
+                              setSelectedAppointment(appointment);
+                              setIsAppointmentActionModalOpen(true);
+                            }}
+                          >
+                            <div className="flex items-center gap-2 ml-5 relative w-full sm:w-auto justify-center sm:justify-start">
+                              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+                                <img
+                                  src={Avatar || "/placeholder.svg"}
+                                  alt=""
+                                  className="w-full h-full rounded-full"
+                                />
+                              </div>
+                              <div className="text-white text-left">
+                                <p className="font-semibold">
+                                  {appointment.name}
+                                </p>
+                                <p className="text-xs flex gap-1 items-center opacity-80 justify-center sm:justify-start">
+                                  <Clock size={14} />
+                                  {appointment.time} |{" "}
+                                  {appointment.date.split("|")[0]}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+                              <div className="text-white text-center sm:text-right w-full sm:w-auto">
+                                <p className="text-xs">
+                                  {appointment.isTrial ? (
+                                    <span className="font-medium ">
+                                      Trial Session
+                                    </span>
+                                  ) : (
+                                    appointment.type
+                                  )}
+                                </p>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!appointment.isCheckedIn) {
+                                      handleCheckIn(appointment.id);
+                                    }
+                                  }}
+                                  className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
+                                    appointment.isCheckedIn
+                                      ? "bg-gray-600 text-white opacity-50 cursor-not-allowed"
+                                      : "bg-black text-white"
+                                  }`}
+                                  disabled={appointment.isCheckedIn} // Prevents interaction
+                                >
+                                  {appointment.isCheckedIn
+                                    ? "Checked In"
+                                    : "Check In"}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-white text-center">
+                        No appointments scheduled for this date.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

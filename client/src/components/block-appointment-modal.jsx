@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
-import { X, CalendarIcon, Clock } from "lucide-react"
+import { X } from "lucide-react"
 
 const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypes, onSubmit, selectedDate }) => {
   const [blockData, setBlockData] = useState({
@@ -78,14 +78,13 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypes, onSubmit, se
                   name="date"
                   value={blockData.date}
                   onChange={handleChange}
-                  className="w-full bg-[#0D0D0D] white-calendar-icon text-white rounded-xl px-4 py-3 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  className="w-full bg-[#0D0D0D] white-calendar-icon text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   required
                 />
-                <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-white mb-2">Start Time</label>
                 <div className="relative">
@@ -94,10 +93,9 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypes, onSubmit, se
                     name="startTime"
                     value={blockData.startTime}
                     onChange={handleChange}
-                    className="w-full bg-[#0D0D0D] white-calendar-icon text-white rounded-xl px-4 py-3 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                    className="w-full bg-[#0D0D0D] white-calendar-icon text-white rounded-xl px-4 py-3  text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
                     required
                   />
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 </div>
               </div>
               <div>
@@ -108,10 +106,9 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypes, onSubmit, se
                     name="endTime"
                     value={blockData.endTime}
                     onChange={handleChange}
-                    className="w-full bg-[#0D0D0D] white-calendar-icon text-white rounded-xl px-4 py-3 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                    className="w-full bg-[#0D0D0D] white-calendar-icon text-white rounded-xl px-4 py-3  text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
                     required
                   />
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 </div>
               </div>
             </div>
@@ -189,4 +186,3 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypes, onSubmit, se
 }
 
 export default BlockAppointmentModal
-

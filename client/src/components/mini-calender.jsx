@@ -102,10 +102,10 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
               className={`aspect-square flex items-center justify-center rounded-full text-xs
               ${
                 isToday && !isSelected
-                  ? "bg-orange-400 text-white"
+                  ? "bg-white text-blue-600 font-semibold"
                   : isSelected
                   ? "bg-[#3F74FF] text-white"
-                  : "text-white hover:bg-gray-700"
+                  : "text-white "
               }
               transition-all duration-200
             `}

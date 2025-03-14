@@ -20,7 +20,6 @@ import {
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
 import CommuncationBg from "../../public/communication-bg.svg"
-// Add these imports at the top of the file, after the existing imports
 import AddAppointmentModal from "../components/add-appointment-modal"
 import SelectedAppointmentModal from "../components/selected-appointment-modal"
 
@@ -65,7 +64,6 @@ export default function Communications() {
     date: "",
     status: "upcoming",
   })
-  // Add these state variables inside the Communications component, with the other state declarations
   const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
   const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
@@ -85,6 +83,9 @@ export default function Communications() {
     { id: 6, date: "2025-04-05", time: "9:30 AM" },
     { id: 7, date: "2025-04-05", time: "3:00 PM" },
   ])
+  // New state for create message modal
+  const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
+  const [newMessage, setNewMessage] = useState({ title: "", message: "" })
 
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
@@ -302,7 +303,6 @@ export default function Communications() {
     setMessageText("")
   }
 
-  // Add these functions inside the Communications component, before the return statement
   const handleAppointmentChange = (changes) => {
     if (selectedAppointmentData) {
       setSelectedAppointmentData({
@@ -329,12 +329,10 @@ export default function Communications() {
     setShowAddAppointmentModal(false)
   }
 
-  // Replace the existing handleCalendarClick function with this one
   const handleCalendarClick = () => {
     setShowAppointmentModal(true)
   }
 
-  // Replace the existing handleEditAppointment function with this one
   const handleEditAppointment = (appointment) => {
     const fullAppointment = {
       ...appointment,
@@ -351,19 +349,30 @@ export default function Communications() {
     setShowAppointmentModal(false)
   }
 
-  // Add this function inside the Communications component
   const handleCreateNewAppointment = () => {
     setShowAddAppointmentModal(true)
     setShowAppointmentModal(false)
   }
 
+  // Updated to handle selecting all recipients
   const handleMemberSelect = (member) => {
-    setSelectedMembers((prev) => (prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]))
+    setSelectedRecipients((prev) => (prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]))
   }
 
+  // Updated to properly handle select all functionality
   const handleSelectAll = () => {
-    setSelectAll(!selectAll)
-    setSelectedRecipients(selectAll ? [] : chatList)
+    const newSelectAll = !selectAll
+    setSelectAll(newSelectAll)
+
+    if (newSelectAll) {
+      // Filter recipients based on search if there is any
+      const filteredList = chatList.filter(
+        (chat) => searchMember === "" || chat.name.toLowerCase().includes(searchMember.toLowerCase()),
+      )
+      setSelectedRecipients(filteredList)
+    } else {
+      setSelectedRecipients([])
+    }
   }
 
   const handleEmojiSelect = (emoji) => {
@@ -380,6 +389,7 @@ export default function Communications() {
     }
   }
 
+  // Updated to properly send broadcast messages
   const handleBroadcast = () => {
     if (!selectedMessage) {
       alert("Please select a message to broadcast")
@@ -396,10 +406,38 @@ export default function Communications() {
     console.log("Broadcast title:", selectedMessage.title)
     console.log("Broadcast message:", selectedMessage.message)
 
+    // Show success message
+    alert(`Broadcast sent to ${selectedRecipients.length} recipients`)
+
+    // Reset state and return to chat
     setSelectedMessage(null)
     setSelectedRecipients([])
     setActiveScreen("chat")
-    alert(`Broadcast sent to ${selectedRecipients.length} recipients`)
+  }
+
+  // New function to handle creating a new message
+  const handleCreateMessage = () => {
+    setShowCreateMessageModal(true)
+  }
+
+  // New function to save a new message
+  const handleSaveNewMessage = () => {
+    if (!newMessage.title.trim() || !newMessage.message.trim()) {
+      alert("Please enter both title and message")
+      return
+    }
+
+    const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1
+    const messageToAdd = {
+      id: newId,
+      title: newMessage.title,
+      message: newMessage.message,
+    }
+
+    setPreConfiguredMessages([...preConfiguredMessages, messageToAdd])
+    setSelectedMessage(messageToAdd)
+    setShowCreateMessageModal(false)
+    setNewMessage({ title: "", message: "" })
   }
 
   const handleChatSelect = (chat) => {
@@ -409,7 +447,10 @@ export default function Communications() {
   }
 
   const handleCancelAppointment = (id) => {
-    setAppointments(appointments.filter((app) => app.id !== id))
+    // Instead of immediately deleting, show confirmation modal
+    setSelectedAppointmentData(appointments.find((app) => app.id === id))
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("delete")
   }
 
   const handleSaveAppointment = () => {
@@ -885,27 +926,26 @@ export default function Communications() {
                     </div>
                   </div>
 
-                  <div className="relative">
-                    <label htmlFor="searchMembers" className="block text-sm font-medium text-gray-400 mb-1">
-                      Search Members
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="searchMembers"
-                        value={searchMember}
-                        onChange={(e) => setSearchMember(e.target.value)}
-                        className="w-full bg-[#222222] text-white rounded-xl pl-10 pr-4 py-2 text-sm"
-                        placeholder="Search members..."
-                      />
-                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                    </div>
+                  <div className="mb-4">
+                    <button
+                      onClick={handleCreateMessage}
+                      className="w-full py-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2"
+                    >
+                      <Plus size={18} />
+                      Create New Message
+                    </button>
                   </div>
 
                   <div className="relative">
                     <button
-                      onClick={() => setShowRecipientDropdown(!showRecipientDropdown)}
-                      className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                      onClick={() => {
+                        setShowRecipientDropdown(!showRecipientDropdown)
+                        // When opening the dropdown, ensure search is visible
+                        if (!showRecipientDropdown) {
+                          setSearchMember("")
+                        }
+                      }}
+                      className="w-full py-3 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
                     >
                       Select Recipients
                     </button>
@@ -915,14 +955,27 @@ export default function Communications() {
                         ref={recipientDropdownRef}
                         className="absolute left-0 right-0 mt-2 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-50 max-h-[250px] overflow-y-auto custom-scrollbar"
                       >
-                        <div className="p-2 border-b border-gray-800 flex items-center justify-between">
-                          <span className="text-sm text-gray-300">Select all</span>
-                          <input
-                            type="checkbox"
-                            checked={selectAll}
-                            onChange={handleSelectAll}
-                            className="rounded border-gray-600 bg-transparent"
-                          />
+                        <div className="p-2 border-b border-gray-800">
+                          <div className="relative mb-2">
+                            <input
+                              type="text"
+                              value={searchMember}
+                              onChange={(e) => setSearchMember(e.target.value)}
+                              className="w-full bg-[#222222] text-white rounded-xl pl-10 pr-4 py-2 text-sm"
+                              placeholder="Search members..."
+                              autoFocus
+                            />
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-sm text-gray-300">Select all</span>
+                            <input
+                              type="checkbox"
+                              checked={selectAll}
+                              onChange={handleSelectAll}
+                              className="rounded border-gray-600 bg-transparent"
+                            />
+                          </div>
                         </div>
                         {chatList
                           .filter(
@@ -976,28 +1029,9 @@ export default function Communications() {
                   </div>
 
                   <button
-                    onClick={() => {
-                      if (!selectedMessage) {
-                        alert("Please select a message to broadcast")
-                        return
-                      }
-                      if (selectedRecipients.length === 0) {
-                        alert("Please select at least one recipient")
-                        return
-                      }
-
-                      // In a real application, you would send this to your backend
-                      console.log("Broadcasting message to recipients:", selectedRecipients)
-                      console.log("Broadcast title:", selectedMessage.title)
-                      console.log("Broadcast message:", selectedMessage.message)
-
-                      setSelectedMessage(null)
-                      setSelectedRecipients([])
-                      setActiveScreen("chat")
-                      alert(`Broadcast sent to ${selectedRecipients.length} recipients`)
-                    }}
-                    className={`w-full py-3 ${selectedMessage ? "bg-[#FF843E] hover:bg-orange-600" : "bg-gray-600"} text-white rounded-xl`}
-                    disabled={!selectedMessage}
+                    onClick={handleBroadcast}
+                    className={`w-full py-3 ${selectedMessage && selectedRecipients.length > 0 ? "bg-[#FF843E] text-sm hover:bg-orange-600" : "bg-gray-600"} text-white text-sm rounded-xl`}
+                    disabled={!selectedMessage || selectedRecipients.length === 0}
                   >
                     Send Broadcast
                   </button>
@@ -1194,19 +1228,65 @@ export default function Communications() {
         />
       )}
 
-      {/* Notification Modal */}
+      {/* Create Message Modal */}
+      {showCreateMessageModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-medium">Create New Message</h2>
+                <button onClick={() => setShowCreateMessageModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={newMessage.title}
+                    onChange={(e) => setNewMessage({ ...newMessage, title: e.target.value })}
+                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                    placeholder="Enter message title"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Message</label>
+                  <textarea
+                    value={newMessage.message}
+                    onChange={(e) => setNewMessage({ ...newMessage, message: e.target.value })}
+                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm h-32 resize-none"
+                    placeholder="Enter your message content"
+                  />
+                </div>
+
+                <button
+                  onClick={handleSaveNewMessage}
+                  className="w-full py-3 bg-[#FF843E] text-sm hover:bg-orange-600 text-white rounded-xl"
+                  disabled={!newMessage.title.trim() || !newMessage.message.trim()}
+                >
+                  Save Message
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isNotifyMemberOpen && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-white">Notify Member</h2>
+                <h2 className="text-lg font-medium text-white">Notify and Delete Member</h2>
                 <button onClick={() => setIsNotifyMemberOpen(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
                   <X size={16} />
                 </button>
               </div>
 
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-300 text-sm mb-4">
                 {notifyAction === "book" && "Would you like to notify the member about their new appointment?"}
                 {notifyAction === "change" && "Would you like to notify the member about changes to their appointment?"}
                 {notifyAction === "delete" &&
@@ -1216,19 +1296,18 @@ export default function Communications() {
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setIsNotifyMemberOpen(false)}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl"
+                  className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded-xl"
                 >
                   No
                 </button>
                 <button
                   onClick={() => {
-                    // Here you would implement the actual notification logic
-                    alert("Member has been notified")
+                    alert("Member has been notified and appointment is deleted")
                     setIsNotifyMemberOpen(false)
                   }}
-                  className="px-4 py-2 bg-[#FF843E] hover:bg-orange-600 text-white rounded-xl"
+                  className="px-4 py-1.5 bg-red-600 text-sm  text-white rounded-xl"
                 >
-                  Yes, Notify
+                  Yes, Notify and delete
                 </button>
               </div>
             </div>
