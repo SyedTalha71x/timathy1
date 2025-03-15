@@ -1,7 +1,8 @@
-import { FileUp, Trash2, X, FileText, Printer } from "lucide-react"
-import { useState } from "react"
-import Contract1 from '../../public/contract1.png'
+"use client"
 
+import { FileUp, Trash2, X, Eye } from "lucide-react"
+import { useState } from "react"
+import Contract1 from "../../public/contract1.png"
 
 /* eslint-disable react/prop-types */
 export function EditContractModal({ contract, onClose, onSave }) {
@@ -28,8 +29,8 @@ export function EditContractModal({ contract, onClose, onSave }) {
     onClose()
   }
 
-  const handlePrintContract = () => {
-    window.print()
+  const handleViewContract = () => {
+    setShowContractImage(true)
   }
 
   return (
@@ -45,7 +46,7 @@ export function EditContractModal({ contract, onClose, onSave }) {
         {showContractImage ? (
           <div className="space-y-4">
             <div className="bg-white rounded-lg overflow-hidden">
-              <img src={Contract1} alt="Contract Document" className="w-full h-auto" />
+              <img src={Contract1 || "/placeholder.svg"} alt="Contract Document" className="w-full h-auto" />
             </div>
 
             <div className="flex justify-between mt-4">
@@ -54,13 +55,6 @@ export function EditContractModal({ contract, onClose, onSave }) {
                 className="px-3 py-1.5 bg-gray-800 text-white rounded-lg text-sm"
               >
                 Back to Edit
-              </button>
-              <button
-                onClick={handlePrintContract}
-                className="px-3 py-1.5 bg-[#3F74FF] text-white rounded-lg text-sm flex items-center gap-1"
-              >
-                <Printer size={14} />
-                Print
               </button>
             </div>
           </div>
@@ -136,6 +130,8 @@ export function EditContractModal({ contract, onClose, onSave }) {
                 <option value="Paused">Paused</option>
                 <option value="Inactive">Inactive</option>
                 <option value="Cancelled">Cancelled</option>
+                <option value="Digital signed">Digital signed</option>
+                <option value="Analog signed">Analog signed</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -199,10 +195,10 @@ export function EditContractModal({ contract, onClose, onSave }) {
 
             <button
               type="button"
-              onClick={() => setShowContractImage(true)}
+              onClick={handleViewContract}
               className="w-full px-4 py-2 bg-[#2F2F2F] text-sm font-medium text-white rounded-lg hover:bg-[#3a3a3a] transition-colors duration-200 flex items-center justify-center gap-2 mt-4"
             >
-              <FileText size={16} />
+              <Eye size={16} />
               View Contract
             </button>
 

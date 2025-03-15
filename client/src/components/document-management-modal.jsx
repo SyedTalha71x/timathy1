@@ -3,7 +3,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { X, Upload, Download, Printer, Trash, Edit2, File, FileText, FilePlus } from "lucide-react"
+import { X, Upload, Download, Trash, Edit2, File, FileText, FilePlus, Eye } from "lucide-react"
 import { toast } from "react-hot-toast"
 
 export function DocumentManagementModal({ contract, onClose }) {
@@ -11,7 +11,9 @@ export function DocumentManagementModal({ contract, onClose }) {
   const [isUploading, setIsUploading] = useState(false)
   const [editingDocId, setEditingDocId] = useState(null)
   const [newDocName, setNewDocName] = useState("")
+  const [viewingDocument, setViewingDocument] = useState(null)
   const fileInputRef = useRef(null)
+  const signedFileInputRef = useRef(null)
 
   // Sample document data structure if none exists
   const sampleDocuments = [
@@ -23,6 +25,10 @@ export function DocumentManagementModal({ contract, onClose }) {
 
   const handleUploadClick = () => {
     fileInputRef.current.click()
+  }
+
+  const handleSignedUploadClick = () => {
+    signedFileInputRef.current.click()
   }
 
   const handleFileChange = (e) => {
@@ -72,6 +78,51 @@ export function DocumentManagementModal({ contract, onClose }) {
     }, 1500)
   }
 
+  const handleSignedFileChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Validate file type
+    const fileType = file.type
+    const validTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
+
+    if (!validTypes.includes(fileType)) {
+      toast.error("Please upload a PDF or image file")
+      return
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size should be less than 10MB")
+      return
+    }
+
+    setIsUploading(true)
+    toast.loading("Uploading signed contract...")
+
+    // Simulate upload delay
+    setTimeout(() => {
+      const newDoc = {
+        id: `doc-${Math.random().toString(36).substr(2, 9)}`,
+        name: `Signed Contract - ${file.name}`,
+        type: file.name.split(".").pop(),
+        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+        uploadDate: new Date().toISOString().split("T")[0],
+        file: file,
+        isSigned: true,
+      }
+
+      setDocuments([...displayDocuments, newDoc])
+      setIsUploading(false)
+      toast.dismiss()
+      toast.success("Signed contract uploaded successfully")
+
+      // Update contract status
+      // In a real app, you would call an API to update the contract status
+      toast.success("Contract status updated to 'Digital signed'")
+    }, 1500)
+  }
+
   const handleDownload = (doc) => {
     // In a real app, you would generate a download URL or use the stored file
     toast.success(`Downloading ${doc.name}...`)
@@ -89,9 +140,10 @@ export function DocumentManagementModal({ contract, onClose }) {
     }
   }
 
-  const handlePrint = (doc) => {
-    toast.success(`Preparing ${doc.name} for printing...`)
-    // In a real app, you would open the document in a new window and trigger print
+  const handleViewDocument = (doc) => {
+    setViewingDocument(doc)
+    toast.success(`Viewing ${doc.name}...`)
+    // In a real app, you would open the document in a viewer
   }
 
   const handleDelete = (docId) => {
@@ -99,48 +151,6 @@ export function DocumentManagementModal({ contract, onClose }) {
       setDocuments(displayDocuments.filter((doc) => doc.id !== docId))
       toast.success("Document deleted successfully")
     }
-  }
-
-  // Add this function after the handleDelete function
-  const handlePrintContract = () => {
-    toast.loading("Generating contract PDF...")
-
-    // Simulate PDF generation
-    setTimeout(() => {
-      // Create a formatted contract name
-      const contractName = `${contract.memberName.replace(/\s+/g, "_")}_Contract.pdf`
-
-      // In a real implementation, this would generate a PDF with all contract details
-      // For demo purposes, we're creating a simple blob
-      const contractContent = `
-        CONTRACT AGREEMENT
-        ------------------
-        Member: ${contract.memberName}
-        Contract Type: ${contract.contractType}
-        Start Date: ${contract.startDate}
-        End Date: ${contract.endDate}
-        Status: ${contract.status}
-        
-        This is a generated contract for demonstration purposes.
-      `
-
-      const blob = new Blob([contractContent], { type: "application/pdf" })
-      const url = URL.createObjectURL(blob)
-
-      // Create download link
-      const a = document.createElement("a")
-      a.href = url
-      a.download = contractName
-      document.body.appendChild(a)
-      a.click()
-
-      // Clean up
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-
-      toast.dismiss()
-      toast.success("Contract PDF generated successfully")
-    }, 1500)
   }
 
   const startEditing = (doc) => {
@@ -154,7 +164,18 @@ export function DocumentManagementModal({ contract, onClose }) {
       return
     }
 
-    setDocuments(displayDocuments.map((doc) => (doc.id === docId ? { ...doc, name: newDocName } : doc)))
+    // Get the original file extension
+    const originalDoc = displayDocuments.find((doc) => doc.id === docId)
+    const originalExtension = originalDoc.name.split(".").pop()
+
+    // Make sure the new name has the same extension
+    let finalName = newDocName
+    if (!finalName.endsWith(`.${originalExtension}`)) {
+      // If user removed extension, add it back
+      finalName = finalName.split(".")[0] + `.${originalExtension}`
+    }
+
+    setDocuments(displayDocuments.map((doc) => (doc.id === docId ? { ...doc, name: finalName } : doc)))
     setEditingDocId(null)
     toast.success("Document renamed successfully")
   }
@@ -176,6 +197,29 @@ export function DocumentManagementModal({ contract, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2 sm:p-4">
+      {viewingDocument && (
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg max-w-4xl max-h-[80vh] overflow-auto w-full">
+            <div className="sticky top-0 bg-gray-100 p-3 flex justify-between items-center border-b">
+              <h3 className="font-medium">{viewingDocument.name}</h3>
+              <button onClick={() => setViewingDocument(null)} className="p-1 rounded-full hover:bg-gray-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              {/* In a real app, you would render the document content here */}
+              <div className="bg-gray-100 p-8 rounded text-center">
+                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">Document preview would appear here.</p>
+                <p className="text-gray-500 text-sm mt-2">
+                  {viewingDocument.type.toUpperCase()} document • {viewingDocument.size}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-800">
           <h3 className="text-white text-lg sm:text-xl font-medium">Document Management</h3>
@@ -191,21 +235,26 @@ export function DocumentManagementModal({ contract, onClose }) {
             </p>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
-                onClick={handlePrintContract}
-                className="flex items-center text-sm justify-center gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
+                onClick={handleSignedUploadClick}
+                className="text-sm  gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
               >
-                <Printer className="w-4 h-4" />
-                Print Contract
+                Upload Signed Contract
               </button>
               <button
                 onClick={handleUploadClick}
-                className="flex items-center text-sm justify-center gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
+                className=" text-sm  gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
               >
-                <Upload className="w-4 h-4" />
                 Upload Document
               </button>
             </div>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
+            <input
+              type="file"
+              ref={signedFileInputRef}
+              onChange={handleSignedFileChange}
+              className="hidden"
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
           </div>
         </div>
 
@@ -213,11 +262,11 @@ export function DocumentManagementModal({ contract, onClose }) {
           <div className="bg-[#141414] p-4 rounded-xl mb-4">
             <h4 className="text-white font-medium mb-2">How to sign and upload your contract:</h4>
             <ol className="text-gray-400 text-sm space-y-2 list-decimal pl-5">
-              <li>Click the "Print Contract" button to generate and download the contract PDF</li>
-              <li>Print the document on paper</li>
+              <li>Generate the contract with or without digital signature</li>
+              <li>If using paper signature, print the document</li>
               <li>Have all parties sign the printed document</li>
               <li>Scan or take a clear photo of all signed pages</li>
-              <li>Click "Upload Document" to upload the signed contract</li>
+              <li>Click "Upload Signed Contract" to upload the signed contract</li>
             </ol>
           </div>
         )}
@@ -289,7 +338,14 @@ export function DocumentManagementModal({ contract, onClose }) {
                           </div>
                         ) : (
                           <>
-                            <p className="text-white font-medium truncate">{doc.name}</p>
+                            <p className="text-white font-medium truncate">
+                              {doc.name}
+                              {doc.isSigned && (
+                                <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                                  Signed
+                                </span>
+                              )}
+                            </p>
                             <p className="text-xs text-gray-400">
                               {doc.size} • Uploaded on {doc.uploadDate}
                             </p>
@@ -300,18 +356,18 @@ export function DocumentManagementModal({ contract, onClose }) {
                     {editingDocId !== doc.id && (
                       <div className="flex gap-2 mt-3 sm:mt-0 justify-end">
                         <button
+                          onClick={() => handleViewDocument(doc)}
+                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                          title="View"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleDownload(doc)}
                           className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
                           title="Download"
                         >
                           <Download className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handlePrint(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
-                          title="Print"
-                        >
-                          <Printer className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => startEditing(doc)}

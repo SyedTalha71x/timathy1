@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 "use client"
 
-import { X, FileText, Upload, Save, ArrowLeft } from "lucide-react"
+import { X, FileText, Upload, Eye, ArrowLeft } from "lucide-react"
 import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 
@@ -28,6 +28,7 @@ const printStyles = `
 `
 
 export function AddContractModal({ onClose, onSave, leadData = null }) {
+  // eslint-disable-next-line no-unused-vars
   const [isDigital, setIsDigital] = useState(true)
   const [currentPage, setCurrentPage] = useState(0)
   const [contractData, setContractData] = useState({
@@ -64,10 +65,13 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     kreditinstitut: "",
     bic: "",
     ort_datum_unterschrift: "",
-    acceptTerms: false,
-    acceptPrivacy: false,
+    acceptTerms: true,
+    acceptPrivacy: true,
   })
   const [showFormView, setShowFormView] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [showSignatureOptions, setShowSignatureOptions] = useState(false)
+  const [showPrintPrompt, setShowPrintPrompt] = useState(false)
 
   // Pre-fill data if lead information is available
   useEffect(() => {
@@ -127,60 +131,56 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     }
   }
 
-  const handlePrintContract = () => {
+  // eslint-disable-next-line no-unused-vars
+  const handleViewContract = () => {
     // Show loading state
-    toast.loading("Generating PDF contract...")
+    toast.loading("Preparing contract for viewing...")
 
     // Simulate PDF generation with contract data
     setTimeout(() => {
-      // Create a formatted contract name
-      const contractName = `${contractData.vorname || ""}_${contractData.nachname || ""}_Contract.pdf`.replace(
-        /\s+/g,
-        "_",
-      )
-
-      // In a real implementation, this would generate a PDF with all contract details
-      // For demo purposes, we're creating a simple blob
-      const contractContent = `
-        CONTRACT AGREEMENT
-        ------------------
-        Member: ${contractData.vorname} ${contractData.nachname}
-        Contract Type: ${contractData.rateType}
-        Start Date: ${contractData.startDerMitgliedschaft}
-        IBAN: ${contractData.iban}
-        
-        This is a generated contract for demonstration purposes.
-      `
-
-      const blob = new Blob([contractContent], { type: "application/pdf" })
-      const url = URL.createObjectURL(blob)
-
-      // Create download link
-      const a = document.createElement("a")
-      a.href = url
-      a.download = contractName
-      document.body.appendChild(a)
-      a.click()
-
-      // Clean up
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-
+      // In a real implementation, this would open a viewer with the contract
       toast.dismiss()
-      toast.success("Contract PDF generated successfully")
+      toast.success("Contract ready for viewing")
 
-      // Open print dialog
-      setTimeout(() => {
-        window.print()
-      }, 500)
-    }, 1500)
+      // Toggle to the contract view
+      setShowFormView(false)
+    }, 1000)
   }
 
-  const handleSaveContract = () => {
-    // Save the contract with all the collected data
+  const handleGenerateContract = () => {
+    setShowSignatureOptions(true)
+  }
+
+  const handleSignatureOption = (withSignature) => {
+    setShowSignatureOptions(false)
+
+    if (withSignature) {
+      // Generate with signature
+      toast.success("Contract generated with digital signature")
+      onSave({
+        ...contractData,
+        isDigital: true,
+        status: "Digital signed",
+      })
+    } else {
+      // Generate without signature
+      setShowPrintPrompt(true)
+    }
+  }
+
+  const handlePrintPrompt = (shouldPrint) => {
+    setShowPrintPrompt(false)
+
+    if (shouldPrint) {
+      // Print the contract
+      window.print()
+    }
+
+    // Save with analog signed status
     onSave({
       ...contractData,
-      isDigital,
+      isDigital: false,
+      status: "Analog signed",
     })
   }
 
@@ -199,6 +199,53 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex open_sans_font items-center justify-center z-[1000]">
       <style>{printStyles}</style>
+
+      {showSignatureOptions && (
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
+          <div className="bg-[#181818] p-6 rounded-2xl max-w-md w-full">
+            <h3 className="text-white text-lg font-semibold mb-4">Generate Contract</h3>
+            <p className="text-gray-300 mb-6">How would you like to generate this contract?</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handleSignatureOption(true)}
+                className="w-full px-4 text-sm py-3 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90"
+              >
+                With Digital Signature
+              </button>
+              <button
+                onClick={() => handleSignatureOption(false)}
+                className="w-full px-4 text-sm py-3 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a]"
+              >
+                Without Signature
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPrintPrompt && (
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
+          <div className="bg-[#181818] p-6 rounded-2xl max-w-md w-full">
+            <h3 className="text-white text-lg font-semibold mb-4">Print Contract</h3>
+            <p className="text-gray-300 mb-6">Would you like to print this contract?</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handlePrintPrompt(true)}
+                className="w-full px-4 py-3 text-sm bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90"
+              >
+                Yes, Print Contract
+              </button>
+              <button
+                onClick={() => handlePrintPrompt(false)}
+                className="w-full px-4 py-3 text-sm bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a]"
+              >
+                No, Skip Printing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-800">
           <div className="flex justify-between items-center">
@@ -229,15 +276,38 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
               <div className="space-y-4 mb-4">
                 <div className="space-y-1.5">
                   <label className="text-xs text-gray-200 block pl-1">Lead</label>
-                  <select
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none"
-                    name="leadId"
-                    value={contractData.leadId}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Select lead</option>
-                    {leadData && <option value={leadData.id}>{leadData.name}</option>}
-                  </select>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search for lead..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                    />
+                    {searchTerm && leadData && (
+                      <div className="absolute top-full left-0 right-0 bg-[#101010] mt-1 rounded-xl z-10 shadow-lg">
+                        <div
+                          className="p-2 hover:bg-[#1a1a1a] text-white cursor-pointer rounded-xl"
+                          onClick={() => {
+                            setContractData({
+                              ...contractData,
+                              leadId: leadData.id,
+                              fullName: leadData.name,
+                              email: leadData.email,
+                              phone: leadData.phone,
+                              vorname: leadData.name.split(" ")[0] || "",
+                              nachname: leadData.name.split(" ").slice(1).join(" ") || "",
+                              emailAdresse: leadData.email,
+                              telefonnummer: leadData.phone,
+                            })
+                            setSearchTerm(leadData.name)
+                          }}
+                        >
+                          {leadData.name}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -254,30 +324,6 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                     <option value="Bronze">Bronze</option>
                   </select>
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Contract Type</label>
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setIsDigital(true)}
-                      className={`flex-1 py-2 px-4 rounded-xl text-sm ${
-                        isDigital ? "bg-[#3F74FF] text-white" : "bg-black text-gray-400 border border-gray-800"
-                      }`}
-                    >
-                      Digital
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsDigital(false)}
-                      className={`flex-1 py-2 px-4 rounded-xl text-sm ${
-                        !isDigital ? "bg-[#3F74FF] text-white" : "bg-black text-gray-400 border border-gray-800"
-                      }`}
-                    >
-                      Analog
-                    </button>
-                  </div>
-                </div>
               </div>
 
               <button
@@ -285,33 +331,9 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                 onClick={toggleView}
                 className="w-full px-4 py-2 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-2"
               >
-                <FileText size={16} />
-                {isDigital ? "Fill Contract Digitally" : "Print Contract"}
+                <Eye size={16} />
+                View Contract
               </button>
-
-              {!isDigital && (
-                <div className="mt-4 space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs text-gray-200 block pl-1">Upload Signed Contract</label>
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept=".pdf"
-                        id="contract-file"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="contract-file"
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 flex items-center justify-center gap-2 cursor-pointer border border-gray-800"
-                      >
-                        <Upload size={16} />
-                        {contractData.signedFile ? contractData.signedFile.name : "Choose file..."}
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
@@ -328,11 +350,11 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
 
                       <div className="mb-6">
                         <h2 className="text-gray-700 font-semibold mb-2 uppercase text-sm tracking-wide">
-                          PERSÖNLICHE DATEN
+                          PERSONAL INFORMATION
                         </h2>
                         <div className="grid grid-cols-1 gap-2">
                           <div>
-                            <label className="block text-xs text-gray-600 mb-1">Mitgliedsnummer</label>
+                            <label className="block text-xs text-gray-600 mb-1">Member Number</label>
                             <input
                               type="text"
                               name="mitgliedsnummer"
@@ -343,7 +365,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           </div>
                           <div className="grid grid-cols-3 gap-2">
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Anrede</label>
+                              <label className="block text-xs text-gray-600 mb-1">Title</label>
                               <input
                                 type="text"
                                 name="anrede"
@@ -353,7 +375,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Vorname</label>
+                              <label className="block text-xs text-gray-600 mb-1">First Name</label>
                               <input
                                 type="text"
                                 name="vorname"
@@ -363,7 +385,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Nachname</label>
+                              <label className="block text-xs text-gray-600 mb-1">Last Name</label>
                               <input
                                 type="text"
                                 name="nachname"
@@ -375,7 +397,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           </div>
                           <div className="grid grid-cols-3 gap-2">
                             <div className="col-span-2">
-                              <label className="block text-xs text-gray-600 mb-1">Straße</label>
+                              <label className="block text-xs text-gray-600 mb-1">Street</label>
                               <input
                                 type="text"
                                 name="strasse"
@@ -385,7 +407,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Hausnummer</label>
+                              <label className="block text-xs text-gray-600 mb-1">House Number</label>
                               <input
                                 type="text"
                                 name="hausnummer"
@@ -397,7 +419,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           </div>
                           <div className="grid grid-cols-3 gap-2">
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">PLZ</label>
+                              <label className="block text-xs text-gray-600 mb-1">Postal Code</label>
                               <input
                                 type="text"
                                 name="plz"
@@ -407,7 +429,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                               />
                             </div>
                             <div className="col-span-2">
-                              <label className="block text-xs text-gray-600 mb-1">Ort</label>
+                              <label className="block text-xs text-gray-600 mb-1">City</label>
                               <input
                                 type="text"
                                 name="ort"
@@ -418,7 +440,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                             </div>
                           </div>
                           <div>
-                            <label className="block text-xs text-gray-600 mb-1">Telefonnummer</label>
+                            <label className="block text-xs text-gray-600 mb-1">Phone</label>
                             <input
                               type="tel"
                               name="telefonnummer"
@@ -428,7 +450,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-gray-600 mb-1">Mobil</label>
+                            <label className="block text-xs text-gray-600 mb-1">Mobile</label>
                             <input
                               type="tel"
                               name="mobil"
@@ -438,7 +460,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-gray-600 mb-1">E-Mail Adresse</label>
+                            <label className="block text-xs text-gray-600 mb-1">Email Address</label>
                             <input
                               type="email"
                               name="emailAdresse"
@@ -448,7 +470,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-gray-600 mb-1">Geburtsdatum</label>
+                            <label className="block text-xs text-gray-600 mb-1">Date of Birth</label>
                             <input
                               type="date"
                               name="geburtsdatum"
@@ -462,15 +484,13 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
 
                       <div className="mb-6">
                         <h2 className="text-gray-700 font-semibold mb-2 uppercase text-sm tracking-wide">
-                          VERTRAGSDATEN
+                          CONTRACT DETAILS
                         </h2>
-                        <p className="text-sm text-gray-700 mb-2">
-                          Ich habe mich für den nachfolgenden Tarif entschieden:
-                        </p>
+                        <p className="text-sm text-gray-700 mb-2">I have chosen the following plan:</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Tarif Mindestlaufzeit</label>
+                              <label className="block text-xs text-gray-600 mb-1">Plan Minimum Term</label>
                               <input
                                 type="text"
                                 name="tarifMindestlaufzeit"
@@ -480,7 +500,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Preis pro Woche (in €)</label>
+                              <label className="block text-xs text-gray-600 mb-1">Price per Week (€)</label>
                               <input
                                 type="text"
                                 name="preisProWoche"
@@ -492,7 +512,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Startbox</label>
+                              <label className="block text-xs text-gray-600 mb-1">Starter Box</label>
                               <input
                                 type="text"
                                 name="startbox"
@@ -502,7 +522,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Mindestlaufzeit</label>
+                              <label className="block text-xs text-gray-600 mb-1">Minimum Term</label>
                               <input
                                 type="text"
                                 name="mindestlaufzeit"
@@ -514,9 +534,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">
-                                Start der Mitgliedschaft (Montag)
-                              </label>
+                              <label className="block text-xs text-gray-600 mb-1">Membership Start (Monday)</label>
                               <input
                                 type="date"
                                 name="startDerMitgliedschaft"
@@ -526,7 +544,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Start des Trainings</label>
+                              <label className="block text-xs text-gray-600 mb-1">Training Start</label>
                               <input
                                 type="date"
                                 name="startDesTrainings"
@@ -538,44 +556,44 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Vertragsverlängerungsdauer</label>
+                              <label className="block text-xs text-gray-600 mb-1">Contract Extension Period</label>
                               <input
                                 type="text"
                                 name="vertragsverlaengerungsdauer"
                                 value={contractData.vertragsverlaengerungsdauer}
                                 onChange={handleInputChange}
                                 className="w-full border border-gray-300 rounded p-2 text-black"
-                                placeholder="1 Woche"
+                                placeholder="1 Week"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-600 mb-1">Kündigungsfrist</label>
+                              <label className="block text-xs text-gray-600 mb-1">Notice Period</label>
                               <input
                                 type="text"
                                 name="kuendigungsfrist"
                                 value={contractData.kuendigungsfrist}
                                 onChange={handleInputChange}
                                 className="w-full border border-gray-300 rounded p-2 text-black"
-                                placeholder="1 Monat"
+                                placeholder="1 Month"
                               />
                             </div>
                           </div>
                         </div>
 
                         <div className="mt-4 text-sm text-gray-700">
-                          <p>Es gelten die beigefügten AGB des Vertragsgebers, namentlich:</p>
+                          <p>The provider's terms and conditions apply, namely:</p>
                           <p className="mt-2">
-                            Die Mitgliedschaft verlängert sich nach Ablauf der Mindestlaufzeit auf unbestimmte Zeit zum
-                            Preis von 42,90 €/Woche, sofern sie nicht innerhalb der Kündigungsfrist von 1 Monat vor
-                            Ablauf der Mindestlaufzeit in Textform gekündigt & keine individuellen Konditionen für die
-                            Folgezeit im Textfeld "Vertragsbemerkung" vereinbart werden.
+                            After the minimum term expires, the membership will continue indefinitely at a price of
+                            €42.90/week, unless terminated in writing within the notice period of 1 month before the end
+                            of the minimum term & no individual conditions for the subsequent period are agreed in the
+                            "Contract remarks" text field.
                           </p>
                         </div>
                       </div>
 
                       <div className="mb-6">
                         <h2 className="text-gray-700 font-semibold mb-2 uppercase text-sm tracking-wide">
-                          BEITRAGSANPASSUNGEN
+                          FEE ADJUSTMENTS
                         </h2>
                         <div className="grid grid-cols-3 gap-2">
                           <input type="text" className="w-full border border-gray-300 rounded p-2 text-black" />
@@ -589,7 +607,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs text-gray-600 mb-1">
-                                Ort, Datum/Unterschrift Vertragsnehmer
+                                Place, Date/Signature of Contracting Party
                               </label>
                               <input
                                 type="text"
@@ -600,9 +618,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                               />
                             </div>
                             <div>
-                              <p className="text-xs text-gray-600 mb-1">
-                                Dieser Vertrag ist auch ohne Unterschrift gültig
-                              </p>
+                              <p className="text-xs text-gray-600 mb-1">This contract is valid without signature</p>
                               <p className="text-xs text-gray-600">i.A.kom.</p>
                             </div>
                           </div>
@@ -621,23 +637,22 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                     </div>
                   ) : (
                     <div className="bg-white rounded-lg p-6 relative font-sans">
-                      <h1 className="text-black text-xl font-bold mb-4 text-[#8B4513]">SEPA-LASTSCHRIFTMANDAT</h1>
+                      <h1 className="text-black text-xl font-bold mb-4 text-[#8B4513]">SEPA DIRECT DEBIT MANDATE</h1>
 
                       <p className="text-sm text-gray-700 mb-4">
-                        Ich ermächtige{" "}
-                        <span className="font-medium">
-                          Zahlungen von meinem Konto unter Angabe der Gläubiger ID-Nr:
-                        </span>{" "}
-                        mittels Lastschrift einzuziehen.
+                        I authorize <span className="font-medium">payments from my account with creditor ID no:</span>{" "}
+                        to be collected by direct debit.
                       </p>
                       <p className="text-sm text-gray-700 mb-4">
-                        Zugleich weise ich mein Kreditinstitut an, die von{" "}
-                        <span className="font-medium">auf meinem Konto gezogenen Lastschriften einzulösen.</span>
+                        At the same time, I instruct my credit institution to{" "}
+                        <span className="font-medium">honor the direct debits drawn on my account.</span>
                       </p>
 
                       <div className="grid grid-cols-1 gap-4 mb-6">
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Vorname und Name (Kontoinhaber)</label>
+                          <label className="block text-xs text-gray-600 mb-1">
+                            First and Last Name (Account Holder)
+                          </label>
                           <input
                             type="text"
                             name="fullName"
@@ -649,7 +664,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
 
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs text-gray-600 mb-1">Kreditinstitut (Name)</label>
+                            <label className="block text-xs text-gray-600 mb-1">Credit Institution (Name)</label>
                             <input
                               type="text"
                               name="kreditinstitut"
@@ -682,7 +697,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-gray-600 mb-1">SEPA Mandatsreferenz Nummer</label>
+                            <label className="block text-xs text-gray-600 mb-1">SEPA Mandate Reference Number</label>
                             <input
                               type="text"
                               name="sepaMandate"
@@ -697,7 +712,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                       <div className="border-t border-gray-300 pt-4 mb-4">
                         <div className="mb-8">
                           <label className="block text-xs text-gray-600 mb-1">
-                            Ort, Datum/Unterschrift Kontoinhaber
+                            Place, Date/Signature of Account Holder
                           </label>
                           <div className="border-b border-gray-300 mt-8"></div>
                         </div>
@@ -714,11 +729,9 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                             className="mt-1 mr-2"
                           />
                           <label htmlFor="acceptTerms" className="text-sm text-gray-700">
-                            <span className="font-bold">LEISTUNGSBESCHREIBUNG & AGB</span>
-                            <br />
-                            Hiermit stimme ich der angehängten Leistungsbeschreibung & den allgemeinen
-                            Geschäftsbedingungen (AGB) zu, soweit im Textfeld "Vertragsbemerkung" nichts anderes
-                            schriftlich vereinbart wurde.
+                            <span className="font-bold">SERVICE DESCRIPTION & TERMS</span>
+                            <br />I hereby agree to the attached service description & general terms and conditions
+                            (GTC), unless otherwise agreed in writing in the "Contract remarks" text field.
                           </label>
                         </div>
                       </div>
@@ -734,10 +747,9 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                             className="mt-1 mr-2"
                           />
                           <label htmlFor="acceptPrivacy" className="text-sm text-gray-700">
-                            <span className="font-bold">DATENSCHUTZVEREINBARUNG</span>
-                            <br />
-                            Hiermit stimme ich der Erhebung und Verarbeitung meiner personenbezogenen Daten gem.
-                            angehängter Datenschutzvereinbarung durch die zu.
+                            <span className="font-bold">DATA PROTECTION AGREEMENT</span>
+                            <br />I hereby consent to the collection and processing of my personal data according to the
+                            attached data protection agreement.
                           </label>
                         </div>
                       </div>
@@ -758,15 +770,6 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                 </div>
               ) : (
                 <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={handlePrintContract}
-                    className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl text-sm flex items-center gap-2 mx-auto"
-                  >
-                    <FileText size={16} />
-                    Print Contract
-                  </button>
-
                   <div className="mt-4">
                     <div className="space-y-1.5">
                       <label className="text-xs text-gray-200 block pl-1">Upload Signed Contract</label>
@@ -809,12 +812,11 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
           <div className="pt-4 border-t border-gray-800 mt-4">
             <button
               type="button"
-              onClick={handleSaveContract}
+              onClick={handleGenerateContract}
               className="w-full px-4 py-2 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-2"
-              disabled={!isDigital && !contractData.signedFile}
             >
-              <Save size={16} />
-              Save Contract
+              <FileText size={16} />
+              Generate Contract
             </button>
           </div>
         </div>

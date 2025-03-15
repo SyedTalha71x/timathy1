@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, Printer, FileText, Download } from "lucide-react"
+import { X, Printer, FileText, Download, User } from "lucide-react"
 import { useState } from "react"
 import Contract1 from '../../public/contract1.png'
 
@@ -15,6 +15,10 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
   const handleDownloadPDF = () => {
     // In a real implementation, this would generate and download a PDF
     alert("Downloading contract as PDF...")
+  }
+
+  const redirectToMember = () =>{
+    window.location.href = '/dashboard/members'
   }
 
   return (
@@ -67,18 +71,11 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
 
             <div className="flex gap-2">
               <button
-                onClick={() => setShowContractImage(true)}
+                onClick={redirectToMember}
                 className="py-1.5 px-5 bg-[#3F74FF] text-white text-sm rounded-xl flex items-center gap-2"
               >
-                <FileText size={16} />
-                View PDF
-              </button>
-              <button
-                onClick={handlePrintContract}
-                className="py-1.5 px-5 bg-black text-white text-sm rounded-xl border border-gray-800 flex items-center gap-2"
-              >
-                <Printer size={16} />
-                Print PDF
+                <User size={16} />
+                Go to member
               </button>
             </div>
 

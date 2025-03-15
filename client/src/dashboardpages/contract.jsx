@@ -297,90 +297,80 @@ export default function ContractList() {
       />
 
       <div className="bg-[#1C1C1C] p-6 rounded-3xl w-full">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-white oxanium_font text-2xl">Contracts</h2>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="relative filter-dropdown w-full sm:w-auto">
-              <button
-                onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
-                className="bg-black text-sm cursor-pointer text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 min-w-[150px]"
-              >
-                {selectedFilter}
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              {filterDropdownOpen && (
-                <div className="absolute right-0 text-sm mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
-                  {[
-                    "All Contracts",
-                    "Active",
-                    "Paused",
-                    "Inactive",
-                    // "Cancelled",
-                  ].map((filter) => (
-                    <button
-                      key={filter}
-                      className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
-                      onClick={() => {
-                        setSelectedFilter(filter)
-                        setFilterDropdownOpen(false)
-                      }}
-                    >
-                      {filter}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Sort Dropdown */}
-            <div className="relative sort-dropdown w-full sm:w-auto">
-              <button
-                onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                className="bg-black text-sm cursor-pointer text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 min-w-[150px]"
-              >
-                <span>Sort: {selectedSort}</span>
-                <ArrowUpDown className="w-4 h-4" />
-              </button>
-              {sortDropdownOpen && (
-                <div className="absolute right-0 text-sm mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
-                  {["Alphabetical", "Expiring Soon"].map(
-                    (
-                      sortOption, // Update 3: Removed "Default" from sort options
-                    ) => (
-                      <button
-                        key={sortOption}
-                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
-                        onClick={() => {
-                          setSelectedSort(sortOption)
-                          setSortDropdownOpen(false)
-                        }}
-                      >
-                        {sortOption}
-                      </button>
-                    ),
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button
-                onClick={handleAddContract}
-                className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
-              >
-                <Plus className="w-5 h-5" />
-                <span>Add Contract</span>
-              </button>
-              {/* <button
-                onClick={() => setIsFinanceModalOpen(true)}
-                className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
-              >
-                <DollarSign className="w-5 h-5" />
-                <span>Finances</span>
-              </button> */}
-            </div>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:justify-between items-center mb-8">
+  <h2 className="text-white oxanium_font text-2xl mb-4 sm:mb-0 text-center sm:text-left">Contracts</h2>
+  <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 w-full sm:w-auto">
+    {/* Filter Dropdown */}
+    <div className="relative filter-dropdown w-full sm:w-auto">
+      <button
+        onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+        className="bg-black text-sm cursor-pointer text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full sm:min-w-[150px]"
+      >
+        {selectedFilter}
+        <ChevronDown className="w-4 h-4" />
+      </button>
+      {filterDropdownOpen && (
+        <div className="absolute right-0 text-sm mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
+          {[
+            "All Contracts",
+            "Active",
+            "Paused",
+            "Inactive",
+          ].map((filter) => (
+            <button
+              key={filter}
+              className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
+              onClick={() => {
+                setSelectedFilter(filter)
+                setFilterDropdownOpen(false)
+              }}
+            >
+              {filter}
+            </button>
+          ))}
         </div>
+      )}
+    </div>
+
+    {/* Sort Dropdown */}
+    <div className="relative sort-dropdown w-full sm:w-auto">
+      <button
+        onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+        className="bg-black text-sm cursor-pointer text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full sm:min-w-[150px]"
+      >
+        <span>Sort: {selectedSort}</span>
+        <ArrowUpDown className="w-4 h-4" />
+      </button>
+      {sortDropdownOpen && (
+        <div className="absolute right-0 text-sm mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
+          {["Alphabetical", "Expiring Soon"].map((sortOption) => (
+            <button
+              key={sortOption}
+              className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
+              onClick={() => {
+                setSelectedSort(sortOption)
+                setSortDropdownOpen(false)
+              }}
+            >
+              {sortOption}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* Buttons */}
+    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+      <button
+        onClick={handleAddContract}
+        className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
+      >
+        <Plus className="w-5 h-5" />
+        <span>Add Contract</span>
+      </button>
+    </div>
+  </div>
+</div>
 
         <div className="relative w-full mb-2 ">
           {" "}
