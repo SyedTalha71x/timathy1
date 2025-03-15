@@ -1,5 +1,4 @@
-"use client"
-
+import {Checkbox} from "antd"
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
@@ -18,14 +17,28 @@ import {
   DatePicker,
   Collapse,
   Alert,
+  Tooltip,
+  Radio,
+  Space,
+  Divider,
 } from "antd"
 import dayjs from "dayjs"
-import { SaveOutlined, PlusOutlined, DeleteOutlined, UploadOutlined, CalendarOutlined } from "@ant-design/icons"
+import {
+  SaveOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  UploadOutlined,
+  CalendarOutlined,
+  InfoCircleOutlined,
+  BgColorsOutlined,
+  SettingOutlined,
+} from "@ant-design/icons"
 
 const { Option } = Select
 const { TabPane } = Tabs
 const { TextArea } = Input
 const { Panel } = Collapse
+const { RangePicker } = DatePicker
 
 const inputStyle = {
   backgroundColor: "#101010",
@@ -70,6 +83,11 @@ const sectionHeaderStyle = {
   cursor: "default",
 }
 
+const tooltipStyle = {
+  marginLeft: "8px",
+  color: "rgba(255, 255, 255, 0.5)",
+}
+
 const ConfigurationPage = () => {
   // Basic studio information
   const [studioName, setStudioName] = useState("")
@@ -81,6 +99,7 @@ const ConfigurationPage = () => {
   const [studioPhoneNo, setStudioPhoneNo] = useState("")
   const [studioEmail, setStudioEmail] = useState("")
   const [studioWebsite, setStudioWebsite] = useState("")
+  const [currency, setCurrency] = useState("€")
 
   // Opening hours and closing days
   const [openingHours, setOpeningHours] = useState([])
@@ -102,45 +121,49 @@ const ConfigurationPage = () => {
     creditorName: "",
   })
 
-  // Countries for selection
+  // Countries for selection with currency
   const [countries, setCountries] = useState([
-    { code: "AT", name: "Austria" },
-    { code: "BE", name: "Belgium" },
-    { code: "BG", name: "Bulgaria" },
-    { code: "CA", name: "Canada" },
-    { code: "HR", name: "Croatia" },
-    { code: "CY", name: "Cyprus" },
-    { code: "CZ", name: "Czech Republic" },
-    { code: "DK", name: "Denmark" },
-    { code: "EE", name: "Estonia" },
-    { code: "FI", name: "Finland" },
-    { code: "FR", name: "France" },
-    { code: "DE", name: "Germany" },
-    { code: "GR", name: "Greece" },
-    { code: "HU", name: "Hungary" },
-    { code: "IE", name: "Ireland" },
-    { code: "IT", name: "Italy" },
-    { code: "LV", name: "Latvia" },
-    { code: "LT", name: "Lithuania" },
-    { code: "LU", name: "Luxembourg" },
-    { code: "MT", name: "Malta" },
-    { code: "NL", name: "Netherlands" },
-    { code: "PL", name: "Poland" },
-    { code: "PT", name: "Portugal" },
-    { code: "RO", name: "Romania" },
-    { code: "SK", name: "Slovakia" },
-    { code: "SI", name: "Slovenia" },
-    { code: "ES", name: "Spain" },
-    { code: "SE", name: "Sweden" },
-    { code: "GB", name: "United Kingdom" },
-    { code: "US", name: "United States" },
+    { code: "AT", name: "Austria", currency: "€" },
+    { code: "BE", name: "Belgium", currency: "€" },
+    { code: "BG", name: "Bulgaria", currency: "лв" },
+    { code: "CA", name: "Canada", currency: "$" },
+    { code: "HR", name: "Croatia", currency: "€" },
+    { code: "CY", name: "Cyprus", currency: "€" },
+    { code: "CZ", name: "Czech Republic", currency: "Kč" },
+    { code: "DK", name: "Denmark", currency: "kr" },
+    { code: "EE", name: "Estonia", currency: "€" },
+    { code: "FI", name: "Finland", currency: "€" },
+    { code: "FR", name: "France", currency: "€" },
+    { code: "DE", name: "Germany", currency: "€" },
+    { code: "GR", name: "Greece", currency: "€" },
+    { code: "HU", name: "Hungary", currency: "Ft" },
+    { code: "IE", name: "Ireland", currency: "€" },
+    { code: "IT", name: "Italy", currency: "€" },
+    { code: "LV", name: "Latvia", currency: "€" },
+    { code: "LT", name: "Lithuania", currency: "€" },
+    { code: "LU", name: "Luxembourg", currency: "€" },
+    { code: "MT", name: "Malta", currency: "€" },
+    { code: "NL", name: "Netherlands", currency: "€" },
+    { code: "PL", name: "Poland", currency: "zł" },
+    { code: "PT", name: "Portugal", currency: "€" },
+    { code: "RO", name: "Romania", currency: "lei" },
+    { code: "SK", name: "Slovakia", currency: "€" },
+    { code: "SI", name: "Slovenia", currency: "€" },
+    { code: "ES", name: "Spain", currency: "€" },
+    { code: "SE", name: "Sweden", currency: "kr" },
+    { code: "GB", name: "United Kingdom", currency: "£" },
+    { code: "US", name: "United States", currency: "$" },
   ])
 
   const [maxCapacity, setMaxCapacity] = useState(10)
   const [contractTypes, setContractTypes] = useState([])
   const [contractSections, setContractSections] = useState([
-    { title: "Personal Information", content: "", editable: true },
-    { title: "Contract Terms", content: "", editable: true },
+    { title: "Personal Information", content: "", editable: true, requiresAgreement: true },
+    { title: "Contract Terms", content: "", editable: true, requiresAgreement: true },
+  ])
+  const [contractPauseReasons, setContractPauseReasons] = useState([
+    { name: "Vacation", maxDays: 30 },
+    { name: "Medical", maxDays: 90 },
   ])
   const [noticePeriod, setNoticePeriod] = useState(30)
   const [extensionPeriod, setExtensionPeriod] = useState(12)
@@ -148,7 +171,7 @@ const ConfigurationPage = () => {
   const [holidaysDialogVisible, setHolidaysDialogVisible] = useState(false)
   const [birthdayMessage, setBirthdayMessage] = useState({
     enabled: false,
-    message: "Happy Birthday! 🎉 Best wishes from {studio_name}",
+    message: "Happy Birthday! 🎉 Best wishes from {Studio_Name}",
   })
 
   const [trialTraining, setTrialTraining] = useState({
@@ -158,10 +181,34 @@ const ConfigurationPage = () => {
     color: "#1890ff",
   })
 
-  const [broadcastMessage, setbroadcastMessage] = useState({
-    title: "",
-    message: "",
-  })
+  const [broadcastMessages, setBroadcastMessages] = useState([
+    {
+      title: "",
+      message: "",
+      sendVia: ["email", "platform"],
+    },
+  ])
+
+  const [appointmentNotifications, setAppointmentNotifications] = useState([
+    {
+      type: "booking",
+      title: "Appointment Confirmation",
+      message: "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}.",
+      sendVia: ["email", "platform"],
+    },
+    {
+      type: "cancellation",
+      title: "Appointment Cancellation",
+      message: "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
+      sendVia: ["email", "platform"],
+    },
+    {
+      type: "rescheduled",
+      title: "Appointment Rescheduled",
+      message: "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}.",
+      sendVia: ["email", "platform"],
+    },
+  ])
 
   const [emailConfig, setEmailConfig] = useState({
     smtpServer: "",
@@ -183,10 +230,24 @@ const ConfigurationPage = () => {
     },
   ])
 
+  // Appearance settings
+  const [appearance, setAppearance] = useState({
+    theme: "dark",
+    primaryColor: "#FF843E",
+    secondaryColor: "#1890ff",
+    allowUserThemeToggle: true,
+  })
+
   // Fetch public holidays when country changes
   useEffect(() => {
     if (studioCountry) {
       fetchPublicHolidays(studioCountry)
+
+      // Set currency based on country
+      const selectedCountry = countries.find((c) => c.code === studioCountry)
+      if (selectedCountry) {
+        setCurrency(selectedCountry.currency)
+      }
     }
   }, [studioCountry])
 
@@ -299,7 +360,16 @@ const ConfigurationPage = () => {
   }
 
   const handleAddAppointmentType = () => {
-    setAppointmentTypes([...appointmentTypes, { name: "", duration: 30, capacity: 1, color: "#1890ff", interval: 30 }])
+    setAppointmentTypes([
+      ...appointmentTypes,
+      {
+        name: "",
+        duration: 30,
+        capacity: 1,
+        color: "#1890ff",
+        interval: 30,
+      },
+    ])
   }
 
   const handleAddTag = () => {
@@ -308,6 +378,14 @@ const ConfigurationPage = () => {
 
   const handleAddContractStatus = () => {
     setContractStatuses([...contractStatuses, { name: "" }])
+  }
+
+  const handleAddContractPauseReason = () => {
+    setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])
+  }
+
+  const handleRemoveContractPauseReason = (index) => {
+    setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
   }
 
   const validateClosingDays = () => {
@@ -369,7 +447,15 @@ const ConfigurationPage = () => {
   }
 
   const handleAddContractSection = () => {
-    setContractSections([...contractSections, { title: "", content: "", editable: true }])
+    setContractSections([
+      ...contractSections,
+      {
+        title: "",
+        content: "",
+        editable: true,
+        requiresAgreement: true,
+      },
+    ])
   }
 
   const handleUpdateAppointmentType = (index, field, value) => {
@@ -388,6 +474,33 @@ const ConfigurationPage = () => {
 
   const handleAddLeadProspectCategory = () => {
     setLeadProspectCategories([...leadProspectCategories, { name: "", circleColor: "#1890ff" }])
+  }
+
+  const handleAddBroadcastMessage = () => {
+    setBroadcastMessages([
+      ...broadcastMessages,
+      {
+        title: "",
+        message: "",
+        sendVia: ["email", "platform"],
+      },
+    ])
+  }
+
+  const handleRemoveBroadcastMessage = (index) => {
+    setBroadcastMessages(broadcastMessages.filter((_, i) => i !== index))
+  }
+
+  const handleUpdateBroadcastMessage = (index, field, value) => {
+    const updatedMessages = [...broadcastMessages]
+    updatedMessages[index][field] = value
+    setBroadcastMessages(updatedMessages)
+  }
+
+  const handleUpdateAppointmentNotification = (index, field, value) => {
+    const updatedNotifications = [...appointmentNotifications]
+    updatedNotifications[index][field] = value
+    setAppointmentNotifications(updatedNotifications)
   }
 
   return (
@@ -465,7 +578,7 @@ const ConfigurationPage = () => {
                 <Form.Item
                   label={<span className="text-white">Country</span>}
                   required
-                  tooltip="Selecting a country will allow you to import public holidays"
+                  tooltip="Selecting a country will allow you to import public holidays and set the default currency"
                 >
                   <Select
                     value={studioCountry}
@@ -475,7 +588,7 @@ const ConfigurationPage = () => {
                   >
                     {countries.map((country) => (
                       <Option key={country.code} value={country.code}>
-                        {country.name}
+                        {country.name} ({country.currency})
                       </Option>
                     ))}
                   </Select>
@@ -648,79 +761,256 @@ const ConfigurationPage = () => {
 
         <TabPane tab="Resources" key="2">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-            <Panel header="Capacity Settings" key="1" className="bg-[#202020] white-text">
-              <div className="space-y-4">
-                <Form.Item label={<span className="text-white">Default Maximum Capacity</span>}>
-                  <InputNumber
-                    min={0}
-                    max={100}
-                    value={maxCapacity}
-                    onChange={(value) => setMaxCapacity(value || 0)}
-                    style={inputStyle}
-                  />
-                </Form.Item>
-              </div>
+            <Panel header="Appointments" key="1" className="bg-[#202020]">
+              <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+                <Panel header="Appointment Types" key="1" className="bg-[#252525]">
+                  <div className="space-y-4">
+                    {appointmentTypes.map((type, index) => (
+                      <div key={index} className="flex flex-wrap gap-4 items-center">
+                        <Input
+                          placeholder="Appointment Type Name"
+                          value={type.name}
+                          onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
+                          className="w-full sm:w-64 white-text"
+                          style={inputStyle}
+                        />
+                        <div className="flex items-center">
+                          <InputNumber
+                            placeholder="Duration"
+                            value={type.duration}
+                            onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
+                            className="w-full sm:w-24 white-text"
+                            style={inputStyle}
+                          />
+                          <Tooltip title="Duration in minutes">
+                            <InfoCircleOutlined style={tooltipStyle} />
+                          </Tooltip>
+                        </div>
+                        <div className="flex items-center">
+                          <InputNumber
+                            placeholder="Capacity"
+                            value={type.capacity}
+                            onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
+                            className="w-full sm:w-24 white-text"
+                            style={inputStyle}
+                          />
+                          <Tooltip title="Maximum number of participants">
+                            <InfoCircleOutlined style={tooltipStyle} />
+                          </Tooltip>
+                        </div>
+                        <div className="flex items-center">
+                          <ColorPicker
+                            value={type.color}
+                            onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
+                          />
+                          <Tooltip title="Calendar display color">
+                            <InfoCircleOutlined style={tooltipStyle} />
+                          </Tooltip>
+                        </div>
+                        <div className="flex items-center">
+                          <InputNumber
+                            placeholder="Interval"
+                            value={type.interval}
+                            onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
+                            className="w-full sm:w-24 white-text"
+                            style={inputStyle}
+                          />
+                          <Tooltip title="Time between appointments in minutes">
+                            <InfoCircleOutlined style={tooltipStyle} />
+                          </Tooltip>
+                        </div>
+                        <Button
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))}
+                          className="w-full sm:w-auto"
+                          style={buttonStyle}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="dashed"
+                      onClick={handleAddAppointmentType}
+                      icon={<PlusOutlined />}
+                      className="w-full sm:w-auto"
+                      style={buttonStyle}
+                    >
+                      Add Appointment Type
+                    </Button>
+                  </div>
+                </Panel>
+
+                <Panel header="Trial Training Settings" key="2" className="bg-[#252525]">
+                  <div className="space-y-4">
+                    <Form layout="vertical">
+                      <Form.Item label={<span className="text-white">Name</span>}>
+                        <Input
+                          value={trialTraining.name}
+                          onChange={(e) =>
+                            setTrialTraining({
+                              ...trialTraining,
+                              name: e.target.value,
+                            })
+                          }
+                          style={inputStyle}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        label={
+                          <div className="flex items-center">
+                            <span className="text-white">Duration (minutes)</span>
+                            <Tooltip title="Length of the trial training session">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                        }
+                      >
+                        <div className="white-text">
+                          <InputNumber
+                            value={trialTraining.duration}
+                            onChange={(value) =>
+                              setTrialTraining({
+                                ...trialTraining,
+                                duration: value || 60,
+                              })
+                            }
+                            style={inputStyle}
+                          />
+                        </div>
+                      </Form.Item>
+
+                      <Form.Item
+                        label={
+                          <div className="flex items-center">
+                            <span className="white-text">Capacity</span>
+                            <Tooltip title="Maximum number of participants">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                        }
+                      >
+                        <div className="white-text">
+                          <InputNumber
+                            value={trialTraining.capacity}
+                            onChange={(value) =>
+                              setTrialTraining({
+                                ...trialTraining,
+                                capacity: value || 1,
+                              })
+                            }
+                            max={maxCapacity}
+                            style={inputStyle}
+                          />
+                        </div>
+                      </Form.Item>
+                      <Form.Item
+                        label={
+                          <div className="flex items-center">
+                            <span className="text-white">Color</span>
+                            <Tooltip title="Calendar display color">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                        }
+                      >
+                        <ColorPicker
+                          value={trialTraining.color}
+                          onChange={(color) => setTrialTraining({ ...trialTraining, color })}
+                        />
+                      </Form.Item>
+                    </Form>
+                  </div>
+                </Panel>
+
+                <Panel header="Capacity Settings" key="3" className="bg-[#252525]">
+                  <div className="space-y-4">
+                    <Form.Item
+                      label={
+                        <div className="flex items-center">
+                          <span className="text-white white-text">Default Maximum Capacity</span>
+                          <Tooltip title="Maximum number of participants for all appointment types">
+                            <InfoCircleOutlined style={tooltipStyle} />
+                          </Tooltip>
+                        </div>
+                      }
+                    >
+                      <InputNumber
+                        min={0}
+                        max={100}
+                        value={maxCapacity}
+                        onChange={(value) => setMaxCapacity(value || 0)}
+                        style={inputStyle}
+                        className="white-text"
+                      />
+                    </Form.Item>
+                  </div>
+                </Panel>
+              </Collapse>
             </Panel>
 
-            <Panel header="Trial Training" key="2" className="bg-[#202020]">
-              <div className="space-y-4">
-                <Form layout="vertical">
-                  <Form.Item label={<span className="text-white">Name</span>}>
-                    <Input
-                      value={trialTraining.name}
-                      onChange={(e) =>
-                        setTrialTraining({
-                          ...trialTraining,
-                          name: e.target.value,
-                        })
-                      }
-                      style={inputStyle}
-                    />
-                  </Form.Item>
-                  <Form.Item label={<span className="text-white white-text">Duration (minutes)</span>}>
-                  <div className="white-text">
-
-                    <InputNumber
-                      value={trialTraining.duration}
-                      onChange={(value) =>
-                        setTrialTraining({
-                          ...trialTraining,
-                          duration: value || 60,
-                        })
-                      }
-                      style={inputStyle}
-                      />
+            <Panel header="Staff Management" key="2" className="bg-[#202020]">
+              <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+                <Panel header="Staff Roles" key="1" className="bg-[#252525]">
+                  <div className="space-y-4">
+                    {roles.map((role, index) => (
+                      <div key={index} className="flex flex-wrap gap-4 items-center">
+                        <Input
+                          placeholder="Role Name"
+                          value={role.name}
+                          onChange={(e) => {
+                            const updatedRoles = [...roles]
+                            updatedRoles[index].name = e.target.value
+                            setRoles(updatedRoles)
+                          }}
+                          className="w-full sm:w-64"
+                          style={inputStyle}
+                        />
+                        <Select
+                          mode="multiple"
+                          placeholder="Select Permissions"
+                          value={role.permissions}
+                          onChange={(value) => {
+                            const updatedRoles = [...roles]
+                            updatedRoles[index].permissions = value
+                            setRoles(updatedRoles)
+                          }}
+                          className="w-full sm:flex-1"
+                          style={selectStyle}
+                        >
+                          <Option value="read">Read</Option>
+                          <Option value="write">Write</Option>
+                          <Option value="delete">Delete</Option>
+                        </Select>
+                        <Button
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => setRoles(roles.filter((_, i) => i !== index))}
+                          className="w-full sm:w-auto"
+                          style={buttonStyle}
+                        >
+                          Remove
+                        </Button>
                       </div>
-                  </Form.Item>
-
-                  <Form.Item label={<span className="white-text">Capacity</span>}>
-                  <div className="white-text">
-
-                    <InputNumber
-                      value={trialTraining.capacity}
-                      onChange={(value) =>
-                        setTrialTraining({
-                          ...trialTraining,
-                          capacity: value || 1,
-                        })
-                      }
-                      max={maxCapacity}
-                      style={inputStyle}
-                      />
-                      </div>
-                  </Form.Item>
-                  <Form.Item label={<span className="text-white">Color</span>}>
-                    <ColorPicker
-                      value={trialTraining.color}
-                      onChange={(color) => setTrialTraining({ ...trialTraining, color })}
-                    />
-                  </Form.Item>
-                </Form>
-              </div>
+                    ))}
+                    <Button
+                      type="dashed"
+                      onClick={handleAddRole}
+                      icon={<PlusOutlined />}
+                      className="w-full sm:w-auto"
+                      style={buttonStyle}
+                    >
+                      Add Role
+                    </Button>
+                  </div>
+                </Panel>
+              </Collapse>
             </Panel>
 
-            <Panel header="Lead Prospect Categories" key="3" className="bg-[#202020]">
+            <Panel header="Lead Settings" key="3" className="bg-[#202020]">
               <div className="space-y-4">
+                <h3 className="text-lg font-medium text-white">Lead Prospect Categories</h3>
                 {leadProspectCategories.map((category, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
                     <Input
@@ -768,121 +1058,9 @@ const ConfigurationPage = () => {
               </div>
             </Panel>
 
-            <Panel header="Roles" key="4" className="bg-[#202020]">
+            <Panel header="TO-DO" key="4" className="bg-[#202020]">
               <div className="space-y-4">
-                {roles.map((role, index) => (
-                  <div key={index} className="flex flex-wrap gap-4 items-center">
-                    <Input
-                      placeholder="Role Name"
-                      value={role.name}
-                      onChange={(e) => {
-                        const updatedRoles = [...roles]
-                        updatedRoles[index].name = e.target.value
-                        setRoles(updatedRoles)
-                      }}
-                      className="w-full sm:w-64"
-                      style={inputStyle}
-                    />
-                    <Select
-                      mode="multiple"
-                      placeholder="Select Permissions"
-                      value={role.permissions}
-                      onChange={(value) => {
-                        const updatedRoles = [...roles]
-                        updatedRoles[index].permissions = value
-                        setRoles(updatedRoles)
-                      }}
-                      className="w-full sm:flex-1"
-                      style={selectStyle}
-                    >
-                      <Option value="read">Read</Option>
-                      <Option value="write">Write</Option>
-                      <Option value="delete">Delete</Option>
-                    </Select>
-                    <Button
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => setRoles(roles.filter((_, i) => i !== index))}
-                      className="w-full sm:w-auto"
-                      style={buttonStyle}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="dashed"
-                  onClick={handleAddRole}
-                  icon={<PlusOutlined />}
-                  className="w-full sm:w-auto"
-                  style={buttonStyle}
-                >
-                  Add Role
-                </Button>
-              </div>
-            </Panel>
-
-            <Panel header="Appointment Types" key="5" className="bg-[#202020]">
-              <div className="space-y-4">
-                {appointmentTypes.map((type, index) => (
-                  <div key={index} className="flex flex-wrap gap-4 items-center">
-                    <Input
-                      placeholder="Appointment Type Name"
-                      value={type.name}
-                      onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
-                      className="w-full sm:w-64 white-text"
-                      style={inputStyle}
-                    />
-                    <InputNumber
-                      placeholder="Duration (minutes)"
-                      value={type.duration}
-                      onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
-                      className="w-full sm:w-32 white-text"
-                      style={inputStyle}
-                    />
-                    <InputNumber
-                      placeholder="Capacity (1-100)"
-                      value={type.capacity}
-                      onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
-                      className="w-full sm:w-32 white-text"
-                      style={inputStyle}
-                    />
-                    <ColorPicker
-                      value={type.color}
-                      onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
-                    />
-                    <InputNumber
-                      placeholder="Interval (minutes)"
-                      value={type.interval}
-                      onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
-                      className="w-full sm:w-32 white-text"
-                      style={inputStyle}
-                    />
-                    <Button
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))}
-                      className="w-full sm:w-auto"
-                      style={buttonStyle}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="dashed"
-                  onClick={handleAddAppointmentType}
-                  icon={<PlusOutlined />}
-                  className="w-full sm:w-auto"
-                  style={buttonStyle}
-                >
-                  Add Appointment Type
-                </Button>
-              </div>
-            </Panel>
-
-            <Panel header="TO-DO Tags" key="6" className="bg-[#202020]">
-              <div className="space-y-4">
+                <h3 className="text-lg text-white font-medium">TO-DO Tags</h3>
                 {tags.map((tag, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
                     <Input
@@ -949,33 +1127,32 @@ const ConfigurationPage = () => {
                           />
                         </Form.Item>
                         <Form.Item label={<span className="text-white white-text">Duration (months)</span>}>
-                        <div className="white-text">
-
-                          <InputNumber
-                            value={type.duration}
-                            onChange={(value) => {
-                              const updated = [...contractTypes]
-                              updated[index].duration = value || 0
-                              setContractTypes(updated)
-                            }}
-                            style={inputStyle}
+                          <div className="white-text">
+                            <InputNumber
+                              value={type.duration}
+                              onChange={(value) => {
+                                const updated = [...contractTypes]
+                                updated[index].duration = value || 0
+                                setContractTypes(updated)
+                              }}
+                              style={inputStyle}
                             />
-                            </div>
+                          </div>
                         </Form.Item>
                         <Form.Item label={<span className="text-white white-text">Cost</span>}>
-                        <div className="white-text">
-
-                          <InputNumber
-                            value={type.cost}
-                            onChange={(value) => {
-                              const updated = [...contractTypes]
-                              updated[index].cost = value || 0
-                              setContractTypes(updated)
-                            }}
-                            style={inputStyle}
-                            precision={2}
+                          <div className="white-text">
+                            <InputNumber
+                              value={type.cost}
+                              onChange={(value) => {
+                                const updated = [...contractTypes]
+                                updated[index].cost = value || 0
+                                setContractTypes(updated)
+                              }}
+                              style={inputStyle}
+                              precision={2}
+                              // addonAfter={currency}
                             />
-                            </div>
+                          </div>
                         </Form.Item>
                         <Form.Item label={<span className="text-white">Billing Period</span>}>
                           <Select
@@ -1039,12 +1216,22 @@ const ConfigurationPage = () => {
                             style={inputStyle}
                           />
                         </Form.Item>
-                        <Form.Item label={<span className="text-white">Signature needed</span>}>
+                        <Form.Item label={<span className="text-white">Editable</span>}>
                           <Switch
                             checked={section.editable}
                             onChange={(checked) => {
                               const updated = [...contractSections]
                               updated[index].editable = checked
+                              setContractSections(updated)
+                            }}
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Requires Agreement</span>}>
+                          <Switch
+                            checked={section.requiresAgreement}
+                            onChange={(checked) => {
+                              const updated = [...contractSections]
+                              updated[index].requiresAgreement = checked
                               setContractSections(updated)
                             }}
                           />
@@ -1067,7 +1254,61 @@ const ConfigurationPage = () => {
               </div>
             </Panel>
 
-            <Panel header="Additional Documents" key="3" className="bg-[#202020]">
+            <Panel header="Contract Pause Reasons" key="3" className="bg-[#202020]">
+              <div className="space-y-4">
+                {contractPauseReasons.map((reason, index) => (
+                  <div key={index} className="flex white-text flex-wrap gap-4 items-center">
+                    <Input
+                      placeholder="Reason Name"
+                      value={reason.name}
+                      onChange={(e) => {
+                        const updated = [...contractPauseReasons]
+                        updated[index].name = e.target.value
+                        setContractPauseReasons(updated)
+                      }}
+                      className="w-full sm:w-64"
+                      style={inputStyle}
+                    />
+                    <div className="flex items-center">
+                      <InputNumber
+                        placeholder="Max Days"
+                        value={reason.maxDays}
+                        onChange={(value) => {
+                          const updated = [...contractPauseReasons]
+                          updated[index].maxDays = value || 0
+                          setContractPauseReasons(updated)
+                        }}
+                        className="w-full sm:w-32"
+                        style={inputStyle}
+                      />
+                      <Tooltip title="Maximum number of days allowed for this pause reason">
+                        <InfoCircleOutlined style={tooltipStyle} />
+                      </Tooltip>
+                    </div>
+                    <Button
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => handleRemoveContractPauseReason(index)}
+                      className="w-full sm:w-auto"
+                      style={buttonStyle}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={handleAddContractPauseReason}
+                  icon={<PlusOutlined />}
+                  className="w-full sm:w-auto"
+                  style={buttonStyle}
+                >
+                  Add Pause Reason
+                </Button>
+              </div>
+            </Panel>
+
+            <Panel header="Additional Documents" key="4" className="bg-[#202020]">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg text-white font-medium">Additional Documents</h3>
@@ -1110,20 +1351,19 @@ const ConfigurationPage = () => {
                     />
                   </Form.Item>
                   <Form.Item label={<span className="text-white white-text">SMTP Port</span>}>
-                  <div className="white-text">
-
-                    <InputNumber
-                      value={emailConfig.smtpPort}
-                      onChange={(value) =>
-                        setEmailConfig({
-                          ...emailConfig,
-                          smtpPort: value || 587,
-                        })
-                      }
-                      style={inputStyle}
-                      placeholder="587"
+                    <div className="white-text">
+                      <InputNumber
+                        value={emailConfig.smtpPort}
+                        onChange={(value) =>
+                          setEmailConfig({
+                            ...emailConfig,
+                            smtpPort: value || 587,
+                          })
+                        }
+                        style={inputStyle}
+                        placeholder="587"
                       />
-                      </div>
+                    </div>
                   </Form.Item>
                   <Form.Item label={<span className="text-white">Email Address</span>}>
                     <Input
@@ -1195,7 +1435,16 @@ const ConfigurationPage = () => {
                       }
                     />
                   </Form.Item>
-                  <Form.Item label={<span className="text-white">Message Template</span>}>
+                  <Form.Item
+                    label={
+                      <div className="flex items-center">
+                        <span className="text-white">Message Template</span>
+                        <Tooltip title="Available variables: {Studio_Name}, {Member_Name}">
+                          <InfoCircleOutlined style={tooltipStyle} />
+                        </Tooltip>
+                      </div>
+                    }
+                  >
                     <TextArea
                       value={birthdayMessage.message}
                       onChange={(e) =>
@@ -1206,7 +1455,7 @@ const ConfigurationPage = () => {
                       }
                       rows={4}
                       style={inputStyle}
-                      placeholder="Use {studio_name} as a placeholder for your studio name"
+                      placeholder="Use {Studio_Name} and {Member_Name} as placeholders"
                     />
                   </Form.Item>
                 </Form>
@@ -1214,34 +1463,125 @@ const ConfigurationPage = () => {
             </Panel>
 
             <Panel header="Broadcast Messages" key="3" className="bg-[#202020]">
-              <div className="space-y-3">
-                <Form layout="vertical">
-                  <Form.Item label={<span className="text-white">Title</span>}>
-                    <Input
-                      value={broadcastMessage.title}
-                      onChange={(e) => {
-                        setbroadcastMessage({
-                          ...broadcastMessage,
-                          title: e.target.value,
-                        })
-                      }}
-                      style={inputStyle}
-                    />
-                  </Form.Item>
-                  <Form.Item label={<span className="text-white">Message</span>}>
-                    <TextArea
-                      value={broadcastMessage.message}
-                      onChange={(e) => {
-                        setbroadcastMessage({
-                          ...broadcastMessage,
-                          message: e.target.value,
-                        })
-                      }}
-                      rows={4}
-                      style={inputStyle}
-                    />
-                  </Form.Item>
-                </Form>
+              <div className="space-y-4">
+                {broadcastMessages.map((message, index) => (
+                  <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
+                    <Panel header={message.title || "New Broadcast Message"} key="1" className="bg-[#252525]">
+                      <Form layout="vertical">
+                        <Form.Item label={<span className="text-white">Title</span>}>
+                          <Input
+                            value={message.title}
+                            onChange={(e) => handleUpdateBroadcastMessage(index, "title", e.target.value)}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          label={
+                            <div className="flex items-center">
+                              <span className="text-white">Message</span>
+                              <Tooltip title="Available variables: {Studio_Name}, {Member_Name}">
+                                <InfoCircleOutlined style={tooltipStyle} />
+                              </Tooltip>
+                            </div>
+                          }
+                        >
+                          <TextArea
+                            value={message.message}
+                            onChange={(e) => handleUpdateBroadcastMessage(index, "message", e.target.value)}
+                            rows={4}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Send Via</span>}>
+                          <Checkbox.Group
+                            options={[
+                              { label: "Email", value: "email" },
+                              { label: "Platform Chat", value: "platform" },
+                            ]}
+                            value={message.sendVia}
+                            onChange={(values) => handleUpdateBroadcastMessage(index, "sendVia", values)}
+                          />
+                        </Form.Item>
+                      </Form>
+                      <Button
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleRemoveBroadcastMessage(index)}
+                        style={buttonStyle}
+                      >
+                        Remove
+                      </Button>
+                    </Panel>
+                  </Collapse>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={handleAddBroadcastMessage}
+                  icon={<PlusOutlined />}
+                  className="w-full sm:w-auto"
+                  style={buttonStyle}
+                >
+                  Add Broadcast Message
+                </Button>
+              </div>
+            </Panel>
+
+            <Panel header="Appointment Notifications" key="4" className="bg-[#202020]">
+              <div className="space-y-4">
+                {appointmentNotifications.map((notification, index) => (
+                  <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
+                    <Panel header={notification.title || "New Notification"} key="1" className="bg-[#252525]">
+                      <Form layout="vertical">
+                        <Form.Item label={<span className="text-white">Notification Type</span>}>
+                          <Select
+                            value={notification.type}
+                            onChange={(value) => handleUpdateAppointmentNotification(index, "type", value)}
+                            style={selectStyle}
+                          >
+                            <Option value="booking">Booking Confirmation</Option>
+                            <Option value="cancellation">Cancellation</Option>
+                            <Option value="rescheduled">Rescheduled</Option>
+                            <Option value="reminder">Reminder</Option>
+                          </Select>
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Title</span>}>
+                          <Input
+                            value={notification.title}
+                            onChange={(e) => handleUpdateAppointmentNotification(index, "title", e.target.value)}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          label={
+                            <div className="flex items-center">
+                              <span className="text-white">Message</span>
+                              <Tooltip title="Available variables: {Studio_Name}, {Member_Name}, {Appointment_Type}, {Booked_Time}">
+                                <InfoCircleOutlined style={tooltipStyle} />
+                              </Tooltip>
+                            </div>
+                          }
+                        >
+                          <TextArea
+                            value={notification.message}
+                            onChange={(e) => handleUpdateAppointmentNotification(index, "message", e.target.value)}
+                            rows={4}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Send Via</span>}>
+                          <Checkbox.Group
+                            options={[
+                              { label: "Email", value: "email" },
+                              { label: "Platform Chat", value: "platform" },
+                            ]}
+                            value={notification.sendVia}
+                            onChange={(values) => handleUpdateAppointmentNotification(index, "sendVia", values)}
+                          />
+                        </Form.Item>
+                      </Form>
+                    </Panel>
+                  </Collapse>
+                ))}
               </div>
             </Panel>
           </Collapse>
@@ -1298,7 +1638,29 @@ const ConfigurationPage = () => {
               </div>
             </Panel>
 
-            <Panel header="VAT Rates" key="2" className="bg-[#202020]">
+            <Panel header="Currency Settings" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item
+                    label={
+                      <div className="flex items-center">
+                        <span className="text-white">Currency Symbol</span>
+                        <Tooltip title="Automatically set based on country selection">
+                          <InfoCircleOutlined style={tooltipStyle} />
+                        </Tooltip>
+                      </div>
+                    }
+                  >
+                    <Input value={currency} disabled style={{ ...inputStyle, opacity: 0.7 }} />
+                    <div className="text-xs text-gray-400 mt-1">
+                      This is automatically set based on your country selection in Studio Data
+                    </div>
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+
+            <Panel header="VAT Rates" key="3" className="bg-[#202020]">
               <div className="space-y-4 white-text">
                 {vatRates.map((rate, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
@@ -1368,6 +1730,135 @@ const ConfigurationPage = () => {
             </Panel>
           </Collapse>
         </TabPane>
+
+        <TabPane tab="Appearance" key="6">
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Theme Settings" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Default Theme</span>}>
+                    <Radio.Group
+                      value={appearance.theme}
+                      onChange={(e) => setAppearance({ ...appearance, theme: e.target.value })}
+                    >
+                      <Space direction="vertical">
+                        <Radio value="light">
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-white border border-gray-300"></div>
+                            <span className="text-white">Light Mode</span>
+                          </div>
+                        </Radio>
+                        <Radio value="dark">
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-[#181818] border border-gray-700"></div>
+                            <span className="text-white">Dark Mode</span>
+                          </div>
+                        </Radio>
+                      </Space>
+                    </Radio.Group>
+                  </Form.Item>
+
+                  <Form.Item label={<span className="text-white">Allow Users to Toggle Theme</span>}>
+                    <Switch
+                      checked={appearance.allowUserThemeToggle}
+                      onChange={(checked) => setAppearance({ ...appearance, allowUserThemeToggle: checked })}
+                    />
+                  </Form.Item>
+
+                  <Divider style={{ borderColor: "#303030" }} />
+
+                  <Form.Item
+                    label={
+                      <div className="flex items-center">
+                        <span className="text-white">Primary Color</span>
+                        <Tooltip title="Used for buttons, links, and primary actions">
+                          <InfoCircleOutlined style={tooltipStyle} />
+                        </Tooltip>
+                      </div>
+                    }
+                  >
+                    <div className="flex items-center gap-3">
+                      <ColorPicker
+                        value={appearance.primaryColor}
+                        onChange={(color) => setAppearance({ ...appearance, primaryColor: color })}
+                      />
+                      <div
+                        className="h-10 w-20 rounded-md flex items-center justify-center text-white"
+                        style={{ backgroundColor: appearance.primaryColor }}
+                      >
+                        <BgColorsOutlined />
+                      </div>
+                    </div>
+                  </Form.Item>
+
+                  <Form.Item
+                    label={
+                      <div className="flex items-center">
+                        <span className="text-white">Secondary Color</span>
+                        <Tooltip title="Used for accents, highlights, and secondary actions">
+                          <InfoCircleOutlined style={tooltipStyle} />
+                        </Tooltip>
+                      </div>
+                    }
+                  >
+                    <div className="flex items-center gap-3">
+                      <ColorPicker
+                        value={appearance.secondaryColor}
+                        onChange={(color) => setAppearance({ ...appearance, secondaryColor: color })}
+                      />
+                      <div
+                        className="h-10 w-20 rounded-md flex items-center justify-center text-white"
+                        style={{ backgroundColor: appearance.secondaryColor }}
+                      >
+                        <SettingOutlined />
+                      </div>
+                    </div>
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+
+            <Panel header="Preview" key="2" className="bg-[#202020]">
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium text-white">Theme Preview</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 rounded-lg border border-[#303030] bg-white">
+                    <h4 className="text-black font-medium mb-3">Light Mode</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Button style={{ backgroundColor: appearance.primaryColor, color: "white", border: "none" }}>
+                        Primary Button
+                      </Button>
+                      <Button style={{ backgroundColor: appearance.secondaryColor, color: "white", border: "none" }}>
+                        Secondary Button
+                      </Button>
+                    </div>
+                    <div className="mt-3">
+                      <p className="text-black">Sample text in light mode</p>
+                      <p style={{ color: appearance.primaryColor }}>Colored text using primary color</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg border border-[#303030] bg-[#101010]">
+                    <h4 className="text-white font-medium mb-3">Dark Mode</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Button style={{ backgroundColor: appearance.primaryColor, color: "white", border: "none" }}>
+                        Primary Button
+                      </Button>
+                      <Button style={{ backgroundColor: appearance.secondaryColor, color: "white", border: "none" }}>
+                        Secondary Button
+                      </Button>
+                    </div>
+                    <div className="mt-3">
+                      <p className="text-white">Sample text in dark mode</p>
+                      <p className="text-white" style={{ color: appearance.primaryColor }}>Colored text using primary color</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Panel>
+          </Collapse>
+        </TabPane>
       </Tabs>
 
       <div className="flex justify-end mt-4">
@@ -1413,6 +1904,34 @@ const additionalStyles = `
 
   .ant-collapse-arrow {
     color: white !important;
+  }
+
+  /* Checkbox Styles */
+  .ant-checkbox-wrapper {
+    color: white !important;
+  }
+
+  .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: #FF843E !important;
+    border-color: #FF843E !important;
+  }
+
+  /* Radio Styles */
+  .ant-radio-wrapper {
+    color: white !important;
+  }
+
+  .ant-radio-checked .ant-radio-inner {
+    border-color: #FF843E !important;
+  }
+
+  .ant-radio-inner::after {
+    background-color: #FF843E !important;
+  }
+
+  /* Divider Styles */
+  .ant-divider {
+    border-color: #303030 !important;
   }
 `
 
