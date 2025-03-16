@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, Search, Tag } from "lucide-react";
-import { useState, useEffect } from "react";
+import { X, Search, Tag, Circle, AlertTriangle, Info, Calendar } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import Avatar from "../../public/avatar.png";
 import { AddLeadModal } from "../components/add-lead-modal";
 import { EditLeadModal } from "../components/edit-lead-modal";
@@ -74,30 +74,30 @@ const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
 
 // Lead Status Badge component
 const StatusBadge = ({ status }) => {
-  let icon, text, color;
+  let circleColor;
 
   switch (status) {
     case "active":
-      text = "Active prospect";
-      color = "text-green-500";
+      circleColor = "text-green-500";
       break;
     case "passive":
-      text = "Passive prospect";
-      color = "text-yellow-500";
+      circleColor = "text-yellow-500";
       break;
     case "uninterested":
-      text = "Uninterested";
-      color = "text-red-500";
+      circleColor = "text-red-500";
       break;
     default:
-      text = "Unknown";
-      color = "text-gray-500";
+      circleColor = "text-gray-500";
   }
 
   return (
-    <div className={`flex items-center mt-1 ${color}`}>
-      {/* <span className="mr-1">{icon}</span> */}
-      <span className="text-xs">{text}</span>
+    <div className="flex items-center mt-1 text-white">
+      <Circle className={`${circleColor} mr-1 h-3 w-3 fill-current`} />
+      <span className="text-xs">
+        {status === "active" ? "Active prospect" : 
+         status === "passive" ? "Passive prospect" : 
+         status === "uninterested" ? "Uninterested" : "Unknown"}
+      </span>
     </div>
   );
 };
@@ -112,24 +112,24 @@ const formatDate = (timestamp) => {
   });
 };
 
-export default function Leets() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false);
-  const [selectedLead, setSelectedLead] = useState(null);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterOption, setFilterOption] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [leads, setLeads] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const leadsPerPage = 5;
-  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] =
-    useState(false);
-  const [leadToDeleteId, setLeadToDeleteId] = useState(null);
-  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false);
+export default function LeadOverview() {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
+  const [selectedLead, setSelectedLead] = useState(null)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterOption, setFilterOption] = useState("all")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [leads, setLeads] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const leadsPerPage = 5
+  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false)
+  const [leadToDeleteId, setLeadToDeleteId] = useState(null)
+  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
+  const [activeNoteId, setActiveNoteId] = useState(null)
 
-  // Hardcoded initial leads with status and createdAt fields
+  // Hardcoded initial leads with status, createdAt fields, and special notes
   const hardcodedLeads = [
     {
       id: "h1",
@@ -143,6 +143,12 @@ export default function Leets() {
       source: "hardcoded",
       status: "active",
       createdAt: "2025-01-15T10:30:00Z",
+      specialNote: {
+        text: "Interested in personal training sessions twice a week.",
+        isImportant: false,
+        startDate: "2025-01-15",
+        endDate: "2025-03-15",
+      },
     },
     {
       id: "h2",
@@ -156,6 +162,12 @@ export default function Leets() {
       source: "hardcoded",
       status: "passive",
       createdAt: "2025-01-20T14:45:00Z",
+      specialNote: {
+        text: "Has dietary restrictions - needs specialized nutrition plan.",
+        isImportant: false,
+        startDate: "2025-01-20",
+        endDate: "2025-04-20",
+      },
     },
     {
       id: "h3",
@@ -169,6 +181,12 @@ export default function Leets() {
       source: "hardcoded",
       status: "active",
       createdAt: "2025-01-25T09:15:00Z",
+      specialNote: {
+        text: "Former athlete, looking for high-intensity workouts.",
+        isImportant: false,
+        startDate: "2025-01-25",
+        endDate: "2025-02-25",
+      },
     },
     {
       id: "h4",
@@ -182,24 +200,30 @@ export default function Leets() {
       source: "hardcoded",
       status: "uninterested",
       createdAt: "2025-02-01T11:20:00Z",
+      specialNote: {
+        text: "Requested follow-up in 3 months - not ready to commit now.",
+        isImportant: true,
+        startDate: "2025-02-01",
+        endDate: "2025-05-01",
+      },
     },
-  ];
+  ]
 
   // Load and combine leads on component mount
-  useEffect(() => {
-    const storedLeads = localStorage.getItem("leads");
-    let combinedLeads = [...hardcodedLeads];
+  useState(() => {
+    const storedLeads = localStorage.getItem("leads")
+    let combinedLeads = [...hardcodedLeads]
 
     if (storedLeads) {
       const parsedStoredLeads = JSON.parse(storedLeads).map((lead) => ({
         ...lead,
         source: "localStorage",
-      }));
-      combinedLeads = [...hardcodedLeads, ...parsedStoredLeads];
+      }))
+      combinedLeads = [...hardcodedLeads, ...parsedStoredLeads]
     }
 
-    setLeads(combinedLeads);
-  }, []);
+    setLeads(combinedLeads)
+  })
 
   const [notifications, setNotifications] = useState([
     {
@@ -214,17 +238,17 @@ export default function Leets() {
       description:
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
     },
-  ]);
+  ])
 
   const handleEditLead = (lead) => {
-    setSelectedLead(lead);
-    setIsEditModalOpen(true);
-  };
+    setSelectedLead(lead)
+    setIsEditModalOpen(true)
+  }
 
   const handleViewLeadDetails = (lead) => {
-    setSelectedLead(lead);
-    setIsViewDetailsModalOpen(true);
-  };
+    setSelectedLead(lead)
+    setIsViewDetailsModalOpen(true)
+  }
 
   const handleSaveEdit = (data) => {
     const updatedLeads = leads.map((lead) =>
@@ -239,100 +263,182 @@ export default function Leets() {
             hasTrialTraining: data.hasTrialTraining,
             avatar: data.avatar,
             status: data.status || lead.status,
+            specialNote: {
+              text: data.note || "",
+              isImportant: data.noteImportance === "important",
+              startDate: data.noteStartDate || null,
+              endDate: data.noteEndDate || null,
+            },
           }
-        : lead
-    );
-    setLeads(updatedLeads);
+        : lead,
+    )
+    setLeads(updatedLeads)
 
     // Only update localStorage with non-hardcoded leads
-    const localStorageLeads = updatedLeads.filter(
-      (lead) => lead.source === "localStorage"
-    );
-    localStorage.setItem("leads", JSON.stringify(localStorageLeads));
+    const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
+    localStorage.setItem("leads", JSON.stringify(localStorageLeads))
 
-    toast.success("Lead has been updated");
-  };
+    toast.success("Lead has been updated")
+  }
 
   const handleDeleteLead = (id) => {
-    const leadToDelete = leads.find((lead) => lead.id === id);
-    const updatedLeads = leads.filter((lead) => lead.id !== id);
-    setLeads(updatedLeads);
+    const leadToDelete = leads.find((lead) => lead.id === id)
+    const updatedLeads = leads.filter((lead) => lead.id !== id)
+    setLeads(updatedLeads)
 
     // Only update localStorage if the deleted lead was from localStorage
     if (leadToDelete?.source === "localStorage") {
-      const localStorageLeads = updatedLeads.filter(
-        (lead) => lead.source === "localStorage"
-      );
-      localStorage.setItem("leads", JSON.stringify(localStorageLeads));
+      const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
+      localStorage.setItem("leads", JSON.stringify(localStorageLeads))
     }
 
-    toast.success("Lead has been deleted");
-  };
+    toast.success("Lead has been deleted")
+  }
 
   const handleSaveLead = (data) => {
-    const now = new Date().toISOString();
+    const now = new Date().toISOString()
     const newLead = {
       id: `l${Date.now()}`,
       firstName: data.firstName,
-      surname: data.surname,
+      surname: data.lastName,
       email: data.email,
-      phoneNumber: data.phoneNumber,
+      phoneNumber: data.phone,
       trialPeriod: data.trialPeriod,
       hasTrialTraining: data.hasTrialTraining,
       avatar: data.avatar,
       source: "localStorage",
       status: data.status || "passive", // Default status
       createdAt: now,
-    };
-    const updatedLeads = [...leads, newLead];
-    setLeads(updatedLeads);
+      specialNote: {
+        text: data.note || "",
+        isImportant: data.noteImportance === "important",
+        startDate: data.noteStartDate || null,
+        endDate: data.noteEndDate || null,
+      },
+    }
+    const updatedLeads = [...leads, newLead]
+    setLeads(updatedLeads)
 
     // Store only localStorage leads
-    const localStorageLeads = updatedLeads.filter(
-      (lead) => lead.source === "localStorage"
-    );
-    localStorage.setItem("leads", JSON.stringify(localStorageLeads));
+    const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
+    localStorage.setItem("leads", JSON.stringify(localStorageLeads))
 
-    toast.success("Lead has been added");
-  };
+    toast.success("Lead has been added")
+  }
+
+  // Special Note Icon Renderer
+  const renderSpecialNoteIcon = useCallback(
+    (specialNote, leadId) => {
+      if (!specialNote || !specialNote.text) return null
+
+      const isActive =
+        specialNote.startDate === null ||
+        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+
+      if (!isActive) return null
+
+      const handleNoteClick = (e) => {
+        e.stopPropagation()
+        setActiveNoteId(activeNoteId === leadId ? null : leadId)
+      }
+
+      return (
+        <div className="relative">
+          <div
+            className={`${
+              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            onClick={handleNoteClick}
+          >
+            {specialNote.isImportant ? (
+              <AlertTriangle size={18} className="text-white" />
+            ) : (
+              <Info size={18} className="text-white" />
+            )}
+          </div>
+
+          {activeNoteId === leadId && (
+            <div className="absolute left-0 top-6 w-64 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20">
+              {/* Header section with icon and title */}
+              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                {specialNote.isImportant ? (
+                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                ) : (
+                  <Info className="text-blue-500 shrink-0" size={18} />
+                )}
+                <h4 className="text-white font-medium">
+                  {specialNote.isImportant ? "Important Note" : "Special Note"}
+                </h4>
+              </div>
+
+              {/* Note content */}
+              <div className="p-3">
+                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
+
+                {/* Date validity section */}
+                {specialNote.startDate && specialNote.endDate && (
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <Calendar size={12} />
+                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                      {new Date(specialNote.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer with close button */}
+              <div className="bg-gray-800/50 p-2 rounded-b-lg border-t border-gray-700 flex justify-end">
+                <button
+                  className="text-xs text-gray-300 hover:text-white px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveNoteId(null)
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    },
+    [activeNoteId, setActiveNoteId],
+  )
 
   const filteredLeads = leads.filter((lead) => {
-    const fullName = `${lead.firstName} ${lead.surname}`.toLowerCase();
+    const fullName = `${lead.firstName} ${lead.surname}`.toLowerCase()
     const matchesSearch =
-      fullName.includes(searchQuery.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchQuery.toLowerCase());
+      fullName.includes(searchQuery.toLowerCase()) || lead.email.toLowerCase().includes(searchQuery.toLowerCase())
 
     // Filter by trial training status
     const matchesTrialFilter =
       filterOption === "all" ||
       (filterOption === "trial" && lead.hasTrialTraining) ||
-      (filterOption === "notrial" && !lead.hasTrialTraining);
+      (filterOption === "notrial" && !lead.hasTrialTraining)
 
     // Filter by lead status
-    const matchesStatusFilter =
-      statusFilter === "all" || lead.status === statusFilter;
+    const matchesStatusFilter = statusFilter === "all" || lead.status === statusFilter
 
-    return matchesSearch && matchesTrialFilter && matchesStatusFilter;
-  });
+    return matchesSearch && matchesTrialFilter && matchesStatusFilter
+  })
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredLeads.length / leadsPerPage);
-  const startIndex = (currentPage - 1) * leadsPerPage;
-  const paginatedLeads = filteredLeads.slice(
-    startIndex,
-    startIndex + leadsPerPage
-  );
+  const totalPages = Math.ceil(filteredLeads.length / leadsPerPage)
+  const startIndex = (currentPage - 1) * leadsPerPage
+  const paginatedLeads = filteredLeads.slice(startIndex, startIndex + leadsPerPage)
 
   // Reset to first page when filter or search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, filterOption, statusFilter]);
+  useState(() => {
+    setCurrentPage(1)
+  }, [searchQuery, filterOption, statusFilter])
 
   const handlePageChange = (page) => {
-    setCurrentPage(page);
+    setCurrentPage(page)
     // Scroll to top of the leads list
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
   return (
     <>
@@ -350,9 +456,7 @@ export default function Leets() {
       <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
         <main className="flex-1 min-w-0 p-6">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0 mb-6">
-            <h2 className="text-xl md:text-2xl oxanium_font font-bold">
-              Interested parties
-            </h2>
+            <h2 className="text-xl md:text-2xl oxanium_font font-bold">Interested parties</h2>
             <div className="flex gap-2">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -372,10 +476,7 @@ export default function Leets() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
               />
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={18}
-              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
 
             {/* Trial Training Filter */}
@@ -420,27 +521,31 @@ export default function Leets() {
             {paginatedLeads.map((lead) => (
               <div
                 key={lead.id}
-                className="bg-[#141414] rounded-lg p-5 flex md:flex-row flex-col items-center justify-between"
+                className="bg-[#141414] rounded-lg p-5 flex md:flex-row flex-col items-center justify-between relative"
               >
+                {/* Special Note positioned at top left */}
+                {lead.specialNote && lead.specialNote.text && (
+                  <div className="absolute top-2 left-2 z-10">
+                    {renderSpecialNoteIcon(lead.specialNote, lead.id)}
+                  </div>
+                )}
+                
                 <div className="flex md:flex-row flex-col items-center gap-3">
-                  <img
-                    src={lead.avatar || Avatar}
-                    alt={`${lead.firstName} ${lead.surname}'s avatar`}
-                    className="w-14 h-14 rounded-full bg-zinc-800"
-                  />
+                  <div className="relative">
+                    <img
+                      src={lead.avatar || Avatar}
+                      alt={`${lead.firstName} ${lead.surname}'s avatar`}
+                      className="w-14 h-14 rounded-full bg-zinc-800"
+                    />
+                    {/* Removed the special note icon from here */}
+                  </div>
                   <div className="flex flex-col md:text-left text-center">
                     <span className="font-bold text-md">{`${lead.firstName} ${lead.surname}`}</span>
-                    {/* <div className="text-gray-400 text-sm">{lead.email}</div> */}
-                    <div className="text-gray-400 text-sm">
-                      {lead.phoneNumber}
-                    </div>
+                    <div className="text-gray-400 text-sm">{lead.phoneNumber}</div>
 
                     {/* Added date information */}
                     <div className="text-gray-500 text-xs mt-1">
-                      Created:{" "}
-                      {lead.createdAt
-                        ? formatDate(lead.createdAt)
-                        : "Unknown date"}
+                      Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
                     </div>
 
                     {/* Status badge */}
@@ -450,16 +555,12 @@ export default function Leets() {
                     {lead.hasTrialTraining ? (
                       <div className="flex items-center mt-1">
                         <Tag size={14} className="text-green-500 mr-1" />
-                        <span className="text-green-500 text-xs">
-                          Trial Training Arranged
-                        </span>
+                        <span className="text-green-500 text-xs">Trial Training Arranged</span>
                       </div>
                     ) : (
                       <div className="flex items-center mt-1">
                         <Tag size={14} className="text-yellow-500 mr-1" />
-                        <span className="text-yellow-500 text-xs">
-                          Trial Training Not Agreed
-                        </span>
+                        <span className="text-yellow-500 text-xs">Trial Training Not Agreed</span>
                       </div>
                     )}
                   </div>
@@ -486,8 +587,8 @@ export default function Leets() {
                   </button>
                   <button
                     onClick={() => {
-                      setLeadToDeleteId(lead.id);
-                      setIsDeleteConfirmationModalOpen(true);
+                      setLeadToDeleteId(lead.id)
+                      setIsDeleteConfirmationModalOpen(true)
                     }}
                     className="text-red-500 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
                   >
@@ -515,32 +616,22 @@ export default function Leets() {
             {filteredLeads.length > 0 ? (
               <>
                 {filteredLeads.length > leadsPerPage ? (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
+                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
                 ) : null}
               </>
             ) : (
-              <div className="text-red-600 text-center text-sm cursor-pointer">
-                Sorry, No Lead found
-              </div>
+              <div className="text-red-600 text-center text-sm cursor-pointer">Sorry, No Lead found</div>
             )}
           </div>
         </main>
 
-        <AddLeadModal
-          isVisible={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveLead}
-        />
+        <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
 
         <EditLeadModal
           isVisible={isEditModalOpen}
           onClose={() => {
-            setIsEditModalOpen(false);
-            setSelectedLead(null);
+            setIsEditModalOpen(false)
+            setSelectedLead(null)
           }}
           onSave={handleSaveEdit}
           leadData={selectedLead}
@@ -549,8 +640,8 @@ export default function Leets() {
         <ViewLeadDetailsModal
           isVisible={isViewDetailsModalOpen}
           onClose={() => {
-            setIsViewDetailsModalOpen(false);
-            setSelectedLead(null);
+            setIsViewDetailsModalOpen(false)
+            setSelectedLead(null)
           }}
           leadData={selectedLead}
         />
@@ -559,8 +650,8 @@ export default function Leets() {
           isVisible={isDeleteConfirmationModalOpen}
           onClose={() => setIsDeleteConfirmationModalOpen(false)}
           onConfirm={() => {
-            handleDeleteLead(leadToDeleteId);
-            setIsDeleteConfirmationModalOpen(false);
+            handleDeleteLead(leadToDeleteId)
+            setIsDeleteConfirmationModalOpen(false)
           }}
           message="Are you sure you want to delete this lead?"
         />
@@ -569,21 +660,14 @@ export default function Leets() {
           className={`
           fixed top-0 right-0 bottom-0 w-[320px] bg-[#181818] p-6 z-50 
           lg:static lg:w-80 lg:block lg:rounded-3xl
-          transform ${
-            isRightSidebarOpen
-              ? "translate-x-0"
-              : "translate-x-full lg:translate-x-0"
-          }
+          transform ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
           transition-all duration-500 ease-in-out
           overflow-y-auto
         `}
         >
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold oxanium_font">Notification</h2>
-            <button
-              onClick={() => setIsRightSidebarOpen(false)}
-              className="text-gray-400 hover:text-white lg:hidden"
-            >
+            <button onClick={() => setIsRightSidebarOpen(false)} className="text-gray-400 hover:text-white lg:hidden">
               <X size={24} />
             </button>
           </div>
@@ -597,14 +681,12 @@ export default function Leets() {
                   <X size={16} />
                 </button>
                 <h3 className="mb-2">{notification.heading}</h3>
-                <p className="text-sm text-zinc-400">
-                  {notification.description}
-                </p>
+                <p className="text-sm text-zinc-400">{notification.description}</p>
               </div>
             ))}
           </div>
         </aside>
       </div>
     </>
-  );
+  )
 }

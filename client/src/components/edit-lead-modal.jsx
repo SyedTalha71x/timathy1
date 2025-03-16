@@ -1,6 +1,7 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { X, Circle, AlertCircle } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import DefaultAvatar from '../../public/default-avatar.avif';
 
@@ -19,7 +20,6 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
     noteStartDate: "",
     noteEndDate: "",
     noteImportance: "unimportant",
-    trialPeriod: "Trial Period",
     hasTrialTraining: false,
     avatar: null,
     status: "passive",
@@ -41,11 +41,11 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
         city: leadData.city || "",
         dateOfBirth: leadData.dateOfBirth || "",
         about: leadData.about || "",
-        note: leadData.note || "",
-        noteStartDate: leadData.noteStartDate || "",
-        noteEndDate: leadData.noteEndDate || "",
-        noteImportance: leadData.noteImportance || "unimportant",
-        trialPeriod: leadData.trialPeriod || "Trial Period",
+        // Extract note data from specialNote object
+        note: leadData.specialNote?.text || "",
+        noteStartDate: leadData.specialNote?.startDate || "",
+        noteEndDate: leadData.specialNote?.endDate || "",
+        noteImportance: leadData.specialNote?.isImportant ? "important" : "unimportant",
         hasTrialTraining: leadData.hasTrialTraining || false,
         avatar: leadData.avatar || null,
         status: leadData.status || "passive",
@@ -95,7 +95,6 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
       noteStartDate: formData.noteStartDate,
       noteEndDate: formData.noteEndDate,
       noteImportance: formData.noteImportance,
-      trialPeriod: formData.trialPeriod,
       hasTrialTraining: formData.hasTrialTraining,
       avatar: formData.avatar,
       status: formData.status,
@@ -251,17 +250,6 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
             </div>
             
             <div>
-              <label className="text-sm text-gray-200 block mb-2">Trial Period</label>
-              <input
-                type="text"
-                name="trialPeriod"
-                value={formData.trialPeriod}
-                onChange={handleChange}
-                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-              />
-            </div>
-            
-            <div>
               <label className="text-sm text-gray-200 block mb-2">Prospect Status</label>
               <select
                 name="status"
@@ -338,20 +326,6 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                 placeholder="Enter additional information about the lead..."
               />
-            </div>
-            
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="hasTrialTraining"
-                name="hasTrialTraining"
-                checked={formData.hasTrialTraining}
-                onChange={handleChange}
-                className="rounded bg-[#141414] border-gray-600 text-[#FF5733] focus:ring-[#FF5733]"
-              />
-              <label htmlFor="hasTrialTraining" className="ml-2 block text-sm text-gray-400">
-                Trial Training Arranged
-              </label>
             </div>
             
             <div className="flex justify-end pt-2">
