@@ -504,7 +504,7 @@ const ConfigurationPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto lg:p-10 p-5 rounded-3xl space-y-8 bg-[#181818] min-h-screen text-white">
+    <div className=" w-full mx-auto lg:p-10 p-5 rounded-3xl space-y-8 bg-[#181818] min-h-screen text-white">
       <h1 className="lg:text-3xl text-2xl font-bold oxanium_font">Studio Configuration</h1>
 
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>

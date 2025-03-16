@@ -2,8 +2,8 @@
 /* eslint-disable no-unused-vars */
 "use client"
 
-import { useState, createContext, useContext } from "react"
-import { X, Calendar, Users, Clock } from "lucide-react"
+import { useState, createContext } from "react"
+import { X, Calendar, Users } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../public/default-avatar.avif"
 
@@ -52,7 +52,7 @@ export default function StaffManagement() {
       role: "Software Engineer",
       email: "john.doe@example.com",
       phone: "+9876543210",
-      description: "A skilled software engineer.",
+      description: "Experienced software developer with excellent communication skills.",
       img: null,
       userId: "john.software-engineer",
       username: "john.doe",
@@ -167,14 +167,13 @@ export default function StaffManagement() {
                 <Users className="h-4 w-4" />
                 Attendance Overview
               </button>
-
-              <button
-                onClick={() => setIsLeaveRequestModalOpen(true)}
+              {/* <button
+                onClick={() => setIsVacationRequestModalOpen(true)}
                 className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
               >
-                <Clock className="h-4 w-4" />
-                Request Vacation
-              </button>
+                <Calendar className="h-4 w-4" />
+                View Calendar
+              </button> */}
             </div>
 
             <div className="grid grid-cols-1 open_sans_font md:grid-cols-2 mt-8 sm:mt-[10%] gap-4 max-w-5xl mx-auto">
@@ -203,6 +202,15 @@ export default function StaffManagement() {
                       className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm"
                     >
                       Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedStaff(staff)
+                        setIsVacationRequestModalOpen(true)
+                      }}
+                      className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm"
+                    >
+                      Request Vacation
                     </button>
                   </div>
                 </div>
@@ -766,7 +774,7 @@ function EditStaffModal({
               />
             </div>
 
-<div>
+            <div>
               <label className="text-sm text-gray-200 block mb-2">Vacation Entitlement (Days)</label>
               <input
                 type="number"
@@ -1031,9 +1039,19 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
       const dates = getDatesForView()
       const firstDate = dates[0]
       const lastDate = dates[dates.length - 1]
-      return `${firstDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${lastDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+      return `${firstDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })} - ${lastDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })}`
     } else if (viewMode === "month") {
-      return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+      return currentDate.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
     }
   }
 
@@ -1044,7 +1062,11 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
   }
 
   const formatDate = (date) => {
-    return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    })
   }
 
   const getDayOfWeek = (date) => {
@@ -1103,19 +1125,25 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                 <div className="flex space-x-2 mb-4">
                   <button
                     onClick={() => setViewMode("day")}
-                    className={`px-3 py-1 rounded-lg text-sm ${viewMode === "day" ? "bg-blue-600" : "bg-[#141414] hover:bg-gray-700"}`}
+                    className={`px-3 py-1 rounded-lg text-sm ${
+                      viewMode === "day" ? "bg-blue-600" : "bg-[#141414] hover:bg-gray-700"
+                    }`}
                   >
                     Day
                   </button>
                   <button
                     onClick={() => setViewMode("week")}
-                    className={`px-3 py-1 rounded-lg text-sm ${viewMode === "week" ? "bg-blue-600" : "bg-[#141414] hover:bg-gray-700"}`}
+                    className={`px-3 py-1 rounded-lg text-sm ${
+                      viewMode === "week" ? "bg-blue-600" : "bg-[#141414] hover:bg-gray-700"
+                    }`}
                   >
                     Week
                   </button>
                   <button
                     onClick={() => setViewMode("month")}
-                    className={`px-3 py-1 rounded-lg text-sm ${viewMode === "month" ? "bg-blue-600" : "bg-[#141414] hover:bg-gray-700"}`}
+                    className={`px-3 py-1 rounded-lg text-sm ${
+                      viewMode === "month" ? "bg-blue-600" : "bg-[#141414] hover:bg-gray-700"
+                    }`}
                   >
                     Month
                   </button>
@@ -1150,7 +1178,9 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                         return (
                           <div
                             key={dateStr}
-                            className={`flex items-center justify-between p-2 rounded-lg ${isWeekend(date) ? "bg-[#1a1a1a]" : "bg-[#1C1C1C]"}`}
+                            className={`flex items-center justify-between p-2 rounded-lg ${
+                              isWeekend(date) ? "bg-[#1a1a1a]" : "bg-[#1C1C1C]"
+                            }`}
                             draggable={!!shifts[dateStr]}
                             onDragStart={() => handleDragStart(dateStr)}
                             onDragOver={(e) => handleDragOver(e, dateStr)}
@@ -1179,7 +1209,9 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                   ) : (
                     <div
                       className="grid grid-cols-7 gap-1"
-                      style={{ gridTemplateColumns: "repeat(7, minmax(80px, 1fr))" }}
+                      style={{
+                        gridTemplateColumns: "repeat(7, minmax(80px, 1fr))",
+                      }}
                     >
                       {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                         <div key={day} className="text-center text-xs font-medium p-1">
@@ -1192,7 +1224,9 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                         return (
                           <div
                             key={dateStr}
-                            className={`p-1 rounded min-h-[70px] min-w-[80px] ${isWeekend(date) ? "bg-[#1a1a1a]" : "bg-[#1C1C1C]"}`}
+                            className={`p-1 rounded min-h-[70px] min-w-[80px] ${
+                              isWeekend(date) ? "bg-[#1a1a1a]" : "bg-[#1C1C1C]"
+                            }`}
                             draggable={!!shifts[dateStr]}
                             onDragStart={() => handleDragStart(dateStr)}
                             onDragOver={(e) => handleDragOver(e, dateStr)}
@@ -1368,37 +1402,41 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
   const [endDate, setEndDate] = useState(new Date())
   const [showCalendar, setShowCalendar] = useState(true)
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [selectedStaffId, setSelectedStaffId] = useState(staffMember?.id || null)
-
-  // Get all staff members from the parent component
-  const { staffMembers } = useContext(StaffContext) || { staffMembers: [] }
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [vacationRequests, setVacationRequests] = useState([])
+  const [showRequestForm, setShowRequestForm] = useState(false)
 
   // Dummy vacation data - in a real app, this would come from your backend
   const [bookedVacations, setBookedVacations] = useState([
-    { id: 1, staffId: 1, startDate: new Date(2024, 0, 5), endDate: new Date(2024, 0, 10) },
-    { id: 2, staffId: 1, startDate: new Date(2024, 1, 15), endDate: new Date(2024, 1, 20) },
-    { id: 3, staffId: 2, startDate: new Date(2024, 3, 1), endDate: new Date(2024, 3, 5) },
+    { id: 1, staffId: 1, startDate: new Date(2024, 0, 5), endDate: new Date(2024, 0, 10), status: "approved" },
+    { id: 2, staffId: 1, startDate: new Date(2024, 1, 15), endDate: new Date(2024, 1, 20), status: "pending" },
+    { id: 3, staffId: 2, startDate: new Date(2024, 3, 1), endDate: new Date(2024, 3, 5), status: "pending" },
+    { id: 4, staffId: 2, startDate: new Date(2024, 0, 5), endDate: new Date(2024, 0, 10), status: "approved" },
   ])
 
-  // Get the selected staff member
-  const selectedStaff = staffMembers.find((staff) => staff.id === selectedStaffId) || staffMember
-
   // Calculate remaining vacation days
-  const remainingVacationDays = selectedStaff?.vacationEntitlement || 30 - 5 // Dummy calculation, replace with actual logic
+  const remainingVacationDays = staffMember?.vacationEntitlement || 30 - 5 // Dummy calculation, replace with actual logic
 
   const handleSubmit = () => {
-    onSubmit(selectedStaffId, startDate, endDate)
-    onClose()
+    const newVacation = {
+      id: bookedVacations.length + 1,
+      staffId: staffMember.id,
+      startDate: startDate,
+      endDate: endDate,
+      status: "pending",
+    }
+
+    setBookedVacations([...bookedVacations, newVacation])
+    onSubmit(staffMember.id, startDate, endDate)
+    setShowRequestForm(false)
+    toast.success("Vacation request submitted successfully")
   }
 
   const handleDateClick = (date) => {
+    setSelectedDate(date)
     setStartDate(date)
     setEndDate(date)
-    setShowCalendar(false)
-  }
-
-  const handleStaffChange = (e) => {
-    setSelectedStaffId(Number(e.target.value))
+    setShowRequestForm(true)
   }
 
   // Navigate to previous month
@@ -1411,12 +1449,12 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
   }
 
-  // Check if a date is already booked for the selected staff
-  const isDateBooked = (date) => {
-    return bookedVacations.some((vacation) => {
+  // Check if a date has vacation bookings
+  const getDateBookings = (date) => {
+    return bookedVacations.filter((vacation) => {
       const vacationStart = new Date(vacation.startDate)
       const vacationEnd = new Date(vacation.endDate)
-      return vacation.staffId === selectedStaffId && date >= vacationStart && date <= vacationEnd
+      return date >= vacationStart && date <= vacationEnd
     })
   }
 
@@ -1451,118 +1489,147 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Vacation Request</h2>
-
-        {/* Staff selection dropdown */}
-        <div className="mb-4">
-          <label className="text-sm text-gray-300 block mb-1">Staff Member</label>
-          <select 
-            value={selectedStaffId} 
-            onChange={handleStaffChange}
-            className="bg-[#141414] rounded px-3 py-2 text-sm md:text-base w-full"
-          >
-            {staffMembers.map(staff => (
-              <option key={staff.id} value={staff.id}>
-                {staff.firstName} {staff.lastName}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-4">
-          <p className="text-sm text-gray-300">
-            Remaining vacation days: <span className="font-bold text-white">{remainingVacationDays}</span>
-          </p>
-        </div>
-
-        {showCalendar ? (
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <button 
-                onClick={goToPreviousMonth} 
-                className="text-gray-300 hover:text-white p-1"
-              >
-                &lt;
-              </button>
-              <h3 className="font-medium">
-                {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-              </h3>
-              <button 
-                onClick={goToNextMonth} 
-                className="text-gray-300 hover:text-white p-1"
-              >
-                &gt;
+        {showRequestForm ? (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Request Vacation</h2>
+              <button onClick={() => setShowRequestForm(false)} className="text-gray-300 hover:text-white">
+                <Calendar className="h-5 w-5" />
               </button>
             </div>
-            <div className="grid grid-cols-7 gap-1 mb-2">
-              {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-                <div key={day} className="text-center text-xs font-medium py-1">
-                  {day}
-                </div>
-              ))}
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-300">
+                Remaining vacation days: <span className="font-bold text-white">{remainingVacationDays}</span>
+              </p>
             </div>
-            <div className="grid grid-cols-7 gap-1">
-              {calendarDays.map((day, index) => (
-                <div
-                  key={index}
-                  className={`
-                    text-center p-2 rounded-md text-sm
-                    ${!day ? "opacity-0" : "cursor-pointer"}
-                    ${day && isDateBooked(day) ? "bg-red-900/30" : ""}
-                    ${day && !isDateBooked(day) ? "hover:bg-blue-600/30" : ""}
-                    ${day && day.toDateString() === startDate.toDateString() ? "bg-blue-600" : ""}
-                  `}
-                  onClick={() => day && !isDateBooked(day) && handleDateClick(day)}
-                >
-                  {day ? day.getDate() : ""}
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 flex items-center justify-between text-xs">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-red-900/30 rounded-sm mr-1"></div>
-                <span>Booked</span>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-300 block mb-1">Start Date</label>
+                <input
+                  type="date"
+                  value={startDate.toISOString().split("T")[0]}
+                  onChange={(e) => setStartDate(new Date(e.target.value))}
+                  className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
+                />
               </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-blue-600 rounded-sm mr-1"></div>
-                <span>Selected</span>
+              <div>
+                <label className="text-sm text-gray-300 block mb-1">End Date</label>
+                <input
+                  type="date"
+                  value={endDate.toISOString().split("T")[0]}
+                  onChange={(e) => setEndDate(new Date(e.target.value))}
+                  className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
+                />
               </div>
             </div>
-          </div>
+
+            <div className="mt-4 space-y-2">
+              <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm w-full">
+                Submit
+              </button>
+              <button
+                onClick={() => setShowRequestForm(false)}
+                className="bg-gray-500 text-white px-4 py-2 rounded-xl text-sm w-full"
+              >
+                Cancel
+              </button>
+            </div>
+          </>
         ) : (
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm text-gray-300 block mb-1">Start Date</label>
-              <input
-                type="date"
-                value={startDate.toISOString().split("T")[0]}
-                onChange={(e) => setStartDate(new Date(e.target.value))}
-                className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
-              />
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Vacation Calendar</h2>
+              <button onClick={onClose} className="text-gray-300 hover:text-white">
+                <X size={20} />
+              </button>
             </div>
-            <div>
-              <label className="text-sm text-gray-300 block mb-1">End Date</label>
-              <input
-                type="date"
-                value={endDate.toISOString().split("T")[0]}
-                onChange={(e) => setEndDate(new Date(e.target.value))}
-                className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
-              />
-            </div>
-            <button onClick={() => setShowCalendar(true)} className="text-blue-400 text-sm hover:underline">
-              Back to calendar view
-            </button>
-          </div>
-        )}
 
-        <div className="mt-4 space-y-2">
-          <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm w-full">
-            Submit Vacation Request
-          </button>
-          <button onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded-xl text-sm w-full">
-            Close
-          </button>
-        </div>
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <button onClick={goToPreviousMonth} className="text-gray-300 hover:text-white p-1">
+                  &lt;
+                </button>
+                <h3 className="font-medium">
+                  {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                </h3>
+                <button onClick={goToNextMonth} className="text-gray-300 hover:text-white p-1">
+                  &gt;
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                  <div key={day} className="text-center text-xs font-medium py-1">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {calendarDays.map((day, index) => {
+                  if (!day) return <div key={index} className="opacity-0"></div>
+
+                  const bookings = getDateBookings(day)
+                  const myPendingBookings = bookings.filter(
+                    (b) => b.staffId === staffMember.id && b.status === "pending",
+                  )
+                  const myApprovedBookings = bookings.filter(
+                    (b) => b.staffId === staffMember.id && b.status === "approved",
+                  )
+                  const colleagueBookings = bookings.filter((b) => b.staffId !== staffMember.id)
+
+                  const hasMyPending = myPendingBookings.length > 0
+                  const hasMyApproved = myApprovedBookings.length > 0
+                  const hasColleagueBookings = colleagueBookings.length > 0
+
+                  return (
+                    <div
+                      key={index}
+                      className={`
+                        relative text-center p-2 rounded-md text-sm cursor-pointer
+                        ${hasMyPending ? "bg-orange-500/30" : ""}
+                        ${hasMyApproved ? "bg-green-500/30" : ""}
+                        ${!hasMyPending && !hasMyApproved ? "hover:bg-blue-600/30" : ""}
+                      `}
+                      onClick={() => handleDateClick(day)}
+                    >
+                      <span>{day.getDate()}</span>
+
+                      {/* Indicators for multiple bookings */}
+                      {(hasMyPending || hasMyApproved || hasColleagueBookings) && (
+                        <div className="absolute bottom-0 left-0 right-0 flex justify-center space-x-1 pb-0.5">
+                          {hasMyPending && <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>}
+                          {hasMyApproved && <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>}
+                          {hasColleagueBookings && <div className="w-1.5 h-1.5 rounded-full bg-gray-500"></div>}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Legend */}
+              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-orange-500/30 rounded-sm mr-1"></div>
+                  <span>Not Approved</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-500/30 rounded-sm mr-1"></div>
+                  <span>Approved</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-gray-500/30 rounded-sm mr-1"></div>
+                  <span>Colleagues</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-blue-600/30 rounded-sm mr-1"></div>
+                  <span>Selected</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
