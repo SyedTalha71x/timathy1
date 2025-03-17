@@ -1,10 +1,10 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
-"use client"
-
 import { useState, useRef } from "react"
-import { X, Upload, Download, Trash, Edit2, File, FileText, FilePlus, Eye } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye } from "lucide-react"
 import { toast } from "react-hot-toast"
+import { FaPrint } from "react-icons/fa";
+
 
 export function DocumentManagementModal({ contract, onClose }) {
   const [documents, setDocuments] = useState(contract.files || [])
@@ -367,7 +367,7 @@ export function DocumentManagementModal({ contract, onClose }) {
                           className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
                           title="Download"
                         >
-                          <Download className="w-4 h-4" />
+                          <FaPrint className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => startEditing(doc)}
