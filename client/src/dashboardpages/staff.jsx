@@ -160,20 +160,23 @@ export default function StaffManagement() {
                 <Calendar className="h-4 w-4" />
                 Employee Planning
               </button>
+              <div className="flex flex-col gap-3 w-full md:w-auto">
+
               <button
                 onClick={() => setIsAttendanceModalOpen(true)}
                 className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
-              >
+                >
                 <Users className="h-4 w-4" />
                 Attendance Overview
               </button>
-              {/* <button
+              <button
                 onClick={() => setIsVacationRequestModalOpen(true)}
                 className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
-              >
+                >
                 <Calendar className="h-4 w-4" />
-                View Calendar
-              </button> */}
+                Request Vacation
+              </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 open_sans_font md:grid-cols-2 mt-8 sm:mt-[10%] gap-4 max-w-5xl mx-auto">
@@ -202,15 +205,6 @@ export default function StaffManagement() {
                       className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm"
                     >
                       Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedStaff(staff)
-                        setIsVacationRequestModalOpen(true)
-                      }}
-                      className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm"
-                    >
-                      Request Vacation
                     </button>
                   </div>
                 </div>
@@ -321,17 +315,9 @@ export default function StaffManagement() {
           <AttendanceOverviewModal staffMembers={staffMembers} onClose={() => setIsAttendanceModalOpen(false)} />
         )}
 
-        {isLeaveRequestModalOpen && (
+        {isVacationRequestModalOpen && (
           <VacationRequestModal
             staffMember={staffMembers[0]} // Default to first staff member
-            onClose={() => setIsLeaveRequestModalOpen(false)}
-            onSubmit={handleVacationRequest}
-          />
-        )}
-
-        {isVacationRequestModalOpen && selectedStaff && (
-          <VacationRequestModal
-            staffMember={selectedStaff}
             onClose={() => setIsVacationRequestModalOpen(false)}
             onSubmit={handleVacationRequest}
           />

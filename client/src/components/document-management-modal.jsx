@@ -163,19 +163,22 @@ export function DocumentManagementModal({ contract, onClose }) {
       toast.error("Document name cannot be empty")
       return
     }
-
+  
     // Get the original file extension
     const originalDoc = displayDocuments.find((doc) => doc.id === docId)
     const originalExtension = originalDoc.name.split(".").pop()
-
-    // Make sure the new name has the same extension
-    let finalName = newDocName
-    if (!finalName.endsWith(`.${originalExtension}`)) {
-      // If user removed extension, add it back
-      finalName = finalName.split(".")[0] + `.${originalExtension}`
-    }
-
-    setDocuments(displayDocuments.map((doc) => (doc.id === docId ? { ...doc, name: finalName } : doc)))
+    
+    // Extract just the name part (without extension) from user input
+    let nameWithoutExtension = newDocName.includes(".") 
+      ? newDocName.substring(0, newDocName.lastIndexOf("."))
+      : newDocName
+  
+    // Combine the name part with the original extension
+    const finalName = `${nameWithoutExtension}.${originalExtension}`
+  
+    setDocuments(displayDocuments.map((doc) => 
+      (doc.id === docId ? { ...doc, name: finalName } : doc)
+    ))
     setEditingDocId(null)
     toast.success("Document renamed successfully")
   }
