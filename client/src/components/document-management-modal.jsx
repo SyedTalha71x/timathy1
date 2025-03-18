@@ -1,10 +1,12 @@
+/* eslint-disable no-unused-vars */
+"use client"
+
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { useState, useRef } from "react"
-import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download } from "lucide-react"
 import { toast } from "react-hot-toast"
-import { FaPrint } from "react-icons/fa";
-
+import { Printer } from "lucide-react"
 
 export function DocumentManagementModal({ contract, onClose }) {
   const [documents, setDocuments] = useState(contract.files || [])
@@ -140,6 +142,25 @@ export function DocumentManagementModal({ contract, onClose }) {
     }
   }
 
+  const handlePrint = (doc) => {
+    toast.success(`Printing ${doc.name}...`)
+
+    // If we have the actual file object
+    if (doc.file) {
+      const url = URL.createObjectURL(doc.file)
+      const printWindow = window.open(url)
+
+      printWindow.onload = () => {
+        printWindow.print()
+        // Clean up after printing
+        setTimeout(() => {
+          printWindow.close()
+          URL.revokeObjectURL(url)
+        }, 100)
+      }
+    }
+  }
+
   const handleViewDocument = (doc) => {
     setViewingDocument(doc)
     toast.success(`Viewing ${doc.name}...`)
@@ -154,8 +175,13 @@ export function DocumentManagementModal({ contract, onClose }) {
   }
 
   const startEditing = (doc) => {
+    // Extract just the name part without extension for editing
+    const nameParts = doc.name.split(".")
+    const extension = nameParts.pop() // Remove and store the extension
+    const nameWithoutExtension = nameParts.join(".") // Rejoin in case there were multiple dots
+
     setEditingDocId(doc.id)
-    setNewDocName(doc.name)
+    setNewDocName(nameWithoutExtension) // Only set the name part without extension
   }
 
   const saveDocName = (docId) => {
@@ -163,22 +189,15 @@ export function DocumentManagementModal({ contract, onClose }) {
       toast.error("Document name cannot be empty")
       return
     }
-  
+
     // Get the original file extension
     const originalDoc = displayDocuments.find((doc) => doc.id === docId)
     const originalExtension = originalDoc.name.split(".").pop()
-    
-    // Extract just the name part (without extension) from user input
-    let nameWithoutExtension = newDocName.includes(".") 
-      ? newDocName.substring(0, newDocName.lastIndexOf("."))
-      : newDocName
-  
+
     // Combine the name part with the original extension
-    const finalName = `${nameWithoutExtension}.${originalExtension}`
-  
-    setDocuments(displayDocuments.map((doc) => 
-      (doc.id === docId ? { ...doc, name: finalName } : doc)
-    ))
+    const finalName = `${newDocName.trim()}.${originalExtension}`
+
+    setDocuments(displayDocuments.map((doc) => (doc.id === docId ? { ...doc, name: finalName } : doc)))
     setEditingDocId(null)
     toast.success("Document renamed successfully")
   }
@@ -317,13 +336,16 @@ export function DocumentManagementModal({ contract, onClose }) {
                       <div className="flex-1 min-w-0">
                         {editingDocId === doc.id ? (
                           <div className="flex flex-col sm:flex-row gap-2">
-                            <input
-                              type="text"
-                              value={newDocName}
-                              onChange={(e) => setNewDocName(e.target.value)}
-                              className="bg-black text-white px-2 py-1 rounded border border-gray-700 flex-1 w-full"
-                              autoFocus
-                            />
+                            <div className="flex-1 flex items-center bg-black text-white px-2 py-1 rounded border border-gray-700 w-full">
+                              <input
+                                type="text"
+                                value={newDocName}
+                                onChange={(e) => setNewDocName(e.target.value)}
+                                className="bg-transparent border-none outline-none flex-1 w-full"
+                                autoFocus
+                              />
+                              <span className="text-gray-500">.{doc.type}</span>
+                            </div>
                             <div className="flex gap-2 mt-2 sm:mt-0">
                               <button
                                 onClick={() => saveDocName(doc.id)}
@@ -370,7 +392,14 @@ export function DocumentManagementModal({ contract, onClose }) {
                           className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
                           title="Download"
                         >
-                          <FaPrint className="w-4 h-4" />
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handlePrint(doc)}
+                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                          title="Print"
+                        >
+                          <Printer className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => startEditing(doc)}
