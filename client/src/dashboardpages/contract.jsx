@@ -331,7 +331,7 @@ export default function ContractList() {
 
       <div className="bg-[#1C1C1C] p-6 rounded-3xl w-full">
         <div className="flex flex-col sm:flex-row sm:justify-between items-center mb-8">
-          <h2 className="text-white oxanium_font text-2xl mb-4 sm:mb-0 text-center sm:text-left">
+          <h2 className="text-white oxanium_font text-2xl mb-4 sm:mb-0 text-left sm:text-left">
             Contracts
           </h2>
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 w-full sm:w-auto">
