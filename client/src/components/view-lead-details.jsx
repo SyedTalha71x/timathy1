@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react";
 
@@ -13,6 +14,17 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
+    });
+  };
+
+  // Format birthday to be more readable (without time)
+  const formatBirthday = (dateString) => {
+    if (!dateString) return "Not provided";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -46,7 +58,7 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
         </div>
 
         {/* Profile section */}
-        <div className="flex items-center  md:flex-row flex-col mb-6 border-b border-gray-700 pb-6">
+        <div className="flex items-center md:flex-row flex-col mb-6 border-b border-gray-700 pb-6">
           <img
             src={leadData.avatar}
             alt={`${leadData.firstName} ${leadData.surname}'s avatar`}
@@ -56,9 +68,9 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
             <h3 className="text-xl font-semibold text-white">
               {`${leadData.firstName} ${leadData.surname}`}
             </h3>
-            <p className={`text-sm font-medium ${getStatusColor(leadData.status)} capitalize`}>
+            {/* <p className={`text-sm font-medium ${getStatusColor(leadData.status)} capitalize`}>
               {leadData.status}
-            </p>
+            </p> */}
           </div>
         </div>
 
@@ -67,33 +79,44 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
           {/* Email */}
           <div className="space-y-1">
             <p className="text-sm font-medium text-gray-400">Email</p>
-            <p className="text-white break-words">{leadData.email}</p>
+            <p className="text-white break-words text-sm">{leadData.email}</p>
           </div>
 
           {/* Phone Number */}
           <div className="space-y-1">
             <p className="text-sm font-medium text-gray-400">Phone Number</p>
-            <p className="text-white">{leadData.phoneNumber}</p>
+            <p className="text-white text-sm">{leadData.phoneNumber}</p>
           </div>
 
-          {/* Trial Period */}
+          {/* Birthday - NEW */}
           <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-400">Trial Period</p>
-            <p className="text-white">{leadData.trialPeriod}</p>
+            <p className="text-sm font-medium text-gray-400">Birthday</p>
+            <p className="text- text-sm">{leadData.birthday ? formatBirthday(leadData.birthday) : "Not provided"}</p>
           </div>
 
           {/* Trial Training Status */}
           <div className="space-y-1">
             <p className="text-sm font-medium text-gray-400">Trial Training</p>
-            <p className={leadData.hasTrialTraining ? "text-green-500" : "text-red-500"}>
+            <p className={leadData.hasTrialTraining ? "text-green-500 text-sm" : "text-red-500 text-sm"}>
               {leadData.hasTrialTraining ? "Arranged" : "Not Arranged"}
             </p>
           </div>
 
+          {/* Address - NEW */}
+          <div className="space-y-1 col-span-2">
+            <p className="text-sm font-medium text-gray-400">Address</p>
+            <p className="text-white text-sm">
+              {leadData.address ? leadData.address : "Not provided"}
+            </p>
+          </div>
+
+          {/* About - NEW */}
+        
+
           {/* Created Date */}
           <div className="space-y-1">
             <p className="text-sm font-medium text-gray-400">Created At</p>
-            <p className="text-white">{formatDate(leadData.createdAt)}</p>
+            <p className="text-white text-sm">{formatDate(leadData.createdAt)}</p>
           </div>
 
           {/* ID */}
@@ -101,13 +124,14 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
             <p className="text-sm font-medium text-gray-400">Lead ID</p>
             <p className="text-white font-mono text-sm">{leadData.id}</p>
           </div>
-
-          {/* Source */}
-          {/* <div className="space-y-1 col-span-2">
-            <p className="text-sm font-medium text-gray-400">Source</p>
-            <p className="text-white capitalize">{leadData.source}</p>
-          </div> */}
         </div>
+
+        <div className="space-y-1 col-span-2 mt-3">
+            <p className="text-sm font-medium text-gray-400">About</p>
+            <p className="text-white text-sm">
+              {leadData.about ? leadData.about : "No additional information provided."}
+            </p>
+          </div>
       
       </div>
     </div>

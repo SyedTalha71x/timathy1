@@ -14,6 +14,9 @@ import {
   ZoomOut,
   ZoomIn,
   RotateCcw,
+  CalendarIcon,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Avatar from "../../public/avatar.png";
@@ -763,33 +766,34 @@ function Calendar({
 }
 
 export default function Appointments() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false);
-  const [activeDropdownId, setActiveDropdownId] = useState(null);
-  const [view, setView] = useState("week");
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
-  const [checkedInMembers, setCheckedInMembers] = useState([]);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
-  const [appointmentToRemove, setAppointmentToRemove] = useState(null);
-  const [isShowDetails, setisShowDetails] = useState(false);
-  const [activeNoteId, setActiveNoteId] = useState(null);
-  const [checkedOutMembers, setCheckedOutMembers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMember, setSelectedMember] = useState(null);
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false);
-  const [notifyAction, setNotifyAction] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
+  const [activeDropdownId, setActiveDropdownId] = useState(null)
+  const [view, setView] = useState("week")
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
+  const [checkedInMembers, setCheckedInMembers] = useState([])
+  const [selectedAppointment, setSelectedAppointment] = useState(null)
+  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
+  const [appointmentToRemove, setAppointmentToRemove] = useState(null)
+  const [isShowDetails, setisShowDetails] = useState(false)
+  const [activeNoteId, setActiveNoteId] = useState(null)
+  const [checkedOutMembers, setCheckedOutMembers] = useState([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedMember, setSelectedMember] = useState(null)
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [notifyAction, setNotifyAction] = useState("")
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [freeAppointments, setFreeAppointments] = useState([
     { id: "free1", date: "2025-01-03", time: "10:00" },
     { id: "free2", date: "2025-01-03", time: "11:00" },
     { id: "free3", date: "2025-01-03", time: "14:00" },
-  ]);
+  ])
   const [appointmentTypes, setAppointmentTypes] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
     { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
     { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
-  ]);
+  ])
   const [appointments, setAppointments] = useState([
     {
       id: 1,
@@ -863,71 +867,67 @@ export default function Appointments() {
       status: "pending",
       isTrial: false,
     },
-  ]);
+  ])
 
-  const [filteredAppointments, setFilteredAppointments] =
-    useState(appointments);
-  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
-  const [selectedSlotInfo, setSelectedSlotInfo] = useState(null);
-  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] =
-    useState(false);
+  const [filteredAppointments, setFilteredAppointments] = useState(appointments)
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
+  const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
+  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
 
   // Add useEffect to update filteredAppointments when appointments change
   useEffect(() => {
-    applyFilters();
-  }, [appointments, selectedDate, searchQuery]);
+    applyFilters()
+  }, [appointments, selectedDate, searchQuery])
 
   // Consolidated function to apply all filters (date and search)
   const applyFilters = () => {
-    let filtered = [...appointments];
+    let filtered = [...appointments]
 
     // Apply date filter if a date is selected
     if (selectedDate) {
-      const formattedSelectedDate = formatDate(selectedDate);
+      const formattedSelectedDate = formatDate(selectedDate)
       filtered = filtered.filter((appointment) => {
-        const appointmentDate = appointment.date.split("|")[1].trim();
-        return appointmentDate === formattedSelectedDate;
-      });
+        const appointmentDate = appointment.date.split("|")[1].trim()
+        return appointmentDate === formattedSelectedDate
+      })
     }
 
     // Apply search filter if query exists
     if (searchQuery) {
-      filtered = filtered.filter((appointment) =>
-        appointment.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      filtered = filtered.filter((appointment) => appointment.name.toLowerCase().includes(searchQuery.toLowerCase()))
     }
 
-    setFilteredAppointments(filtered);
-  };
+    setFilteredAppointments(filtered)
+  }
 
   const handleDateSelect = (date) => {
-    setSelectedDate(date);
+    setSelectedDate(date)
     // No need to filter here, as it will be done by the useEffect
-  };
+  }
 
   const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
+    const day = String(date.getDate()).padStart(2, "0")
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const year = date.getFullYear()
+    return `${day}-${month}-${year}`
+  }
 
   const formatDateForDisplay = (date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+    const day = String(date.getDate()).padStart(2, "0")
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const year = date.getFullYear()
+    return `${day}/${month}/${year}`
+  }
 
   useEffect(() => {
     const handleClickOutside = () => {
-      setActiveDropdownId(null);
-      setIsViewDropdownOpen(false);
-      setActiveNoteId(null);
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
+      setActiveDropdownId(null)
+      setIsViewDropdownOpen(false)
+      setActiveNoteId(null)
+    }
+    document.addEventListener("click", handleClickOutside)
+    return () => document.removeEventListener("click", handleClickOutside)
+  }, [])
 
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
@@ -939,10 +939,10 @@ export default function Appointments() {
       date: `${new Date(appointmentData.date).toLocaleString("en-US", {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
-    };
-    setAppointments([...appointments, newAppointment]);
-    toast.success("Appointment booked successfully");
-  };
+    }
+    setAppointments([...appointments, newAppointment])
+    toast.success("Appointment booked successfully")
+  }
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
@@ -954,121 +954,116 @@ export default function Appointments() {
       date: `${new Date(trialData.date).toLocaleString("en-US", {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(trialData.date))}`,
-    };
-    setAppointments([...appointments, newTrial]);
-    toast.success("Trial training booked successfully");
-  };
+    }
+    setAppointments([...appointments, newTrial])
+    toast.success("Trial training booked successfully")
+  }
 
   const handleCheckIn = (appointmentId) => {
     setAppointments((prevAppointments) =>
       prevAppointments.map((appointment) =>
-        appointment.id === appointmentId
-          ? { ...appointment, isCheckedIn: true }
-          : appointment
-      )
-    );
+        appointment.id === appointmentId ? { ...appointment, isCheckedIn: true } : appointment,
+      ),
+    )
     // No need to update filteredAppointments here as useEffect will handle it
-    toast.success("Member checked in successfully");
-  };
+    toast.success("Member checked in successfully")
+  }
 
   const handleAppointmentClick = (appointment) => {
-    setSelectedAppointment(appointment);
+    setSelectedAppointment(appointment)
     // Fetch free appointments here if needed
-  };
+  }
 
   const handleAppointmentChange = (changes) => {
     setSelectedAppointment((prev) => {
-      const updatedAppointment = { ...prev, ...changes };
+      const updatedAppointment = { ...prev, ...changes }
       if (changes.specialNote) {
         updatedAppointment.specialNote = {
           ...prev.specialNote,
           ...changes.specialNote,
-        };
+        }
       }
-      return updatedAppointment;
-    });
-  };
+      return updatedAppointment
+    })
+  }
 
   const handleRemoveAppointment = (appointment) => {
-    setAppointmentToRemove(appointment);
-    setIsConfirmCancelOpen(true);
-    setActiveDropdownId(null);
-  };
+    setAppointmentToRemove(appointment)
+    setIsConfirmCancelOpen(true)
+    setActiveDropdownId(null)
+  }
 
   const confirmRemoveAppointment = () => {
-    setIsConfirmCancelOpen(false);
-    setIsNotifyMemberOpen(true);
-    setNotifyAction("cancel");
+    setIsConfirmCancelOpen(false)
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("cancel")
     // We'll handle the actual removal after user decides on notification
-  };
+  }
 
   const handleNotifyMember = (shouldNotify) => {
-    const changes = {};
-    let updatedAppointment;
+    const changes = {}
+    let updatedAppointment
     if (notifyAction === "change") {
-      updatedAppointment = { ...selectedAppointment, ...changes };
+      updatedAppointment = { ...selectedAppointment, ...changes }
       const updatedAppointments = appointments.map((app) =>
-        app.id === updatedAppointment.id ? updatedAppointment : app
-      );
-      setAppointments(updatedAppointments);
-      setSelectedAppointment(null);
-      toast.success("Appointment updated successfully");
+        app.id === updatedAppointment.id ? updatedAppointment : app,
+      )
+      setAppointments(updatedAppointments)
+      setSelectedAppointment(null)
+      toast.success("Appointment updated successfully")
     } else if (notifyAction === "cancel") {
-      setAppointments(
-        appointments.filter((app) => app.id !== appointmentToRemove.id)
-      );
-      setAppointmentToRemove(null);
-      toast.success("Appointment removed successfully");
+      setAppointments(appointments.filter((app) => app.id !== appointmentToRemove.id))
+      setAppointmentToRemove(null)
+      toast.success("Appointment removed successfully")
     }
 
     if (shouldNotify) {
       // Here you would implement the actual notification logic
-      toast.success("Member notified successfully");
+      toast.success("Member notified successfully")
     }
 
-    setIsNotifyMemberOpen(false);
-  };
+    setIsNotifyMemberOpen(false)
+  }
 
   // Modified search handler to update the search query state
   const handleSearch = (e) => {
-    const query = e.target.value.toLowerCase();
-    setSearchQuery(query);
+    const query = e.target.value.toLowerCase()
+    setSearchQuery(query)
 
     if (query === "") {
-      setSelectedMember(null);
+      setSelectedMember(null)
     } else {
-      const foundMember = appointments.find((app) =>
-        app.name.toLowerCase().includes(query)
-      );
-      setSelectedMember(foundMember ? foundMember.name : null);
+      const foundMember = appointments.find((app) => app.name.toLowerCase().includes(query))
+      setSelectedMember(foundMember ? foundMember.name : null)
     }
 
     // No need to filter here, as it will be done by the useEffect
-  };
+  }
 
   const handleDeleteAppointment = (appointmentId) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.filter((appointment) => appointment.id !== appointmentId)
-    );
-    setSelectedAppointment(null); // Clear the selected appointment
-    toast.success("Appointment deleted successfully");
-  };
+    setAppointments((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
+    setSelectedAppointment(null) // Clear the selected appointment
+    toast.success("Appointment deleted successfully")
+  }
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed)
+  }
 
   const renderSpecialNoteIcon = useCallback(
     (specialNote, appointmentId) => {
-      if (!specialNote.text) return null;
+      if (!specialNote.text) return null
 
       const isActive =
         specialNote.startDate === null ||
-        (new Date() >= new Date(specialNote.startDate) &&
-          new Date() <= new Date(specialNote.endDate));
+        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
 
-      if (!isActive) return null;
+      if (!isActive) return null
 
       const handleNoteClick = (e) => {
-        e.stopPropagation();
-        setActiveNoteId(activeNoteId === appointmentId ? null : appointmentId);
-      };
+        e.stopPropagation()
+        setActiveNoteId(activeNoteId === appointmentId ? null : appointmentId)
+      }
 
       return (
         <div className="relative">
@@ -1090,10 +1085,7 @@ export default function Appointments() {
               {/* Header section with icon and title */}
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                 {specialNote.isImportant ? (
-                  <AlertTriangle
-                    className="text-yellow-500 shrink-0"
-                    size={18}
-                  />
+                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
                 ) : (
                   <Info className="text-blue-500 shrink-0" size={18} />
                 )}
@@ -1104,19 +1096,14 @@ export default function Appointments() {
 
               {/* Note content */}
               <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">
-                  {specialNote.text}
-                </p>
+                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
 
                 {/* Date validity section */}
                 {specialNote.startDate && specialNote.endDate && (
                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                     <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <Calendar size={12} />
-                      Valid from{" "}
-                      {new Date(
-                        specialNote.startDate
-                      ).toLocaleDateString()} to{" "}
+                      <CalendarIcon size={12} />
+                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
                       {new Date(specialNote.endDate).toLocaleDateString()}
                     </p>
                   </div>
@@ -1128,8 +1115,8 @@ export default function Appointments() {
                 <button
                   className="text-xs text-gray-300 hover:text-white px-2 py-1 rounded hover:bg-gray-700 transition-colors"
                   onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveNoteId(null);
+                    e.stopPropagation()
+                    setActiveNoteId(null)
                   }}
                 >
                   Close
@@ -1138,19 +1125,27 @@ export default function Appointments() {
             </div>
           )}
         </div>
-      );
+      )
     },
-    [activeNoteId, setActiveNoteId]
-  );
+    [activeNoteId, setActiveNoteId],
+  )
 
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
       <main className="flex-1 min-w-0">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
-            <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">
-              Appointments
-            </h1>
+            <div className="flex items-center gap-2">
+
+            <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
+            <button
+              onClick={toggleSidebar}
+              className="  bg-[#3F74FF] text-white p-1.5 rounded-full z-10 shadow-lg hover:bg-[#3F74FF]/90 transition-colors lg:flex hidden"
+              aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+              {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+              </div>
             <div className="flex items-center md:flex-row flex-col gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -1173,17 +1168,19 @@ export default function Appointments() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-6">
-            {/* Top row with mini calendar and search */}
-            <div className="flex flex-col lg:flex-row gap-6">
-              <div className="lg:w-[30%] w-full">
-                <MiniCalendar
-                  onDateSelect={handleDateSelect}
-                  selectedDate={selectedDate}
-                />
+          <div className="flex lg:flex-row flex-col gap-6 relative">
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                isSidebarCollapsed
+                  ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0"
+                  : "lg:w-[60%] lg:opacity-100"
+              } w-full flex flex-col gap-6`}
+            >
+              <div className="">
+                <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
               </div>
 
-              <div className="lg:w-[70%] w-full flex flex-col gap-4">
+              <div className="w-full flex flex-col gap-4">
                 <div className="flex items-center gap-4">
                   <div className="relative w-full">
                     <input
@@ -1193,17 +1190,12 @@ export default function Appointments() {
                       onChange={handleSearch}
                       className="w-full bg-[#000000] text-white rounded-xl px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
                     />
-                    <Search
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      size={18}
-                    />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                   </div>
                 </div>
 
                 <div>
-                  <h2 className="text-white font-bold mb-4">
-                    Upcoming Appointments
-                  </h2>
+                  <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
                   <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
                     {filteredAppointments.length > 0 ? (
                       filteredAppointments.map((appointment, index) => (
@@ -1212,34 +1204,28 @@ export default function Appointments() {
                           className={`${appointment.color} rounded-xl cursor-pointer p-5 relative`}
                         >
                           <div className="absolute p-2 top-0 left-0 z-10">
-                            {renderSpecialNoteIcon(
-                              appointment.specialNote,
-                              appointment.id
-                            )}
+                            {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                           </div>
                           <div
                             className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
                             onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setIsAppointmentActionModalOpen(true);
+                              setSelectedAppointment(appointment)
+                              setIsAppointmentActionModalOpen(true)
                             }}
                           >
                             <div className="flex items-center gap-2 ml-5 relative w-full sm:w-auto justify-center sm:justify-start">
                               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
                                 <img
-                                  src={Avatar || "/placeholder.svg"}
+                                  src={Avatar}
                                   alt=""
                                   className="w-full h-full rounded-full"
                                 />
                               </div>
                               <div className="text-white text-left">
-                                <p className="font-semibold">
-                                  {appointment.name}
-                                </p>
+                                <p className="font-semibold">{appointment.name}</p>
                                 <p className="text-xs flex gap-1 items-center opacity-80 justify-center sm:justify-start">
                                   <Clock size={14} />
-                                  {appointment.time} |{" "}
-                                  {appointment.date.split("|")[0]}
+                                  {appointment.time} | {appointment.date.split("|")[0]}
                                 </p>
                               </div>
                             </div>
@@ -1247,18 +1233,16 @@ export default function Appointments() {
                               <div className="text-white text-center sm:text-right w-full sm:w-auto">
                                 <p className="text-xs">
                                   {appointment.isTrial ? (
-                                    <span className="font-medium ">
-                                      Trial Session
-                                    </span>
+                                    <span className="font-medium ">Trial Session</span>
                                   ) : (
                                     appointment.type
                                   )}
                                 </p>
                                 <button
                                   onClick={(e) => {
-                                    e.stopPropagation();
+                                    e.stopPropagation()
                                     if (!appointment.isCheckedIn) {
-                                      handleCheckIn(appointment.id);
+                                      handleCheckIn(appointment.id)
                                     }
                                   }}
                                   className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
@@ -1268,9 +1252,7 @@ export default function Appointments() {
                                   }`}
                                   disabled={appointment.isCheckedIn} // Prevents interaction
                                 >
-                                  {appointment.isCheckedIn
-                                    ? "Checked In"
-                                    : "Check In"}
+                                  {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                 </button>
                               </div>
                             </div>
@@ -1278,9 +1260,7 @@ export default function Appointments() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-white text-center">
-                        No appointments scheduled for this date.
-                      </p>
+                      <p className="text-white text-center">No appointments scheduled for this date.</p>
                     )}
                   </div>
                 </div>
@@ -1288,7 +1268,11 @@ export default function Appointments() {
             </div>
 
             {/* Full-width calendar */}
-            <div className="w-full bg-[#000000] rounded-xl p-4 overflow-hidden">
+            <div
+              className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${
+                isSidebarCollapsed ? "lg:w-full" : ""
+              }`}
+            >
               <Calendar
                 appointments={appointments}
                 onDateSelect={handleDateSelect}
@@ -1340,9 +1324,7 @@ export default function Appointments() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Confirm Cancellation
-              </h2>
+              <h2 className="text-lg font-semibold text-white">Confirm Cancellation</h2>
               <button
                 onClick={() => setIsConfirmCancelOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -1353,9 +1335,8 @@ export default function Appointments() {
 
             <div className="p-6">
               <p className="text-white text-sm">
-                Are you sure you want to cancel this appointment with{" "}
-                {appointmentToRemove?.name} on {appointmentToRemove?.date} at{" "}
-                {appointmentToRemove?.time}?
+                Are you sure you want to cancel this appointment with {appointmentToRemove?.name} on{" "}
+                {appointmentToRemove?.date} at {appointmentToRemove?.time}?
               </p>
             </div>
 
@@ -1387,9 +1368,7 @@ export default function Appointments() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Notify Member
-              </h2>
+              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
               <button
                 onClick={() => setIsNotifyMemberOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -1401,12 +1380,7 @@ export default function Appointments() {
             <div className="p-6">
               <p className="text-white text-sm">
                 Do you want to notify the member about this{" "}
-                {notifyAction === "change"
-                  ? "change"
-                  : notifyAction === "cancel"
-                  ? "cancellation"
-                  : "booking"}
-                ?
+                {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
               </p>
             </div>
 
@@ -1453,10 +1427,10 @@ export default function Appointments() {
             },
             status: "blocked",
             isBlocked: true,
-          };
-          setAppointments([...appointments, newBlock]);
-          toast.success("Time slot blocked successfully");
-          setIsBlockModalOpen(false);
+          }
+          setAppointments([...appointments, newBlock])
+          toast.success("Time slot blocked successfully")
+          setIsBlockModalOpen(false)
         }}
       />
 
@@ -1471,5 +1445,7 @@ export default function Appointments() {
         }}
       />
     </div>
-  );
+  )
 }
+
+

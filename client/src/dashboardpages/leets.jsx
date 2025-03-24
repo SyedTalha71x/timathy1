@@ -142,6 +142,7 @@ export default function LeadOverview() {
       avatar: Avatar,
       source: "hardcoded",
       status: "active",
+      about: 'Software Engineer',
       createdAt: "2025-01-15T10:30:00Z",
       specialNote: {
         text: "Interested in personal training sessions twice a week.",

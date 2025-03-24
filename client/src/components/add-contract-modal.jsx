@@ -6,6 +6,31 @@ import { X, FileText, Upload, Eye, ArrowLeft } from "lucide-react"
 import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 
+// Sample contract types with their details
+const contractTypes = [
+  {
+    id: "basic",
+    name: "Basic",
+    duration: "12 months",
+    cost: "$29.99",
+    billingPeriod: "Monthly",
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    duration: "12 months",
+    cost: "$49.99",
+    billingPeriod: "Monthly",
+  },
+  {
+    id: "bronze",
+    name: "Bronze",
+    duration: "6 months",
+    cost: "$19.99",
+    billingPeriod: "Monthly",
+  },
+]
+
 // Add print-specific styles
 const printStyles = `
   @media print {
@@ -72,6 +97,12 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
   const [searchTerm, setSearchTerm] = useState("")
   const [showSignatureOptions, setShowSignatureOptions] = useState(false)
   const [showPrintPrompt, setShowPrintPrompt] = useState(false)
+  const [selectedContractType, setSelectedContractType] = useState(null)
+  const [discount, setDiscount] = useState({
+    percentage: 0,
+    duration: "1",
+    isPermanent: false,
+  })
 
   // Pre-fill data if lead information is available
   useEffect(() => {
@@ -94,10 +125,24 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     }
   }, [leadData])
 
+  // Update selected contract type when rate type changes
+  useEffect(() => {
+    const contractType = contractTypes.find((type) => type.name === contractData.rateType)
+    setSelectedContractType(contractType)
+  }, [contractData.rateType])
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
     setContractData({
       ...contractData,
+      [name]: type === "checkbox" ? checked : value,
+    })
+  }
+
+  const handleDiscountChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setDiscount({
+      ...discount,
       [name]: type === "checkbox" ? checked : value,
     })
   }
@@ -161,6 +206,13 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
         ...contractData,
         isDigital: true,
         status: "Digital signed",
+        discount:
+          discount.percentage > 0
+            ? {
+                percentage: discount.percentage,
+                duration: discount.isPermanent ? "permanent" : discount.duration,
+              }
+            : null,
       })
     } else {
       // Generate without signature
@@ -181,6 +233,13 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
       ...contractData,
       isDigital: false,
       status: "Analog signed",
+      discount:
+        discount.percentage > 0
+          ? {
+              percentage: discount.percentage,
+              duration: discount.isPermanent ? "permanent" : discount.duration,
+            }
+          : null,
     })
   }
 
@@ -319,10 +378,74 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                     onChange={handleInputChange}
                   >
                     <option value="">Select rate type</option>
-                    <option value="Basic">Basic</option>
-                    <option value="Premium">Premium</option>
-                    <option value="Bronze">Bronze</option>
+                    {contractTypes.map((type) => (
+                      <option key={type.id} value={type.name}>
+                        {type.name}
+                      </option>
+                    ))}
                   </select>
+                </div>
+
+                {selectedContractType && (
+                  <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
+                    <h4 className="text-white text-sm font-medium mb-2">Contract Details</h4>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="block text-gray-400 text-xs">Duration</span>
+                        <span className="text-white">{selectedContractType.duration}</span>
+                      </div>
+                      <div>
+                        <span className="block text-gray-400 text-xs">Cost</span>
+                        <span className="text-white">{selectedContractType.cost}</span>
+                      </div>
+                      <div>
+                        <span className="block text-gray-400 text-xs">Billing Period</span>
+                        <span className="text-white">{selectedContractType.billingPeriod}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
+                  <h4 className="text-white text-sm font-medium mb-2">Discount</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1">Percentage (%)</label>
+                      <input
+                        type="number"
+                        name="percentage"
+                        min="0"
+                        max="100"
+                        value={discount.percentage}
+                        onChange={handleDiscountChange}
+                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      />
+                    </div>
+                    <div className={discount.isPermanent ? "opacity-50" : ""}>
+                      <label className="block text-gray-400 text-xs mb-1">Billing Periods</label>
+                      <input
+                        type="number"
+                        name="duration"
+                        min="1"
+                        value={discount.duration}
+                        onChange={handleDiscountChange}
+                        disabled={discount.isPermanent}
+                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="isPermanent"
+                          checked={discount.isPermanent}
+                          onChange={handleDiscountChange}
+                          className="form-checkbox h-5 w-5 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                        />
+                        <span className="text-gray-400 text-xs">Till End of Contract</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -332,7 +455,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                 className="w-full px-4 py-2 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-2"
               >
                 <Eye size={16} />
-                View Contract
+                Fill out Contract
               </button>
             </div>
           ) : (
@@ -601,6 +724,34 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           <input type="text" className="w-full border border-gray-300 rounded p-2 text-black" />
                         </div>
                       </div>
+
+                      {discount.percentage > 0 && (
+                        <div className="mb-6">
+                          <h2 className="text-gray-700 font-semibold mb-2 uppercase text-sm tracking-wide">DISCOUNT</h2>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Discount Percentage</label>
+                              <input
+                                type="text"
+                                value={`${discount.percentage}%`}
+                                readOnly
+                                className="w-full border border-gray-300 rounded p-2 text-black bg-gray-50"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Duration</label>
+                              <input
+                                type="text"
+                                value={
+                                  discount.isPermanent ? "Till End of Contract" : `${discount.duration} Billing Periods`
+                                }
+                                readOnly
+                                className="w-full border border-gray-300 rounded p-2 text-black bg-gray-50"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       <div className="mb-6">
                         <div className="border-t border-gray-300 pt-4 mt-4">

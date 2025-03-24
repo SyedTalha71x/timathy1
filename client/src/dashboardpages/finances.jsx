@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Download, Calendar, ChevronDown, RefreshCw } from "lucide-react"
+import { Download, Calendar, ChevronDown, RefreshCw, Filter } from "lucide-react"
 import CheckFundsModal from "../components/check-funds-modal"
 import SepaXmlModal from "../components/sepa-xml-modal"
 
@@ -185,7 +185,9 @@ const financialData = {
 export default function FinancesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
+  const [statusFilterOpen, setStatusFilterOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedStatus, setSelectedStatus] = useState("All")
   const [filteredTransactions, setFilteredTransactions] = useState(financialData[selectedPeriod].transactions)
   const [currentPage, setCurrentPage] = useState(1)
   const [sepaModalOpen, setSepaModalOpen] = useState(false)
@@ -193,17 +195,26 @@ export default function FinancesPage() {
   const [checkFundsModalOpen, setCheckFundsModalOpen] = useState(false)
   const transactionsPerPage = 5
 
+  // Get all possible status values
+  const statusOptions = ["All", "Successful", "Pending", "Failed", "Check incoming funds"]
+
   useEffect(() => {
-    // Filter transactions based on search term
+    // Filter transactions based on search term and selected status
     const filtered = financialData[selectedPeriod].transactions.filter(
-      (transaction) =>
-        transaction.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.type.toLowerCase().includes(searchTerm.toLowerCase()),
+      (transaction) => {
+        const matchesSearch = 
+          transaction.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          transaction.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          transaction.type.toLowerCase().includes(searchTerm.toLowerCase())
+        
+        const matchesStatus = selectedStatus === "All" || transaction.status === selectedStatus
+        
+        return matchesSearch && matchesStatus
+      }
     )
     setFilteredTransactions(filtered)
     setCurrentPage(1) // Reset to first page when filter changes
-  }, [searchTerm, selectedPeriod])
+  }, [searchTerm, selectedPeriod, selectedStatus])
 
   const totalPages = Math.ceil(filteredTransactions.length / transactionsPerPage)
   const startIndex = (currentPage - 1) * transactionsPerPage
@@ -318,6 +329,22 @@ export default function FinancesPage() {
     tx => tx.status === "Check incoming funds"
   )
 
+  // Get status color class based on status value
+  const getStatusColorClass = (status) => {
+    switch(status) {
+      case "Successful":
+        return "bg-green-900/30 text-green-500";
+      case "Pending":
+        return "bg-yellow-900/30 text-yellow-500";
+      case "Check incoming funds":
+        return "bg-blue-900/30 text-blue-500";
+      case "Failed":
+        return "bg-red-900/30 text-red-500";
+      default:
+        return "bg-gray-900/30 text-gray-500";
+    }
+  }
+
   return (
     <div className="bg-[#1C1C1C] p-4 md:p-6 rounded-3xl w-full">
       {/* Header with back button */}
@@ -408,15 +435,51 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      {/* Search input */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search transactions..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-black text-white px-4 py-2.5 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#3F74FF] text-sm"
-        />
+      {/* Search and Filter row */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        {/* Search input */}
+        <div className="flex-grow">
+          <input
+            type="text"
+            placeholder="Search transactions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-black text-white px-4 py-2.5 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#3F74FF] text-sm"
+          />
+        </div>
+        
+        {/* Status filter */}
+        <div className="relative">
+          <button
+            onClick={() => setStatusFilterOpen(!statusFilterOpen)}
+            className="bg-black text-white px-4 py-2.5 rounded-xl border border-gray-800 flex items-center justify-between gap-2 min-w-[180px] w-full sm:w-auto"
+          >
+            <Filter className="w-4 h-4" />
+            <span className="text-sm">
+              Status: {selectedStatus}
+            </span>
+            <ChevronDown className="w-4 h-4" />
+          </button>
+          {statusFilterOpen && (
+            <div className="absolute right-0 z-10 mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg">
+              {statusOptions.map((status) => (
+                <button
+                  key={status}
+                  className={`w-full px-4 py-2 text-sm text-left flex items-center space-x-2 hover:bg-black ${selectedStatus === status ? 'bg-black/50' : ''}`}
+                  onClick={() => {
+                    setSelectedStatus(status)
+                    setStatusFilterOpen(false)
+                  }}
+                >
+                  {status !== "All" && (
+                    <span className={`inline-block w-3 h-3 rounded-full ${getStatusColorClass(status)}`}></span>
+                  )}
+                  <span className="text-gray-300">{status}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Transactions table */}
@@ -516,7 +579,7 @@ export default function FinancesPage() {
         </div>
       )}
 
-<SepaXmlModal 
+      <SepaXmlModal 
         isOpen={sepaModalOpen}
         onClose={() => setSepaModalOpen(false)}
         selectedPeriod={selectedPeriod}
@@ -533,4 +596,3 @@ export default function FinancesPage() {
     </div>
   )
 }
-

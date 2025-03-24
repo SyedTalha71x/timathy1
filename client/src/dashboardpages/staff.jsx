@@ -890,190 +890,127 @@ function EditStaffModal({
 
 function EmployeePlanningModal({ staffMembers, onClose }) {
   const [selectedStaff, setSelectedStaff] = useState(null)
-  const [schedule, setSchedule] = useState({})
-  const [viewMode, setViewMode] = useState("week") // "day", "week", "month"
-  const [currentDate, setCurrentDate] = useState(new Date())
+  const [currentMonth, setCurrentMonth] = useState(new Date())
   const [shifts, setShifts] = useState({})
-  const [draggedShift, setDraggedShift] = useState(null)
-  const [selectedShift, setSelectedShift] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [shiftPeriod, setShiftPeriod] = useState("")
+  const [showShiftForm, setShowShiftForm] = useState(false)
 
-  // Generate dates for the current view
-  const getDatesForView = () => {
-    const dates = []
-    const startDate = new Date(currentDate)
-
-    if (viewMode === "day") {
-      return [new Date(currentDate)]
-    } else if (viewMode === "week") {
-      // Set to the beginning of the week (Sunday)
-      startDate.setDate(currentDate.getDate() - currentDate.getDay())
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(startDate)
-        date.setDate(startDate.getDate() + i)
-        dates.push(date)
-      }
-    } else if (viewMode === "month") {
-      // Set to the first day of the month
-      startDate.setDate(1)
-      const month = startDate.getMonth()
-      while (startDate.getMonth() === month) {
-        dates.push(new Date(startDate))
-        startDate.setDate(startDate.getDate() + 1)
-      }
-    }
-    return dates
+  // Navigate to previous month
+  const goToPreviousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
   }
+
+  // Navigate to next month
+  const goToNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
+  }
+
+  // Generate calendar days for the current month view
+  const generateCalendarDays = () => {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+
+    const firstDayOfMonth = new Date(year, month, 1)
+    const lastDayOfMonth = new Date(year, month + 1, 0)
+
+    const daysInMonth = lastDayOfMonth.getDate()
+    const firstDayOfWeek = firstDayOfMonth.getDay() // 0 = Sunday, 1 = Monday, etc.
+
+    const days = []
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      days.push(null)
+    }
+
+    // Add days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i))
+    }
+
+    return days
+  }
+
+  const calendarDays = generateCalendarDays()
 
   const handleStaffSelect = (staff) => {
     setSelectedStaff(staff)
-    // Initialize default schedule
-    const defaultSchedule = {
-      Monday: "9:00-17:00",
-      Tuesday: "9:00-17:00",
-      Wednesday: "9:00-17:00",
-      Thursday: "9:00-17:00",
-      Friday: "9:00-17:00",
-    }
-    setSchedule(defaultSchedule)
-
-    // Initialize shifts data structure
-    const initialShifts = {}
-    const dates = getDatesForView()
-    dates.forEach((date) => {
-      const dateStr = date.toISOString().split("T")[0]
-      initialShifts[dateStr] = "9:00-17:00"
-    })
-    setShifts(initialShifts)
+    // Load existing shifts for this staff member (in a real app, this would come from your backend)
+    const staffShifts = {}
+    // Example: Add some sample shifts
+    const today = new Date()
+    const dateStr1 = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().split("T")[0]
+    const dateStr2 = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().split("T")[0]
+    staffShifts[dateStr1] = "9:00-17:00"
+    staffShifts[dateStr2] = "10:00-18:00"
+    setShifts(staffShifts)
   }
 
-  const handleScheduleChange = (day, value) => {
-    setSchedule((prev) => ({ ...prev, [day]: value }))
+  const handleDateClick = (date) => {
+    const dateStr = date.toISOString().split("T")[0]
+    setSelectedDate(date)
+    setShiftPeriod(shifts[dateStr] || "")
+    setShowShiftForm(true)
   }
 
-  const handleShiftChange = (dateStr, value) => {
+  const handleSaveShift = () => {
+    if (!selectedDate || !shiftPeriod) return
+
+    const dateStr = selectedDate.toISOString().split("T")[0]
     setShifts((prev) => ({
       ...prev,
-      [dateStr]: value,
+      [dateStr]: shiftPeriod,
     }))
+    setShowShiftForm(false)
+    toast.success(`Shift saved for ${selectedDate.toLocaleDateString()}`)
   }
 
-  const handleDeleteShift = (dateStr) => {
-    setShifts((prev) => {
-      const newShifts = { ...prev }
-      delete newShifts[dateStr]
-      return newShifts
-    })
-    toast.success("Shift deleted")
+  const handleDeleteShift = () => {
+    if (!selectedDate) return
+
+    const dateStr = selectedDate.toISOString().split("T")[0]
+    const newShifts = { ...shifts }
+    delete newShifts[dateStr]
+    setShifts(newShifts)
+    setShowShiftForm(false)
+    toast.success(`Shift deleted for ${selectedDate.toLocaleDateString()}`)
   }
 
-  const handleDragStart = (dateStr) => {
-    setDraggedShift({ dateStr, value: shifts[dateStr] })
-  }
+  const handleSaveAllShifts = () => {
+    if (!selectedStaff) return
 
-  const handleDragOver = (e, dateStr) => {
-    e.preventDefault()
-  }
-
-  const handleDrop = (e, targetDateStr) => {
-    e.preventDefault()
-    if (draggedShift && draggedShift.dateStr !== targetDateStr) {
-      // Move the shift
-      setShifts((prev) => {
-        const newShifts = { ...prev }
-        newShifts[targetDateStr] = draggedShift.value
-        delete newShifts[draggedShift.dateStr]
-        return newShifts
-      })
-      toast.success("Shift moved successfully")
-      setDraggedShift(null)
-    }
-  }
-
-  const handlePrevious = () => {
-    const newDate = new Date(currentDate)
-    if (viewMode === "day") {
-      newDate.setDate(newDate.getDate() - 1)
-    } else if (viewMode === "week") {
-      newDate.setDate(newDate.getDate() - 7)
-    } else if (viewMode === "month") {
-      newDate.setMonth(newDate.getMonth() - 1)
-    }
-    setCurrentDate(newDate)
-  }
-
-  const handleNext = () => {
-    const newDate = new Date(currentDate)
-    if (viewMode === "day") {
-      newDate.setDate(newDate.getDate() + 1)
-    } else if (viewMode === "week") {
-      newDate.setDate(newDate.getDate() + 7)
-    } else if (viewMode === "month") {
-      newDate.setMonth(newDate.getMonth() + 1)
-    }
-    setCurrentDate(newDate)
-  }
-
-  const formatDateHeader = () => {
-    if (viewMode === "day") {
-      return currentDate.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    } else if (viewMode === "week") {
-      const dates = getDatesForView()
-      const firstDate = dates[0]
-      const lastDate = dates[dates.length - 1]
-      return `${firstDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })} - ${lastDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })}`
-    } else if (viewMode === "month") {
-      return currentDate.toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      })
-    }
-  }
-
-  const handleSave = () => {
-    console.log("Saving schedule for", selectedStaff?.firstName, shifts)
-    toast.success("Schedule saved successfully")
+    console.log("Saving all shifts for", selectedStaff.firstName, shifts)
+    toast.success("All shifts saved successfully")
     onClose()
   }
 
+  // Check if a date has a shift booked
+  const hasShift = (date) => {
+    const dateStr = date.toISOString().split("T")[0]
+    return shifts[dateStr] !== undefined
+  }
+
+  // Format the date for display
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
       day: "numeric",
     })
   }
 
-  const getDayOfWeek = (date) => {
-    return date.toLocaleDateString("en-US", { weekday: "long" })
-  }
-
-  const isWeekend = (date) => {
-    const day = date.getDay()
-    return day === 0 || day === 6 // 0 is Sunday, 6 is Saturday
-  }
-
   return (
-    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4 ">
       <div className="bg-[#181818] text-white rounded-xl p-4 md:p-6 w-full max-w-4xl">
         <h2 className="text-xl font-bold mb-4">Employee Planning</h2>
 
-        <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 max-h-[60vh] overflow-y-auto">
           {/* Staff List Section */}
           <div className="w-full md:w-1/4 mb-4 md:mb-0">
             <h3 className="text-lg font-semibold mb-2">Staff</h3>
-            <div className="bg-[#141414] rounded-xl p-2 max-h-[400px] overflow-y-auto">
+            <div className="bg-[#141414] rounded-xl p-2 max-h-[500px] overflow-y-auto">
               <ul className="space-y-1">
                 {staffMembers.map((staff) => (
                   <li
@@ -1090,168 +1027,159 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
           </div>
 
           {/* Calendar Section */}
-          <div className="w-full md:w-3/4 overflow-x-auto">
+          <div className="w-full md:w-3/4">
             {selectedStaff ? (
-              <>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">
-                    Schedule for {selectedStaff.firstName} {selectedStaff.lastName}
-                  </h3>
-                  <div className="flex items-center space-x-2">
-                    <button onClick={handlePrevious} className="p-1 bg-[#141414] rounded-lg hover:bg-gray-700">
-                      &lt;
+              showShiftForm ? (
+                <div className="bg-[#141414] rounded-xl p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold">Book Shift</h3>
+                    <button onClick={() => setShowShiftForm(false)} className="text-gray-400 hover:text-white">
+                      <X size={20} />
                     </button>
-                    <span className="text-sm font-medium">{formatDateHeader()}</span>
-                    <button onClick={handleNext} className="p-1 bg-[#141414] rounded-lg hover:bg-gray-700">
-                      &gt;
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm text-gray-300 block mb-2">Date</label>
+                      <div className="bg-[#1C1C1C] px-4 py-2 rounded-lg">{formatDate(selectedDate)}</div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm text-gray-300 block mb-2">Shift Period</label>
+                      <input
+                        type="text"
+                        value={shiftPeriod}
+                        onChange={(e) => setShiftPeriod(e.target.value)}
+                        placeholder="e.g. 9:00-17:00"
+                        className="w-full bg-[#1C1C1C] rounded-lg px-4 py-2 text-white"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Format: start-end (e.g. 9:00-17:00)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-6">
+                    <button
+                      onClick={handleSaveShift}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+                    >
+                      Save Shift
+                    </button>
+                    {hasShift(selectedDate) && (
+                      <button
+                        onClick={handleDeleteShift}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+                      >
+                        Delete Shift
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowShiftForm(false)}
+                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm ml-auto"
+                    >
+                      Cancel
                     </button>
                   </div>
                 </div>
-
-                <div className="flex space-x-2 mb-4">
-                  <button
-                    onClick={() => setViewMode("day")}
-                    className={`px-3 py-1 rounded-lg text-sm ${
-                      viewMode === "day" ? "bg-blue-600" : "bg-[#141414] hover:bg-gray-700"
-                    }`}
-                  >
-                    Day
-                  </button>
-                  <button
-                    onClick={() => setViewMode("week")}
-                    className={`px-3 py-1 rounded-lg text-sm ${
-                      viewMode === "week" ? "bg-blue-600" : "bg-[#141414] hover:bg-gray-700"
-                    }`}
-                  >
-                    Week
-                  </button>
-                  <button
-                    onClick={() => setViewMode("month")}
-                    className={`px-3 py-1 rounded-lg text-sm ${
-                      viewMode === "month" ? "bg-blue-600" : "bg-[#141414] hover:bg-gray-700"
-                    }`}
-                  >
-                    Month
-                  </button>
-                </div>
-
-                <div className="bg-[#141414] rounded-xl p-3 max-h-[400px] overflow-y-auto min-w-[600px]">
-                  {viewMode === "day" ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-2 bg-[#1C1C1C] rounded-lg">
-                        <span className="text-sm font-medium">{formatDate(currentDate)}</span>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={shifts[currentDate.toISOString().split("T")[0]] || ""}
-                            onChange={(e) => handleShiftChange(currentDate.toISOString().split("T")[0], e.target.value)}
-                            placeholder="9:00-17:00"
-                            className="bg-[#242424] rounded px-3 py-1 text-sm w-32"
-                          />
-                          <button
-                            onClick={() => handleDeleteShift(currentDate.toISOString().split("T")[0])}
-                            className="text-red-400 hover:text-red-300 text-sm"
-                          >
-                            Delete
-                          </button>
-                        </div>
+              ) : (
+                <>
+                  <div className="bg-[#141414] rounded-xl p-4">
+                    <div className="flex md:justify-between md:flex-row gap-3 justify-center flex-col items-center mb-4">
+                      <h3 className="text-lg font-semibold">
+                        Schedule for {selectedStaff.firstName} {selectedStaff.lastName}
+                      </h3>
+                      <div className="flex items-center space-x-2">
+                        <button onClick={goToPreviousMonth} className="p-1 bg-[#1C1C1C] rounded-lg hover:bg-gray-700">
+                          &lt;
+                        </button>
+                        <span className="text-sm font-medium">
+                          {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                        </span>
+                        <button onClick={goToNextMonth} className="p-1 bg-[#1C1C1C] rounded-lg hover:bg-gray-700">
+                          &gt;
+                        </button>
                       </div>
                     </div>
-                  ) : viewMode === "week" ? (
-                    <div className="space-y-2">
-                      {getDatesForView().map((date) => {
-                        const dateStr = date.toISOString().split("T")[0]
-                        return (
-                          <div
-                            key={dateStr}
-                            className={`flex items-center justify-between p-2 rounded-lg ${
-                              isWeekend(date) ? "bg-[#1a1a1a]" : "bg-[#1C1C1C]"
-                            }`}
-                            draggable={!!shifts[dateStr]}
-                            onDragStart={() => handleDragStart(dateStr)}
-                            onDragOver={(e) => handleDragOver(e, dateStr)}
-                            onDrop={(e) => handleDrop(e, dateStr)}
-                          >
-                            <span className="text-sm font-medium">{formatDate(date)}</span>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="text"
-                                value={shifts[dateStr] || ""}
-                                onChange={(e) => handleShiftChange(dateStr, e.target.value)}
-                                placeholder="9:00-17:00"
-                                className="bg-[#242424] rounded px-3 py-1 text-sm w-32"
-                              />
-                              <button
-                                onClick={() => handleDeleteShift(dateStr)}
-                                className="text-red-400 hover:text-red-300 text-sm"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <div
-                      className="grid grid-cols-7 gap-1"
-                      style={{
-                        gridTemplateColumns: "repeat(7, minmax(80px, 1fr))",
-                      }}
-                    >
-                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                        <div key={day} className="text-center text-xs font-medium p-1">
+
+                    <div className="grid grid-cols-7 gap-1 mb-2">
+                      {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                        <div key={day} className="text-center text-xs font-medium py-1">
                           {day}
                         </div>
                       ))}
+                    </div>
 
-                      {getDatesForView().map((date, index) => {
-                        const dateStr = date.toISOString().split("T")[0]
+                    <div className="grid grid-cols-7 gap-1">
+                      {calendarDays.map((day, index) => {
+                        if (!day) return <div key={`empty-${index}`} className="opacity-0"></div>
+
+                        const dateStr = day.toISOString().split("T")[0]
+                        const hasShiftBooked = shifts[dateStr] !== undefined
+                        const isWeekend = day.getDay() === 0 || day.getDay() === 6
+
                         return (
                           <div
                             key={dateStr}
-                            className={`p-1 rounded min-h-[70px] min-w-[80px] ${
-                              isWeekend(date) ? "bg-[#1a1a1a]" : "bg-[#1C1C1C]"
-                            }`}
-                            draggable={!!shifts[dateStr]}
-                            onDragStart={() => handleDragStart(dateStr)}
-                            onDragOver={(e) => handleDragOver(e, dateStr)}
-                            onDrop={(e) => handleDrop(e, dateStr)}
+                            className={`
+                              relative text-center p-2 rounded-md text-sm cursor-pointer
+                              ${hasShiftBooked ? "bg-blue-600/40" : ""}
+                              ${isWeekend ? "text-gray-500" : ""}
+                              ${!hasShiftBooked ? "hover:bg-gray-700" : "hover:bg-blue-600/60"}
+                            `}
+                            onClick={() => handleDateClick(day)}
                           >
-                            <div className="flex justify-between items-start">
-                              <span className="text-xs">{date.getDate()}</span>
-                              {shifts[dateStr] && (
-                                <button
-                                  onClick={() => handleDeleteShift(dateStr)}
-                                  className="text-red-400 hover:text-red-300 text-xs"
-                                >
-                                  ×
-                                </button>
-                              )}
-                            </div>
-                            <input
-                              type="text"
-                              value={shifts[dateStr] || ""}
-                              onChange={(e) => handleShiftChange(dateStr, e.target.value)}
-                              placeholder="9-5"
-                              className="bg-[#242424] rounded px-2 py-0.5 text-xs w-full mt-1"
-                            />
+                            <span>{day.getDate()}</span>
+
+                            {hasShiftBooked && (
+                              <div className="absolute bottom-0 left-0 right-0 text-[10px] text-center pb-0.5 px-0.5 truncate">
+                                {shifts[dateStr]}
+                              </div>
+                            )}
                           </div>
                         )
                       })}
                     </div>
-                  )}
-                </div>
 
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={handleSave}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
-                  >
-                    Save Schedule
-                  </button>
-                </div>
-              </>
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        onClick={handleSaveAllShifts}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+                      >
+                        Save All Shifts
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Shift List */}
+                  <div className="mt-4 bg-[#141414] rounded-xl p-4">
+                    <h3 className="text-lg font-semibold mb-2">Scheduled Shifts</h3>
+                    {Object.keys(shifts).length > 0 ? (
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {Object.entries(shifts).map(([dateStr, period]) => {
+                          const date = new Date(dateStr)
+                          return (
+                            <div
+                              key={dateStr}
+                              className="flex justify-between text-sm items-center p-2 bg-[#1C1C1C] rounded-lg hover:bg-[#242424] cursor-pointer"
+                              onClick={() => {
+                                setSelectedDate(date)
+                                setShiftPeriod(period)
+                                setShowShiftForm(true)
+                              }}
+                            >
+                              <span>
+                                {date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                              </span>
+                              <span className="font-medium">{period}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-sm">No shifts scheduled yet. Click on a date to add a shift.</p>
+                    )}
+                  </div>
+                </>
+              )
             ) : (
               <div className="bg-[#141414] rounded-xl p-6 flex items-center justify-center h-[400px]">
                 <p className="text-gray-400">Select a staff member to view and edit their schedule.</p>
@@ -1270,6 +1198,8 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
     </div>
   )
 }
+
+
 
 function AttendanceOverviewModal({ staffMembers, onClose }) {
   const [selectedPeriod, setSelectedPeriod] = useState("month")
