@@ -1,7 +1,6 @@
-"use client"
-
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react"
-import { X, Plus, ChevronDown } from "lucide-react"
+import { X, Plus } from "lucide-react"
 import AddTaskModal from "../components/add-task-modal"
 import TaskItem from "../components/task-item"
 import Notification from "../components/notification"
@@ -11,7 +10,6 @@ export default function TodoApp() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [activeFilter, setActiveFilter] = useState("ongoing")
-  const [activeCategory, setActiveCategory] = useState("member")
   const [tasks, setTasks] = useState([
     {
       id: 1,
@@ -116,12 +114,7 @@ export default function TodoApp() {
   }
 
   const handleAddTask = (newTask) => {
-    // Add the current category to the new task
-    const taskWithCategory = {
-      ...newTask,
-      category: activeCategory,
-    }
-    setTasks([...tasks, taskWithCategory])
+    setTasks([...tasks, newTask])
   }
 
   const getStatusColor = (status) => {
@@ -137,79 +130,58 @@ export default function TodoApp() {
     }
   }
 
-  // Filter tasks by both status and category
-  const filteredTasks = tasks.filter((task) => task.status === activeFilter && task.category === activeCategory)
+  // Filter tasks by status only
+  const filteredTasks = tasks.filter((task) => task.status === activeFilter)
 
   return (
     <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden">
       <div className="flex-1 p-4 sm:p-6">
         <div className="pb-16 sm:pb-24 lg:pb-36">
-          <div className="flex justify-between items-start mb-6 gap-4">
-            <h1 className="text-2xl font-bold text-white oxanium_font">To-Do</h1>
-            <div className="flex flex-col justify-end items-end gap-3">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-[#FF843E] cursor-pointer text-white px-4 sm:px-10 py-2 rounded-xl text-sm flex items-center gap-2"
-              >
-                <Plus size={18} />
-                <span className="open_sans_font">Add task</span>
-              </button>
-              <div className="relative status-dropdown">
-                <button
-                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                  className={`flex items-center cursor-pointer gap-2 px-4 py-2 rounded-xl text-sm ${getStatusColor(activeFilter)} border border-slate-300/30`}
-                >
-                  <span className="capitalize">{activeFilter}</span>
-                  <ChevronDown
-                    size={16}
-                    className={`transform transition-transform cursor-pointer duration-500 ${
-                      isStatusDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {isStatusDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-lg backdrop-blur-3xl bg-[#2F2F2F]/40 shadow-lg z-50 border border-slate-300/30">
-                    {["ongoing", "completed", "canceled"].map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => {
-                          setActiveFilter(status)
-                          setIsStatusDropdownOpen(false)
-                        }}
-                        className={`w-full px-4 py-2 text-left text-sm ${getStatusColor(status)}`}
-                      >
-                        <span className="capitalize">{status}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Category Tabs - Similar to the Communications component */}
-          <div className="flex gap-2 items-center mb-4">
-            <button
-              className={`px-5 py-2 text-sm ${
-                activeCategory === "member"
-                  ? "bg-white text-black"
-                  : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-              } rounded-xl`}
-              onClick={() => setActiveCategory("member")}
-            >
-              Members Tasks
-            </button>
-            <button
-              className={`px-5 py-2 text-sm ${
-                activeCategory === "staff"
-                  ? "bg-white text-black"
-                  : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-              } rounded-xl`}
-              onClick={() => setActiveCategory("staff")}
-            >
-              Staff Tasks
-            </button>
-          </div>
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-6 gap-4">
+  <h1 className="text-xl md:text-2xl font-bold text-white oxanium_font w-full text-left">To-Do</h1>
+  <div className="flex flex-col justify-end items-center md:items-end gap-3 w-full">
+    <button
+      onClick={() => setIsModalOpen(true)}
+      className="bg-[#FF843E] cursor-pointer text-white px-4 sm:px-10 py-2 rounded-xl text-sm flex items-center gap-2 w-full md:w-auto justify-center"
+    >
+      <Plus size={18} />
+      <span className="open_sans_font">Add task</span>
+    </button>
+    {/* Status Tabs */}
+    <div className="flex gap-2 items-end mb-4 w-full flex-col md:flex-row md:justify-center justify-end">
+      <button
+        className={`px-3 sm:px-5 py-2 md:w-auto w-full text-sm ${
+          activeFilter === "ongoing"
+            ? "bg-white text-black"
+            : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+        } rounded-xl`}
+        onClick={() => setActiveFilter("ongoing")}
+      >
+        Ongoing
+      </button>
+      <button
+        className={`px-3 sm:px-5 py-2 md:w-auto w-full text-sm ${
+          activeFilter === "completed"
+            ? "bg-white text-black"
+            : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+        } rounded-xl`}
+        onClick={() => setActiveFilter("completed")}
+      >
+        Completed
+      </button>
+      <button
+        className={`px-3 sm:px-5 py-2  md:w-auto w-full text-sm ${
+          activeFilter === "canceled"
+            ? "bg-white text-black"
+            : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+        } rounded-xl`}
+        onClick={() => setActiveFilter("canceled")}
+      >
+        Canceled
+      </button>
+    </div>
+  </div>
+</div>
 
           <div className="bg-black rounded-xl open_sans_font p-3 mt-4 sm:mt-8 lg:mt-16">
             {filteredTasks.length > 0 ? (
@@ -225,9 +197,7 @@ export default function TodoApp() {
                 ))}
               </div>
             ) : (
-              <div className="text-red-500 text-center py-4">
-                No {activeFilter} tasks in {activeCategory} category
-              </div>
+              <div className="text-red-500 text-center py-4">No {activeFilter} tasks found</div>
             )}
           </div>
         </div>
@@ -251,9 +221,7 @@ export default function TodoApp() {
         </div>
       </div>
 
-      {isModalOpen && (
-        <AddTaskModal onClose={() => setIsModalOpen(false)} onAddTask={handleAddTask} activeCategory={activeCategory} />
-      )}
+      {isModalOpen && <AddTaskModal onClose={() => setIsModalOpen(false)} onAddTask={handleAddTask} />}
     </div>
   )
 }

@@ -1,4 +1,3 @@
-"use client"
 
 /* eslint-disable react/prop-types */
 import { useState } from "react"
@@ -8,7 +7,7 @@ import { Toaster, toast } from "react-hot-toast"
 const assignees = ["Jack", "Jane", "John", "Jessica"]
 const roles = ["Trainer", "Manager", "Developer", "Designer"]
 
-export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], activeCategory }) {
+export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }) {
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -28,7 +27,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
       ...newTask,
       id: Date.now(),
       status: "ongoing",
-      category: activeCategory, // Add the category
       // Keep the arrays but clear the one not being used
       assignees: assignmentType === "assignee" ? newTask.assignees : [],
       roles: assignmentType === "role" ? newTask.roles : [],
@@ -133,13 +131,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
               />
             </div>
 
-            <div>
-              <label className="text-sm text-gray-200">Category</label>
-              <div className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white capitalize">
-                {activeCategory}
-              </div>
-              <p className="text-xs text-gray-400 mt-1">Tasks are added to the currently active category</p>
-            </div>
 
             <div>
               <label className="text-sm text-gray-200">Assignment Type</label>

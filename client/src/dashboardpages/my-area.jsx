@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import Chart from "react-apexcharts";
+import { useState, useEffect, useRef, useCallback } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import Chart from "react-apexcharts"
 import {
   BarChart3,
   MoreVertical,
@@ -19,37 +19,35 @@ import {
   AlertTriangle,
   Info,
   CalendarIcon,
-} from "lucide-react";
-import Rectangle1 from "../../public/Rectangle 1.png";
-import SelectedAppointmentModal from "../components/selected-appointment-modal";
-import Image10 from "../../public/image10.png";
-import { Toaster, toast } from "react-hot-toast";
-import { WidgetSelectionModal } from "../components/widget-selection-modal";
-import { ExternalLink } from "lucide-react";
-import Avatar from "../../public/avatar.png";
+} from "lucide-react"
+import Rectangle1 from "../../public/Rectangle 1.png"
+import SelectedAppointmentModal from "../components/selected-appointment-modal"
+import Image10 from "../../public/image10.png"
+import { Toaster, toast } from "react-hot-toast"
+import { WidgetSelectionModal } from "../components/widget-selection-modal"
+import { ExternalLink } from "lucide-react"
+import Avatar from "../../public/avatar.png"
 
 function EmployeeCheckInWidget() {
-  const [isCheckedIn, setIsCheckedIn] = useState(false);
-  const [checkInTime, setCheckInTime] = useState(null);
+  const [isCheckedIn, setIsCheckedIn] = useState(false)
+  const [checkInTime, setCheckInTime] = useState(null)
 
   const handleCheckInOut = () => {
     if (isCheckedIn) {
-      setIsCheckedIn(false);
-      setCheckInTime(null);
+      setIsCheckedIn(false)
+      setCheckInTime(null)
     } else {
-      setIsCheckedIn(true);
-      setCheckInTime(new Date());
+      setIsCheckedIn(true)
+      setCheckInTime(new Date())
     }
-  };
+  }
 
   return (
     <div className="p-4 bg-[#000000] rounded-xl min-h-[140px]">
       <h2 className="text-lg font-semibold mb-3">Employee Check-In</h2>
       <div className="flex flex-col gap-3">
         <div>
-          <p className="text-sm mb-1">
-            Status: {isCheckedIn ? "Checked In" : "Checked Out"}
-          </p>
+          <p className="text-sm mb-1">Status: {isCheckedIn ? "Checked In" : "Checked Out"}</p>
           {checkInTime && (
             <p className="text-xs text-zinc-400 flex items-center gap-1">
               <Clock size={14} />
@@ -74,19 +72,11 @@ function EmployeeCheckInWidget() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
-const DraggableWidget = ({
-  id,
-  children,
-  index,
-  moveWidget,
-  removeWidget,
-  isEditing,
-  widgets,
-}) => {
-  const ref = useRef(null);
+const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
+  const ref = useRef(null)
   return (
     <div ref={ref} className="relative mb-4 w-full">
       {isEditing && (
@@ -106,39 +96,34 @@ const DraggableWidget = ({
             <ArrowDown size={12} />
           </button>
 
-          <button
-            onClick={() => removeWidget(id)}
-            className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
-          >
+          <button onClick={() => removeWidget(id)} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700">
             <X size={12} />
           </button>
         </div>
       )}
       {children}
     </div>
-  );
-};
+  )
+}
 
 export default function MyArea() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null);
-  const [selectedMemberType, setSelectedMemberType] = useState("All members");
-  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const chartDropdownRef = useRef(null);
-  const navigate = useNavigate();
-  const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [selectedMemberType, setSelectedMemberType] = useState("All members")
+  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
+  const dropdownRef = useRef(null)
+  const chartDropdownRef = useRef(null)
+  const navigate = useNavigate()
+  const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
 
-
-
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false)
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 },
     { id: "appointments", type: "appointments", position: 1 },
     { id: "employeeCheckIn", type: "employeeCheckIn", position: 2 },
     { id: "websiteLink", type: "websiteLink", position: 3 },
-  ]);
+  ])
   const [customLinks, setCustomLinks] = useState([
     {
       id: "link1",
@@ -146,12 +131,12 @@ export default function MyArea() {
       title: "Timathy Fitness Town",
     },
     { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
-  ]);
+  ])
   const [sidebarSections, setSidebarSections] = useState([
     { id: "communications", title: "Communications" },
     { id: "todo", title: "TO-DO" },
     { id: "birthday", title: "Upcoming Birthday" },
-  ]);
+  ])
 
   const [communications, setCommunications] = useState([
     {
@@ -168,7 +153,7 @@ export default function MyArea() {
       time: "Today | 03:15 PM",
       avatar: Rectangle1,
     },
-  ]);
+  ])
 
   const [todos, setTodos] = useState([
     {
@@ -183,7 +168,7 @@ export default function MyArea() {
       description: "Weekly team sync",
       assignee: "Jack",
     },
-  ]);
+  ])
 
   const [birthdays, setBirthdays] = useState([
     {
@@ -198,7 +183,7 @@ export default function MyArea() {
       date: "Tue | 02 02 2025",
       avatar: Avatar,
     },
-  ]);
+  ])
 
   const memberTypes = {
     "All members": {
@@ -225,7 +210,7 @@ export default function MyArea() {
       growth: "-1%",
       title: "Cancelled Appointments",
     },
-  };
+  }
 
   const [appointments, setAppointments] = useState([
     {
@@ -300,30 +285,28 @@ export default function MyArea() {
       status: "pending",
       isTrial: false,
     },
-  ]);
+  ])
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const [freeAppointments, setFreeAppointments] = useState([]);
-  const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen);
-  const redirectToTodos = () => navigate("/dashboard/to-do");
-  const redirectToCommunication = () => navigate("/dashboard/communication");
-  const toggleDropdown = (index) =>
-    setOpenDropdownIndex(openDropdownIndex === index ? null : index);
-  const toggleEditing = () => setIsEditing(!isEditing);
-  const [activeNoteId, setActiveNoteId] = useState(null);
-  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] =
-    useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false);
-  const [notifyAction, setNotifyAction] = useState("change");
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
+  const [freeAppointments, setFreeAppointments] = useState([])
+  const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
+  const redirectToTodos = () => navigate("/dashboard/to-do")
+  const redirectToCommunication = () => navigate("/dashboard/communication")
+  const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  const toggleEditing = () => setIsEditing(!isEditing)
+  const [activeNoteId, setActiveNoteId] = useState(null)
+  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState(null)
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [notifyAction, setNotifyAction] = useState("change")
 
   const moveWidget = (fromIndex, toIndex) => {
-    if (toIndex < 0 || toIndex >= widgets.length) return;
-    const newWidgets = [...widgets];
-    const [movedWidget] = newWidgets.splice(fromIndex, 1);
-    newWidgets.splice(toIndex, 0, movedWidget);
-    setWidgets(newWidgets.map((w, i) => ({ ...w, position: i })));
-  };
+    if (toIndex < 0 || toIndex >= widgets.length) return
+    const newWidgets = [...widgets]
+    const [movedWidget] = newWidgets.splice(fromIndex, 1)
+    newWidgets.splice(toIndex, 0, movedWidget)
+    setWidgets(newWidgets.map((w, i) => ({ ...w, position: i })))
+  }
 
   const removeWidget = (id) => {
     // // Check if the widget is the website links widget
@@ -334,112 +317,88 @@ export default function MyArea() {
     //   return;
     // }
 
-    setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id));
-  };
+    setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
+  }
 
-  const [editingLink, setEditingLink] = useState(null);
+  const [editingLink, setEditingLink] = useState(null)
 
   const addCustomLink = () => {
-    setEditingLink({});
-  };
+    setEditingLink({})
+  }
 
   const updateCustomLink = (id, field, value) => {
-    setCustomLinks((currentLinks) =>
-      currentLinks.map((link) =>
-        link.id === id ? { ...link, [field]: value } : link
-      )
-    );
-  };
+    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
+  }
 
   const removeCustomLink = (id) => {
-    setCustomLinks((currentLinks) =>
-      currentLinks.filter((link) => link.id !== id)
-    );
-  };
+    setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
+  }
 
   const handleCheckIn = (appointmentId) => {
     setAppointments((prevAppointments) =>
       prevAppointments.map((appointment) =>
-        appointment.id === appointmentId
-          ? { ...appointment, isCheckedIn: !appointment.isCheckedIn }
-          : appointment
-      )
-    );
+        appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment,
+      ),
+    )
     // Toast message changes based on check-in status
     toast.success(
       appointments.find((app) => app.id === appointmentId)?.isCheckedIn
         ? "Member checked In successfully"
-        : "Member check in successfully"
-    );
-  };
+        : "Member check in successfully",
+    )
+  }
 
   const moveSidebarSection = (id, direction) => {
     setSidebarSections((currentSections) => {
-      const index = currentSections.findIndex((section) => section.id === id);
-      if (
-        (direction === "up" && index === 0) ||
-        (direction === "down" && index === currentSections.length - 1)
-      ) {
-        return currentSections;
+      const index = currentSections.findIndex((section) => section.id === id)
+      if ((direction === "up" && index === 0) || (direction === "down" && index === currentSections.length - 1)) {
+        return currentSections
       }
-      const newSections = [...currentSections];
-      const swap = direction === "up" ? index - 1 : index + 1;
-      [newSections[index], newSections[swap]] = [
-        newSections[swap],
-        newSections[index],
-      ];
-      return newSections;
-    });
-  };
+      const newSections = [...currentSections]
+      const swap = direction === "up" ? index - 1 : index + 1
+      ;[newSections[index], newSections[swap]] = [newSections[swap], newSections[index]]
+      return newSections
+    })
+  }
 
   const removeSidebarSection = (id) => {
-    setSidebarSections((currentSections) =>
-      currentSections.filter((section) => section.id !== id)
-    );
-  };
+    setSidebarSections((currentSections) => currentSections.filter((section) => section.id !== id))
+  }
 
   const moveCustomLink = (id, direction) => {
     setCustomLinks((currentLinks) => {
-      const index = currentLinks.findIndex((link) => link.id === id);
-      if (
-        (direction === "up" && index === 0) ||
-        (direction === "down" && index === currentLinks.length - 1)
-      ) {
-        return currentLinks;
+      const index = currentLinks.findIndex((link) => link.id === id)
+      if ((direction === "up" && index === 0) || (direction === "down" && index === currentLinks.length - 1)) {
+        return currentLinks
       }
-      const newLinks = [...currentLinks];
-      const swap = direction === "up" ? index - 1 : index + 1;
-      [newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]];
-      return newLinks;
-    });
-  };
+      const newLinks = [...currentLinks]
+      const swap = direction === "up" ? index - 1 : index + 1
+      ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
+      return newLinks
+    })
+  }
 
   const handleDeleteAppointment = (appointmentId) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.filter((appointment) => appointment.id !== appointmentId)
-    );
-    setSelectedAppointment(null); // Clear the selected appointment
-    toast.success("Appointment deleted successfully");
-  };
+    setAppointments((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
+    setSelectedAppointment(null) // Clear the selected appointment
+    toast.success("Appointment deleted successfully")
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownIndex(null);
+        setOpenDropdownIndex(null)
       }
-      if (
-        chartDropdownRef.current &&
-        !chartDropdownRef.current.contains(event.target)
-      ) {
-        setIsChartDropdownOpen(false);
+      if (chartDropdownRef.current && !chartDropdownRef.current.contains(event.target)) {
+        setIsChartDropdownOpen(false)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   const chartOptions = {
     chart: {
@@ -457,17 +416,7 @@ export default function MyArea() {
       hover: { size: 6 },
     },
     xaxis: {
-      categories: [
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       labels: { style: { colors: "#999999", fontSize: "12px" } },
       axisBorder: { show: false },
       axisTicks: { show: false },
@@ -521,54 +470,54 @@ export default function MyArea() {
         series[seriesIndex][dataPointIndex] +
         "</span></div>",
     },
-  };
+  }
 
   const appointmentTypes = [
     { name: "Regular Training", duration: 60, color: "bg-blue-500" },
     { name: "Consultation", duration: 30, color: "bg-green-500" },
     { name: "Assessment", duration: 45, color: "bg-purple-500" },
-  ];
+  ]
 
   const chartSeries = [
     { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
-  ];
+  ]
 
   const handleAppointmentChange = (changes) => {
     setSelectedAppointment((prev) => {
-      const updatedAppointment = { ...prev, ...changes };
+      const updatedAppointment = { ...prev, ...changes }
       if (changes.specialNote) {
         updatedAppointment.specialNote = {
           ...prev.specialNote,
           ...changes.specialNote,
-        };
+        }
       }
-      return updatedAppointment;
-    });
-  };
+      return updatedAppointment
+    })
+  }
 
   const WebsiteLinkModal = ({ link, onClose }) => {
-    const [title, setTitle] = useState(link?.title?.trim() || "");
-    const [url, setUrl] = useState(link?.url?.trim() || "");
+    const [title, setTitle] = useState(link?.title?.trim() || "")
+    const [url, setUrl] = useState(link?.url?.trim() || "")
 
     const handleSave = () => {
-      if (!title.trim() || !url.trim()) return;
+      if (!title.trim() || !url.trim()) return
 
       if (link?.id) {
         // Editing existing link
-        updateCustomLink(link.id, "title", title);
-        updateCustomLink(link.id, "url", url);
+        updateCustomLink(link.id, "title", title)
+        updateCustomLink(link.id, "url", url)
       } else {
         // Adding new link
         const newLink = {
           id: `link${Date.now()}`,
           url: url.trim(),
           title: title.trim(),
-        };
-        setCustomLinks((prev) => [...prev, newLink]);
+        }
+        setCustomLinks((prev) => [...prev, newLink])
       }
-      onClose();
-    };
+      onClose()
+    }
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -576,18 +525,13 @@ export default function MyArea() {
           <div className="p-6 space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">Website link</h2>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-zinc-700 rounded-lg"
-              >
+              <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
                 <X size={16} />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-zinc-400 mb-1">
-                  Title
-                </label>
+                <label className="block text-sm text-zinc-400 mb-1">Title</label>
                 <input
                   type="text"
                   value={title}
@@ -608,19 +552,14 @@ export default function MyArea() {
               </div>
             </div>
             <div className="flex gap-2 justify-end mt-6">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700"
-              >
+              <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700">
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={!title.trim() || !url.trim()}
                 className={`px-4 py-2 text-sm rounded-xl ${
-                  !title.trim() || !url.trim()
-                    ? "bg-blue-600/50 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
+                  !title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
                 }`}
               >
                 Save
@@ -629,26 +568,26 @@ export default function MyArea() {
           </div>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
   const handleAddWidget = (widgetType) => {
     const newWidget = {
       id: `widget${Date.now()}`,
       type: widgetType,
       position: widgets.length,
-    };
-    setWidgets((currentWidgets) => [...currentWidgets, newWidget]);
-    setIsWidgetModalOpen(false);
-    toast.success(`${widgetType} widget has been added Successfully`);
-  };
+    }
+    setWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    setIsWidgetModalOpen(false)
+    toast.success(`${widgetType} widget has been added Successfully`)
+  }
 
   // Updated canAddWidget function to check if a widget type is already added
   const canAddWidget = (widgetType) => {
-    return !widgets.some((widget) => widget.type === widgetType);
-  };
+    return !widgets.some((widget) => widget.type === widgetType)
+  }
 
   const notePopoverRef = useRef(null)
 
@@ -708,27 +647,27 @@ export default function MyArea() {
             >
               {/* Header section with icon and title */}
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                  {specialNote.isImportant === "important" ? (
-                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                  ) : (
-                    <Info className="text-blue-500 shrink-0" size={18} />
-                  )}
-                  <h4 className="text-white flex gap-1 items-center font-medium">
-                    <div>Special Note</div>
-                    <div className="text-sm text-gray-400 ">
-                      {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
-                    </div>
-                  </h4>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setActiveNoteId(null)
-                    }}
-                    className="ml-auto text-gray-400 hover:text-white"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
+                {specialNote.isImportant === "important" ? (
+                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                ) : (
+                  <Info className="text-blue-500 shrink-0" size={18} />
+                )}
+                <h4 className="text-white flex gap-1 items-center font-medium">
+                  <div>Special Note</div>
+                  <div className="text-sm text-gray-400 ">
+                    {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
+                  </div>
+                </h4>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveNoteId(null)
+                  }}
+                  className="ml-auto text-gray-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
 
               {/* Note content */}
               <div className="p-3">
@@ -774,10 +713,7 @@ export default function MyArea() {
       />
       <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
         {isRightSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            onClick={toggleRightSidebar}
-          />
+          <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={toggleRightSidebar} />
         )}
 
         <main className="flex-1 min-w-0 overflow-hidden">
@@ -785,10 +721,7 @@ export default function MyArea() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <button
-                  onClick={toggleSidebar}
-                  className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden"
-                >
+                <button onClick={toggleSidebar} className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden">
                   <BarChart3 />
                 </button>
                 <h1 className="text-xl font-bold">My Area</h1>
@@ -804,9 +737,7 @@ export default function MyArea() {
                 <button
                   onClick={toggleEditing}
                   className={`p-2 ${
-                    isEditing
-                      ? "bg-blue-600 text-white"
-                      : "text-zinc-400 hover:bg-zinc-800"
+                    isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
                   } rounded-lg flex items-center gap-1`}
                 >
                   {isEditing ? <Check size={16} /> : <Edit size={16} />}
@@ -833,9 +764,7 @@ export default function MyArea() {
                     <div className="p-4 bg-[#2F2F2F] rounded-xl">
                       <div className="relative mb-3" ref={chartDropdownRef}>
                         <button
-                          onClick={() =>
-                            setIsChartDropdownOpen(!isChartDropdownOpen)
-                          }
+                          onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
                           className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
                         >
                           {selectedMemberType}
@@ -848,8 +777,8 @@ export default function MyArea() {
                                 key={type}
                                 className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
                                 onClick={() => {
-                                  setSelectedMemberType(type);
-                                  setIsChartDropdownOpen(false);
+                                  setSelectedMemberType(type)
+                                  setIsChartDropdownOpen(false)
                                 }}
                               >
                                 {type}
@@ -859,12 +788,7 @@ export default function MyArea() {
                         )}
                       </div>
                       <div className="w-full">
-                        <Chart
-                          options={chartOptions}
-                          series={chartSeries}
-                          type="line"
-                          height={250}
-                        />
+                        <Chart options={chartOptions} series={chartSeries} type="line" height={250} />
                       </div>
                     </div>
                   </DraggableWidget>
@@ -888,9 +812,7 @@ export default function MyArea() {
                     >
                       <div className="space-y-3 p-4 rounded-xl h-full bg-[#2F2F2F]">
                         <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">
-                            Upcoming Appointments
-                          </h2>
+                          <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
                         </div>
                         <div className="space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
                           {appointments.length > 0 ? (
@@ -900,34 +822,28 @@ export default function MyArea() {
                                 className={`${appointment.color} rounded-xl cursor-pointer p-5 relative`}
                               >
                                 <div className="absolute p-2 top-0 left-0 z-10">
-                                  {renderSpecialNoteIcon(
-                                    appointment.specialNote,
-                                    appointment.id
-                                  )}
+                                  {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                                 </div>
                                 <div
                                   className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
                                   onClick={() => {
-                                    setSelectedAppointment(appointment);
-                                    setIsAppointmentActionModalOpen(true);
+                                    setSelectedAppointment(appointment)
+                                    setIsAppointmentActionModalOpen(true)
                                   }}
                                 >
                                   <div className="flex items-center gap-2 ml-5 relative w-full sm:w-auto justify-center sm:justify-start">
                                     <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
                                       <img
-                                        src={Avatar}
+                                        src={Avatar || "/placeholder.svg"}
                                         alt=""
                                         className="w-full h-full rounded-full"
                                       />
                                     </div>
                                     <div className="text-white text-left">
-                                      <p className="font-semibold">
-                                        {appointment.name}
-                                      </p>
+                                      <p className="font-semibold">{appointment.name}</p>
                                       <p className="text-xs flex gap-1 items-center opacity-80 justify-center sm:justify-start">
                                         <Clock size={14} />
-                                        {appointment.time} |{" "}
-                                        {appointment.date.split("|")[0]}
+                                        {appointment.time} | {appointment.date.split("|")[0]}
                                       </p>
                                     </div>
                                   </div>
@@ -935,27 +851,21 @@ export default function MyArea() {
                                     <div className="text-white text-center sm:text-right w-full sm:w-auto">
                                       <p className="text-xs">
                                         {appointment.isTrial ? (
-                                          <span className="font-medium ">
-                                            Trial Session
-                                          </span>
+                                          <span className="font-medium ">Trial Session</span>
                                         ) : (
                                           appointment.type
                                         )}
                                       </p>
                                       <button
                                         onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleCheckIn(appointment.id);
+                                          e.stopPropagation()
+                                          handleCheckIn(appointment.id)
                                         }}
                                         className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
-                                          appointment.isCheckedIn
-                                            ? "bg-gray-600 text-white"
-                                            : "bg-black text-white"
+                                          appointment.isCheckedIn ? "bg-gray-600 text-white" : "bg-black text-white"
                                         }`}
                                       >
-                                        {appointment.isCheckedIn
-                                          ? "Checked In"
-                                          : "Check In"}
+                                        {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                       </button>
                                     </div>
                                   </div>
@@ -963,18 +873,13 @@ export default function MyArea() {
                               </div>
                             ))
                           ) : (
-                            <p className="text-white text-center">
-                              No appointments scheduled for this date.
-                            </p>
+                            <p className="text-white text-center">No appointments scheduled for this date.</p>
                           )}
                         </div>
 
                         {/* Centered "See all" link */}
                         <div className="flex justify-center">
-                          <Link
-                            to="/dashboard/appointments"
-                            className="text-sm text-white hover:underline"
-                          >
+                          <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
                             See all
                           </Link>
                         </div>
@@ -1018,9 +923,7 @@ export default function MyArea() {
                       >
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[250px] flex flex-col">
                           <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">
-                              Website Links
-                            </h2>
+                            <h2 className="text-lg font-semibold">Website Links</h2>
                           </div>
                           <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
                             <div className="grid grid-cols-1 gap-3">
@@ -1030,21 +933,52 @@ export default function MyArea() {
                                   className="p-5 bg-black rounded-xl flex items-center justify-between"
                                 >
                                   <div>
-                                    <h3 className="text-sm font-medium">
-                                      {link.title}
-                                    </h3>
-                                    <p className="text-xs mt-1 text-zinc-400">
-                                      {link.url}
-                                    </p>
+                                    <h3 className="text-sm font-medium">{link.title}</h3>
+                                    <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
                                   </div>
-                                  <button
-                                    onClick={() =>
-                                      window.open(link.url, "_blank")
-                                    }
-                                    className="p-2 hover:bg-zinc-700 rounded-lg"
-                                  >
-                                    <ExternalLink size={16} />
-                                  </button>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={() => window.open(link.url, "_blank")}
+                                      className="p-2 hover:bg-zinc-700 rounded-lg"
+                                    >
+                                      <ExternalLink size={16} />
+                                    </button>
+                                    <div className="relative">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          toggleDropdown(`link-${link.id}`)
+                                        }}
+                                        className="p-2 hover:bg-zinc-700 rounded-lg"
+                                      >
+                                        <MoreVertical size={16} />
+                                      </button>
+                                      {openDropdownIndex === `link-${link.id}` && (
+                                        <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              setEditingLink(link)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                          >
+                                            Edit
+                                          </button>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              removeCustomLink(link.id)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                          >
+                                            Remove
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -1065,13 +999,7 @@ export default function MyArea() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {widgets
                   .filter(
-                    (widget) =>
-                      ![
-                        "chart",
-                        "appointments",
-                        "employeeCheckIn",
-                        "websiteLink",
-                      ].includes(widget.type)
+                    (widget) => !["chart", "appointments", "employeeCheckIn", "websiteLink"].includes(widget.type),
                   )
                   .sort((a, b) => a.position - b.position)
                   .map((widget, index) => (
@@ -1087,13 +1015,8 @@ export default function MyArea() {
                       {widget.type === "communication" && (
                         <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
                           <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">
-                              Communications
-                            </h2>
-                            <Link
-                              to="/dashboard/communication"
-                              className="text-sm text-white hover:underline"
-                            >
+                            <h2 className="text-lg font-semibold">Communications</h2>
+                            <Link to="/dashboard/communication" className="text-sm text-white hover:underline">
                               See all
                             </Link>
                           </div>
@@ -1111,15 +1034,11 @@ export default function MyArea() {
                                     className="rounded-full h-8 w-8"
                                   />
                                   <div>
-                                    <h3 className="font-semibold text-sm">
-                                      {comm.name}
-                                    </h3>
+                                    <h3 className="font-semibold text-sm">{comm.name}</h3>
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-sm text-zinc-400">
-                                    {comm.message}
-                                  </p>
+                                  <p className="text-sm text-zinc-400">{comm.message}</p>
                                   <p className="text-xs mt-1 flex gap-1 items-center text-zinc-400">
                                     <Clock size={12} />
                                     {comm.time}
@@ -1135,10 +1054,7 @@ export default function MyArea() {
                         <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">TO-DO</h2>
-                            <Link
-                              to="/dashboard/to-do"
-                              className="text-sm text-white hover:underline"
-                            >
+                            <Link to="/dashboard/to-do" className="text-sm text-white hover:underline">
                               See all
                             </Link>
                           </div>
@@ -1150,19 +1066,11 @@ export default function MyArea() {
                                 className="p-2 bg-black rounded-xl flex items-center justify-between cursor-pointer"
                               >
                                 <div>
-                                  <h3 className="font-semibold text-sm">
-                                    {todo.title}
-                                  </h3>
-                                  <p className="text-xs text-zinc-400">
-                                    {todo.description}
-                                  </p>
+                                  <h3 className="font-semibold text-sm">{todo.title}</h3>
+                                  <p className="text-xs text-zinc-400">{todo.description}</p>
                                 </div>
                                 <button className="px-3 py-1.5 flex items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
-                                  <img
-                                    src={Image10 || "/placeholder.svg"}
-                                    alt=""
-                                    className="w-4 h-4"
-                                  />
+                                  <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
                                   {todo.assignee}
                                 </button>
                               </div>
@@ -1174,28 +1082,19 @@ export default function MyArea() {
                       {widget.type === "birthdays" && (
                         <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
                           <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">
-                              Upcoming Birthdays
-                            </h2>
+                            <h2 className="text-lg font-semibold">Upcoming Birthdays</h2>
                           </div>
                           <div className="space-y-2">
                             {birthdays.map((birthday) => (
-                              <div
-                                key={birthday.id}
-                                className="p-2 bg-black rounded-xl flex items-center gap-2"
-                              >
+                              <div key={birthday.id} className="p-2 bg-black rounded-xl flex items-center gap-2">
                                 <img
                                   src={birthday.avatar || "/placeholder.svg"}
                                   alt=""
                                   className="h-8 w-8 rounded-full"
                                 />
                                 <div>
-                                  <h3 className="font-semibold text-sm">
-                                    {birthday.name}
-                                  </h3>
-                                  <p className="text-xs text-zinc-400">
-                                    {birthday.date}
-                                  </p>
+                                  <h3 className="font-semibold text-sm">{birthday.name}</h3>
+                                  <p className="text-xs text-zinc-400">{birthday.date}</p>
                                 </div>
                               </div>
                             ))}
@@ -1231,9 +1130,7 @@ export default function MyArea() {
             {sidebarSections.map((section, index) => (
               <div key={section.id} className="mb-6 mt-8 md:mt-0 relative">
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">
-                    {section.title}
-                  </h2>
+                  <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">{section.title}</h2>
                   {isEditing && (
                     <div className="flex gap-2">
                       <button
@@ -1264,21 +1161,14 @@ export default function MyArea() {
                           className="p-2 cursor-pointer bg-black rounded-xl"
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <img
-                              src={Rectangle1 || "/placeholder.svg"}
-                              alt="User"
-                              className="rounded-full h-8 w-8"
-                            />
+                            <img src={Rectangle1 || "/placeholder.svg"} alt="User" className="rounded-full h-8 w-8" />
                             <div>
-                              <h3 className="open_sans_font text-sm">
-                                Jennifer Markus
-                              </h3>
+                              <h3 className="open_sans_font text-sm">Jennifer Markus</h3>
                             </div>
                           </div>
                           <div>
                             <p className="text-xs open_sans_font text-zinc-400">
-                              Hey! Did you think the NFT marketplace for Alice
-                              app design?
+                              Hey! Did you think the NFT marketplace for Alice app design?
                             </p>
                             <p className="text-xs mt-1 flex gap-1 items-center open_sans_font text-zinc-400">
                               <Clock size={12} />
@@ -1306,19 +1196,11 @@ export default function MyArea() {
                         className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
                       >
                         <div>
-                          <h3 className="font-semibold open_sans_font text-sm">
-                            Task
-                          </h3>
-                          <p className="text-xs open_sans_font text-zinc-400">
-                            Description
-                          </p>
+                          <h3 className="font-semibold open_sans_font text-sm">Task</h3>
+                          <p className="text-xs open_sans_font text-zinc-400">Description</p>
                         </div>
                         <button className="px-3 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
-                          <img
-                            src={Image10 || "/placeholder.svg"}
-                            alt=""
-                            className="w-4 h-4"
-                          />
+                          <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
                           Jack
                         </button>
                       </div>
@@ -1337,24 +1219,13 @@ export default function MyArea() {
                   <>
                     <div className="space-y-2 open_sans_font">
                       {[1, 2].map((task) => (
-                        <div
-                          key={task}
-                          className="p-2 cursor-pointer bg-black rounded-xl flex items-center gap-2"
-                        >
+                        <div key={task} className="p-2 cursor-pointer bg-black rounded-xl flex items-center gap-2">
                           <div>
-                            <img
-                              src={Avatar || "/placeholder.svg"}
-                              className="h-8 w-8"
-                              alt=""
-                            />
+                            <img src={Avatar || "/placeholder.svg"} className="h-8 w-8" alt="" />
                           </div>
                           <div>
-                            <h3 className="font-semibold open_sans_font text-sm">
-                              Yolando
-                            </h3>
-                            <p className="text-xs open_sans_font text-zinc-400">
-                              Mon | 02 01 2025
-                            </p>
+                            <h3 className="font-semibold open_sans_font text-sm">Yolando</h3>
+                            <p className="text-xs open_sans_font text-zinc-400">Mon | 02 01 2025</p>
                           </div>
                         </div>
                       ))}
@@ -1368,9 +1239,7 @@ export default function MyArea() {
             <div className="mt-6">
               <div className="space-y-3">
                 <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer">
-                    Website Links
-                  </h2>
+                  <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                   {" "}
@@ -1379,32 +1248,59 @@ export default function MyArea() {
                     {" "}
                     {/* Maintain spacing between links */}
                     {customLinks.map((link, index) => (
-                      <div
-                        key={link.id}
-                        className="p-2 bg-black rounded-xl relative"
-                      >
+                      <div key={link.id} className="p-2 bg-black rounded-xl relative">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h3 className="text-sm font-medium">
-                              {link.title}
-                            </h3>
-                            <p className="text-xs mt-1 text-zinc-400">
-                              {link.url}
-                            </p>
+                            <h3 className="text-sm font-medium">{link.title}</h3>
+                            <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
                           </div>
-                          <button
-                            onClick={() =>
-                              window.open(
-                                link.url.startsWith("http")
-                                  ? link.url
-                                  : `https://${link.url}`,
-                                "_blank"
-                              )
-                            }
-                            className="p-2 hover:bg-zinc-700 rounded-lg"
-                          >
-                            <ExternalLink size={16} />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() =>
+                                window.open(link.url.startsWith("http") ? link.url : `https://${link.url}`, "_blank")
+                              }
+                              className="p-2 hover:bg-zinc-700 rounded-lg"
+                            >
+                              <ExternalLink size={16} />
+                            </button>
+                            {!isEditing && (
+                              <div className="relative">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    toggleDropdown(`sidebar-link-${link.id}`)
+                                  }}
+                                  className="p-2 hover:bg-zinc-700 rounded-lg"
+                                >
+                                  <MoreVertical size={16} />
+                                </button>
+                                {openDropdownIndex === `sidebar-link-${link.id}` && (
+                                  <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setEditingLink(link)
+                                        setOpenDropdownIndex(null)
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        removeCustomLink(link.id)
+                                        setOpenDropdownIndex(null)
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                         {isEditing && (
                           <div className="absolute top-2 right-2 z-10 flex gap-2">
@@ -1444,12 +1340,7 @@ export default function MyArea() {
             </div>
           </div>
         </aside>
-        {editingLink && (
-          <WebsiteLinkModal
-            link={editingLink}
-            onClose={() => setEditingLink(null)}
-          />
-        )}
+        {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
         <WidgetSelectionModal
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
@@ -1471,5 +1362,6 @@ export default function MyArea() {
         />
       </div>
     </>
-  );
+  )
 }
+

@@ -30,7 +30,7 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
   }
 
   const handleUpdateTask = (updatedTask) => {
-    const taskWithStatus = { ...updatedTask, status: task.status, category: task.category }
+    const taskWithStatus = { ...updatedTask, status: task.status }
     onUpdate(taskWithStatus)
   }
 
@@ -58,17 +58,6 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
     }
   }
 
-  // Function to get color based on category
-  const getCategoryBadgeColor = (category) => {
-    switch (category) {
-      case "member":
-        return "bg-blue-700"
-      case "staff":
-        return "bg-purple-700"
-      default:
-        return "bg-gray-700"
-    }
-  }
 
   // Format datetime display
   const formatDateTime = () => {
@@ -109,11 +98,6 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
               <div className="flex-grow">
                 <div className="flex items-center gap-2">
                   <h3 className="text-white font-medium text-sm">{task.title}</h3>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full text-white ${getCategoryBadgeColor(task.category)}`}
-                  >
-                    {task.category}
-                  </span>
                 </div>
                 <p className="text-gray-400 text-xs mt-1">{task.description}</p>
               </div>

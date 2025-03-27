@@ -421,7 +421,7 @@ export default function ContractList() {
                   onClick={() => handleViewDetails(contract)}
                   className="px-4 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex-grow sm:flex-grow-0"
                 >
-                  Fill out Contract
+                  View Details
                 </button>
                 <button
                   onClick={() => handleManageDocuments(contract)}
