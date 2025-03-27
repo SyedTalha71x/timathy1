@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react"
-import { X, Calendar } from "lucide-react"
+import { X } from "lucide-react"
 
 export function BonusTimeModal({ contract, onClose, onSubmit }) {
   const [bonusAmount, setBonusAmount] = useState(1)

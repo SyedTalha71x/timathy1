@@ -14,23 +14,24 @@ export function DocumentManagementModal({ contract, onClose }) {
   const [editingDocId, setEditingDocId] = useState(null)
   const [newDocName, setNewDocName] = useState("")
   const [viewingDocument, setViewingDocument] = useState(null)
+  const [documentStatus, setDocumentStatus] = useState("Signed Contract")
   const fileInputRef = useRef(null)
-  const signedFileInputRef = useRef(null)
+
+  // Predefined status options
+  const statusOptions = [
+    { value: "Signed Contract", label: "Signed Contract" }
+  ]
 
   // Sample document data structure if none exists
   const sampleDocuments = [
-    { id: "doc-1", name: "Contract Agreement.pdf", type: "pdf", size: "1.2 MB", uploadDate: "2023-05-15" },
-    { id: "doc-2", name: "Payment Schedule.xlsx", type: "xlsx", size: "0.8 MB", uploadDate: "2023-05-16" },
+    { id: "doc-1", name: "Contract Agreement.pdf", type: "pdf", size: "1.2 MB", uploadDate: "2023-05-15", status: "Signed Contract" },
+    { id: "doc-2", name: "Payment Schedule.xlsx", type: "xlsx", size: "0.8 MB", uploadDate: "2023-05-16", status: "Signed Contract" },
   ]
 
   const displayDocuments = documents.length > 0 ? documents : sampleDocuments
 
   const handleUploadClick = () => {
     fileInputRef.current.click()
-  }
-
-  const handleSignedUploadClick = () => {
-    signedFileInputRef.current.click()
   }
 
   const handleFileChange = (e) => {
@@ -45,6 +46,8 @@ export function DocumentManagementModal({ contract, onClose }) {
       "image/png",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/msword",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     ]
 
     const invalidFiles = files.filter((file) => !validTypes.includes(file.type))
@@ -71,57 +74,13 @@ export function DocumentManagementModal({ contract, onClose }) {
         size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
         uploadDate: new Date().toISOString().split("T")[0],
         file: file, // Store the actual file object
+        status: documentStatus
       }))
 
       setDocuments([...displayDocuments, ...newDocs])
       setIsUploading(false)
       toast.dismiss()
       toast.success(`${files.length} document(s) uploaded successfully`)
-    }, 1500)
-  }
-
-  const handleSignedFileChange = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    // Validate file type
-    const fileType = file.type
-    const validTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
-
-    if (!validTypes.includes(fileType)) {
-      toast.error("Please upload a PDF or image file")
-      return
-    }
-
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size should be less than 10MB")
-      return
-    }
-
-    setIsUploading(true)
-    toast.loading("Uploading signed contract...")
-
-    // Simulate upload delay
-    setTimeout(() => {
-      const newDoc = {
-        id: `doc-${Math.random().toString(36).substr(2, 9)}`,
-        name: `Signed Contract - ${file.name}`,
-        type: file.name.split(".").pop(),
-        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-        uploadDate: new Date().toISOString().split("T")[0],
-        file: file,
-        isSigned: true,
-      }
-
-      setDocuments([...displayDocuments, newDoc])
-      setIsUploading(false)
-      toast.dismiss()
-      toast.success("Signed contract uploaded successfully")
-
-      // Update contract status
-      // In a real app, you would call an API to update the contract status
-      toast.success("Contract status updated to 'Digital signed'")
     }, 1500)
   }
 
@@ -256,27 +215,26 @@ export function DocumentManagementModal({ contract, onClose }) {
               <span className="font-medium text-white">{contract.memberName}</span>'s Contract Documents
             </p>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button
-                onClick={handleSignedUploadClick}
-                className="text-sm  gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
+              {/* Status Selection Dropdown */}
+              <select 
+                value={documentStatus}
+                onChange={(e) => setDocumentStatus(e.target.value)}
+                className="mr-2 px-2 py-2 bg-[#2a2a2a] text-white rounded-xl text-sm"
               >
-                Upload Signed Contract
-              </button>
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
               <button
                 onClick={handleUploadClick}
-                className=" text-sm  gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
+                className="text-sm gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
               >
                 Upload Document
               </button>
             </div>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
-            <input
-              type="file"
-              ref={signedFileInputRef}
-              onChange={handleSignedFileChange}
-              className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png"
-            />
           </div>
         </div>
 
@@ -288,7 +246,7 @@ export function DocumentManagementModal({ contract, onClose }) {
               <li>If using paper signature, print the document</li>
               <li>Have all parties sign the printed document</li>
               <li>Scan or take a clear photo of all signed pages</li>
-              <li>Click "Upload Signed Contract" to upload the signed contract</li>
+              <li>Select a status and click "Upload Document"</li>
             </ol>
           </div>
         )}
@@ -365,9 +323,9 @@ export function DocumentManagementModal({ contract, onClose }) {
                           <>
                             <p className="text-white font-medium truncate">
                               {doc.name}
-                              {doc.isSigned && (
+                              {doc.status && (
                                 <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
-                                  Signed
+                                  {doc.status}
                                 </span>
                               )}
                             </p>
@@ -436,4 +394,3 @@ export function DocumentManagementModal({ contract, onClose }) {
     </div>
   )
 }
-
