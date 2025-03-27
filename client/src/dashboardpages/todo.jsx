@@ -1,15 +1,17 @@
-/* eslint-disable no-unused-vars */
-import { useEffect, useState } from "react";
-import { X, Bell, Plus, ChevronDown } from "lucide-react";
-import AddTaskModal from "../components/add-task-modal";
-import TaskItem from "../components/task-item";
-import Notification from "../components/notification";
+"use client"
+
+import { useEffect, useState } from "react"
+import { X, Plus, ChevronDown } from "lucide-react"
+import AddTaskModal from "../components/add-task-modal"
+import TaskItem from "../components/task-item"
+import Notification from "../components/notification"
 
 export default function TodoApp() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState("ongoing");
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
+  const [activeFilter, setActiveFilter] = useState("ongoing")
+  const [activeCategory, setActiveCategory] = useState("member")
   const [tasks, setTasks] = useState([
     {
       id: 1,
@@ -19,6 +21,7 @@ export default function TodoApp() {
       roles: "Trainer",
       tags: ["Important", "Urgent"],
       status: "ongoing",
+      category: "member",
       dueDate: "2023-06-20",
     },
     {
@@ -29,9 +32,43 @@ export default function TodoApp() {
       roles: "Manager",
       tags: ["Meeting"],
       status: "ongoing",
+      category: "staff",
       dueDate: "2023-06-25",
     },
-  ]);
+    {
+      id: 3,
+      title: "Reply to client inquiry",
+      description: "Send response to client about pricing",
+      assignees: ["Sarah"],
+      roles: "Support",
+      tags: ["Client", "Important"],
+      status: "ongoing",
+      category: "staff",
+      dueDate: "2023-06-22",
+    },
+    {
+      id: 4,
+      title: "Schedule member onboarding",
+      description: "Set up onboarding session for new member",
+      assignees: ["Mike"],
+      roles: "Trainer",
+      tags: ["Onboarding"],
+      status: "completed",
+      category: "member",
+      dueDate: "2023-06-18",
+    },
+    {
+      id: 5,
+      title: "Staff meeting preparation",
+      description: "Prepare agenda for weekly staff meeting",
+      assignees: ["Alex"],
+      roles: "Manager",
+      tags: ["Meeting"],
+      status: "ongoing",
+      category: "staff",
+      dueDate: "2023-06-24",
+    },
+  ])
 
   const [notifications, setNotifications] = useState([
     {
@@ -49,78 +86,67 @@ export default function TodoApp() {
       type: "canceled",
       message: "Task 'Review project proposal' has been canceled",
     },
-  ]);
+  ])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest(".status-dropdown")) {
-        setIsStatusDropdownOpen(false);
+        setIsStatusDropdownOpen(false)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const removeNotification = (id) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
-  };
+    setNotifications(notifications.filter((n) => n.id !== id))
+  }
 
   const handleTaskStatusChange = (taskId, newStatus) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task
-      )
-    );
-  };
+    setTasks(tasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)))
+  }
 
   const handleTaskUpdate = (updatedTask) => {
-    setTasks(
-      tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
-  };
+    setTasks(tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)))
+  }
 
   const handleTaskRemove = (taskId) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
-  };
+    setTasks(tasks.filter((task) => task.id !== taskId))
+  }
 
   const handleAddTask = (newTask) => {
-    setTasks([...tasks, newTask]);
-  };
+    // Add the current category to the new task
+    const taskWithCategory = {
+      ...newTask,
+      category: activeCategory,
+    }
+    setTasks([...tasks, taskWithCategory])
+  }
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'ongoing': return ' text-white';
-      case 'completed': return ' text-white';
-      case 'canceled': return ' text-white';
-      default: return '';
+    switch (status) {
+      case "ongoing":
+        return " text-white"
+      case "completed":
+        return " text-white"
+      case "canceled":
+        return " text-white"
+      default:
+        return ""
     }
-  };
+  }
 
-  const filteredTasks = tasks.filter((task) => task.status === activeFilter);
-
-  // const getStatusBgColor = (status) => {
-  //   switch (status) {
-  //     case 'completed':
-  //       return 'bg-[#152619]';
-  //     case 'ongoing':
-  //       return 'bg-[#1B2236]';
-  //     case 'canceled':
-  //       return 'bg-[#261515]';
-  //     default:
-  //       return 'bg-[#000000]';
-  //   }
-  // };
+  // Filter tasks by both status and category
+  const filteredTasks = tasks.filter((task) => task.status === activeFilter && task.category === activeCategory)
 
   return (
     <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden">
       <div className="flex-1 p-4 sm:p-6">
         <div className="pb-16 sm:pb-24 lg:pb-36">
           <div className="flex justify-between items-start mb-6 gap-4">
-            <h1 className="text-2xl font-bold text-white oxanium_font">
-              To-Do
-            </h1>
-            <div className="flex flex-col justify-end items-end  gap-3">
+            <h1 className="text-2xl font-bold text-white oxanium_font">To-Do</h1>
+            <div className="flex flex-col justify-end items-end gap-3">
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="bg-[#FF843E] cursor-pointer text-white px-4 sm:px-10 py-2 rounded-xl text-sm flex items-center gap-2"
@@ -129,42 +155,60 @@ export default function TodoApp() {
                 <span className="open_sans_font">Add task</span>
               </button>
               <div className="relative status-dropdown">
-      <button
-        onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-        className={`flex items-center cursor-pointer gap-2 px-4 py-2 rounded-xl text-sm ${getStatusColor(activeFilter)} border border-slate-300/30`}
-      >
-        <span className="capitalize">{activeFilter}</span>
-        <ChevronDown
-          size={16}
-          className={`transform transition-transform cursor-pointer duration-500 ${
-            isStatusDropdownOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-      {isStatusDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-48 rounded-lg backdrop-blur-3xl bg-[#2F2F2F]/40 shadow-lg z-50 border border-slate-300/30">
-          {["ongoing", "completed", "canceled"].map((status) => (
-            <button
-              key={status}
-              onClick={() => {
-                setActiveFilter(status);
-                setIsStatusDropdownOpen(false);
-              }}
-              className={`w-full px-4 py-2 text-left text-sm ${getStatusColor(status)}`}
-            >
-              <span className="capitalize">{status}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-              {/* <button
-                onClick={() => setIsNotificationOpen(true)}
-                className="lg:hidden text-gray-400 hover:text-white"
-              >
-                <Bell size={20} />
-              </button> */}
+                <button
+                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  className={`flex items-center cursor-pointer gap-2 px-4 py-2 rounded-xl text-sm ${getStatusColor(activeFilter)} border border-slate-300/30`}
+                >
+                  <span className="capitalize">{activeFilter}</span>
+                  <ChevronDown
+                    size={16}
+                    className={`transform transition-transform cursor-pointer duration-500 ${
+                      isStatusDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {isStatusDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-lg backdrop-blur-3xl bg-[#2F2F2F]/40 shadow-lg z-50 border border-slate-300/30">
+                    {["ongoing", "completed", "canceled"].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setActiveFilter(status)
+                          setIsStatusDropdownOpen(false)
+                        }}
+                        className={`w-full px-4 py-2 text-left text-sm ${getStatusColor(status)}`}
+                      >
+                        <span className="capitalize">{status}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
+
+          {/* Category Tabs - Similar to the Communications component */}
+          <div className="flex gap-2 items-center mb-4">
+            <button
+              className={`px-5 py-2 text-sm ${
+                activeCategory === "member"
+                  ? "bg-white text-black"
+                  : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+              } rounded-xl`}
+              onClick={() => setActiveCategory("member")}
+            >
+              Members Tasks
+            </button>
+            <button
+              className={`px-5 py-2 text-sm ${
+                activeCategory === "staff"
+                  ? "bg-white text-black"
+                  : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+              } rounded-xl`}
+              onClick={() => setActiveCategory("staff")}
+            >
+              Staff Tasks
+            </button>
           </div>
 
           <div className="bg-black rounded-xl open_sans_font p-3 mt-4 sm:mt-8 lg:mt-16">
@@ -182,7 +226,7 @@ export default function TodoApp() {
               </div>
             ) : (
               <div className="text-red-500 text-center py-4">
-                No {activeFilter} tasks yet
+                No {activeFilter} tasks in {activeCategory} category
               </div>
             )}
           </div>
@@ -191,37 +235,26 @@ export default function TodoApp() {
 
       <div
         className={`fixed lg:static inset-y-0 right-0 w-[320px] bg-[#181818] p-6 transform transition-transform duration-500 ease-in-out ${
-          isNotificationOpen
-            ? "translate-x-0"
-            : "translate-x-full lg:translate-x-0"
+          isNotificationOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         } z-40`}
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl oxanium_font text-white">Notification</h2>
-          <button
-            onClick={() => setIsNotificationOpen(false)}
-            className="lg:hidden text-gray-400 hover:text-white"
-          >
+          <button onClick={() => setIsNotificationOpen(false)} className="lg:hidden text-gray-400 hover:text-white">
             <X size={20} />
           </button>
         </div>
         <div className="space-y-3">
           {notifications.map((notification) => (
-            <Notification
-              key={notification.id}
-              notification={notification}
-              onRemove={removeNotification}
-            />
+            <Notification key={notification.id} notification={notification} onRemove={removeNotification} />
           ))}
         </div>
       </div>
 
       {isModalOpen && (
-        <AddTaskModal
-          onClose={() => setIsModalOpen(false)}
-          onAddTask={handleAddTask}
-        />
+        <AddTaskModal onClose={() => setIsModalOpen(false)} onAddTask={handleAddTask} activeCategory={activeCategory} />
       )}
     </div>
-  );
+  )
 }
+

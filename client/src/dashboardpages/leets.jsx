@@ -1,13 +1,15 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, Search, Tag, Circle, AlertTriangle, Info, Calendar } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
-import Avatar from "../../public/avatar.png";
-import { AddLeadModal } from "../components/add-lead-modal";
-import { EditLeadModal } from "../components/edit-lead-modal";
-import { ViewLeadDetailsModal } from "../components/view-lead-details";
-import toast, { Toaster } from "react-hot-toast";
-import TrialTrainingModal from "../components/add-trial";
+import { X, Search, Tag, Circle, AlertTriangle, Info, Calendar, CalendarIcon } from "lucide-react"
+import { useState, useCallback, useEffect, useRef } from "react"
+import Avatar from "../../public/avatar.png"
+import { AddLeadModal } from "../components/add-lead-modal"
+import { EditLeadModal } from "../components/edit-lead-modal"
+import { ViewLeadDetailsModal } from "../components/view-lead-details"
+import toast, { Toaster } from "react-hot-toast"
+import TrialTrainingModal from "../components/add-trial"
 
 // Pagination component
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
@@ -26,9 +28,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             key={page}
             onClick={() => onPageChange(page)}
             className={`px-3 py-1 rounded-lg transition-colors ${
-              currentPage === page
-                ? "bg-[#FF5733] text-white"
-                : "bg-[#141414] text-white hover:bg-[#242424]"
+              currentPage === page ? "bg-[#FF5733] text-white" : "bg-[#141414] text-white hover:bg-[#242424]"
             }`}
           >
             {page}
@@ -43,74 +43,72 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         Next
       </button>
     </div>
-  );
-};
+  )
+}
 
 const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
-  if (!isVisible) return null;
+  if (!isVisible) return null
 
   return (
     <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-[#1C1C1C] p-6 rounded-lg">
         <h3 className="text-lg font-bold mb-4">{message}</h3>
         <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="bg-gray-500 text-sm text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-          >
+          <button onClick={onClose} className="bg-gray-500 text-sm text-white px-4 py-2 rounded-lg hover:bg-gray-600">
             Cancel
           </button>
-          <button
-            onClick={onConfirm}
-            className="bg-red-500 text-sm text-white px-4 py-2 rounded-lg hover:bg-red-600"
-          >
+          <button onClick={onConfirm} className="bg-red-500 text-sm text-white px-4 py-2 rounded-lg hover:bg-red-600">
             Yes
           </button>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Lead Status Badge component
 const StatusBadge = ({ status }) => {
-  let circleColor;
+  let circleColor
 
   switch (status) {
     case "active":
-      circleColor = "text-green-500";
-      break;
+      circleColor = "text-green-500"
+      break
     case "passive":
-      circleColor = "text-yellow-500";
-      break;
+      circleColor = "text-yellow-500"
+      break
     case "uninterested":
-      circleColor = "text-red-500";
-      break;
+      circleColor = "text-red-500"
+      break
     default:
-      circleColor = "text-gray-500";
+      circleColor = "text-gray-500"
   }
 
   return (
     <div className="flex items-center mt-1 text-white">
       <Circle className={`${circleColor} mr-1 h-3 w-3 fill-current`} />
       <span className="text-xs">
-        {status === "active" ? "Active prospect" : 
-         status === "passive" ? "Passive prospect" : 
-         status === "uninterested" ? "Uninterested" : "Unknown"}
+        {status === "active"
+          ? "Active prospect"
+          : status === "passive"
+            ? "Passive prospect"
+            : status === "uninterested"
+              ? "Uninterested"
+              : "Unknown"}
       </span>
     </div>
-  );
-};
+  )
+}
 
 // Format date helper function
 const formatDate = (timestamp) => {
-  const date = new Date(timestamp);
+  const date = new Date(timestamp)
   return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
-  });
-};
+  })
+}
 
 export default function LeadOverview() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -129,6 +127,27 @@ export default function LeadOverview() {
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [activeNoteId, setActiveNoteId] = useState(null)
 
+
+    const notePopoverRef = useRef(null)
+  
+    // Effect to handle clicking outside of note popover
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
+          setActiveNoteId(null)
+        }
+      }
+  
+      // Add event listener when popover is open
+      if (activeNoteId !== null) {
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside)
+        }
+      }
+    }, [activeNoteId])
+  
+
   // Hardcoded initial leads with status, createdAt fields, and special notes
   const hardcodedLeads = [
     {
@@ -142,7 +161,7 @@ export default function LeadOverview() {
       avatar: Avatar,
       source: "hardcoded",
       status: "active",
-      about: 'Software Engineer',
+      about: "Software Engineer",
       createdAt: "2025-01-15T10:30:00Z",
       specialNote: {
         text: "Interested in personal training sessions twice a week.",
@@ -330,12 +349,15 @@ export default function LeadOverview() {
   // Special Note Icon Renderer
   const renderSpecialNoteIcon = useCallback(
     (specialNote, leadId) => {
-      if (!specialNote || !specialNote.text) return null
+      // If no note text, return null
+      if (!specialNote.text) return null
 
+      // Check note validity
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
 
+      // If note is not active, return null
       if (!isActive) return null
 
       const handleNoteClick = (e) => {
@@ -359,46 +381,55 @@ export default function LeadOverview() {
           </div>
 
           {activeNoteId === leadId && (
-            <div className="absolute left-0 top-6 w-64 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20">
+            <div
+              ref={notePopoverRef}
+              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+            >
               {/* Header section with icon and title */}
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {specialNote.isImportant ? (
-                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                ) : (
-                  <Info className="text-blue-500 shrink-0" size={18} />
-                )}
-                <h4 className="text-white font-medium">
-                  {specialNote.isImportant ? "Important Note" : "Special Note"}
-                </h4>
-              </div>
+                  {specialNote.isImportant === "important" ? (
+                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400 ">
+                      {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
+                    </div>
+                  </h4>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveNoteId(null)
+                    }}
+                    className="ml-auto text-gray-400 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
 
               {/* Note content */}
               <div className="p-3">
                 <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
 
                 {/* Date validity section */}
-                {specialNote.startDate && specialNote.endDate && (
+                {specialNote.startDate && specialNote.endDate ? (
                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                     <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <Calendar size={12} />
+                      <CalendarIcon size={12} />
                       Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
                       {new Date(specialNote.endDate).toLocaleDateString()}
                     </p>
                   </div>
+                ) : (
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <CalendarIcon size={12} />
+                      Always valid
+                    </p>
+                  </div>
                 )}
-              </div>
-
-              {/* Footer with close button */}
-              <div className="bg-gray-800/50 p-2 rounded-b-lg border-t border-gray-700 flex justify-end">
-                <button
-                  className="text-xs text-gray-300 hover:text-white px-2 py-1 rounded hover:bg-gray-700 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setActiveNoteId(null)
-                  }}
-                >
-                  Close
-                </button>
               </div>
             </div>
           )}
@@ -526,11 +557,9 @@ export default function LeadOverview() {
               >
                 {/* Special Note positioned at top left */}
                 {lead.specialNote && lead.specialNote.text && (
-                  <div className="absolute top-2 left-2 z-10">
-                    {renderSpecialNoteIcon(lead.specialNote, lead.id)}
-                  </div>
+                  <div className="absolute top-2 left-2 z-10">{renderSpecialNoteIcon(lead.specialNote, lead.id)}</div>
                 )}
-                
+
                 <div className="flex md:flex-row flex-col items-center gap-3">
                   <div className="relative">
                     <img
@@ -567,13 +596,15 @@ export default function LeadOverview() {
                   </div>
                 </div>
                 <div className="flex md:flex-row flex-col gap-2 md:mt-0 mt-3">
-                  <button
-                    onClick={() => setIsTrialModalOpen(true)}
-                    className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-[#3F74FF] rounded-xl"
-                  >
-                    Add Trial Training
-                  </button>
-
+                <button
+  onClick={() => {
+    setSelectedLead(lead)
+    setIsTrialModalOpen(true)
+  }}
+  className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-[#3F74FF] rounded-xl"
+>
+  Add Trial Training
+</button>
                   <button
                     onClick={() => handleViewLeadDetails(lead)}
                     className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
@@ -601,7 +632,11 @@ export default function LeadOverview() {
 
             <TrialTrainingModal
               isOpen={isTrialModalOpen}
-              onClose={() => setIsTrialModalOpen(false)}
+              onClose={() => {
+                setIsTrialModalOpen(false)
+                setSelectedLead(null)
+              }}
+              selectedLead={selectedLead}
               trialTypes={[
                 { name: "Cardio", duration: 30 },
                 { name: "Strength", duration: 45 },
@@ -691,3 +726,4 @@ export default function LeadOverview() {
     </>
   )
 }
+

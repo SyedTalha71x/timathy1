@@ -1,6 +1,8 @@
+"use client";
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Chart from "react-apexcharts";
 import {
@@ -14,14 +16,17 @@ import {
   ArrowDown,
   ArrowUp,
   Plus,
-  Trash,
+  AlertTriangle,
+  Info,
+  CalendarIcon,
 } from "lucide-react";
 import Rectangle1 from "../../public/Rectangle 1.png";
+import SelectedAppointmentModal from "../components/selected-appointment-modal";
 import Image10 from "../../public/image10.png";
-import Avatar from "../../public/avatar.png";
 import { Toaster, toast } from "react-hot-toast";
 import { WidgetSelectionModal } from "../components/widget-selection-modal";
 import { ExternalLink } from "lucide-react";
+import Avatar from "../../public/avatar.png";
 
 function EmployeeCheckInWidget() {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
@@ -125,6 +130,8 @@ export default function MyArea() {
   const navigate = useNavigate();
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
 
+
+
   const [isEditing, setIsEditing] = useState(false);
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 },
@@ -133,7 +140,12 @@ export default function MyArea() {
     { id: "websiteLink", type: "websiteLink", position: 3 },
   ]);
   const [customLinks, setCustomLinks] = useState([
-    { id: "link1", url: "www.grocery.com", title: "Grocery Store" },
+    {
+      id: "link1",
+      url: "https://fitness-web-kappa.vercel.app/",
+      title: "Timathy Fitness Town",
+    },
+    { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
   ]);
   const [sidebarSections, setSidebarSections] = useState([
     { id: "communications", title: "Communications" },
@@ -217,56 +229,93 @@ export default function MyArea() {
 
   const [appointments, setAppointments] = useState([
     {
+      id: 1,
       name: "Yolanda",
-      time: "10:00",
-      date: "Mon | 02-01-2025",
-      color: "bg-[#3F74FF]",
-      isCheckedIn: false,
+      time: "10:00 - 14:00",
+      date: "Mon | 03-08-2025",
+      color: "bg-[#4169E1]",
+      startTime: "10:00",
+      endTime: "14:00",
+      type: "Strength Training",
+      specialNote: {
+        text: "Prefers morning sessions",
+        startDate: null,
+        endDate: null,
+        isImportant: false,
+      },
+      status: "pending",
+      isTrial: false,
     },
     {
+      id: 2,
       name: "Alexandra",
-      time: "12:00",
-      date: "Mon | 02-01-2025",
-      color: "bg-[#CE4B55]",
-      isCheckedIn: false,
+      time: "10:00 - 18:00",
+      date: "Tue | 04-02-2025",
+      color: "bg-[#FF6B6B]",
+      startTime: "10:00",
+      endTime: "18:00",
+      type: "Cardio",
+      specialNote: {
+        text: "",
+        startDate: null,
+        endDate: null,
+        isImportant: false,
+      },
+      status: "pending",
+      isTrial: true,
     },
     {
-      name: "Michael",
-      time: "14:30",
-      date: "Tue | 02-02-2025",
-      color: "bg-[#3F74FF]",
-      isCheckedIn: false,
+      id: 3,
+      name: "Marcus",
+      time: "14:00 - 16:00",
+      date: "Wed | 05-02-2025",
+      color: "bg-[#50C878]",
+      startTime: "14:00",
+      endTime: "16:00",
+      type: "Yoga",
+      specialNote: {
+        text: "",
+        startDate: null,
+        endDate: null,
+        isImportant: false,
+      },
+      status: "pending",
+      isTrial: false,
     },
     {
-      name: "Sarah",
-      time: "09:15",
-      date: "Wed | 02-03-2025",
-      color: "bg-[#CE4B55]",
-      isCheckedIn: false,
-    },
-    {
-      name: "David",
-      time: "16:00",
-      date: "Thu | 02-04-2025",
-      color: "bg-[#3F74FF]",
-      isCheckedIn: false,
-    },
-    {
-      name: "Emma",
-      time: "11:30",
-      date: "Fri | 02-05-2025",
-      color: "bg-[#CE4B55]",
-      isCheckedIn: false,
+      id: 4,
+      name: "John",
+      time: "14:00 - 16:00",
+      date: "Thu | 06-02-2025",
+      color: "bg-[#50C878]",
+      startTime: "14:00",
+      endTime: "16:00",
+      type: "Yoga",
+      specialNote: {
+        text: "",
+        startDate: null,
+        endDate: null,
+        isImportant: false,
+      },
+      status: "pending",
+      isTrial: false,
     },
   ]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const [freeAppointments, setFreeAppointments] = useState([]);
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen);
   const redirectToTodos = () => navigate("/dashboard/to-do");
   const redirectToCommunication = () => navigate("/dashboard/communication");
   const toggleDropdown = (index) =>
     setOpenDropdownIndex(openDropdownIndex === index ? null : index);
   const toggleEditing = () => setIsEditing(!isEditing);
+  const [activeNoteId, setActiveNoteId] = useState(null);
+  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] =
+    useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false);
+  const [notifyAction, setNotifyAction] = useState("change");
 
   const moveWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= widgets.length) return;
@@ -308,16 +357,20 @@ export default function MyArea() {
     );
   };
 
-  const handleCheckIn = (index) => {
-    setAppointments((prevAppointments) => {
-      const updatedAppointments = [...prevAppointments];
-      // Toggle the checked in status
-      updatedAppointments[index] = {
-        ...updatedAppointments[index],
-        isCheckedIn: !updatedAppointments[index].isCheckedIn,
-      };
-      return updatedAppointments;
-    });
+  const handleCheckIn = (appointmentId) => {
+    setAppointments((prevAppointments) =>
+      prevAppointments.map((appointment) =>
+        appointment.id === appointmentId
+          ? { ...appointment, isCheckedIn: !appointment.isCheckedIn }
+          : appointment
+      )
+    );
+    // Toast message changes based on check-in status
+    toast.success(
+      appointments.find((app) => app.id === appointmentId)?.isCheckedIn
+        ? "Member checked In successfully"
+        : "Member check in successfully"
+    );
   };
 
   const moveSidebarSection = (id, direction) => {
@@ -359,6 +412,14 @@ export default function MyArea() {
       [newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]];
       return newLinks;
     });
+  };
+
+  const handleDeleteAppointment = (appointmentId) => {
+    setAppointments((prevAppointments) =>
+      prevAppointments.filter((appointment) => appointment.id !== appointmentId)
+    );
+    setSelectedAppointment(null); // Clear the selected appointment
+    toast.success("Appointment deleted successfully");
   };
 
   useEffect(() => {
@@ -462,10 +523,29 @@ export default function MyArea() {
     },
   };
 
+  const appointmentTypes = [
+    { name: "Regular Training", duration: 60, color: "bg-blue-500" },
+    { name: "Consultation", duration: 30, color: "bg-green-500" },
+    { name: "Assessment", duration: 45, color: "bg-purple-500" },
+  ];
+
   const chartSeries = [
     { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
   ];
+
+  const handleAppointmentChange = (changes) => {
+    setSelectedAppointment((prev) => {
+      const updatedAppointment = { ...prev, ...changes };
+      if (changes.specialNote) {
+        updatedAppointment.specialNote = {
+          ...prev.specialNote,
+          ...changes.specialNote,
+        };
+      }
+      return updatedAppointment;
+    });
+  };
 
   const WebsiteLinkModal = ({ link, onClose }) => {
     const [title, setTitle] = useState(link?.title?.trim() || "");
@@ -570,6 +650,116 @@ export default function MyArea() {
     return !widgets.some((widget) => widget.type === widgetType);
   };
 
+  const notePopoverRef = useRef(null)
+
+  // Effect to handle clicking outside of note popover
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
+        setActiveNoteId(null)
+      }
+    }
+
+    // Add event listener when popover is open
+    if (activeNoteId !== null) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside)
+      }
+    }
+  }, [activeNoteId])
+  const renderSpecialNoteIcon = useCallback(
+    (specialNote, memberId) => {
+      // If no note text, return null
+      if (!specialNote.text) return null
+
+      // Check note validity
+      const isActive =
+        specialNote.startDate === null ||
+        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+
+      // If note is not active, return null
+      if (!isActive) return null
+
+      const handleNoteClick = (e) => {
+        e.stopPropagation()
+        setActiveNoteId(activeNoteId === memberId ? null : memberId)
+      }
+
+      return (
+        <div className="relative">
+          <div
+            className={`${
+              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            onClick={handleNoteClick}
+          >
+            {specialNote.isImportant ? (
+              <AlertTriangle size={18} className="text-white" />
+            ) : (
+              <Info size={18} className="text-white" />
+            )}
+          </div>
+
+          {activeNoteId === memberId && (
+            <div
+              ref={notePopoverRef}
+              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+            >
+              {/* Header section with icon and title */}
+              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                  {specialNote.isImportant === "important" ? (
+                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400 ">
+                      {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
+                    </div>
+                  </h4>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveNoteId(null)
+                    }}
+                    className="ml-auto text-gray-400 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+              {/* Note content */}
+              <div className="p-3">
+                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
+
+                {/* Date validity section */}
+                {specialNote.startDate && specialNote.endDate ? (
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <CalendarIcon size={12} />
+                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                      {new Date(specialNote.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <CalendarIcon size={12} />
+                      Always valid
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    },
+    [activeNoteId, setActiveNoteId],
+  )
+
   return (
     <>
       <Toaster
@@ -625,152 +815,158 @@ export default function MyArea() {
             </div>
 
             {/* Widgets */}
-            <div className="space-y-2">
+            <div className="space-y-4">
+              {/* Chart Widget - Full Width */}
               {widgets
+                .filter((widget) => widget.type === "chart")
                 .sort((a, b) => a.position - b.position)
                 .map((widget, index) => (
                   <DraggableWidget
                     key={widget.id}
                     id={widget.id}
-                    index={index}
+                    index={widgets.findIndex((w) => w.id === widget.id)}
                     moveWidget={moveWidget}
                     removeWidget={removeWidget}
                     isEditing={isEditing}
                     widgets={widgets}
                   >
-                    {/* Chart Widget */}
-                    {widget.type === "chart" && (
-                      <div className="p-4 bg-[#2F2F2F] rounded-xl">
-                        <div className="relative mb-3" ref={chartDropdownRef}>
-                          <button
-                            onClick={() =>
-                              setIsChartDropdownOpen(!isChartDropdownOpen)
-                            }
-                            className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
-                          >
-                            {selectedMemberType}
-                            <ChevronDown className="w-4 h-4" />
-                          </button>
-                          {isChartDropdownOpen && (
-                            <div className="absolute z-10 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg">
-                              {Object.keys(memberTypes).map((type) => (
-                                <button
-                                  key={type}
-                                  className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
-                                  onClick={() => {
-                                    setSelectedMemberType(type);
-                                    setIsChartDropdownOpen(false);
-                                  }}
-                                >
-                                  {type}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="w-full">
-                          <Chart
-                            options={chartOptions}
-                            series={chartSeries}
-                            type="line"
-                            height={250}
-                          />
-                        </div>
+                    <div className="p-4 bg-[#2F2F2F] rounded-xl">
+                      <div className="relative mb-3" ref={chartDropdownRef}>
+                        <button
+                          onClick={() =>
+                            setIsChartDropdownOpen(!isChartDropdownOpen)
+                          }
+                          className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
+                        >
+                          {selectedMemberType}
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                        {isChartDropdownOpen && (
+                          <div className="absolute z-10 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg">
+                            {Object.keys(memberTypes).map((type) => (
+                              <button
+                                key={type}
+                                className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
+                                onClick={() => {
+                                  setSelectedMemberType(type);
+                                  setIsChartDropdownOpen(false);
+                                }}
+                              >
+                                {type}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
+                      <div className="w-full">
+                        <Chart
+                          options={chartOptions}
+                          series={chartSeries}
+                          type="line"
+                          height={250}
+                        />
+                      </div>
+                    </div>
+                  </DraggableWidget>
+                ))}
 
-                    {/* Appointments Widget */}
-                    {widget.type === "appointments" && (
-                      <div className="space-y-3 p-3 rounded-xl">
+              {/* Two Column Grid for Appointments and Website Links */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Appointments Widget */}
+                {widgets
+                  .filter((widget) => widget.type === "appointments")
+                  .sort((a, b) => a.position - b.position)
+                  .map((widget) => (
+                    <DraggableWidget
+                      key={widget.id}
+                      id={widget.id}
+                      index={widgets.findIndex((w) => w.id === widget.id)}
+                      moveWidget={moveWidget}
+                      removeWidget={removeWidget}
+                      isEditing={isEditing}
+                      widgets={widgets}
+                    >
+                      <div className="space-y-3 p-4 rounded-xl h-full bg-[#2F2F2F]">
                         <div className="flex justify-between items-center">
                           <h2 className="text-lg font-semibold">
                             Upcoming Appointments
                           </h2>
                         </div>
-                        <div className="space-y-2 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
-                          {appointments.map((appointment, index) => (
-                            <div
-                              key={index}
-                              className={`${appointment.color} p-5 rounded-xl`}
-                            >
-                              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex  items-center gap-2">
-                                  <div className="w-10 h-10 rounded-full flex-shrink-0">
-                                    <img
-                                      src={Avatar || "/placeholder.svg"}
-                                      alt=""
-                                      className="w-full h-full object-cover rounded-full"
-                                    />
-                                  </div>
-                                  <div>
-                                    <h3 className="font-semibold text-sm text-white">
-                                      {appointment.name}
-                                    </h3>
-                                    <p className="text-xs flex items-center gap-1 text-white/70">
-                                      <Clock size={12} />
-                                      {appointment.time} | {appointment.date}
-                                    </p>
-                                  </div>
+                        <div className="space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
+                          {appointments.length > 0 ? (
+                            appointments.map((appointment, index) => (
+                              <div
+                                key={appointment.id}
+                                className={`${appointment.color} rounded-xl cursor-pointer p-5 relative`}
+                              >
+                                <div className="absolute p-2 top-0 left-0 z-10">
+                                  {renderSpecialNoteIcon(
+                                    appointment.specialNote,
+                                    appointment.id
+                                  )}
                                 </div>
-
-                                <div className="flex sm:flex-row sm:items-center justify-end gap-2 mt-2 sm:mt-0">
-                                  <button
-                                    onClick={() => handleCheckIn(index)}
-                                    className={`px-3 py-1.5 text-xs font-medium rounded-xl ${
-                                      appointment.isCheckedIn
-                                        ? "bg-gray-600"
-                                        : "bg-black"
-                                    }`}
-                                  >
-                                    {appointment.isCheckedIn
-                                      ? "Checked In"
-                                      : "Check In"}
-                                  </button>
-
-                                  <div className="relative" ref={dropdownRef}>
-                                    <button
-                                      className="p-1.5 hover:bg-white/10 rounded-xl"
-                                      onClick={() => toggleDropdown(index)}
-                                    >
-                                      <MoreVertical size={16} />
-                                    </button>
-                                    {openDropdownIndex === index && (
-                                      <div className="absolute top-5 right-4 w-32 bg-[#2F2F2F]/90 backdrop-blur-sm rounded-xl shadow-lg z-10">
-                                        <ul className="py-1">
-                                          <li>
-                                            <button
-                                              className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10"
-                                              onClick={() => {
-                                                console.log(
-                                                  "Cancel appointment"
-                                                );
-                                                setOpenDropdownIndex(null);
-                                              }}
-                                            >
-                                              Cancel
-                                            </button>
-                                          </li>
-                                          <li className="border-t border-white/10">
-                                            <button
-                                              className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-white/10"
-                                              onClick={() => {
-                                                console.log(
-                                                  "Remove appointment"
-                                                );
-                                                setOpenDropdownIndex(null);
-                                              }}
-                                            >
-                                              Remove
-                                            </button>
-                                          </li>
-                                        </ul>
-                                      </div>
-                                    )}
+                                <div
+                                  className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
+                                  onClick={() => {
+                                    setSelectedAppointment(appointment);
+                                    setIsAppointmentActionModalOpen(true);
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2 ml-5 relative w-full sm:w-auto justify-center sm:justify-start">
+                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+                                      <img
+                                        src={Avatar}
+                                        alt=""
+                                        className="w-full h-full rounded-full"
+                                      />
+                                    </div>
+                                    <div className="text-white text-left">
+                                      <p className="font-semibold">
+                                        {appointment.name}
+                                      </p>
+                                      <p className="text-xs flex gap-1 items-center opacity-80 justify-center sm:justify-start">
+                                        <Clock size={14} />
+                                        {appointment.time} |{" "}
+                                        {appointment.date.split("|")[0]}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+                                    <div className="text-white text-center sm:text-right w-full sm:w-auto">
+                                      <p className="text-xs">
+                                        {appointment.isTrial ? (
+                                          <span className="font-medium ">
+                                            Trial Session
+                                          </span>
+                                        ) : (
+                                          appointment.type
+                                        )}
+                                      </p>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleCheckIn(appointment.id);
+                                        }}
+                                        className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
+                                          appointment.isCheckedIn
+                                            ? "bg-gray-600 text-white"
+                                            : "bg-black text-white"
+                                        }`}
+                                      >
+                                        {appointment.isCheckedIn
+                                          ? "Checked In"
+                                          : "Check In"}
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))
+                          ) : (
+                            <p className="text-white text-center">
+                              No appointments scheduled for this date.
+                            </p>
+                          )}
                         </div>
 
                         {/* Centered "See all" link */}
@@ -783,172 +979,232 @@ export default function MyArea() {
                           </Link>
                         </div>
                       </div>
-                    )}
+                    </DraggableWidget>
+                  ))}
 
-                    {/* EmployeeCheckIn Widget */}
-                    {widget.type === "employeeCheckIn" && (
-                      <EmployeeCheckInWidget />
-                    )}
+                {/* Employee Check-in and Website Links in a column */}
+                <div className="flex flex-col">
+                  {/* Employee Check-in Widget */}
+                  {widgets
+                    .filter((widget) => widget.type === "employeeCheckIn")
+                    .sort((a, b) => a.position - b.position)
+                    .map((widget) => (
+                      <DraggableWidget
+                        key={widget.id}
+                        id={widget.id}
+                        index={widgets.findIndex((w) => w.id === widget.id)}
+                        moveWidget={moveWidget}
+                        removeWidget={removeWidget}
+                        isEditing={isEditing}
+                        widgets={widgets}
+                      >
+                        <EmployeeCheckInWidget />
+                      </DraggableWidget>
+                    ))}
 
-                    {widget.type === "communication" && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">
-                            Communications
-                          </h2>
-                          <Link
-                            to="/dashboard/communication"
-                            className="text-sm text-white hover:underline"
-                          >
-                            See all
-                          </Link>
-                        </div>
-                        <div className="space-y-2">
-                          {communications.map((comm) => (
-                            <div
-                              key={comm.id}
-                              onClick={redirectToCommunication}
-                              className="p-2 bg-black rounded-xl cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <img
-                                  src={comm.avatar || "/placeholder.svg"}
-                                  alt=""
-                                  className="rounded-full h-8 w-8"
-                                />
-                                <div>
-                                  <h3 className="font-semibold text-sm">
-                                    {comm.name}
-                                  </h3>
+                  {/* Website Link Widget */}
+                  {widgets
+                    .filter((widget) => widget.type === "websiteLink")
+                    .sort((a, b) => a.position - b.position)
+                    .map((widget) => (
+                      <DraggableWidget
+                        key={widget.id}
+                        id={widget.id}
+                        index={widgets.findIndex((w) => w.id === widget.id)}
+                        moveWidget={moveWidget}
+                        removeWidget={removeWidget}
+                        isEditing={isEditing}
+                        widgets={widgets}
+                      >
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[250px] flex flex-col">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">
+                              Website Links
+                            </h2>
+                          </div>
+                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <div className="grid grid-cols-1 gap-3">
+                              {customLinks.map((link) => (
+                                <div
+                                  key={link.id}
+                                  className="p-5 bg-black rounded-xl flex items-center justify-between"
+                                >
+                                  <div>
+                                    <h3 className="text-sm font-medium">
+                                      {link.title}
+                                    </h3>
+                                    <p className="text-xs mt-1 text-zinc-400">
+                                      {link.url}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      window.open(link.url, "_blank")
+                                    }
+                                    className="p-2 hover:bg-zinc-700 rounded-lg"
+                                  >
+                                    <ExternalLink size={16} />
+                                  </button>
                                 </div>
-                              </div>
-                              <div>
-                                <p className="text-sm text-zinc-400">
-                                  {comm.message}
-                                </p>
-                                <p className="text-xs mt-1 flex gap-1 items-center text-zinc-400">
-                                  <Clock size={12} />
-                                  {comm.time}
-                                </p>
-                              </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {widget.type === "todo" && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">TO-DO</h2>
-                          <Link
-                            to="/dashboard/to-do"
-                            className="text-sm text-white hover:underline"
-                          >
-                            See all
-                          </Link>
-                        </div>
-                        <div className="space-y-2">
-                          {todos.map((todo) => (
-                            <div
-                              key={todo.id}
-                              onClick={redirectToTodos}
-                              className="p-2 bg-black rounded-xl flex items-center justify-between cursor-pointer"
-                            >
-                              <div>
-                                <h3 className="font-semibold text-sm">
-                                  {todo.title}
-                                </h3>
-                                <p className="text-xs text-zinc-400">
-                                  {todo.description}
-                                </p>
-                              </div>
-                              <button className="px-3 py-1.5 flex items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
-                                <img
-                                  src={Image10 || "/placeholder.svg"}
-                                  alt=""
-                                  className="w-4 h-4"
-                                />
-                                {todo.assignee}
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {widget.type === "birthdays" && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">
-                            Upcoming Birthdays
-                          </h2>
-                        </div>
-                        <div className="space-y-2">
-                          {birthdays.map((birthday) => (
-                            <div
-                              key={birthday.id}
-                              className="p-2 bg-black rounded-xl flex items-center gap-2"
-                            >
-                              <img
-                                src={birthday.avatar || "/placeholder.svg"}
-                                alt=""
-                                className="h-8 w-8 rounded-full"
-                              />
-                              <div>
-                                <h3 className="font-semibold text-sm">
-                                  {birthday.name}
-                                </h3>
-                                <p className="text-xs text-zinc-400">
-                                  {birthday.date}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {widget.type === "websiteLink" && (
-                      <div className="space-y-3 p-4 rounded-xl">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">
-                            Website Links
-                          </h2>
-                        </div>
-                        <div className="space-y-2">
-                          {customLinks.map((link) => (
-                            <div
-                              key={link.id}
-                              className="p-5 bg-black rounded-xl flex items-center justify-between"
-                            >
-                              <div>
-                                <h3 className="text-sm font-medium">
-                                  {link.title}
-                                </h3>
-                                <p className="text-xs mt-1 text-zinc-400">
-                                  {link.url}
-                                </p>
-                              </div>
-                              <button
-                                onClick={() => window.open(link.url, "_blank")}
-                                className="p-2 hover:bg-zinc-700 rounded-lg"
-                              >
-                                <ExternalLink size={16} />
-                              </button>
-                            </div>
-                          ))}
+                          </div>
                           <button
                             onClick={addCustomLink}
-                            className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
+                            className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 mt-auto"
                           >
                             Add website link...
                           </button>
                         </div>
-                      </div>
-                    )}
-                  </DraggableWidget>
-                ))}
+                      </DraggableWidget>
+                    ))}
+                </div>
+              </div>
+
+              {/* Other Widgets in 2-column Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {widgets
+                  .filter(
+                    (widget) =>
+                      ![
+                        "chart",
+                        "appointments",
+                        "employeeCheckIn",
+                        "websiteLink",
+                      ].includes(widget.type)
+                  )
+                  .sort((a, b) => a.position - b.position)
+                  .map((widget, index) => (
+                    <DraggableWidget
+                      key={widget.id}
+                      id={widget.id}
+                      index={widgets.findIndex((w) => w.id === widget.id)}
+                      moveWidget={moveWidget}
+                      removeWidget={removeWidget}
+                      isEditing={isEditing}
+                      widgets={widgets}
+                    >
+                      {widget.type === "communication" && (
+                        <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">
+                              Communications
+                            </h2>
+                            <Link
+                              to="/dashboard/communication"
+                              className="text-sm text-white hover:underline"
+                            >
+                              See all
+                            </Link>
+                          </div>
+                          <div className="space-y-2">
+                            {communications.map((comm) => (
+                              <div
+                                key={comm.id}
+                                onClick={redirectToCommunication}
+                                className="p-2 bg-black rounded-xl cursor-pointer"
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  <img
+                                    src={comm.avatar || "/placeholder.svg"}
+                                    alt=""
+                                    className="rounded-full h-8 w-8"
+                                  />
+                                  <div>
+                                    <h3 className="font-semibold text-sm">
+                                      {comm.name}
+                                    </h3>
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-zinc-400">
+                                    {comm.message}
+                                  </p>
+                                  <p className="text-xs mt-1 flex gap-1 items-center text-zinc-400">
+                                    <Clock size={12} />
+                                    {comm.time}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {widget.type === "todo" && (
+                        <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">TO-DO</h2>
+                            <Link
+                              to="/dashboard/to-do"
+                              className="text-sm text-white hover:underline"
+                            >
+                              See all
+                            </Link>
+                          </div>
+                          <div className="space-y-2">
+                            {todos.map((todo) => (
+                              <div
+                                key={todo.id}
+                                onClick={redirectToTodos}
+                                className="p-2 bg-black rounded-xl flex items-center justify-between cursor-pointer"
+                              >
+                                <div>
+                                  <h3 className="font-semibold text-sm">
+                                    {todo.title}
+                                  </h3>
+                                  <p className="text-xs text-zinc-400">
+                                    {todo.description}
+                                  </p>
+                                </div>
+                                <button className="px-3 py-1.5 flex items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
+                                  <img
+                                    src={Image10 || "/placeholder.svg"}
+                                    alt=""
+                                    className="w-4 h-4"
+                                  />
+                                  {todo.assignee}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {widget.type === "birthdays" && (
+                        <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">
+                              Upcoming Birthdays
+                            </h2>
+                          </div>
+                          <div className="space-y-2">
+                            {birthdays.map((birthday) => (
+                              <div
+                                key={birthday.id}
+                                className="p-2 bg-black rounded-xl flex items-center gap-2"
+                              >
+                                <img
+                                  src={birthday.avatar || "/placeholder.svg"}
+                                  alt=""
+                                  className="h-8 w-8 rounded-full"
+                                />
+                                <div>
+                                  <h3 className="font-semibold text-sm">
+                                    {birthday.name}
+                                  </h3>
+                                  <p className="text-xs text-zinc-400">
+                                    {birthday.date}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </DraggableWidget>
+                  ))}
+              </div>
             </div>
           </div>
         </main>
@@ -1116,56 +1372,68 @@ export default function MyArea() {
                     Website Links
                   </h2>
                 </div>
-                {customLinks.map((link, index) => (
-                  <div
-                    key={link.id}
-                    className="p-2 bg-black rounded-xl relative"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-sm font-medium">{link.title}</h3>
-                        <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
-                      </div>
-                      <button
-                        onClick={() =>
-                          window.open(
-                            link.url.startsWith("http")
-                              ? link.url
-                              : `https://${link.url}`,
-                            "_blank"
-                          )
-                        }
-                        className="p-2 hover:bg-zinc-700 rounded-lg"
+                <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                  {" "}
+                  {/* Add scrollable container */}
+                  <div className="space-y-3">
+                    {" "}
+                    {/* Maintain spacing between links */}
+                    {customLinks.map((link, index) => (
+                      <div
+                        key={link.id}
+                        className="p-2 bg-black rounded-xl relative"
                       >
-                        <ExternalLink size={16} />
-                      </button>
-                    </div>
-                    {isEditing && (
-                      <div className="absolute top-2 right-2 z-10 flex gap-2">
-                        <button
-                          onClick={() => moveCustomLink(link.id, "up")}
-                          className="p-1 bg-gray-800 rounded hover:bg-gray-700"
-                          disabled={index === 0}
-                        >
-                          <ArrowUp size={12} />
-                        </button>
-                        <button
-                          onClick={() => moveCustomLink(link.id, "down")}
-                          className="p-1 bg-gray-800 rounded hover:bg-gray-700"
-                          disabled={index === customLinks.length - 1}
-                        >
-                          <ArrowDown size={12} />
-                        </button>
-                        <button
-                          onClick={() => removeCustomLink(link.id)}
-                          className="p-1 bg-gray-800 rounded hover:bg-gray-700 "
-                        >
-                          <X size={12} />
-                        </button>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-sm font-medium">
+                              {link.title}
+                            </h3>
+                            <p className="text-xs mt-1 text-zinc-400">
+                              {link.url}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() =>
+                              window.open(
+                                link.url.startsWith("http")
+                                  ? link.url
+                                  : `https://${link.url}`,
+                                "_blank"
+                              )
+                            }
+                            className="p-2 hover:bg-zinc-700 rounded-lg"
+                          >
+                            <ExternalLink size={16} />
+                          </button>
+                        </div>
+                        {isEditing && (
+                          <div className="absolute top-2 right-2 z-10 flex gap-2">
+                            <button
+                              onClick={() => moveCustomLink(link.id, "up")}
+                              className="p-1 bg-gray-800 rounded hover:bg-gray-700"
+                              disabled={index === 0}
+                            >
+                              <ArrowUp size={12} />
+                            </button>
+                            <button
+                              onClick={() => moveCustomLink(link.id, "down")}
+                              className="p-1 bg-gray-800 rounded hover:bg-gray-700"
+                              disabled={index === customLinks.length - 1}
+                            >
+                              <ArrowDown size={16} />
+                            </button>
+                            <button
+                              onClick={() => removeCustomLink(link.id)}
+                              className="p-1 bg-gray-800 rounded hover:bg-gray-700 "
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
+                </div>
                 <button
                   onClick={addCustomLink}
                   className="w-full p-2 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
@@ -1187,6 +1455,19 @@ export default function MyArea() {
           onClose={() => setIsWidgetModalOpen(false)}
           onSelectWidget={handleAddWidget}
           canAddWidget={canAddWidget}
+        />
+
+        <SelectedAppointmentModal
+          selectedAppointment={selectedAppointment}
+          setSelectedAppointment={setSelectedAppointment}
+          appointmentTypes={appointmentTypes}
+          freeAppointments={freeAppointments}
+          handleAppointmentChange={handleAppointmentChange}
+          appointments={appointments}
+          setAppointments={setAppointments}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          onDelete={handleDeleteAppointment}
         />
       </div>
     </>

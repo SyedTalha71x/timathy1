@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X } from "lucide-react"
@@ -6,7 +8,7 @@ import { Toaster, toast } from "react-hot-toast"
 const assignees = ["Jack", "Jane", "John", "Jessica"]
 const roles = ["Trainer", "Manager", "Developer", "Designer"]
 
-export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }) {
+export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], activeCategory }) {
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -14,26 +16,27 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
     roles: [], // Changed to array for multiple selections
     tags: [],
     dueDate: "",
-    dueTime: ""
+    dueTime: "",
   })
 
   const [assignmentType, setAssignmentType] = useState("assignee")
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
+
     const taskToAdd = {
       ...newTask,
       id: Date.now(),
       status: "ongoing",
+      category: activeCategory, // Add the category
       // Keep the arrays but clear the one not being used
       assignees: assignmentType === "assignee" ? newTask.assignees : [],
-      roles: assignmentType === "role" ? newTask.roles : []
+      roles: assignmentType === "role" ? newTask.roles : [],
     }
 
     onAddTask(taskToAdd)
     toast.success("Task has been added successfully!")
-    
+
     setTimeout(() => {
       onClose()
     }, 2000)
@@ -44,43 +47,43 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
     setNewTask({
       ...newTask,
       assignees: [],
-      roles: []
+      roles: [],
     })
   }
 
   const handleTagChange = (e) => {
-    const value = e.target.value;
-    setNewTask(prev => ({
+    const value = e.target.value
+    setNewTask((prev) => ({
       ...prev,
       tags: prev.tags.includes(value)
-        ? prev.tags.filter(tag => tag !== value) // Remove if already selected
-        : [...prev.tags, value] // Add if not selected
-    }));
-  };
+        ? prev.tags.filter((tag) => tag !== value) // Remove if already selected
+        : [...prev.tags, value], // Add if not selected
+    }))
+  }
 
   const handleAssigneeChange = (e) => {
-    const value = e.target.value;
-    if (value === "") return; // Skip empty selections
-    
-    setNewTask(prev => ({
+    const value = e.target.value
+    if (value === "") return // Skip empty selections
+
+    setNewTask((prev) => ({
       ...prev,
       assignees: prev.assignees.includes(value)
-        ? prev.assignees.filter(assignee => assignee !== value) // Remove if already selected
-        : [...prev.assignees, value] // Add if not selected
-    }));
-  };
+        ? prev.assignees.filter((assignee) => assignee !== value) // Remove if already selected
+        : [...prev.assignees, value], // Add if not selected
+    }))
+  }
 
   const handleRoleChange = (e) => {
-    const value = e.target.value;
-    if (value === "") return; // Skip empty selections
-    
-    setNewTask(prev => ({
+    const value = e.target.value
+    if (value === "") return // Skip empty selections
+
+    setNewTask((prev) => ({
       ...prev,
       roles: prev.roles.includes(value)
-        ? prev.roles.filter(role => role !== value) // Remove if already selected
-        : [...prev.roles, value] // Add if not selected
-    }));
-  };
+        ? prev.roles.filter((role) => role !== value) // Remove if already selected
+        : [...prev.roles, value], // Add if not selected
+    }))
+  }
 
   return (
     <>
@@ -89,8 +92,8 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
         toastOptions={{
           duration: 2000,
           style: {
-            background: '#333',
-            color: '#fff',
+            background: "#333",
+            color: "#fff",
           },
         }}
       />
@@ -103,7 +106,10 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 custom-scrollbar max-h-[calc(100vh-180px)] overflow-y-auto">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 custom-scrollbar max-h-[calc(100vh-180px)] overflow-y-auto"
+          >
             <div>
               <label className="text-sm text-gray-200">Task Title</label>
               <input
@@ -128,15 +134,21 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
             </div>
 
             <div>
-              <label className="text-sm text-gray-200 mb-2">Assignment Type</label>
+              <label className="text-sm text-gray-200">Category</label>
+              <div className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white capitalize">
+                {activeCategory}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Tasks are added to the currently active category</p>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200">Assignment Type</label>
               <div className="flex gap-4 mt-1">
                 <button
                   type="button"
                   onClick={() => handleAssignmentTypeChange("assignee")}
                   className={`px-4 py-2 rounded-xl text-sm ${
-                    assignmentType === "assignee" 
-                      ? "bg-[#3F74FF] text-white" 
-                      : "bg-[#2F2F2F] text-gray-200"
+                    assignmentType === "assignee" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
                   }`}
                 >
                   Assign to People
@@ -145,9 +157,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                   type="button"
                   onClick={() => handleAssignmentTypeChange("role")}
                   className={`px-4 py-2 rounded-xl text-sm ${
-                    assignmentType === "role" 
-                      ? "bg-[#3F74FF] text-white" 
-                      : "bg-[#2F2F2F] text-gray-200"
+                    assignmentType === "role" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
                   }`}
                 >
                   Assign to Roles
@@ -166,8 +176,8 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                 >
                   <option value="">Select Assignees</option>
                   {assignees.map((assignee) => (
-                    <option 
-                      key={assignee} 
+                    <option
+                      key={assignee}
                       value={assignee}
                       className={newTask.assignees.includes(assignee) ? "bg-[#3F74FF]" : ""}
                     >
@@ -185,10 +195,12 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                         {assignee}
                         <button
                           type="button"
-                          onClick={() => setNewTask(prev => ({
-                            ...prev,
-                            assignees: prev.assignees.filter(a => a !== assignee)
-                          }))}
+                          onClick={() =>
+                            setNewTask((prev) => ({
+                              ...prev,
+                              assignees: prev.assignees.filter((a) => a !== assignee),
+                            }))
+                          }
                           className="hover:text-gray-200"
                         >
                           ×
@@ -211,11 +223,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                 >
                   <option value="">Select Roles</option>
                   {roles.map((role) => (
-                    <option 
-                      key={role} 
-                      value={role}
-                      className={newTask.roles.includes(role) ? "bg-[#3F74FF]" : ""}
-                    >
+                    <option key={role} value={role} className={newTask.roles.includes(role) ? "bg-[#3F74FF]" : ""}>
                       {role} {newTask.roles.includes(role) ? "✓" : ""}
                     </option>
                   ))}
@@ -230,10 +238,12 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                         {role}
                         <button
                           type="button"
-                          onClick={() => setNewTask(prev => ({
-                            ...prev,
-                            roles: prev.roles.filter(r => r !== role)
-                          }))}
+                          onClick={() =>
+                            setNewTask((prev) => ({
+                              ...prev,
+                              roles: prev.roles.filter((r) => r !== role),
+                            }))
+                          }
                           className="hover:text-gray-200"
                         >
                           ×
@@ -255,11 +265,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                 >
                   <option value="">Select Tags</option>
                   {configuredTags.map((tag) => (
-                    <option 
-                      key={tag} 
-                      value={tag}
-                      className={newTask.tags.includes(tag) ? "bg-[#3F74FF]" : ""}
-                    >
+                    <option key={tag} value={tag} className={newTask.tags.includes(tag) ? "bg-[#3F74FF]" : ""}>
                       {tag} {newTask.tags.includes(tag) ? "✓" : ""}
                     </option>
                   ))}
@@ -274,10 +280,12 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                         {tag}
                         <button
                           type="button"
-                          onClick={() => setNewTask(prev => ({
-                            ...prev,
-                            tags: prev.tags.filter(t => t !== tag)
-                          }))}
+                          onClick={() =>
+                            setNewTask((prev) => ({
+                              ...prev,
+                              tags: prev.tags.filter((t) => t !== tag),
+                            }))
+                          }
                           className="hover:text-gray-200"
                         >
                           ×
@@ -331,3 +339,4 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
     </>
   )
 }
+

@@ -1,7 +1,7 @@
 "use client"
 
 /* eslint-disable no-unused-vars */
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { X, Search, ChevronDown, Cake, Eye, FileText, Info, AlertTriangle } from "lucide-react"
 import DefaultAvatar from "../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
@@ -84,7 +84,29 @@ export default function Members() {
     setIsEditModalOpen(false)
     setSelectedMember(null)
     toast.success("Member details have been updated successfully")
+
   }
+  
+  const notePopoverRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        notePopoverRef.current && 
+        !notePopoverRef.current.contains(event.target)
+      ) {
+        setActiveNoteId(null)
+      }
+    }
+
+    // Add event listener when popover is open
+    if (activeNoteId !== null) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [activeNoteId])
 
   const [members, setMembers] = useState([
     {
@@ -558,70 +580,72 @@ export default function Members() {
                   <div key={member.id} className="bg-[#161616] rounded-xl p-6 relative">
                     {/* Special note icon in top left corner */}
                     {member.note && (
-                      <div className="absolute p-2 top-0 left-0 z-10">
-                        <div className="relative">
-                          <div
-                            className={`${
-                              member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setActiveNoteId(activeNoteId === member.id ? null : member.id)
-                            }}
-                          >
-                            {member.noteImportance === "important" ? (
-                              <AlertTriangle size={18} className="text-white" />
-                            ) : (
-                              <Info size={18} className="text-white" />
-                            )}
-                          </div>
+        <div className="absolute p-2 top-0 left-0 z-10">
+          <div className="relative">
+            <div
+              className={`${
+                member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setActiveNoteId(activeNoteId === member.id ? null : member.id)
+              }}
+            >
+              {member.noteImportance === "important" ? (
+                <AlertTriangle size={18} className="text-white" />
+              ) : (
+                <Info size={18} className="text-white" />
+              )}
+            </div>
 
-                          {activeNoteId === member.id && (
-                            <div className="absolute left-0 top-6 w-64 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20">
-                              {/* Header section with icon and title */}
-                              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                                {member.noteImportance === "important" ? (
-                                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                                ) : (
-                                  <Info className="text-blue-500 shrink-0" size={18} />
-                                )}
-                                <h4 className="text-white font-medium">
-                                  {member.noteImportance === "important" ? "Important Note" : "Special Note"}
-                                </h4>
-                              </div>
 
-                              {/* Note content */}
-                              <div className="p-3">
-                                <p className="text-white text-sm leading-relaxed">{member.note}</p>
+            {activeNoteId === member.id && (
+              <div 
+                ref={notePopoverRef}
+                className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+              >
+                {/* Header section with icon and title */}
+                <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                  {member.noteImportance === "important" ? (
+                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400">
+                      {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+                    </div>
+                  </h4>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveNoteId(null)
+                    }}
+                    className="ml-auto text-gray-400 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
 
-                                {/* Date validity section */}
-                                {member.noteStartDate && member.noteEndDate && (
-                                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                                    <p className="text-xs text-gray-300">
-                                      Valid from {member.noteStartDate} to {member.noteEndDate}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
+                {/* Note content */}
+                <div className="p-3">
+                  <p className="text-white text-sm leading-relaxed">{member.note}</p>
 
-                              {/* Footer with close button */}
-                              <div className="bg-gray-800/50 p-2 rounded-b-lg border-t border-gray-700 flex justify-end">
-                                <button
-                                  className="text-xs text-gray-300 hover:text-white px-2 py-1 rounded hover:bg-gray-700 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setActiveNoteId(null)
-                                  }}
-                                >
-                                  Close
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
+                  {/* Date validity section */}
+                  {member.noteStartDate && member.noteEndDate && (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300">
+                        Valid from {member.noteStartDate} to {member.noteEndDate}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
                         <img

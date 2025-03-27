@@ -879,6 +879,25 @@ export default function Appointments() {
     applyFilters()
   }, [appointments, selectedDate, searchQuery])
 
+  const notePopoverRef = useRef(null)
+
+  // Effect to handle clicking outside of note popover
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
+        setActiveNoteId(null)
+      }
+    }
+
+    // Add event listener when popover is open
+    if (activeNoteId !== null) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside)
+      }
+    }
+  }, [activeNoteId])
+
   // Consolidated function to apply all filters (date and search)
   const applyFilters = () => {
     let filtered = [...appointments]
@@ -962,11 +981,15 @@ export default function Appointments() {
   const handleCheckIn = (appointmentId) => {
     setAppointments((prevAppointments) =>
       prevAppointments.map((appointment) =>
-        appointment.id === appointmentId ? { ...appointment, isCheckedIn: true } : appointment,
+        appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment,
       ),
     )
-    // No need to update filteredAppointments here as useEffect will handle it
-    toast.success("Member checked in successfully")
+    // Toast message changes based on check-in status
+    toast.success(
+      appointments.find((app) => app.id === appointmentId)?.isCheckedIn
+        ? "Member checked In successfully"
+        : "Member check in successfully",
+    )
   }
 
   const handleAppointmentClick = (appointment) => {
@@ -1051,18 +1074,21 @@ export default function Appointments() {
   }
 
   const renderSpecialNoteIcon = useCallback(
-    (specialNote, appointmentId) => {
+    (specialNote, memberId) => {
+      // If no note text, return null
       if (!specialNote.text) return null
 
+      // Check note validity
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
 
+      // If note is not active, return null
       if (!isActive) return null
 
       const handleNoteClick = (e) => {
         e.stopPropagation()
-        setActiveNoteId(activeNoteId === appointmentId ? null : appointmentId)
+        setActiveNoteId(activeNoteId === memberId ? null : memberId)
       }
 
       return (
@@ -1080,26 +1106,41 @@ export default function Appointments() {
             )}
           </div>
 
-          {activeNoteId === appointmentId && (
-            <div className="absolute left-0 top-6 w-64 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20">
+          {activeNoteId === memberId && (
+            <div
+              ref={notePopoverRef}
+              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+            >
               {/* Header section with icon and title */}
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {specialNote.isImportant ? (
-                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                ) : (
-                  <Info className="text-blue-500 shrink-0" size={18} />
-                )}
-                <h4 className="text-white font-medium">
-                  {specialNote.isImportant ? "Important Note" : "Special Note"}
-                </h4>
-              </div>
+                  {specialNote.isImportant === "important" ? (
+                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400 ">
+                      {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
+                    </div>
+                  </h4>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveNoteId(null)
+                    }}
+                    className="ml-auto text-gray-400 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
 
               {/* Note content */}
               <div className="p-3">
                 <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
 
                 {/* Date validity section */}
-                {specialNote.startDate && specialNote.endDate && (
+                {specialNote.startDate && specialNote.endDate ? (
                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                     <p className="text-xs text-gray-300 flex items-center gap-1.5">
                       <CalendarIcon size={12} />
@@ -1107,20 +1148,14 @@ export default function Appointments() {
                       {new Date(specialNote.endDate).toLocaleDateString()}
                     </p>
                   </div>
+                ) : (
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <CalendarIcon size={12} />
+                      Always valid
+                    </p>
+                  </div>
                 )}
-              </div>
-
-              {/* Footer with close button */}
-              <div className="bg-gray-800/50 p-2 rounded-b-lg border-t border-gray-700 flex justify-end">
-                <button
-                  className="text-xs text-gray-300 hover:text-white px-2 py-1 rounded hover:bg-gray-700 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setActiveNoteId(null)
-                  }}
-                >
-                  Close
-                </button>
               </div>
             </div>
           )}
@@ -1136,16 +1171,15 @@ export default function Appointments() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
             <div className="flex items-center gap-2">
-
-            <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
-            <button
-              onClick={toggleSidebar}
-              className="  bg-[#3F74FF] text-white p-1.5 rounded-full z-10 shadow-lg hover:bg-[#3F74FF]/90 transition-colors lg:flex hidden"
-              aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
+              <button
+                onClick={toggleSidebar}
+                className="  bg-[#3F74FF] text-white p-1.5 rounded-full z-10 shadow-lg hover:bg-[#3F74FF]/90 transition-colors lg:flex hidden"
+                aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
-              {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-            </button>
-              </div>
+                {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+              </button>
+            </div>
             <div className="flex items-center md:flex-row flex-col gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -1215,11 +1249,7 @@ export default function Appointments() {
                           >
                             <div className="flex items-center gap-2 ml-5 relative w-full sm:w-auto justify-center sm:justify-start">
                               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
-                                <img
-                                  src={Avatar}
-                                  alt=""
-                                  className="w-full h-full rounded-full"
-                                />
+                                <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
                               </div>
                               <div className="text-white text-left">
                                 <p className="font-semibold">{appointment.name}</p>
@@ -1241,16 +1271,11 @@ export default function Appointments() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    if (!appointment.isCheckedIn) {
-                                      handleCheckIn(appointment.id)
-                                    }
+                                    handleCheckIn(appointment.id)
                                   }}
                                   className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
-                                    appointment.isCheckedIn
-                                      ? "bg-gray-600 text-white opacity-50 cursor-not-allowed"
-                                      : "bg-black text-white"
+                                    appointment.isCheckedIn ? "bg-gray-600 text-white" : "bg-black text-white"
                                   }`}
-                                  disabled={appointment.isCheckedIn} // Prevents interaction
                                 >
                                   {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                 </button>
