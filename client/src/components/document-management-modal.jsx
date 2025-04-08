@@ -1,10 +1,8 @@
 /* eslint-disable no-unused-vars */
-"use client"
-
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { useState, useRef } from "react"
-import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { Printer } from "lucide-react"
 
@@ -14,18 +12,25 @@ export function DocumentManagementModal({ contract, onClose }) {
   const [editingDocId, setEditingDocId] = useState(null)
   const [newDocName, setNewDocName] = useState("")
   const [viewingDocument, setViewingDocument] = useState(null)
-  const [documentStatus, setDocumentStatus] = useState("Signed Contract")
   const fileInputRef = useRef(null)
 
-  // Predefined status options
-  const statusOptions = [
-    { value: "Signed Contract", label: "Signed Contract" }
-  ]
-
-  // Sample document data structure if none exists
   const sampleDocuments = [
-    { id: "doc-1", name: "Contract Agreement.pdf", type: "pdf", size: "1.2 MB", uploadDate: "2023-05-15", status: "Signed Contract" },
-    { id: "doc-2", name: "Payment Schedule.xlsx", type: "xlsx", size: "0.8 MB", uploadDate: "2023-05-16", status: "Signed Contract" },
+    {
+      id: "doc-1",
+      name: "Contract Agreement.pdf",
+      type: "pdf",
+      size: "1.2 MB",
+      uploadDate: "2023-05-15",
+      isSignedContract: false,
+    },
+    {
+      id: "doc-2",
+      name: "Payment Schedule.xlsx",
+      type: "xlsx",
+      size: "0.8 MB",
+      uploadDate: "2023-05-16",
+      isSignedContract: false,
+    },
   ]
 
   const displayDocuments = documents.length > 0 ? documents : sampleDocuments
@@ -47,7 +52,7 @@ export function DocumentManagementModal({ contract, onClose }) {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/msword",
       "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ]
 
     const invalidFiles = files.filter((file) => !validTypes.includes(file.type))
@@ -74,7 +79,7 @@ export function DocumentManagementModal({ contract, onClose }) {
         size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
         uploadDate: new Date().toISOString().split("T")[0],
         file: file, // Store the actual file object
-        status: documentStatus
+        isSignedContract: false, // Default to not signed
       }))
 
       setDocuments([...displayDocuments, ...newDocs])
@@ -161,6 +166,26 @@ export function DocumentManagementModal({ contract, onClose }) {
     toast.success("Document renamed successfully")
   }
 
+  // New function to toggle the signed contract tag
+  const toggleSignedContract = (docId) => {
+    setDocuments(
+      displayDocuments.map((doc) => {
+        if (doc.id === docId) {
+          const newStatus = !doc.isSignedContract
+          // If marking as signed, remove the tag from all other documents
+          if (newStatus) {
+            toast.success(`"${doc.name}" marked as the signed contract`)
+          } else {
+            toast.success(`Signed contract tag removed from "${doc.name}"`)
+          }
+          return { ...doc, isSignedContract: newStatus }
+        }
+        // If we're marking a document as signed, unmark all others
+        return doc.id !== docId && doc.isSignedContract ? { ...doc, isSignedContract: false } : doc
+      }),
+    )
+  }
+
   const getDocumentIcon = (type) => {
     switch (type.toLowerCase()) {
       case "pdf":
@@ -215,22 +240,11 @@ export function DocumentManagementModal({ contract, onClose }) {
               <span className="font-medium text-white">{contract.memberName}</span>'s Contract Documents
             </p>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              {/* Status Selection Dropdown */}
-              <select 
-                value={documentStatus}
-                onChange={(e) => setDocumentStatus(e.target.value)}
-                className="mr-2 px-2 py-2 bg-[#2a2a2a] text-white rounded-xl text-sm"
-              >
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
               <button
                 onClick={handleUploadClick}
-                className="text-sm gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
+                className="text-sm gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto flex items-center justify-center"
               >
+                <Upload className="w-4 h-4 mr-2" />
                 Upload Document
               </button>
             </div>
@@ -246,7 +260,7 @@ export function DocumentManagementModal({ contract, onClose }) {
               <li>If using paper signature, print the document</li>
               <li>Have all parties sign the printed document</li>
               <li>Scan or take a clear photo of all signed pages</li>
-              <li>Select a status and click "Upload Document"</li>
+              <li>Upload the document and mark it as "Signed Contract"</li>
             </ol>
           </div>
         )}
@@ -323,9 +337,9 @@ export function DocumentManagementModal({ contract, onClose }) {
                           <>
                             <p className="text-white font-medium truncate">
                               {doc.name}
-                              {doc.status && (
+                              {doc.isSignedContract && (
                                 <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
-                                  {doc.status}
+                                  Signed Contract
                                 </span>
                               )}
                             </p>
@@ -338,6 +352,15 @@ export function DocumentManagementModal({ contract, onClose }) {
                     </div>
                     {editingDocId !== doc.id && (
                       <div className="flex gap-2 mt-3 sm:mt-0 justify-end">
+                        <button
+                          onClick={() => toggleSignedContract(doc.id)}
+                          className={`p-2 ${
+                            doc.isSignedContract ? "bg-green-600 text-white" : "bg-[#2a2a2a] text-gray-300"
+                          } rounded-md hover:opacity-90 transition-colors`}
+                          title={doc.isSignedContract ? "Remove Signed Contract Tag" : "Mark as Signed Contract"}
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleViewDocument(doc)}
                           className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"

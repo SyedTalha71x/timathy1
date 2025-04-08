@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-"use client";
-import { useState, useEffect, useRef } from "react";
+"use client"
+import { useState, useEffect, useRef } from "react"
 import {
   Menu,
   X,
@@ -17,34 +17,34 @@ import {
   Calendar,
   Plus,
   XCircle,
-} from "lucide-react";
-import { IoIosMegaphone } from "react-icons/io";
-import CommuncationBg from "../../public/communication-bg.svg";
-import AddAppointmentModal from "../components/add-appointment-modal";
-import SelectedAppointmentModal from "../components/selected-appointment-modal";
+} from "lucide-react"
+import { IoIosMegaphone } from "react-icons/io"
+import CommuncationBg from "../../public/communication-bg.svg"
+import AddAppointmentModal from "../components/add-appointment-modal"
+import SelectedAppointmentModal from "../components/selected-appointment-modal"
 
-const img1 = "/Rectangle 1.png";
-const img2 = "/avatar3.png";
+const img1 = "/Rectangle 1.png"
+const img2 = "/avatar3.png"
 
 export default function Communications() {
-  const [isMessagesOpen, setIsMessagesOpen] = useState(true);
-  const [activeDropdownId, setActiveDropdownId] = useState(null);
-  const [showChatDropdown, setShowChatDropdown] = useState(false);
-  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [chatType, setChatType] = useState("member");
-  const [activeScreen, setActiveScreen] = useState("chat");
-  const [selectedMembers, setSelectedMembers] = useState([]);
-  const [messageText, setMessageText] = useState("");
-  const [selectedChat, setSelectedChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [showRecipientDropdown, setShowRecipientDropdown] = useState(false);
-  const [selectedRecipients, setSelectedRecipients] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showMediaUpload, setShowMediaUpload] = useState(false);
-  const [chatList, setChatList] = useState([]);
-  const [searchMember, setSearchMember] = useState("");
+  const [isMessagesOpen, setIsMessagesOpen] = useState(true)
+  const [activeDropdownId, setActiveDropdownId] = useState(null)
+  const [showChatDropdown, setShowChatDropdown] = useState(false)
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [chatType, setChatType] = useState("member")
+  const [activeScreen, setActiveScreen] = useState("chat")
+  const [selectedMembers, setSelectedMembers] = useState([])
+  const [messageText, setMessageText] = useState("")
+  const [selectedChat, setSelectedChat] = useState(null)
+  const [messages, setMessages] = useState([])
+  const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
+  const [selectedRecipients, setSelectedRecipients] = useState([])
+  const [selectAll, setSelectAll] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showMediaUpload, setShowMediaUpload] = useState(false)
+  const [chatList, setChatList] = useState([])
+  const [searchMember, setSearchMember] = useState("")
   const [preConfiguredMessages, setPreConfiguredMessages] = useState([
     {
       id: 1,
@@ -66,49 +66,48 @@ export default function Communications() {
       title: "Welcome Message",
       message: "Welcome to our platform! We're glad to have you here.",
     },
-  ]);
-  const [selectedMessage, setSelectedMessage] = useState(null);
-  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  ])
+  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
   const [appointments, setAppointments] = useState([
-    { 
-      id: 1, 
-      title: "Initial Consultation", 
-      date: "2025-03-15T10:00", 
+    {
+      id: 1,
+      title: "Initial Consultation",
+      date: "2025-03-15T10:00",
       status: "upcoming",
-      type: "Consultation" // Add this
+      type: "Consultation", // Add this
     },
-    { 
-      id: 2, 
-      title: "Follow-up Meeting", 
-      date: "2025-03-20T14:30", 
+    {
+      id: 2,
+      title: "Follow-up Meeting",
+      date: "2025-03-20T14:30",
       status: "upcoming",
-      type: "Follow-up" // Add this
+      type: "Follow-up", // Add this
     },
-    { 
-      id: 3, 
-      title: "Annual Review", 
-      date: "2025-04-05T11:00", 
+    {
+      id: 3,
+      title: "Annual Review",
+      date: "2025-04-05T11:00",
       status: "upcoming",
-      type: "Annual Review" // Add this
+      type: "Annual Review", // Add this
     },
   ])
-  const [editingAppointment, setEditingAppointment] = useState(null);
+  const [editingAppointment, setEditingAppointment] = useState(null)
   const [newAppointment, setNewAppointment] = useState({
     title: "",
     date: "",
     status: "upcoming",
-  });
-  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false);
-  const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] =
-    useState(false);
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false);
-  const [notifyAction, setNotifyAction] = useState("");
-  const [selectedAppointmentData, setSelectedAppointmentData] = useState(null);
+  })
+  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
+  const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [notifyAction, setNotifyAction] = useState("")
+  const [selectedAppointmentData, setSelectedAppointmentData] = useState(null)
   const [appointmentTypes, setAppointmentTypes] = useState([
     { name: "Consultation", duration: 30, color: "bg-blue-700" },
     { name: "Follow-up", duration: 45, color: "bg-green-700" },
     { name: "Annual Review", duration: 60, color: "bg-purple-600" },
-  ]);
+  ])
   const [freeAppointments, setFreeAppointments] = useState([
     { id: 1, date: "2025-03-15", time: "9:00 AM" },
     { id: 2, date: "2025-03-15", time: "11:00 AM" },
@@ -117,23 +116,23 @@ export default function Communications() {
     { id: 5, date: "2025-03-20", time: "1:30 PM" },
     { id: 6, date: "2025-04-05", time: "9:30 AM" },
     { id: 7, date: "2025-04-05", time: "3:00 PM" },
-  ]);
+  ])
   // New state for create message modal
-  const [showCreateMessageModal, setShowCreateMessageModal] = useState(false);
-  const [newMessage, setNewMessage] = useState({ title: "", message: "" });
+  const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
+  const [newMessage, setNewMessage] = useState({ title: "", message: "" })
 
-  const searchInputRef = useRef(null);
-  const dropdownRef = useRef(null);
-  const chatDropdownRef = useRef(null);
-  const groupDropdownRef = useRef(null);
-  const buttonRef = useRef(null);
-  const recipientDropdownRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const messagesEndRef = useRef(null);
+  const searchInputRef = useRef(null)
+  const dropdownRef = useRef(null)
+  const chatDropdownRef = useRef(null)
+  const groupDropdownRef = useRef(null)
+  const buttonRef = useRef(null)
+  const recipientDropdownRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const messagesEndRef = useRef(null)
 
   const handleSearchClick = () => {
-    setIsSearchOpen(!isSearchOpen);
-  };
+    setIsSearchOpen(!isSearchOpen)
+  }
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -143,48 +142,39 @@ export default function Communications() {
         buttonRef.current &&
         !buttonRef.current.contains(event.target)
       ) {
-        setActiveDropdownId(null);
+        setActiveDropdownId(null)
       }
 
-      if (
-        chatDropdownRef.current &&
-        !chatDropdownRef.current.contains(event.target)
-      ) {
-        setShowChatDropdown(false);
+      if (chatDropdownRef.current && !chatDropdownRef.current.contains(event.target)) {
+        setShowChatDropdown(false)
       }
 
-      if (
-        groupDropdownRef.current &&
-        !groupDropdownRef.current.contains(event.target)
-      ) {
-        setShowGroupDropdown(false);
+      if (groupDropdownRef.current && !groupDropdownRef.current.contains(event.target)) {
+        setShowGroupDropdown(false)
       }
 
-      if (
-        recipientDropdownRef.current &&
-        !recipientDropdownRef.current.contains(event.target)
-      ) {
-        setShowRecipientDropdown(false);
+      if (recipientDropdownRef.current && !recipientDropdownRef.current.contains(event.target)) {
+        setShowRecipientDropdown(false)
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   const handleNewChat = () => {
-    setShowChatDropdown(true);
-    setShowGroupDropdown(false);
-    setActiveDropdownId(null);
-  };
+    setShowChatDropdown(true)
+    setShowGroupDropdown(false)
+    setActiveDropdownId(null)
+  }
 
   const handleNewGroup = () => {
-    setShowGroupDropdown(true);
-    setShowChatDropdown(false);
-    setActiveDropdownId(null);
-  };
+    setShowGroupDropdown(true)
+    setShowChatDropdown(false)
+    setActiveDropdownId(null)
+  }
 
   const employeeChatList = [
     {
@@ -199,15 +189,13 @@ export default function Communications() {
         {
           id: 1,
           sender: "Jennifer",
-          content:
-            "Oh, hello! All perfectly. I will check it and get back to you soon.",
+          content: "Oh, hello! All perfectly. I will check it and get back to you soon.",
           time: "04:45 PM",
         },
         {
           id: 2,
           sender: "You",
-          content:
-            "Yes, hello! All perfectly. I will check it and get back to you soon.",
+          content: "Yes, hello! All perfectly. I will check it and get back to you soon.",
           time: "04:45 PM",
         },
       ],
@@ -234,7 +222,7 @@ export default function Communications() {
         },
       ],
     },
-  ];
+  ]
 
   const memberChatList = [
     {
@@ -301,28 +289,28 @@ export default function Communications() {
         },
       ],
     },
-  ];
+  ]
 
   useEffect(() => {
-    setChatList(chatType === "employee" ? employeeChatList : memberChatList);
-  }, [chatType]);
+    setChatList(chatType === "employee" ? employeeChatList : memberChatList)
+  }, [chatType])
 
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
-  }, []);
+  }, [])
 
   const handleCloseChat = (chatId, e) => {
-    e.stopPropagation();
-    setChatList((prevList) => prevList.filter((chat) => chat.id !== chatId));
+    e.stopPropagation()
+    setChatList((prevList) => prevList.filter((chat) => chat.id !== chatId))
     if (selectedChat && selectedChat.id === chatId) {
-      setSelectedChat(null);
+      setSelectedChat(null)
     }
-  };
+  }
 
   const handleSendMessage = () => {
-    if (!messageText.trim() || !selectedChat) return;
+    if (!messageText.trim() || !selectedChat) return
 
     const newMessage = {
       id: messages.length + 1,
@@ -332,9 +320,9 @@ export default function Communications() {
         hour: "2-digit",
         minute: "2-digit",
       }),
-    };
+    }
 
-    setMessages([...messages, newMessage]);
+    setMessages([...messages, newMessage])
 
     // Also update the message in the chat list
     setChatList((prevList) =>
@@ -345,42 +333,42 @@ export default function Communications() {
               messages: [...(chat.messages || []), newMessage],
               message: messageText, // Update the preview message
             }
-          : chat
-      )
-    );
+          : chat,
+      ),
+    )
 
-    setMessageText("");
-  };
+    setMessageText("")
+  }
 
   const handleAppointmentChange = (changes) => {
     if (selectedAppointmentData) {
       setSelectedAppointmentData({
         ...selectedAppointmentData,
         ...changes,
-      });
+      })
     }
-  };
+  }
 
   const handleDeleteAppointment = (id) => {
-    setAppointments(appointments.filter((app) => app.id !== id));
-    setSelectedAppointmentData(null);
-    setShowSelectedAppointmentModal(false);
-    setIsNotifyMemberOpen(true);
-    setNotifyAction("delete");
-  };
+    setAppointments(appointments.filter((app) => app.id !== id))
+    setSelectedAppointmentData(null)
+    setShowSelectedAppointmentModal(false)
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("delete")
+  }
 
   const handleAddAppointmentSubmit = (data) => {
     const newAppointment = {
       id: Math.max(0, ...appointments.map((a) => a.id)) + 1,
       ...data,
-    };
-    setAppointments([...appointments, newAppointment]);
-    setShowAddAppointmentModal(false);
-  };
+    }
+    setAppointments([...appointments, newAppointment])
+    setShowAddAppointmentModal(false)
+  }
 
   const handleCalendarClick = () => {
-    setShowAppointmentModal(true);
-  };
+    setShowAppointmentModal(true)
+  }
 
   const handleEditAppointment = (appointment) => {
     const fullAppointment = {
@@ -392,136 +380,128 @@ export default function Communications() {
         startDate: "",
         endDate: "",
       },
-    };
-    setSelectedAppointmentData(fullAppointment);
-    setShowSelectedAppointmentModal(true);
-    setShowAppointmentModal(false);
-  };
+    }
+    setSelectedAppointmentData(fullAppointment)
+    setShowSelectedAppointmentModal(true)
+    setShowAppointmentModal(false)
+  }
 
   const handleCreateNewAppointment = () => {
-    setShowAddAppointmentModal(true);
-    setShowAppointmentModal(false);
-  };
+    setShowAddAppointmentModal(true)
+    setShowAppointmentModal(false)
+  }
 
   // Updated to handle selecting all recipients
   const handleMemberSelect = (member) => {
-    setSelectedRecipients((prev) =>
-      prev.includes(member)
-        ? prev.filter((m) => m !== member)
-        : [...prev, member]
-    );
-  };
+    setSelectedRecipients((prev) => (prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]))
+  }
 
   // Updated to properly handle select all functionality
   const handleSelectAll = () => {
-    const newSelectAll = !selectAll;
-    setSelectAll(newSelectAll);
+    const newSelectAll = !selectAll
+    setSelectAll(newSelectAll)
 
     if (newSelectAll) {
       // Filter recipients based on search if there is any
       const filteredList = chatList.filter(
-        (chat) =>
-          searchMember === "" ||
-          chat.name.toLowerCase().includes(searchMember.toLowerCase())
-      );
-      setSelectedRecipients(filteredList);
+        (chat) => searchMember === "" || chat.name.toLowerCase().includes(searchMember.toLowerCase()),
+      )
+      setSelectedRecipients(filteredList)
     } else {
-      setSelectedRecipients([]);
+      setSelectedRecipients([])
     }
-  };
+  }
 
   const handleEmojiSelect = (emoji) => {
-    setMessageText((prevText) => prevText + emoji.native);
-    setShowEmojiPicker(false);
-  };
+    setMessageText((prevText) => prevText + emoji.native)
+    setShowEmojiPicker(false)
+  }
 
   const handleFileUpload = (event) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
       // Handle file upload logic here
-      console.log("File uploaded:", file.name);
-      setShowMediaUpload(false);
+      console.log("File uploaded:", file.name)
+      setShowMediaUpload(false)
     }
-  };
+  }
 
   // Updated to properly send broadcast messages
   const handleBroadcast = () => {
     if (!selectedMessage) {
-      alert("Please select a message to broadcast");
-      return;
+      alert("Please select a message to broadcast")
+      return
     }
 
     if (selectedRecipients.length === 0) {
-      alert("Please select at least one recipient");
-      return;
+      alert("Please select at least one recipient")
+      return
     }
 
     // In a real application, you would send this to your backend
-    console.log("Broadcasting message to recipients:", selectedRecipients);
-    console.log("Broadcast title:", selectedMessage.title);
-    console.log("Broadcast message:", selectedMessage.message);
+    console.log("Broadcasting message to recipients:", selectedRecipients)
+    console.log("Broadcast title:", selectedMessage.title)
+    console.log("Broadcast message:", selectedMessage.message)
 
     // Show success message
-    alert(`Broadcast sent to ${selectedRecipients.length} recipients`);
+    alert(`Broadcast sent to ${selectedRecipients.length} recipients`)
 
     // Reset state and return to chat
-    setSelectedMessage(null);
-    setSelectedRecipients([]);
-    setActiveScreen("chat");
-  };
+    setSelectedMessage(null)
+    setSelectedRecipients([])
+    setActiveScreen("chat")
+  }
 
   // New function to handle creating a new message
   const handleCreateMessage = () => {
-    setShowCreateMessageModal(true);
-  };
+    setShowCreateMessageModal(true)
+  }
 
   // New function to save a new message
   const handleSaveNewMessage = () => {
     if (!newMessage.title.trim() || !newMessage.message.trim()) {
-      alert("Please enter both title and message");
-      return;
+      alert("Please enter both title and message")
+      return
     }
 
-    const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1;
+    const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1
     const messageToAdd = {
       id: newId,
       title: newMessage.title,
       message: newMessage.message,
-    };
+    }
 
-    setPreConfiguredMessages([...preConfiguredMessages, messageToAdd]);
-    setSelectedMessage(messageToAdd);
-    setShowCreateMessageModal(false);
-    setNewMessage({ title: "", message: "" });
-  };
+    setPreConfiguredMessages([...preConfiguredMessages, messageToAdd])
+    setSelectedMessage(messageToAdd)
+    setShowCreateMessageModal(false)
+    setNewMessage({ title: "", message: "" })
+  }
 
   const handleChatSelect = (chat) => {
-    setSelectedChat(chat);
-    setMessages(chat.messages || []);
-    setIsMessagesOpen(false);
-  };
+    setSelectedChat(chat)
+    setMessages(chat.messages || [])
+    setIsMessagesOpen(false)
+  }
 
   const handleCancelAppointment = (id) => {
     // Instead of immediately deleting, show confirmation modal
-    setSelectedAppointmentData(appointments.find((app) => app.id === id));
-    setIsNotifyMemberOpen(true);
-    setNotifyAction("delete");
-  };
+    setSelectedAppointmentData(appointments.find((app) => app.id === id))
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("delete")
+  }
 
   const handleSaveAppointment = () => {
     if (editingAppointment) {
       setAppointments(
-        appointments.map((app) =>
-          app.id === editingAppointment.id ? { ...app, ...newAppointment } : app
-        )
-      );
-      setEditingAppointment(null);
+        appointments.map((app) => (app.id === editingAppointment.id ? { ...app, ...newAppointment } : app)),
+      )
+      setEditingAppointment(null)
     } else {
-      const id = Math.max(0, ...appointments.map((a) => a.id)) + 1;
-      setAppointments([...appointments, { id, ...newAppointment }]);
+      const id = Math.max(0, ...appointments.map((a) => a.id)) + 1
+      setAppointments([...appointments, { id, ...newAppointment }])
     }
-    setNewAppointment({ title: "", date: "", status: "upcoming" });
-  };
+    setNewAppointment({ title: "", date: "", status: "upcoming" })
+  }
 
   return (
     <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
@@ -536,9 +516,7 @@ export default function Communications() {
       {/* Sidebar */}
       <div
         className={`fixed md:relative inset-y-0 left-0 md:w-[380px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${
-          isMessagesOpen
-            ? "translate-x-0"
-            : "-translate-x-full md:translate-x-0"
+          isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } bg-black z-40`}
       >
         <div className="p-4 h-full flex flex-col relative">
@@ -575,19 +553,13 @@ export default function Communications() {
               >
                 Member
               </button>
-              <button
-                className={`px-4 py-2 text-sm border border-slate-300 rounded-xl`}
-              >
-                Email
-              </button>
+              <button className={`px-4 py-2 text-sm border border-slate-300 rounded-xl`}>Email</button>
             </div>
 
             <div className="relative">
               <button
                 ref={buttonRef}
-                onClick={() =>
-                  setActiveDropdownId(activeDropdownId ? null : "main")
-                }
+                onClick={() => setActiveDropdownId(activeDropdownId ? null : "main")}
                 className="p-2 hover:bg-gray-800 rounded-full"
                 aria-label="More options"
               >
@@ -606,10 +578,7 @@ export default function Communications() {
                     New Chat
                   </button>
                   <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto" />
-                  <button
-                    className="w-full px-4 py-2 text-sm hover:bg-gray-800 text-left"
-                    onClick={handleNewGroup}
-                  >
+                  <button className="w-full px-4 py-2 text-sm hover:bg-gray-800 text-left" onClick={handleNewGroup}>
                     New Group
                   </button>
                   <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto" />
@@ -634,9 +603,7 @@ export default function Communications() {
                         className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl cursor-pointer"
                       >
                         <img
-                          src={
-                            chat.logo || "/placeholder.svg?height=32&width=32"
-                          }
+                          src={chat.logo || "/placeholder.svg?height=32&width=32"}
                           alt={`${chat.name}'s avatar`}
                           width={32}
                           height={32}
@@ -668,9 +635,7 @@ export default function Communications() {
                         className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-xl cursor-pointer"
                       >
                         <img
-                          src={
-                            chat.logo || "/placeholder.svg?height=32&width=32"
-                          }
+                          src={chat.logo || "/placeholder.svg?height=32&width=32"}
                           alt={`${chat.name}'s avatar`}
                           width={32}
                           height={32}
@@ -706,9 +671,7 @@ export default function Communications() {
               <div
                 key={index}
                 className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${
-                  selectedChat?.id === chat.id
-                    ? "bg-[#181818]"
-                    : "hover:bg-[#181818]"
+                  selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
                 } cursor-pointer relative group`}
                 onClick={() => handleChatSelect(chat)}
               >
@@ -797,9 +760,8 @@ export default function Communications() {
               />
             </div>
             <p className="md:w-[50%] text-gray-400 text-sm mx-auto w-full">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam
-              odio quaerat aliquam magnam omnis inventore deserunt unde ut
-              explicabo corporis.
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam odio quaerat aliquam magnam omnis
+              inventore deserunt unde ut explicabo corporis.
             </p>
           </div>
         )}
@@ -832,10 +794,7 @@ export default function Communications() {
                 <span className="font-medium">{selectedChat.name}</span>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  className="text-blue-500 hover:text-blue-400"
-                  aria-label="Star conversation"
-                >
+                <button className="text-blue-500 hover:text-blue-400" aria-label="Star conversation">
                   <Star className="w-6 h-6" />
                 </button>
                 <button
@@ -877,17 +836,8 @@ export default function Communications() {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-3 ${
-                    message.sender === "You" ? "justify-end" : ""
-                  }`}
-                >
-                  <div
-                    className={`flex flex-col gap-1 ${
-                      message.sender === "You" ? "items-end" : ""
-                    }`}
-                  >
+                <div key={message.id} className={`flex gap-3 ${message.sender === "You" ? "justify-end" : ""}`}>
+                  <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""}`}>
                     <div
                       className={`rounded-xl p-4 text-sm max-w-md ${
                         message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
@@ -895,9 +845,7 @@ export default function Communications() {
                     >
                       <p>{message.content}</p>
                     </div>
-                    <span className="text-sm text-gray-400">
-                      {message.time}
-                    </span>
+                    <span className="text-sm text-gray-400">{message.time}</span>
                   </div>
                 </div>
               ))}
@@ -921,8 +869,8 @@ export default function Communications() {
                   onChange={(e) => setMessageText(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
+                      e.preventDefault()
+                      handleSendMessage()
                     }
                   }}
                 />
@@ -930,16 +878,10 @@ export default function Communications() {
                   <button onClick={() => setShowMediaUpload(!showMediaUpload)}>
                     <Plus size={20} className="cursor-pointer" />
                   </button>
-                  <button
-                    className="p-2 hover:bg-gray-700 rounded-full"
-                    aria-label="Voice message"
-                  >
+                  <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Voice message">
                     <Mic className="w-5 h-5 text-gray-200" />
                   </button>
-                  <button
-                    className="p-2 hover:bg-gray-700 rounded-full"
-                    aria-label="Send thumbs up"
-                  >
+                  <button className="p-2 hover:bg-gray-700 rounded-full" aria-label="Send thumbs up">
                     <ThumbsUp className="w-5 h-5 text-gray-200" />
                   </button>
                   <button
@@ -957,18 +899,7 @@ export default function Communications() {
                   <div className="bg-gray-800 rounded-lg shadow-lg p-2">
                     {/* This is a placeholder for the emoji picker component */}
                     <div className="grid grid-cols-5 gap-2">
-                      {[
-                        "😀",
-                        "😂",
-                        "😊",
-                        "❤️",
-                        "👍",
-                        "🎉",
-                        "🔥",
-                        "⭐",
-                        "🙏",
-                        "👏",
-                      ].map((emoji, i) => (
+                      {["😀", "😂", "😊", "❤️", "👍", "🎉", "🔥", "⭐", "🙏", "👏"].map((emoji, i) => (
                         <button
                           key={i}
                           className="p-2 hover:bg-gray-700 rounded-md"
@@ -1008,10 +939,7 @@ export default function Communications() {
               <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-medium">New Broadcast</h2>
-                  <button
-                    onClick={() => setActiveScreen("chat")}
-                    className="p-2 hover:bg-zinc-700 rounded-lg"
-                  >
+                  <button onClick={() => setActiveScreen("chat")} className="p-2 hover:bg-zinc-700 rounded-lg">
                     <X size={16} />
                   </button>
                 </div>
@@ -1027,15 +955,11 @@ export default function Communications() {
                           key={msg.id}
                           onClick={() => setSelectedMessage(msg)}
                           className={`p-3 cursor-pointer hover:bg-[#2F2F2F] ${
-                            selectedMessage?.id === msg.id
-                              ? "bg-[#2F2F2F] border-l-4 border-blue-500"
-                              : ""
+                            selectedMessage?.id === msg.id ? "bg-[#2F2F2F] border-l-4 border-blue-500" : ""
                           }`}
                         >
                           <p className="font-medium text-sm">{msg.title}</p>
-                          <p className="text-xs text-gray-400 truncate">
-                            {msg.message}
-                          </p>
+                          <p className="text-xs text-gray-400 truncate">{msg.message}</p>
                         </div>
                       ))}
                     </div>
@@ -1054,10 +978,10 @@ export default function Communications() {
                   <div className="relative">
                     <button
                       onClick={() => {
-                        setShowRecipientDropdown(!showRecipientDropdown);
+                        setShowRecipientDropdown(!showRecipientDropdown)
                         // When opening the dropdown, ensure search is visible
                         if (!showRecipientDropdown) {
-                          setSearchMember("");
+                          setSearchMember("")
                         }
                       }}
                       className="w-full py-3 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
@@ -1083,9 +1007,7 @@ export default function Communications() {
                             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                           </div>
                           <div className="flex items-center justify-between mt-2">
-                            <span className="text-sm text-gray-300">
-                              Select all
-                            </span>
+                            <span className="text-sm text-gray-300">Select all</span>
                             <input
                               type="checkbox"
                               checked={selectAll}
@@ -1097,10 +1019,7 @@ export default function Communications() {
                         {chatList
                           .filter(
                             (chat) =>
-                              searchMember === "" ||
-                              chat.name
-                                .toLowerCase()
-                                .includes(searchMember.toLowerCase())
+                              searchMember === "" || chat.name.toLowerCase().includes(searchMember.toLowerCase()),
                           )
                           .map((chat, index) => (
                             <div
@@ -1109,16 +1028,11 @@ export default function Communications() {
                             >
                               <div className="flex items-center gap-2">
                                 <img
-                                  src={
-                                    chat.logo ||
-                                    "/placeholder.svg?height=32&width=32"
-                                  }
+                                  src={chat.logo}
                                   alt={chat.name}
                                   className="h-8 w-8 rounded-full"
                                 />
-                                <span className="text-sm text-gray-300">
-                                  {chat.name}
-                                </span>
+                                <span className="text-sm text-gray-300">{chat.name}</span>
                               </div>
                               <input
                                 type="checkbox"
@@ -1134,22 +1048,14 @@ export default function Communications() {
 
                   <div className="space-y-2">
                     {selectedRecipients.map((recipient, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between bg-[#222222] rounded-xl p-3"
-                      >
+                      <div key={i} className="flex items-center justify-between bg-[#222222] rounded-xl p-3">
                         <div className="flex items-center gap-2">
                           <img
-                            src={
-                              recipient.logo ||
-                              "/placeholder.svg?height=32&width=32"
-                            }
+                            src={recipient.logo || "/placeholder.svg"}
                             alt={recipient.name}
                             className="h-8 w-8 rounded-full"
                           />
-                          <span className="text-sm text-gray-300">
-                            {recipient.name}
-                          </span>
+                          <span className="text-sm text-gray-300">{recipient.name}</span>
                         </div>
                         <button
                           className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center"
@@ -1168,9 +1074,7 @@ export default function Communications() {
                         ? "bg-[#FF843E] text-sm hover:bg-orange-600"
                         : "bg-gray-600"
                     } text-white text-sm rounded-xl`}
-                    disabled={
-                      !selectedMessage || selectedRecipients.length === 0
-                    }
+                    disabled={!selectedMessage || selectedRecipients.length === 0}
                   >
                     Send Broadcast
                   </button>
@@ -1184,13 +1088,8 @@ export default function Communications() {
           <div className="flex-1 flex flex-col p-4">
             <h2 className="text-2xl font-bold mb-4">Book Appointment</h2>
             <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">
-                Select Date and Time:
-              </h3>
-              <input
-                type="datetime-local"
-                className="w-full p-2 bg-gray-800 text-white rounded-md"
-              />
+              <h3 className="text-lg font-semibold mb-2">Select Date and Time:</h3>
+              <input type="datetime-local" className="w-full p-2 bg-gray-800 text-white rounded-md" />
             </div>
             <div className="mb-4">
               <h3 className="text-lg font-semibold mb-2">Appointment Type:</h3>
@@ -1217,8 +1116,8 @@ export default function Communications() {
               <button
                 onClick={() => {
                   // Handle appointment booking logic here
-                  alert("Appointment booked successfully!");
-                  setActiveScreen("chat");
+                  alert("Appointment booked successfully!")
+                  setActiveScreen("chat")
                 }}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
@@ -1234,18 +1133,16 @@ export default function Communications() {
           <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium">
-                  {selectedChat?.name}'s Appointments
-                </h2>
+                <h2 className="text-lg font-medium">{selectedChat?.name}'s Appointments</h2>
                 <button
                   onClick={() => {
-                    setShowAppointmentModal(false);
-                    setEditingAppointment(null);
+                    setShowAppointmentModal(false)
+                    setEditingAppointment(null)
                     setNewAppointment({
                       title: "",
                       date: "",
                       status: "upcoming",
-                    });
+                    })
                   }}
                   className="p-2 hover:bg-zinc-700 rounded-lg"
                 >
@@ -1255,17 +1152,11 @@ export default function Communications() {
 
               {/* Appointment List */}
               <div className="space-y-3 mb-4">
-                <h3 className="text-sm font-medium text-gray-400">
-                  Upcoming Appointments
-                </h3>
+                <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
                 {appointments.length > 0 ? (
                   appointments.map((appointment) => {
-                    const appointmentType = appointmentTypes.find(
-                      (type) => type.name === appointment.type
-                    );
-                    const backgroundColor = appointmentType
-                      ? appointmentType.color
-                      : "bg-gray-700";
+                    const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
+                    const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
 
                     return (
                       <div
@@ -1275,73 +1166,84 @@ export default function Communications() {
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="font-medium text-sm text-white">
-                              {appointment.title}
-                            </p>
-                            <p className="text-sm text-white/70">
-                              {new Date(appointment.date).toLocaleString([], {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
+                            <p className="font-medium text-sm text-white">{appointment.title}</p>
+                            <div>
+                              <p className="text-sm text-white/70">
+                                {new Date(appointment.date).toLocaleString([], {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </p>
+                              <p className="text-xs text-white/70">
+                                {new Date(appointment.date).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}{" "}
+                                -{" "}
+                                {new Date(
+                                  new Date(appointment.date).getTime() + (appointmentType?.duration || 30) * 60000,
+                                ).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
                           </div>
                           <div className="flex gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleEditAppointment(appointment)
-                            }}
-                            className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-full"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="lucide lucide-pencil"
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEditAppointment(appointment)
+                              }}
+                              className="p-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-full"
                             >
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                              <path d="m15 5 4 4" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleCancelAppointment(appointment.id)
-                            }}
-                            className="p-1.5 bg-red-600 hover:bg-red-700 rounded-full"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="lucide lucide-trash-2"
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="lucide lucide-pencil"
+                              >
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                <path d="m15 5 4 4" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleCancelAppointment(appointment.id)
+                              }}
+                              className="p-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-full"
                             >
-                              <path d="M3 6h18" />
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                              <line x1="10" x2="10" y1="11" y2="17" />
-                              <line x1="14" x2="14" y1="11" y2="17" />
-                            </svg>
-                          </button>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="lucide lucide-trash-2"
+                              >
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                <line x1="10" x2="10" y1="11" y2="17" />
+                                <line x1="14" x2="14" y1="11" y2="17" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
                       </div>
-                    );
+                    )
                   })
                 ) : (
                   <div className="text-center py-4 text-gray-400 bg-[#222222] rounded-xl">
@@ -1352,7 +1254,7 @@ export default function Communications() {
 
               <button
                 onClick={handleCreateNewAppointment}
-                className="w-full py-3 text-sm bg-[#FF843E] hover:bg-orange-600 text-white rounded-xl flex items-center justify-center gap-2"
+                className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
               >
                 <Plus size={18} />
                 Create New Appointment
@@ -1398,39 +1300,28 @@ export default function Communications() {
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-medium">Create New Message</h2>
-                <button
-                  onClick={() => setShowCreateMessageModal(false)}
-                  className="p-2 hover:bg-zinc-700 rounded-lg"
-                >
+                <button onClick={() => setShowCreateMessageModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
                   <X size={16} />
                 </button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Title
-                  </label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
                   <input
                     type="text"
                     value={newMessage.title}
-                    onChange={(e) =>
-                      setNewMessage({ ...newMessage, title: e.target.value })
-                    }
+                    onChange={(e) => setNewMessage({ ...newMessage, title: e.target.value })}
                     className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
                     placeholder="Enter message title"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Message
-                  </label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Message</label>
                   <textarea
                     value={newMessage.message}
-                    onChange={(e) =>
-                      setNewMessage({ ...newMessage, message: e.target.value })
-                    }
+                    onChange={(e) => setNewMessage({ ...newMessage, message: e.target.value })}
                     className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm h-32 resize-none"
                     placeholder="Enter your message content"
                   />
@@ -1439,9 +1330,7 @@ export default function Communications() {
                 <button
                   onClick={handleSaveNewMessage}
                   className="w-full py-3 bg-[#FF843E] text-sm hover:bg-orange-600 text-white rounded-xl"
-                  disabled={
-                    !newMessage.title.trim() || !newMessage.message.trim()
-                  }
+                  disabled={!newMessage.title.trim() || !newMessage.message.trim()}
                 >
                   Save Message
                 </button>
@@ -1456,22 +1345,15 @@ export default function Communications() {
           <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-white">
-                  Notify and Delete Member
-                </h2>
-                <button
-                  onClick={() => setIsNotifyMemberOpen(false)}
-                  className="p-2 hover:bg-zinc-700 rounded-lg"
-                >
+                <h2 className="text-lg font-medium text-white">Notify and Delete Member</h2>
+                <button onClick={() => setIsNotifyMemberOpen(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
                   <X size={16} />
                 </button>
               </div>
 
               <p className="text-gray-300 text-sm mb-4">
-                {notifyAction === "book" &&
-                  "Would you like to notify the member about their new appointment?"}
-                {notifyAction === "change" &&
-                  "Would you like to notify the member about changes to their appointment?"}
+                {notifyAction === "book" && "Would you like to notify the member about their new appointment?"}
+                {notifyAction === "change" && "Would you like to notify the member about changes to their appointment?"}
                 {notifyAction === "delete" &&
                   "Would you like to notify the member that their appointment has been cancelled?"}
               </p>
@@ -1485,10 +1367,8 @@ export default function Communications() {
                 </button>
                 <button
                   onClick={() => {
-                    alert(
-                      "Member has been notified and appointment is deleted"
-                    );
-                    setIsNotifyMemberOpen(false);
+                    alert("Member has been notified and appointment is deleted")
+                    setIsNotifyMemberOpen(false)
                   }}
                   className="px-4 py-1.5 bg-red-600 text-sm  text-white rounded-xl"
                 >
@@ -1500,5 +1380,5 @@ export default function Communications() {
         </div>
       )}
     </div>
-  );
+  )
 }

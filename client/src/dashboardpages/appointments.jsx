@@ -395,6 +395,31 @@ function Calendar({
     }),
   ];
 
+  const handleEventResize = (info) => {
+    const { event } = info;
+  
+    // Update the appointment in the state
+    const updatedAppointments = appointments.map((appointment) => {
+      if (appointment.id === Number(event.id)) {
+        return {
+          ...appointment,
+          startTime: event.start.toTimeString().split(" ")[0], // Start time stays the same
+          endTime: event.end.toTimeString().split(" ")[0], // New end time after resize
+          // Date format remains the same
+        };
+      }
+      return appointment;
+    });
+  
+    // Update the state with the new appointments
+    setAppointments(updatedAppointments);
+    
+    // Open notification modal to ask if user wants to notify member
+    setNotifyAction("change");
+    setEventInfo(info);
+    setIsNotifyMemberOpen(true);
+  };
+
   return (
     <>
       <div className="h-full w-full">
@@ -472,6 +497,7 @@ function Calendar({
               slotDuration="01:00:00"
               firstDay={1}
               eventClick={handleEventClick}
+              eventResize={handleEventResize}
               select={handleDateSelect}
               viewDidMount={handleViewChange}
               datesSet={handleViewChange}
@@ -874,14 +900,12 @@ export default function Appointments() {
   const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
 
-  // Add useEffect to update filteredAppointments when appointments change
   useEffect(() => {
     applyFilters()
   }, [appointments, selectedDate, searchQuery])
 
   const notePopoverRef = useRef(null)
 
-  // Effect to handle clicking outside of note popover
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
@@ -889,7 +913,6 @@ export default function Appointments() {
       }
     }
 
-    // Add event listener when popover is open
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -984,7 +1007,6 @@ export default function Appointments() {
         appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment,
       ),
     )
-    // Toast message changes based on check-in status
     toast.success(
       appointments.find((app) => app.id === appointmentId)?.isCheckedIn
         ? "Member checked In successfully"
@@ -992,10 +1014,6 @@ export default function Appointments() {
     )
   }
 
-  const handleAppointmentClick = (appointment) => {
-    setSelectedAppointment(appointment)
-    // Fetch free appointments here if needed
-  }
 
   const handleAppointmentChange = (changes) => {
     setSelectedAppointment((prev) => {
@@ -1274,7 +1292,7 @@ export default function Appointments() {
                                     handleCheckIn(appointment.id)
                                   }}
                                   className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
-                                    appointment.isCheckedIn ? "bg-gray-600 text-white" : "bg-black text-white"
+                                    appointment.isCheckedIn ? "bg-gray-500 bg-opacity-50 text-white" : "bg-black text-white"
                                   }`}
                                 >
                                   {appointment.isCheckedIn ? "Checked In" : "Check In"}

@@ -1,7 +1,5 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-"use client"
-
 import { useState, createContext } from "react"
 import { X, Calendar, Users } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
@@ -895,6 +893,10 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
   const [selectedDate, setSelectedDate] = useState(null)
   const [shiftPeriod, setShiftPeriod] = useState("")
   const [showShiftForm, setShowShiftForm] = useState(false)
+  // New state for date range booking
+  const [isRangeBooking, setIsRangeBooking] = useState(false)
+  const [startDate, setStartDate] = useState(null)
+  const [endDate, setEndDate] = useState(null)
 
   // Navigate to previous month
   const goToPreviousMonth = () => {
@@ -945,36 +947,102 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
     staffShifts[dateStr1] = "9:00-17:00"
     staffShifts[dateStr2] = "10:00-18:00"
     setShifts(staffShifts)
+
+    // Reset date range selection when changing staff
+    setStartDate(null)
+    setEndDate(null)
+    setIsRangeBooking(false)
   }
 
   const handleDateClick = (date) => {
-    const dateStr = date.toISOString().split("T")[0]
-    setSelectedDate(date)
-    setShiftPeriod(shifts[dateStr] || "")
-    setShowShiftForm(true)
+    if (isRangeBooking) {
+      // Handle date range selection
+      if (!startDate) {
+        setStartDate(date)
+      } else if (!endDate && date >= startDate) {
+        setEndDate(date)
+        // Open shift form after selecting both dates
+        setSelectedDate(startDate)
+        const dateStr = startDate.toISOString().split("T")[0]
+        setShiftPeriod(shifts[dateStr] || "")
+        setShowShiftForm(true)
+      } else {
+        // Reset and start new selection
+        setStartDate(date)
+        setEndDate(null)
+      }
+    } else {
+      // Original single date selection
+      const dateStr = date.toISOString().split("T")[0]
+      setSelectedDate(date)
+      setShiftPeriod(shifts[dateStr] || "")
+      setShowShiftForm(true)
+    }
   }
 
   const handleSaveShift = () => {
-    if (!selectedDate || !shiftPeriod) return
+    if (isRangeBooking && startDate && endDate) {
+      // Save shifts for the entire date range
+      const newShifts = { ...shifts }
+      const currentDate = new Date(startDate)
 
-    const dateStr = selectedDate.toISOString().split("T")[0]
-    setShifts((prev) => ({
-      ...prev,
-      [dateStr]: shiftPeriod,
-    }))
-    setShowShiftForm(false)
-    toast.success(`Shift saved for ${selectedDate.toLocaleDateString()}`)
+      while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split("T")[0]
+        newShifts[dateStr] = shiftPeriod
+        currentDate.setDate(currentDate.getDate() + 1)
+      }
+
+      setShifts(newShifts)
+      setShowShiftForm(false)
+      toast.success(`Shifts saved from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`)
+
+      // Reset date range selection
+      setStartDate(null)
+      setEndDate(null)
+    } else if (!isRangeBooking && selectedDate) {
+      // Original single date save
+      if (!selectedDate || !shiftPeriod) return
+
+      const dateStr = selectedDate.toISOString().split("T")[0]
+      setShifts((prev) => ({
+        ...prev,
+        [dateStr]: shiftPeriod,
+      }))
+      setShowShiftForm(false)
+      toast.success(`Shift saved for ${selectedDate.toLocaleDateString()}`)
+    }
   }
 
   const handleDeleteShift = () => {
-    if (!selectedDate) return
+    if (isRangeBooking && startDate && endDate) {
+      // Delete shifts for the entire date range
+      const newShifts = { ...shifts }
+      const currentDate = new Date(startDate)
 
-    const dateStr = selectedDate.toISOString().split("T")[0]
-    const newShifts = { ...shifts }
-    delete newShifts[dateStr]
-    setShifts(newShifts)
-    setShowShiftForm(false)
-    toast.success(`Shift deleted for ${selectedDate.toLocaleDateString()}`)
+      while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split("T")[0]
+        delete newShifts[dateStr]
+        currentDate.setDate(currentDate.getDate() + 1)
+      }
+
+      setShifts(newShifts)
+      setShowShiftForm(false)
+      toast.success(`Shifts deleted from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`)
+
+      // Reset date range selection
+      setStartDate(null)
+      setEndDate(null)
+    } else if (!isRangeBooking && selectedDate) {
+      // Original single date delete
+      if (!selectedDate) return
+
+      const dateStr = selectedDate.toISOString().split("T")[0]
+      const newShifts = { ...shifts }
+      delete newShifts[dateStr]
+      setShifts(newShifts)
+      setShowShiftForm(false)
+      toast.success(`Shift deleted for ${selectedDate.toLocaleDateString()}`)
+    }
   }
 
   const handleSaveAllShifts = () => {
@@ -985,10 +1053,24 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
     onClose()
   }
 
+  // Toggle between single date and date range booking modes
+  const toggleRangeBooking = () => {
+    setIsRangeBooking(!isRangeBooking)
+    setStartDate(null)
+    setEndDate(null)
+  }
+
   // Check if a date has a shift booked
   const hasShift = (date) => {
     const dateStr = date.toISOString().split("T")[0]
     return shifts[dateStr] !== undefined
+  }
+
+  // Check if a date is within the selected range
+  const isInSelectedRange = (date) => {
+    if (!startDate || !date) return false
+    if (!endDate) return date.getTime() === startDate.getTime()
+    return date >= startDate && date <= endDate
   }
 
   // Format the date for display
@@ -999,6 +1081,13 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
       month: "long",
       day: "numeric",
     })
+  }
+
+  // Format date range for display
+  const formatDateRange = () => {
+    if (!startDate) return "Select start date"
+    if (!endDate) return `From ${formatDate(startDate)} - Select end date`
+    return `From ${formatDate(startDate)} to ${formatDate(endDate)}`
   }
 
   return (
@@ -1040,8 +1129,12 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm text-gray-300 block mb-2">Date</label>
-                      <div className="bg-[#1C1C1C] px-4 py-2 rounded-lg">{formatDate(selectedDate)}</div>
+                      <label className="text-sm text-gray-300 block mb-2">
+                        {isRangeBooking ? "Date Range" : "Date"}
+                      </label>
+                      <div className="bg-[#1C1C1C] px-4 py-2 rounded-lg">
+                        {isRangeBooking ? formatDateRange() : formatDate(selectedDate)}
+                      </div>
                     </div>
 
                     <div>
@@ -1057,19 +1150,19 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 mt-6">
+                  <div className="flex flex-wrap gap-2 mt-6">
                     <button
                       onClick={handleSaveShift}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
                     >
-                      Save Shift
+                      {isRangeBooking ? "Save Shifts for Range" : "Save Shift"}
                     </button>
-                    {hasShift(selectedDate) && (
+                    {(isRangeBooking ? startDate && endDate : hasShift(selectedDate)) && (
                       <button
                         onClick={handleDeleteShift}
                         className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
                       >
-                        Delete Shift
+                        {isRangeBooking ? "Delete Shifts for Range" : "Delete Shift"}
                       </button>
                     )}
                     <button
@@ -1100,6 +1193,29 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                       </div>
                     </div>
 
+                    {/* Booking mode toggle */}
+                    <div className="flex justify-end mb-2">
+                      <button
+                        onClick={toggleRangeBooking}
+                        className={`text-xs px-3 py-1 rounded-lg ${
+                          isRangeBooking ? "bg-blue-600" : "bg-[#1C1C1C] hover:bg-gray-700"
+                        }`}
+                      >
+                        {isRangeBooking ? "Range Booking: ON" : "Range Booking: OFF"}
+                      </button>
+                    </div>
+
+                    {/* Range selection info */}
+                    {isRangeBooking && (
+                      <div className="mb-2 text-xs text-gray-300 bg-[#1C1C1C] p-2 rounded-lg">
+                        {!startDate
+                          ? "Select a start date"
+                          : !endDate
+                            ? "Now select an end date"
+                            : `Selected range: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`}
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-7 gap-1 mb-2">
                       {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
                         <div key={day} className="text-center text-xs font-medium py-1">
@@ -1115,6 +1231,7 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                         const dateStr = day.toISOString().split("T")[0]
                         const hasShiftBooked = shifts[dateStr] !== undefined
                         const isWeekend = day.getDay() === 0 || day.getDay() === 6
+                        const isSelected = isInSelectedRange(day)
 
                         return (
                           <div
@@ -1122,8 +1239,9 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                             className={`
                               relative text-center p-2 rounded-md text-sm cursor-pointer
                               ${hasShiftBooked ? "bg-blue-600/40" : ""}
+                              ${isSelected ? "bg-green-600/40 border border-green-500" : ""}
                               ${isWeekend ? "text-gray-500" : ""}
-                              ${!hasShiftBooked ? "hover:bg-gray-700" : "hover:bg-blue-600/60"}
+                              ${!hasShiftBooked && !isSelected ? "hover:bg-gray-700" : hasShiftBooked ? "hover:bg-blue-600/60" : ""}
                             `}
                             onClick={() => handleDateClick(day)}
                           >
@@ -1163,6 +1281,7 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                               onClick={() => {
                                 setSelectedDate(date)
                                 setShiftPeriod(period)
+                                setIsRangeBooking(false) // Switch to single date mode when editing
                                 setShowShiftForm(true)
                               }}
                             >
@@ -1198,7 +1317,6 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
     </div>
   )
 }
-
 
 
 function AttendanceOverviewModal({ staffMembers, onClose }) {

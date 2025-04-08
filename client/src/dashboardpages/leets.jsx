@@ -1,56 +1,341 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, Search, Tag, Circle, AlertTriangle, Info, Calendar, CalendarIcon } from "lucide-react"
-import { useState, useCallback, useEffect, useRef } from "react"
-import Avatar from "../../public/avatar.png"
+import { useState, useEffect, useRef } from "react"
+import { Search, X, AlertTriangle, Info, Calendar } from "lucide-react"
+import { DndProvider, useDrag, useDrop } from "react-dnd"
+import { HTML5Backend } from "react-dnd-html5-backend"
 import { AddLeadModal } from "../components/add-lead-modal"
 import { EditLeadModal } from "../components/edit-lead-modal"
 import { ViewLeadDetailsModal } from "../components/view-lead-details"
-import toast, { Toaster } from "react-hot-toast"
 import TrialTrainingModal from "../components/add-trial"
+import toast, { Toaster } from "react-hot-toast"
+import Avatar from "../../public/avatar.png"
 
-// Pagination component
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+// Lead Card Component
+const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, columnId, onDrop }) => {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: "LEAD",
+    item: { id: lead.id, sourceColumnId: columnId },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  }))
+
+  const [isNoteOpen, setIsNoteOpen] = useState(false)
+  const noteRef = useRef(null)
+
+  // Handle clicking outside the note popover
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (noteRef.current && !noteRef.current.contains(event.target)) {
+        setIsNoteOpen(false)
+      }
+    }
+
+    if (isNoteOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside)
+      }
+    }
+  }, [isNoteOpen])
+
+  // Format date helper function
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  // Check if note is valid (within date range)
+  const isNoteValid = (note) => {
+    if (!note || !note.text) return false
+
+    if (!note.startDate || !note.endDate) return true
+
+    const now = new Date()
+    const startDate = new Date(note.startDate)
+    const endDate = new Date(note.endDate)
+
+    return now >= startDate && now <= endDate
+  }
+
+  const hasValidNote = lead.specialNote && isNoteValid(lead.specialNote)
+
   return (
-    <div className="flex justify-center items-center gap-2 mt-4">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="px-3 py-1 rounded-lg bg-[#141414] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#242424] transition-colors"
-      >
-        Previous
-      </button>
-      <div className="flex gap-1">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-3 py-1 rounded-lg transition-colors ${
-              currentPage === page ? "bg-[#FF5733] text-white" : "bg-[#141414] text-white hover:bg-[#242424]"
-            }`}
+    <div ref={drag} className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 ${isDragging ? "opacity-50" : "opacity-100"}`}>
+      <div className="flex items-center mb-3 relative">
+        {hasValidNote && (
+          <div
+            className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"} rounded-full p-0.5 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer`}
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsNoteOpen(!isNoteOpen)
+            }}
           >
-            {page}
-          </button>
-        ))}
+            {lead.specialNote.isImportant ? (
+              <AlertTriangle size={14} className="text-white" />
+            ) : (
+              <Info size={14} className="text-white" />
+            )}
+          </div>
+        )}
+
+        {isNoteOpen && hasValidNote && (
+          <div
+            ref={noteRef}
+            className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-50"
+          >
+            {/* Header section with icon and title */}
+            <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+              {lead.specialNote.isImportant ? (
+                <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+              ) : (
+                <Info className="text-blue-500 shrink-0" size={18} />
+              )}
+              <h4 className="text-white flex gap-1 items-center font-medium">
+                <div>Special Note</div>
+                <div className="text-sm text-gray-400">
+                  {lead.specialNote.isImportant ? "(Important)" : "(Unimportant)"}
+                </div>
+              </h4>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsNoteOpen(false)
+                }}
+                className="ml-auto text-gray-400 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Note content */}
+            <div className="p-3">
+              <p className="text-white text-sm leading-relaxed">{lead.specialNote.text}</p>
+
+              {/* Date validity section */}
+              {lead.specialNote.startDate && lead.specialNote.endDate ? (
+                <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                  <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                    <Calendar size={12} />
+                    Valid from {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
+                    {new Date(lead.specialNote.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                  <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                    <Calendar size={12} />
+                    Always valid
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <img
+          src={lead.avatar || Avatar}
+          alt={`${lead.firstName} ${lead.surname}'s avatar`}
+          className="w-12 h-12 rounded-full mr-3 object-cover"
+        />
+        <div>
+          <h4 className="font-medium text-white">{`${lead.firstName} ${lead.surname}`}</h4>
+          <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
+          <p className="text-gray-500 text-xs">
+            Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
+          </p>
+        </div>
       </div>
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="px-3 py-1 rounded-lg bg-[#141414] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#242424] transition-colors"
-      >
-        Next
-      </button>
+      <div className="flex flex-wrap justify-center gap-1.5">
+        <button
+          onClick={() => onAddTrial(lead)}
+          className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full"
+        >
+          Add Trial Training
+        </button>
+        <button
+          onClick={() => onViewDetails(lead)}
+          className="text-xs rounded-xl bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 px-4 py-2 w-full"
+        >
+          View Details
+        </button>
+        <button
+          onClick={() => onEditLead(lead)}
+          className="text-xs rounded-xl bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 px-4 py-2 w-full"
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => onDeleteLead(lead.id)}
+          className="text-xs rounded-xl bg-transparent border border-gray-700 text-red-500 hover:bg-gray-800 px-4 py-2 w-full"
+        >
+          Delete
+        </button>
+      </div>
     </div>
   )
 }
 
+// Column Component
+const Column = ({
+  id,
+  title,
+  color,
+  leads,
+  onViewDetails,
+  onAddTrial,
+  onEditLead,
+  onDeleteLead,
+  onDrop,
+  isEditable,
+  onEditColumn,
+}) => {
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: "LEAD",
+    drop: (item) => onDrop(item.id, id),
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  }))
+
+  return (
+    <div className={`bg-[#141414] rounded-xl overflow-hidden ${isOver ? "ring-2 ring-white/20" : ""}`}>
+      <div className="p-3 flex justify-between items-center" style={{ backgroundColor: `${color}20` }}>
+        <div className="flex items-center">
+          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
+          <h3 className="font-medium text-white text-sm">{title}</h3>
+        </div>
+        {isEditable && (
+          <button
+            onClick={() => onEditColumn(id, title, color)}
+            className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="19" cy="12" r="1"></circle>
+              <circle cx="5" cy="12" r="1"></circle>
+            </svg>
+          </button>
+        )}
+      </div>
+
+      <div ref={drop} className="p-3 min-h-[400px]">
+        {leads.map((lead) => (
+          <LeadCard
+            key={lead.id}
+            lead={lead}
+            onViewDetails={onViewDetails}
+            onAddTrial={onAddTrial}
+            onEditLead={onEditLead}
+            onDeleteLead={onDeleteLead}
+            columnId={id}
+            onDrop={onDrop}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Edit Column Modal
+const EditColumnModal = ({ isVisible, onClose, column, onSave }) => {
+  const [title, setTitle] = useState("")
+  const [color, setColor] = useState("")
+
+  useEffect(() => {
+    if (column) {
+      setTitle(column.title)
+      setColor(column.color)
+    }
+  }, [column])
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onSave({ id: column.id, title, color })
+  }
+
+  if (!isVisible || !column) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50">
+      <div className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl text-white font-bold">Edit Column</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X size={24} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-sm text-gray-200 block mb-2">Column Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-200 block mb-2">Column Color</label>
+            <div className="flex gap-3">
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-12 h-10 p-1 bg-[#141414] border-gray-700 rounded"
+              />
+              <input
+                type="text"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                placeholder="#000000"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm bg-gray-600 text-white rounded-xl hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button type="submit" className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E]">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Confirmation Modal
 const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
   if (!isVisible) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
       <div className="bg-[#1C1C1C] p-6 rounded-lg">
         <h3 className="text-lg font-bold mb-4">{message}</h3>
         <div className="flex justify-end gap-2">
@@ -66,87 +351,29 @@ const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
   )
 }
 
-// Lead Status Badge component
-const StatusBadge = ({ status }) => {
-  let circleColor
+// Main Lead Management Component
+export default function LeadManagement() {
+  // Initial columns
+  const [columns, setColumns] = useState([
+    { id: "active", title: "Active prospect", color: "#10b981" },
+    { id: "passive", title: "Passive prospect", color: "#f59e0b" },
+    { id: "uninterested", title: "Uninterested", color: "#ef4444" },
+    { id: "missed", title: "Missed Call", color: "#8b5cf6" },
+    { id: "trial", title: "Trial Training Arranged", color: "#3b82f6", isFixed: true },
+  ])
 
-  switch (status) {
-    case "active":
-      circleColor = "text-green-500"
-      break
-    case "passive":
-      circleColor = "text-yellow-500"
-      break
-    case "uninterested":
-      circleColor = "text-red-500"
-      break
-    default:
-      circleColor = "text-gray-500"
-  }
-
-  return (
-    <div className="flex items-center mt-1 text-white">
-      <Circle className={`${circleColor} mr-1 h-3 w-3 fill-current`} />
-      <span className="text-xs">
-        {status === "active"
-          ? "Active prospect"
-          : status === "passive"
-            ? "Passive prospect"
-            : status === "uninterested"
-              ? "Uninterested"
-              : "Unknown"}
-      </span>
-    </div>
-  )
-}
-
-// Format date helper function
-const formatDate = (timestamp) => {
-  const date = new Date(timestamp)
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
-
-export default function LeadOverview() {
+  // States from original component
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState(null)
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [filterOption, setFilterOption] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
   const [leads, setLeads] = useState([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const leadsPerPage = 5
+  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
+  const [isEditColumnModalOpen, setIsEditColumnModalOpen] = useState(false)
+  const [selectedColumn, setSelectedColumn] = useState(null)
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false)
   const [leadToDeleteId, setLeadToDeleteId] = useState(null)
-  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
-  const [activeNoteId, setActiveNoteId] = useState(null)
-
-
-    const notePopoverRef = useRef(null)
-  
-    // Effect to handle clicking outside of note popover
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
-          setActiveNoteId(null)
-        }
-      }
-  
-      // Add event listener when popover is open
-      if (activeNoteId !== null) {
-        document.addEventListener("mousedown", handleClickOutside)
-        return () => {
-          document.removeEventListener("mousedown", handleClickOutside)
-        }
-      }
-    }, [activeNoteId])
-  
 
   // Hardcoded initial leads with status, createdAt fields, and special notes
   const hardcodedLeads = [
@@ -169,6 +396,7 @@ export default function LeadOverview() {
         startDate: "2025-01-15",
         endDate: "2025-03-15",
       },
+      columnId: "active",
     },
     {
       id: "h2",
@@ -188,6 +416,7 @@ export default function LeadOverview() {
         startDate: "2025-01-20",
         endDate: "2025-04-20",
       },
+      columnId: "passive",
     },
     {
       id: "h3",
@@ -207,6 +436,7 @@ export default function LeadOverview() {
         startDate: "2025-01-25",
         endDate: "2025-02-25",
       },
+      columnId: "active",
     },
     {
       id: "h4",
@@ -226,11 +456,12 @@ export default function LeadOverview() {
         startDate: "2025-02-01",
         endDate: "2025-05-01",
       },
+      columnId: "uninterested",
     },
   ]
 
   // Load and combine leads on component mount
-  useState(() => {
+  useEffect(() => {
     const storedLeads = localStorage.getItem("leads")
     let combinedLeads = [...hardcodedLeads]
 
@@ -238,72 +469,38 @@ export default function LeadOverview() {
       const parsedStoredLeads = JSON.parse(storedLeads).map((lead) => ({
         ...lead,
         source: "localStorage",
+        columnId: lead.columnId || (lead.hasTrialTraining ? "trial" : lead.status || "passive"),
       }))
       combinedLeads = [...hardcodedLeads, ...parsedStoredLeads]
     }
 
     setLeads(combinedLeads)
-  })
+  }, [])
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      heading: "Heading",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
-    },
-    {
-      id: 2,
-      heading: "Heading",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
-    },
-  ])
+  // Handle lead actions
+  const handleViewLeadDetails = (lead) => {
+    setSelectedLead(lead)
+    setIsViewDetailsModalOpen(true)
+  }
+
+  const handleAddTrialTraining = (lead) => {
+    setSelectedLead(lead)
+    setIsTrialModalOpen(true)
+  }
 
   const handleEditLead = (lead) => {
     setSelectedLead(lead)
     setIsEditModalOpen(true)
   }
 
-  const handleViewLeadDetails = (lead) => {
-    setSelectedLead(lead)
-    setIsViewDetailsModalOpen(true)
-  }
-
-  const handleSaveEdit = (data) => {
-    const updatedLeads = leads.map((lead) =>
-      lead.id === data.id
-        ? {
-            ...lead,
-            firstName: data.firstName,
-            surname: data.surname,
-            email: data.email,
-            phoneNumber: data.phoneNumber,
-            trialPeriod: data.trialPeriod,
-            hasTrialTraining: data.hasTrialTraining,
-            avatar: data.avatar,
-            status: data.status || lead.status,
-            specialNote: {
-              text: data.note || "",
-              isImportant: data.noteImportance === "important",
-              startDate: data.noteStartDate || null,
-              endDate: data.noteEndDate || null,
-            },
-          }
-        : lead,
-    )
-    setLeads(updatedLeads)
-
-    // Only update localStorage with non-hardcoded leads
-    const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
-    localStorage.setItem("leads", JSON.stringify(localStorageLeads))
-
-    toast.success("Lead has been updated")
-  }
-
   const handleDeleteLead = (id) => {
-    const leadToDelete = leads.find((lead) => lead.id === id)
-    const updatedLeads = leads.filter((lead) => lead.id !== id)
+    setLeadToDeleteId(id)
+    setIsDeleteConfirmationModalOpen(true)
+  }
+
+  const confirmDeleteLead = () => {
+    const leadToDelete = leads.find((lead) => lead.id === leadToDeleteId)
+    const updatedLeads = leads.filter((lead) => lead.id !== leadToDeleteId)
     setLeads(updatedLeads)
 
     // Only update localStorage if the deleted lead was from localStorage
@@ -312,6 +509,7 @@ export default function LeadOverview() {
       localStorage.setItem("leads", JSON.stringify(localStorageLeads))
     }
 
+    setIsDeleteConfirmationModalOpen(false)
     toast.success("Lead has been deleted")
   }
 
@@ -327,7 +525,8 @@ export default function LeadOverview() {
       hasTrialTraining: data.hasTrialTraining,
       avatar: data.avatar,
       source: "localStorage",
-      status: data.status || "passive", // Default status
+      status: data.status || "passive",
+      columnId: data.hasTrialTraining ? "trial" : data.status || "passive",
       createdAt: now,
       specialNote: {
         text: data.note || "",
@@ -346,321 +545,150 @@ export default function LeadOverview() {
     toast.success("Lead has been added")
   }
 
-  // Special Note Icon Renderer
-  const renderSpecialNoteIcon = useCallback(
-    (specialNote, leadId) => {
-      // If no note text, return null
-      if (!specialNote.text) return null
+  const handleSaveEdit = (data) => {
+    const updatedLeads = leads.map((lead) =>
+      lead.id === data.id
+        ? {
+            ...lead,
+            firstName: data.firstName,
+            surname: data.surname,
+            email: data.email,
+            phoneNumber: data.phoneNumber,
+            trialPeriod: data.trialPeriod,
+            hasTrialTraining: data.hasTrialTraining,
+            avatar: data.avatar,
+            status: data.status || lead.status,
+            columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+            specialNote: {
+              text: data.note || "",
+              isImportant: data.noteImportance === "important",
+              startDate: data.noteStartDate || null,
+              endDate: data.noteEndDate || null,
+            },
+          }
+        : lead,
+    )
+    setLeads(updatedLeads)
 
-      // Check note validity
-      const isActive =
-        specialNote.startDate === null ||
-        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+    // Only update localStorage with non-hardcoded leads
+    const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
+    localStorage.setItem("leads", JSON.stringify(localStorageLeads))
 
-      // If note is not active, return null
-      if (!isActive) return null
-
-      const handleNoteClick = (e) => {
-        e.stopPropagation()
-        setActiveNoteId(activeNoteId === leadId ? null : leadId)
-      }
-
-      return (
-        <div className="relative">
-          <div
-            className={`${
-              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-            onClick={handleNoteClick}
-          >
-            {specialNote.isImportant ? (
-              <AlertTriangle size={18} className="text-white" />
-            ) : (
-              <Info size={18} className="text-white" />
-            )}
-          </div>
-
-          {activeNoteId === leadId && (
-            <div
-              ref={notePopoverRef}
-              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
-            >
-              {/* Header section with icon and title */}
-              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                  {specialNote.isImportant === "important" ? (
-                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                  ) : (
-                    <Info className="text-blue-500 shrink-0" size={18} />
-                  )}
-                  <h4 className="text-white flex gap-1 items-center font-medium">
-                    <div>Special Note</div>
-                    <div className="text-sm text-gray-400 ">
-                      {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
-                    </div>
-                  </h4>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setActiveNoteId(null)
-                    }}
-                    className="ml-auto text-gray-400 hover:text-white"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-
-              {/* Note content */}
-              <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-
-                {/* Date validity section */}
-                {specialNote.startDate && specialNote.endDate ? (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
-                      {new Date(specialNote.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Always valid
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )
-    },
-    [activeNoteId, setActiveNoteId],
-  )
-
-  const filteredLeads = leads.filter((lead) => {
-    const fullName = `${lead.firstName} ${lead.surname}`.toLowerCase()
-    const matchesSearch =
-      fullName.includes(searchQuery.toLowerCase()) || lead.email.toLowerCase().includes(searchQuery.toLowerCase())
-
-    // Filter by trial training status
-    const matchesTrialFilter =
-      filterOption === "all" ||
-      (filterOption === "trial" && lead.hasTrialTraining) ||
-      (filterOption === "notrial" && !lead.hasTrialTraining)
-
-    // Filter by lead status
-    const matchesStatusFilter = statusFilter === "all" || lead.status === statusFilter
-
-    return matchesSearch && matchesTrialFilter && matchesStatusFilter
-  })
-
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredLeads.length / leadsPerPage)
-  const startIndex = (currentPage - 1) * leadsPerPage
-  const paginatedLeads = filteredLeads.slice(startIndex, startIndex + leadsPerPage)
-
-  // Reset to first page when filter or search changes
-  useState(() => {
-    setCurrentPage(1)
-  }, [searchQuery, filterOption, statusFilter])
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page)
-    // Scroll to top of the leads list
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    toast.success("Lead has been updated")
   }
 
+  // Handle drag and drop
+  const handleDrop = (leadId, targetColumnId) => {
+    // Don't allow dropping into the same column
+    const lead = leads.find((l) => l.id === leadId)
+    if (lead.columnId === targetColumnId) return
+
+    // If dropping into trial column, set hasTrialTraining to true
+    const hasTrialTraining = targetColumnId === "trial"
+
+    // Update lead's column
+    const updatedLeads = leads.map((lead) => {
+      if (lead.id === leadId) {
+        return {
+          ...lead,
+          columnId: targetColumnId,
+          hasTrialTraining: hasTrialTraining || lead.hasTrialTraining,
+          status: targetColumnId !== "trial" ? targetColumnId : lead.status,
+        }
+      }
+      return lead
+    })
+
+    setLeads(updatedLeads)
+
+    // Update localStorage
+    const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
+    localStorage.setItem("leads", JSON.stringify(localStorageLeads))
+
+    toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title}`)
+  }
+
+  // Handle column edit
+  const handleEditColumn = (columnId, title, color) => {
+    setSelectedColumn({ id: columnId, title, color })
+    setIsEditColumnModalOpen(true)
+  }
+
+  const handleSaveColumn = (updatedColumn) => {
+    setColumns(
+      columns.map((col) =>
+        col.id === updatedColumn.id ? { ...col, title: updatedColumn.title, color: updatedColumn.color } : col,
+      ),
+    )
+    setIsEditColumnModalOpen(false)
+    setSelectedColumn(null)
+  }
+
+  // Filter leads based on search query
+  const filteredLeads = leads.filter((lead) => {
+    const fullName = `${lead.firstName} ${lead.surname}`.toLowerCase()
+    return (
+      fullName.includes(searchQuery.toLowerCase()) ||
+      lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lead.phoneNumber?.includes(searchQuery)
+    )
+  })
+
   return (
-    <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
+    <DndProvider backend={HTML5Backend}>
+      <div className="container mx-auto md:p-4 p-1">
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 2000,
+            style: {
+              background: "#333",
+              color: "#fff",
+            },
+          }}
+        />
 
-      <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
-        <main className="flex-1 min-w-0 p-6">
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0 mb-6">
-            <h2 className="text-xl md:text-2xl oxanium_font font-bold">Interested parties</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-[#FF5733] lg:text-sm text-xs w-full text-center hover:bg-[#E64D2E] text-white px-4 py-2 rounded-xl cursor-pointer transition-colors duration-200 flex justify-center items-center gap-1"
-              >
-                <span>Add Lead</span>
-              </button>
-            </div>
-          </div>
+        <div className="flex md:flex-row flex-col gap-2 justify-between md:items-center items-start mb-6">
+          <h1 className="text-2xl text-white font-bold">Interested parties</h1>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl"
+          >
+            Add Lead
+          </button>
+        </div>
 
-          <div className="mb-4 flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-grow">
-              <input
-                type="text"
-                placeholder="Search leads..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            </div>
+        <div className="mb-6 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <input
+            type="text"
+            placeholder="Search leads..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
+          />
+        </div>
 
-            {/* Trial Training Filter */}
-            <select
-              value={filterOption}
-              onChange={(e) => setFilterOption(e.target.value)}
-              className="bg-[#141414] text-sm outline-none text-white rounded-xl px-4 py-2"
-            >
-              <option value="all" className="text-sm">
-                All Training Status
-              </option>
-              <option value="trial" className="text-sm">
-                Trial Training Arranged
-              </option>
-              <option value="notrial" className="text-sm">
-                Trial Training Not Agreed
-              </option>
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#141414] text-sm outline-none text-white rounded-xl px-4 py-2"
-            >
-              <option value="all" className="text-sm">
-                All Prospects
-              </option>
-              <option value="active" className="text-sm">
-                Active Prospects
-              </option>
-              <option value="passive" className="text-sm">
-                Passive Prospects
-              </option>
-              <option value="uninterested" className="text-sm">
-                Uninterested
-              </option>
-            </select>
-          </div>
-
-          <div className="space-y-4 bg-[#000000] p-4 rounded-xl max-w-4xl mx-auto">
-            {paginatedLeads.map((lead) => (
-              <div
-                key={lead.id}
-                className="bg-[#141414] rounded-lg p-5 flex md:flex-row flex-col items-center justify-between relative"
-              >
-                {/* Special Note positioned at top left */}
-                {lead.specialNote && lead.specialNote.text && (
-                  <div className="absolute top-2 left-2 z-10">{renderSpecialNoteIcon(lead.specialNote, lead.id)}</div>
-                )}
-
-                <div className="flex md:flex-row flex-col items-center gap-3">
-                  <div className="relative">
-                    <img
-                      src={lead.avatar || Avatar}
-                      alt={`${lead.firstName} ${lead.surname}'s avatar`}
-                      className="w-14 h-14 rounded-full bg-zinc-800"
-                    />
-                    {/* Removed the special note icon from here */}
-                  </div>
-                  <div className="flex flex-col md:text-left text-center">
-                    <span className="font-bold text-md">{`${lead.firstName} ${lead.surname}`}</span>
-                    <div className="text-gray-400 text-sm">{lead.phoneNumber}</div>
-
-                    {/* Added date information */}
-                    <div className="text-gray-500 text-xs mt-1">
-                      Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
-                    </div>
-
-                    {/* Status badge */}
-                    <StatusBadge status={lead.status} />
-
-                    {/* Trial training tag */}
-                    {lead.hasTrialTraining ? (
-                      <div className="flex items-center mt-1">
-                        <Tag size={14} className="text-green-500 mr-1" />
-                        <span className="text-green-500 text-xs">Trial Training Arranged</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center mt-1">
-                        <Tag size={14} className="text-yellow-500 mr-1" />
-                        <span className="text-yellow-500 text-xs">Trial Training Not Agreed</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex md:flex-row flex-col gap-2 md:mt-0 mt-3">
-                <button
-  onClick={() => {
-    setSelectedLead(lead)
-    setIsTrialModalOpen(true)
-  }}
-  className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-[#3F74FF] rounded-xl"
->
-  Add Trial Training
-</button>
-                  <button
-                    onClick={() => handleViewLeadDetails(lead)}
-                    className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
-                  >
-                    View Details
-                  </button>
-                  <button
-                    onClick={() => handleEditLead(lead)}
-                    className="text-gray-300 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      setLeadToDeleteId(lead.id)
-                      setIsDeleteConfirmationModalOpen(true)
-                    }}
-                    className="text-red-500 px-4 py-2 text-sm border border-slate-400/30 transition-colors duration-500 cursor-pointer bg-black rounded-xl hover:bg-gray-800"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            <TrialTrainingModal
-              isOpen={isTrialModalOpen}
-              onClose={() => {
-                setIsTrialModalOpen(false)
-                setSelectedLead(null)
-              }}
-              selectedLead={selectedLead}
-              trialTypes={[
-                { name: "Cardio", duration: 30 },
-                { name: "Strength", duration: 45 },
-                { name: "Flexibility", duration: 60 },
-              ]}
-              freeTimeSlots={[
-                { id: "slot1", date: "2023-10-01", time: "10:00" },
-                { id: "slot2", date: "2023-10-01", time: "11:00" },
-                { id: "slot3", date: "2023-10-02", time: "14:00" },
-              ]}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {columns.map((column) => (
+            <Column
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              color={column.color}
+              leads={filteredLeads.filter((lead) => lead.columnId === column.id)}
+              onViewDetails={handleViewLeadDetails}
+              onAddTrial={handleAddTrialTraining}
+              onEditLead={handleEditLead}
+              onDeleteLead={handleDeleteLead}
+              onDrop={handleDrop}
+              isEditable={!column.isFixed}
+              onEditColumn={handleEditColumn}
             />
+          ))}
+        </div>
 
-            {filteredLeads.length > 0 ? (
-              <>
-                {filteredLeads.length > leadsPerPage ? (
-                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-                ) : null}
-              </>
-            ) : (
-              <div className="text-red-600 text-center text-sm cursor-pointer">Sorry, No Lead found</div>
-            )}
-          </div>
-        </main>
-
+        {/* Modals */}
         <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
 
         <EditLeadModal
@@ -682,48 +710,42 @@ export default function LeadOverview() {
           leadData={selectedLead}
         />
 
+        <TrialTrainingModal
+          isOpen={isTrialModalOpen}
+          onClose={() => {
+            setIsTrialModalOpen(false)
+            setSelectedLead(null)
+          }}
+          selectedLead={selectedLead}
+          trialTypes={[
+            { name: "Cardio", duration: 30 },
+            { name: "Strength", duration: 45 },
+            { name: "Flexibility", duration: 60 },
+          ]}
+          freeTimeSlots={[
+            { id: "slot1", date: "2023-10-01", time: "10:00" },
+            { id: "slot2", date: "2023-10-01", time: "11:00" },
+            { id: "slot3", date: "2023-10-02", time: "14:00" },
+          ]}
+        />
+
+        <EditColumnModal
+          isVisible={isEditColumnModalOpen}
+          onClose={() => {
+            setIsEditColumnModalOpen(false)
+            setSelectedColumn(null)
+          }}
+          column={selectedColumn}
+          onSave={handleSaveColumn}
+        />
+
         <ConfirmationModal
           isVisible={isDeleteConfirmationModalOpen}
           onClose={() => setIsDeleteConfirmationModalOpen(false)}
-          onConfirm={() => {
-            handleDeleteLead(leadToDeleteId)
-            setIsDeleteConfirmationModalOpen(false)
-          }}
+          onConfirm={confirmDeleteLead}
           message="Are you sure you want to delete this lead?"
         />
-
-        <aside
-          className={`
-          fixed top-0 right-0 bottom-0 w-[320px] bg-[#181818] p-6 z-50 
-          lg:static lg:w-80 lg:block lg:rounded-3xl
-          transform ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
-          transition-all duration-500 ease-in-out
-          overflow-y-auto
-        `}
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold oxanium_font">Notification</h2>
-            <button onClick={() => setIsRightSidebarOpen(false)} className="text-gray-400 hover:text-white lg:hidden">
-              <X size={24} />
-            </button>
-          </div>
-          <div className="space-y-4">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className="bg-[#1C1C1C] rounded-lg p-4 relative transform transition-all duration-200 hover:scale-[1.02]"
-              >
-                <button className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors duration-200">
-                  <X size={16} />
-                </button>
-                <h3 className="mb-2">{notification.heading}</h3>
-                <p className="text-sm text-zinc-400">{notification.description}</p>
-              </div>
-            ))}
-          </div>
-        </aside>
       </div>
-    </>
+    </DndProvider>
   )
 }
-

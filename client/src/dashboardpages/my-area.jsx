@@ -862,7 +862,9 @@ export default function MyArea() {
                                           handleCheckIn(appointment.id)
                                         }}
                                         className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
-                                          appointment.isCheckedIn ? "bg-gray-600 text-white" : "bg-black text-white"
+                                          appointment.isCheckedIn
+                                            ? "bg-gray-500 bg-opacity-50 text-white"
+                                            : "bg-black text-white"
                                         }`}
                                       >
                                         {appointment.isCheckedIn ? "Checked In" : "Check In"}

@@ -1,6 +1,4 @@
-"use client"
-
-import { Plus, Search, Trash, X } from "lucide-react"
+import { Search, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { AddLeadModal } from "./add-lead-modal"
 
@@ -17,25 +15,17 @@ const TrialTrainingModal = ({
   const [filteredLeads, setFilteredLeads] = useState([])
   const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState(initialSelectedLead || null)
-  const [recurringTrials, setRecurringTrials] = useState([
-    {
-      date: "",
-      timeSlot: "",
+  const [trialData, setTrialData] = useState({
+    date: "",
+    timeSlot: "",
+    trialType: "",
+    specialNote: {
+      text: "",
+      isImportant: false,
+      startDate: "",
+      endDate: "",
     },
-  ])
-  const [specialNote, setSpecialNote] = useState("")
-  const [isImportant, setIsImportant] = useState(false)
-  const [noteDuration, setNoteDuration] = useState({
-    startDate: "",
-    endDate: "",
   })
-
-  const updateSpecialNote = (field, value) => {
-    setSpecialNote({
-      ...specialNote,
-      [field]: value,
-    })
-  }
 
   // Load leads from localStorage on mount
   useEffect(() => {
@@ -49,29 +39,29 @@ const TrialTrainingModal = ({
   useEffect(() => {
     const filtered = leads.filter(
       (lead) =>
-        `${lead.firstName} ${lead.surname}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        `${lead.firstName} ${lead.lastName || lead.surname || ""}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
         lead.email?.toLowerCase().includes(searchQuery.toLowerCase()),
     )
     setFilteredLeads(filtered)
   }, [searchQuery, leads])
 
-  // Add another recurring trial slot
-  const addRecurring = () => {
-    setRecurringTrials([...recurringTrials, { date: "", timeSlot: "" }])
-  }
-
-  // Remove a recurring trial slot
-  const removeRecurring = (index) => {
-    const updated = [...recurringTrials]
-    updated.splice(index, 1)
-    setRecurringTrials(updated)
-  }
-
-  // Update a specific recurring trial
-  const updateRecurring = (index, field, value) => {
-    const updated = [...recurringTrials]
-    updated[index][field] = value
-    setRecurringTrials(updated)
+  // Update trial data
+  const updateTrialData = (field, value) => {
+    if (field.includes(".")) {
+      const [parent, child] = field.split(".")
+      setTrialData({
+        ...trialData,
+        [parent]: {
+          ...trialData[parent],
+          [child]: value,
+        },
+      })
+    } else {
+      setTrialData({
+        ...trialData,
+        [field]: value,
+      })
+    }
   }
 
   // Filter available time slots based on selected date
@@ -89,7 +79,7 @@ const TrialTrainingModal = ({
     setIsAddLeadModalOpen(false)
 
     // Automatically set the search query and select the new lead
-    setSearchQuery(`${newLead.firstName} ${newLead.surname}`)
+    setSearchQuery(`${newLead.firstName} ${newLead.lastName || ""}`)
     setSelectedLead(newLeadWithId)
 
     // Ensure the filtered leads include the new lead
@@ -106,13 +96,12 @@ const TrialTrainingModal = ({
         return {
           ...lead,
           hasTrialTraining: true,
-          trialDetails: recurringTrials.map((trial) => ({
-            date: trial.date,
-            timeSlot: trial.timeSlot,
-            specialNote: specialNote,
-            isImportant: isImportant,
-            noteDuration: noteDuration,
-          })),
+          trialDetails: {
+            date: trialData.date,
+            timeSlot: trialData.timeSlot,
+            trialType: trialData.trialType,
+            specialNote: trialData.specialNote,
+          },
         }
       }
       return lead
@@ -126,7 +115,9 @@ const TrialTrainingModal = ({
   useEffect(() => {
     if (initialSelectedLead) {
       setSelectedLead(initialSelectedLead)
-      setSearchQuery(`${initialSelectedLead.firstName} ${initialSelectedLead.surname}`)
+      setSearchQuery(
+        `${initialSelectedLead.firstName} ${initialSelectedLead.lastName || initialSelectedLead.surname || ""}`,
+      )
 
       // Make sure the filtered leads include the selected lead
       if (leads.length > 0) {
@@ -143,14 +134,23 @@ const TrialTrainingModal = ({
     if (!isOpen) {
       setSearchQuery("")
       setSelectedLead(null)
-      setRecurringTrials([{ date: "", timeSlot: "" }])
-      setSpecialNote("")
-      setIsImportant(false)
-      setNoteDuration({ startDate: "", endDate: "" })
+      setTrialData({
+        date: "",
+        timeSlot: "",
+        trialType: "",
+        specialNote: {
+          text: "",
+          isImportant: false,
+          startDate: "",
+          endDate: "",
+        },
+      })
     } else if (initialSelectedLead) {
       // When modal opens with a pre-selected lead
       setSelectedLead(initialSelectedLead)
-      setSearchQuery(`${initialSelectedLead.firstName} ${initialSelectedLead.surname}`)
+      setSearchQuery(
+        `${initialSelectedLead.firstName} ${initialSelectedLead.lastName || initialSelectedLead.surname || ""}`,
+      )
     }
   }, [isOpen, initialSelectedLead])
 
@@ -192,7 +192,7 @@ const TrialTrainingModal = ({
                       onClick={() => setSelectedLead(lead)}
                       className={`p-2 cursor-pointer hover:bg-[#252525] ${selectedLead?.id === lead.id ? "bg-[#252525]" : ""}`}
                     >
-                      <div className="font-medium text-white">{`${lead.firstName} ${lead.surname}`}</div>
+                      <div className="font-medium text-white">{`${lead.firstName} ${lead.lastName || lead.surname || ""}`}</div>
                       <div className="text-sm text-white">{lead.email}</div>
                     </div>
                   ))}
@@ -203,17 +203,20 @@ const TrialTrainingModal = ({
                 <button
                   type="button"
                   onClick={() => setIsAddLeadModalOpen(true)}
-                  className="mt-2 w-full flex items-center justify-center text-sm gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90"
+                  className="mt-2 w-full flex items-center justify-center text-sm gap-2 px-4 py-2 bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E]"
                 >
-                  <Plus size={18} />
-                  <span>Create New Lead</span>
+                  Create New Lead
                 </button>
               )}
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm text-gray-200">Trial Type</label>
-              <select className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]">
+              <select
+                value={trialData.trialType}
+                onChange={(e) => updateTrialData("trialType", e.target.value)}
+                className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+              >
                 <option value="">Select type</option>
                 {trialTypes.length > 0 ? (
                   trialTypes.map((type) => (
@@ -231,70 +234,48 @@ const TrialTrainingModal = ({
               </select>
             </div>
 
-            {/* Recurring trials section */}
+            {/* Trial date and time section */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <label className="text-sm text-gray-200">Trial Dates & Times</label>
-                <button
-                  type="button"
-                  onClick={addRecurring}
-                  className="text-[#3F74FF] hover:text-[#5a8aff] text-sm flex items-center gap-1"
-                >
-                  <Plus size={16} /> Add another date
-                </button>
+                <label className="text-sm text-gray-200">Trial Date & Time</label>
               </div>
 
-              {recurringTrials.map((trial, index) => (
-                <div key={index} className="p-3 bg-[#101010] rounded-xl space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-200">Trial {index + 1}</span>
-                    {recurringTrials.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeRecurring(index)}
-                        className="text-red-500 hover:text-red-400"
-                      >
-                        <Trash size={16} />
-                      </button>
-                    )}
+              <div className="p-3 bg-[#101010] rounded-xl space-y-3">
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-400">Date</label>
+                    <input
+                      type="date"
+                      value={trialData.date}
+                      onChange={(e) => updateTrialData("date", e.target.value)}
+                      className="w-full bg-[#181818] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                    />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3">
-                    <div>
-                      <label className="text-xs text-gray-400">Date</label>
-                      <input
-                        type="date"
-                        value={trial.date}
-                        onChange={(e) => updateRecurring(index, "date", e.target.value)}
-                        className="w-full bg-[#181818] white-calendar-icon text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs text-gray-400">Available Time Slots</label>
-                      <select
-                        value={trial.timeSlot}
-                        onChange={(e) => updateRecurring(index, "timeSlot", e.target.value)}
-                        className="w-full bg-[#181818] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                        disabled={!trial.date}
-                      >
-                        <option value="">Select time slot</option>
-                        {getAvailableSlots(trial.date).map((slot) => (
-                          <option key={slot.id || `slot-${slot.time}`} value={slot.time}>
-                            {slot.time}
-                          </option>
-                        ))}
-                        {/* Show message if no time slots available */}
-                        {trial.date && getAvailableSlots(trial.date).length === 0 && (
-                          <option value="" disabled>
-                            No available slots for this date
-                          </option>
-                        )}
-                      </select>
-                    </div>
+                  <div>
+                    <label className="text-xs text-gray-400">Available Time Slots</label>
+                    <select
+                      value={trialData.timeSlot}
+                      onChange={(e) => updateTrialData("timeSlot", e.target.value)}
+                      className="w-full bg-[#181818] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                      disabled={!trialData.date}
+                    >
+                      <option value="">Select time slot</option>
+                      {getAvailableSlots(trialData.date).map((slot) => (
+                        <option key={slot.id || `slot-${slot.time}`} value={slot.time}>
+                          {slot.time}
+                        </option>
+                      ))}
+                      {/* Show message if no time slots available */}
+                      {trialData.date && getAvailableSlots(trialData.date).length === 0 && (
+                        <option value="" disabled>
+                          No available slots for this date
+                        </option>
+                      )}
+                    </select>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
 
             <div className="border border-slate-700 rounded-xl p-4">
@@ -304,9 +285,9 @@ const TrialTrainingModal = ({
                   <input
                     type="checkbox"
                     id="isImportant"
-                    checked={specialNote.isImportant}
-                    onChange={(e) => updateSpecialNote("isImportant", e.target.checked)}
-                    className="mr-2 h-4 w-4 accent-[#FF843E]"
+                    checked={trialData.specialNote.isImportant}
+                    onChange={(e) => updateTrialData("specialNote.isImportant", e.target.checked)}
+                    className="mr-2 h-4 w-4 accent-[#FF5733]"
                   />
                   <label htmlFor="isImportant" className="text-sm text-gray-200">
                     Important
@@ -315,8 +296,8 @@ const TrialTrainingModal = ({
               </div>
 
               <textarea
-                value={specialNote.text}
-                onChange={(e) => updateSpecialNote("text", e.target.value)}
+                value={trialData.specialNote.text}
+                onChange={(e) => updateTrialData("specialNote.text", e.target.value)}
                 className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
                 placeholder="Enter special note..."
               />
@@ -326,8 +307,8 @@ const TrialTrainingModal = ({
                   <label className="text-sm text-gray-200 block mb-2">Start Date</label>
                   <input
                     type="date"
-                    value={specialNote.startDate || ""}
-                    onChange={(e) => updateSpecialNote("startDate", e.target.value)}
+                    value={trialData.specialNote.startDate}
+                    onChange={(e) => updateTrialData("specialNote.startDate", e.target.value)}
                     className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                   />
                 </div>
@@ -335,8 +316,8 @@ const TrialTrainingModal = ({
                   <label className="text-sm text-gray-200 block mb-2">End Date</label>
                   <input
                     type="date"
-                    value={specialNote.endDate || ""}
-                    onChange={(e) => updateSpecialNote("endDate", e.target.value)}
+                    value={trialData.specialNote.endDate}
+                    onChange={(e) => updateTrialData("specialNote.endDate", e.target.value)}
                     className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                   />
                 </div>
@@ -347,12 +328,19 @@ const TrialTrainingModal = ({
 
         <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
           <button
+            type="button"
+            onClick={onClose}
+            className="w-full sm:w-auto px-5 py-2.5 bg-gray-600 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
             type="submit"
             onClick={handleSubmit}
-            disabled={!selectedLead || recurringTrials.some((trial) => !trial.date || !trial.timeSlot)}
-            className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!selectedLead || !trialData.date || !trialData.timeSlot || !trialData.trialType}
+            className="w-full sm:w-auto px-5 py-2.5 bg-[#FF5733] text-sm font-medium text-white rounded-xl hover:bg-[#E64D2E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Book Trial{recurringTrials.length > 1 ? "s" : ""}
+            Book Trial
           </button>
         </div>
       </div>
