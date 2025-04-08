@@ -148,9 +148,9 @@ export default function TodoApp() {
       <span className="open_sans_font">Add task</span>
     </button>
     {/* Status Tabs */}
-    <div className="flex gap-2 items-end mb-4 w-full flex-col md:flex-row md:justify-center justify-end">
+    <div className="flex gap-2 items-end mb-4 w-full flex-row md:justify-center">
       <button
-        className={`px-3 sm:px-5 py-2 md:w-auto w-full text-sm ${
+        className={`px-1 sm:px-5 py-2 md:w-auto w-full text-sm ${
           activeFilter === "ongoing"
             ? "bg-white text-black"
             : "text-gray-200 border border-slate-300 hover:bg-gray-800"
@@ -160,7 +160,7 @@ export default function TodoApp() {
         Ongoing
       </button>
       <button
-        className={`px-3 sm:px-5 py-2 md:w-auto w-full text-sm ${
+        className={`px-1 sm:px-5 py-2 md:w-auto w-full text-sm ${
           activeFilter === "completed"
             ? "bg-white text-black"
             : "text-gray-200 border border-slate-300 hover:bg-gray-800"
@@ -170,7 +170,7 @@ export default function TodoApp() {
         Completed
       </button>
       <button
-        className={`px-3 sm:px-5 py-2  md:w-auto w-full text-sm ${
+        className={`px-1 sm:px-5 py-2  md:w-auto w-full text-sm ${
           activeFilter === "canceled"
             ? "bg-white text-black"
             : "text-gray-200 border border-slate-300 hover:bg-gray-800"
