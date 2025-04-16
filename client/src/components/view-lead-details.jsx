@@ -1,55 +1,40 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X } from "lucide-react";
+import { X } from "lucide-react"
 
 export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
-  if (!isVisible || !leadData) return null;
+  if (!isVisible || !leadData) return null
 
   // Format the date to be more readable
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
 
   // Format birthday to be more readable (without time)
   const formatBirthday = (dateString) => {
-    if (!dateString) return "Not provided";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  // Get status color based on status value
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active':
-        return 'text-green-500';
-      case 'passive':
-        return 'text-yellow-500';
-      case 'uninterested':
-        return 'text-red-500';
-      default:
-        return 'text-gray-500';
-    }
-  };
+    if (!dateString) return "Not provided"
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  }
 
   return (
     <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50 p-4">
       <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-lg">
         {/* Header with close button */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Lead Details</h2>
-          <button 
-            onClick={onClose} 
+          <h2 className="text-xl font-bold text-white">Lead Details</h2>
+          <button
+            onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors"
             aria-label="Close modal"
           >
@@ -60,17 +45,12 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
         {/* Profile section */}
         <div className="flex items-center md:flex-row flex-col mb-6 border-b border-gray-700 pb-6">
           <img
-            src={leadData.avatar}
+            src={leadData.avatar || "/placeholder.svg"}
             alt={`${leadData.firstName} ${leadData.surname}'s avatar`}
             className="w-20 h-20 rounded-full bg-zinc-800 object-cover"
           />
           <div className="ml-4">
-            <h3 className="text-xl font-semibold text-white">
-              {`${leadData.firstName} ${leadData.surname}`}
-            </h3>
-            {/* <p className={`text-sm font-medium ${getStatusColor(leadData.status)} capitalize`}>
-              {leadData.status}
-            </p> */}
+            <h3 className="text-xl font-semibold text-white">{`${leadData.firstName} ${leadData.surname}`}</h3>
           </div>
         </div>
 
@@ -91,7 +71,9 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
           {/* Birthday - NEW */}
           <div className="space-y-1">
             <p className="text-sm font-medium text-gray-400">Birthday</p>
-            <p className="text- text-sm">{leadData.birthday ? formatBirthday(leadData.birthday) : "Not provided"}</p>
+            <p className="text-white text-sm">
+              {leadData.birthday ? formatBirthday(leadData.birthday) : "Not provided"}
+            </p>
           </div>
 
           {/* Trial Training Status */}
@@ -105,13 +87,8 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
           {/* Address - NEW */}
           <div className="space-y-1 col-span-2">
             <p className="text-sm font-medium text-gray-400">Address</p>
-            <p className="text-white text-sm">
-              {leadData.address ? leadData.address : "Not provided"}
-            </p>
+            <p className="text-white text-sm">{leadData.address ? leadData.address : "Not provided"}</p>
           </div>
-
-          {/* About - NEW */}
-        
 
           {/* Created Date */}
           <div className="space-y-1">
@@ -127,13 +104,12 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
         </div>
 
         <div className="space-y-1 col-span-2 mt-3">
-            <p className="text-sm font-medium text-gray-400">About</p>
-            <p className="text-white text-sm">
-              {leadData.about ? leadData.about : "No additional information provided."}
-            </p>
-          </div>
-      
+          <p className="text-sm font-medium text-gray-400">About</p>
+          <p className="text-white text-sm">
+            {leadData.about ? leadData.about : "No additional information provided."}
+          </p>
+        </div>
       </div>
     </div>
-  );
+  )
 }

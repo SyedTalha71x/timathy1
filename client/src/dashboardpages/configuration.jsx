@@ -1,4 +1,6 @@
-import {Checkbox} from "antd"
+"use client"
+
+import { Checkbox } from "antd"
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
@@ -436,6 +438,7 @@ const ConfigurationPage = () => {
         duration: 12,
         cost: 0,
         billingPeriod: "monthly",
+        userCapacity: 0,
       },
     ])
   }
@@ -764,8 +767,7 @@ const ConfigurationPage = () => {
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
             <Panel header="Appointments" key="1" className="bg-[#202020]">
               <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-
-              <Panel header="Capacity Settings" key="3" className="bg-[#252525]">
+                <Panel header="Capacity Settings" key="3" className="bg-[#252525]">
                   <div className="space-y-4">
                     <Form.Item
                       label={
@@ -870,18 +872,7 @@ const ConfigurationPage = () => {
                 <Panel header="Trial Training Settings" key="2" className="bg-[#252525]">
                   <div className="space-y-4">
                     <Form layout="vertical">
-                      <Form.Item label={<span className="text-white">Name</span>}>
-                        <Input
-                          value={trialTraining.name}
-                          onChange={(e) =>
-                            setTrialTraining({
-                              ...trialTraining,
-                              name: e.target.value,
-                            })
-                          }
-                          style={inputStyle}
-                        />
-                      </Form.Item>
+                    
                       <Form.Item
                         label={
                           <div className="flex items-center">
@@ -948,8 +939,6 @@ const ConfigurationPage = () => {
                     </Form>
                   </div>
                 </Panel>
-
-              
               </Collapse>
             </Panel>
 
@@ -1011,7 +1000,7 @@ const ConfigurationPage = () => {
               </Collapse>
             </Panel>
 
-            <Panel header="Lead Settings" key="3" className="bg-[#202020]">
+            {/* <Panel header="Lead Settings" key="3" className="bg-[#202020]">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-white">Lead Prospect Categories</h3>
                 {leadProspectCategories.map((category, index) => (
@@ -1059,7 +1048,7 @@ const ConfigurationPage = () => {
                   Add Lead Prospect Category
                 </Button>
               </div>
-            </Panel>
+            </Panel> */}
 
             <Panel header="TO-DO" key="4" className="bg-[#202020]">
               <div className="space-y-4">
@@ -1172,6 +1161,33 @@ const ConfigurationPage = () => {
                             <Option value="annually">Annually</Option>
                           </Select>
                         </Form.Item>
+                        <Form.Item
+                          label={
+                            <div className="flex items-center">
+                              <span className="text-white white-text">User Capacity</span>
+                              <Tooltip title="Maximum number of appointments a member can book per billing period">
+                                <InfoCircleOutlined style={tooltipStyle} />
+                              </Tooltip>
+                            </div>
+                          }
+                        >
+                          <div className="white-text">
+                            <InputNumber
+                              value={type.userCapacity || 0}
+                              onChange={(value) => {
+                                const updated = [...contractTypes]
+                                updated[index].userCapacity = value || 0
+                                setContractTypes(updated)
+                              }}
+                              style={inputStyle}
+                              min={0}
+                            />
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            Based on the {type.billingPeriod} billing period. For example, if set to 4 with weekly
+                            billing, members can book 4 appointments per week.
+                          </div>
+                        </Form.Item>
                       </Form>
                       <Button
                         danger
@@ -1221,7 +1237,7 @@ const ConfigurationPage = () => {
                         </Form.Item>
                         <Form.Item label={<span className="text-white">Signature needed</span>}>
                           <Switch
-                          checked={section.editable ?? false}
+                            checked={section.editable ?? false}
                             onChange={(checked) => {
                               const updated = [...contractSections]
                               updated[index].editable = checked
@@ -1272,7 +1288,7 @@ const ConfigurationPage = () => {
                       className="w-full sm:w-64"
                       style={inputStyle}
                     />
-               
+
                     <Button
                       danger
                       icon={<DeleteOutlined />}
@@ -1320,395 +1336,393 @@ const ConfigurationPage = () => {
         </TabPane>
 
         <TabPane tab="Communication" key="4">
-  <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-    <Panel header="Email Configuration" key="1" className="bg-[#202020]">
-      <div className="space-y-4">
-        <Form layout="vertical">
-          <Form.Item label={<span className="text-white white-text">SMTP Server</span>}>
-            <Input
-              value={emailConfig.smtpServer}
-              onChange={(e) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  smtpServer: e.target.value,
-                })
-              }
-              className="white-text"
-              style={inputStyle}
-              placeholder="smtp.example.com"
-            />
-          </Form.Item>
-          <Form.Item label={<span className="text-white white-text">SMTP Port</span>}>
-            <div className="white-text">
-              <InputNumber
-                value={emailConfig.smtpPort}
-                onChange={(value) =>
-                  setEmailConfig({
-                    ...emailConfig,
-                    smtpPort: value || 587,
-                  })
-                }
-                style={inputStyle}
-                placeholder="587"
-              />
-            </div>
-          </Form.Item>
-          <Form.Item label={<span className="text-white">Email Address</span>}>
-            <Input
-              value={emailConfig.emailAddress}
-              onChange={(e) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  emailAddress: e.target.value,
-                })
-              }
-              style={inputStyle}
-              placeholder="studio@example.com"
-            />
-          </Form.Item>
-          <Form.Item label={<span className="text-white white-text">Password</span>}>
-            <Input.Password
-              value={emailConfig.password}
-              onChange={(e) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  password: e.target.value,
-                })
-              }
-              style={inputStyle}
-            />
-          </Form.Item>
-          <Form.Item label={<span className="text-white">Use SSL/TLS</span>}>
-            <Switch
-              checked={emailConfig.useSSL}
-              onChange={(checked) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  useSSL: checked,
-                })
-              }
-            />
-          </Form.Item>
-          <Form.Item label={<span className="text-white">Default Sender Name</span>}>
-            <Input
-              value={emailConfig.senderName}
-              onChange={(e) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  senderName: e.target.value,
-                })
-              }
-              style={inputStyle}
-              placeholder="Your Studio Name"
-            />
-          </Form.Item>
-          <Button type="primary" style={buttonStyle} onClick={testEmailConnection}>
-            Test Connection
-          </Button>
-        </Form>
-      </div>
-    </Panel>
-
-    <Panel header="Birthday Messages" key="2" className="bg-[#202020]">
-      <div className="space-y-4">
-        <Form layout="vertical">
-          <Form.Item label={<span className="text-white">Enable Birthday Messages</span>}>
-            <Switch
-              checked={birthdayMessage.enabled}
-              onChange={(checked) =>
-                setBirthdayMessage({
-                  ...birthdayMessage,
-                  enabled: checked,
-                })
-              }
-            />
-          </Form.Item>
-          <Form.Item
-            label={
-              <div className="flex items-center">
-                <span className="text-white">Message Template</span>
-                <Tooltip title="Available variables: {Studio_Name}, {Member_Name}">
-                  <InfoCircleOutlined style={tooltipStyle} />
-                </Tooltip>
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Email Configuration" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white white-text">SMTP Server</span>}>
+                    <Input
+                      value={emailConfig.smtpServer}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          smtpServer: e.target.value,
+                        })
+                      }
+                      className="white-text"
+                      style={inputStyle}
+                      placeholder="smtp.example.com"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white white-text">SMTP Port</span>}>
+                    <div className="white-text">
+                      <InputNumber
+                        value={emailConfig.smtpPort}
+                        onChange={(value) =>
+                          setEmailConfig({
+                            ...emailConfig,
+                            smtpPort: value || 587,
+                          })
+                        }
+                        style={inputStyle}
+                        placeholder="587"
+                      />
+                    </div>
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Email Address</span>}>
+                    <Input
+                      value={emailConfig.emailAddress}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          emailAddress: e.target.value,
+                        })
+                      }
+                      style={inputStyle}
+                      placeholder="studio@example.com"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white white-text">Password</span>}>
+                    <Input.Password
+                      value={emailConfig.password}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          password: e.target.value,
+                        })
+                      }
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Use SSL/TLS</span>}>
+                    <Switch
+                      checked={emailConfig.useSSL}
+                      onChange={(checked) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          useSSL: checked,
+                        })
+                      }
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Default Sender Name</span>}>
+                    <Input
+                      value={emailConfig.senderName}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          senderName: e.target.value,
+                        })
+                      }
+                      style={inputStyle}
+                      placeholder="Your Studio Name"
+                    />
+                  </Form.Item>
+                  <Button type="primary" style={buttonStyle} onClick={testEmailConnection}>
+                    Test Connection
+                  </Button>
+                </Form>
               </div>
-            }
-          >
-            {/* Variable picker for Birthday Messages */}
-            <VariablePicker
-              variables={[
-                { label: "Studio Name", value: "{Studio_Name}" },
-                { label: "Member Name", value: "{Member_Name}" }
-              ]}
-              onInsert={(variable) => {
-                const textarea = document.getElementById('birthday-message-textarea');
-                if (textarea) {
-                  const start = textarea.selectionStart;
-                  const end = textarea.selectionEnd;
-                  const text = birthdayMessage.message;
-                  const newText = text.substring(0, start) + variable + text.substring(end);
-                  setBirthdayMessage({
-                    ...birthdayMessage,
-                    message: newText
-                  });
-                  // Focus and set cursor position after the inserted variable
-                  setTimeout(() => {
-                    textarea.focus();
-                    textarea.setSelectionRange(start + variable.length, start + variable.length);
-                  }, 0);
-                } else {
-                  setBirthdayMessage({
-                    ...birthdayMessage,
-                    message: birthdayMessage.message + variable
-                  });
-                }
-              }}
-            />
-            <TextArea
-              id="birthday-message-textarea"
-              value={birthdayMessage.message}
-              onChange={(e) =>
-                setBirthdayMessage({
-                  ...birthdayMessage,
-                  message: e.target.value,
-                })
-              }
-              rows={4}
-              style={inputStyle}
-              placeholder="Use {Studio_Name} and {Member_Name} as placeholders"
-            />
-          </Form.Item>
-        </Form>
-      </div>
-    </Panel>
+            </Panel>
 
-    <Panel header="Broadcast Messages" key="3" className="bg-[#202020]">
-      <div className="space-y-4">
-        {broadcastMessages.map((message, index) => (
-          <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
-            <Panel header={message.title || "New Broadcast Message"} key="1" className="bg-[#252525]">
-              <Form layout="vertical">
-                <Form.Item label={<span className="text-white">Title</span>}>
-                  <Input
-                    value={message.title}
-                    onChange={(e) => handleUpdateBroadcastMessage(index, "title", e.target.value)}
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label={
-                    <div className="flex items-center">
-                      <span className="text-white">Message</span>
-                      <Tooltip title="Available variables: {Studio_Name}, {Member_Name}">
-                        <InfoCircleOutlined style={tooltipStyle} />
-                      </Tooltip>
-                    </div>
-                  }
-                >
-                  {/* Variable picker for Broadcast Messages */}
-                  <VariablePicker
-                    variables={[
-                      { label: "Studio Name", value: "{Studio_Name}" },
-                      { label: "Member Name", value: "{Member_Name}" }
-                    ]}
-                    onInsert={(variable) => {
-                      const textarea = document.getElementById(`broadcast-message-textarea-${index}`);
-                      if (textarea) {
-                        const start = textarea.selectionStart;
-                        const end = textarea.selectionEnd;
-                        const text = message.message;
-                        const newText = text.substring(0, start) + variable + text.substring(end);
-                        handleUpdateBroadcastMessage(index, "message", newText);
-                        // Focus and set cursor position after the inserted variable
-                        setTimeout(() => {
-                          textarea.focus();
-                          textarea.setSelectionRange(start + variable.length, start + variable.length);
-                        }, 0);
-                      } else {
-                        handleUpdateBroadcastMessage(index, "message", message.message + variable);
+            <Panel header="Birthday Messages" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Enable Birthday Messages</span>}>
+                    <Switch
+                      checked={birthdayMessage.enabled}
+                      onChange={(checked) =>
+                        setBirthdayMessage({
+                          ...birthdayMessage,
+                          enabled: checked,
+                        })
                       }
-                    }}
-                  />
-                  <TextArea
-                    id={`broadcast-message-textarea-${index}`}
-                    value={message.message}
-                    onChange={(e) => handleUpdateBroadcastMessage(index, "message", e.target.value)}
-                    rows={4}
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Send Via</span>}>
-                  <Checkbox.Group
-                    options={[
-                      { label: "Email", value: "email" },
-                      { label: "Platform Chat", value: "platform" },
-                    ]}
-                    value={message.sendVia}
-                    onChange={(values) => handleUpdateBroadcastMessage(index, "sendVia", values)}
-                  />
-                </Form.Item>
-              </Form>
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleRemoveBroadcastMessage(index)}
-                style={buttonStyle}
-              >
-                Remove
-              </Button>
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    label={
+                      <div className="flex items-center">
+                        <span className="text-white">Message Template</span>
+                        <Tooltip title="Available variables: {Studio_Name}, {Member_Name}">
+                          <InfoCircleOutlined style={tooltipStyle} />
+                        </Tooltip>
+                      </div>
+                    }
+                  >
+                    {/* Variable picker for Birthday Messages */}
+                    <VariablePicker
+                      variables={[
+                        { label: "Studio Name", value: "{Studio_Name}" },
+                        { label: "Member Name", value: "{Member_Name}" },
+                      ]}
+                      onInsert={(variable) => {
+                        const textarea = document.getElementById("birthday-message-textarea")
+                        if (textarea) {
+                          const start = textarea.selectionStart
+                          const end = textarea.selectionEnd
+                          const text = birthdayMessage.message
+                          const newText = text.substring(0, start) + variable + text.substring(end)
+                          setBirthdayMessage({
+                            ...birthdayMessage,
+                            message: newText,
+                          })
+                          // Focus and set cursor position after the inserted variable
+                          setTimeout(() => {
+                            textarea.focus()
+                            textarea.setSelectionRange(start + variable.length, start + variable.length)
+                          }, 0)
+                        } else {
+                          setBirthdayMessage({
+                            ...birthdayMessage,
+                            message: birthdayMessage.message + variable,
+                          })
+                        }
+                      }}
+                    />
+                    <TextArea
+                      id="birthday-message-textarea"
+                      value={birthdayMessage.message}
+                      onChange={(e) =>
+                        setBirthdayMessage({
+                          ...birthdayMessage,
+                          message: e.target.value,
+                        })
+                      }
+                      rows={4}
+                      style={inputStyle}
+                      placeholder="Use {Studio_Name} and {Member_Name} as placeholders"
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+
+            <Panel header="Broadcast Messages" key="3" className="bg-[#202020]">
+              <div className="space-y-4">
+                {broadcastMessages.map((message, index) => (
+                  <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
+                    <Panel header={message.title || "New Broadcast Message"} key="1" className="bg-[#252525]">
+                      <Form layout="vertical">
+                        <Form.Item label={<span className="text-white">Title</span>}>
+                          <Input
+                            value={message.title}
+                            onChange={(e) => handleUpdateBroadcastMessage(index, "title", e.target.value)}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          label={
+                            <div className="flex items-center">
+                              <span className="text-white">Message</span>
+                              <Tooltip title="Available variables: {Studio_Name}, {Member_Name}">
+                                <InfoCircleOutlined style={tooltipStyle} />
+                              </Tooltip>
+                            </div>
+                          }
+                        >
+                          {/* Variable picker for Broadcast Messages */}
+                          <VariablePicker
+                            variables={[
+                              { label: "Studio Name", value: "{Studio_Name}" },
+                              { label: "Member Name", value: "{Member_Name}" },
+                            ]}
+                            onInsert={(variable) => {
+                              const textarea = document.getElementById(`broadcast-message-textarea-${index}`)
+                              if (textarea) {
+                                const start = textarea.selectionStart
+                                const end = textarea.selectionEnd
+                                const text = message.message
+                                const newText = text.substring(0, start) + variable + text.substring(end)
+                                handleUpdateBroadcastMessage(index, "message", newText)
+                                // Focus and set cursor position after the inserted variable
+                                setTimeout(() => {
+                                  textarea.focus()
+                                  textarea.setSelectionRange(start + variable.length, start + variable.length)
+                                }, 0)
+                              } else {
+                                handleUpdateBroadcastMessage(index, "message", message.message + variable)
+                              }
+                            }}
+                          />
+                          <TextArea
+                            id={`broadcast-message-textarea-${index}`}
+                            value={message.message}
+                            onChange={(e) => handleUpdateBroadcastMessage(index, "message", e.target.value)}
+                            rows={4}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Send Via</span>}>
+                          <Checkbox.Group
+                            options={[
+                              { label: "Email", value: "email" },
+                              { label: "Platform Chat", value: "platform" },
+                            ]}
+                            value={message.sendVia}
+                            onChange={(values) => handleUpdateBroadcastMessage(index, "sendVia", values)}
+                          />
+                        </Form.Item>
+                      </Form>
+                      <Button
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleRemoveBroadcastMessage(index)}
+                        style={buttonStyle}
+                      >
+                        Remove
+                      </Button>
+                    </Panel>
+                  </Collapse>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={handleAddBroadcastMessage}
+                  icon={<PlusOutlined />}
+                  className="w-full sm:w-auto"
+                  style={buttonStyle}
+                >
+                  Add Broadcast Message
+                </Button>
+              </div>
+            </Panel>
+
+            <Panel header="Appointment Notifications" key="4" className="bg-[#202020]">
+              <div className="space-y-4">
+                {appointmentNotifications.map((notification, index) => (
+                  <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
+                    <Panel header={notification.title || "New Notification"} key="1" className="bg-[#252525]">
+                      <Form layout="vertical">
+                        <Form.Item
+                          label={
+                            <div className="flex items-center">
+                              <span className="text-white">Message</span>
+                              <Tooltip title="Available variables: {Studio_Name}, {Member_Name}, {Appointment_Type}, {Booked_Time}">
+                                <InfoCircleOutlined style={tooltipStyle} />
+                              </Tooltip>
+                            </div>
+                          }
+                        >
+                          {/* Variable picker for Appointment Notifications with additional variables */}
+                          <VariablePicker
+                            variables={[
+                              { label: "Studio Name", value: "{Studio_Name}" },
+                              { label: "Member Name", value: "{Member_Name}" },
+                              { label: "Appointment Type", value: "{Appointment_Type}" },
+                              { label: "Booked Time", value: "{Booked_Time}" },
+                            ]}
+                            onInsert={(variable) => {
+                              const textarea = document.getElementById(`appointment-message-textarea-${index}`)
+                              if (textarea) {
+                                const start = textarea.selectionStart
+                                const end = textarea.selectionEnd
+                                const text = notification.message
+                                const newText = text.substring(0, start) + variable + text.substring(end)
+                                handleUpdateAppointmentNotification(index, "message", newText)
+                                // Focus and set cursor position after the inserted variable
+                                setTimeout(() => {
+                                  textarea.focus()
+                                  textarea.setSelectionRange(start + variable.length, start + variable.length)
+                                }, 0)
+                              } else {
+                                handleUpdateAppointmentNotification(index, "message", notification.message + variable)
+                              }
+                            }}
+                          />
+                          <TextArea
+                            id={`appointment-message-textarea-${index}`}
+                            value={notification.message}
+                            onChange={(e) => handleUpdateAppointmentNotification(index, "message", e.target.value)}
+                            rows={4}
+                            style={inputStyle}
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Send Via</span>}>
+                          <Checkbox.Group
+                            options={[
+                              { label: "Email", value: "email" },
+                              { label: "Platform Chat", value: "platform" },
+                            ]}
+                            value={notification.sendVia}
+                            onChange={(values) => handleUpdateAppointmentNotification(index, "sendVia", values)}
+                          />
+                        </Form.Item>
+                      </Form>
+                    </Panel>
+                  </Collapse>
+                ))}
+              </div>
             </Panel>
           </Collapse>
-        ))}
-        <Button
-          type="dashed"
-          onClick={handleAddBroadcastMessage}
-          icon={<PlusOutlined />}
-          className="w-full sm:w-auto"
-          style={buttonStyle}
-        >
-          Add Broadcast Message
-        </Button>
-      </div>
-    </Panel>
-
-    <Panel header="Appointment Notifications" key="4" className="bg-[#202020]">
-      <div className="space-y-4">
-        {appointmentNotifications.map((notification, index) => (
-          <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
-            <Panel header={notification.title || "New Notification"} key="1" className="bg-[#252525]">
-              <Form layout="vertical">
-                <Form.Item
-                  label={
-                    <div className="flex items-center">
-                      <span className="text-white">Message</span>
-                      <Tooltip title="Available variables: {Studio_Name}, {Member_Name}, {Appointment_Type}, {Booked_Time}">
-                        <InfoCircleOutlined style={tooltipStyle} />
-                      </Tooltip>
-                    </div>
-                  }
-                >
-                  {/* Variable picker for Appointment Notifications with additional variables */}
-                  <VariablePicker
-                    variables={[
-                      { label: "Studio Name", value: "{Studio_Name}" },
-                      { label: "Member Name", value: "{Member_Name}" },
-                      { label: "Appointment Type", value: "{Appointment_Type}" },
-                      { label: "Booked Time", value: "{Booked_Time}" }
-                    ]}
-                    onInsert={(variable) => {
-                      const textarea = document.getElementById(`appointment-message-textarea-${index}`);
-                      if (textarea) {
-                        const start = textarea.selectionStart;
-                        const end = textarea.selectionEnd;
-                        const text = notification.message;
-                        const newText = text.substring(0, start) + variable + text.substring(end);
-                        handleUpdateAppointmentNotification(index, "message", newText);
-                        // Focus and set cursor position after the inserted variable
-                        setTimeout(() => {
-                          textarea.focus();
-                          textarea.setSelectionRange(start + variable.length, start + variable.length);
-                        }, 0);
-                      } else {
-                        handleUpdateAppointmentNotification(index, "message", notification.message + variable);
-                      }
-                    }}
-                  />
-                  <TextArea
-                    id={`appointment-message-textarea-${index}`}
-                    value={notification.message}
-                    onChange={(e) => handleUpdateAppointmentNotification(index, "message", e.target.value)}
-                    rows={4}
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Send Via</span>}>
-                  <Checkbox.Group
-                    options={[
-                      { label: "Email", value: "email" },
-                      { label: "Platform Chat", value: "platform" },
-                    ]}
-                    value={notification.sendVia}
-                    onChange={(values) => handleUpdateAppointmentNotification(index, "sendVia", values)}
-                  />
-                </Form.Item>
-              </Form>
-            </Panel>
-          </Collapse>
-        ))}
-      </div>
-    </Panel>
-  </Collapse>
-</TabPane>
+        </TabPane>
 
         <TabPane tab="Finances" key="5">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-          <Panel header="Currency Settings" key="2" className="bg-[#202020]">
-  <div className="space-y-4">
-    <Form layout="vertical">
-      <Form.Item
-        label={<span className="text-white">Currency</span>}
-      >
-        <Select 
-          value={currency} 
-          onChange={(value) => setCurrency(value)} 
-          style={inputStyle}
-          optionLabelProp="label"
-        >
-          <Select.Option value="€" label="€ (Euro)">
-            <div className="flex justify-between">
-              <span>Euro</span>
-              <span className="text-gray-300">€</span>
-            </div>
-          </Select.Option>
-          <Select.Option value="$" label="$ (US Dollar)">
-            <div className="flex justify-between">
-              <span>US Dollar</span>
-              <span className="text-gray-300">$</span>
-            </div>
-          </Select.Option>
-          <Select.Option value="£" label="£ (British Pound)">
-            <div className="flex justify-between">
-              <span>British Pound</span>
-              <span className="text-gray-300">£</span>
-            </div>
-          </Select.Option>
-          <Select.Option value="¥" label="¥ (Japanese Yen)">
-            <div className="flex justify-between">
-              <span>Japanese Yen</span>
-              <span className="text-gray-300">¥</span>
-            </div>
-          </Select.Option>
-          <Select.Option value="Fr" label="Fr (Swiss Franc)">
-            <div className="flex justify-between">
-              <span>Swiss Franc</span>
-              <span className="text-gray-300">Fr</span>
-            </div>
-          </Select.Option>
-          <Select.Option value="A$" label="A$ (Australian Dollar)">
-            <div className="flex justify-between">
-              <span>Australian Dollar</span>
-              <span className="text-gray-300">A$</span>
-            </div>
-          </Select.Option>
-          <Select.Option value="C$" label="C$ (Canadian Dollar)">
-            <div className="flex justify-between">
-              <span>Canadian Dollar</span>
-              <span className="text-gray-300">C$</span>
-            </div>
-          </Select.Option>
-          <Select.Option value="kr" label="kr (Swedish Krona)">
-            <div className="flex justify-between">
-              <span>Swedish Krona</span>
-              <span className="text-gray-300">kr</span>
-            </div>
-          </Select.Option>
-        </Select>
-        <div className="text-xs text-gray-400 mt-1">
-          You can now manually select your preferred currency regardless of country selection
-        </div>
-      </Form.Item>
-    </Form>
-  </div>
-</Panel>
+            <Panel header="Currency Settings" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Currency</span>}>
+                    <Select
+                      value={currency}
+                      onChange={(value) => setCurrency(value)}
+                      style={inputStyle}
+                      optionLabelProp="label"
+                    >
+                      <Select.Option value="€" label="€ (Euro)">
+                        <div className="flex justify-between">
+                          <span>Euro</span>
+                          <span className="text-gray-300">€</span>
+                        </div>
+                      </Select.Option>
+                      <Select.Option value="$" label="$ (US Dollar)">
+                        <div className="flex justify-between">
+                          <span>US Dollar</span>
+                          <span className="text-gray-300">$</span>
+                        </div>
+                      </Select.Option>
+                      <Select.Option value="£" label="£ (British Pound)">
+                        <div className="flex justify-between">
+                          <span>British Pound</span>
+                          <span className="text-gray-300">£</span>
+                        </div>
+                      </Select.Option>
+                      <Select.Option value="¥" label="¥ (Japanese Yen)">
+                        <div className="flex justify-between">
+                          <span>Japanese Yen</span>
+                          <span className="text-gray-300">¥</span>
+                        </div>
+                      </Select.Option>
+                      <Select.Option value="Fr" label="Fr (Swiss Franc)">
+                        <div className="flex justify-between">
+                          <span>Swiss Franc</span>
+                          <span className="text-gray-300">Fr</span>
+                        </div>
+                      </Select.Option>
+                      <Select.Option value="A$" label="A$ (Australian Dollar)">
+                        <div className="flex justify-between">
+                          <span>Australian Dollar</span>
+                          <span className="text-gray-300">A$</span>
+                        </div>
+                      </Select.Option>
+                      <Select.Option value="C$" label="C$ (Canadian Dollar)">
+                        <div className="flex justify-between">
+                          <span>Canadian Dollar</span>
+                          <span className="text-gray-300">C$</span>
+                        </div>
+                      </Select.Option>
+                      <Select.Option value="kr" label="kr (Swedish Krona)">
+                        <div className="flex justify-between">
+                          <span>Swedish Krona</span>
+                          <span className="text-gray-300">kr</span>
+                        </div>
+                      </Select.Option>
+                    </Select>
+                    <div className="text-xs text-gray-400 mt-1">
+                      You can now manually select your preferred currency regardless of country selection
+                    </div>
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
 
             <Panel header="Currency Settings" key="2" className="bg-[#202020]">
               <div className="space-y-4">
@@ -1923,7 +1937,9 @@ const ConfigurationPage = () => {
                     </div>
                     <div className="mt-3">
                       <p className="text-white">Sample text in dark mode</p>
-                      <p className="text-white" style={{ color: appearance.primaryColor }}>Colored text using primary color</p>
+                      <p className="text-white" style={{ color: appearance.primaryColor }}>
+                        Colored text using primary color
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2227,4 +2243,3 @@ styleElement.innerHTML = styleOverrides + additionalStyles
 document.head.appendChild(styleElement)
 
 export default ConfigurationPage
-

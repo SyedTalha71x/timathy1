@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
-import { Search, X, AlertTriangle, Info, Calendar } from "lucide-react"
+import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2 } from "lucide-react"
 import { DndProvider, useDrag, useDrop } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import { AddLeadModal } from "../components/add-lead-modal"
@@ -11,7 +11,6 @@ import TrialTrainingModal from "../components/add-trial"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../public/avatar.png"
 
-// Lead Card Component
 const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, columnId, onDrop }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "LEAD",
@@ -22,7 +21,9 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
   }))
 
   const [isNoteOpen, setIsNoteOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const noteRef = useRef(null)
+  const menuRef = useRef(null)
 
   // Handle clicking outside the note popover
   useEffect(() => {
@@ -30,15 +31,18 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
       if (noteRef.current && !noteRef.current.contains(event.target)) {
         setIsNoteOpen(false)
       }
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false)
+      }
     }
 
-    if (isNoteOpen) {
+    if (isNoteOpen || isMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
         document.removeEventListener("mousedown", handleClickOutside)
       }
     }
-  }, [isNoteOpen])
+  }, [isNoteOpen, isMenuOpen])
 
   // Format date helper function
   const formatDate = (timestamp) => {
@@ -143,38 +147,68 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
           alt={`${lead.firstName} ${lead.surname}'s avatar`}
           className="w-12 h-12 rounded-full mr-3 object-cover"
         />
-        <div>
+        <div className="flex-1">
           <h4 className="font-medium text-white">{`${lead.firstName} ${lead.surname}`}</h4>
           <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
           <p className="text-gray-500 text-xs">
             Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
           </p>
         </div>
+
+        {/* Three-dot menu */}
+        <div className="relative">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-1 rounded-md cursor-pointer  bg-black text-white"
+          >
+            <MoreVertical size={16} />
+          </button>
+
+          {isMenuOpen && (
+            <div
+              ref={menuRef}
+              className="absolute right-0 top-full mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-40"
+            >
+              <button
+                onClick={() => {
+                  onViewDetails(lead)
+                  setIsMenuOpen(false)
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+              >
+                <Info size={14} />
+                View Details
+              </button>
+              <button
+                onClick={() => {
+                  onEditLead(lead)
+                  setIsMenuOpen(false)
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+              >
+                <Edit size={14} />
+                Edit
+              </button>
+              <button
+                onClick={() => {
+                  onDeleteLead(lead.id)
+                  setIsMenuOpen(false)
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2"
+              >
+                <Trash2 size={14} />
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex flex-wrap justify-center gap-1.5">
+      <div className="flex justify-center">
         <button
           onClick={() => onAddTrial(lead)}
           className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full"
         >
           Add Trial Training
-        </button>
-        <button
-          onClick={() => onViewDetails(lead)}
-          className="text-xs rounded-xl bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 px-4 py-2 w-full"
-        >
-          View Details
-        </button>
-        <button
-          onClick={() => onEditLead(lead)}
-          className="text-xs rounded-xl bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 px-4 py-2 w-full"
-        >
-          Edit
-        </button>
-        <button
-          onClick={() => onDeleteLead(lead.id)}
-          className="text-xs rounded-xl bg-transparent border border-gray-700 text-red-500 hover:bg-gray-800 px-4 py-2 w-full"
-        >
-          Delete
         </button>
       </div>
     </div>
@@ -337,7 +371,7 @@ const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
       <div className="bg-[#1C1C1C] p-6 rounded-lg">
-        <h3 className="text-lg font-bold mb-4">{message}</h3>
+        <h3 className="text-lg font-bold mb-4 text-white">{message}</h3>
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="bg-gray-500 text-sm text-white px-4 py-2 rounded-lg hover:bg-gray-600">
             Cancel
@@ -581,7 +615,7 @@ export default function LeadManagement() {
   const handleDrop = (leadId, targetColumnId) => {
     // Don't allow dropping into the same column
     const lead = leads.find((l) => l.id === leadId)
-    if (lead.columnId === targetColumnId) return
+    if (!lead || lead.columnId === targetColumnId) return
 
     // If dropping into trial column, set hasTrialTraining to true
     const hasTrialTraining = targetColumnId === "trial"
@@ -649,12 +683,12 @@ export default function LeadManagement() {
         />
 
         <div className="flex md:flex-row flex-col gap-2 justify-between md:items-center items-start mb-6">
-          <h1 className="text-2xl text-white font-bold">Interested parties</h1>
+          <h1 className="text-2xl text-white font-bold">Leads</h1>
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl"
           >
-            Add Lead
+            Create Lead
           </button>
         </div>
 

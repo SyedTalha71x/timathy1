@@ -1,9 +1,8 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState, useEffect, useRef } from "react";
-import { X, Circle, AlertCircle } from "lucide-react";
-import { Toaster, toast } from "react-hot-toast";
-import DefaultAvatar from '../../public/default-avatar.avif';
+import { useState, useEffect, useRef } from "react"
+import { X } from "lucide-react"
+import { Toaster, toast } from "react-hot-toast"
+import DefaultAvatar from "../../public/default-avatar.avif"
 
 export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
   const [formData, setFormData] = useState({
@@ -22,11 +21,10 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
     noteImportance: "unimportant",
     hasTrialTraining: false,
     avatar: null,
-    status: "passive",
-  });
-  
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const fileInputRef = useRef(null);
+  })
+
+  const [previewUrl, setPreviewUrl] = useState(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     if (leadData) {
@@ -48,37 +46,36 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
         noteImportance: leadData.specialNote?.isImportant ? "important" : "unimportant",
         hasTrialTraining: leadData.hasTrialTraining || false,
         avatar: leadData.avatar || null,
-        status: leadData.status || "passive",
-      });
-      setPreviewUrl(leadData.avatar || null);
+      })
+      setPreviewUrl(leadData.avatar || null)
     }
-  }, [leadData]);
+  }, [leadData])
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
-    }));
-  };
+    }))
+  }
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files[0]
     if (file) {
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onloadend = () => {
-        setPreviewUrl(reader.result);
+        setPreviewUrl(reader.result)
         setFormData((prev) => ({
           ...prev,
           avatar: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
+        }))
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault()
     // Map formData back to the structure expected by the parent component
     const mappedData = {
       ...leadData,
@@ -97,17 +94,18 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
       noteImportance: formData.noteImportance,
       hasTrialTraining: formData.hasTrialTraining,
       avatar: formData.avatar,
-      status: formData.status,
-    };
-    
-    onSave(mappedData);
-    toast.success("Lead updated successfully!");
-    setTimeout(() => {
-      onClose();
-    }, 200);
-  };
+      // Keep the existing status from leadData
+      status: leadData.status || "passive",
+    }
 
-  if (!isVisible) return null;
+    onSave(mappedData)
+    toast.success("Lead updated successfully!")
+    setTimeout(() => {
+      onClose()
+    }, 200)
+  }
+
+  if (!isVisible) return null
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center p-3 items-center z-[1000] overflow-y-auto">
@@ -129,23 +127,13 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
               <X size={24} />
             </button>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
             <div className="flex flex-col items-start">
               <div className="w-24 h-24 rounded-full overflow-hidden mb-4">
-                <img
-                  src={previewUrl || DefaultAvatar}
-                  alt="Profile Preview"
-                  className="w-full h-full object-cover"
-                />
+                <img src={previewUrl || DefaultAvatar} alt="Profile Preview" className="w-full h-full object-cover" />
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
               <label
                 onClick={() => fileInputRef.current.click()}
                 className="bg-[#FF5733] hover:bg-[#E64D2E] px-6 py-2 rounded-xl text-sm cursor-pointer text-white"
@@ -153,7 +141,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 Update picture
               </label>
             </div>
-            
+
             {/* Form Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -179,7 +167,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="text-sm text-gray-200 block mb-2">Email</label>
               <input
@@ -191,7 +179,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
               />
             </div>
-            
+
             <div>
               <label className="text-sm text-gray-200 block mb-2">Phone</label>
               <input
@@ -203,7 +191,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
               />
             </div>
-            
+
             <div>
               <label className="text-sm text-gray-200 block mb-2">Street</label>
               <input
@@ -214,7 +202,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
@@ -237,7 +225,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
               <input
@@ -248,21 +236,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
               />
             </div>
-            
-            <div>
-              <label className="text-sm text-gray-200 block mb-2">Prospect Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-              >
-                <option value="active">Active prospect</option>
-                <option value="passive">Passive prospect</option>
-                <option value="uninterested">Uninterested</option>
-              </select>
-            </div>
-            
+
             <div className="border border-slate-700 rounded-xl p-4">
               <div className="flex items-center justify-between mb-4">
                 <label className="text-sm text-gray-200 font-medium">Special Note</label>
@@ -316,7 +290,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 </div>
               </div>
             </div>
-            
+
             <div>
               <label className="text-sm text-gray-200 block mb-2">About</label>
               <textarea
@@ -327,7 +301,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 placeholder="Enter additional information about the lead..."
               />
             </div>
-            
+
             <div className="flex justify-end pt-2">
               <button
                 type="button"
@@ -347,5 +321,5 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
         </div>
       </div>
     </div>
-  );
+  )
 }

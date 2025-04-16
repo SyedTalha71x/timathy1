@@ -1,8 +1,9 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
-import { X, Search, ChevronDown, Cake, Eye, FileText, Info, AlertTriangle } from "lucide-react"
+import { X, Search, ChevronDown, Cake, Eye, FileText, Info, AlertTriangle, Calendar, Plus, Minus } from "lucide-react"
 import DefaultAvatar from "../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
 
@@ -35,6 +36,22 @@ export default function Members() {
     contractStart: "",
     contractEnd: "",
   })
+
+  const [memberAppointments, setMemberAppointments] = useState({
+    1: [
+      { id: 1, title: "Strength Training", date: "2025-04-20", time: "10:00 - 11:00" },
+      { id: 2, title: "Cardio Session", date: "2025-04-22", time: "14:00 - 15:00" },
+    ],
+    2: [{ id: 3, title: "Yoga Class", date: "2025-04-21", time: "09:00 - 10:30" }],
+  })
+
+  const [memberCapacity, setMemberCapacity] = useState({
+    1: { total: 10, used: 2 },
+    2: { total: 8, used: 1 },
+  })
+
+  const [isAppointmentsModalOpen, setIsAppointmentsModalOpen] = useState(false)
+  const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
 
   useEffect(() => {
     if (selectedMember) {
@@ -84,26 +101,22 @@ export default function Members() {
     setIsEditModalOpen(false)
     setSelectedMember(null)
     toast.success("Member details have been updated successfully")
-
   }
-  
+
   const notePopoverRef = useRef(null)
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        notePopoverRef.current && 
-        !notePopoverRef.current.contains(event.target)
-      ) {
+      if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
         setActiveNoteId(null)
       }
     }
 
     // Add event listener when popover is open
     if (activeNoteId !== null) {
-      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside)
       return () => {
-        document.removeEventListener('mousedown', handleClickOutside)
+        document.removeEventListener("mousedown", handleClickOutside)
       }
     }
   }, [activeNoteId])
@@ -268,6 +281,37 @@ export default function Members() {
     e.preventDefault()
     // In a real app, you would handle file upload here
     toast.success("Avatar update functionality would be implemented here")
+  }
+
+  const handleViewAppointments = (member) => {
+    setSelectedMemberForAppointments(member)
+    setIsAppointmentsModalOpen(true)
+  }
+
+  const increaseCapacity = (memberId) => {
+    setMemberCapacity((prev) => ({
+      ...prev,
+      [memberId]: {
+        ...prev[memberId],
+        total: prev[memberId].total + 1,
+      },
+    }))
+    toast.success("Appointment capacity increased")
+  }
+
+  const decreaseCapacity = (memberId) => {
+    if (memberCapacity[memberId].total > memberCapacity[memberId].used) {
+      setMemberCapacity((prev) => ({
+        ...prev,
+        [memberId]: {
+          ...prev[memberId],
+          total: prev[memberId].total - 1,
+        },
+      }))
+      toast.success("Appointment capacity decreased")
+    } else {
+      toast.error("Cannot decrease capacity below used appointments")
+    }
   }
 
   return (
@@ -580,72 +624,71 @@ export default function Members() {
                   <div key={member.id} className="bg-[#161616] rounded-xl p-6 relative">
                     {/* Special note icon in top left corner */}
                     {member.note && (
-        <div className="absolute p-2 top-0 left-0 z-10">
-          <div className="relative">
-            <div
-              className={`${
-                member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-              onClick={(e) => {
-                e.stopPropagation()
-                setActiveNoteId(activeNoteId === member.id ? null : member.id)
-              }}
-            >
-              {member.noteImportance === "important" ? (
-                <AlertTriangle size={18} className="text-white" />
-              ) : (
-                <Info size={18} className="text-white" />
-              )}
-            </div>
+                      <div className="absolute p-2 top-0 left-0 z-10">
+                        <div className="relative">
+                          <div
+                            className={`${
+                              member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setActiveNoteId(activeNoteId === member.id ? null : member.id)
+                            }}
+                          >
+                            {member.noteImportance === "important" ? (
+                              <AlertTriangle size={18} className="text-white" />
+                            ) : (
+                              <Info size={18} className="text-white" />
+                            )}
+                          </div>
 
+                          {activeNoteId === member.id && (
+                            <div
+                              ref={notePopoverRef}
+                              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+                            >
+                              {/* Header section with icon and title */}
+                              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                                {member.noteImportance === "important" ? (
+                                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                                ) : (
+                                  <Info className="text-blue-500 shrink-0" size={18} />
+                                )}
+                                <h4 className="text-white flex gap-1 items-center font-medium">
+                                  <div>Special Note</div>
+                                  <div className="text-sm text-gray-400">
+                                    {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+                                  </div>
+                                </h4>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setActiveNoteId(null)
+                                  }}
+                                  className="ml-auto text-gray-400 hover:text-white"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
 
-            {activeNoteId === member.id && (
-              <div 
-                ref={notePopoverRef}
-                className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
-              >
-                {/* Header section with icon and title */}
-                <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                  {member.noteImportance === "important" ? (
-                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                  ) : (
-                    <Info className="text-blue-500 shrink-0" size={18} />
-                  )}
-                  <h4 className="text-white flex gap-1 items-center font-medium">
-                    <div>Special Note</div>
-                    <div className="text-sm text-gray-400">
-                      {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
-                    </div>
-                  </h4>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setActiveNoteId(null)
-                    }}
-                    className="ml-auto text-gray-400 hover:text-white"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
+                              {/* Note content */}
+                              <div className="p-3">
+                                <p className="text-white text-sm leading-relaxed">{member.note}</p>
 
-                {/* Note content */}
-                <div className="p-3">
-                  <p className="text-white text-sm leading-relaxed">{member.note}</p>
-
-                  {/* Date validity section */}
-                  {member.noteStartDate && member.noteEndDate && (
-                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                      <p className="text-xs text-gray-300">
-                        Valid from {member.noteStartDate} to {member.noteEndDate}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+                                {/* Date validity section */}
+                                {member.noteStartDate && member.noteEndDate && (
+                                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                                    <p className="text-xs text-gray-300">
+                                      Valid from {member.noteStartDate} to {member.noteEndDate}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
                         <img
@@ -681,6 +724,32 @@ export default function Members() {
                         </div>
                       </div>
                       <div className="flex items-center justify-center sm:justify-end gap-3 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
+                        <div className="flex items-center gap-2 bg-black rounded-xl border border-slate-600 py-2 px-3">
+                          <button
+                            onClick={() => decreaseCapacity(member.id)}
+                            className="text-gray-400 hover:text-white p-1"
+                            title="Decrease capacity"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="text-sm text-white">
+                            {memberCapacity[member.id]?.used || 0}/{memberCapacity[member.id]?.total || 0}
+                          </span>
+                          <button
+                            onClick={() => increaseCapacity(member.id)}
+                            className="text-gray-400 hover:text-white p-1"
+                            title="Increase capacity"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => handleViewAppointments(member)}
+                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm w-auto flex items-center justify-center"
+                          title="View appointments"
+                        >
+                          <Calendar size={16} className="text-[#3F74FF]" />
+                        </button>
                         <button
                           onClick={() => handleViewDetails(member)}
                           className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
@@ -847,7 +916,85 @@ export default function Members() {
           </div>
         </div>
       )}
+      {isAppointmentsModalOpen && selectedMemberForAppointments && (
+        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
+                  {selectedMemberForAppointments.title}'s Appointments
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsAppointmentsModalOpen(false)
+                    setSelectedMemberForAppointments(null)
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={20} className="cursor-pointer" />
+                </button>
+              </div>
+
+              <div className="space-y-4 text-white">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-gray-400">
+                    Appointment Capacity: {memberCapacity[selectedMemberForAppointments.id]?.used || 0}/
+                    {memberCapacity[selectedMemberForAppointments.id]?.total || 0}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => decreaseCapacity(selectedMemberForAppointments.id)}
+                      className="bg-gray-800 hover:bg-gray-700 p-1 rounded"
+                      title="Decrease capacity"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <button
+                      onClick={() => increaseCapacity(selectedMemberForAppointments.id)}
+                      className="bg-gray-800 hover:bg-gray-700 p-1 rounded"
+                      title="Increase capacity"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {memberAppointments[selectedMemberForAppointments.id]?.length > 0 ? (
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+                    {memberAppointments[selectedMemberForAppointments.id].map((appointment) => (
+                      <div key={appointment.id} className="bg-[#161616] rounded-xl p-4">
+                        <h3 className="font-medium">{appointment.title}</h3>
+                        <div className="flex justify-between mt-2 text-sm text-gray-400">
+                          <p>{appointment.date}</p>
+                          <p>{appointment.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-400 py-8">No upcoming appointments</p>
+                )}
+
+                <div className="flex justify-between items-center pt-4 border-t border-gray-800">
+                  <p className="text-sm">
+                    <span className="text-gray-400">Used:</span>{" "}
+                    {memberCapacity[selectedMemberForAppointments.id]?.used || 0}
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-gray-400">Available:</span>{" "}
+                    {(memberCapacity[selectedMemberForAppointments.id]?.total || 0) -
+                      (memberCapacity[selectedMemberForAppointments.id]?.used || 0)}
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-gray-400">Total:</span>{" "}
+                    {memberCapacity[selectedMemberForAppointments.id]?.total || 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
-

@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 
 export function BonusTimeModal({ contract, onClose, onSubmit }) {
@@ -9,40 +9,63 @@ export function BonusTimeModal({ contract, onClose, onSubmit }) {
   const [reason, setReason] = useState("")
   const [startOption, setStartOption] = useState("current_contract_period")
   const [startDate, setStartDate] = useState("")
+  const [bonusPeriod, setBonusPeriod] = useState("")
+
+  // Calculate and update bonus period whenever relevant values change
+  useEffect(() => {
+    setBonusPeriod(calculateBonusPeriod())
+  }, [startOption, startDate, bonusAmount, bonusUnit])
 
   // Calculate bonus period end date
   const calculateBonusPeriod = () => {
     if (startOption === "fixed_time" && startDate) {
+      // For fixed time option
       const start = new Date(startDate)
       const end = new Date(start)
 
       // Add bonus duration based on amount and unit
-      switch (bonusUnit) {
-        case "days":
-          end.setDate(start.getDate() + bonusAmount)
-          break
-        case "weeks":
-          end.setDate(start.getDate() + (bonusAmount * 7));
-          break
-        case "months":
-          end.setMonth(start.getMonth() + bonusAmount);
-          break
-        default:
-          return "Invalid duration"
-      }
+      applyDurationToDate(end, bonusAmount, bonusUnit)
 
       // Format dates to local date string
-      const formatDate = (date) => 
-        date.toLocaleDateString('de-DE', { 
-          day: '2-digit', 
-          month: '2-digit', 
-          year: 'numeric' 
-        })
+      return `${formatDate(start)} - ${formatDate(end)}`
+    } else if (startOption === "current_contract_period" && contract?.endDate) {
+      // For end of contract period option
+      const start = new Date(contract.endDate)
+      const end = new Date(start)
 
+      // Add bonus duration based on amount and unit
+      applyDurationToDate(end, bonusAmount, bonusUnit)
+
+      // Format dates to local date string
       return `${formatDate(start)} - ${formatDate(end)}`
     }
-    return "Based on current contract period"
+
+    return ""
   }
+
+  // Helper function to apply duration to a date
+  const applyDurationToDate = (date, amount, unit) => {
+    switch (unit) {
+      case "days":
+        date.setDate(date.getDate() + amount)
+        break
+      case "weeks":
+        date.setDate(date.getDate() + amount * 7)
+        break
+      case "months":
+        date.setMonth(date.getMonth() + amount)
+        break
+    }
+    return date
+  }
+
+  // Format date helper
+  const formatDate = (date) =>
+    date.toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -53,7 +76,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit }) {
       withExtension: withExtension === "With Contract extension",
       reason,
       startOption,
-      startDate: startOption === "fixed_time" ? startDate : null
+      startDate: startOption === "fixed_time" ? startDate : null,
     })
   }
 
@@ -88,7 +111,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit }) {
                 <option value="current_contract_period">End of the current Contract period</option>
                 <option value="fixed_time">Fixed time</option>
               </select>
-              
+
               {startOption === "fixed_time" && (
                 <div className="flex gap-2">
                   <div className="relative w-1/2">
@@ -98,7 +121,6 @@ export function BonusTimeModal({ contract, onClose, onSubmit }) {
                       onChange={(e) => setStartDate(e.target.value)}
                       className="bg-black white-calendar-icon text-white text-sm px-3 py-2 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#F27A30] pl-10"
                     />
-                    {/* <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" /> */}
                   </div>
                   <div className="flex gap-2 w-1/2">
                     <input
@@ -120,12 +142,33 @@ export function BonusTimeModal({ contract, onClose, onSubmit }) {
                   </div>
                 </div>
               )}
-              
-              {startOption === "fixed_time" && startDate && (
-                <div className="mt-2 text-sm text-gray-400">
-                  Bonus Period: {calculateBonusPeriod()}
+
+              {/* Duration selection for "End of the current Contract period" */}
+              {startOption === "current_contract_period" && (
+                <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 w-full">
+                    <input
+                      type="number"
+                      min="1"
+                      value={bonusAmount}
+                      onChange={(e) => setBonusAmount(Number.parseInt(e.target.value))}
+                      className="bg-black text-white text-sm px-3 py-2 rounded-xl border border-gray-800 w-1/3 focus:outline-none focus:ring-1 focus:ring-[#F27A30]"
+                    />
+                    <select
+                      value={bonusUnit}
+                      onChange={(e) => setBonusUnit(e.target.value)}
+                      className="bg-black text-white text-sm px-3 py-2 rounded-xl border border-gray-800 w-2/3 focus:outline-none focus:ring-1 focus:ring-[#F27A30]"
+                    >
+                      <option value="days">Days</option>
+                      <option value="weeks">Weeks</option>
+                      <option value="months">Months</option>
+                    </select>
+                  </div>
                 </div>
               )}
+
+              {/* Show bonus period for both options when available */}
+              {bonusPeriod && <div className="mt-2 text-sm text-gray-400">Bonus Period: {bonusPeriod}</div>}
             </div>
             <div>
               <label className="block text-gray-300 text-sm mb-2">Contract Extension</label>

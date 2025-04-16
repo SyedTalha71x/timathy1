@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
@@ -17,148 +19,139 @@ import {
   CalendarIcon,
   ChevronRight,
   ChevronLeft,
-} from "lucide-react";
-import { useState, useEffect, useCallback, useRef } from "react";
-import Avatar from "../../public/avatar.png";
-import toast, { Toaster } from "react-hot-toast";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import TrialPlanningModal from "../components/add-trial";
-import AddAppointmentModal from "../components/add-appointment-modal";
-import SelectedAppointmentModal from "../components/selected-appointment-modal";
-import MiniCalendar from "../components/mini-calender";
-import BlockAppointmentModal from "../components/block-appointment-modal";
+} from "lucide-react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import Avatar from "../../public/avatar.png"
+import toast, { Toaster } from "react-hot-toast"
+import FullCalendar from "@fullcalendar/react"
+import dayGridPlugin from "@fullcalendar/daygrid"
+import timeGridPlugin from "@fullcalendar/timegrid"
+import interactionPlugin from "@fullcalendar/interaction"
+import TrialPlanningModal from "../components/add-trial"
+import AddAppointmentModal from "../components/add-appointment-modal"
+import SelectedAppointmentModal from "../components/selected-appointment-modal"
+import MiniCalendar from "../components/mini-calender"
+import BlockAppointmentModal from "../components/block-appointment-modal"
 
-function Calendar({
-  appointments,
-  onEventClick,
-  onDateSelect,
-  searchQuery,
-  selectedDate,
-  setAppointments,
-}) {
-  const [calendarSize, setCalendarSize] = useState(100);
-  const [calendarHeight, setCalendarHeight] = useState("auto");
-  const [activeNoteId, setActiveNoteId] = useState(null);
-  const [freeAppointments, setFreeAppointments] = useState([]);
+function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selectedDate, setAppointments }) {
+  const [calendarSize, setCalendarSize] = useState(100)
+  const [calendarHeight, setCalendarHeight] = useState("auto")
+  const [activeNoteId, setActiveNoteId] = useState(null)
+  const [freeAppointments, setFreeAppointments] = useState([])
+  const [viewMode, setViewMode] = useState("all") // "all" or "free"
 
   const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
+    const day = String(date.getDate()).padStart(2, "0")
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const year = date.getFullYear()
+    return `${day}-${month}-${year}`
+  }
 
-  const calendarRef = useRef(null);
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false);
-  const [notifyAction, setNotifyAction] = useState("change");
-  const [eventInfo, setEventInfo] = useState(null);
-  const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false);
-  const [selectedSlotInfo, setSelectedSlotInfo] = useState(null);
-  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false);
-  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const calendarRef = useRef(null)
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [notifyAction, setNotifyAction] = useState("change")
+  const [eventInfo, setEventInfo] = useState(null)
+  const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
+  const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
+  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   // New state for the appointment action modal
-  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] =
-    useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] =
-    useState(false);
-  const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] =
-    useState(false);
-  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState(null)
+  const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] = useState(false)
+  const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
 
   // Sample appointment types - you can replace this with your actual data
   const appointmentTypes = [
     { name: "Regular Training", duration: 60, color: "bg-blue-500" },
     { name: "Consultation", duration: 30, color: "bg-green-500" },
     { name: "Assessment", duration: 45, color: "bg-purple-500" },
-  ];
+  ]
 
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
+      const calendarApi = calendarRef.current.getApi()
 
       // Always change to day view when a date is selected from mini calendar
-      calendarApi.changeView("timeGridDay", selectedDate);
+      calendarApi.changeView("timeGridDay", selectedDate)
     }
-  }, [selectedDate]);
+  }, [selectedDate])
 
   const generateFreeDates = () => {
-    const now = new Date();
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-    const freeDates = new Set(); // Use a Set to store unique month-date pairs
-    const slots = [];
-  
+    const now = new Date()
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()))
+    const freeDates = new Set() // Use a Set to store unique month-date pairs
+    const slots = []
+
+    // Toggle view mode
+    setViewMode(viewMode === "all" ? "free" : "all")
+
     // Generate free slots for the next 3 weeks
     for (let week = 0; week < 3; week++) {
-      const weekStart = new Date(startOfWeek);
-      weekStart.setDate(weekStart.getDate() + week * 7);
-  
+      const weekStart = new Date(startOfWeek)
+      weekStart.setDate(weekStart.getDate() + week * 7)
+
       // Generate 3-4 random slots per week
-      const slotsPerWeek = 3 + Math.floor(Math.random() * 2); // Either 3 or 4 slots
-  
+      const slotsPerWeek = 3 + Math.floor(Math.random() * 2) // Either 3 or 4 slots
+
       for (let i = 0; i < slotsPerWeek; i++) {
-        const randomDay = Math.floor(Math.random() * 7); // 0-6 (Sun-Sat)
-        const randomHour = 8 + Math.floor(Math.random() * 10); // Between 8 AM and 6 PM
-        const randomMinute = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, or 45 minutes
-  
-        const freeDate = new Date(weekStart);
-        freeDate.setDate(weekStart.getDate() + randomDay);
-        freeDate.setHours(randomHour, randomMinute, 0);
-  
+        const randomDay = Math.floor(Math.random() * 7) // 0-6 (Sun-Sat)
+        const randomHour = 8 + Math.floor(Math.random() * 10) // Between 8 AM and 6 PM
+        const randomMinute = Math.floor(Math.random() * 4) * 15 // 0, 15, 30, or 45 minutes
+
+        const freeDate = new Date(weekStart)
+        freeDate.setDate(weekStart.getDate() + randomDay)
+        freeDate.setHours(randomHour, randomMinute, 0)
+
         // Skip dates in the past
-        if (freeDate < new Date()) continue;
-  
-        const formattedDate = formatDate(freeDate);
-        const formattedTime = freeDate.toTimeString().split(" ")[0].substring(0, 5);
-  
+        if (freeDate < new Date()) continue
+
+        const formattedDate = formatDate(freeDate)
+        const formattedTime = freeDate.toTimeString().split(" ")[0].substring(0, 5)
+
         // Store unique month-date pairs
-        freeDates.add(
-          freeDate.toLocaleDateString("en-US", { month: "long", day: "numeric" })
-        );
-  
+        freeDates.add(freeDate.toLocaleDateString("en-US", { month: "long", day: "numeric" }))
+
         slots.push({
           id: `free-${week}-${i}`,
           date: formattedDate,
           time: formattedTime,
-        });
+        })
       }
     }
-  
-    setFreeAppointments(slots);
-  
-    if (slots.length > 0) {
+
+    setFreeAppointments(slots)
+
+    if (slots.length > 0 && viewMode === "free") {
       toast.success(
-        `Free slots generated for ${Array.from(freeDates).join(", ")}. Proceed to these months in the calendar below to see available slots.`
-      );
+        `Free slots generated for ${Array.from(freeDates).join(", ")}. Proceed to these months in the calendar below to see available slots.`,
+      )
     } else {
-      toast.warning("No free slots available.");
+      toast.success(viewMode === "all" ? "Showing all appointments" : "No free slots available.")
     }
-  };
-  
+  }
 
   const zoomIn = () => {
-    setCalendarSize((prev) => Math.min(prev + 10, 150)); // Max 150%
-  };
+    setCalendarSize((prev) => Math.min(prev + 10, 150)) // Max 150%
+  }
 
   const zoomOut = () => {
-    setCalendarSize((prev) => Math.max(prev - 10, 70)); // Min 70%
-  };
+    setCalendarSize((prev) => Math.max(prev - 10, 70)) // Min 70%
+  }
 
   const resetZoom = () => {
-    setCalendarSize(100); // Reset to default
-  };
+    setCalendarSize(100) // Reset to default
+  }
 
   const handleViewChange = (viewInfo) => {
     if (viewInfo.view.type === "dayGridMonth") {
-      setCalendarHeight("auto");
+      setCalendarHeight("auto")
     } else {
       // For week and day views, set a fixed height that will scale with zoom
-      setCalendarHeight("650px");
+      setCalendarHeight("650px")
     }
-  };
+  }
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
@@ -166,28 +159,28 @@ function Calendar({
       ...trialData,
       status: "pending",
       isTrial: true,
-    };
-    setAppointments([...appointments, newTrial]);
-    toast.success("Trial training booked successfully");
-    setIsTrialModalOpen(false);
-  };
+    }
+    setAppointments([...appointments, newTrial])
+    toast.success("Trial training booked successfully")
+    setIsTrialModalOpen(false)
+  }
 
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
       id: appointments.length + 1,
       ...appointmentData,
       status: "scheduled",
-    };
-    setAppointments([...appointments, newAppointment]);
-    toast.success("Appointment booked successfully");
-    setIsAppointmentModalOpen(false);
-  };
+    }
+    setAppointments([...appointments, newAppointment])
+    toast.success("Appointment booked successfully")
+    setIsAppointmentModalOpen(false)
+  }
 
   const handleEventDrop = (info) => {
-    const { event } = info;
+    const { event } = info
 
     // Calculate the duration of the event in milliseconds
-    const duration = event.end - event.start;
+    const duration = event.end - event.start
 
     // Update the appointment in the state
     const updatedAppointments = appointments.map((appointment) => {
@@ -195,46 +188,44 @@ function Calendar({
         return {
           ...appointment,
           startTime: event.start.toTimeString().split(" ")[0], // New start time
-          endTime: new Date(event.start.getTime() + duration)
-            .toTimeString()
-            .split(" ")[0], // New end time (same duration)
+          endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0], // New end time (same duration)
           date: `${event.start.toLocaleString("en-US", {
             weekday: "short",
           })} | ${formatDate(event.start)}`, // New date
-        };
+        }
       }
-      return appointment;
-    });
+      return appointment
+    })
 
     // Update the state with the new appointments
-    setAppointments(updatedAppointments);
-    setIsNotifyMemberOpen(true);
-  };
+    setAppointments(updatedAppointments)
+    setIsNotifyMemberOpen(true)
+  }
 
   const handleDateSelect = (selectInfo) => {
-    setSelectedSlotInfo(selectInfo);
-    setIsTypeSelectionOpen(true);
-  };
+    setSelectedSlotInfo(selectInfo)
+    setIsTypeSelectionOpen(true)
+  }
 
   const handleTypeSelection = (type) => {
-    setIsTypeSelectionOpen(false);
+    setIsTypeSelectionOpen(false)
     if (type === "trial") {
-      setIsTrialModalOpen(true);
+      setIsTrialModalOpen(true)
     } else if (type === "appointment") {
-      setIsAppointmentModalOpen(true);
+      setIsAppointmentModalOpen(true)
     } else if (type === "block") {
       // Open the block modal with the selected date/time
-      setIsBlockModalOpen(true);
+      setIsBlockModalOpen(true)
     } else if (selectedSlotInfo && onDateSelect) {
-      onDateSelect({ ...selectedSlotInfo, eventType: type });
+      onDateSelect({ ...selectedSlotInfo, eventType: type })
     }
-  };
+  }
 
   const handleNotifyMember = (shouldNotify) => {
-    setIsNotifyMemberOpen(false);
+    setIsNotifyMemberOpen(false)
     if (shouldNotify) {
-      console.log("Notify member about the new time:", eventInfo.event.start);
-      toast.success("Member notified successfully!");
+      console.log("Notify member about the new time:", eventInfo.event.start)
+      toast.success("Member notified successfully!")
       const updatedAppointments = appointments.map((appointment) => {
         if (appointment.id === eventInfo.event.id) {
           return {
@@ -242,12 +233,12 @@ function Calendar({
             date: eventInfo.event.start.toISOString().split("T")[0],
             startTime: eventInfo.event.start.toTimeString().split(" ")[0],
             endTime: eventInfo.event.end.toTimeString().split(" ")[0],
-          };
+          }
         }
-        return appointment;
-      });
+        return appointment
+      })
     }
-  };
+  }
 
   // Handler for free slot click
   const handleFreeSlotClick = (clickInfo) => {
@@ -255,42 +246,42 @@ function Calendar({
       setSelectedSlotInfo({
         start: clickInfo.event.start,
         end: clickInfo.event.end,
-      });
-      setIsTypeSelectionOpen(true);
+      })
+      setIsTypeSelectionOpen(true)
     }
-  };
+  }
 
   // New handler for event clicks
   const handleEventClick = (clickInfo) => {
     // Check if it's a free slot first
     if (clickInfo.event.extendedProps.isFree) {
-      handleFreeSlotClick(clickInfo);
-      return;
+      handleFreeSlotClick(clickInfo)
+      return
     }
 
     // Otherwise, handle as regular appointment
-    const appointmentId = Number.parseInt(clickInfo.event.id);
-    const appointment = appointments.find((app) => app.id === appointmentId);
+    const appointmentId = Number.parseInt(clickInfo.event.id)
+    const appointment = appointments.find((app) => app.id === appointmentId)
 
     if (appointment) {
-      setSelectedAppointment(appointment);
-      setIsAppointmentActionModalOpen(true);
+      setSelectedAppointment(appointment)
+      setIsAppointmentActionModalOpen(true)
     }
 
     if (onEventClick) {
-      onEventClick(clickInfo);
+      onEventClick(clickInfo)
     }
-  };
+  }
 
   const handleEditAppointment = () => {
-    setIsAppointmentActionModalOpen(false);
-    setIsEditAppointmentModalOpen(true);
-  };
+    setIsAppointmentActionModalOpen(false)
+    setIsEditAppointmentModalOpen(true)
+  }
 
   const handleCancelAppointment = () => {
-    setIsAppointmentActionModalOpen(false);
-    setNotifyAction("cancel");
-    setIsNotifyMemberOpen(true);
+    setIsAppointmentActionModalOpen(false)
+    setNotifyAction("cancel")
+    setIsNotifyMemberOpen(true)
 
     // We'll use the same notification handler but add additional logic for cancellation
     setEventInfo({
@@ -299,105 +290,106 @@ function Calendar({
         start: new Date(),
         end: new Date(),
       },
-    });
-  };
+    })
+  }
 
   const handleViewMemberDetails = () => {
-    setIsAppointmentActionModalOpen(false);
-    setIsMemberDetailsModalOpen(true);
-  };
+    setIsAppointmentActionModalOpen(false)
+    setIsMemberDetailsModalOpen(true)
+  }
 
   // Actually cancel the appointment after notification decision
   const actuallyHandleCancelAppointment = (shouldNotify) => {
-    const updatedAppointments = appointments.filter(
-      (app) => app.id !== selectedAppointment.id
-    );
-    setAppointments(updatedAppointments);
-    toast.success("Appointment cancelled successfully");
+    const updatedAppointments = appointments.filter((app) => app.id !== selectedAppointment.id)
+    setAppointments(updatedAppointments)
+    toast.success("Appointment cancelled successfully")
 
     if (shouldNotify) {
-      console.log("Notifying member about cancellation");
+      console.log("Notifying member about cancellation")
       // Additional notification logic would go here
     }
-  };
+  }
 
   // Helper function to determine if an event is in the past
   const isEventInPast = (eventStart) => {
-    const now = new Date();
-    return new Date(eventStart) < now;
-  };
+    const now = new Date()
+    return new Date(eventStart) < now
+  }
 
   const calendarEvents = [
     ...appointments
       .filter((appointment) => {
         // Filter by search query
-        const nameMatch = appointment.name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase());
-  
+        const nameMatch = appointment.name.toLowerCase().includes(searchQuery.toLowerCase())
+
         // Filter by selected date
-        let dateMatch = true;
+        let dateMatch = true
         if (selectedDate) {
-          const [_, datePart] = appointment.date.split("|");
-          const appointmentDate = datePart.trim(); // Format: dd-mm-yyyy
-          const formattedSelectedDate = formatDate(new Date(selectedDate));
-          dateMatch = appointmentDate === formattedSelectedDate;
+          const [_, datePart] = appointment.date.split("|")
+          const appointmentDate = datePart.trim() // Format: dd-mm-yyyy
+          const formattedSelectedDate = formatDate(new Date(selectedDate))
+          dateMatch = appointmentDate === formattedSelectedDate
         }
-  
-        return nameMatch && dateMatch;
+
+        return nameMatch && dateMatch
       })
       .map((appointment) => {
-        const [_, datePart] = appointment.date.split("|");
-        const [day, month, year] = datePart.trim().split("-");
-        const dateStr = `${year}-${month}-${day}`; // Format: yyyy-mm-dd for FullCalendar
-  
+        const [_, datePart] = appointment.date.split("|")
+        const [day, month, year] = datePart.trim().split("-")
+        const dateStr = `${year}-${month}-${day}` // Format: yyyy-mm-dd for FullCalendar
+
         // Create ISO date strings for event start and end
-        const startDateTimeStr = `${dateStr}T${appointment.startTime}`;
-  
+        const startDateTimeStr = `${dateStr}T${appointment.startTime}`
+
         // Determine if the event is in the past
-        const isPastEvent = isEventInPast(startDateTimeStr);
-  
+        const isPastEvent = isEventInPast(startDateTimeStr)
+
         // Get the original color
-        const backgroundColor = appointment.color.split("bg-[")[1].slice(0, -1);
-  
+        const backgroundColor = appointment.color.split("bg-[")[1].slice(0, -1)
+
         return {
           id: appointment.id,
           title: appointment.name,
           start: startDateTimeStr,
           end: `${dateStr}T${appointment.endTime}`,
-          backgroundColor: backgroundColor,
-          borderColor: backgroundColor,
+          backgroundColor: viewMode === "free" ? "#555555" : backgroundColor, // Dim all appointments in free mode
+          borderColor: viewMode === "free" ? "#555555" : backgroundColor,
+          textColor: viewMode === "free" ? "#999999" : "#FFFFFF", // Dim text in free mode
+          opacity: viewMode === "free" ? 0.5 : 1, // Make appointments semi-transparent in free mode
           isPast: isPastEvent, // Add this flag to use in eventContent
           extendedProps: {
             type: appointment.type,
             isPast: isPastEvent,
             originalColor: backgroundColor,
+            viewMode: viewMode,
           },
-        };
+        }
       }),
     // Add the free appointments to the events
     ...freeAppointments.map((freeSlot) => {
-      const [day, month, year] = freeSlot.date.split("-");
-      const dateStr = `${year}-${month}-${day}`; // Format: yyyy-mm-dd for FullCalendar
-      const startDateTimeStr = `${dateStr}T${freeSlot.time}`;
-  
+      const [day, month, year] = freeSlot.date.split("-")
+      const dateStr = `${year}-${month}-${day}` // Format: yyyy-mm-dd for FullCalendar
+      const startDateTimeStr = `${dateStr}T${freeSlot.time}`
+
       return {
         id: freeSlot.id,
         title: "Free Slot",
         start: startDateTimeStr,
         end: new Date(new Date(startDateTimeStr).getTime() + 60 * 60 * 1000).toISOString(), // Assuming 1-hour duration
-        backgroundColor: "#15803d", // Green color for free slots
-        borderColor: "#15803d",
+        backgroundColor: viewMode === "free" ? "#FFFFFF" : "#15803d", // White in free mode, green otherwise
+        borderColor: viewMode === "free" ? "#15803d" : "#15803d",
+        textColor: viewMode === "free" ? "#15803d" : "#FFFFFF", // Green text on white background in free mode
         extendedProps: {
           isFree: true, // Mark as free slot
+          viewMode: viewMode,
         },
-      };
+      }
     }),
-  ];
+  ]
 
   const handleEventResize = (info) => {
-    const { event } = info;
-  
+    const { event } = info
+
     // Update the appointment in the state
     const updatedAppointments = appointments.map((appointment) => {
       if (appointment.id === Number(event.id)) {
@@ -406,19 +398,19 @@ function Calendar({
           startTime: event.start.toTimeString().split(" ")[0], // Start time stays the same
           endTime: event.end.toTimeString().split(" ")[0], // New end time after resize
           // Date format remains the same
-        };
+        }
       }
-      return appointment;
-    });
-  
+      return appointment
+    })
+
     // Update the state with the new appointments
-    setAppointments(updatedAppointments);
-    
+    setAppointments(updatedAppointments)
+
     // Open notification modal to ask if user wants to notify member
-    setNotifyAction("change");
-    setEventInfo(info);
-    setIsNotifyMemberOpen(true);
-  };
+    setNotifyAction("change")
+    setEventInfo(info)
+    setIsNotifyMemberOpen(true)
+  }
 
   return (
     <>
@@ -450,23 +442,20 @@ function Calendar({
           <button
             onClick={generateFreeDates}
             className="p-1.5 rounded-md lg:block hidden bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
-            aria-label="Show Free Dates"
+            aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
           >
-            Free Slots
+            {viewMode === "all" ? "Free Slots" : "All Slots"}
           </button>
         </div>
         <button
           onClick={generateFreeDates}
           className="p-1.5 rounded-md w-full lg:hidden block bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
-          aria-label="Show Free Dates"
+          aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
         >
-          Free Dates
+          {viewMode === "all" ? "Free Slots" : "All Slots"}
         </button>
 
-        <div
-          className="max-w-7xl overflow-x-auto"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
+        <div className="max-w-7xl overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
           <div
             className="min-w-[768px] transition-all duration-300 ease-in-out"
             style={{
@@ -505,12 +494,24 @@ function Calendar({
                 <div
                   className={`p-1 h-full overflow-hidden ${
                     eventInfo.event.extendedProps.isPast ? "opacity-50" : ""
-                  }`}
+                  } ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree ? "opacity-40" : ""}`}
                 >
-                  <div className="font-semibold text-xs sm:text-sm truncate">
+                  <div
+                    className={`font-semibold text-xs sm:text-sm truncate ${
+                      eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                        ? "text-gray-400"
+                        : ""
+                    }`}
+                  >
                     {eventInfo.event.title}
                   </div>
-                  <div className="text-xs opacity-90 truncate">
+                  <div
+                    className={`text-xs opacity-90 truncate ${
+                      eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                        ? "text-gray-400"
+                        : ""
+                    }`}
+                  >
                     {eventInfo.event.extendedProps.isPast ? "Past: " : ""}
                     {eventInfo.event.extendedProps.type}
                   </div>
@@ -519,12 +520,12 @@ function Calendar({
               )}
               eventClassNames={(eventInfo) => {
                 if (eventInfo.event.extendedProps.isPast) {
-                  return "past-event";
+                  return "past-event"
                 }
                 if (eventInfo.event.extendedProps.isFree) {
-                  return "free-slot-event cursor-pointer";
+                  return "free-slot-event cursor-pointer"
                 }
-                return "";
+                return ""
               }}
             />
           </div>
@@ -541,6 +542,10 @@ function Calendar({
         :global(.free-slot-event) {
           cursor: pointer !important;
           border-left: 3px solid #15803d !important;
+        }
+        
+        :global(.fc-event-main) {
+          transition: all 0.3s ease;
         }
       `}</style>
 
@@ -573,9 +578,7 @@ function Calendar({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Select Event Type
-              </h2>
+              <h2 className="text-lg font-semibold text-white">Select Event Type</h2>
               <button
                 onClick={() => setIsTypeSelectionOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -619,9 +622,7 @@ function Calendar({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Appointment Options
-              </h2>
+              <h2 className="text-lg font-semibold text-white">Appointment Options</h2>
               <button
                 onClick={() => setIsAppointmentActionModalOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -632,17 +633,11 @@ function Calendar({
 
             <div className="p-6 space-y-2">
               <div className="mb-4">
-                <h3 className="text-white font-medium">
-                  {selectedAppointment.name}
-                </h3>
+                <h3 className="text-white font-medium">{selectedAppointment.name}</h3>
+                <p className="text-gray-400 text-sm">{selectedAppointment.type}</p>
                 <p className="text-gray-400 text-sm">
-                  {selectedAppointment.type}
-                </p>
-                <p className="text-gray-400 text-sm">
-                  {selectedAppointment.date &&
-                    selectedAppointment.date.split("|")[1]}{" "}
-                  •{selectedAppointment.startTime} -{" "}
-                  {selectedAppointment.endTime}
+                  {selectedAppointment.date && selectedAppointment.date.split("|")[1]} •{selectedAppointment.startTime}{" "}
+                  - {selectedAppointment.endTime}
                 </p>
                 {isEventInPast(
                   `${selectedAppointment.date
@@ -650,12 +645,8 @@ function Calendar({
                     .trim()
                     .split("-")
                     .reverse()
-                    .join("-")}T${selectedAppointment.startTime}`
-                ) && (
-                  <p className="text-yellow-500 text-sm mt-2">
-                    This is a past appointment
-                  </p>
-                )}
+                    .join("-")}T${selectedAppointment.startTime}`,
+                ) && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
               </div>
 
               <button
@@ -667,7 +658,7 @@ function Calendar({
                       .trim()
                       .split("-")
                       .reverse()
-                      .join("-")}T${selectedAppointment.startTime}`
+                      .join("-")}T${selectedAppointment.startTime}`,
                   )
                     ? "bg-gray-600 cursor-not-allowed"
                     : "bg-[#3F74FF] hover:bg-[#3F74FF]/90 cursor-pointer"
@@ -678,7 +669,7 @@ function Calendar({
                     .trim()
                     .split("-")
                     .reverse()
-                    .join("-")}T${selectedAppointment.startTime}`
+                    .join("-")}T${selectedAppointment.startTime}`,
                 )}
               >
                 <Edit className="mr-2" size={16} /> Edit Appointment
@@ -693,7 +684,7 @@ function Calendar({
                       .trim()
                       .split("-")
                       .reverse()
-                      .join("-")}T${selectedAppointment.startTime}`
+                      .join("-")}T${selectedAppointment.startTime}`,
                   )
                     ? "bg-gray-600 cursor-not-allowed"
                     : "bg-red-600 hover:bg-red-700 cursor-pointer"
@@ -704,7 +695,7 @@ function Calendar({
                     .trim()
                     .split("-")
                     .reverse()
-                    .join("-")}T${selectedAppointment.startTime}`
+                    .join("-")}T${selectedAppointment.startTime}`,
                 )}
               >
                 <X className="mr-2" size={16} /> Cancel Appointment
@@ -732,9 +723,7 @@ function Calendar({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Notify Member
-              </h2>
+              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
               <button
                 onClick={() => setIsNotifyMemberOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
@@ -746,12 +735,7 @@ function Calendar({
             <div className="p-6">
               <p className="text-white text-sm">
                 Do you want to notify the member about this{" "}
-                {notifyAction === "change"
-                  ? "change"
-                  : notifyAction === "cancel"
-                  ? "cancellation"
-                  : "booking"}
-                ?
+                {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
               </p>
             </div>
 
@@ -759,11 +743,11 @@ function Calendar({
               <button
                 onClick={() => {
                   if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(true);
+                    actuallyHandleCancelAppointment(true)
                   } else {
-                    handleNotifyMember(true);
+                    handleNotifyMember(true)
                   }
-                  setIsNotifyMemberOpen(false);
+                  setIsNotifyMemberOpen(false)
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
               >
@@ -772,11 +756,11 @@ function Calendar({
               <button
                 onClick={() => {
                   if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(false);
+                    actuallyHandleCancelAppointment(false)
                   } else {
-                    handleNotifyMember(false);
+                    handleNotifyMember(false)
                   }
-                  setIsNotifyMemberOpen(false);
+                  setIsNotifyMemberOpen(false)
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
               >
@@ -788,7 +772,7 @@ function Calendar({
       )}
       <Toaster position="top-right" />
     </>
-  );
+  )
 }
 
 export default function Appointments() {
@@ -1014,7 +998,6 @@ export default function Appointments() {
     )
   }
 
-
   const handleAppointmentChange = (changes) => {
     setSelectedAppointment((prev) => {
       const updatedAppointment = { ...prev, ...changes }
@@ -1131,27 +1114,27 @@ export default function Appointments() {
             >
               {/* Header section with icon and title */}
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                  {specialNote.isImportant === "important" ? (
-                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                  ) : (
-                    <Info className="text-blue-500 shrink-0" size={18} />
-                  )}
-                  <h4 className="text-white flex gap-1 items-center font-medium">
-                    <div>Special Note</div>
-                    <div className="text-sm text-gray-400 ">
-                      {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
-                    </div>
-                  </h4>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setActiveNoteId(null)
-                    }}
-                    className="ml-auto text-gray-400 hover:text-white"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
+                {specialNote.isImportant === "important" ? (
+                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                ) : (
+                  <Info className="text-blue-500 shrink-0" size={18} />
+                )}
+                <h4 className="text-white flex gap-1 items-center font-medium">
+                  <div>Special Note</div>
+                  <div className="text-sm text-gray-400 ">
+                    {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
+                  </div>
+                </h4>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveNoteId(null)
+                  }}
+                  className="ml-auto text-gray-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
 
               {/* Note content */}
               <div className="p-3">
@@ -1225,7 +1208,7 @@ export default function Appointments() {
               className={`transition-all duration-500 ease-in-out ${
                 isSidebarCollapsed
                   ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0"
-                  : "lg:w-[60%] lg:opacity-100"
+                  : "lg:w-[40%] lg:opacity-100"
               } w-full flex flex-col gap-6`}
             >
               <div className="">
@@ -1292,7 +1275,9 @@ export default function Appointments() {
                                     handleCheckIn(appointment.id)
                                   }}
                                   className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
-                                    appointment.isCheckedIn ? "bg-gray-500 bg-opacity-50 text-white" : "bg-black text-white"
+                                    appointment.isCheckedIn
+                                      ? "bg-gray-500 bg-opacity-50 text-white"
+                                      : "bg-black text-white"
                                   }`}
                                 >
                                   {appointment.isCheckedIn ? "Checked In" : "Check In"}
@@ -1490,5 +1475,3 @@ export default function Appointments() {
     </div>
   )
 }
-
-
