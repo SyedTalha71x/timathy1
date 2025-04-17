@@ -328,7 +328,7 @@ export default function Members() {
       />
 
       <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative">
-        <div className="flex-1 min-w-0 p-6 pb-36">
+        <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
             <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
             <div className="flex items-center md:flex-row flex-col gap-3 w-full sm:w-auto">

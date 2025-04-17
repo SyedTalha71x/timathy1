@@ -1,9 +1,11 @@
+
+import React from "react"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
 import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2 } from "lucide-react"
-import { DndProvider, useDrag, useDrop } from "react-dnd"
-import { HTML5Backend } from "react-dnd-html5-backend"
+import Draggable from "react-draggable"
 import { AddLeadModal } from "../components/add-lead-modal"
 import { EditLeadModal } from "../components/edit-lead-modal"
 import { ViewLeadDetailsModal } from "../components/view-lead-details"
@@ -11,19 +13,13 @@ import TrialTrainingModal from "../components/add-trial"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../public/avatar.png"
 
-const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, columnId, onDrop }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: "LEAD",
-    item: { id: lead.id, sourceColumnId: columnId },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  }))
-
+const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, columnId, onDragStop, index }) => {
+  const [isDragging, setIsDragging] = useState(false)
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const noteRef = useRef(null)
   const menuRef = useRef(null)
+  const nodeRef = useRef(null)
 
   // Handle clicking outside the note popover
   useEffect(() => {
@@ -69,149 +65,173 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
 
   const hasValidNote = lead.specialNote && isNoteValid(lead.specialNote)
 
+  const handleDragStart = () => {
+    setIsDragging(true)
+  }
+
+  const handleDragStop = (e, data) => {
+    setIsDragging(false)
+    onDragStop(e, data, lead, columnId, index)
+  }
+
   return (
-    <div ref={drag} className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 ${isDragging ? "opacity-50" : "opacity-100"}`}>
-      <div className="flex items-center mb-3 relative">
-        {hasValidNote && (
-          <div
-            className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"} rounded-full p-0.5 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer`}
-            onClick={(e) => {
-              e.stopPropagation()
-              setIsNoteOpen(!isNoteOpen)
-            }}
-          >
-            {lead.specialNote.isImportant ? (
-              <AlertTriangle size={14} className="text-white" />
-            ) : (
-              <Info size={14} className="text-white" />
-            )}
-          </div>
-        )}
-
-        {isNoteOpen && hasValidNote && (
-          <div
-            ref={noteRef}
-            className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-50"
-          >
-            {/* Header section with icon and title */}
-            <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-              {lead.specialNote.isImportant ? (
-                <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-              ) : (
-                <Info className="text-blue-500 shrink-0" size={18} />
-              )}
-              <h4 className="text-white flex gap-1 items-center font-medium">
-                <div>Special Note</div>
-                <div className="text-sm text-gray-400">
-                  {lead.specialNote.isImportant ? "(Important)" : "(Unimportant)"}
-                </div>
-              </h4>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setIsNoteOpen(false)
-                }}
-                className="ml-auto text-gray-400 hover:text-white"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Note content */}
-            <div className="p-3">
-              <p className="text-white text-sm leading-relaxed">{lead.specialNote.text}</p>
-
-              {/* Date validity section */}
-              {lead.specialNote.startDate && lead.specialNote.endDate ? (
-                <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                  <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                    <Calendar size={12} />
-                    Valid from {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
-                    {new Date(lead.specialNote.endDate).toLocaleDateString()}
-                  </p>
-                </div>
-              ) : (
-                <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                  <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                    <Calendar size={12} />
-                    Always valid
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <img
-          src={lead.avatar || Avatar}
-          alt={`${lead.firstName} ${lead.surname}'s avatar`}
-          className="w-12 h-12 rounded-full mr-3 object-cover"
-        />
-        <div className="flex-1">
-          <h4 className="font-medium text-white">{`${lead.firstName} ${lead.surname}`}</h4>
-          <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
-          <p className="text-gray-500 text-xs">
-            Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
-          </p>
-        </div>
-
-        {/* Three-dot menu */}
-        <div className="relative">
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-1 rounded-md cursor-pointer  bg-black text-white"
-          >
-            <MoreVertical size={16} />
-          </button>
-
-          {isMenuOpen && (
+    <Draggable
+      nodeRef={nodeRef}
+      onStart={handleDragStart}
+      onStop={handleDragStop}
+      position={{ x: 0, y: 0 }} // Reset position after drag
+      cancel=".no-drag"
+    >
+      <div
+        ref={nodeRef}
+        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab ${
+          isDragging ? "opacity-50 z-50 shadow-lg" : "opacity-100"
+        }`}
+      >
+        <div className="flex items-center mb-3 relative">
+          {hasValidNote && (
             <div
-              ref={menuRef}
-              className="absolute right-0 top-full mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-40"
+              className={`absolute -top-2 -left-2 ${
+                lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsNoteOpen(!isNoteOpen)
+              }}
             >
-              <button
-                onClick={() => {
-                  onViewDetails(lead)
-                  setIsMenuOpen(false)
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
-              >
-                <Info size={14} />
-                View Details
-              </button>
-              <button
-                onClick={() => {
-                  onEditLead(lead)
-                  setIsMenuOpen(false)
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
-              >
-                <Edit size={14} />
-                Edit
-              </button>
-              <button
-                onClick={() => {
-                  onDeleteLead(lead.id)
-                  setIsMenuOpen(false)
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2"
-              >
-                <Trash2 size={14} />
-                Delete
-              </button>
+              {lead.specialNote.isImportant ? (
+                <AlertTriangle size={14} className="text-white" />
+              ) : (
+                <Info size={14} className="text-white" />
+              )}
             </div>
           )}
+
+          {isNoteOpen && hasValidNote && (
+            <div
+              ref={noteRef}
+              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-50 no-drag"
+            >
+              {/* Header section with icon and title */}
+              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                {lead.specialNote.isImportant ? (
+                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                ) : (
+                  <Info className="text-blue-500 shrink-0" size={18} />
+                )}
+                <h4 className="text-white flex gap-1 items-center font-medium">
+                  <div>Special Note</div>
+                  <div className="text-sm text-gray-400">
+                    {lead.specialNote.isImportant ? "(Important)" : "(Unimportant)"}
+                  </div>
+                </h4>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsNoteOpen(false)
+                  }}
+                  className="ml-auto text-gray-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Note content */}
+              <div className="p-3">
+                <p className="text-white text-sm leading-relaxed">{lead.specialNote.text}</p>
+
+                {/* Date validity section */}
+                {lead.specialNote.startDate && lead.specialNote.endDate ? (
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <Calendar size={12} />
+                      Valid from {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
+                      {new Date(lead.specialNote.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <Calendar size={12} />
+                      Always valid
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <img
+            src={lead.avatar || Avatar}
+            alt={`${lead.firstName} ${lead.surname}'s avatar`}
+            className="w-12 h-12 rounded-full mr-3 object-cover"
+          />
+          <div className="flex-1">
+            <h4 className="font-medium text-white">{`${lead.firstName} ${lead.surname}`}</h4>
+            <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
+            <p className="text-gray-500 text-xs">
+              Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
+            </p>
+          </div>
+
+          {/* Three-dot menu */}
+          <div className="relative">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-1 rounded-md cursor-pointer bg-black text-white no-drag"
+            >
+              <MoreVertical size={16} />
+            </button>
+
+            {isMenuOpen && (
+              <div
+                ref={menuRef}
+                className="absolute right-0 top-full mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-40 no-drag"
+              >
+                <button
+                  onClick={() => {
+                    onViewDetails(lead)
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+                >
+                  <Info size={14} />
+                  View Details
+                </button>
+                <button
+                  onClick={() => {
+                    onEditLead(lead)
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+                >
+                  <Edit size={14} />
+                  Edit
+                </button>
+                <button
+                  onClick={() => {
+                    onDeleteLead(lead.id)
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2"
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex justify-center">
+          <button
+            onClick={() => onAddTrial(lead)}
+            className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
+          >
+            Add Trial Training
+          </button>
         </div>
       </div>
-      <div className="flex justify-center">
-        <button
-          onClick={() => onAddTrial(lead)}
-          className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full"
-        >
-          Add Trial Training
-        </button>
-      </div>
-    </div>
+    </Draggable>
   )
 }
 
@@ -225,20 +245,18 @@ const Column = ({
   onAddTrial,
   onEditLead,
   onDeleteLead,
-  onDrop,
+  onDragStop,
   isEditable,
   onEditColumn,
+  columnRef,
 }) => {
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: "LEAD",
-    drop: (item) => onDrop(item.id, id),
-    collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
-    }),
-  }))
-
   return (
-    <div className={`bg-[#141414] rounded-xl overflow-hidden ${isOver ? "ring-2 ring-white/20" : ""}`}>
+    <div
+      ref={columnRef}
+      id={`column-${id}`}
+      className="bg-[#141414] rounded-xl overflow-hidden h-full flex flex-col"
+      data-column-id={id}
+    >
       <div className="p-3 flex justify-between items-center" style={{ backgroundColor: `${color}20` }}>
         <div className="flex items-center">
           <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
@@ -268,8 +286,8 @@ const Column = ({
         )}
       </div>
 
-      <div ref={drop} className="p-3 min-h-[400px]">
-        {leads.map((lead) => (
+      <div className="p-3 flex-1 min-h-[400px]">
+        {leads.map((lead, index) => (
           <LeadCard
             key={lead.id}
             lead={lead}
@@ -278,7 +296,8 @@ const Column = ({
             onEditLead={onEditLead}
             onDeleteLead={onDeleteLead}
             columnId={id}
-            onDrop={onDrop}
+            onDragStop={onDragStop}
+            index={index}
           />
         ))}
       </div>
@@ -408,6 +427,18 @@ export default function LeadManagement() {
   const [selectedColumn, setSelectedColumn] = useState(null)
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false)
   const [leadToDeleteId, setLeadToDeleteId] = useState(null)
+
+  // Create refs for all columns
+  const columnRefs = useRef({})
+
+  // Initialize column refs
+  useEffect(() => {
+    columns.forEach((column) => {
+      if (!columnRefs.current[column.id]) {
+        columnRefs.current[column.id] = React.createRef()
+      }
+    })
+  }, [columns])
 
   // Hardcoded initial leads with status, createdAt fields, and special notes
   const hardcodedLeads = [
@@ -612,34 +643,58 @@ export default function LeadManagement() {
   }
 
   // Handle drag and drop
-  const handleDrop = (leadId, targetColumnId) => {
-    // Don't allow dropping into the same column
-    const lead = leads.find((l) => l.id === leadId)
-    if (!lead || lead.columnId === targetColumnId) return
+  const handleDragStop = (e, data, lead, sourceColumnId, index) => {
+    // Get the position of the dragged element
+    const draggedElem = e.target
+    const draggedRect = draggedElem.getBoundingClientRect()
+    const draggedCenterX = draggedRect.left + draggedRect.width / 2
+    const draggedCenterY = draggedRect.top + draggedRect.height / 2
 
-    // If dropping into trial column, set hasTrialTraining to true
-    const hasTrialTraining = targetColumnId === "trial"
+    // Find which column the element is over
+    let targetColumnId = null
 
-    // Update lead's column
-    const updatedLeads = leads.map((lead) => {
-      if (lead.id === leadId) {
-        return {
-          ...lead,
-          columnId: targetColumnId,
-          hasTrialTraining: hasTrialTraining || lead.hasTrialTraining,
-          status: targetColumnId !== "trial" ? targetColumnId : lead.status,
+    for (const [columnId, columnRef] of Object.entries(columnRefs.current)) {
+      if (columnRef.current) {
+        const columnRect = columnRef.current.getBoundingClientRect()
+
+        if (
+          draggedCenterX >= columnRect.left &&
+          draggedCenterX <= columnRect.right &&
+          draggedCenterY >= columnRect.top &&
+          draggedCenterY <= columnRect.bottom
+        ) {
+          targetColumnId = columnId
+          break
         }
       }
-      return lead
-    })
+    }
 
-    setLeads(updatedLeads)
+    // If we found a target column and it's different from the source
+    if (targetColumnId && targetColumnId !== sourceColumnId) {
+      // If dropping into trial column, set hasTrialTraining to true
+      const hasTrialTraining = targetColumnId === "trial"
 
-    // Update localStorage
-    const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
-    localStorage.setItem("leads", JSON.stringify(localStorageLeads))
+      // Update lead's column
+      const updatedLeads = leads.map((l) => {
+        if (l.id === lead.id) {
+          return {
+            ...l,
+            columnId: targetColumnId,
+            hasTrialTraining: hasTrialTraining || l.hasTrialTraining,
+            status: targetColumnId !== "trial" ? targetColumnId : l.status,
+          }
+        }
+        return l
+      })
 
-    toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title}`)
+      setLeads(updatedLeads)
+
+      // Update localStorage
+      const localStorageLeads = updatedLeads.filter((l) => l.source === "localStorage")
+      localStorage.setItem("leads", JSON.stringify(localStorageLeads))
+
+      toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title}`)
+    }
   }
 
   // Handle column edit
@@ -669,117 +724,116 @@ export default function LeadManagement() {
   })
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="container mx-auto md:p-4 p-1">
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 2000,
-            style: {
-              background: "#333",
-              color: "#fff",
-            },
-          }}
-        />
+    <div className="container mx-auto md:p-4 p-1">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
 
-        <div className="flex md:flex-row flex-col gap-2 justify-between md:items-center items-start mb-6">
-          <h1 className="text-2xl text-white font-bold">Leads</h1>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl"
-          >
-            Create Lead
-          </button>
-        </div>
+      <div className="flex md:flex-row flex-col gap-2 justify-between md:items-center items-start mb-6">
+        <h1 className="text-2xl text-white font-bold">Leads</h1>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl"
+        >
+          Create Lead
+        </button>
+      </div>
 
-        <div className="mb-6 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search leads..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {columns.map((column) => (
-            <Column
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              color={column.color}
-              leads={filteredLeads.filter((lead) => lead.columnId === column.id)}
-              onViewDetails={handleViewLeadDetails}
-              onAddTrial={handleAddTrialTraining}
-              onEditLead={handleEditLead}
-              onDeleteLead={handleDeleteLead}
-              onDrop={handleDrop}
-              isEditable={!column.isFixed}
-              onEditColumn={handleEditColumn}
-            />
-          ))}
-        </div>
-
-        {/* Modals */}
-        <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
-
-        <EditLeadModal
-          isVisible={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false)
-            setSelectedLead(null)
-          }}
-          onSave={handleSaveEdit}
-          leadData={selectedLead}
-        />
-
-        <ViewLeadDetailsModal
-          isVisible={isViewDetailsModalOpen}
-          onClose={() => {
-            setIsViewDetailsModalOpen(false)
-            setSelectedLead(null)
-          }}
-          leadData={selectedLead}
-        />
-
-        <TrialTrainingModal
-          isOpen={isTrialModalOpen}
-          onClose={() => {
-            setIsTrialModalOpen(false)
-            setSelectedLead(null)
-          }}
-          selectedLead={selectedLead}
-          trialTypes={[
-            { name: "Cardio", duration: 30 },
-            { name: "Strength", duration: 45 },
-            { name: "Flexibility", duration: 60 },
-          ]}
-          freeTimeSlots={[
-            { id: "slot1", date: "2023-10-01", time: "10:00" },
-            { id: "slot2", date: "2023-10-01", time: "11:00" },
-            { id: "slot3", date: "2023-10-02", time: "14:00" },
-          ]}
-        />
-
-        <EditColumnModal
-          isVisible={isEditColumnModalOpen}
-          onClose={() => {
-            setIsEditColumnModalOpen(false)
-            setSelectedColumn(null)
-          }}
-          column={selectedColumn}
-          onSave={handleSaveColumn}
-        />
-
-        <ConfirmationModal
-          isVisible={isDeleteConfirmationModalOpen}
-          onClose={() => setIsDeleteConfirmationModalOpen(false)}
-          onConfirm={confirmDeleteLead}
-          message="Are you sure you want to delete this lead?"
+      <div className="mb-6 relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+        <input
+          type="text"
+          placeholder="Search leads..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
         />
       </div>
-    </DndProvider>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {columns.map((column) => (
+          <Column
+            key={column.id}
+            id={column.id}
+            title={column.title}
+            color={column.color}
+            leads={filteredLeads.filter((lead) => lead.columnId === column.id)}
+            onViewDetails={handleViewLeadDetails}
+            onAddTrial={handleAddTrialTraining}
+            onEditLead={handleEditLead}
+            onDeleteLead={handleDeleteLead}
+            onDragStop={handleDragStop}
+            isEditable={!column.isFixed}
+            onEditColumn={handleEditColumn}
+            columnRef={columnRefs.current[column.id]}
+          />
+        ))}
+      </div>
+
+      {/* Modals */}
+      <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
+
+      <EditLeadModal
+        isVisible={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedLead(null)
+        }}
+        onSave={handleSaveEdit}
+        leadData={selectedLead}
+      />
+
+      <ViewLeadDetailsModal
+        isVisible={isViewDetailsModalOpen}
+        onClose={() => {
+          setIsViewDetailsModalOpen(false)
+          setSelectedLead(null)
+        }}
+        leadData={selectedLead}
+      />
+
+      <TrialTrainingModal
+        isOpen={isTrialModalOpen}
+        onClose={() => {
+          setIsTrialModalOpen(false)
+          setSelectedLead(null)
+        }}
+        selectedLead={selectedLead}
+        trialTypes={[
+          { name: "Cardio", duration: 30 },
+          { name: "Strength", duration: 45 },
+          { name: "Flexibility", duration: 60 },
+        ]}
+        freeTimeSlots={[
+          { id: "slot1", date: "2023-10-01", time: "10:00" },
+          { id: "slot2", date: "2023-10-01", time: "11:00" },
+          { id: "slot3", date: "2023-10-02", time: "14:00" },
+        ]}
+      />
+
+      <EditColumnModal
+        isVisible={isEditColumnModalOpen}
+        onClose={() => {
+          setIsEditColumnModalOpen(false)
+          setSelectedColumn(null)
+        }}
+        column={selectedColumn}
+        onSave={handleSaveColumn}
+      />
+
+      <ConfirmationModal
+        isVisible={isDeleteConfirmationModalOpen}
+        onClose={() => setIsDeleteConfirmationModalOpen(false)}
+        onConfirm={confirmDeleteLead}
+        message="Are you sure you want to delete this lead?"
+      />
+    </div>
   )
 }
