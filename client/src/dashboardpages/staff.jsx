@@ -1,11 +1,10 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, createContext } from "react"
-import { X, Calendar, Users } from "lucide-react"
+import { X, Calendar, Users, Menu } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../public/default-avatar.avif"
 
-// Create a context to share staff members data
 const StaffContext = createContext(null)
 
 export default function StaffManagement() {
@@ -140,41 +139,42 @@ export default function StaffManagement() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
               <h1 className="text-xl sm:text-2xl oxanium_font text-white">Staff management</h1>
 
-              <div className="flex items-center gap-4 w-full sm:w-auto">
+              <div className="flex items-center md:flex-row flex-col gap-4 w-full sm:w-auto">
+                <button
+                  onClick={() => setIsPlanningModalOpen(true)}
+                  className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Employee Planning
+                </button>
+                <button
+                  onClick={() => setIsAttendanceModalOpen(true)}
+                  className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Attendance Overview
+                </button>
+                <button
+                  onClick={() => setIsVacationRequestModalOpen(true)}
+                  className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Request Vacation
+                </button>
+              
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-[#FF843E] text-white open_sans_font px-6 sm:px-10 py-2 rounded-xl text-sm flex-1 sm:flex-none"
+                  className="bg-[#FF843E] text-white lg:w-auto w-full open_sans_font px-6 sm:px-10 py-2 rounded-xl text-sm flex-1 sm:flex-none"
                 >
                   + Add Staff
                 </button>
+                <button
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className=" lg:w-auto lg:block hidden w-full text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Menu className="h-4 w-4" />
+                </button>
               </div>
-            </div>
-
-            <div className="flex justify-end flex-col lg:flex-row items-end max-w-4xl mx-auto mr-0 gap-2">
-              <button
-                onClick={() => setIsPlanningModalOpen(true)}
-                className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Calendar className="h-4 w-4" />
-                Employee Planning
-              </button>
-              <div className="flex flex-col gap-3 w-full md:w-auto">
-
-              <button
-                onClick={() => setIsAttendanceModalOpen(true)}
-                className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
-                >
-                <Users className="h-4 w-4" />
-                Attendance Overview
-              </button>
-              <button
-                onClick={() => setIsVacationRequestModalOpen(true)}
-                className="bg-black lg:w-auto w-full py-2 px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
-                >
-                <Calendar className="h-4 w-4" />
-                Request Vacation
-              </button>
-                </div>
             </div>
 
             <div className="grid grid-cols-1 open_sans_font md:grid-cols-2 mt-8 sm:mt-[10%] gap-4 max-w-5xl mx-auto">
@@ -212,8 +212,8 @@ export default function StaffManagement() {
 
           <aside
             className={`
-            w-80 bg-[#181818] p-6 md:rounded-3xl rounded-none fixed top-0 bottom-0 right-0 z-50 lg:static lg:block
-            ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
+            w-80 bg-[#181818] p-6 md:rounded-3xl rounded-none fixed top-0 bottom-0 right-0 z-50
+            ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
             transition-transform duration-500 ease-in-out
             `}
           >
@@ -221,7 +221,7 @@ export default function StaffManagement() {
               <h2 className="text-xl sm:text-2xl oxanium_font font-bold">Notifications</h2>
               <button
                 onClick={() => setIsRightSidebarOpen(false)}
-                className="lg:hidden p-2 hover:bg-black/20 rounded-full transition-colors"
+                className=" p-2 hover:bg-black/20 rounded-full transition-colors"
                 aria-label="Close notifications"
               >
                 <X size={20} />
@@ -1197,9 +1197,8 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                     <div className="flex justify-end mb-2">
                       <button
                         onClick={toggleRangeBooking}
-                        className={`text-xs px-3 py-1 rounded-lg ${
-                          isRangeBooking ? "bg-blue-600" : "bg-[#1C1C1C] hover:bg-gray-700"
-                        }`}
+                        className={`text-xs px-3 py-1 rounded-lg ${isRangeBooking ? "bg-blue-600" : "bg-[#1C1C1C] hover:bg-gray-700"
+                          }`}
                       >
                         {isRangeBooking ? "Range Booking: ON" : "Range Booking: OFF"}
                       </button>
@@ -1317,7 +1316,6 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
     </div>
   )
 }
-
 
 function AttendanceOverviewModal({ staffMembers, onClose }) {
   const [selectedPeriod, setSelectedPeriod] = useState("month")

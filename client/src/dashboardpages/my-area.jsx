@@ -716,7 +716,7 @@ export default function MyArea() {
           <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={toggleRightSidebar} />
         )}
 
-        <main className="flex-1 min-w-0 overflow-hidden">
+        <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-3 md:p-5 space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
