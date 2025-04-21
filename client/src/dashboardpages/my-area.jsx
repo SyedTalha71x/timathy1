@@ -43,7 +43,7 @@ function EmployeeCheckInWidget() {
   }
 
   return (
-    <div className="p-4 bg-[#000000] rounded-xl min-h-[140px]">
+    <div className="p-3 bg-[#000000] rounded-xl min-h-[120px]">
       <h2 className="text-lg font-semibold mb-3">Employee Check-In</h2>
       <div className="flex flex-col gap-3">
         <div>
@@ -403,7 +403,7 @@ export default function MyArea() {
   const chartOptions = {
     chart: {
       type: "line",
-      height: 220, // Reduced height
+      height: 180,
       toolbar: { show: false },
       background: "transparent",
       fontFamily: "Inter, sans-serif",
@@ -443,10 +443,10 @@ export default function MyArea() {
       show: true,
       position: "top",
       horizontalAlign: "right",
-      offsetY: -50, // Adjusted for more compact layout
-      offsetX: -200,
+      offsetY: -30,
+      offsetX: -10,
       labels: { colors: "#ffffff" },
-      itemMargin: { horizontal: 10 },
+      itemMargin: { horizontal: 5 },
     },
     title: {
       text: memberTypes[selectedMemberType].title,
@@ -788,7 +788,7 @@ export default function MyArea() {
                         )}
                       </div>
                       <div className="w-full">
-                        <Chart options={chartOptions} series={chartSeries} type="line" height={250} />
+                        <Chart options={chartOptions} series={chartSeries} type="line" height={200} />
                       </div>
                     </div>
                   </DraggableWidget>
@@ -814,12 +814,12 @@ export default function MyArea() {
                         <div className="flex justify-between items-center">
                           <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
                         </div>
-                        <div className="space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
+                        <div className="space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar pr-1">
                           {appointments.length > 0 ? (
                             appointments.map((appointment, index) => (
                               <div
                                 key={appointment.id}
-                                className={`${appointment.color} rounded-xl cursor-pointer p-5 relative`}
+                                className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
                               >
                                 <div className="absolute p-2 top-0 left-0 z-10">
                                   {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
@@ -923,7 +923,7 @@ export default function MyArea() {
                         isEditing={isEditing}
                         widgets={widgets}
                       >
-                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[250px] flex flex-col">
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[200px] flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Website Links</h2>
                           </div>
@@ -1243,14 +1243,14 @@ export default function MyArea() {
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
                 </div>
-                <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                <div className="max-h-[250px] overflow-y-auto custom-scrollbar">
                   {" "}
                   {/* Add scrollable container */}
                   <div className="space-y-3">
                     {" "}
                     {/* Maintain spacing between links */}
                     {customLinks.map((link, index) => (
-                      <div key={link.id} className="p-2 bg-black rounded-xl relative">
+                      <div key={link.id} className="p-1.5 bg-black rounded-xl relative">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <h3 className="text-sm font-medium">{link.title}</h3>
@@ -1366,4 +1366,3 @@ export default function MyArea() {
     </>
   )
 }
-

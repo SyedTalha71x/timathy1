@@ -724,32 +724,8 @@ export default function Members() {
                         </div>
                       </div>
                       <div className="flex items-center justify-center sm:justify-end gap-3 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
-                        <div className="flex items-center gap-2 bg-black rounded-xl border border-slate-600 py-2 px-3">
-                          <button
-                            onClick={() => decreaseCapacity(member.id)}
-                            className="text-gray-400 hover:text-white p-1"
-                            title="Decrease capacity"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="text-sm text-white">
-                            {memberCapacity[member.id]?.used || 0}/{memberCapacity[member.id]?.total || 0}
-                          </span>
-                          <button
-                            onClick={() => increaseCapacity(member.id)}
-                            className="text-gray-400 hover:text-white p-1"
-                            title="Increase capacity"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => handleViewAppointments(member)}
-                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm w-auto flex items-center justify-center"
-                          title="View appointments"
-                        >
-                          <Calendar size={16} className="text-[#3F74FF]" />
-                        </button>
+                        
+                     
                         <button
                           onClick={() => handleViewDetails(member)}
                           className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"

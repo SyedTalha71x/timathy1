@@ -1,4 +1,3 @@
-
 import React from "react"
 
 /* eslint-disable no-unused-vars */
@@ -13,6 +12,7 @@ import TrialTrainingModal from "../components/add-trial"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../public/avatar.png"
 
+// Update LeadCard component to make special note icon bigger, add email display, and fix dropdown z-index issues
 const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, columnId, onDragStop, index }) => {
   const [isDragging, setIsDragging] = useState(false)
   const [isNoteOpen, setIsNoteOpen] = useState(false)
@@ -85,7 +85,7 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
       <div
         ref={nodeRef}
         className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab ${
-          isDragging ? "opacity-50 z-50 shadow-lg" : "opacity-100"
+          isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
         }`}
       >
         <div className="flex items-center mb-3 relative">
@@ -93,16 +93,16 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
             <div
               className={`absolute -top-2 -left-2 ${
                 lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag`}
+              } rounded-full p-1 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag`}
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
               }}
             >
               {lead.specialNote.isImportant ? (
-                <AlertTriangle size={14} className="text-white" />
+                <AlertTriangle size={18} className="text-white" />
               ) : (
-                <Info size={14} className="text-white" />
+                <Info size={18} className="text-white" />
               )}
             </div>
           )}
@@ -110,7 +110,7 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
           {isNoteOpen && hasValidNote && (
             <div
               ref={noteRef}
-              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-50 no-drag"
+              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[200] no-drag"
             >
               {/* Header section with icon and title */}
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
@@ -161,21 +161,17 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
             </div>
           )}
 
-          <img
-            src={lead.avatar || Avatar}
-            alt={`${lead.firstName} ${lead.surname}'s avatar`}
-            className="w-12 h-12 rounded-full mr-3 object-cover"
-          />
-          <div className="flex-1">
+          <div className="flex-1 mt-6">
             <h4 className="font-medium text-white">{`${lead.firstName} ${lead.surname}`}</h4>
             <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
+            <p className="text-gray-400 text-sm">{lead.email}</p>
             <p className="text-gray-500 text-xs">
               Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
             </p>
           </div>
 
           {/* Three-dot menu */}
-          <div className="relative">
+          <div className="">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-1 rounded-md cursor-pointer bg-black text-white no-drag"
@@ -186,7 +182,7 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
             {isMenuOpen && (
               <div
                 ref={menuRef}
-                className="absolute right-0 top-full mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-40 no-drag"
+                className="absolute right-0 top-10 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-40 no-drag"
               >
                 <button
                   onClick={() => {
@@ -652,6 +648,7 @@ export default function LeadManagement() {
 
     // Find which column the element is over
     let targetColumnId = null
+    let targetColumnElement = null
 
     for (const [columnId, columnRef] of Object.entries(columnRefs.current)) {
       if (columnRef.current) {
@@ -664,36 +661,69 @@ export default function LeadManagement() {
           draggedCenterY <= columnRect.bottom
         ) {
           targetColumnId = columnId
+          targetColumnElement = columnRef.current
           break
         }
       }
     }
 
-    // If we found a target column and it's different from the source
-    if (targetColumnId && targetColumnId !== sourceColumnId) {
-      // If dropping into trial column, set hasTrialTraining to true
-      const hasTrialTraining = targetColumnId === "trial"
+    // If we found a target column
+    if (targetColumnId) {
+      // Get all lead cards in the target column
+      const leadCards = targetColumnElement.querySelectorAll('[data-column-id="' + targetColumnId + '"] > div > div')
+      let targetIndex = -1
 
-      // Update lead's column
-      const updatedLeads = leads.map((l) => {
-        if (l.id === lead.id) {
-          return {
-            ...l,
-            columnId: targetColumnId,
-            hasTrialTraining: hasTrialTraining || l.hasTrialTraining,
-            status: targetColumnId !== "trial" ? targetColumnId : l.status,
-          }
+      // Find the target index based on position
+      for (let i = 0; i < leadCards.length; i++) {
+        const cardRect = leadCards[i].getBoundingClientRect()
+        const cardCenterY = cardRect.top + cardRect.height / 2
+
+        if (draggedCenterY < cardCenterY) {
+          targetIndex = i
+          break
         }
-        return l
-      })
+      }
 
-      setLeads(updatedLeads)
+      // If no target index found, append to the end
+      if (targetIndex === -1) {
+        targetIndex = leadCards.length
+      }
 
-      // Update localStorage
-      const localStorageLeads = updatedLeads.filter((l) => l.source === "localStorage")
-      localStorage.setItem("leads", JSON.stringify(localStorageLeads))
+      // Create a copy of the leads array
+      const updatedLeads = [...leads]
 
-      toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title}`)
+      // If moving to a different column
+      if (targetColumnId !== sourceColumnId) {
+        // If dropping into trial column, set hasTrialTraining to true
+        const hasTrialTraining = targetColumnId === "trial"
+
+        // Find the lead to move
+        const leadToMove = updatedLeads.find((l) => l.id === lead.id)
+
+        // Remove the lead from its current position
+        const filteredLeads = updatedLeads.filter((l) => l.id !== lead.id)
+
+        // Update the lead's properties
+        const updatedLead = {
+          ...leadToMove,
+          columnId: targetColumnId,
+          hasTrialTraining: hasTrialTraining || leadToMove.hasTrialTraining,
+          status: targetColumnId !== "trial" ? targetColumnId : leadToMove.status,
+        }
+
+        // Insert the lead at the target position
+        filteredLeads.splice(targetIndex, 0, updatedLead)
+
+        // Update the leads state
+        setLeads(filteredLeads)
+
+        // Update localStorage
+        const localStorageLeads = filteredLeads.filter((l) => l.source === "localStorage")
+        localStorage.setItem("leads", JSON.stringify(localStorageLeads))
+
+        toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title}`)
+      }
+      
     }
   }
 
@@ -757,7 +787,7 @@ export default function LeadManagement() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {columns.map((column) => (
           <Column
             key={column.id}

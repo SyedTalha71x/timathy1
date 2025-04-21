@@ -1,8 +1,7 @@
 /* eslint-disable react/prop-types */
-import { useState, useRef } from "react"
-import { X } from "lucide-react"
+import { useState } from "react"
+import { X, Plus } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
-import DefaultAvatar from "../../public/default-avatar.avif"
 
 export function AddLeadModal({ isVisible, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -19,13 +18,8 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
     noteStartDate: "",
     noteEndDate: "",
     noteImportance: "unimportant",
-    hasTrialTraining: false,
-    avatar: null,
-    status: "passive"
+    status: "passive",
   })
-
-  const [previewUrl, setPreviewUrl] = useState(null)
-  const fileInputRef = useRef(null)
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -33,21 +27,6 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }))
-  }
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result)
-        setFormData((prev) => ({
-          ...prev,
-          avatar: reader.result,
-        }))
-      }
-      reader.readAsDataURL(file)
-    }
   }
 
   const handleSubmit = (e) => {
@@ -67,11 +46,10 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
         text: formData.note,
         startDate: formData.noteStartDate,
         endDate: formData.noteEndDate,
-        isImportant: formData.noteImportance === "important"
+        isImportant: formData.noteImportance === "important",
       },
-      hasTrialTraining: formData.hasTrialTraining,
-      avatar: formData.avatar,
-      status: formData.status
+      hasTrialTraining: formData.status === "trial",
+      status: formData.status,
     }
 
     onSave(mappedData)
@@ -105,19 +83,6 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
-            <div className="flex flex-col items-start">
-              <div className="w-24 h-24 rounded-full overflow-hidden mb-4">
-                <img src={previewUrl || DefaultAvatar} alt="Profile Preview" className="w-full h-full object-cover" />
-              </div>
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
-              <label
-                onClick={() => fileInputRef.current.click()}
-                className="bg-[#FF5733] hover:bg-[#E64D2E] px-6 py-2 rounded-xl text-sm cursor-pointer text-white"
-              >
-                Upload picture
-              </label>
-            </div>
-
             {/* Form Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -224,21 +189,8 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
                 <option value="passive">Passive</option>
                 <option value="active">Active</option>
                 <option value="converted">Converted</option>
+                <option value="trial">Trial Training arranged</option>
               </select>
-            </div>
-
-            <div className="flex items-center mb-4">
-              <input
-                type="checkbox"
-                id="hasTrialTraining"
-                name="hasTrialTraining"
-                checked={formData.hasTrialTraining}
-                onChange={handleChange}
-                className="mr-2 h-4 w-4 accent-[#FF5733]"
-              />
-              <label htmlFor="hasTrialTraining" className="text-sm text-gray-200">
-                Has Trial Training
-              </label>
             </div>
 
             <div className="border border-slate-700 rounded-xl p-4">
@@ -316,8 +268,9 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl outline-none hover:bg-[#E64D2E] transition-colors duration-200"
+                className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl outline-none hover:bg-[#E64D2E] transition-colors duration-200 flex items-center gap-1"
               >
+                <Plus size={16} />
                 Create Lead
               </button>
             </div>

@@ -121,6 +121,11 @@ export default function Communications() {
   // New state for create message modal
   const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
   const [newMessage, setNewMessage] = useState({ title: "", message: "" })
+  // New state for contingent management
+  const [contingent, setContingent] = useState({ used: 1, total: 7 })
+  const [showContingentModal, setShowContingentModal] = useState(false)
+  const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
+  const [tempContingent, setTempContingent] = useState(1)
 
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
@@ -502,6 +507,21 @@ export default function Communications() {
       setAppointments([...appointments, { id, ...newAppointment }])
     }
     setNewAppointment({ title: "", date: "", status: "upcoming" })
+  }
+
+  // New function to handle contingent management
+  const handleManageContingent = () => {
+    setTempContingent(contingent.used)
+    setShowContingentModal(true)
+  }
+
+  // New function to save contingent changes
+  const handleSaveContingent = () => {
+    // Only allow increasing the front value, not the maximum
+    if (tempContingent >= contingent.used && tempContingent <= contingent.total) {
+      setContingent({ ...contingent, used: tempContingent })
+    }
+    setShowContingentModal(false)
   }
 
   return (
@@ -1029,7 +1049,7 @@ export default function Communications() {
                             >
                               <div className="flex items-center gap-2">
                                 <img
-                                  src={chat.logo}
+                                  src={chat.logo || "/placeholder.svg"}
                                   alt={chat.name}
                                   className="h-8 w-8 rounded-full"
                                 />
@@ -1253,6 +1273,33 @@ export default function Communications() {
                 )}
               </div>
 
+              {/* Contingent Display */}
+              <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
+                <div className="text-sm text-gray-300">
+                  Contingent ({currentBillingPeriod}): {contingent.used} / {contingent.total}
+                </div>
+                <button
+                  onClick={handleManageContingent}
+                  className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
+                  Manage
+                </button>
+              </div>
+
               <button
                 onClick={handleCreateNewAppointment}
                 className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
@@ -1335,6 +1382,70 @@ export default function Communications() {
                 >
                   Save Message
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contingent Management Modal */}
+      {showContingentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-medium">Manage Appointment Contingent</h2>
+                <button onClick={() => setShowContingentModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Billing Period: {currentBillingPeriod}
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <label className="block text-sm text-gray-400 mb-1">Current Usage</label>
+                      <input
+                        type="number"
+                        min={contingent.used}
+                        max={contingent.total}
+                        value={tempContingent}
+                        onChange={(e) => setTempContingent(Number.parseInt(e.target.value))}
+                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm text-gray-400 mb-1">Maximum (Fixed)</label>
+                      <input
+                        type="number"
+                        value={contingent.total}
+                        disabled
+                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm opacity-70 cursor-not-allowed"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Note: You can only increase the current usage, not the maximum value.
+                  </p>
+                </div>
+
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => setShowContingentModal(false)}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveContingent}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
+                  >
+                    Save Changes
+                  </button>
+                </div>
               </div>
             </div>
           </div>

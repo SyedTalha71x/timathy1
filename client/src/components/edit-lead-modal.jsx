@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
-import { useState, useEffect, useRef } from "react"
+
+import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
-import DefaultAvatar from "../../public/default-avatar.avif"
 
 export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
   const [formData, setFormData] = useState({
@@ -19,12 +19,8 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
     noteStartDate: "",
     noteEndDate: "",
     noteImportance: "unimportant",
-    hasTrialTraining: false,
-    avatar: null,
+    status: "passive",
   })
-
-  const [previewUrl, setPreviewUrl] = useState(null)
-  const fileInputRef = useRef(null)
 
   useEffect(() => {
     if (leadData) {
@@ -44,10 +40,8 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
         noteStartDate: leadData.specialNote?.startDate || "",
         noteEndDate: leadData.specialNote?.endDate || "",
         noteImportance: leadData.specialNote?.isImportant ? "important" : "unimportant",
-        hasTrialTraining: leadData.hasTrialTraining || false,
-        avatar: leadData.avatar || null,
+        status: leadData.hasTrialTraining ? "trial" : leadData.status || "passive",
       })
-      setPreviewUrl(leadData.avatar || null)
     }
   }, [leadData])
 
@@ -57,21 +51,6 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }))
-  }
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result)
-        setFormData((prev) => ({
-          ...prev,
-          avatar: reader.result,
-        }))
-      }
-      reader.readAsDataURL(file)
-    }
   }
 
   const handleSubmit = (e) => {
@@ -88,14 +67,14 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
       city: formData.city,
       dateOfBirth: formData.dateOfBirth,
       about: formData.about,
-      note: formData.note,
-      noteStartDate: formData.noteStartDate,
-      noteEndDate: formData.noteEndDate,
-      noteImportance: formData.noteImportance,
-      hasTrialTraining: formData.hasTrialTraining,
-      avatar: formData.avatar,
-      // Keep the existing status from leadData
-      status: leadData.status || "passive",
+      specialNote: {
+        text: formData.note,
+        startDate: formData.noteStartDate,
+        endDate: formData.noteEndDate,
+        isImportant: formData.noteImportance === "important",
+      },
+      hasTrialTraining: formData.status === "trial",
+      status: formData.status === "trial" ? leadData.status || "passive" : formData.status,
     }
 
     onSave(mappedData)
@@ -129,19 +108,6 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
-            <div className="flex flex-col items-start">
-              <div className="w-24 h-24 rounded-full overflow-hidden mb-4">
-                <img src={previewUrl || DefaultAvatar} alt="Profile Preview" className="w-full h-full object-cover" />
-              </div>
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
-              <label
-                onClick={() => fileInputRef.current.click()}
-                className="bg-[#FF5733] hover:bg-[#E64D2E] px-6 py-2 rounded-xl text-sm cursor-pointer text-white"
-              >
-                Update picture
-              </label>
-            </div>
-
             {/* Form Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -235,6 +201,21 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 onChange={handleChange}
                 className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
               />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Lead Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+              >
+                <option value="passive">Passive</option>
+                <option value="active">Active</option>
+                <option value="converted">Converted</option>
+                <option value="trial">Trial Training arranged</option>
+              </select>
             </div>
 
             <div className="border border-slate-700 rounded-xl p-4">
