@@ -1,10 +1,9 @@
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react/no-unknown-property */
+/* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
 "use client"
 
-/* eslint-disable react/no-unknown-property */
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react/prop-types */
-/* eslint-disable react/no-unescaped-entities */
-/* eslint-disable no-unused-vars */
 import {
   X,
   Clock,
@@ -416,46 +415,41 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     <>
       <div className="h-full w-full">
         {/* Zoom controls */}
-        <div className="flex items-center justify-end mb-2 gap-2">
-          <div className="text-sm text-gray-500">Size: {calendarSize}%</div>
-          <button
-            onClick={zoomOut}
-            className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700"
-            aria-label="Zoom out"
-          >
-            <ZoomOut size={18} />
-          </button>
-          <button
-            onClick={resetZoom}
-            className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700"
-            aria-label="Reset zoom"
-          >
-            <RotateCcw size={18} />
-          </button>
-          <button
-            onClick={zoomIn}
-            className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700"
-            aria-label="Zoom in"
-          >
-            <ZoomIn size={18} />
-          </button>
+        <div className="flex items-center justify-between mb-2 gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={zoomOut}
+              className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700"
+              aria-label="Zoom out"
+            >
+              <ZoomOut size={18} />
+            </button>
+            <button
+              onClick={resetZoom}
+              className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700"
+              aria-label="Reset zoom"
+            >
+              <RotateCcw size={18} />
+            </button>
+            <button
+              onClick={zoomIn}
+              className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700"
+              aria-label="Zoom in"
+            >
+              <ZoomIn size={18} />
+            </button>
+            <div className="text-sm text-gray-500">Size: {calendarSize}%</div>
+          </div>
           <button
             onClick={generateFreeDates}
-            className="p-1.5 rounded-md lg:block hidden bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
+            className="p-1.5 rounded-md lg:block bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
             aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
           >
             {viewMode === "all" ? "Free Slots" : "All Slots"}
           </button>
         </div>
-        <button
-          onClick={generateFreeDates}
-          className="p-1.5 rounded-md w-full lg:hidden block bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
-          aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
-        >
-          {viewMode === "all" ? "Free Slots" : "All Slots"}
-        </button>
 
-        <div className="max-w-7xl overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="max-w-full overflow-x-auto bg-black" style={{ WebkitOverflowScrolling: "touch" }}>
           <div
             className="min-w-[768px] transition-all duration-300 ease-in-out"
             style={{
@@ -546,6 +540,51 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
         
         :global(.fc-event-main) {
           transition: all 0.3s ease;
+        }
+        
+        :global(.fc-theme-standard) {
+          background-color: #000000;
+          color: #ffffff;
+        }
+        
+        :global(.fc-theme-standard .fc-scrollgrid) {
+          border-color: #333333;
+        }
+        
+        :global(.fc-theme-standard td, .fc-theme-standard th) {
+          border-color: #333333;
+        }
+        
+        :global(.fc-col-header-cell) {
+          background-color: #1a1a1a;
+          color: #ffffff;
+        }
+        
+        :global(.fc-timegrid-slot) {
+          background-color: #000000;
+          border-color: #333333;
+        }
+        
+        :global(.fc-timegrid-slot-lane) {
+          background-color: #000000;
+        }
+        
+        :global(.fc-timegrid-slot-minor) {
+          border-color: #222222;
+        }
+        
+        :global(.fc-toolbar-title) {
+          color: #ffffff;
+        }
+        
+        :global(.fc-button) {
+          background-color: #333333 !important;
+          border-color: #444444 !important;
+          color: #ffffff !important;
+        }
+        
+        :global(.fc-button-active) {
+          background-color: #555555 !important;
         }
       `}</style>
 
