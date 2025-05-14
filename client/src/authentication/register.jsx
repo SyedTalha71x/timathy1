@@ -122,14 +122,14 @@ export default function Register() {
               
               <button
                 ref={userTabRef}
-                className="relative z-10 flex-1 w-1/2 py-2 text-white"
+                className="relative z-10 flex-1 text-sm w-1/2 py-2 text-white"
                 onClick={() => switchTab("user")}
               >
-                User Register
+                User/Customer Register
               </button>
               <button
                 ref={adminTabRef}
-                className="relative z-10 flex-1 w-1/2 py-2 text-gray-400"
+                className="relative z-10 flex-1 text-sm w-1/2 py-2 text-gray-400"
                 onClick={() => switchTab("admin")}
               >
                 Admin Register

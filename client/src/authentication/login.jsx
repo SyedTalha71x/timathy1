@@ -35,7 +35,7 @@ export default function SignInPage() {
   }
 
   const redirectUser = () => {
-    window.location.href = "/"
+    window.location.href = "/customer-dashboard/my-area"
   }
 
   const redirectAdmin = () => {
@@ -126,14 +126,14 @@ export default function SignInPage() {
               {/* Tab buttons */}
               <button
                 ref={userTabRef}
-                className="relative z-10 flex-1 w-1/2 py-2 text-white"
+                className="relative z-10 text-sm flex-1 w-1/2 py-2 text-white"
                 onClick={() => switchTab("user")}
               >
-                User Login
+                User/Customer Login
               </button>
               <button
                 ref={adminTabRef}
-                className="relative z-10 flex-1 w-1/2 py-2 text-gray-400"
+                className="relative z-10 text-sm flex-1 w-1/2 py-2 text-gray-400"
                 onClick={() => switchTab("admin")}
               >
                 Admin Login
