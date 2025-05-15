@@ -35,11 +35,11 @@ export default function SignInPage() {
   }
 
   const redirectUser = () => {
-    window.location.href = "/customer-dashboard/my-area"
+    window.location.href = "/dashboard/my-area"
   }
 
   const redirectAdmin = () => {
-    window.location.href = "/dashboard/my-area"
+    window.location.href = "/customer-dashboard/my-area"
   }
 
   const switchTab = (type) => {

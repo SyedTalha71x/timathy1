@@ -1,6 +1,4 @@
 /* eslint-disable react/no-unescaped-entities */
-"use client"
-
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
