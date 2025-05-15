@@ -214,7 +214,7 @@ const CustomerSidebar = () => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 mt-10 left-0 z-50 h-screen bg-[#111111] transition-all duration-500 ease-in-out overflow-hidden 
+          fixed top-0  left-0 z-50 h-screen bg-[#111111] transition-all duration-500 ease-in-out overflow-hidden 
           md:relative md:block
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
           ${isCollapsed ? "md:w-20" : "md:w-64 w-64"}

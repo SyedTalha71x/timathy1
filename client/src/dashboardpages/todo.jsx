@@ -178,9 +178,9 @@ export default function TodoApp() {
             {/* Filter and Sort Controls */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               {/* Status Tabs */}
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-1 items-center">
                 <button
-                  className={`px-5 py-2 text-sm ${
+                  className={`md:px-4 px-2.5 py-2 text-sm ${
                     activeFilter === "ongoing"
                       ? "bg-white text-black"
                       : "text-gray-200 border border-slate-300 hover:bg-gray-800"
@@ -190,7 +190,7 @@ export default function TodoApp() {
                   Ongoing
                 </button>
                 <button
-                  className={`px-5 py-2 text-sm ${
+                  className={`md:px-4 px-2.5 py-2 text-sm ${
                     activeFilter === "completed"
                       ? "bg-white text-black"
                       : "text-gray-200 border border-slate-300 hover:bg-gray-800"
@@ -200,7 +200,7 @@ export default function TodoApp() {
                   Completed
                 </button>
                 <button
-                  className={`px-5 py-2 text-sm ${
+                  className={`md:px-4 px-2.5 py-2 text-sm ${
                     activeFilter === "canceled"
                       ? "bg-white text-black"
                       : "text-gray-200 border border-slate-300 hover:bg-gray-800"

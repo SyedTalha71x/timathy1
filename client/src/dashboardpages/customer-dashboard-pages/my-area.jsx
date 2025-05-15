@@ -85,6 +85,8 @@ export default function MyArea() {
       title: "Timathy Fitness Town",
     },
     { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
+    { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
+
   ])
   const [sidebarSections, setSidebarSections] = useState([
     { id: "communications", title: "Communications" },
@@ -263,14 +265,6 @@ export default function MyArea() {
   }
 
   const removeWidget = (id) => {
-    // // Check if the widget is the website links widget
-    // const widgetToRemove = widgets.find((w) => w.id === id);
-    // if (widgetToRemove && widgetToRemove.type === "websiteLink") {
-    //   // Don't allow removal of website links widget
-    //   toast.error("Website links widget cannot be removed");
-    //   return;
-    // }
-
     setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
   }
 
@@ -313,10 +307,6 @@ export default function MyArea() {
       ;[newSections[index], newSections[swap]] = [newSections[swap], newSections[index]]
       return newSections
     })
-  }
-
-  const removeSidebarSection = (id) => {
-    setSidebarSections((currentSections) => currentSections.filter((section) => section.id !== id))
   }
 
   const moveCustomLink = (id, direction) => {
@@ -858,7 +848,7 @@ export default function MyArea() {
                         isEditing={isEditing}
                         widgets={widgets}
                       >
-                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[200px] flex flex-col">
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[350px] flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Website Links</h2>
                           </div>
