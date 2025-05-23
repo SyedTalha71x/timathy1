@@ -28,6 +28,8 @@ import Finances from "./dashboardpages/finances";
 import CustomerDashboardlayout from "./layouts/customer-dashboard-layout";
 import CustomerMyArea from './dashboardpages/customer-dashboard-pages/my-area'
 import Studios from "./dashboardpages/customer-dashboard-pages/studios";
+import CustomerLeads from './dashboardpages/customer-dashboard-pages/leads'
+import CustomerTodo from './dashboardpages/customer-dashboard-pages/todo'
 
 function App() {
   const location = useLocation();
@@ -65,10 +67,10 @@ function App() {
         <Route path="/customer-dashboard" element={<CustomerDashboardlayout />}>
           <Route path="my-area" element={<CustomerMyArea />} />
           <Route path="edit-profile" element={<ProfileDashboard />} />
-          <Route path="to-do" element={<ToDo />} />
+          <Route path="to-do" element={<CustomerTodo />} />
           <Route path="contract" element={<Contract />} />
           <Route path="configuration" element={<Configuration />} />
-          <Route path="leads" element={<Leets />} />
+          <Route path="leads" element={<CustomerLeads />} />
           <Route path="finances" element={<Finances />} />
           <Route path="studios" element={<Studios />} />
         </Route>
