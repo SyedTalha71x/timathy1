@@ -73,36 +73,32 @@ const WidgetSelectionModal = ({ isOpen, onClose, onSelectWidget, canAddWidget })
             <button
               onClick={() => onSelectWidget("chart")}
               disabled={!canAddWidget("chart")}
-              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${
-                !canAddWidget("chart") ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${!canAddWidget("chart") ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               Chart
             </button>
             <button
               onClick={() => onSelectWidget("websiteLink")}
               disabled={!canAddWidget("websiteLink")}
-              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${
-                !canAddWidget("websiteLink") ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${!canAddWidget("websiteLink") ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               Website Links
             </button>
             <button
               onClick={() => onSelectWidget("expiringContracts")}
               disabled={!canAddWidget("expiringContracts")}
-              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${
-                !canAddWidget("expiringContracts") ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${!canAddWidget("expiringContracts") ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               Expiring Contracts
             </button>
             <button
               onClick={() => onSelectWidget("todo")}
               disabled={!canAddWidget("todo")}
-              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${
-                !canAddWidget("todo") ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${!canAddWidget("todo") ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               To-Do
             </button>
@@ -357,7 +353,7 @@ export default function MyArea() {
       }
       const newSections = [...currentSections]
       const swap = direction === "up" ? index - 1 : index + 1
-      ;[newSections[index], newSections[swap]] = [newSections[swap], newSections[index]]
+        ;[newSections[index], newSections[swap]] = [newSections[swap], newSections[index]]
       return newSections
     })
   }
@@ -370,7 +366,7 @@ export default function MyArea() {
       }
       const newLinks = [...currentLinks]
       const swap = direction === "up" ? index - 1 : index + 1
-      ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
+        ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
       return newLinks
     })
   }
@@ -567,9 +563,8 @@ export default function MyArea() {
               <button
                 onClick={handleSave}
                 disabled={!title.trim() || !url.trim()}
-                className={`px-4 py-2 text-sm rounded-xl ${
-                  !title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                }`}
+                className={`px-4 py-2 text-sm rounded-xl ${!title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                  }`}
               >
                 Save
               </button>
@@ -637,9 +632,8 @@ export default function MyArea() {
       return (
         <div className="relative">
           <div
-            className={`${
-              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
@@ -766,9 +760,8 @@ export default function MyArea() {
                 </button>
                 <button
                   onClick={toggleEditing}
-                  className={`p-2 ${
-                    isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                  } rounded-lg flex items-center gap-1`}
+                  className={`p-2 ${isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                    } rounded-lg flex items-center gap-1`}
                 >
                   {isEditing ? <Check size={16} /> : <Edit size={16} />}
                 </button>
@@ -817,8 +810,10 @@ export default function MyArea() {
                           </div>
                         )}
                       </div>
-                      <div className="w-full">
-                        <Chart options={chartOptions} series={chartSeries} type="line" height={200} />
+                      <div className="overflow-x-auto">
+                        <div className="min-w-[600px]"> {/* Set minimum width to ensure chart doesn't get squeezed */}
+                          <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
+                        </div>
                       </div>
                     </div>
                   </DraggableWidget>
@@ -937,11 +932,10 @@ export default function MyArea() {
                                     <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
                                   </div>
                                   <span
-                                    className={`px-2 py-1 text-xs rounded-full ${
-                                      contract.status === "Expiring Soon"
+                                    className={`px-2 py-1 text-xs rounded-full ${contract.status === "Expiring Soon"
                                         ? "bg-yellow-500/20 text-yellow-400"
                                         : "bg-green-500/20 text-green-400"
-                                    }`}
+                                      }`}
                                   >
                                     {contract.status}
                                   </span>
