@@ -14,6 +14,17 @@ import {
   Building,
   Users,
   Calendar,
+  Edit,
+  Download,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  XCircle,
+  CheckCircle,
+  Pause,
+  Play,
+  UserCheck,
+  Crown,
 } from "lucide-react"
 import DefaultStudioImage from "../../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
@@ -26,9 +37,32 @@ export default function Studios() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
-  const [sortBy, setSortBy] = useState("alphabetical") // "alphabetical" or "expiring"
+  const [sortBy, setSortBy] = useState("alphabetical")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
   const [activeNoteId, setActiveNoteId] = useState(null)
+
+  // New modal states
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
+  const [isStaffsModalOpen, setIsStaffsModalOpen] = useState(false)
+  const [isLeadsModalOpen, setIsLeadsModalOpen] = useState(false)
+  const [isContractsModalOpen, setIsContractsModalOpen] = useState(false)
+  const [isFinancesModalOpen, setIsFinancesModalOpen] = useState(false)
+  const [selectedStudioForModal, setSelectedStudioForModal] = useState(null)
+
+  // Edit states for members/staffs/leads
+  const [isEditMemberModalOpen, setIsEditMemberModalOpen] = useState(false)
+  const [selectedMemberForEdit, setSelectedMemberForEdit] = useState(null)
+  const [memberEditForm, setMemberEditForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    membershipType: "",
+    joinDate: "",
+    status: "active",
+  })
+
+  // Finance filter state
+  const [financesPeriod, setFinancesPeriod] = useState("month") // month, quarter, year
 
   const [editForm, setEditForm] = useState({
     name: "",
@@ -62,6 +96,228 @@ export default function Studios() {
     2: { members: 85, trainers: 5, classes: 10 },
   })
 
+  // Sample data for members, staffs, leads, contracts, and finances
+  const [studioMembers, setStudioMembers] = useState({
+    1: [
+      {
+        id: 1,
+        name: "John Doe",
+        email: "john@example.com",
+        phone: "+49123456789",
+        membershipType: "Premium",
+        joinDate: "2023-01-15",
+        status: "active",
+      },
+      {
+        id: 2,
+        name: "Jane Smith",
+        email: "jane@example.com",
+        phone: "+49987654321",
+        membershipType: "Basic",
+        joinDate: "2023-02-20",
+        status: "active",
+      },
+      {
+        id: 3,
+        name: "Mike Johnson",
+        email: "mike@example.com",
+        phone: "+49555666777",
+        membershipType: "Premium",
+        joinDate: "2023-03-10",
+        status: "inactive",
+      },
+    ],
+    2: [
+      {
+        id: 4,
+        name: "Sarah Wilson",
+        email: "sarah@example.com",
+        phone: "+49111222333",
+        membershipType: "Basic",
+        joinDate: "2023-01-05",
+        status: "active",
+      },
+      {
+        id: 5,
+        name: "Tom Brown",
+        email: "tom@example.com",
+        phone: "+49444555666",
+        membershipType: "Premium",
+        joinDate: "2023-02-15",
+        status: "active",
+      },
+    ],
+  })
+
+  const [studioStaffs, setStudioStaffs] = useState({
+    1: [
+      {
+        id: 1,
+        name: "Alex Trainer",
+        email: "alex@fitnessforlife.de",
+        phone: "+49123456789",
+        role: "Head Trainer",
+        joinDate: "2022-01-15",
+        status: "active",
+      },
+      {
+        id: 2,
+        name: "Lisa Coach",
+        email: "lisa@fitnessforlife.de",
+        phone: "+49987654321",
+        role: "Fitness Coach",
+        joinDate: "2022-03-20",
+        status: "active",
+      },
+      {
+        id: 3,
+        name: "Mark Instructor",
+        email: "mark@fitnessforlife.de",
+        phone: "+49555666777",
+        role: "Yoga Instructor",
+        joinDate: "2022-06-10",
+        status: "active",
+      },
+    ],
+    2: [
+      {
+        id: 4,
+        name: "Emma Personal",
+        email: "emma@powergym.com",
+        phone: "+49111222333",
+        role: "Personal Trainer",
+        joinDate: "2021-12-05",
+        status: "active",
+      },
+      {
+        id: 5,
+        name: "David Manager",
+        email: "david@powergym.com",
+        phone: "+49444555666",
+        role: "Studio Manager",
+        joinDate: "2021-11-15",
+        status: "active",
+      },
+    ],
+  })
+
+  const [studioLeads, setStudioLeads] = useState({
+    1: [
+      {
+        id: 1,
+        name: "Peter Potential",
+        email: "peter@example.com",
+        phone: "+49123456789",
+        source: "Website",
+        status: "new",
+        contactDate: "2024-01-15",
+      },
+      {
+        id: 2,
+        name: "Anna Interested",
+        email: "anna@example.com",
+        phone: "+49987654321",
+        source: "Referral",
+        status: "contacted",
+        contactDate: "2024-01-10",
+      },
+      {
+        id: 3,
+        name: "Chris Prospect",
+        email: "chris@example.com",
+        phone: "+49555666777",
+        source: "Social Media",
+        status: "converted",
+        contactDate: "2024-01-05",
+      },
+    ],
+    2: [
+      {
+        id: 4,
+        name: "Sophie Lead",
+        email: "sophie@example.com",
+        phone: "+49111222333",
+        source: "Google Ads",
+        status: "new",
+        contactDate: "2024-01-12",
+      },
+      {
+        id: 5,
+        name: "Robert Inquiry",
+        email: "robert@example.com",
+        phone: "+49444555666",
+        source: "Walk-in",
+        status: "contacted",
+        contactDate: "2024-01-08",
+      },
+    ],
+  })
+
+  const [studioContracts, setStudioContracts] = useState({
+    1: [
+      {
+        id: 1,
+        memberName: "John Doe",
+        duration: "12 months",
+        startDate: "2023-01-15",
+        endDate: "2024-01-15",
+        status: "active",
+        files: ["contract_john.pdf", "terms_john.pdf"],
+      },
+      {
+        id: 2,
+        memberName: "Jane Smith",
+        duration: "6 months",
+        startDate: "2023-02-20",
+        endDate: "2023-08-20",
+        status: "paused",
+        files: ["contract_jane.pdf"],
+      },
+      {
+        id: 3,
+        memberName: "Mike Johnson",
+        duration: "12 months",
+        startDate: "2023-03-10",
+        endDate: "2024-03-10",
+        status: "inactive",
+        files: ["contract_mike.pdf", "cancellation_mike.pdf"],
+      },
+    ],
+    2: [
+      {
+        id: 4,
+        memberName: "Sarah Wilson",
+        duration: "24 months",
+        startDate: "2023-01-05",
+        endDate: "2025-01-05",
+        status: "active",
+        files: ["contract_sarah.pdf"],
+      },
+      {
+        id: 5,
+        memberName: "Tom Brown",
+        duration: "12 months",
+        startDate: "2023-02-15",
+        endDate: "2024-02-15",
+        status: "active",
+        files: ["contract_tom.pdf", "addendum_tom.pdf"],
+      },
+    ],
+  })
+
+  const [studioFinances, setStudioFinances] = useState({
+    1: {
+      month: { totalRevenue: 45000, successfulPayments: 42000, pendingPayments: 2500, failedPayments: 500 },
+      quarter: { totalRevenue: 135000, successfulPayments: 128000, pendingPayments: 5500, failedPayments: 1500 },
+      year: { totalRevenue: 540000, successfulPayments: 515000, pendingPayments: 18000, failedPayments: 7000 },
+    },
+    2: {
+      month: { totalRevenue: 32000, successfulPayments: 30000, pendingPayments: 1500, failedPayments: 500 },
+      quarter: { totalRevenue: 96000, successfulPayments: 91000, pendingPayments: 3500, failedPayments: 1500 },
+      year: { totalRevenue: 384000, successfulPayments: 365000, pendingPayments: 12000, failedPayments: 7000 },
+    },
+  })
+
   const [isClassesModalOpen, setIsClassesModalOpen] = useState(false)
   const [selectedStudioForClasses, setSelectedStudioForClasses] = useState(null)
 
@@ -88,9 +344,30 @@ export default function Studios() {
     }
   }, [selectedStudio])
 
+  useEffect(() => {
+    if (selectedMemberForEdit) {
+      setMemberEditForm({
+        name: selectedMemberForEdit.name,
+        email: selectedMemberForEdit.email,
+        phone: selectedMemberForEdit.phone,
+        membershipType: selectedMemberForEdit.membershipType || selectedMemberForEdit.role || "",
+        joinDate: selectedMemberForEdit.joinDate,
+        status: selectedMemberForEdit.status,
+      })
+    }
+  }, [selectedMemberForEdit])
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setEditForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleMemberInputChange = (e) => {
+    const { name, value } = e.target
+    setMemberEditForm((prev) => ({
       ...prev,
       [name]: value,
     }))
@@ -115,6 +392,42 @@ export default function Studios() {
     toast.success("Studio details have been updated successfully")
   }
 
+  const handleMemberEditSubmit = (e) => {
+    e.preventDefault()
+
+    // Update member data based on which modal is open
+    if (isMembersModalOpen) {
+      setStudioMembers((prev) => ({
+        ...prev,
+        [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((member) =>
+          member.id === selectedMemberForEdit.id ? { ...member, ...memberEditForm } : member,
+        ),
+      }))
+    } else if (isStaffsModalOpen) {
+      setStudioStaffs((prev) => ({
+        ...prev,
+        [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((staff) =>
+          staff.id === selectedMemberForEdit.id
+            ? { ...staff, ...memberEditForm, role: memberEditForm.membershipType }
+            : staff,
+        ),
+      }))
+    } else if (isLeadsModalOpen) {
+      setStudioLeads((prev) => ({
+        ...prev,
+        [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((lead) =>
+          lead.id === selectedMemberForEdit.id
+            ? { ...lead, ...memberEditForm, source: memberEditForm.membershipType }
+            : lead,
+        ),
+      }))
+    }
+
+    setIsEditMemberModalOpen(false)
+    setSelectedMemberForEdit(null)
+    toast.success("Details updated successfully")
+  }
+
   const notePopoverRef = useRef(null)
 
   useEffect(() => {
@@ -124,7 +437,6 @@ export default function Studios() {
       }
     }
 
-    // Add event listener when popover is open
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -215,7 +527,6 @@ export default function Studios() {
       filtered = filtered.filter((studio) => (filterStatus === "active" ? studio.isActive : !studio.isActive))
     }
 
-    // Sort studios
     if (sortBy === "alphabetical") {
       filtered.sort((a, b) => a.name.localeCompare(b.name))
     } else if (sortBy === "expiring") {
@@ -272,7 +583,6 @@ export default function Studios() {
 
   const handleLogoChange = (e) => {
     e.preventDefault()
-    // In a real app, you would handle file upload here
     toast.success("Logo update functionality would be implemented here")
   }
 
@@ -295,6 +605,78 @@ export default function Studios() {
     }))
 
     toast.success("New class added successfully")
+  }
+
+  // New modal handlers
+  const handleOpenMembersModal = (studio) => {
+    setSelectedStudioForModal(studio)
+    setIsMembersModalOpen(true)
+  }
+
+  const handleOpenStaffsModal = (studio) => {
+    setSelectedStudioForModal(studio)
+    setIsStaffsModalOpen(true)
+  }
+
+  const handleOpenLeadsModal = (studio) => {
+    setSelectedStudioForModal(studio)
+    setIsLeadsModalOpen(true)
+  }
+
+  const handleOpenContractsModal = (studio) => {
+    setSelectedStudioForModal(studio)
+    setIsContractsModalOpen(true)
+  }
+
+  const handleOpenFinancesModal = (studio) => {
+    setSelectedStudioForModal(studio)
+    setIsFinancesModalOpen(true)
+  }
+
+  const handleEditMember = (member) => {
+    setSelectedMemberForEdit(member)
+    setIsEditMemberModalOpen(true)
+  }
+
+  const handleDownloadFile = (fileName) => {
+    toast.success(`Downloading ${fileName}`)
+    // In a real app, you would implement actual file download
+  }
+
+  const toggleContractStatus = (contractId, newStatus) => {
+    setStudioContracts((prev) => ({
+      ...prev,
+      [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((contract) =>
+        contract.id === contractId ? { ...contract, status: newStatus } : contract,
+      ),
+    }))
+    toast.success(`Contract status updated to ${newStatus}`)
+  }
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "active":
+        return <CheckCircle size={16} className="text-green-500" />
+      case "inactive":
+        return <XCircle size={16} className="text-red-500" />
+      case "paused":
+        return <Pause size={16} className="text-yellow-500" />
+      default:
+        return <Clock size={16} className="text-gray-500" />
+    }
+  }
+
+  const getLeadStatusColor = (status) => {
+    switch (status) {
+      case "new":
+        return "bg-blue-900 text-blue-300"
+      case "contacted":
+        return "bg-yellow-900 text-yellow-300"
+      case "converted":
+        return "bg-green-900 text-green-300"
+      default:
+        return "bg-gray-900 text-gray-300"
+    }
   }
 
   return (
@@ -388,251 +770,6 @@ export default function Studios() {
               </div>
             </div>
           </div>
-          {isEditModalOpen && selectedStudio && (
-            <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-              <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-white open_sans_font_700 text-lg font-semibold">Edit Studio</h2>
-                    <button
-                      onClick={() => {
-                        setIsEditModalOpen(false)
-                        setSelectedStudio(null)
-                      }}
-                      className="text-gray-400 hover:text-white"
-                    >
-                      <X size={20} className="cursor-pointer" />
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleEditSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
-                    <div className="flex flex-col items-start">
-                      <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
-                        <img
-                          src={selectedStudio.image || DefaultStudioImage}
-                          alt="Studio Logo"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <input
-                        type="file"
-                        id="logo"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => {
-                          // Handle file selection logic here
-                          if (e.target.files && e.target.files[0]) {
-                            // In a real app, you would handle the file upload
-                            toast.success("Logo selected successfully")
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor="logo"
-                        className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer"
-                      >
-                        Update logo
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Studio Name</label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={editForm.name}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Owner Name</label>
-                      <input
-                        type="text"
-                        name="ownerName"
-                        value={editForm.ownerName}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={editForm.email}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Phone</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={editForm.phone}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Website</label>
-                      <input
-                        type="text"
-                        name="website"
-                        value={editForm.website}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Tax ID</label>
-                      <input
-                        type="text"
-                        name="taxId"
-                        value={editForm.taxId}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Street</label>
-                      <input
-                        type="text"
-                        name="street"
-                        value={editForm.street}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-                        <input
-                          type="text"
-                          name="zipCode"
-                          value={editForm.zipCode}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">City</label>
-                        <input
-                          type="text"
-                          name="city"
-                          value={editForm.city}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="border border-slate-700 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <label className="text-sm text-gray-200 font-medium">Special Note</label>
-                        <div className="flex items-center">
-                          <input
-                            type="checkbox"
-                            id="noteImportance"
-                            checked={editForm.noteImportance === "important"}
-                            onChange={(e) => {
-                              setEditForm({
-                                ...editForm,
-                                noteImportance: e.target.checked ? "important" : "unimportant",
-                              })
-                            }}
-                            className="mr-2 h-4 w-4 accent-[#FF843E]"
-                          />
-                          <label htmlFor="noteImportance" className="text-sm text-gray-200">
-                            Important
-                          </label>
-                        </div>
-                      </div>
-
-                      <textarea
-                        name="note"
-                        value={editForm.note}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
-                        placeholder="Enter special note..."
-                      />
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm text-gray-200 block mb-2">Start Date</label>
-                          <input
-                            type="date"
-                            name="noteStartDate"
-                            value={editForm.noteStartDate}
-                            onChange={handleInputChange}
-                            className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm text-gray-200 block mb-2">End Date</label>
-                          <input
-                            type="date"
-                            name="noteEndDate"
-                            value={editForm.noteEndDate}
-                            onChange={handleInputChange}
-                            className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">About</label>
-                      <textarea
-                        name="about"
-                        value={editForm.about}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Contract Start</label>
-                        <input
-                          type="date"
-                          name="contractStart"
-                          value={editForm.contractStart}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Contract End</label>
-                        <input
-                          type="date"
-                          name="contractEnd"
-                          value={editForm.contractEnd}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full bg-[#FF843E] text-white rounded-xl py-2 text-sm cursor-pointer"
-                    >
-                      Save Changes
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="bg-black rounded-xl open_sans_font p-4">
             {filteredAndSortedStudios().length > 0 ? (
@@ -664,7 +801,6 @@ export default function Studios() {
                               ref={notePopoverRef}
                               className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
                             >
-                              {/* Header section with icon and title */}
                               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                                 {studio.noteImportance === "important" ? (
                                   <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
@@ -688,11 +824,9 @@ export default function Studios() {
                                 </button>
                               </div>
 
-                              {/* Note content */}
                               <div className="p-3">
                                 <p className="text-white text-sm leading-relaxed">{studio.note}</p>
 
-                                {/* Date validity section */}
                                 {studio.noteStartDate && studio.noteEndDate && (
                                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                                     <p className="text-xs text-gray-300">
@@ -706,64 +840,105 @@ export default function Studios() {
                         </div>
                       </div>
                     )}
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
-                        <img
-                          src={studio.image || DefaultStudioImage}
-                          className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 object-cover"
-                          alt=""
-                        />
-                        <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row items-center gap-2">
-                            <h3 className="text-white font-medium truncate text-lg sm:text-base">{studio.name}</h3>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`px-2 py-0.5 text-xs rounded-full ${
-                                  studio.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                                }`}
-                              >
-                                {studio.isActive ? "Active" : "Inactive"}
-                              </span>
+
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
+                          <img
+                            src={studio.image || DefaultStudioImage}
+                            className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 object-cover"
+                            alt=""
+                          />
+                          <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row items-center gap-2">
+                              <h3 className="text-white font-medium truncate text-lg sm:text-base">{studio.name}</h3>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`px-2 py-0.5 text-xs rounded-full ${
+                                    studio.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
+                                  }`}
+                                >
+                                  {studio.isActive ? "Active" : "Inactive"}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <MapPin size={14} className="text-gray-400" />
-                            <p className="text-gray-400 text-sm truncate text-center sm:text-left">
-                              {studio.city}, {studio.zipCode}
+                            <div className="flex items-center gap-2 mt-1">
+                              <MapPin size={14} className="text-gray-400" />
+                              <p className="text-gray-400 text-sm truncate text-center sm:text-left">
+                                {studio.city}, {studio.zipCode}
+                              </p>
+                            </div>
+                            <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
+                              Contract: {studio.contractStart} -{" "}
+                              <span className={isContractExpiringSoon(studio.contractEnd) ? "text-red-500" : ""}>
+                                {studio.contractEnd}
+                              </span>
+                              {isContractExpiringSoon(studio.contractEnd) && (
+                                <Info size={16} className="text-red-500 ml-1" />
+                              )}
                             </p>
                           </div>
-                          <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
-                            Contract: {studio.contractStart} -{" "}
-                            <span className={isContractExpiringSoon(studio.contractEnd) ? "text-red-500" : ""}>
-                              {studio.contractEnd}
-                            </span>
-                            {isContractExpiringSoon(studio.contractEnd) && (
-                              <Info size={16} className="text-red-500 ml-1" />
-                            )}
-                          </p>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-center sm:justify-end gap-3 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
-                        <button
-                          onClick={() => handleViewClasses(studio)}
-                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
-                        >
-                          <Calendar size={16} />
-                          Classes
-                        </button>
+                        <div className="flex gap-2 items-center md:justify-end justify-center">
+
                         <button
                           onClick={() => handleViewDetails(studio)}
-                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
+                          className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                         >
                           <Eye size={16} />
-                          View Details
+                          <span className="hidden sm:inline">View Details</span>
                         </button>
+
                         <button
                           onClick={() => handleEditStudio(studio)}
-                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto"
+                          className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                         >
-                          Edit
+                          <Edit size={16} />
+                          <span className="hidden sm:inline">Edit</span>
                         </button>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 items-center md:flex-row flex-col mt-3">
+                        <button
+                          onClick={() => handleOpenMembersModal(studio)}
+                          className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 bg-transparent  border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
+                        >
+                          <Users size={16} />
+                          <span>{studioStats[studio.id]?.members || 0}</span>
+                          <span className="">Members</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenStaffsModal(studio)}
+                          className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 bg-transparent  border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
+                        >
+                          <UserCheck size={16} />
+                          <span>{studioStats[studio.id]?.trainers || 0}</span>
+                          <span className="">Staffs</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenContractsModal(studio)}
+                          className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 bg-transparent  border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
+                        >
+                          <span className="">Contracts</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenFinancesModal(studio)}
+                          className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
+                        >
+                          <span className="">Finances</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenLeadsModal(studio)}
+                          className="flex md:w-auto w-full justify-center items-center cursor-pointer  gap-2 border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
+                        >
+                          <span className="">Leads</span>
+                        </button>
+
                       </div>
                     </div>
                   </div>
@@ -812,6 +987,740 @@ export default function Studios() {
         </aside>
       </div>
 
+      {/* Members Modal */}
+      {isMembersModalOpen && selectedStudioForModal && (
+        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
+                  {selectedStudioForModal.name} - Members ({studioMembers[selectedStudioForModal.id]?.length || 0})
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsMembersModalOpen(false)
+                    setSelectedStudioForModal(null)
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={20} className="cursor-pointer" />
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+                {studioMembers[selectedStudioForModal.id]?.map((member) => (
+                  <div key={member.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-medium text-white">{member.name}</h3>
+                        <span
+                          className={`px-2 py-0.5 text-xs rounded-full ${
+                            member.status === "active" ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
+                          }`}
+                        >
+                          {member.status}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-400 mt-1">
+                        <p>
+                          {member.email} • {member.phone}
+                        </p>
+                        <p>
+                          Membership: {member.membershipType} • Joined: {member.joinDate}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleEditMember(member)}
+                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+                    >
+                      <Edit size={16} />
+                      Edit
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Staffs Modal */}
+      {isStaffsModalOpen && selectedStudioForModal && (
+        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
+                  {selectedStudioForModal.name} - Staff ({studioStaffs[selectedStudioForModal.id]?.length || 0})
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsStaffsModalOpen(false)
+                    setSelectedStudioForModal(null)
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={20} className="cursor-pointer" />
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+                {studioStaffs[selectedStudioForModal.id]?.map((staff) => (
+                  <div key={staff.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-medium text-white">{staff.name}</h3>
+                        <span
+                          className={`px-2 py-0.5 text-xs rounded-full ${
+                            staff.status === "active" ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
+                          }`}
+                        >
+                          {staff.status}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-400 mt-1">
+                        <p>
+                          {staff.email} • {staff.phone}
+                        </p>
+                        <p>
+                          Role: {staff.role} • Joined: {staff.joinDate}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleEditMember(staff)}
+                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+                    >
+                      <Edit size={16} />
+                      Edit
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leads Modal */}
+      {isLeadsModalOpen && selectedStudioForModal && (
+        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
+                  {selectedStudioForModal.name} - Leads ({studioLeads[selectedStudioForModal.id]?.length || 0})
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsLeadsModalOpen(false)
+                    setSelectedStudioForModal(null)
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={20} className="cursor-pointer" />
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+                {studioLeads[selectedStudioForModal.id]?.map((lead) => (
+                  <div key={lead.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-medium text-white">{lead.name}</h3>
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${getLeadStatusColor(lead.status)}`}>
+                          {lead.status}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-400 mt-1">
+                        <p>
+                          {lead.email} • {lead.phone}
+                        </p>
+                        <p>
+                          Source: {lead.source} • Contact Date: {lead.contactDate}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleEditMember(lead)}
+                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+                    >
+                      <Edit size={16} />
+                      Edit
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contracts Modal */}
+      {isContractsModalOpen && selectedStudioForModal && (
+        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-5xl my-8 relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
+                  {selectedStudioForModal.name} - Contracts ({studioContracts[selectedStudioForModal.id]?.length || 0})
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsContractsModalOpen(false)
+                    setSelectedStudioForModal(null)
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={20} className="cursor-pointer" />
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+                {studioContracts[selectedStudioForModal.id]?.map((contract) => (
+                  <div key={contract.id} className="bg-[#161616] rounded-xl p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-medium text-white">{contract.memberName}</h3>
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(contract.status)}
+                            <span
+                              className={`px-2 py-0.5 text-xs rounded-full ${
+                                contract.status === "active"
+                                  ? "bg-green-900 text-green-300"
+                                  : contract.status === "paused"
+                                    ? "bg-yellow-900 text-yellow-300"
+                                    : "bg-red-900 text-red-300"
+                              }`}
+                            >
+                              {contract.status}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          <p>
+                            Duration: {contract.duration} ({contract.startDate} - {contract.endDate})
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {contract.status === "active" && (
+                          <button
+                            onClick={() => toggleContractStatus(contract.id, "paused")}
+                            className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
+                          >
+                            <Pause size={14} />
+                            Pause
+                          </button>
+                        )}
+                        {contract.status === "paused" && (
+                          <button
+                            onClick={() => toggleContractStatus(contract.id, "active")}
+                            className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
+                          >
+                            <Play size={14} />
+                            Resume
+                          </button>
+                        )}
+                        {contract.status !== "inactive" && (
+                          <button
+                            onClick={() => toggleContractStatus(contract.id, "inactive")}
+                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
+                          >
+                            <XCircle size={14} />
+                            Deactivate
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-700 pt-3">
+                      <p className="text-sm text-gray-400 mb-2">Attached Files:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {contract.files.map((file, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleDownloadFile(file)}
+                            className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
+                          >
+                            <Download size={14} />
+                            {file}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Finances Modal */}
+      {isFinancesModalOpen && selectedStudioForModal && (
+        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
+                  {selectedStudioForModal.name} - Finances
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsFinancesModalOpen(false)
+                    setSelectedStudioForModal(null)
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={20} className="cursor-pointer" />
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <label className="text-sm text-gray-400 block mb-2">Observation Period</label>
+                <select
+                  value={financesPeriod}
+                  onChange={(e) => setFinancesPeriod(e.target.value)}
+                  className="bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm border border-gray-700"
+                >
+                  <option value="month">This Month</option>
+                  <option value="quarter">This Quarter</option>
+                  <option value="year">This Year</option>
+                </select>
+              </div>
+
+              {studioFinances[selectedStudioForModal.id] && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-[#161616] rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <TrendingUp className="text-green-500" size={24} />
+                      <h3 className="text-white font-medium">Total Revenue</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-green-500">
+                      €{studioFinances[selectedStudioForModal.id][financesPeriod].totalRevenue.toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="bg-[#161616] rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <CheckCircle className="text-green-500" size={24} />
+                      <h3 className="text-white font-medium">Successful Payments</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-green-500">
+                      €{studioFinances[selectedStudioForModal.id][financesPeriod].successfulPayments.toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="bg-[#161616] rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Clock className="text-yellow-500" size={24} />
+                      <h3 className="text-white font-medium">Pending Payments</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-yellow-500">
+                      €{studioFinances[selectedStudioForModal.id][financesPeriod].pendingPayments.toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="bg-[#161616] rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <XCircle className="text-red-500" size={24} />
+                      <h3 className="text-white font-medium">Failed Payments</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-red-500">
+                      €{studioFinances[selectedStudioForModal.id][financesPeriod].failedPayments.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-6 bg-[#161616] rounded-xl p-4">
+                <h4 className="text-white font-medium mb-3">Payment Success Rate</h4>
+                <div className="w-full bg-gray-700 rounded-full h-3">
+                  <div
+                    className="bg-green-500 h-3 rounded-full"
+                    style={{
+                      width: `${
+                        (studioFinances[selectedStudioForModal.id][financesPeriod].successfulPayments /
+                          studioFinances[selectedStudioForModal.id][financesPeriod].totalRevenue) *
+                        100
+                      }%`,
+                    }}
+                  ></div>
+                </div>
+                <p className="text-sm text-gray-400 mt-2">
+                  {(
+                    (studioFinances[selectedStudioForModal.id][financesPeriod].successfulPayments /
+                      studioFinances[selectedStudioForModal.id][financesPeriod].totalRevenue) *
+                    100
+                  ).toFixed(1)}
+                  % success rate
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Member/Staff/Lead Modal */}
+      {isEditMemberModalOpen && selectedMemberForEdit && (
+        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
+                  Edit {isMembersModalOpen ? "Member" : isStaffsModalOpen ? "Staff" : "Lead"}
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsEditMemberModalOpen(false)
+                    setSelectedMemberForEdit(null)
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={20} className="cursor-pointer" />
+                </button>
+              </div>
+
+              <form onSubmit={handleMemberEditSubmit} className="space-y-4">
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={memberEditForm.name}
+                    onChange={handleMemberInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={memberEditForm.email}
+                    onChange={handleMemberInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Phone</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={memberEditForm.phone}
+                    onChange={handleMemberInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">
+                    {isMembersModalOpen ? "Membership Type" : isStaffsModalOpen ? "Role" : "Source"}
+                  </label>
+                  <input
+                    type="text"
+                    name="membershipType"
+                    value={memberEditForm.membershipType}
+                    onChange={handleMemberInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">
+                    {isLeadsModalOpen ? "Contact Date" : "Join Date"}
+                  </label>
+                  <input
+                    type="date"
+                    name="joinDate"
+                    value={memberEditForm.joinDate}
+                    onChange={handleMemberInputChange}
+                    className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Status</label>
+                  <select
+                    name="status"
+                    value={memberEditForm.status}
+                    onChange={handleMemberInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  >
+                    {isLeadsModalOpen ? (
+                      <>
+                        <option value="new">New</option>
+                        <option value="contacted">Contacted</option>
+                        <option value="converted">Converted</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+
+                <button type="submit" className="w-full bg-[#FF843E] text-white rounded-xl py-2 text-sm cursor-pointer">
+                  Save Changes
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Original Edit Studio Modal */}
+      {isEditModalOpen && selectedStudio && (
+        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white open_sans_font_700 text-lg font-semibold">Edit Studio</h2>
+                <button
+                  onClick={() => {
+                    setIsEditModalOpen(false)
+                    setSelectedStudio(null)
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={20} className="cursor-pointer" />
+                </button>
+              </div>
+
+              <form onSubmit={handleEditSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
+                <div className="flex flex-col items-start">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
+                    <img
+                      src={selectedStudio.image || DefaultStudioImage}
+                      alt="Studio Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <input
+                    type="file"
+                    id="logo"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        toast.success("Logo selected successfully")
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor="logo"
+                    className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer"
+                  >
+                    Update logo
+                  </label>
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Studio Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editForm.name}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Owner Name</label>
+                  <input
+                    type="text"
+                    name="ownerName"
+                    value={editForm.ownerName}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={editForm.email}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Phone</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={editForm.phone}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Website</label>
+                  <input
+                    type="text"
+                    name="website"
+                    value={editForm.website}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Tax ID</label>
+                  <input
+                    type="text"
+                    name="taxId"
+                    value={editForm.taxId}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Street</label>
+                  <input
+                    type="text"
+                    name="street"
+                    value={editForm.street}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                    <input
+                      type="text"
+                      name="zipCode"
+                      value={editForm.zipCode}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">City</label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={editForm.city}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="border border-slate-700 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-sm text-gray-200 font-medium">Special Note</label>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="noteImportance"
+                        checked={editForm.noteImportance === "important"}
+                        onChange={(e) => {
+                          setEditForm({
+                            ...editForm,
+                            noteImportance: e.target.checked ? "important" : "unimportant",
+                          })
+                        }}
+                        className="mr-2 h-4 w-4 accent-[#FF843E]"
+                      />
+                      <label htmlFor="noteImportance" className="text-sm text-gray-200">
+                        Important
+                      </label>
+                    </div>
+                  </div>
+
+                  <textarea
+                    name="note"
+                    value={editForm.note}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                    placeholder="Enter special note..."
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Start Date</label>
+                      <input
+                        type="date"
+                        name="noteStartDate"
+                        value={editForm.noteStartDate}
+                        onChange={handleInputChange}
+                        className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">End Date</label>
+                      <input
+                        type="date"
+                        name="noteEndDate"
+                        value={editForm.noteEndDate}
+                        onChange={handleInputChange}
+                        className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">About</label>
+                  <textarea
+                    name="about"
+                    value={editForm.about}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Contract Start</label>
+                    <input
+                      type="date"
+                      name="contractStart"
+                      value={editForm.contractStart}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Contract End</label>
+                    <input
+                      type="date"
+                      name="contractEnd"
+                      value={editForm.contractEnd}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full bg-[#FF843E] text-white rounded-xl py-2 text-sm cursor-pointer">
+                  Save Changes
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Original View Details Modal */}
       {isViewDetailsModalOpen && selectedStudio && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl my-8 relative">
@@ -919,7 +1828,7 @@ export default function Studios() {
                   </div>
                 )}
 
-                <div className="flex justify-end gap-4 mt-6">
+                {/* <div className="flex justify-end gap-4 mt-6">
                   <button
                     onClick={redirectToContract}
                     className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
@@ -936,12 +1845,14 @@ export default function Studios() {
                   >
                     Edit Studio
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Original Classes Modal */}
       {isClassesModalOpen && selectedStudioForClasses && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
