@@ -1,9 +1,11 @@
+
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react"
-import { X, Plus, Calendar, Tag, ChevronDown, Filter } from "lucide-react"
-import AddTaskModal from "../../components/add-task-modal"
-import TaskItem from "../../components/task-item"
+import { X, Plus, Calendar, Tag, ChevronDown, Filter, Tags } from "lucide-react"
+import AddTaskModal from "../../components/customer-dashboard/add-task-model"
+import TaskItem from "../../components/customer-dashboard/task-item"
 import Notification from "../../components/notification"
+import { ColorPicker } from "antd"
 
 export default function TodoApp() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -12,6 +14,16 @@ export default function TodoApp() {
   const [activeFilter, setActiveFilter] = useState("ongoing")
   const [sortOption, setSortOption] = useState("dueDate-asc")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
+  const [newTagName, setNewTagName] = useState("")
+  const [newTagColor, setNewTagColor] = useState('#FF5252');
+  const [allTags, setAllTags] = useState([
+    { id: 1, name: "Important", color: "#FF5252" },
+    { id: 2, name: "Urgent", color: "#FFD740" },
+    { id: 3, name: "Meeting", color: "#64FFDA" },
+    { id: 4, name: "Client", color: "#448AFF" },
+    { id: 5, name: "Onboarding", color: "#B388FF" },
+  ]);
   const [tasks, setTasks] = useState([
     {
       id: 1,
@@ -88,19 +100,22 @@ export default function TodoApp() {
     },
   ])
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".status-dropdown")) {
-        setIsStatusDropdownOpen(false)
-      }
-      if (!event.target.closest(".sort-dropdown")) {
-        setIsSortDropdownOpen(false)
-      }
-    }
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (!event.target.closest(".status-dropdown")) {
+  //       setIsStatusDropdownOpen(false)
+  //     }
+  //     if (!event.target.closest(".sort-dropdown")) {
+  //       setIsSortDropdownOpen(false)
+  //     }
+  //     if (!event.target.closest(".tag-manager")) {
+  //       setIsTagManagerOpen(false)
+  //     }
+  //   }
 
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  //   document.addEventListener("mousedown", handleClickOutside)
+  //   return () => document.removeEventListener("mousedown", handleClickOutside)
+  // }, [])
 
   const removeNotification = (id) => {
     setNotifications(notifications.filter((n) => n.id !== id))
@@ -122,18 +137,36 @@ export default function TodoApp() {
     setTasks([...tasks, newTask])
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "ongoing":
-        return " text-white"
-      case "completed":
-        return " text-white"
-      case "canceled":
-        return " text-white"
-      default:
-        return ""
+
+  // Tag management functions
+  const addTag = () => {
+    if (newTagName.trim()) {
+      const newTag = {
+        id: Date.now(),
+        name: newTagName.trim(),
+        color: newTagColor
+      };
+      setAllTags([...allTags, newTag]);
+      setNewTagName("");
+      setNewTagColor("#FF5252"); // Reset to default color
     }
-  }
+  };
+
+  const deleteTag = (tagId) => {
+    setAllTags(allTags.filter(tag => tag.id !== tagId));
+    // Remove this tag from all tasks
+    setTasks(tasks.map(task => ({
+      ...task,
+      tags: task.tags.filter(tag => {
+        // Handle both string tags (for old format) and object tags
+        if (typeof tag === 'string') {
+          const tagToDelete = allTags.find(t => t.id === tagId);
+          return tag !== tagToDelete?.name;
+        }
+        return tag.id !== tagId;
+      })
+    })));
+  };
 
   // Filter tasks by status
   const filteredTasks = tasks.filter((task) => task.status === activeFilter)
@@ -161,16 +194,25 @@ export default function TodoApp() {
         <div className="pb-16 sm:pb-24 lg:pb-36">
           {/* Header with title, filter tabs, and add button */}
           <div className="flex flex-col gap-4 mb-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between flex-col md:items-center items-start  gap-2">
               <h1 className="text-2xl font-bold text-white">To-Do</h1>
 
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-[#FF843E] cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
-              >
-                <Plus size={18} />
-                <span className="open_sans_font">Add task</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsTagManagerOpen(true)}
+                  className="bg-[#2F2F2F] cursor-pointer text-white px-4 py-2.5 rounded-xl text-sm flex items-center gap-2"
+                >
+                  <Tags size={18} />
+                  <span className="open_sans_font">Manage Tags</span>
+                </button>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-[#FF843E] cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
+                >
+                  <Plus size={18} />
+                  <span className="open_sans_font">Add task</span>
+                </button>
+              </div>
             </div>
 
             {/* Filter and Sort Controls */}
@@ -178,31 +220,28 @@ export default function TodoApp() {
               {/* Status Tabs */}
               <div className="flex gap-1 items-center">
                 <button
-                  className={`md:px-4 px-2.5 py-2 text-sm ${
-                    activeFilter === "ongoing"
-                      ? "bg-white text-black"
-                      : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                  } rounded-xl`}
+                  className={`md:px-4 px-2.5 py-2 text-sm ${activeFilter === "ongoing"
+                    ? "bg-white text-black"
+                    : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+                    } rounded-xl`}
                   onClick={() => setActiveFilter("ongoing")}
                 >
                   Ongoing
                 </button>
                 <button
-                  className={`md:px-4 px-2.5 py-2 text-sm ${
-                    activeFilter === "completed"
-                      ? "bg-white text-black"
-                      : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                  } rounded-xl`}
+                  className={`md:px-4 px-2.5 py-2 text-sm ${activeFilter === "completed"
+                    ? "bg-white text-black"
+                    : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+                    } rounded-xl`}
                   onClick={() => setActiveFilter("completed")}
                 >
                   Completed
                 </button>
                 <button
-                  className={`md:px-4 px-2.5 py-2 text-sm ${
-                    activeFilter === "canceled"
-                      ? "bg-white text-black"
-                      : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                  } rounded-xl`}
+                  className={`md:px-4 px-2.5 py-2 text-sm ${activeFilter === "canceled"
+                    ? "bg-white text-black"
+                    : "text-gray-200 border border-slate-300 hover:bg-gray-800"
+                    } rounded-xl`}
                   onClick={() => setActiveFilter("canceled")}
                 >
                   Canceled
@@ -234,9 +273,8 @@ export default function TodoApp() {
                           setSortOption("dueDate-asc")
                           setIsSortDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
-                        }`}
+                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                       >
                         <Calendar size={14} />
                         <span>Earliest First</span>
@@ -246,9 +284,8 @@ export default function TodoApp() {
                           setSortOption("dueDate-desc")
                           setIsSortDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
-                        }`}
+                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                       >
                         <Calendar size={14} />
                         <span>Latest First</span>
@@ -260,9 +297,8 @@ export default function TodoApp() {
                           setSortOption("tag-asc")
                           setIsSortDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
-                        }`}
+                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                       >
                         <Tag size={14} />
                         <span>A to Z</span>
@@ -272,9 +308,8 @@ export default function TodoApp() {
                           setSortOption("tag-desc")
                           setIsSortDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
-                        }`}
+                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                       >
                         <Tag size={14} />
                         <span>Z to A</span>
@@ -307,9 +342,8 @@ export default function TodoApp() {
       </div>
 
       <div
-        className={`fixed lg:static inset-y-0 right-0 w-[320px] bg-[#181818] p-6 transform transition-transform duration-500 ease-in-out ${
-          isNotificationOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-        } z-40`}
+        className={`fixed lg:static inset-y-0 right-0 w-[320px] bg-[#181818] p-6 transform transition-transform duration-500 ease-in-out ${isNotificationOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+          } z-40`}
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl oxanium_font text-white">Notification</h2>
@@ -324,7 +358,99 @@ export default function TodoApp() {
         </div>
       </div>
 
-      {isModalOpen && <AddTaskModal onClose={() => setIsModalOpen(false)} onAddTask={handleAddTask} />}
+      {/* Tag Manager Modal */}
+      {isTagManagerOpen && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="tag-manager bg-[#181818] rounded-xl p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Manage Tags</h2>
+              <button onClick={() => setIsTagManagerOpen(false)} className="text-gray-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="flex flex-col gap-3 mb-4">
+                <input
+                  type="text"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  placeholder="Enter tag name"
+                  className="w-full bg-[#1C1C1C] text-sm text-white px-4 py-2 rounded-lg"
+                />
+                <div className="flex text-sm items-center gap-3">
+                  <span>Color:</span>
+                  <ColorPicker
+                    value={newTagColor}
+                    onChange={(color) => setNewTagColor(color.toHexString())}
+                    showText
+                    className="custom-color-picker"
+                    presets={[
+                      {
+                        label: 'Recommended',
+                        colors: [
+                          '#FF5252',
+                          '#FFD740',
+                          '#64FFDA',
+                          '#448AFF',
+                          '#B388FF',
+                          '#FF80AB',
+                          '#000000',
+                          '#FFFFFF',
+                        ],
+                      },
+                    ]}
+                  />
+                </div>
+                <button
+                  onClick={addTag}
+                  className="bg-[#FF843E] text-white text-sm px-4 py-2 rounded-lg mt-2"
+                  disabled={!newTagName.trim()}
+                >
+                  Add Tag
+                </button>
+              </div>
+
+              <div className="max-h-60 overflow-y-auto text-sm">
+                {allTags.length > 0 ? (
+                  <div className="space-y-2">
+                    {allTags.map((tag) => (
+                      <div key={tag.id} className="flex justify-between items-center bg-[#1C1C1C] px-4 py-2 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          <span>{tag.name}</span>
+                        </div>
+                        <button
+                          onClick={() => deleteTag(tag.id)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-center py-4 text-sm">No tags created yet</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsTagManagerOpen(false)}
+                className="bg-[#FF843E] text-white px-6 py-2 text-sm rounded-lg"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isModalOpen && <AddTaskModal onClose={() => setIsModalOpen(false)} onAddTask={handleAddTask} allTags={allTags} />}
     </div>
   )
 }

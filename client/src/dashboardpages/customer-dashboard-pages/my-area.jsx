@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -24,6 +22,7 @@ import Rectangle1 from "../../../public/Rectangle 1.png"
 import Image10 from "../../../public/image10.png"
 import { Toaster, toast } from "react-hot-toast"
 import Avatar from "../../../public/avatar.png"
+import { WidgetSelectionModal } from "../../components/customer-dashboard/widgets"
 
 const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
   const ref = useRef(null)
@@ -56,63 +55,6 @@ const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEdit
   )
 }
 
-const WidgetSelectionModal = ({ isOpen, onClose, onSelectWidget, canAddWidget }) => {
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-        <div className="p-6 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Add Widget</h2>
-            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
-              <X size={16} />
-            </button>
-          </div>
-          <div className="space-y-3">
-            <button
-              onClick={() => onSelectWidget("chart")}
-              disabled={!canAddWidget("chart")}
-              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${!canAddWidget("chart") ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-            >
-              Chart
-            </button>
-            <button
-              onClick={() => onSelectWidget("websiteLink")}
-              disabled={!canAddWidget("websiteLink")}
-              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${!canAddWidget("websiteLink") ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-            >
-              Website Links
-            </button>
-            <button
-              onClick={() => onSelectWidget("expiringContracts")}
-              disabled={!canAddWidget("expiringContracts")}
-              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${!canAddWidget("expiringContracts") ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-            >
-              Expiring Contracts
-            </button>
-            <button
-              onClick={() => onSelectWidget("todo")}
-              disabled={!canAddWidget("todo")}
-              className={`w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 ${!canAddWidget("todo") ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-            >
-              To-Do
-            </button>
-          </div>
-          <div className="flex gap-2 justify-end mt-6">
-            <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700">
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default function MyArea() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -214,6 +156,14 @@ export default function MyArea() {
       ],
       growth: "15%",
       title: "Leads Statistics",
+    },
+    Franchises: {
+      data: [
+        [120, 150, 180, 210, 240, 270, 300, 330, 360],
+        [100, 130, 160, 190, 220, 250, 280, 310, 340],
+      ],
+      growth: "10%",
+      title: "Franchises Acquired",
     },
   }
 
@@ -331,20 +281,6 @@ export default function MyArea() {
     setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
   }
 
-  const handleCheckIn = (appointmentId) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.map((appointment) =>
-        appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment,
-      ),
-    )
-    // Toast message changes based on check-in status
-    toast.success(
-      appointments.find((app) => app.id === appointmentId)?.isCheckedIn
-        ? "Member checked In successfully"
-        : "Member check in successfully",
-    )
-  }
-
   const moveSidebarSection = (id, direction) => {
     setSidebarSections((currentSections) => {
       const index = currentSections.findIndex((section) => section.id === id)
@@ -369,12 +305,6 @@ export default function MyArea() {
         ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
       return newLinks
     })
-  }
-
-  const handleDeleteAppointment = (appointmentId) => {
-    setAppointments((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
-    setSelectedAppointment(null) // Clear the selected appointment
-    toast.success("Appointment deleted successfully")
   }
 
   useEffect(() => {
@@ -476,13 +406,6 @@ export default function MyArea() {
       },
     },
   }
-
-  const appointmentTypes = [
-    { name: "Regular Training", duration: 60, color: "bg-blue-500" },
-    { name: "Consultation", duration: 30, color: "bg-green-500" },
-    { name: "Assessment", duration: 45, color: "bg-purple-500" },
-  ]
-
   const chartSeries = [
     { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
@@ -611,96 +534,6 @@ export default function MyArea() {
       }
     }
   }, [activeNoteId])
-  const renderSpecialNoteIcon = useCallback(
-    (specialNote, memberId) => {
-      // If no note text, return null
-      if (!specialNote.text) return null
-
-      // Check note validity
-      const isActive =
-        specialNote.startDate === null ||
-        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
-
-      // If note is not active, return null
-      if (!isActive) return null
-
-      const handleNoteClick = (e) => {
-        e.stopPropagation()
-        setActiveNoteId(activeNoteId === memberId ? null : memberId)
-      }
-
-      return (
-        <div className="relative">
-          <div
-            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-            onClick={handleNoteClick}
-          >
-            {specialNote.isImportant ? (
-              <AlertTriangle size={18} className="text-white" />
-            ) : (
-              <Info size={18} className="text-white" />
-            )}
-          </div>
-
-          {activeNoteId === memberId && (
-            <div
-              ref={notePopoverRef}
-              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
-            >
-              {/* Header section with icon and title */}
-              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {specialNote.isImportant === "important" ? (
-                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                ) : (
-                  <Info className="text-blue-500 shrink-0" size={18} />
-                )}
-                <h4 className="text-white flex gap-1 items-center font-medium">
-                  <div>Special Note</div>
-                  <div className="text-sm text-gray-400 ">
-                    {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
-                  </div>
-                </h4>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setActiveNoteId(null)
-                  }}
-                  className="ml-auto text-gray-400 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Note content */}
-              <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-
-                {/* Date validity section */}
-                {specialNote.startDate && specialNote.endDate ? (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
-                      {new Date(specialNote.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Always valid
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )
-    },
-    [activeNoteId, setActiveNoteId],
-  )
 
   const [expiringContracts, setExpiringContracts] = useState([
     {
@@ -925,7 +758,8 @@ export default function MyArea() {
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
                           <div className="grid grid-cols-1 gap-3">
                             {expiringContracts.map((contract) => (
-                              <div key={contract.id} className="p-4 bg-black rounded-xl">
+                              <Link to={"/customer-dashboard/contract"}  key={contract.id}>
+                              <div className="p-4 bg-black rounded-xl">
                                 <div className="flex justify-between items-start">
                                   <div>
                                     <h3 className="text-sm font-medium">{contract.title}</h3>
@@ -933,14 +767,15 @@ export default function MyArea() {
                                   </div>
                                   <span
                                     className={`px-2 py-1 text-xs rounded-full ${contract.status === "Expiring Soon"
-                                        ? "bg-yellow-500/20 text-yellow-400"
-                                        : "bg-green-500/20 text-green-400"
-                                      }`}
-                                  >
+                                      ? "bg-yellow-500/20 text-yellow-400"
+                                      : "bg-green-500/20 text-green-400"
+                                    }`}
+                                    >
                                     {contract.status}
                                   </span>
                                 </div>
                               </div>
+                                    </Link>
                             ))}
                           </div>
                         </div>
@@ -972,7 +807,7 @@ export default function MyArea() {
             </button>
 
             {sidebarSections.map((section, index) => (
-              <div key={section.id} className="mb-6 mt-8 md:mt-0 relative">
+              <div key={section.id} className="mb-6 mt-8 md:mt-5 relative">
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">{section.title}</h2>
                   {isEditing && (
@@ -1024,106 +859,6 @@ export default function MyArea() {
                 )}
               </div>
             ))}
-
-            {/* Website Links */}
-            <div className="mt-6">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
-                </div>
-                <div className="max-h-[250px] overflow-y-auto custom-scrollbar">
-                  <div className="space-y-3">
-                    {customLinks.map((link, index) => (
-                      <div key={link.id} className="p-1.5 bg-black rounded-xl relative">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h3 className="text-sm font-medium">{link.title}</h3>
-                            <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() =>
-                                window.open(link.url.startsWith("http") ? link.url : `https://${link.url}`, "_blank")
-                              }
-                              className="p-2 hover:bg-zinc-700 rounded-lg"
-                            >
-                              <ExternalLink size={16} />
-                            </button>
-                            {!isEditing && (
-                              <div className="relative">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    toggleDropdown(`sidebar-link-${link.id}`)
-                                  }}
-                                  className="p-2 hover:bg-zinc-700 rounded-lg"
-                                >
-                                  <MoreVertical size={16} />
-                                </button>
-                                {openDropdownIndex === `sidebar-link-${link.id}` && (
-                                  <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        setEditingLink(link)
-                                        setOpenDropdownIndex(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
-                                    >
-                                      Edit
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        removeCustomLink(link.id)
-                                        setOpenDropdownIndex(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                                    >
-                                      Remove
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        {isEditing && (
-                          <div className="absolute top-2 right-2 z-10 flex gap-2">
-                            <button
-                              onClick={() => moveCustomLink(link.id, "up")}
-                              className="p-1 bg-gray-800 rounded hover:bg-gray-700"
-                              disabled={index === 0}
-                            >
-                              <ArrowUp size={12} />
-                            </button>
-                            <button
-                              onClick={() => moveCustomLink(link.id, "down")}
-                              className="p-1 bg-gray-800 rounded hover:bg-gray-700"
-                              disabled={index === customLinks.length - 1}
-                            >
-                              <ArrowDown size={16} />
-                            </button>
-                            <button
-                              onClick={() => removeCustomLink(link.id)}
-                              className="p-1 bg-gray-800 rounded hover:bg-gray-700 "
-                            >
-                              <X size={12} />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  onClick={addCustomLink}
-                  className="w-full p-2 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
-                >
-                  Add website link...
-                </button>
-              </div>
-            </div>
           </div>
         </aside>
         {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
