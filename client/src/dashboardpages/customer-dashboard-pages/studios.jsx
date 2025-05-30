@@ -1,6 +1,5 @@
 "use client"
 
-/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -15,19 +14,37 @@ import {
   Building,
   Users,
   Edit,
-  Download,
-  TrendingUp,
-  Clock,
-  XCircle,
-  CheckCircle,
-  Pause,
   UserCheck,
-  Upload,
   Building2,
   Network,
+  EyeOff,
 } from "lucide-react"
+
 import DefaultStudioImage from "../../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
+import { RiContractFill } from "react-icons/ri"
+import { TbReportAnalytics } from "react-icons/tb"
+import { FaUserGroup } from "react-icons/fa6"
+import FranchiseModal from "../../components/customer-dashboard/studios-modal/franchise-modal"
+import AssignStudioModal from "../../components/customer-dashboard/studios-modal/assign-studios-modal"
+import StudioManagementModal from "../../components/customer-dashboard/studios-modal/studio-management-modal"
+
+import EditMemberModal from "../../components/customer-dashboard/studios-modal/edit-member-modal"
+import EditStaffModal from "../../components/customer-dashboard/studios-modal/edit-staff-modal"
+import StudioDetailsModal from "../../components/customer-dashboard/studios-modal/studios-detail-modal"
+import StudioFinancesModal from "../../components/customer-dashboard/studios-modal/finances-modal"
+import {
+  FranchiseData,
+  studioContractsData,
+  studioFinanceData,
+  studioLeadData,
+  studioMembersData,
+  studioStaffData,
+  studioStatsData,
+} from "../../states/states"
+import EditStudioModal from "../../components/customer-dashboard/studios-modal/edit-studio-modal"
+import ContractsModal from "../../components/customer-dashboard/studios-modal/contract-modal"
+import { EditLeadModal } from "../../components/edit-lead-modal"
 
 export default function Studios() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -35,6 +52,8 @@ export default function Studios() {
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
   const [selectedStudio, setSelectedStudio] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [franchiseSearchQuery, setFranchiseSearchQuery] = useState("")
+  const [unassignedStudioSearchQuery, setUnassignedStudioSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
   const [sortBy, setSortBy] = useState("alphabetical")
@@ -46,8 +65,10 @@ export default function Studios() {
   const [isCreateFranchiseModalOpen, setIsCreateFranchiseModalOpen] = useState(false)
   const [isEditFranchiseModalOpen, setIsEditFranchiseModalOpen] = useState(false)
   const [isAssignStudioModalOpen, setIsAssignStudioModalOpen] = useState(false)
+  const [isStudioManagementModalOpen, setIsStudioManagementModalOpen] = useState(false)
   const [selectedFranchise, setSelectedFranchise] = useState(null)
   const [selectedFranchiseForAssignment, setSelectedFranchiseForAssignment] = useState(null)
+  const [selectedFranchiseForManagement, setSelectedFranchiseForManagement] = useState(null)
 
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isStaffsModalOpen, setIsStaffsModalOpen] = useState(false)
@@ -55,6 +76,12 @@ export default function Studios() {
   const [isContractsModalOpen, setIsContractsModalOpen] = useState(false)
   const [isFinancesModalOpen, setIsFinancesModalOpen] = useState(false)
   const [selectedStudioForModal, setSelectedStudioForModal] = useState(null)
+
+  const [isEditStaffModalOpen, setisEditStaffModalOpen] = useState(false)
+  const [selectedStaffForEdit, setselectedStaffForEdit] = useState(null)
+
+  const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false)
+  const [selectedLeadForEdit, setSelectedLeadForEdit] = useState(null)
 
   const [isEditMemberModalOpen, setIsEditMemberModalOpen] = useState(false)
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState(null)
@@ -68,6 +95,7 @@ export default function Studios() {
   })
 
   const [financesPeriod, setFinancesPeriod] = useState("month")
+  const [showPassword, setShowPassword] = useState({})
 
   const [editForm, setEditForm] = useState({
     name: "",
@@ -85,10 +113,8 @@ export default function Studios() {
     contractStart: "",
     contractEnd: "",
     ownerName: "",
-    taxId: "",
   })
 
-  // Franchise form state
   const [franchiseForm, setFranchiseForm] = useState({
     name: "",
     email: "",
@@ -99,269 +125,51 @@ export default function Studios() {
     website: "",
     about: "",
     ownerName: "",
-    taxId: "",
     loginEmail: "",
     loginPassword: "",
     confirmPassword: "",
+    logo: null,
   })
 
   // Franchise data state
-  const [franchises, setFranchises] = useState([
-    {
-      id: 1,
-      name: "FitChain Franchise Group",
-      email: "info@fitchain.com",
-      phone: "+49123456789",
-      street: "Franchise Straße 1",
-      zipCode: "10115",
-      city: "Berlin",
-      website: "www.fitchain.com",
-      about: "Leading fitness franchise with multiple studio locations across Germany.",
-      ownerName: "Klaus Weber",
-      taxId: "DE111222333",
-      loginEmail: "admin@fitchain.com",
-      loginPassword: "franchise123",
-      createdDate: "2023-01-15",
-      studioCount: 2,
-    },
-  ])
+  const [franchises, setFranchises] = useState(FranchiseData)
 
-  const [studioClasses, setStudioClasses] = useState({
-    1: [
-      { id: 1, title: "Strength Training", schedule: "Mon, Wed, Fri", time: "10:00 - 11:00" },
-      { id: 2, title: "Cardio Session", schedule: "Tue, Thu", time: "14:00 - 15:00" },
-    ],
-    2: [{ id: 3, title: "Yoga Class", schedule: "Mon, Wed, Fri", time: "09:00 - 10:30" }],
-  })
+  const [studioStats, setStudioStats] = useState(studioStatsData)
 
-  const [studioStats, setStudioStats] = useState({
-    1: { members: 120, trainers: 8, classes: 15 },
-    2: { members: 85, trainers: 5, classes: 10 },
-  })
+  const [studioMembers, setStudioMembers] = useState(studioMembersData)
 
-  const [studioMembers, setStudioMembers] = useState({
-    1: [
-      {
-        id: 1,
-        name: "John Doe",
-        email: "john@example.com",
-        phone: "+49123456789",
-        membershipType: "Premium",
-        joinDate: "2023-01-15",
-        status: "active",
-      },
-      {
-        id: 2,
-        name: "Jane Smith",
-        email: "jane@example.com",
-        phone: "+49987654321",
-        membershipType: "Basic",
-        joinDate: "2023-02-20",
-        status: "active",
-      },
-      {
-        id: 3,
-        name: "Mike Johnson",
-        email: "mike@example.com",
-        phone: "+49555666777",
-        membershipType: "Premium",
-        joinDate: "2023-03-10",
-        status: "inactive",
-      },
-    ],
-    2: [
-      {
-        id: 4,
-        name: "Sarah Wilson",
-        email: "sarah@example.com",
-        phone: "+49111222333",
-        membershipType: "Basic",
-        joinDate: "2023-01-05",
-        status: "active",
-      },
-      {
-        id: 5,
-        name: "Tom Brown",
-        email: "tom@example.com",
-        phone: "+49444555666",
-        membershipType: "Premium",
-        joinDate: "2023-02-15",
-        status: "active",
-      },
-    ],
-  })
+  const [studioStaffs, setStudioStaffs] = useState(studioStaffData)
 
-  const [studioStaffs, setStudioStaffs] = useState({
-    1: [
-      {
-        id: 1,
-        name: "Alex Trainer",
-        email: "alex@fitnessforlife.de",
-        phone: "+49123456789",
-        role: "Head Trainer",
-        joinDate: "2022-01-15",
-        status: "active",
-      },
-      {
-        id: 2,
-        name: "Lisa Coach",
-        email: "lisa@fitnessforlife.de",
-        phone: "+49987654321",
-        role: "Fitness Coach",
-        joinDate: "2022-03-20",
-        status: "active",
-      },
-      {
-        id: 3,
-        name: "Mark Instructor",
-        email: "mark@fitnessforlife.de",
-        phone: "+49555666777",
-        role: "Yoga Instructor",
-        joinDate: "2022-06-10",
-        status: "active",
-      },
-    ],
-    2: [
-      {
-        id: 4,
-        name: "Emma Personal",
-        email: "emma@powergym.com",
-        phone: "+49111222333",
-        role: "Personal Trainer",
-        joinDate: "2021-12-05",
-        status: "active",
-      },
-      {
-        id: 5,
-        name: "David Manager",
-        email: "david@powergym.com",
-        phone: "+49444555666",
-        role: "Studio Manager",
-        joinDate: "2021-11-15",
-        status: "active",
-      },
-    ],
-  })
+  const [studioLeads, setStudioLeads] = useState(studioLeadData)
 
-  const [studioLeads, setStudioLeads] = useState({
-    1: [
-      {
-        id: 1,
-        name: "Peter Potential",
-        email: "peter@example.com",
-        phone: "+49123456789",
-        source: "Website",
-        status: "new",
-        contactDate: "2024-01-15",
-      },
-      {
-        id: 2,
-        name: "Anna Interested",
-        email: "anna@example.com",
-        phone: "+49987654321",
-        source: "Referral",
-        status: "contacted",
-        contactDate: "2024-01-10",
-      },
-      {
-        id: 3,
-        name: "Chris Prospect",
-        email: "chris@example.com",
-        phone: "+49555666777",
-        source: "Social Media",
-        status: "converted",
-        contactDate: "2024-01-05",
-      },
-    ],
-    2: [
-      {
-        id: 4,
-        name: "Sophie Lead",
-        email: "sophie@example.com",
-        phone: "+49111222333",
-        source: "Google Ads",
-        status: "new",
-        contactDate: "2024-01-12",
-      },
-      {
-        id: 5,
-        name: "Robert Inquiry",
-        email: "robert@example.com",
-        phone: "+49444555666",
-        source: "Walk-in",
-        status: "contacted",
-        contactDate: "2024-01-08",
-      },
-    ],
-  })
+  const [studioContracts, setStudioContracts] = useState(studioContractsData)
 
-  const [studioContracts, setStudioContracts] = useState({
-    1: [
-      {
-        id: 1,
-        memberName: "John Doe",
-        duration: "12 months",
-        startDate: "2023-01-15",
-        endDate: "2024-01-15",
-        status: "active",
-        files: ["contract_john.pdf", "terms_john.pdf"],
-      },
-      {
-        id: 2,
-        memberName: "Jane Smith",
-        duration: "6 months",
-        startDate: "2023-02-20",
-        endDate: "2023-08-20",
-        status: "paused",
-        files: ["contract_jane.pdf"],
-      },
-      {
-        id: 3,
-        memberName: "Mike Johnson",
-        duration: "12 months",
-        startDate: "2023-03-10",
-        endDate: "2024-03-10",
-        status: "inactive",
-        files: ["contract_mike.pdf", "cancellation_mike.pdf"],
-      },
-    ],
-    2: [
-      {
-        id: 4,
-        memberName: "Sarah Wilson",
-        duration: "24 months",
-        startDate: "2023-01-05",
-        endDate: "2025-01-05",
-        status: "active",
-        files: ["contract_sarah.pdf"],
-      },
-      {
-        id: 5,
-        memberName: "Tom Brown",
-        duration: "12 months",
-        startDate: "2023-02-15",
-        endDate: "2024-02-15",
-        status: "active",
-        files: ["contract_tom.pdf", "addendum_tom.pdf"],
-      },
-    ],
-  })
+  const [studioFinances, setStudioFinances] = useState(studioFinanceData)
 
-  const [studioFinances, setStudioFinances] = useState({
-    1: {
-      month: { totalRevenue: 45000, successfulPayments: 42000, pendingPayments: 2500, failedPayments: 500 },
-      quarter: { totalRevenue: 135000, successfulPayments: 128000, pendingPayments: 5500, failedPayments: 1500 },
-      year: { totalRevenue: 540000, successfulPayments: 515000, pendingPayments: 18000, failedPayments: 7000 },
-    },
-    2: {
-      month: { totalRevenue: 32000, successfulPayments: 30000, pendingPayments: 1500, failedPayments: 500 },
-      quarter: { totalRevenue: 96000, successfulPayments: 91000, pendingPayments: 3500, failedPayments: 1500 },
-      year: { totalRevenue: 384000, successfulPayments: 365000, pendingPayments: 12000, failedPayments: 7000 },
-    },
-  })
+  const handleCloseModal = () => {
+    setIsEditFranchiseModalOpen(false)
+    setIsCreateFranchiseModalOpen(false)
+  }
 
-  const [isClassesModalOpen, setIsClassesModalOpen] = useState(false)
-  const [selectedStudioForClasses, setSelectedStudioForClasses] = useState(null)
+  const handleAssignStudioCloseModal = () => {
+    setIsAssignStudioModalOpen(false)
+  }
+
+  const handleStudioManagementCloseModal = () => {
+    setIsStudioManagementModalOpen(false)
+    setSelectedFranchiseForManagement(null)
+  }
+
+  const handlePeriodChange = (newPeriod) => {
+    setFinancesPeriod(newPeriod)
+  }
+
+  const togglePasswordVisibility = (franchiseId) => {
+    setShowPassword((prev) => ({
+      ...prev,
+      [franchiseId]: !prev[franchiseId],
+    }))
+  }
 
   useEffect(() => {
     if (selectedStudio) {
@@ -381,7 +189,6 @@ export default function Studios() {
         contractStart: selectedStudio.contractStart,
         contractEnd: selectedStudio.contractEnd,
         ownerName: selectedStudio.ownerName,
-        taxId: selectedStudio.taxId,
       })
     }
   }, [selectedStudio])
@@ -398,10 +205,10 @@ export default function Studios() {
         website: selectedFranchise.website,
         about: selectedFranchise.about,
         ownerName: selectedFranchise.ownerName,
-        taxId: selectedFranchise.taxId,
         loginEmail: selectedFranchise.loginEmail,
         loginPassword: selectedFranchise.loginPassword,
         confirmPassword: selectedFranchise.loginPassword,
+        logo: selectedFranchise.logo || null,
       })
     }
   }, [selectedFranchise])
@@ -435,12 +242,18 @@ export default function Studios() {
     }))
   }
 
-  const handleMemberInputChange = (e) => {
-    const { name, value } = e.target
-    setMemberEditForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setFranchiseForm((prev) => ({
+          ...prev,
+          logo: e.target.result,
+        }))
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   const handleEditSubmit = (e) => {
@@ -508,39 +321,35 @@ export default function Studios() {
       website: "",
       about: "",
       ownerName: "",
-      taxId: "",
       loginEmail: "",
       loginPassword: "",
       confirmPassword: "",
+      logo: null,
     })
   }
 
-  const handleMemberEditSubmit = (e) => {
+  const handleMemberEditSubmit = (e, formData) => {
     e.preventDefault()
 
     if (isMembersModalOpen) {
       setStudioMembers((prev) => ({
         ...prev,
         [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((member) =>
-          member.id === selectedMemberForEdit.id ? { ...member, ...memberEditForm } : member,
+          member.id === selectedMemberForEdit.id ? { ...member, ...formData } : member,
         ),
       }))
     } else if (isStaffsModalOpen) {
       setStudioStaffs((prev) => ({
         ...prev,
         [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((staff) =>
-          staff.id === selectedMemberForEdit.id
-            ? { ...staff, ...memberEditForm, role: memberEditForm.membershipType }
-            : staff,
+          staff.id === selectedMemberForEdit.id ? { ...staff, ...formData, role: formData.membershipType } : staff,
         ),
       }))
     } else if (isLeadsModalOpen) {
       setStudioLeads((prev) => ({
         ...prev,
         [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((lead) =>
-          lead.id === selectedMemberForEdit.id
-            ? { ...lead, ...memberEditForm, source: memberEditForm.membershipType }
-            : lead,
+          lead.id === selectedMemberForEdit.id ? { ...lead, ...formData, source: formData.membershipType } : lead,
         ),
       }))
     }
@@ -548,6 +357,18 @@ export default function Studios() {
     setIsEditMemberModalOpen(false)
     setSelectedMemberForEdit(null)
     toast.success("Details updated successfully")
+  }
+
+  const handleLeadEditSubmit = (updatedLead) => {
+    setStudioLeads((prev) => ({
+      ...prev,
+      [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((lead) =>
+        lead.id === selectedLeadForEdit.id ? updatedLead : lead,
+      ),
+    }))
+    setIsEditLeadModalOpen(false)
+    setSelectedLeadForEdit(null)
+    toast.success("Lead updated successfully")
   }
 
   const notePopoverRef = useRef(null)
@@ -588,7 +409,6 @@ export default function Studios() {
       contractStart: "2022-03-01",
       contractEnd: "2023-03-01",
       ownerName: "Hans Mueller",
-      taxId: "DE123456789",
       franchiseId: 1, // Assigned to franchise
     },
     {
@@ -611,8 +431,51 @@ export default function Studios() {
       contractStart: "2021-11-15",
       contractEnd: "2024-04-15",
       ownerName: "Maria Schmidt",
-      taxId: "DE987654321",
       franchiseId: 1, // Assigned to franchise
+    },
+    {
+      id: 3,
+      name: "FlexFit Studio",
+      email: "info@flexfit.com",
+      phone: "+49555123456",
+      street: "Sportstraße 10",
+      zipCode: "80331",
+      city: "Munich",
+      image: null,
+      isActive: true,
+      note: "",
+      noteStartDate: "",
+      noteEndDate: "",
+      noteImportance: "unimportant",
+      website: "www.flexfit.com",
+      about: "Modern fitness studio focusing on flexibility and wellness.",
+      joinDate: "2023-01-15",
+      contractStart: "2023-01-15",
+      contractEnd: "2024-01-15",
+      ownerName: "Anna Weber",
+      franchiseId: null, // Unassigned
+    },
+    {
+      id: 4,
+      name: "StrengthZone",
+      email: "contact@strengthzone.de",
+      phone: "+49666789012",
+      street: "Kraftstraße 25",
+      zipCode: "50667",
+      city: "Cologne",
+      image: null,
+      isActive: true,
+      note: "",
+      noteStartDate: "",
+      noteEndDate: "",
+      noteImportance: "unimportant",
+      website: "www.strengthzone.de",
+      about: "Specialized in strength training and powerlifting.",
+      joinDate: "2023-02-01",
+      contractStart: "2023-02-01",
+      contractEnd: "2024-02-01",
+      ownerName: "Michael Klein",
+      franchiseId: null, // Unassigned
     },
   ])
 
@@ -668,7 +531,9 @@ export default function Studios() {
   }
 
   const filteredAndSortedFranchises = () => {
-    const filtered = franchises.filter((franchise) => franchise.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filtered = franchises.filter((franchise) =>
+      franchise.name.toLowerCase().includes(franchiseSearchQuery.toLowerCase()),
+    )
 
     if (sortBy === "alphabetical") {
       filtered.sort((a, b) => a.name.localeCompare(b.name))
@@ -683,6 +548,12 @@ export default function Studios() {
 
   const getUnassignedStudios = () => {
     return studios.filter((studio) => !studio.franchiseId)
+  }
+
+  const getFilteredUnassignedStudios = () => {
+    return getUnassignedStudios().filter((studio) =>
+      studio.name.toLowerCase().includes(unassignedStudioSearchQuery.toLowerCase()),
+    )
   }
 
   const [notifications, setNotifications] = useState([
@@ -773,34 +644,9 @@ export default function Studios() {
     toast.success("Studio unassigned from franchise")
   }
 
-  const redirectToContract = () => {
-    window.location.href = "/dashboard/contract"
-  }
-
-  const handleLogoChange = (e) => {
-    e.preventDefault()
-    toast.success("Logo update functionality would be implemented here")
-  }
-
-  const handleViewClasses = (studio) => {
-    setSelectedStudioForClasses(studio)
-    setIsClassesModalOpen(true)
-  }
-
-  const addNewClass = (studioId) => {
-    const newClass = {
-      id: Math.max(...studioClasses[studioId].map((c) => c.id), 0) + 1,
-      title: "New Class",
-      schedule: "TBD",
-      time: "TBD",
-    }
-
-    setStudioClasses((prev) => ({
-      ...prev,
-      [studioId]: [...prev[studioId], newClass],
-    }))
-
-    toast.success("New class added successfully")
+  const handleOpenStudioManagement = (franchise) => {
+    setSelectedFranchiseForManagement(franchise)
+    setIsStudioManagementModalOpen(true)
   }
 
   const handleOpenMembersModal = (studio) => {
@@ -829,8 +675,13 @@ export default function Studios() {
   }
 
   const handleEditMember = (member) => {
-    setSelectedMemberForEdit(member)
-    setIsEditMemberModalOpen(true)
+    if (isLeadsModalOpen) {
+      setSelectedLeadForEdit(member)
+      setIsEditLeadModalOpen(true)
+    } else {
+      setSelectedMemberForEdit(member)
+      setIsEditMemberModalOpen(true)
+    }
   }
 
   const handleDownloadFile = (fileName) => {
@@ -849,29 +700,6 @@ export default function Studios() {
       }))
 
       toast.success(`${newFiles.length} file(s) uploaded successfully`)
-    }
-  }
-
-  const toggleContractStatus = (contractId, newStatus) => {
-    setStudioContracts((prev) => ({
-      ...prev,
-      [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((contract) =>
-        contract.id === contractId ? { ...contract, status: newStatus } : contract,
-      ),
-    }))
-    toast.success(`Contract status updated to ${newStatus}`)
-  }
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "active":
-        return <CheckCircle size={16} className="text-green-500" />
-      case "inactive":
-        return <XCircle size={16} className="text-red-500" />
-      case "paused":
-        return <Pause size={16} className="text-yellow-500" />
-      default:
-        return <Clock size={16} className="text-gray-500" />
     }
   }
 
@@ -1010,8 +838,14 @@ export default function Studios() {
                 <input
                   type="text"
                   placeholder={`Search ${viewMode === "studios" ? "studios" : "franchises"}...`}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={viewMode === "studios" ? searchQuery : franchiseSearchQuery}
+                  onChange={(e) => {
+                    if (viewMode === "studios") {
+                      setSearchQuery(e.target.value)
+                    } else {
+                      setFranchiseSearchQuery(e.target.value)
+                    }
+                  }}
                   className="w-full bg-[#101010] pl-10 pr-4 py-3 text-sm outline-none rounded-xl text-white placeholder-gray-500 border border-transparent"
                 />
               </div>
@@ -1117,7 +951,6 @@ export default function Studios() {
                                   >
                                     {studio.isActive ? "Active" : "Inactive"}
                                   </span>
-                                
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 mt-1">
@@ -1138,16 +971,6 @@ export default function Studios() {
                             </div>
                           </div>
                           <div className="flex gap-2 items-center md:justify-end justify-center">
-                            {studio.franchiseId && (
-                              <button
-                                onClick={() => handleUnassignStudio(studio.id)}
-                                className="text-gray-200 cursor-pointer bg-red-600 hover:bg-red-700 rounded-xl py-2 px-4 transition-colors text-sm flex items-center justify-center gap-2"
-                              >
-                                <X size={16} />
-                                <span className="hidden sm:inline">Unassign</span>
-                              </button>
-                            )}
-
                             <button
                               onClick={() => handleViewDetails(studio)}
                               className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
@@ -1189,6 +1012,7 @@ export default function Studios() {
                             onClick={() => handleOpenContractsModal(studio)}
                             className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 bg-transparent  border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
                           >
+                            <RiContractFill size={16} />
                             <span className="">Contracts</span>
                           </button>
 
@@ -1196,6 +1020,7 @@ export default function Studios() {
                             onClick={() => handleOpenFinancesModal(studio)}
                             className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
                           >
+                            <TbReportAnalytics size={16} />
                             <span className="">Finances</span>
                           </button>
 
@@ -1203,6 +1028,7 @@ export default function Studios() {
                             onClick={() => handleOpenLeadsModal(studio)}
                             className="flex md:w-auto w-full justify-center items-center cursor-pointer  gap-2 border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
                           >
+                            <FaUserGroup size={16} />
                             <span className="">Leads</span>
                           </button>
                         </div>
@@ -1229,8 +1055,16 @@ export default function Studios() {
                     <div className="flex flex-col gap-4">
                       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
-                          <div className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                            <Building2 size={24} className="text-white" />
+                          <div className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                            {franchise.logo ? (
+                              <img
+                                src={franchise.logo || "/placeholder.svg"}
+                                alt={franchise.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <Building2 size={24} className="text-white" />
+                            )}
                           </div>
                           <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
                             <div className="flex flex-col sm:flex-row items-center gap-2">
@@ -1246,7 +1080,7 @@ export default function Studios() {
                               </p>
                             </div>
                             <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left">
-                              Owner: {franchise.ownerName} 
+                              Owner: {franchise.ownerName}
                             </p>
                           </div>
                         </div>
@@ -1262,42 +1096,30 @@ export default function Studios() {
                       </div>
 
                       <div className="flex gap-3 items-center md:flex-row flex-col mt-3">
-                        <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
+                        <button
+                          onClick={() => handleOpenStudioManagement(franchise)}
+                          className="flex items-center md:w-auto w-full justify-center cursor-pointer gap-2 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm transition-colors"
+                        >
                           <Building size={16} />
-                          <span>{franchise.studioCount}</span>
+                          <span>{getStudiosByFranchise(franchise.id).length}</span>
                           <span>Studios</span>
-                        </div>
+                        </button>
                         <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
                           <span>Login: {franchise.loginEmail}</span>
                         </div>
-                      </div>
-
-                      {/* Show assigned studios */}
-                      {getStudiosByFranchise(franchise.id).length > 0 && (
-                        <div className="mt-4 border-t border-gray-700 pt-4">
-                          <h4 className="text-sm text-gray-400 mb-2">Assigned Studios:</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {getStudiosByFranchise(franchise.id).map((studio) => (
-                              <div
-                                key={studio.id}
-                                className="bg-[#0F0F0F] rounded-lg p-3 flex items-center justify-between"
-                              >
-                                <div>
-                                  <p className="text-white text-sm font-medium">{studio.name}</p>
-                                  <p className="text-gray-400 text-xs">{studio.city}</p>
-                                </div>
-                                <span
-                                  className={`px-2 py-0.5 text-xs rounded-full ${
-                                    studio.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                                  }`}
-                                >
-                                  {studio.isActive ? "Active" : "Inactive"}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                        <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
+                          <span>Password: </span>
+                          <span className="font-mono">
+                            {showPassword[franchise.id] ? franchise.loginPassword : "••••••••"}
+                          </span>
+                          <button
+                            onClick={() => togglePasswordVisibility(franchise.id)}
+                            className="ml-1 text-gray-400 hover:text-white"
+                          >
+                            {showPassword[franchise.id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                          </button>
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1347,281 +1169,42 @@ export default function Studios() {
       </div>
 
       {/* Create/Edit Franchise Modal */}
-      {(isCreateFranchiseModalOpen || isEditFranchiseModalOpen) && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                  {isCreateFranchiseModalOpen ? "Create Franchise" : "Edit Franchise"}
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsCreateFranchiseModalOpen(false)
-                    setIsEditFranchiseModalOpen(false)
-                    setSelectedFranchise(null)
-                    setFranchiseForm({
-                      name: "",
-                      email: "",
-                      phone: "",
-                      street: "",
-                      zipCode: "",
-                      city: "",
-                      website: "",
-                      about: "",
-                      ownerName: "",
-                      taxId: "",
-                      loginEmail: "",
-                      loginPassword: "",
-                      confirmPassword: "",
-                    })
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
-
-              <form
-                onSubmit={handleFranchiseSubmit}
-                className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]"
-              >
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Franchise Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={franchiseForm.name}
-                    onChange={handleFranchiseInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Owner Name</label>
-                  <input
-                    type="text"
-                    name="ownerName"
-                    value={franchiseForm.ownerName}
-                    onChange={handleFranchiseInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={franchiseForm.email}
-                    onChange={handleFranchiseInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Phone</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={franchiseForm.phone}
-                    onChange={handleFranchiseInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Website</label>
-                  <input
-                    type="text"
-                    name="website"
-                    value={franchiseForm.website}
-                    onChange={handleFranchiseInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Tax ID</label>
-                  <input
-                    type="text"
-                    name="taxId"
-                    value={franchiseForm.taxId}
-                    onChange={handleFranchiseInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Street</label>
-                  <input
-                    type="text"
-                    name="street"
-                    value={franchiseForm.street}
-                    onChange={handleFranchiseInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-                    <input
-                      type="text"
-                      name="zipCode"
-                      value={franchiseForm.zipCode}
-                      onChange={handleFranchiseInputChange}
-                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={franchiseForm.city}
-                      onChange={handleFranchiseInputChange}
-                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">About</label>
-                  <textarea
-                    name="about"
-                    value={franchiseForm.about}
-                    onChange={handleFranchiseInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                    placeholder="Describe the franchise..."
-                  />
-                </div>
-
-                <div className="border border-slate-700 rounded-xl p-4">
-                  <h4 className="text-sm text-gray-200 font-medium mb-4">Login Credentials</h4>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Login Email</label>
-                      <input
-                        type="email"
-                        name="loginEmail"
-                        value={franchiseForm.loginEmail}
-                        onChange={handleFranchiseInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Password</label>
-                      <input
-                        type="password"
-                        name="loginPassword"
-                        value={franchiseForm.loginPassword}
-                        onChange={handleFranchiseInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Confirm Password</label>
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={franchiseForm.confirmPassword}
-                        onChange={handleFranchiseInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <button type="submit" className="w-full bg-[#FF843E] text-white rounded-xl py-2 text-sm cursor-pointer">
-                  {isCreateFranchiseModalOpen ? "Create Franchise" : "Save Changes"}
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <FranchiseModal
+        isCreateModalOpen={isCreateFranchiseModalOpen}
+        isEditModalOpen={isEditFranchiseModalOpen}
+        onClose={handleCloseModal}
+        franchiseForm={franchiseForm}
+        onInputChange={handleFranchiseInputChange}
+        onSubmit={handleFranchiseSubmit}
+        onLogoUpload={handleLogoUpload}
+      />
 
       {/* Assign Studio to Franchise Modal */}
-      {isAssignStudioModalOpen && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">Assign Studios to Franchise</h2>
-                <button onClick={() => setIsAssignStudioModalOpen(false)} className="text-gray-400 hover:text-white">
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
+      <AssignStudioModal
+        isOpen={isAssignStudioModalOpen}
+        onClose={handleAssignStudioCloseModal}
+        franchises={franchises}
+        selectedFranchiseForAssignment={selectedFranchiseForAssignment}
+        onFranchiseSelect={setSelectedFranchiseForAssignment}
+        unassignedStudios={getFilteredUnassignedStudios()}
+        onAssignStudio={handleAssignStudio}
+        toast={toast}
+        searchQuery={unassignedStudioSearchQuery}
+        onSearchChange={setUnassignedStudioSearchQuery}
+      />
 
-              <div className="space-y-6">
-                {/* Franchise Selection */}
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Select Franchise</label>
-                  <select
-                    value={selectedFranchiseForAssignment?.id || ""}
-                    onChange={(e) => {
-                      const franchise = franchises.find((f) => f.id === Number.parseInt(e.target.value))
-                      setSelectedFranchiseForAssignment(franchise)
-                    }}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  >
-                    <option value="">Select a franchise...</option>
-                    {franchises.map((franchise) => (
-                      <option key={franchise.id} value={franchise.id}>
-                        {franchise.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Unassigned Studios */}
-                <div>
-                  <h3 className="text-white font-medium mb-3">Unassigned Studios</h3>
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
-                    {getUnassignedStudios().length > 0 ? (
-                      getUnassignedStudios().map((studio) => (
-                        <div key={studio.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
-                          <div>
-                            <h4 className="text-white font-medium">{studio.name}</h4>
-                            <p className="text-gray-400 text-sm">
-                              {studio.city}, {studio.zipCode}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => {
-                              if (selectedFranchiseForAssignment) {
-                                handleAssignStudio(selectedFranchiseForAssignment.id, studio.id)
-                              } else {
-                                toast.error("Please select a franchise first")
-                              }
-                            }}
-                            disabled={!selectedFranchiseForAssignment}
-                            className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 disabled:bg-gray-600 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-sm"
-                          >
-                            Assign
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-400 text-center py-4">All studios are already assigned to franchises</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Studio Management Modal */}
+      <StudioManagementModal
+        isOpen={isStudioManagementModalOpen}
+        onClose={handleStudioManagementCloseModal}
+        franchise={selectedFranchiseForManagement}
+        assignedStudios={selectedFranchiseForManagement ? getStudiosByFranchise(selectedFranchiseForManagement.id) : []}
+        unassignedStudios={getUnassignedStudios()}
+        onAssignStudio={handleAssignStudio}
+        onUnassignStudio={handleUnassignStudio}
+        onEditStudio={handleEditStudio}
+        toast={toast}
+      />
 
       {/* All existing modals remain the same */}
       {isMembersModalOpen && selectedStudioForModal && (
@@ -1645,24 +1228,25 @@ export default function Studios() {
 
               <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
                 {studioMembers[selectedStudioForModal.id]?.map((member) => (
-                  <div key={member.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
+                  <div
+                    key={member.id}
+                    className="bg-[#161616] rounded-xl lg:p-4 p-3 flex justify-between md:items-center items-start"
+                  >
                     <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-medium text-white">{member.name}</h3>
-                        <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${
-                            member.status === "active" ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                          }`}
-                        >
-                          {member.status}
-                        </span>
+                      <div className="flex items-center gap-1">
+                        <h3 className="font-medium text-white">{member.firstName}</h3>
+                        <h3 className="font-medium text-white">{member.lastName}</h3>
                       </div>
-                      <div className="text-sm text-gray-400 mt-1">
-                        <p>
-                          {member.email} • {member.phone}
+                      <div className="text-sm  text-gray-400 mt-2">
+                        <p className="flex gap-1">
+                          <span className="font-bold text-gray-200">Email:</span>
+                          {member.email}
                         </p>
-                        <p>
-                          Membership: {member.membershipType} • Joined: {member.joinDate}
+                        <p className="flex gap-1">
+                          <span className="font-bold text-gray-200">Phone:</span> {member.phone}
+                        </p>
+                        <p className="flex gap-1">
+                          <span className="font-bold text-gray-200">Joined:</span> {member.joinDate}
                         </p>
                       </div>
                     </div>
@@ -1705,14 +1289,8 @@ export default function Studios() {
                   <div key={staff.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="font-medium text-white">{staff.name}</h3>
-                        <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${
-                            staff.status === "active" ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                          }`}
-                        >
-                          {staff.status}
-                        </span>
+                        <h3 className="font-medium text-white">{staff.firstName}</h3>
+                        <h3 className="font-medium text-white">{staff.lastName}</h3>
                       </div>
                       <div className="text-sm text-gray-400 mt-1">
                         <p>
@@ -1724,7 +1302,10 @@ export default function Studios() {
                       </div>
                     </div>
                     <button
-                      onClick={() => handleEditMember(staff)}
+                      onClick={() => {
+                        setselectedStaffForEdit(staff)
+                        setisEditStaffModalOpen(true)
+                      }}
                       className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm flex items-center gap-2"
                     >
                       <Edit size={16} />
@@ -1759,20 +1340,29 @@ export default function Studios() {
 
               <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
                 {studioLeads[selectedStudioForModal.id]?.map((lead) => (
-                  <div key={lead.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
+                  <div key={lead.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="font-medium text-white">{lead.name}</h3>
-                        <span className={`px-2 py-0.5 text-xs rounded-full ${getLeadStatusColor(lead.status)}`}>
-                          {lead.status}
-                        </span>
+                        <h3 className="font-medium text-white">
+                          {lead.firstName} {lead.surname}
+                        </h3>
+
+                        {lead.hasTrialTraining && (
+                          <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-900 text-yellow-300">
+                            Trial Scheduled
+                          </span>
+                        )}
                       </div>
-                      <div className="text-sm text-gray-400 mt-1">
-                        <p>
-                          {lead.email} • {lead.phone}
+                      <div className="text-sm text-gray-400 mt-2">
+                        <p className="flex gap-1">
+                          <span className="font-bold text-gray-200">Email:</span> {lead.email}
                         </p>
-                        <p>
-                          Source: {lead.source} • Contact Date: {lead.contactDate}
+                        <p className="flex gap-1">
+                          <span className="font-bold text-gray-200">Phone:</span> {lead.phoneNumber}
+                        </p>
+                        <p className="flex gap-1">
+                          <span className="font-bold text-gray-200">Created:</span>{" "}
+                          {new Date(lead.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -1790,729 +1380,89 @@ export default function Studios() {
           </div>
         </div>
       )}
+      <ContractsModal
+        isOpen={isContractsModalOpen}
+        onClose={() => setIsContractsModalOpen(false)}
+        selectedStudio={selectedStudioForModal}
+        studioContracts={studioContracts}
+        handleFileUpload={handleFileUpload}
+        handleDownloadFile={handleDownloadFile}
+      />
 
-      {isContractsModalOpen && selectedStudioForModal && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-5xl my-8 relative">
-            <div className="lg:p-6 p-3">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                  {selectedStudioForModal.name} - Contracts ({studioContracts[selectedStudioForModal.id]?.length || 0})
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsContractsModalOpen(false)
-                    setSelectedStudioForModal(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
+      <StudioFinancesModal
+        isOpen={isFinancesModalOpen}
+        onClose={() => setIsFinancesModalOpen(false)}
+        studio={selectedStudioForModal}
+        studioFinances={studioFinances}
+        financesPeriod={financesPeriod}
+        onPeriodChange={handlePeriodChange}
+      />
 
-              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
-                {studioContracts[selectedStudioForModal.id]?.map((contract) => (
-                  <div key={contract.id} className="bg-[#161616] rounded-xl p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-medium text-white">{contract.memberName}</h3>
-                          <div className="">
-                            <span
-                              className={`px-2 py-0.5 text-xs rounded-full ${
-                                contract.status === "active"
-                                  ? "bg-green-900 text-green-300"
-                                  : contract.status === "paused"
-                                    ? "bg-yellow-900 text-yellow-300"
-                                    : "bg-red-900 text-red-300"
-                              }`}
-                            >
-                              {contract.status}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          <p>
-                            Duration: {contract.duration} ({contract.startDate} - {contract.endDate})
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+      <EditMemberModal
+        isOpen={isEditMemberModalOpen}
+        onClose={() => setIsEditMemberModalOpen(false)}
+        selectedMember={selectedMemberForEdit}
+        onSave={handleMemberEditSubmit}
+      />
 
-                    <div className="border-t border-gray-700 pt-3">
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                        <p className="text-sm text-gray-400">Attached Files:</p>
-                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                          <input
-                            type="file"
-                            id={`file-upload-${contract.id}`}
-                            multiple
-                            className="hidden"
-                            onChange={(e) => handleFileUpload(contract.id, e.target.files)}
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                          />
-                          <label
-                            htmlFor={`file-upload-${contract.id}`}
-                            className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors w-full sm:w-auto"
-                          >
-                            <Upload size={14} />
-                            <span className="whitespace-nowrap">Upload Files</span>
-                          </label>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {contract.files.map((file, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleDownloadFile(file)}
-                            className="bg-[#2F2F2F] hover:bg-[#3F3F3F] px-3 py-1 rounded-lg text-sm flex items-center gap-1 transition-colors"
-                          >
-                            <Download size={14} />
-                            <span className="truncate max-w-[150px]">{file}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditStaffModal // Now it will receive both e and formData
+        isOpen={isEditStaffModalOpen}
+        onClose={() => {
+          setisEditStaffModalOpen(false)
+          setselectedStaffForEdit(null)
+        }}
+        onSave={(updatedStaff) => {
+          setStudioStaffs((prev) => ({
+            ...prev,
+            [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((staff) =>
+              staff.id === updatedStaff.id ? updatedStaff : staff,
+            ),
+          }))
+          setisEditStaffModalOpen(false)
+          toast.success("Staff member updated successfully")
+        }}
+        staff={selectedStaffForEdit}
+        handleRemovalStaff={(staff) => {
+          setStudioStaffs((prev) => ({
+            ...prev,
+            [selectedStudioForModal.id]: prev[selectedStudioForModal.id].filter((s) => s.id !== staff.id),
+          }))
+          setisEditStaffModalOpen(false)
+          toast.success("Staff member removed successfully")
+        }}
+      />
 
-      {isFinancesModalOpen && selectedStudioForModal && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
-            <div className="lg:p-6 p-3 custom-scrollbar overflow-y-auto max-h-[80vh]">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                  {selectedStudioForModal.name} - Finances
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsFinancesModalOpen(false)
-                    setSelectedStudioForModal(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
+      {/* edit studio modal */}
+      <EditStudioModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        selectedStudio={selectedStudio}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        handleInputChange={handleInputChange}
+        handleEditSubmit={handleEditSubmit}
+        DefaultStudioImage={DefaultStudioImage}
+      />
 
-              <div className="mb-6">
-                <label className="text-sm text-gray-400 block mb-2">Observation Period</label>
-                <select
-                  value={financesPeriod}
-                  onChange={(e) => setFinancesPeriod(e.target.value)}
-                  className="bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm border border-gray-700"
-                >
-                  <option value="month">This Month</option>
-                  <option value="quarter">This Quarter</option>
-                  <option value="year">This Year</option>
-                </select>
-              </div>
-
-              {studioFinances[selectedStudioForModal.id] && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-[#161616] rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <TrendingUp className="text-green-500" size={24} />
-                      <h3 className="text-white font-medium">Total Revenue</h3>
-                    </div>
-                    <p className="text-2xl font-bold text-green-500">
-                      €{studioFinances[selectedStudioForModal.id][financesPeriod].totalRevenue.toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="bg-[#161616] rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <CheckCircle className="text-green-500" size={24} />
-                      <h3 className="text-white font-medium">Successful Payments</h3>
-                    </div>
-                    <p className="text-2xl font-bold text-green-500">
-                      €{studioFinances[selectedStudioForModal.id][financesPeriod].successfulPayments.toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="bg-[#161616] rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Clock className="text-yellow-500" size={24} />
-                      <h3 className="text-white font-medium">Pending Payments</h3>
-                    </div>
-                    <p className="text-2xl font-bold text-yellow-500">
-                      €{studioFinances[selectedStudioForModal.id][financesPeriod].pendingPayments.toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="bg-[#161616] rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <XCircle className="text-red-500" size={24} />
-                      <h3 className="text-white font-medium">Failed Payments</h3>
-                    </div>
-                    <p className="text-2xl font-bold text-red-500">
-                      €{studioFinances[selectedStudioForModal.id][financesPeriod].failedPayments.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-6 bg-[#161616] rounded-xl p-4">
-                <h4 className="text-white font-medium mb-3">Payment Success Rate</h4>
-                <div className="w-full bg-gray-700 rounded-full h-3">
-                  <div
-                    className="bg-green-500 h-3 rounded-full"
-                    style={{
-                      width: `${
-                        (studioFinances[selectedStudioForModal.id][financesPeriod].successfulPayments /
-                          studioFinances[selectedStudioForModal.id][financesPeriod].totalRevenue) *
-                        100
-                      }%`,
-                    }}
-                  ></div>
-                </div>
-                <p className="text-sm text-gray-400 mt-2">
-                  {(
-                    (studioFinances[selectedStudioForModal.id][financesPeriod].successfulPayments /
-                      studioFinances[selectedStudioForModal.id][financesPeriod].totalRevenue) *
-                    100
-                  ).toFixed(1)}
-                  % success rate
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isEditMemberModalOpen && selectedMemberForEdit && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative ">
-            <div className="p-6  ">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                  Edit {isMembersModalOpen ? "Member" : isStaffsModalOpen ? "Staff" : "Lead"}
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsEditMemberModalOpen(false)
-                    setSelectedMemberForEdit(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
-
-              <form onSubmit={handleMemberEditSubmit} className="space-y-4">
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={memberEditForm.name}
-                    onChange={handleMemberInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={memberEditForm.email}
-                    onChange={handleMemberInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Phone</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={memberEditForm.phone}
-                    onChange={handleMemberInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">
-                    {isMembersModalOpen ? "Membership Type" : isStaffsModalOpen ? "Role" : "Source"}
-                  </label>
-                  <input
-                    type="text"
-                    name="membershipType"
-                    value={memberEditForm.membershipType}
-                    onChange={handleMemberInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">
-                    {isLeadsModalOpen ? "Contact Date" : "Join Date"}
-                  </label>
-                  <input
-                    type="date"
-                    name="joinDate"
-                    value={memberEditForm.joinDate}
-                    onChange={handleMemberInputChange}
-                    className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Status</label>
-                  <select
-                    name="status"
-                    value={memberEditForm.status}
-                    onChange={handleMemberInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  >
-                    {isLeadsModalOpen ? (
-                      <>
-                        <option value="new">New</option>
-                        <option value="contacted">Contacted</option>
-                        <option value="converted">Converted</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                      </>
-                    )}
-                  </select>
-                </div>
-
-                <button type="submit" className="w-full bg-[#FF843E] text-white rounded-xl py-2 text-sm cursor-pointer">
-                  Save Changes
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isEditModalOpen && selectedStudio && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">Edit Studio</h2>
-                <button
-                  onClick={() => {
-                    setIsEditModalOpen(false)
-                    setSelectedStudio(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
-
-              <form onSubmit={handleEditSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
-                <div className="flex flex-col items-start">
-                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
-                    <img
-                      src={selectedStudio.image || DefaultStudioImage}
-                      alt="Studio Logo"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <input
-                    type="file"
-                    id="logo"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        toast.success("Logo selected successfully")
-                      }
-                    }}
-                  />
-                  <label
-                    htmlFor="logo"
-                    className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer"
-                  >
-                    Update logo
-                  </label>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Studio Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={editForm.name}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Owner Name</label>
-                  <input
-                    type="text"
-                    name="ownerName"
-                    value={editForm.ownerName}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={editForm.email}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Phone</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={editForm.phone}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Website</label>
-                  <input
-                    type="text"
-                    name="website"
-                    value={editForm.website}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Tax ID</label>
-                  <input
-                    type="text"
-                    name="taxId"
-                    value={editForm.taxId}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Street</label>
-                  <input
-                    type="text"
-                    name="street"
-                    value={editForm.street}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-                    <input
-                      type="text"
-                      name="zipCode"
-                      value={editForm.zipCode}
-                      onChange={handleInputChange}
-                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={editForm.city}
-                      onChange={handleInputChange}
-                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="border border-slate-700 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <label className="text-sm text-gray-200 font-medium">Special Note</label>
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="noteImportance"
-                        checked={editForm.noteImportance === "important"}
-                        onChange={(e) => {
-                          setEditForm({
-                            ...editForm,
-                            noteImportance: e.target.checked ? "important" : "unimportant",
-                          })
-                        }}
-                        className="mr-2 h-4 w-4 accent-[#FF843E]"
-                      />
-                      <label htmlFor="noteImportance" className="text-sm text-gray-200">
-                        Important
-                      </label>
-                    </div>
-                  </div>
-
-                  <textarea
-                    name="note"
-                    value={editForm.note}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
-                    placeholder="Enter special note..."
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Start Date</label>
-                      <input
-                        type="date"
-                        name="noteStartDate"
-                        value={editForm.noteStartDate}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">End Date</label>
-                      <input
-                        type="date"
-                        name="noteEndDate"
-                        value={editForm.noteEndDate}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">About</label>
-                  <textarea
-                    name="about"
-                    value={editForm.about}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Contract Start</label>
-                    <input
-                      type="date"
-                      name="contractStart"
-                      value={editForm.contractStart}
-                      onChange={handleInputChange}
-                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Contract End</label>
-                    <input
-                      type="date"
-                      name="contractEnd"
-                      value={editForm.contractEnd}
-                      onChange={handleInputChange}
-                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
-                </div>
-
-                <button type="submit" className="w-full bg-[#FF843E] text-white rounded-xl py-2 text-sm cursor-pointer">
-                  Save Changes
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isViewDetailsModalOpen && selectedStudio && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl my-8 relative">
-            <div className="p-6 custom-scrollbar overflow-y-auto max-h-[80vh]">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">Studio Details</h2>
-                <button
-                  onClick={() => {
-                    setIsViewDetailsModalOpen(false)
-                    setSelectedStudio(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
-
-              <div className="space-y-4 text-white">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={selectedStudio.image || DefaultStudioImage}
-                    alt="Studio Logo"
-                    className="w-24 h-24 rounded-full object-cover"
-                  />
-                  <div>
-                    <h3 className="text-xl font-semibold">{selectedStudio.name}</h3>
-                    <p className="text-gray-400">
-                      Contract: {selectedStudio.contractStart} -
-                      <span className={isContractExpiringSoon(selectedStudio.contractEnd) ? "text-red-500" : ""}>
-                        {selectedStudio.contractEnd}
-                      </span>
-                    </p>
-                    {selectedStudio.franchiseId && (
-                      <p className="text-purple-400 text-sm">
-                        Franchise: {franchises.find((f) => f.id === selectedStudio.franchiseId)?.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-400">Owner</p>
-                    <p>{selectedStudio.ownerName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Tax ID</p>
-                    <p>{selectedStudio.taxId}</p>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-400">Email</p>
-                    <p>{selectedStudio.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Phone</p>
-                    <p>{selectedStudio.phone}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-400">Website</p>
-                  <p>{selectedStudio.website}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-400">Address</p>
-                  <p>{`${selectedStudio.street}, ${selectedStudio.zipCode} ${selectedStudio.city}`}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 bg-[#161616] p-4 rounded-xl">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <Users size={16} className="text-blue-400" />
-                      <p className="text-xl font-semibold">{studioStats[selectedStudio.id]?.members || 0}</p>
-                    </div>
-                    <p className="text-xs text-gray-400">Members</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <Building size={16} className="text-green-400" />
-                      <p className="text-xl font-semibold">{studioStats[selectedStudio.id]?.trainers || 0}</p>
-                    </div>
-                    <p className="text-xs text-gray-400">Trainers</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-400">About</p>
-                  <p>{selectedStudio.about}</p>
-                </div>
-
-                {selectedStudio.note && (
-                  <div>
-                    <p className="text-sm text-gray-400">Special Note</p>
-                    <p>{selectedStudio.note}</p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Note Period: {selectedStudio.noteStartDate} to {selectedStudio.noteEndDate}
-                    </p>
-                    <p className="text-sm text-gray-400">Importance: {selectedStudio.noteImportance}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isClassesModalOpen && selectedStudioForClasses && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                  {selectedStudioForClasses.name}'s Classes
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsClassesModalOpen(false)
-                    setSelectedStudioForClasses(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
-
-              <div className="space-y-4 text-white">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-400">
-                    Total Classes: {studioClasses[selectedStudioForClasses.id]?.length || 0}
-                  </p>
-                  <button
-                    onClick={() => addNewClass(selectedStudioForClasses.id)}
-                    className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
-                  >
-                    <Plus size={14} />
-                    Add Class
-                  </button>
-                </div>
-
-                {studioClasses[selectedStudioForClasses.id]?.length > 0 ? (
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
-                    {studioClasses[selectedStudioForClasses.id].map((classItem) => (
-                      <div key={classItem.id} className="bg-[#161616] rounded-xl p-4">
-                        <h3 className="font-medium">{classItem.title}</h3>
-                        <div className="flex justify-between mt-2 text-sm text-gray-400">
-                          <p>{classItem.schedule}</p>
-                          <p>{classItem.time}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center text-gray-400 py-8">No classes available</p>
-                )}
-
-                <div className="flex justify-between items-center pt-4 border-t border-gray-800">
-                  <p className="text-sm">
-                    <span className="text-gray-400">Members:</span>{" "}
-                    {studioStats[selectedStudioForClasses.id]?.members || 0}
-                  </p>
-                  <p className="text-sm">
-                    <span className="text-gray-400">Trainers:</span>{" "}
-                    {studioStats[selectedStudioForClasses.id]?.trainers || 0}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <StudioDetailsModal
+        isOpen={isViewDetailsModalOpen}
+        onClose={() => setIsViewDetailsModalOpen(false)}
+        studio={selectedStudio}
+        franchises={franchises}
+        studioStats={studioStats}
+        DefaultStudioImage={DefaultStudioImage}
+        isContractExpiringSoon={isContractExpiringSoon}
+      />
+      {/* Edit Lead Modal */}
+      <EditLeadModal
+        isVisible={isEditLeadModalOpen}
+        onClose={() => {
+          setIsEditLeadModalOpen(false)
+          setSelectedLeadForEdit(null)
+        }}
+        onSave={handleLeadEditSubmit}
+        leadData={selectedLeadForEdit}
+      />
     </>
   )
 }

@@ -75,11 +75,11 @@ export function DocumentManagementModal({ contract, onClose }) {
       const newDocs = files.map((file) => ({
         id: `doc-${Math.random().toString(36).substr(2, 9)}`,
         name: file.name,
-        type: file.name.split(".").pop(),
+        type: getFileExtension(file.name), // Use the helper function
         size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
         uploadDate: new Date().toISOString().split("T")[0],
-        file: file, // Store the actual file object
-        isSignedContract: false, // Default to not signed
+        file: file,
+        isSignedContract: false,
       }))
 
       setDocuments([...displayDocuments, ...newDocs])
@@ -129,6 +129,12 @@ export function DocumentManagementModal({ contract, onClose }) {
     setViewingDocument(doc)
     toast.success(`Viewing ${doc.name}...`)
     // In a real app, you would open the document in a viewer
+  }
+
+  const getFileExtension = (filename) => {
+    if (!filename) return ''
+    const parts = filename.split('.')
+    return parts.length > 1 ? parts.pop().toLowerCase() : ''
   }
 
   const handleDelete = (docId) => {
@@ -186,8 +192,16 @@ export function DocumentManagementModal({ contract, onClose }) {
     )
   }
 
+
   const getDocumentIcon = (type) => {
-    switch (type.toLowerCase()) {
+    // Add null/undefined check and fallback
+    if (!type) {
+      return <File className="w-5 h-5 text-gray-400" />
+    }
+    
+    const fileType = type.toLowerCase()
+    
+    switch (fileType) {
       case "pdf":
         return <FileText className="w-5 h-5 text-red-500" />
       case "xlsx":
@@ -196,13 +210,17 @@ export function DocumentManagementModal({ contract, onClose }) {
       case "docx":
       case "doc":
         return <FileText className="w-5 h-5 text-blue-500" />
+      case "jpg":
+      case "jpeg":
+      case "png":
+        return <File className="w-5 h-5 text-purple-500" />
       default:
         return <File className="w-5 h-5 text-gray-400" />
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2 sm:p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-60 p-2 sm:p-4">
       {viewingDocument && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[60]">
           <div className="bg-white rounded-lg max-w-4xl max-h-[80vh] overflow-auto w-full">

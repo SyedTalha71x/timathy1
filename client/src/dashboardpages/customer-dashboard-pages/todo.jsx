@@ -194,7 +194,7 @@ export default function TodoApp() {
         <div className="pb-16 sm:pb-24 lg:pb-36">
           {/* Header with title, filter tabs, and add button */}
           <div className="flex flex-col gap-4 mb-6">
-            <div className="flex justify-between flex-col md:items-center items-start  gap-2">
+            <div className="flex md:justify-between md:flex-row flex-col justify-start  md:items-center items-start  gap-2">
               <h1 className="text-2xl font-bold text-white">To-Do</h1>
 
               <div className="flex gap-2">
@@ -360,7 +360,7 @@ export default function TodoApp() {
 
       {/* Tag Manager Modal */}
       {isTagManagerOpen && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 p-2 flex items-center justify-center z-50">
           <div className="tag-manager bg-[#181818] rounded-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Manage Tags</h2>
