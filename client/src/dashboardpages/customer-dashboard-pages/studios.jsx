@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -1288,7 +1286,7 @@ export default function Studios() {
                 {studioStaffs[selectedStudioForModal.id]?.map((staff) => (
                   <div key={staff.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
                         <h3 className="font-medium text-white">{staff.firstName}</h3>
                         <h3 className="font-medium text-white">{staff.lastName}</h3>
                       </div>

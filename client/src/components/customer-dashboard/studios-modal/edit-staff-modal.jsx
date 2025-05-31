@@ -64,6 +64,7 @@ export default function EditStaffModal({
 
   return (
     <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+   
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
         <div className="p-6">
           <button
@@ -74,6 +75,9 @@ export default function EditStaffModal({
           </button>
 
           <form onSubmit={handleSubmit} className="space-y-6 custom-scrollbar overflow-y-auto max-h-[70vh]">
+          <div>
+      <h1 className="text-white text-xl font-bold">Edit Staff</h1>
+    </div>
             <div className="flex flex-col items-start">
               <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
                 <img
