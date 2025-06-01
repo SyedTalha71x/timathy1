@@ -1,8 +1,23 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 
 const ViewLeadDetailsModal = ({ leadData, onClose }) => {
   if (!leadData) {
     return null
+  }
+
+  // Format date helper function
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "N/A"
+    const date = new Date(timestamp)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
   }
 
   return (
@@ -19,14 +34,9 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
 
         {/* Profile Section */}
         <div className="flex items-center md:flex-row flex-col mb-6 border-b border-gray-700 pb-6">
-          <img
-            src={leadData.avatar || "/placeholder.svg"}
-            alt={`${leadData.firstName} ${leadData.surname}'s avatar`}
-            className="w-20 h-20 rounded-full bg-zinc-800 object-cover"
-          />
           <div className="ml-4">
-            {leadData.studioName && <p className="text-sm text-gray-400">{leadData.studioName}</p>}
-            <h3 className="text-xl font-semibold text-white">{`${leadData.firstName} ${leadData.surname}`}</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">{leadData.studioName}</h3>
+            <p className="text-lg text-gray-300">{`${leadData.firstName} ${leadData.surname}`}</p>
           </div>
         </div>
 
@@ -38,7 +48,11 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
           </div>
           <div>
             <p className="text-gray-400">Phone:</p>
-            <p className="text-white">{leadData.phone || "N/A"}</p>
+            <p className="text-white">{leadData.phoneNumber || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-gray-400">Street & ZIP Code:</p>
+            <p className="text-white">{`${leadData.street || ""} ${leadData.zipCode || ""}`.trim() || "N/A"}</p>
           </div>
           <div>
             <p className="text-gray-400">City:</p>
@@ -49,12 +63,37 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
             <p className="text-white">{leadData.country || "N/A"}</p>
           </div>
           <div>
-            <p className="text-gray-400">Source:</p>
-            <p className="text-white">{leadData.source || "N/A"}</p>
+            <p className="text-gray-400">Lead ID:</p>
+            <p className="text-white">{leadData.leadId || leadData.id || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-gray-400">Created at:</p>
+            <p className="text-white">{formatDate(leadData.createdAt)}</p>
           </div>
           <div>
             <p className="text-gray-400">Status:</p>
             <p className="text-white">{leadData.status || "N/A"}</p>
+          </div>
+          <div className="md:col-span-2">
+            <p className="text-gray-400">About:</p>
+            <p className="text-white">{leadData.about || "N/A"}</p>
+          </div>
+          <div className="md:col-span-2">
+            <p className="text-gray-400">Website:</p>
+            <p className="text-white">
+              {leadData.website ? (
+                <a
+                  href={leadData.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300"
+                >
+                  {leadData.website}
+                </a>
+              ) : (
+                "N/A"
+              )}
+            </p>
           </div>
         </div>
       </div>

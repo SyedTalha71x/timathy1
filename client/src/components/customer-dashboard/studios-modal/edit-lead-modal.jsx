@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 
 import { useState, useEffect } from "react"
@@ -6,14 +8,15 @@ import { Toaster, toast } from "react-hot-toast"
 
 export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    studioOwnerFirstName: "",
+    studioOwnerLastName: "",
     email: "",
     phone: "",
     street: "",
     zipCode: "",
     city: "",
-    dateOfBirth: "",
+    country: "",
+    website: "",
     about: "",
     note: "",
     noteStartDate: "",
@@ -27,14 +30,15 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
     if (leadData) {
       // Map leadData to formData structure
       setFormData({
-        firstName: leadData.firstName || "",
-        lastName: leadData.surname || "", // Map surname to lastName
+        studioOwnerFirstName: leadData.firstName || "",
+        studioOwnerLastName: leadData.surname || "",
         email: leadData.email || "",
-        phone: leadData.phoneNumber || "", // Map phoneNumber to phone
+        phone: leadData.phoneNumber || "",
         street: leadData.street || "",
         zipCode: leadData.zipCode || "",
         city: leadData.city || "",
-        dateOfBirth: leadData.dateOfBirth || "",
+        country: leadData.country || "",
+        website: leadData.website || "",
         about: leadData.about || "",
         studioName: leadData.studioName || "",
         // Extract note data from specialNote object
@@ -60,14 +64,15 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
     // Map formData back to the structure expected by the parent component
     const mappedData = {
       ...leadData,
-      firstName: formData.firstName,
-      surname: formData.lastName, // Map lastName back to surname
+      firstName: formData.studioOwnerFirstName,
+      surname: formData.studioOwnerLastName,
       email: formData.email,
-      phoneNumber: formData.phone, // Map phone back to phoneNumber
+      phoneNumber: formData.phone,
       street: formData.street,
       zipCode: formData.zipCode,
       city: formData.city,
-      dateOfBirth: formData.dateOfBirth,
+      country: formData.country,
+      website: formData.website,
       about: formData.about,
       studioName: formData.studioName,
       specialNote: {
@@ -90,7 +95,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
   if (!isVisible) return null
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center p-3 items-center z-[1000] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex justify-center p-3 items-center z-[1000] overflow-y-auto">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -125,22 +130,22 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-200 block mb-2">First Name</label>
+                <label className="text-sm text-gray-200 block mb-2">Studio Owner First Name</label>
                 <input
                   type="text"
-                  name="firstName"
-                  value={formData.firstName}
+                  name="studioOwnerFirstName"
+                  value={formData.studioOwnerFirstName}
                   onChange={handleChange}
                   required
                   className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Last Name</label>
+                <label className="text-sm text-gray-200 block mb-2">Studio Owner Last Name</label>
                 <input
                   type="text"
-                  name="lastName"
-                  value={formData.lastName}
+                  name="studioOwnerLastName"
+                  value={formData.studioOwnerLastName}
                   onChange={handleChange}
                   required
                   className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
@@ -207,13 +212,25 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
             </div>
 
             <div>
-              <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
+              <label className="text-sm text-gray-200 block mb-2">Country</label>
               <input
-                type="date"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
+                type="text"
+                name="country"
+                value={formData.country}
                 onChange={handleChange}
-                className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Website</label>
+              <input
+                type="url"
+                name="website"
+                value={formData.website}
+                onChange={handleChange}
+                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                placeholder="https://example.com"
               />
             </div>
 

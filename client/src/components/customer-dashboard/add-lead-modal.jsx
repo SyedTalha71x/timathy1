@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X, Plus } from "lucide-react"
@@ -5,14 +7,15 @@ import { Toaster, toast } from "react-hot-toast"
 
 export function AddLeadModal({ isVisible, onClose, onSave }) {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    studioOwnerFirstName: "",
+    studioOwnerLastName: "",
     email: "",
     phone: "",
     street: "",
     zipCode: "",
     city: "",
-    dateOfBirth: "",
+    country: "",
+    website: "",
     about: "",
     note: "",
     noteStartDate: "",
@@ -34,14 +37,15 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
     e.preventDefault()
     // Map formData to the structure expected by the parent component
     const mappedData = {
-      firstName: formData.firstName,
-      surname: formData.lastName, // Map lastName to surname for consistency with EditLeadModal
+      firstName: formData.studioOwnerFirstName,
+      lastName: formData.studioOwnerLastName,
       email: formData.email,
-      phoneNumber: formData.phone, // Map phone to phoneNumber for consistency
+      phone: formData.phone,
       street: formData.street,
       zipCode: formData.zipCode,
       city: formData.city,
-      dateOfBirth: formData.dateOfBirth,
+      country: formData.country,
+      website: formData.website,
       about: formData.about,
       studioName: formData.studioName,
       specialNote: {
@@ -99,22 +103,22 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-200 block mb-2">First Name</label>
+                <label className="text-sm text-gray-200 block mb-2">Studio Owner First Name</label>
                 <input
                   type="text"
-                  name="firstName"
-                  value={formData.firstName}
+                  name="studioOwnerFirstName"
+                  value={formData.studioOwnerFirstName}
                   onChange={handleChange}
                   required
                   className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Last Name</label>
+                <label className="text-sm text-gray-200 block mb-2">Studio Owner Last Name</label>
                 <input
                   type="text"
-                  name="lastName"
-                  value={formData.lastName}
+                  name="studioOwnerLastName"
+                  value={formData.studioOwnerLastName}
                   onChange={handleChange}
                   required
                   className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
@@ -181,13 +185,25 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
             </div>
 
             <div>
-              <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
+              <label className="text-sm text-gray-200 block mb-2">Country</label>
               <input
-                type="date"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
+                type="text"
+                name="country"
+                value={formData.country}
                 onChange={handleChange}
-                className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Website</label>
+              <input
+                type="url"
+                name="website"
+                value={formData.website}
+                onChange={handleChange}
+                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                placeholder="https://example.com"
               />
             </div>
 

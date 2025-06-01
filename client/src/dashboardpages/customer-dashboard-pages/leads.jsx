@@ -5,14 +5,14 @@ import React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2 } from "lucide-react"
 import Draggable from "react-draggable"
-import { AddLeadModal } from "../../components/customer-dashboard/add-lead-modal"
+import {AddLeadModal} from '../../components/add-lead-modal'
 import { EditLeadModal } from "../../components/customer-dashboard/studios-modal/edit-lead-modal"
 import ViewLeadDetailsModal from "../../components/customer-dashboard/view-lead-details"
-import TrialTrainingModal from "../../components/add-trial"
+import { AddContractModal } from "../../components/customer-dashboard/add-contract-modal"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/avatar.png"
 
-const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, columnId, onDragStop, index }) => {
+const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteLead, columnId, onDragStop, index }) => {
   const [isDragging, setIsDragging] = useState(false)
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -220,10 +220,10 @@ const LeadCard = ({ lead, onViewDetails, onAddTrial, onEditLead, onDeleteLead, c
         </div>
         <div className="flex justify-center">
           <button
-            onClick={() => onAddTrial(lead)}
+            onClick={() => onCreateContract(lead)}
             className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
           >
-            Add Trial Training
+            Create Contract
           </button>
         </div>
       </div>
@@ -238,7 +238,7 @@ const Column = ({
   color,
   leads,
   onViewDetails,
-  onAddTrial,
+  onCreateContract,
   onEditLead,
   onDeleteLead,
   onDragStop,
@@ -288,7 +288,7 @@ const Column = ({
             key={lead.id}
             lead={lead}
             onViewDetails={onViewDetails}
-            onAddTrial={onAddTrial}
+            onCreateContract={onCreateContract}
             onEditLead={onEditLead}
             onDeleteLead={onDeleteLead}
             columnId={id}
@@ -402,13 +402,13 @@ const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
 
 // Main Lead Management Component
 export default function LeadManagement() {
-  // Initial columns
+  // Initial columns - all in one line as requested
   const [columns, setColumns] = useState([
     { id: "active", title: "Active prospect", color: "#10b981" },
     { id: "passive", title: "Passive prospect", color: "#f59e0b" },
     { id: "uninterested", title: "Uninterested", color: "#ef4444" },
     { id: "missed", title: "Missed Call", color: "#8b5cf6" },
-    { id: "trial", title: "Trial Training Arranged", color: "#3b82f6", isFixed: true },
+    { id: "trial", title: "Trial Training Arranged", color: "#3b82f6" }, // Made editable by removing isFixed
   ])
 
   // States from original component
@@ -418,7 +418,7 @@ export default function LeadManagement() {
   const [selectedLead, setSelectedLead] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [leads, setLeads] = useState([])
-  const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
+  const [isContractModalOpen, setIsContractModalOpen] = useState(false)
   const [isEditColumnModalOpen, setIsEditColumnModalOpen] = useState(false)
   const [selectedColumn, setSelectedColumn] = useState(null)
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false)
@@ -455,7 +455,13 @@ export default function LeadManagement() {
         endDate: "2025-03-15",
       },
       columnId: "active",
-      studioName: 'Studio Name XYZ..'
+      studioName: "Studio Name XYZ..",
+      street: "123 Main St",
+      zipCode: "12345",
+      city: "New York",
+      country: "USA",
+      website: "https://example.com",
+      leadId: "LEAD-001",
     },
     {
       id: "h2",
@@ -476,7 +482,13 @@ export default function LeadManagement() {
         endDate: "2025-04-20",
       },
       columnId: "passive",
-       studioName: 'Studio Name XYZ..'
+      studioName: "Studio Name XYZ..",
+      street: "456 Oak Ave",
+      zipCode: "67890",
+      city: "Los Angeles",
+      country: "USA",
+      website: "https://sarahwilson.com",
+      leadId: "LEAD-002",
     },
     {
       id: "h3",
@@ -497,7 +509,13 @@ export default function LeadManagement() {
         endDate: "2025-02-25",
       },
       columnId: "active",
-       studioName: 'Studio Name XYZ..'
+      studioName: "Studio Name XYZ..",
+      street: "789 Pine Rd",
+      zipCode: "54321",
+      city: "Chicago",
+      country: "USA",
+      website: "https://michaelbrown.fitness",
+      leadId: "LEAD-003",
     },
     {
       id: "h4",
@@ -518,7 +536,13 @@ export default function LeadManagement() {
         endDate: "2025-05-01",
       },
       columnId: "uninterested",
-       studioName: 'Studio Name XYZ..'
+      studioName: "Studio Name XYZ..",
+      street: "321 Elm St",
+      zipCode: "98765",
+      city: "Miami",
+      country: "USA",
+      website: "https://emmadavis.com",
+      leadId: "LEAD-004",
     },
   ]
 
@@ -545,9 +569,9 @@ export default function LeadManagement() {
     setIsViewDetailsModalOpen(true)
   }
 
-  const handleAddTrialTraining = (lead) => {
+  const handleCreateContract = (lead) => {
     setSelectedLead(lead)
-    setIsTrialModalOpen(true)
+    setIsContractModalOpen(true)
   }
 
   const handleEditLead = (lead) => {
@@ -590,6 +614,14 @@ export default function LeadManagement() {
       status: data.status || "passive",
       columnId: data.hasTrialTraining ? "trial" : data.status || "passive",
       createdAt: now,
+      studioName: data.studioName,
+      street: data.street,
+      zipCode: data.zipCode,
+      city: data.city,
+      country: data.country,
+      website: data.website,
+      about: data.about,
+      leadId: `LEAD-${Date.now()}`,
       specialNote: {
         text: data.note || "",
         isImportant: data.noteImportance === "important",
@@ -621,6 +653,13 @@ export default function LeadManagement() {
             avatar: data.avatar,
             status: data.status || lead.status,
             columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+            studioName: data.studioName,
+            street: data.street,
+            zipCode: data.zipCode,
+            city: data.city,
+            country: data.country,
+            website: data.website,
+            about: data.about,
             specialNote: {
               text: data.note || "",
               isImportant: data.noteImportance === "important",
@@ -637,6 +676,13 @@ export default function LeadManagement() {
     localStorage.setItem("leads", JSON.stringify(localStorageLeads))
 
     toast.success("Lead has been updated")
+  }
+
+  const handleSaveContract = (contractData) => {
+    // Handle contract saving logic here
+    toast.success("Contract has been created")
+    setIsContractModalOpen(false)
+    setSelectedLead(null)
   }
 
   // Handle drag and drop
@@ -724,7 +770,6 @@ export default function LeadManagement() {
 
         toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title}`)
       }
-      
     }
   }
 
@@ -788,7 +833,8 @@ export default function LeadManagement() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* All columns in one line as requested */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {columns.map((column) => (
           <Column
             key={column.id}
@@ -797,11 +843,11 @@ export default function LeadManagement() {
             color={column.color}
             leads={filteredLeads.filter((lead) => lead.columnId === column.id)}
             onViewDetails={handleViewLeadDetails}
-            onAddTrial={handleAddTrialTraining}
+            onCreateContract={handleCreateContract}
             onEditLead={handleEditLead}
             onDeleteLead={handleDeleteLead}
             onDragStop={handleDragStop}
-            isEditable={!column.isFixed}
+            isEditable={true} // All columns are now editable
             onEditColumn={handleEditColumn}
             columnRef={columnRefs.current[column.id]}
           />
@@ -811,43 +857,38 @@ export default function LeadManagement() {
       {/* Modals */}
       <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
 
-      <EditLeadModal
-        isVisible={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false)
-          setSelectedLead(null)
-        }}
-        onSave={handleSaveEdit}
-        leadData={selectedLead}
-      />
+      {isEditModalOpen && (
+        <EditLeadModal
+          isVisible={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false)
+            setSelectedLead(null)
+          }}
+          onSave={handleSaveEdit}
+          leadData={selectedLead}
+        />
+      )}
 
-      <ViewLeadDetailsModal
-        isVisible={isViewDetailsModalOpen}
-        onClose={() => {
-          setIsViewDetailsModalOpen(false)
-          setSelectedLead(null)
-        }}
-        leadData={selectedLead}
-      />
+      {isViewDetailsModalOpen && (
+        <ViewLeadDetailsModal
+          leadData={selectedLead}
+          onClose={() => {
+            setIsViewDetailsModalOpen(false)
+            setSelectedLead(null)
+          }}
+        />
+      )}
 
-      <TrialTrainingModal
-        isOpen={isTrialModalOpen}
-        onClose={() => {
-          setIsTrialModalOpen(false)
-          setSelectedLead(null)
-        }}
-        selectedLead={selectedLead}
-        trialTypes={[
-          { name: "Cardio", duration: 30 },
-          { name: "Strength", duration: 45 },
-          { name: "Flexibility", duration: 60 },
-        ]}
-        freeTimeSlots={[
-          { id: "slot1", date: "2023-10-01", time: "10:00" },
-          { id: "slot2", date: "2023-10-01", time: "11:00" },
-          { id: "slot3", date: "2023-10-02", time: "14:00" },
-        ]}
-      />
+      {isContractModalOpen && (
+        <AddContractModal
+          onClose={() => {
+            setIsContractModalOpen(false)
+            setSelectedLead(null)
+          }}
+          onSave={handleSaveContract}
+          leadData={selectedLead}
+        />
+      )}
 
       <EditColumnModal
         isVisible={isEditColumnModalOpen}
