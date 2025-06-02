@@ -1,14 +1,13 @@
 import React from "react"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
 import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2 } from "lucide-react"
 import Draggable from "react-draggable"
-import {AddLeadModal} from '../../components/add-lead-modal'
+import { AddLeadModal } from '../../components/customer-dashboard/add-lead-modal'
 import { EditLeadModal } from "../../components/customer-dashboard/studios-modal/edit-lead-modal"
 import ViewLeadDetailsModal from "../../components/customer-dashboard/view-lead-details"
-import { AddContractModal } from "../../components/customer-dashboard/add-contract-modal"
+import { AddLeadContractModal } from "../../components/customer-dashboard/add-lead-contract-modal"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/avatar.png"
 
@@ -49,20 +48,9 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
     })
   }
 
-  // Check if note is valid (within date range)
-  const isNoteValid = (note) => {
-    if (!note || !note.text) return false
 
-    if (!note.startDate || !note.endDate) return true
-
-    const now = new Date()
-    const startDate = new Date(note.startDate)
-    const endDate = new Date(note.endDate)
-
-    return now >= startDate && now <= endDate
-  }
-
-  const hasValidNote = lead.specialNote && isNoteValid(lead.specialNote)
+  const hasValidNote = lead.specialNote && lead.specialNote.text 
+  // console.log(hasValidNote);
 
   const handleDragStart = () => {
     setIsDragging(true)
@@ -78,21 +66,19 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
       nodeRef={nodeRef}
       onStart={handleDragStart}
       onStop={handleDragStop}
-      position={{ x: 0, y: 0 }} // Reset position after drag
+      position={{ x: 0, y: 0 }}
       cancel=".no-drag"
     >
       <div
         ref={nodeRef}
-        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab ${
-          isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
-        }`}
+        className={`bg-[#1C1C1C] rounded-xl p-4  mb-3 cursor-grab ${isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
+          }`}
       >
         <div className="flex items-center mb-3 relative">
           {hasValidNote && (
             <div
-              className={`absolute -top-2 -left-2 ${
-                lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-1 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag`}
+              className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+                } rounded-full p-1 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag`}
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
@@ -161,7 +147,7 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
           )}
 
           <div className="flex-1 mt-6">
-            <h5 className="font-bold text-lg mb-2 text-white">{lead.studioName}</h5>
+            <h5 className="font-bold text-lg mb-1 text-white">{lead.studioName}</h5>
             <h4 className="font-medium text-gray-200">{`${lead.firstName} ${lead.surname}`}</h4>
             <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
             <p className="text-gray-400 text-sm">{lead.email}</p>
@@ -171,6 +157,15 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
           </div>
 
           {/* Three-dot menu */}
+
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onCreateContract(lead)}
+            className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
+          >
+            Create Contract
+          </button>
           <div className="">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -217,14 +212,6 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
               </div>
             )}
           </div>
-        </div>
-        <div className="flex justify-center">
-          <button
-            onClick={() => onCreateContract(lead)}
-            className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
-          >
-            Create Contract
-          </button>
         </div>
       </div>
     </Draggable>
@@ -643,30 +630,30 @@ export default function LeadManagement() {
     const updatedLeads = leads.map((lead) =>
       lead.id === data.id
         ? {
-            ...lead,
-            firstName: data.firstName,
-            surname: data.surname,
-            email: data.email,
-            phoneNumber: data.phoneNumber,
-            trialPeriod: data.trialPeriod,
-            hasTrialTraining: data.hasTrialTraining,
-            avatar: data.avatar,
-            status: data.status || lead.status,
-            columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
-            studioName: data.studioName,
-            street: data.street,
-            zipCode: data.zipCode,
-            city: data.city,
-            country: data.country,
-            website: data.website,
-            about: data.about,
-            specialNote: {
-              text: data.note || "",
-              isImportant: data.noteImportance === "important",
-              startDate: data.noteStartDate || null,
-              endDate: data.noteEndDate || null,
-            },
-          }
+          ...lead,
+          firstName: data.firstName,
+          surname: data.surname,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+          trialPeriod: data.trialPeriod,
+          hasTrialTraining: data.hasTrialTraining,
+          avatar: data.avatar,
+          status: data.status || lead.status,
+          columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+          studioName: data.studioName,
+          street: data.street,
+          zipCode: data.zipCode,
+          city: data.city,
+          country: data.country,
+          website: data.website,
+          about: data.about,
+          specialNote: {
+            text: data.note || "",
+            isImportant: data.noteImportance === "important",
+            startDate: data.noteStartDate || null,
+            endDate: data.noteEndDate || null,
+          },
+        }
         : lead,
     )
     setLeads(updatedLeads)
@@ -812,7 +799,7 @@ export default function LeadManagement() {
         }}
       />
 
-      <div className="flex md:flex-row flex-col gap-2 justify-between md:items-center items-start mb-6">
+      <div className="flex  gap-2 justify-between md:items-center items-start mb-6">
         <h1 className="text-2xl text-white font-bold">Leads</h1>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -834,7 +821,7 @@ export default function LeadManagement() {
       </div>
 
       {/* All columns in one line as requested */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {columns.map((column) => (
           <Column
             key={column.id}
@@ -880,7 +867,7 @@ export default function LeadManagement() {
       )}
 
       {isContractModalOpen && (
-        <AddContractModal
+        <AddLeadContractModal
           onClose={() => {
             setIsContractModalOpen(false)
             setSelectedLead(null)

@@ -1,7 +1,6 @@
-"use client"
+import { X } from "lucide-react"
 
 /* eslint-disable react/prop-types */
-
 const ViewLeadDetailsModal = ({ leadData, onClose }) => {
   if (!leadData) {
     return null
@@ -22,25 +21,20 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 bg-opacity-50">
-      <div className="bg-zinc-900 rounded-lg p-8 max-w-2xl w-full mx-4">
+      <div className="bg-[#1C1C1C] rounded-lg lg:p-8 p-5 max-w-2xl w-full mx-4 custom-scrollbar max-h-[80vh] overflow-y-auto"> 
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">Lead Details</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white">
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <button onClick={onClose} className="cursor-pointer text-white">
+           <X size={20}/>
           </button>
         </div>
-
-        {/* Profile Section */}
-        <div className="flex items-center md:flex-row flex-col mb-6 border-b border-gray-700 pb-6">
-          <div className="ml-4">
-            <h3 className="text-xl font-semibold text-white mb-2">{leadData.studioName}</h3>
-            <p className="text-lg text-gray-300">{`${leadData.firstName} ${leadData.surname}`}</p>
+        <div className="flex items-start md:flex-row flex-col mb-6 border-b border-gray-700 pb-6">
+          <div className="">
+            <h3 className="text-xl font-semibold text-white mb-1">{leadData.studioName}</h3>
+            <p className="text-md text-gray-300">{`${leadData.firstName} ${leadData.surname}`}</p>
           </div>
         </div>
 
-        {/* Details Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-400">Email:</p>

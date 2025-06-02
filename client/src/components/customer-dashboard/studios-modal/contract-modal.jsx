@@ -1,21 +1,45 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
 
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, FileText } from "lucide-react"
+import { X, FileText, Search } from "lucide-react"
 import { useState } from "react"
 import { DocumentManagementModal } from "../../document-management-modal"
 
 const ContractsModal = ({ isOpen, onClose, selectedStudio, studioContracts, handleFileUpload, handleDownloadFile }) => {
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const [selectedContract, setSelectedContract] = useState(null)
+  const [searchTerm, setSearchTerm] = useState("")
 
   if (!isOpen || !selectedStudio) return null
 
   const contracts = studioContracts[selectedStudio.id] || []
 
+  // Filter contracts based on search term
+  const filteredContracts = contracts.filter((contract) => {
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      contract.memberName?.toLowerCase().includes(searchLower) ||
+      contract.contractType?.toLowerCase().includes(searchLower) ||
+      contract.status?.toLowerCase().includes(searchLower) ||
+      contract.pauseReason?.toLowerCase().includes(searchLower) ||
+      contract.cancelReason?.toLowerCase().includes(searchLower) ||
+      contract.startDate?.toLowerCase().includes(searchLower) ||
+      contract.endDate?.toLowerCase().includes(searchLower)
+    )
+  })
+
   const handleManageDocuments = (contract) => {
     setSelectedContract(contract)
     setIsDocumentModalOpen(true)
+  }
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value)
+  }
+
+  const clearSearch = () => {
+    setSearchTerm("")
   }
 
   return (
@@ -25,15 +49,38 @@ const ContractsModal = ({ isOpen, onClose, selectedStudio, studioContracts, hand
           <div className="lg:p-6 p-3">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                {selectedStudio.name} - Contracts ({contracts.length})
+                {selectedStudio.name} - Contracts ({filteredContracts.length}
+                {searchTerm && ` of ${contracts.length}`})
               </h2>
               <button onClick={onClose} className="text-gray-400 hover:text-white">
                 <X size={20} className="cursor-pointer" />
               </button>
             </div>
 
+            {/* Search Bar */}
+            <div className="relative mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search contracts by member name, type, status..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="w-full bg-[#161616] text-white  pl-10 text-sm pr-10 py-2 rounded-xl border border-gray-700 outline-none"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
-              {contracts.map((contract) => (
+              {filteredContracts.map((contract) => (
                 <div
                   key={contract.id}
                   className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#161616] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4"
@@ -73,6 +120,18 @@ const ContractsModal = ({ isOpen, onClose, selectedStudio, studioContracts, hand
                   </div>
                 </div>
               ))}
+
+              {filteredContracts.length === 0 && contracts.length > 0 && searchTerm && (
+                <div className="bg-[#161616] p-6 rounded-xl text-center">
+                  <p className="text-gray-400">No contracts found matching "{searchTerm}".</p>
+                  <button
+                    onClick={clearSearch}
+                    className="mt-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    Clear search
+                  </button>
+                </div>
+              )}
 
               {contracts.length === 0 && (
                 <div className="bg-[#161616] p-6 rounded-xl text-center">

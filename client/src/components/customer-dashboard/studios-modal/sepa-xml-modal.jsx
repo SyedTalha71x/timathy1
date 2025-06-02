@@ -1,7 +1,7 @@
 "use client"
 
 /* eslint-disable react/prop-types */
-import { Calendar, Download, X } from "lucide-react"
+import { Calendar, Download, X, Edit } from "lucide-react"
 import { useEffect, useState } from "react"
 
 // eslint-disable-next-line no-unused-vars
@@ -13,6 +13,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
     endDate: "",
   })
   const [isCustomPeriod, setIsCustomPeriod] = useState(false)
+  const [editingAmount, setEditingAmount] = useState(null)
 
   useEffect(() => {
     // Initialize selected transactions (only Pending and Failed)
@@ -28,6 +29,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
 
     setSelectedTransactions(initialSelected)
     setEditedAmounts(initialAmounts)
+    setEditingAmount(null) // Reset editing state
 
     // Reset custom period when modal opens
     setIsCustomPeriod(false)
@@ -78,7 +80,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   const filteredTransactions = transactions.filter((tx) => tx.status === "Pending" || tx.status === "Failed")
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/70 flex p-2 items-center justify-center z-50">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
         <div className="p-4 border-b border-gray-800 flex justify-between items-center">
           <h2 className="text-white text-lg font-medium">Generate SEPA XML</h2>
@@ -173,14 +175,39 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                           {tx.status}
                         </span>
                       </td>
-                      <td className="px-3 py-2">
-                        <input
-                          type="number"
-                          value={editedAmounts[tx.id] || tx.amount}
-                          onChange={(e) => handleAmountChange(tx.id, e.target.value)}
-                          className="bg-black text-white w-24 px-2 py-1 rounded border border-gray-700 text-right"
-                          disabled={!selectedTransactions[tx.id]}
-                        />
+                      <td className="px-3 py-2 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {editingAmount === tx.id ? (
+                            <input
+                              type="number"
+                              value={editedAmounts[tx.id] || tx.amount}
+                              onChange={(e) => handleAmountChange(tx.id, e.target.value)}
+                              onBlur={() => setEditingAmount(null)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") setEditingAmount(null)
+                                if (e.key === "Escape") setEditingAmount(null)
+                              }}
+                              className="bg-black text-white w-20 px-2 py-1 rounded border border-gray-700 text-right"
+                              disabled={!selectedTransactions[tx.id]}
+                              autoFocus
+                            />
+                          ) : (
+                            <span className={`${!selectedTransactions[tx.id] ? "text-gray-500" : "text-white"}`}>
+                              ${(editedAmounts[tx.id] || tx.amount).toFixed(2)}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => setEditingAmount(tx.id)}
+                            disabled={!selectedTransactions[tx.id]}
+                            className={`p-1 rounded hover:bg-gray-700 ${
+                              !selectedTransactions[tx.id]
+                                ? "text-gray-600 cursor-not-allowed"
+                                : "text-gray-400 hover:text-white"
+                            }`}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

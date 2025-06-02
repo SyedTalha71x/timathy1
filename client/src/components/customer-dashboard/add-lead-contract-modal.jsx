@@ -1,6 +1,8 @@
+"use client"
+
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
-import { X, FileText, Upload, Eye, ArrowLeft } from 'lucide-react'
+import { X, FileText, Upload, Eye, ArrowLeft } from "lucide-react"
 import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 
@@ -49,7 +51,7 @@ const printStyles = `
   }
 `
 
-export function AddContractModal({ onClose, onSave, leadData = null }) {
+export function AddLeadContractModal({ onClose, onSave, leadData = null }) {
   // eslint-disable-next-line no-unused-vars
   const [isDigital, setIsDigital] = useState(true)
   const [currentPage, setCurrentPage] = useState(0)
@@ -63,7 +65,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     phone: "",
     sepaMandate: "",
     leadId: "",
-    rateType: "",
+    rateType: "Basic",
     signedFile: null,
     // Additional fields for the contract forms
     vorname: "",
@@ -182,6 +184,12 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     const contractType = contractTypes.find((type) => type.name === contractData.rateType)
     setSelectedContractType(contractType)
   }, [contractData.rateType])
+
+  useEffect(() => {
+    // Set initial contract type to Basic
+    const basicContractType = contractTypes.find((type) => type.name === "Basic")
+    setSelectedContractType(basicContractType)
+  }, [])
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -370,7 +378,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
         </div>
       )}
 
-      <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl ">
+      <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl overflow-hidden max-h-[90vh] sm:max-h-none">
         <div className="px-4 py-3 border-b border-gray-800 custom-scrollbar max-h-[10vh] sm:max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center">
             <h2 className="text-base open_sans_font_700 text-white">Add Contract</h2>
@@ -399,11 +407,11 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
             <div>
               <div className="space-y-4 mb-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Studio</label>
+                  <label className="text-xs text-gray-200 block pl-1">Lead</label>
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Search for studio..."
+                      placeholder="Search for lead..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
@@ -556,7 +564,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                   {currentPage === 0 ? (
                     <div className="bg-white rounded-lg p-6 relative font-sans">
                       <div className="flex justify-between items-start mb-6">
-                        <h1 className="text-black text-2xl font-bold">Studio Contract</h1>
+                        <h1 className="text-black text-2xl font-bold">Lead Contract</h1>
                         <div className="bg-gray-700 text-white p-4 w-40 h-20 flex items-center justify-center">
                           <span className="text-2xl font-bold">LOGO</span>
                         </div>
@@ -564,7 +572,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
 
                       <div className="mb-6">
                         <h2 className="text-gray-700 font-semibold mb-2 uppercase text-sm tracking-wide">
-                          STUDIO INFORMATION
+                          LEAD INFORMATION
                         </h2>
                         <div className="grid grid-cols-1 gap-2">
                           <div>
@@ -578,7 +586,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-gray-600 mb-1">Studio Owner Name</label>
+                            <label className="block text-xs text-gray-600 mb-1">Lead Name</label>
                             <input
                               type="text"
                               name="studioOwnerName"

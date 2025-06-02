@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -143,6 +145,10 @@ export default function Studios() {
   const [studioContracts, setStudioContracts] = useState(studioContractsData)
 
   const [studioFinances, setStudioFinances] = useState(studioFinanceData)
+
+  const [memberSearchQuery, setMemberSearchQuery] = useState("")
+  const [staffSearchQuery, setStaffSearchQuery] = useState("")
+  const [leadSearchQuery, setLeadSearchQuery] = useState("")
 
   const handleCloseModal = () => {
     setIsEditFranchiseModalOpen(false)
@@ -714,6 +720,40 @@ export default function Studios() {
     }
   }
 
+  const getFilteredMembers = () => {
+    if (!selectedStudioForModal || !studioMembers[selectedStudioForModal.id]) return []
+
+    return studioMembers[selectedStudioForModal.id].filter(
+      (member) =>
+        `${member.firstName} ${member.lastName}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+        member.email.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+        member.phone.includes(memberSearchQuery),
+    )
+  }
+
+  const getFilteredStaff = () => {
+    if (!selectedStudioForModal || !studioStaffs[selectedStudioForModal.id]) return []
+
+    return studioStaffs[selectedStudioForModal.id].filter(
+      (staff) =>
+        `${staff.firstName} ${staff.lastName}`.toLowerCase().includes(staffSearchQuery.toLowerCase()) ||
+        staff.email.toLowerCase().includes(staffSearchQuery.toLowerCase()) ||
+        staff.phone.includes(staffSearchQuery) ||
+        staff.role.toLowerCase().includes(staffSearchQuery.toLowerCase()),
+    )
+  }
+
+  const getFilteredLeads = () => {
+    if (!selectedStudioForModal || !studioLeads[selectedStudioForModal.id]) return []
+
+    return studioLeads[selectedStudioForModal.id].filter(
+      (lead) =>
+        `${lead.firstName} ${lead.surname}`.toLowerCase().includes(leadSearchQuery.toLowerCase()) ||
+        lead.email.toLowerCase().includes(leadSearchQuery.toLowerCase()) ||
+        lead.phoneNumber.includes(leadSearchQuery),
+    )
+  }
+
   return (
     <>
       <Toaster
@@ -1217,6 +1257,7 @@ export default function Studios() {
                   onClick={() => {
                     setIsMembersModalOpen(false)
                     setSelectedStudioForModal(null)
+                    setMemberSearchQuery("")
                   }}
                   className="text-gray-400 hover:text-white"
                 >
@@ -1224,8 +1265,21 @@ export default function Studios() {
                 </button>
               </div>
 
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type="text"
+                    placeholder="Search members by name, email, or phone..."
+                    value={memberSearchQuery}
+                    onChange={(e) => setMemberSearchQuery(e.target.value)}
+                    className="w-full bg-[#101010] pl-10 pr-4 py-2 text-sm outline-none rounded-lg text-white placeholder-gray-500 border border-slate-600"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
-                {studioMembers[selectedStudioForModal.id]?.map((member) => (
+                {getFilteredMembers().map((member) => (
                   <div
                     key={member.id}
                     className="bg-[#161616] rounded-xl lg:p-4 p-3 flex justify-between md:items-center items-start"
@@ -1275,6 +1329,7 @@ export default function Studios() {
                   onClick={() => {
                     setIsStaffsModalOpen(false)
                     setSelectedStudioForModal(null)
+                    setStaffSearchQuery("")
                   }}
                   className="text-gray-400 hover:text-white"
                 >
@@ -1282,8 +1337,21 @@ export default function Studios() {
                 </button>
               </div>
 
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type="text"
+                    placeholder="Search staff by name, email, phone, or role..."
+                    value={staffSearchQuery}
+                    onChange={(e) => setStaffSearchQuery(e.target.value)}
+                    className="w-full bg-[#101010] pl-10 pr-4 py-2 text-sm outline-none rounded-lg text-white placeholder-gray-500 border border-slate-600"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
-                {studioStaffs[selectedStudioForModal.id]?.map((staff) => (
+                {getFilteredStaff().map((staff) => (
                   <div key={staff.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
                     <div className="flex-1">
                       <div className="flex items-center gap-1">
@@ -1329,6 +1397,7 @@ export default function Studios() {
                   onClick={() => {
                     setIsLeadsModalOpen(false)
                     setSelectedStudioForModal(null)
+                    setLeadSearchQuery("")
                   }}
                   className="text-gray-400 hover:text-white"
                 >
@@ -1336,8 +1405,21 @@ export default function Studios() {
                 </button>
               </div>
 
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type="text"
+                    placeholder="Search leads by name, email, or phone..."
+                    value={leadSearchQuery}
+                    onChange={(e) => setLeadSearchQuery(e.target.value)}
+                    className="w-full bg-[#101010] pl-10 pr-4 py-2 text-sm outline-none rounded-lg text-white placeholder-gray-500 border border-slate-600"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
-                {studioLeads[selectedStudioForModal.id]?.map((lead) => (
+                {getFilteredLeads().map((lead) => (
                   <div key={lead.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">

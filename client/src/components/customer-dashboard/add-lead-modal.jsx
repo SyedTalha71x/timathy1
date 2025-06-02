@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X, Plus } from "lucide-react"
@@ -101,7 +99,7 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
               <div>
                 <label className="text-sm text-gray-200 block mb-2">Studio Owner First Name</label>
                 <input
