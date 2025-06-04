@@ -29,6 +29,8 @@ import {
   InfoCircleOutlined,
   BgColorsOutlined,
   SettingOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone,
 } from "@ant-design/icons"
 
 const { Option } = Select
@@ -36,6 +38,7 @@ const { TabPane } = Tabs
 const { TextArea } = Input
 const { Panel } = Collapse
 const { RangePicker } = DatePicker
+const { Password } = Input
 
 const inputStyle = {
   backgroundColor: "#101010",
@@ -226,6 +229,32 @@ const ConfigurationPage = () => {
     allowUserThemeToggle: true,
   })
 
+  // General settings
+  const [generalSettings, setGeneralSettings] = useState({
+    imprint: "",
+    privacyPolicy: "",
+    contactData: {
+      companyName: "",
+      address: "",
+      phone: "",
+      email: "",
+      website: "",
+    },
+    accountLogin: {
+      email: "",
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  })
+
+  // Lead sources
+  const [leadSources, setLeadSources] = useState([
+    { id: 1, name: "Website", description: "Leads from company website", isActive: true },
+    { id: 2, name: "Social Media", description: "Facebook, Instagram, etc.", isActive: true },
+    { id: 3, name: "Referral", description: "Word of mouth referrals", isActive: true },
+  ])
+
   // Fetch public holidays when country changes
   useEffect(() => {
     if (studioCountry) {
@@ -414,7 +443,7 @@ const ConfigurationPage = () => {
         duration: 12,
         cost: 0,
         billingPeriod: "monthly",
-        userCapacity: 0,
+        maximumMemberCapacity: 0,
       },
     ])
   }
@@ -481,6 +510,96 @@ const ConfigurationPage = () => {
     const updatedNotifications = [...appointmentNotifications]
     updatedNotifications[index][field] = value
     setAppointmentNotifications(updatedNotifications)
+  }
+
+  // General settings handlers
+  const handleUpdateGeneralSettings = (field, value) => {
+    setGeneralSettings({ ...generalSettings, [field]: value })
+  }
+
+  const handleUpdateContactData = (field, value) => {
+    setGeneralSettings({
+      ...generalSettings,
+      contactData: { ...generalSettings.contactData, [field]: value },
+    })
+  }
+
+  const handleUpdateAccountLogin = (field, value) => {
+    setGeneralSettings({
+      ...generalSettings,
+      accountLogin: { ...generalSettings.accountLogin, [field]: value },
+    })
+  }
+
+  const handleChangePassword = () => {
+    const { currentPassword, newPassword, confirmPassword } = generalSettings.accountLogin
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      notification.error({
+        message: "Missing Fields",
+        description: "Please fill in all password fields.",
+      })
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      notification.error({
+        message: "Password Mismatch",
+        description: "New password and confirm password do not match.",
+      })
+      return
+    }
+
+    if (newPassword.length < 8) {
+      notification.error({
+        message: "Weak Password",
+        description: "Password must be at least 8 characters long.",
+      })
+      return
+    }
+
+    // Here you would typically make an API call to change the password
+    notification.success({
+      message: "Password Changed",
+      description: "Your password has been successfully updated.",
+    })
+
+    // Clear password fields
+    setGeneralSettings({
+      ...generalSettings,
+      accountLogin: {
+        ...generalSettings.accountLogin,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      },
+    })
+  }
+
+  // Lead sources handlers
+  const handleAddLeadSource = () => {
+    const newId = Math.max(...leadSources.map((s) => s.id), 0) + 1
+    setLeadSources([
+      ...leadSources,
+      {
+        id: newId,
+        name: "",
+        description: "",
+        isActive: true,
+      },
+    ])
+  }
+
+  const handleUpdateLeadSource = (id, field, value) => {
+    setLeadSources(leadSources.map((source) => (source.id === id ? { ...source, [field]: value } : source)))
+  }
+
+  const handleRemoveLeadSource = (id) => {
+    setLeadSources(leadSources.filter((source) => source.id !== id))
+    notification.success({
+      message: "Lead Source Removed",
+      description: "Lead source has been successfully removed.",
+    })
   }
 
   return (
@@ -553,7 +672,7 @@ const ConfigurationPage = () => {
                         <Form.Item
                           label={
                             <div className="flex items-center">
-                              <span className="text-white white-text">User Capacity</span>
+                              <span className="text-white white-text">Maximum Member Capacity</span>
                               <Tooltip title="Maximum number of appointments a member can book per billing period">
                                 <InfoCircleOutlined style={tooltipStyle} />
                               </Tooltip>
@@ -562,10 +681,10 @@ const ConfigurationPage = () => {
                         >
                           <div className="white-text">
                             <InputNumber
-                              value={type.userCapacity || 0}
+                              value={type.maximumMemberCapacity || 0}
                               onChange={(value) => {
                                 const updated = [...contractTypes]
-                                updated[index].userCapacity = value || 0
+                                updated[index].maximumMemberCapacity = value || 0
                                 setContractTypes(updated)
                               }}
                               style={inputStyle}
@@ -925,6 +1044,199 @@ const ConfigurationPage = () => {
             </Panel>
           </Collapse>
         </TabPane>
+
+        <TabPane tab="General" key="4">
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Legal Information" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Imprint</span>}>
+                    <TextArea
+                      value={generalSettings.imprint}
+                      onChange={(e) => handleUpdateGeneralSettings("imprint", e.target.value)}
+                      rows={6}
+                      style={inputStyle}
+                      placeholder="Enter your company's imprint information..."
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Privacy Policy</span>}>
+                    <TextArea
+                      value={generalSettings.privacyPolicy}
+                      onChange={(e) => handleUpdateGeneralSettings("privacyPolicy", e.target.value)}
+                      rows={8}
+                      style={inputStyle}
+                      placeholder="Enter your privacy policy..."
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+
+            <Panel header="Contact Information" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Company Name</span>}>
+                    <Input
+                      value={generalSettings.contactData.companyName}
+                      onChange={(e) => handleUpdateContactData("companyName", e.target.value)}
+                      style={inputStyle}
+                      placeholder="Your Company Name"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Address</span>}>
+                    <TextArea
+                      value={generalSettings.contactData.address}
+                      onChange={(e) => handleUpdateContactData("address", e.target.value)}
+                      rows={3}
+                      style={inputStyle}
+                      placeholder="Company Address"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Phone</span>}>
+                    <Input
+                      value={generalSettings.contactData.phone}
+                      onChange={(e) => handleUpdateContactData("phone", e.target.value)}
+                      style={inputStyle}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Email</span>}>
+                    <Input
+                      value={generalSettings.contactData.email}
+                      onChange={(e) => handleUpdateContactData("email", e.target.value)}
+                      style={inputStyle}
+                      placeholder="contact@company.com"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Website</span>}>
+                    <Input
+                      value={generalSettings.contactData.website}
+                      onChange={(e) => handleUpdateContactData("website", e.target.value)}
+                      style={inputStyle}
+                      placeholder="https://www.company.com"
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+
+            <Panel header="Account Management" key="3" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Account Email</span>}>
+                    <Input
+                      value={generalSettings.accountLogin.email}
+                      onChange={(e) => handleUpdateAccountLogin("email", e.target.value)}
+                      style={inputStyle}
+                      placeholder="admin@company.com"
+                    />
+                  </Form.Item>
+                  <Divider style={{ borderColor: "#303030" }} />
+                  <h4 className="text-white font-medium">Change Password</h4>
+                  <Form.Item label={<span className="text-white">Current Password</span>}>
+                    <Password
+                      value={generalSettings.accountLogin.currentPassword}
+                      onChange={(e) => handleUpdateAccountLogin("currentPassword", e.target.value)}
+                      style={inputStyle}
+                      placeholder="Enter current password"
+                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">New Password</span>}>
+                    <Password
+                      value={generalSettings.accountLogin.newPassword}
+                      onChange={(e) => handleUpdateAccountLogin("newPassword", e.target.value)}
+                      style={inputStyle}
+                      placeholder="Enter new password"
+                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Confirm New Password</span>}>
+                    <Password
+                      value={generalSettings.accountLogin.confirmPassword}
+                      onChange={(e) => handleUpdateAccountLogin("confirmPassword", e.target.value)}
+                      style={inputStyle}
+                      placeholder="Confirm new password"
+                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    />
+                  </Form.Item>
+                  <Button onClick={handleChangePassword} style={saveButtonStyle}>
+                    Change Password
+                  </Button>
+                </Form>
+              </div>
+            </Panel>
+          </Collapse>
+        </TabPane>
+
+        <TabPane tab="Resources" key="5">
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Lead Sources" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg text-white font-medium">Manage Lead Sources</h3>
+                  <Button onClick={handleAddLeadSource} icon={<PlusOutlined />} style={saveButtonStyle}>
+                    Add Lead Source
+                  </Button>
+                </div>
+
+                {leadSources.map((source) => (
+                  <Collapse key={source.id} className="border border-[#303030] rounded-lg overflow-hidden">
+                    <Panel header={source.name || "New Lead Source"} key="1" className="bg-[#252525]">
+                      <Form layout="vertical">
+                        <Form.Item label={<span className="text-white">Source Name</span>}>
+                          <Input
+                            value={source.name}
+                            onChange={(e) => handleUpdateLeadSource(source.id, "name", e.target.value)}
+                            style={inputStyle}
+                            placeholder="e.g., Website, Social Media, Referral"
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Description</span>}>
+                          <TextArea
+                            value={source.description}
+                            onChange={(e) => handleUpdateLeadSource(source.id, "description", e.target.value)}
+                            rows={3}
+                            style={inputStyle}
+                            placeholder="Describe this lead source..."
+                          />
+                        </Form.Item>
+                        <Form.Item label={<span className="text-white">Active</span>}>
+                          <Switch
+                            checked={source.isActive}
+                            onChange={(checked) => handleUpdateLeadSource(source.id, "isActive", checked)}
+                          />
+                          <div className="text-xs text-gray-400 mt-1">
+                            Inactive sources won't appear in lead creation forms
+                          </div>
+                        </Form.Item>
+                      </Form>
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleRemoveLeadSource(source.id)}
+                          style={buttonStyle}
+                        >
+                          Remove Source
+                        </Button>
+                      </div>
+                    </Panel>
+                  </Collapse>
+                ))}
+
+                {leadSources.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400 mb-4">No lead sources configured yet.</p>
+                    <Button onClick={handleAddLeadSource} icon={<PlusOutlined />} style={saveButtonStyle}>
+                      Add Your First Lead Source
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </Panel>
+          </Collapse>
+        </TabPane>
       </Tabs>
 
       <div className="flex justify-end mt-4">
@@ -1213,6 +1525,22 @@ const styleOverrides = `
 
   .ant-alert-description {
     color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  /* Password Input Styles */
+  .ant-input-password {
+    background-color: #101010 !important;
+    border: none !important;
+    color: white !important;
+  }
+
+  .ant-input-password .ant-input {
+    background-color: #101010 !important;
+    color: white !important;
+  }
+
+  .ant-input-password .ant-input-suffix {
+    color: rgba(255, 255, 255, 0.5) !important;
   }
 `
 

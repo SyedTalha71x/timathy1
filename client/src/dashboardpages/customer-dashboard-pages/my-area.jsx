@@ -1,6 +1,8 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
 import {
@@ -13,15 +15,10 @@ import {
   ArrowDown,
   ArrowUp,
   Plus,
-  AlertTriangle,
-  Info,
-  CalendarIcon,
   ExternalLink,
 } from "lucide-react"
-import Rectangle1 from "../../../public/Rectangle 1.png"
 import Image10 from "../../../public/image10.png"
 import { Toaster, toast } from "react-hot-toast"
-import Avatar from "../../../public/avatar.png"
 import { WidgetSelectionModal } from "../../components/customer-dashboard/widgets"
 
 const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
@@ -55,7 +52,6 @@ const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEdit
   )
 }
 
-
 export default function MyArea() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -66,6 +62,7 @@ export default function MyArea() {
   const chartDropdownRef = useRef(null)
   const navigate = useNavigate()
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
+  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
 
   const [isEditing, setIsEditing] = useState(false)
   const [widgets, setWidgets] = useState([
@@ -74,6 +71,7 @@ export default function MyArea() {
     { id: "websiteLink", type: "websiteLink", position: 2 },
     { id: "expiringContracts", type: "expiringContracts", position: 3 },
   ])
+  const [rightWidgets, setRightWidgets] = useState([{ id: "todo", type: "todo", position: 0 }])
   const [customLinks, setCustomLinks] = useState([
     {
       id: "link1",
@@ -83,24 +81,7 @@ export default function MyArea() {
     { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
     { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
   ])
-  const [sidebarSections, setSidebarSections] = useState([{ id: "todo", title: "TO-DO" }])
-
-  const [communications, setCommunications] = useState([
-    {
-      id: 1,
-      name: "Jennifer Markus",
-      message: "Hey! Did you think the NFT marketplace for Alice app design?",
-      time: "Today | 05:30 PM",
-      avatar: Rectangle1,
-    },
-    {
-      id: 2,
-      name: "Alex Johnson",
-      message: "The new dashboard looks great! When can we review it?",
-      time: "Today | 03:15 PM",
-      avatar: Rectangle1,
-    },
-  ])
+  const [sidebarSections, setSidebarSections] = useState([])
 
   const [todos, setTodos] = useState([
     {
@@ -114,21 +95,6 @@ export default function MyArea() {
       title: "Team Meeting",
       description: "Weekly team sync",
       assignee: "Jack",
-    },
-  ])
-
-  const [birthdays, setBirthdays] = useState([
-    {
-      id: 1,
-      name: "Yolando",
-      date: "Mon | 02 01 2025",
-      avatar: Avatar,
-    },
-    {
-      id: 2,
-      name: "Alexandra",
-      date: "Tue | 02 02 2025",
-      avatar: Avatar,
     },
   ])
 
@@ -167,93 +133,15 @@ export default function MyArea() {
     },
   }
 
-  const [appointments, setAppointments] = useState([
-    {
-      id: 1,
-      name: "Yolanda",
-      time: "10:00 - 14:00",
-      date: "Mon | 03-08-2025",
-      color: "bg-[#4169E1]",
-      startTime: "10:00",
-      endTime: "14:00",
-      type: "Strength Training",
-      specialNote: {
-        text: "Prefers morning sessions",
-        startDate: null,
-        endDate: null,
-        isImportant: false,
-      },
-      status: "pending",
-      isTrial: false,
-    },
-    {
-      id: 2,
-      name: "Alexandra",
-      time: "10:00 - 18:00",
-      date: "Tue | 04-02-2025",
-      color: "bg-[#FF6B6B]",
-      startTime: "10:00",
-      endTime: "18:00",
-      type: "Cardio",
-      specialNote: {
-        text: "",
-        startDate: null,
-        endDate: null,
-        isImportant: false,
-      },
-      status: "pending",
-      isTrial: true,
-    },
-    {
-      id: 3,
-      name: "Marcus",
-      time: "14:00 - 16:00",
-      date: "Wed | 05-02-2025",
-      color: "bg-[#50C878]",
-      startTime: "14:00",
-      endTime: "16:00",
-      type: "Yoga",
-      specialNote: {
-        text: "",
-        startDate: null,
-        endDate: null,
-        isImportant: false,
-      },
-      status: "pending",
-      isTrial: false,
-    },
-    {
-      id: 4,
-      name: "John",
-      time: "14:00 - 16:00",
-      date: "Thu | 06-02-2025",
-      color: "bg-[#50C878]",
-      startTime: "14:00",
-      endTime: "16:00",
-      type: "Yoga",
-      specialNote: {
-        text: "",
-        startDate: null,
-        endDate: null,
-        isImportant: false,
-      },
-      status: "pending",
-      isTrial: false,
-    },
-  ])
-
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
   const [freeAppointments, setFreeAppointments] = useState([])
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
-  const redirectToTodos = () => navigate("/dashboard/to-do")
-  const redirectToCommunication = () => navigate("/dashboard/communication")
+  const redirectToTodos = () => navigate("/customer-dashboard/to-do")
   const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   const toggleEditing = () => setIsEditing(!isEditing)
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
-  const [notifyAction, setNotifyAction] = useState("change")
 
   const moveWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= widgets.length) return
@@ -265,6 +153,18 @@ export default function MyArea() {
 
   const removeWidget = (id) => {
     setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
+  }
+
+  const moveRightWidget = (fromIndex, toIndex) => {
+    if (toIndex < 0 || toIndex >= rightWidgets.length) return
+    const newWidgets = [...rightWidgets]
+    const [movedWidget] = newWidgets.splice(fromIndex, 1)
+    newWidgets.splice(toIndex, 0, movedWidget)
+    setRightWidgets(newWidgets.map((w, i) => ({ ...w, position: i })))
+  }
+
+  const removeRightWidget = (id) => {
+    setRightWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
   }
 
   const [editingLink, setEditingLink] = useState(null)
@@ -289,7 +189,7 @@ export default function MyArea() {
       }
       const newSections = [...currentSections]
       const swap = direction === "up" ? index - 1 : index + 1
-        ;[newSections[index], newSections[swap]] = [newSections[swap], newSections[index]]
+      ;[newSections[index], newSections[swap]] = [newSections[swap], newSections[index]]
       return newSections
     })
   }
@@ -302,7 +202,7 @@ export default function MyArea() {
       }
       const newLinks = [...currentLinks]
       const swap = direction === "up" ? index - 1 : index + 1
-        ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
+      ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
       return newLinks
     })
   }
@@ -322,6 +222,18 @@ export default function MyArea() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
+
+  // Update sidebar sections based on right widgets
+  useEffect(() => {
+    const newSections = rightWidgets.map((widget) => {
+      if (widget.type === "todo") {
+        return { id: "todo", title: "TO-DO" }
+      }
+      // Add other widget types as needed
+      return { id: widget.id, title: widget.type.charAt(0).toUpperCase() + widget.type.slice(1) }
+    })
+    setSidebarSections(newSections)
+  }, [rightWidgets])
 
   const chartOptions = {
     chart: {
@@ -486,8 +398,9 @@ export default function MyArea() {
               <button
                 onClick={handleSave}
                 disabled={!title.trim() || !url.trim()}
-                className={`px-4 py-2 text-sm rounded-xl ${!title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                  }`}
+                className={`px-4 py-2 text-sm rounded-xl ${
+                  !title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                }`}
               >
                 Save
               </button>
@@ -511,9 +424,23 @@ export default function MyArea() {
     toast.success(`${widgetType} widget has been added Successfully`)
   }
 
-  // Updated canAddWidget function to check if a widget type is already added
+  const handleAddRightWidget = (widgetType) => {
+    const newWidget = {
+      id: `widget${Date.now()}`,
+      type: widgetType,
+      position: rightWidgets.length,
+    }
+    setRightWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    setIsRightWidgetModalOpen(false)
+    toast.success(`${widgetType} widget has been added to sidebar Successfully`)
+  }
+
+  // Updated canAddWidget function to check if a widget type is already added in either sidebar
   const canAddWidget = (widgetType) => {
-    return !widgets.some((widget) => widget.type === widgetType)
+    return (
+      !widgets.some((widget) => widget.type === widgetType) &&
+      !rightWidgets.some((widget) => widget.type === widgetType)
+    )
   }
 
   const notePopoverRef = useRef(null)
@@ -578,9 +505,9 @@ export default function MyArea() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <button onClick={toggleSidebar} className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden">
+                {/* <button onClick={toggleSidebar} className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden">
                   <BarChart3 />
-                </button>
+                </button> */}
                 <h1 className="text-xl font-bold">My Area</h1>
               </div>
               <div className="flex items-center gap-2">
@@ -593,10 +520,17 @@ export default function MyArea() {
                 </button>
                 <button
                   onClick={toggleEditing}
-                  className={`p-2 ${isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                    } rounded-lg flex items-center gap-1`}
+                  className={`p-2 ${
+                    isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                  } rounded-lg flex items-center gap-1`}
                 >
                   {isEditing ? <Check size={16} /> : <Edit size={16} />}
+                </button>
+                <button
+                  onClick={toggleRightSidebar}
+                  className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden"
+                >
+                  <BarChart3 className="rotate-180" />
                 </button>
               </div>
             </div>
@@ -644,7 +578,9 @@ export default function MyArea() {
                         )}
                       </div>
                       <div className="overflow-x-auto">
-                        <div className="min-w-[600px]"> {/* Set minimum width to ensure chart doesn't get squeezed */}
+                        <div className="min-w-[600px]">
+                          {" "}
+                          {/* Set minimum width to ensure chart doesn't get squeezed */}
                           <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
                         </div>
                       </div>
@@ -758,24 +694,25 @@ export default function MyArea() {
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
                           <div className="grid grid-cols-1 gap-3">
                             {expiringContracts.map((contract) => (
-                              <Link to={"/customer-dashboard/contract"}  key={contract.id}>
-                              <div className="p-4 bg-black rounded-xl">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <h3 className="text-sm font-medium">{contract.title}</h3>
-                                    <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
-                                  </div>
-                                  <span
-                                    className={`px-2 py-1 text-xs rounded-full ${contract.status === "Expiring Soon"
-                                      ? "bg-yellow-500/20 text-yellow-400"
-                                      : "bg-green-500/20 text-green-400"
-                                    }`}
+                              <Link to={"/customer-dashboard/contract"} key={contract.id}>
+                                <div className="p-4 bg-black rounded-xl">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h3 className="text-sm font-medium">{contract.title}</h3>
+                                      <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
+                                    </div>
+                                    <span
+                                      className={`px-2 py-1 text-xs rounded-full ${
+                                        contract.status === "Expiring Soon"
+                                          ? "bg-yellow-500/20 text-yellow-400"
+                                          : "bg-green-500/20 text-green-400"
+                                      }`}
                                     >
-                                    {contract.status}
-                                  </span>
+                                      {contract.status}
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
-                                    </Link>
+                              </Link>
                             ))}
                           </div>
                         </div>
@@ -798,39 +735,59 @@ export default function MyArea() {
         >
           <div className="p-4 md:p-5 h-full overflow-y-auto">
             {/* Close button for mobile */}
-            <button
-              onClick={toggleRightSidebar}
-              className="absolute top-4 right-4 p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl md:hidden"
-              aria-label="Close sidebar"
-            >
-              <X size={20} />
-            </button>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Sidebar</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsRightWidgetModalOpen(true)}
+                  className="p-2 bg-black text-white hover:bg-zinc-900 rounded-lg text-sm cursor-pointer flex items-center"
+                >
+                  <Plus size={16} />
+                </button>
+                <button
+                  onClick={toggleRightSidebar}
+                  className="p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl md:hidden"
+                  aria-label="Close sidebar"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
 
-            {sidebarSections.map((section, index) => (
-              <div key={section.id} className="mb-6 mt-8 md:mt-5 relative">
+            {rightWidgets.map((widget, index) => (
+              <div key={widget.id} className="mb-6 relative">
+                {isEditing && (
+                  <div className="absolute top-0 right-0 z-10 flex gap-2">
+                    <button
+                      onClick={() => moveRightWidget(index, index - 1)}
+                      className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
+                      disabled={index === 0}
+                    >
+                      <ArrowUp size={12} />
+                    </button>
+                    <button
+                      onClick={() => moveRightWidget(index, index + 1)}
+                      className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
+                      disabled={index === rightWidgets.length - 1}
+                    >
+                      <ArrowDown size={12} />
+                    </button>
+                    <button
+                      onClick={() => removeRightWidget(widget.id)}
+                      className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">{section.title}</h2>
-                  {isEditing && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => moveSidebarSection(section.id, "up")}
-                        className="p-1 bg-zinc-700 rounded-md hover:bg-zinc-600"
-                        disabled={index === 0}
-                      >
-                        <ArrowUp size={16} />
-                      </button>
-                      <button
-                        onClick={() => moveSidebarSection(section.id, "down")}
-                        className="p-1 bg-zinc-700 rounded-md hover:bg-zinc-600"
-                        disabled={index === sidebarSections.length - 1}
-                      >
-                        <ArrowDown size={16} />
-                      </button>
-                    </div>
-                  )}
+                  <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">
+                    {widget.type === "todo" ? "TO-DO" : widget.type.charAt(0).toUpperCase() + widget.type.slice(1)}
+                  </h2>
                 </div>
 
-                {section.id === "todo" && (
+                {widget.type === "todo" && (
                   <div className="space-y-3 open_sans_font">
                     {todos.map((todo) => (
                       <div
@@ -859,6 +816,19 @@ export default function MyArea() {
                 )}
               </div>
             ))}
+
+            {rightWidgets.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-40 text-zinc-400">
+                <p className="mb-4">No widgets added to sidebar</p>
+                <button
+                  onClick={() => setIsRightWidgetModalOpen(true)}
+                  className="py-2 px-4 bg-black text-white hover:bg-zinc-900 rounded-xl text-sm cursor-pointer flex items-center gap-1"
+                >
+                  <Plus size={16} />
+                  <span>Add Widget</span>
+                </button>
+              </div>
+            )}
           </div>
         </aside>
         {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
@@ -866,6 +836,12 @@ export default function MyArea() {
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
           onSelectWidget={handleAddWidget}
+          canAddWidget={canAddWidget}
+        />
+        <WidgetSelectionModal
+          isOpen={isRightWidgetModalOpen}
+          onClose={() => setIsRightWidgetModalOpen(false)}
+          onSelectWidget={handleAddRightWidget}
           canAddWidget={canAddWidget}
         />
       </div>

@@ -10,6 +10,8 @@ import { CancelContractModal } from "../../components/customer-dashboard/cancel-
 import { EditContractModal } from "../../components/customer-dashboard/edit-contract-modal"
 import { DocumentManagementModal } from "../../components/customer-dashboard/document-management-modal"
 import { BonusTimeModal } from "../../components/customer-dashboard/bonus-time-modal"
+import { RenewContractModal } from "../../components/customer-dashboard/reniew-contract-modal"
+import { ChangeContractModal } from "../../components/customer-dashboard/change-contract-modal"
 
 const initialStudioContracts = [
   {
@@ -146,6 +148,8 @@ export default function ContractList() {
   const [selectedLead, setSelectedLead] = useState(null)
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const [isBonusTimeModalOpen, setIsBonusTimeModalOpen] = useState(false)
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false)
+  const [isChangeModalOpen, setIsChangeModalOpen] = useState(false)
 
   // Update filtered contracts when selectedFilter, contracts, or searchTerm change
   useEffect(() => {
@@ -243,11 +247,6 @@ export default function ContractList() {
     toast.success("Contract has been cancelled")
   }
 
-  const handleEditContract = (contractId) => {
-    setSelectedContract(contracts.find((contract) => contract.id === contractId))
-    setIsEditModalOpen(true)
-  }
-
   const handleSaveEditedContract = (updatedContract) => {
     const updatedContracts = contracts.map((c) => (c.id === updatedContract.id ? updatedContract : c))
     setContracts(updatedContracts)
@@ -295,6 +294,61 @@ export default function ContractList() {
   const handleAddBonusTime = (contractId) => {
     setSelectedContract(contracts.find((contract) => contract.id === contractId))
     setIsBonusTimeModalOpen(true)
+  }
+
+  const handleRenewContract = (contractId) => {
+    setSelectedContract(contracts.find((contract) => contract.id === contractId))
+    setIsRenewModalOpen(true)
+  }
+
+  const handleChangeContract = (contractId) => {
+    setSelectedContract(contracts.find((contract) => contract.id === contractId))
+    setIsChangeModalOpen(true)
+  }
+
+  const handleRenewSubmit = (renewalData) => {
+    setIsRenewModalOpen(false)
+    if (selectedContract) {
+      // Calculate new end date based on renewal duration
+      const startDate = renewalData.startAfterCurrent
+        ? new Date(selectedContract.endDate)
+        : new Date(renewalData.customStartDate)
+
+      const endDate = new Date(startDate)
+      endDate.setMonth(endDate.getMonth() + Number.parseInt(renewalData.duration))
+
+      const updatedContracts = contracts.map((contract) =>
+        contract.id === selectedContract.id
+          ? {
+              ...contract,
+              contractType: renewalData.contractType,
+              endDate: endDate.toISOString().split("T")[0],
+              status: "Active",
+            }
+          : contract,
+      )
+      setContracts(updatedContracts)
+    }
+    setSelectedContract(null)
+    toast.success("Contract renewed successfully")
+  }
+
+  const handleChangeSubmit = (changeData) => {
+    setIsChangeModalOpen(false)
+    if (selectedContract) {
+      const updatedContracts = contracts.map((contract) =>
+        contract.id === selectedContract.id
+          ? {
+              ...contract,
+              contractType: changeData.newContractType,
+              // You might want to update other fields based on the change
+            }
+          : contract,
+      )
+      setContracts(updatedContracts)
+    }
+    setSelectedContract(null)
+    toast.success("Contract changed successfully")
   }
 
   return (
@@ -414,10 +468,17 @@ export default function ContractList() {
                 </span>
 
                 <span className="text-white font-medium">{contract.studioName}</span>
-                <span className="text-sm text-gray-400">{contract.studioOwnerName}</span>
-                <span className="text-sm text-gray-400">{contract.contractType}</span>
+                <span className="text-sm text-gray-400 mt-1">
+                  <span className="font-semibold text-gray-300">Owner Name: </span>
+                  {contract.studioOwnerName}
+                </span>
                 <span className="text-sm text-gray-400">
-                  {contract.startDate} - {contract.endDate}
+                  {" "}
+                  <span className="font-semibold text-gray-300">Contract Type:</span> {contract.contractType}
+                </span>
+                <span className="text-sm text-gray-400">
+                  <span className="font-semibold text-gray-300">Contract Duration:</span> {contract.startDate} -{" "}
+                  {contract.endDate}
                 </span>
                 <span className="text-sm text-gray-400">{contract.isDigital ? "Digital" : "Analog"}</span>
               </div>
@@ -446,8 +507,17 @@ export default function ContractList() {
 
                   {activeDropdownId === contract.id && (
                     <div className="dropdown-menu absolute right-0 sm:right-3 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
-                      <button className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left">
+                      <button
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                        onClick={() => handleRenewContract(contract.id)}
+                      >
                         Renew Contract
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                        onClick={() => handleChangeContract(contract.id)}
+                      >
+                        Change Contract
                       </button>
                       <button
                         className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
@@ -549,6 +619,23 @@ export default function ContractList() {
               setIsBonusTimeModalOpen(false)
               toast.success("Bonus time added successfully")
             }}
+          />
+        )}
+        {/* Renew Contract Modal */}
+        {isRenewModalOpen && selectedContract && (
+          <RenewContractModal
+            contract={selectedContract}
+            onClose={() => setIsRenewModalOpen(false)}
+            onSubmit={handleRenewSubmit}
+          />
+        )}
+
+        {/* Change Contract Modal */}
+        {isChangeModalOpen && selectedContract && (
+          <ChangeContractModal
+            contract={selectedContract}
+            onClose={() => setIsChangeModalOpen(false)}
+            onSubmit={handleChangeSubmit}
           />
         )}
       </div>

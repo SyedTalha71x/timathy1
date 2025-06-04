@@ -682,13 +682,6 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      {/* Amount header */}
-      <div className="mb-4">
-        <div className="bg-[#141414] p-3 rounded-xl">
-          <h3 className="text-white font-medium text-center">Amount (USD)</h3>
-          <p className="text-gray-400 text-sm text-center mt-1">All amounts are displayed in US Dollars</p>
-        </div>
-      </div>
 
       {/* Transactions table */}
       <div className="overflow-x-auto">

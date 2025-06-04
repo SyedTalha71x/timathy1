@@ -1,12 +1,13 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { MoreHorizontal, Tag, Calendar } from "lucide-react"
-import Avatar from "../../../public/image10.png"
 import EditTaskModal from "./edit-task-modal"
 import { Toaster, toast } from "react-hot-toast"
 
-export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
+export default function TaskItem({ task, onStatusChange, onUpdate, onRemove, getTagColor }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -56,7 +57,6 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
     }
   }
 
-
   // Format datetime display
   const formatDateTime = () => {
     let display = ""
@@ -102,18 +102,6 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
             </div>
             <div className="flex relative">
               <div className="lg:flex flex-col hidden md:flex-row gap-2">
-                {/* {task.assignees && task.assignees.length > 0 ? (
-                  <div className="bg-[#3F74FF] text-white px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 w-full justify-center">
-                    <img src={Avatar || "/placeholder.svg"} alt="" className="w-4 h-4 rounded-full" />
-                    <span className="truncate">{task.assignees.join(", ")}</span>
-                  </div>
-                ) : task.roles && task.roles.length > 0 ? (
-                  <div className="bg-[#3F74FF] text-white px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 w-full justify-center">
-                    <img src={Avatar || "/placeholder.svg"} alt="" className="w-4 h-4 rounded-full" />
-                    <span className="truncate">{task.roles.join(", ")}</span>
-                  </div>
-                ) : null} */}
-
                 {/* Date and time button */}
                 <button className="bg-[#2F2F2F] text-gray-300 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 w-full justify-center">
                   <Calendar size={12} />
@@ -170,36 +158,23 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
 
           <div className="flex flex-wrap ml-7 gap-1.5">
             {task.tags &&
-              task.tags.map((tag, index) =>
-                tag ? (
-                  <span
-                    key={index}
-                    className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded-md text-xs flex items-center gap-1"
-                  >
-                    <Tag size={10} />
-                    {tag}
+              task.tags.map((tag, index) => {
+                if (!tag) return null
+
+                const tagColor = getTagColor ? getTagColor(tag) : "#FFFFFF"
+
+                return (
+                  <span key={index} className="bg-[#2F2F2F] px-2 py-1 rounded-md text-xs flex items-center gap-1">
+                    <Tag size={10} style={{ color: tagColor }} />
+                    <span style={{ color: tagColor }}>{tag}</span>
                   </span>
-                ) : null,
-              )}
+                )
+              })}
           </div>
         </div>
 
         {/* Mobile buttons - shown below description on small screens */}
         <div className="lg:hidden mt-4 flex flex-col gap-2 ml-7">
-          {/* Mobile Assignees display */}
-          {task.assignees && task.assignees.length > 0 ? (
-            <button className="bg-[#3F74FF] text-white px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 justify-center w-full">
-              <img src={Avatar || "/placeholder.svg"} alt="" className="w-4 h-4 rounded-full" />
-              <span className="truncate">{task.assignees.join(", ")}</span>
-            </button>
-          ) : task.roles && task.roles.length > 0 ? (
-            <button className="bg-[#3F74FF] text-white px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 justify-center w-full">
-              <img src={Avatar || "/placeholder.svg"} alt="" className="w-4 h-4 rounded-full" />
-              <span className="truncate">{task.roles.join(", ")}</span>
-            </button>
-          ) : null}
-
-          {/* Mobile date and time */}
           <button className="bg-[#2F2F2F] text-gray-300 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 justify-center w-full">
             <Calendar size={12} />
             <span className="truncate">{formatDateTime()}</span>
@@ -238,4 +213,3 @@ export default function TaskItem({ task, onStatusChange, onUpdate, onRemove }) {
     </>
   )
 }
-

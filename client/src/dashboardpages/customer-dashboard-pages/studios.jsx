@@ -998,7 +998,7 @@ export default function Studios() {
                                 </p>
                               </div>
                               <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
-                                Contract: {studio.contractStart} -{" "}
+                                Contract Period: {studio.contractStart} -{" "}
                                 <span className={isContractExpiringSoon(studio.contractEnd) ? "text-red-500" : ""}>
                                   {studio.contractEnd}
                                 </span>
