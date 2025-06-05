@@ -2,9 +2,9 @@ import React from "react"
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
-import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2 } from "lucide-react"
+import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Settings, Plus } from "lucide-react"
 import Draggable from "react-draggable"
-import { AddLeadModal } from '../../components/customer-dashboard/add-lead-modal'
+import { AddLeadModal } from "../../components/customer-dashboard/add-lead-modal"
 import { EditLeadModal } from "../../components/customer-dashboard/studios-modal/edit-lead-modal"
 import ViewLeadDetailsModal from "../../components/customer-dashboard/view-lead-details"
 import { AddLeadContractModal } from "../../components/customer-dashboard/add-lead-contract-modal"
@@ -48,9 +48,7 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
     })
   }
 
-
-  const hasValidNote = lead.specialNote && lead.specialNote.text 
-  // console.log(hasValidNote);
+  const hasValidNote = lead.specialNote
 
   const handleDragStart = () => {
     setIsDragging(true)
@@ -71,14 +69,14 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
     >
       <div
         ref={nodeRef}
-        className={`bg-[#1C1C1C] rounded-xl p-4  mb-3 cursor-grab ${isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
+        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
           }`}
       >
         <div className="flex items-center mb-3 relative">
           {hasValidNote && (
             <div
               className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-                } rounded-full p-1 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag`}
+                } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer no-drag z-10`}
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
@@ -147,7 +145,7 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
           )}
 
           <div className="flex-1 mt-6">
-            <h5 className="font-bold text-lg mb-1 text-white">{lead.studioName}</h5>
+            <h5 className="font-bold text-lg mb-1 text-white min-h-[28px]">{lead.studioName || "No Studio Name"}</h5>
             <h4 className="font-medium text-gray-200">{`${lead.firstName} ${lead.surname}`}</h4>
             <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
             <p className="text-gray-400 text-sm">{lead.email}</p>
@@ -155,9 +153,6 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
               Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
             </p>
           </div>
-
-          {/* Three-dot menu */}
-
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -166,7 +161,7 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
           >
             Create Contract
           </button>
-          <div className="">
+          <div className="relative">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-1 rounded-md cursor-pointer bg-black text-white no-drag"
@@ -177,7 +172,7 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
             {isMenuOpen && (
               <div
                 ref={menuRef}
-                className="absolute right-0 top-10 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-40 no-drag"
+                className="absolute bottom-5 right-5 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-60 w-40 "
               >
                 <button
                   onClick={() => {
@@ -366,6 +361,7 @@ const EditColumnModal = ({ isVisible, onClose, column, onSave }) => {
   )
 }
 
+
 // Confirmation Modal
 const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
   if (!isVisible) return null
@@ -395,8 +391,21 @@ export default function LeadManagement() {
     { id: "passive", title: "Passive prospect", color: "#f59e0b" },
     { id: "uninterested", title: "Uninterested", color: "#ef4444" },
     { id: "missed", title: "Missed Call", color: "#8b5cf6" },
-    { id: "trial", title: "Trial Training Arranged", color: "#3b82f6" }, // Made editable by removing isFixed
+    { id: "trial", title: "Trial Training Arranged", color: "#3b82f6" },
   ])
+
+  // Default lead sources
+  const defaultSources = [
+    "Website",
+    "Google Ads",
+    "Social Media Ads",
+    "Email Campaign",
+    "Cold Call (Outbound)",
+    "Inbound Call",
+    "Event",
+    "Offline Advertising",
+    "Other",
+  ]
 
   // States from original component
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -410,6 +419,8 @@ export default function LeadManagement() {
   const [selectedColumn, setSelectedColumn] = useState(null)
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false)
   const [leadToDeleteId, setLeadToDeleteId] = useState(null)
+  const [isSourceConfigModalOpen, setIsSourceConfigModalOpen] = useState(false)
+  const [leadSources, setLeadSources] = useState(defaultSources)
 
   const columnRefs = useRef({})
 
@@ -421,6 +432,14 @@ export default function LeadManagement() {
     })
   }, [columns])
 
+  // Load lead sources from localStorage
+  useEffect(() => {
+    const storedSources = localStorage.getItem("leadSources")
+    if (storedSources) {
+      setLeadSources(JSON.parse(storedSources))
+    }
+  }, [])
+
   const hardcodedLeads = [
     {
       id: "h1",
@@ -431,7 +450,7 @@ export default function LeadManagement() {
       trialPeriod: "Trial Period",
       hasTrialTraining: true,
       avatar: Avatar,
-      source: "hardcoded",
+      source: "Website",
       status: "active",
       about: "Software Engineer",
       createdAt: "2025-01-15T10:30:00Z",
@@ -459,7 +478,7 @@ export default function LeadManagement() {
       trialPeriod: "Trial Period",
       hasTrialTraining: false,
       avatar: Avatar,
-      source: "hardcoded",
+      source: "Google Ads",
       status: "passive",
       createdAt: "2025-01-20T14:45:00Z",
       specialNote: {
@@ -486,7 +505,7 @@ export default function LeadManagement() {
       trialPeriod: "Trial Period",
       hasTrialTraining: true,
       avatar: Avatar,
-      source: "hardcoded",
+      source: "Social Media Ads",
       status: "active",
       createdAt: "2025-01-25T09:15:00Z",
       specialNote: {
@@ -513,7 +532,7 @@ export default function LeadManagement() {
       trialPeriod: "Trial Period",
       hasTrialTraining: false,
       avatar: Avatar,
-      source: "hardcoded",
+      source: "Email Campaign",
       status: "uninterested",
       createdAt: "2025-02-01T11:20:00Z",
       specialNote: {
@@ -523,7 +542,7 @@ export default function LeadManagement() {
         endDate: "2025-05-01",
       },
       columnId: "uninterested",
-      studioName: "Studio Name XYZ..",
+      studioName: "",
       street: "321 Elm St",
       zipCode: "98765",
       city: "Miami",
@@ -541,7 +560,7 @@ export default function LeadManagement() {
     if (storedLeads) {
       const parsedStoredLeads = JSON.parse(storedLeads).map((lead) => ({
         ...lead,
-        source: "localStorage",
+        source: lead.source || "Other",
         columnId: lead.columnId || (lead.hasTrialTraining ? "trial" : lead.status || "passive"),
       }))
       combinedLeads = [...hardcodedLeads, ...parsedStoredLeads]
@@ -597,7 +616,7 @@ export default function LeadManagement() {
       trialPeriod: data.trialPeriod,
       hasTrialTraining: data.hasTrialTraining,
       avatar: data.avatar,
-      source: "localStorage",
+      source: data.source || "Other",
       status: data.status || "passive",
       columnId: data.hasTrialTraining ? "trial" : data.status || "passive",
       createdAt: now,
@@ -638,6 +657,7 @@ export default function LeadManagement() {
           trialPeriod: data.trialPeriod,
           hasTrialTraining: data.hasTrialTraining,
           avatar: data.avatar,
+          source: data.source || lead.source || "Other",
           status: data.status || lead.status,
           columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
           studioName: data.studioName,
@@ -776,6 +796,14 @@ export default function LeadManagement() {
     setSelectedColumn(null)
   }
 
+  // Handle source configuration
+  const handleSaveSources = (newSources) => {
+    setLeadSources(newSources)
+    localStorage.setItem("leadSources", JSON.stringify(newSources))
+    setIsSourceConfigModalOpen(false)
+    toast.success("Lead sources updated")
+  }
+
   // Filter leads based on search query
   const filteredLeads = leads.filter((lead) => {
     const fullName = `${lead.firstName} ${lead.surname}`.toLowerCase()
@@ -799,21 +827,24 @@ export default function LeadManagement() {
         }}
       />
 
-      <div className="flex  gap-2 justify-between md:items-center items-start mb-6">
+      <div className="flex gap-2 justify-between md:items-center items-start mb-6">
         <h1 className="text-2xl text-white font-bold">Leads</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl"
-        >
-          Create Lead
-        </button>
-      </div>
+        <div className="flex gap-2">
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#FF843E] cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
+          >
+            <Plus size={18} />
+            <span className="open_sans_font">Create Lead</span>
+          </button>
+        </div>      </div>
 
       <div className="mb-6 relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         <input
           type="text"
-          placeholder="Search leads..."
+          placeholder="Search leads by name, email, phone…"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
@@ -834,7 +865,7 @@ export default function LeadManagement() {
             onEditLead={handleEditLead}
             onDeleteLead={handleDeleteLead}
             onDragStop={handleDragStop}
-            isEditable={true} // All columns are now editable
+            isEditable={true}
             onEditColumn={handleEditColumn}
             columnRef={columnRefs.current[column.id]}
           />
@@ -842,7 +873,12 @@ export default function LeadManagement() {
       </div>
 
       {/* Modals */}
-      <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
+      <AddLeadModal
+        isVisible={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveLead}
+        leadSources={leadSources}
+      />
 
       {isEditModalOpen && (
         <EditLeadModal
@@ -853,6 +889,7 @@ export default function LeadManagement() {
           }}
           onSave={handleSaveEdit}
           leadData={selectedLead}
+          leadSources={leadSources}
         />
       )}
 
@@ -886,6 +923,7 @@ export default function LeadManagement() {
         column={selectedColumn}
         onSave={handleSaveColumn}
       />
+
 
       <ConfirmationModal
         isVisible={isDeleteConfirmationModalOpen}

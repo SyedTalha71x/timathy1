@@ -373,7 +373,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
       <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl ">
         <div className="px-4 py-3 border-b border-gray-800 custom-scrollbar max-h-[10vh] sm:max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center">
-            <h2 className="text-base open_sans_font_700 text-white">Add Contract</h2>
+            <h2 className="text-base open_sans_font_700 text-white">Add Contract</h2> 
             <div className="flex items-center gap-2">
               {!showFormView && (
                 <button

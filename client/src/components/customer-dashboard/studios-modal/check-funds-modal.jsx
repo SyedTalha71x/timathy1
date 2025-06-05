@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable react/prop-types */
 import { Check, X } from "lucide-react"
 import { useEffect, useState } from "react"

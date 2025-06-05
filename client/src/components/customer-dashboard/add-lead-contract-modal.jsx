@@ -414,9 +414,12 @@ export function AddLeadContractModal({ onClose, onSave, leadData = null }) {
                       placeholder="Search for lead..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      readOnly={leadData && leadData.studioName}
+                      className={`w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 ${
+                        leadData && leadData.studioName ? "cursor-not-allowed opacity-75" : ""
+                      }`}
                     />
-                    {filteredLeads.length > 0 && (
+                    {filteredLeads.length > 0 && !(leadData && leadData.studioName) && (
                       <div className="absolute top-full left-0 right-0 bg-[#101010] mt-1 rounded-xl z-10 shadow-lg max-h-40 overflow-y-auto">
                         {filteredLeads.map((lead) => (
                           <div
@@ -582,7 +585,10 @@ export function AddLeadContractModal({ onClose, onSave, leadData = null }) {
                               name="studioName"
                               value={contractData.studioName}
                               onChange={handleInputChange}
-                              className="w-full border border-gray-300 rounded p-2 text-black"
+                              readOnly={leadData && leadData.studioName}
+                              className={`w-full border border-gray-300 rounded p-2 text-black ${
+                                leadData && leadData.studioName ? "bg-gray-100 cursor-not-allowed" : ""
+                              }`}
                             />
                           </div>
                           <div>

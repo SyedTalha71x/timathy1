@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable react/prop-types */
 import { Calendar, Download, X, Edit } from "lucide-react"
 import { useEffect, useState } from "react"

@@ -920,7 +920,6 @@ export default function Appointments() {
 
   const [filteredAppointments, setFilteredAppointments] = useState(appointments)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
-  const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
 
   useEffect(() => {
@@ -1050,11 +1049,6 @@ export default function Appointments() {
     })
   }
 
-  const handleRemoveAppointment = (appointment) => {
-    setAppointmentToRemove(appointment)
-    setIsConfirmCancelOpen(true)
-    setActiveDropdownId(null)
-  }
 
   const confirmRemoveAppointment = () => {
     setIsConfirmCancelOpen(false)

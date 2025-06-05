@@ -1,9 +1,11 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X, Plus } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
-export function AddLeadModal({ isVisible, onClose, onSave }) {
+export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
   const [formData, setFormData] = useState({
     studioOwnerFirstName: "",
     studioOwnerLastName: "",
@@ -21,6 +23,7 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
     noteImportance: "unimportant",
     status: "passive",
     studioName: "",
+    source: "",
   })
 
   const handleChange = (e) => {
@@ -46,6 +49,7 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
       website: formData.website,
       about: formData.about,
       studioName: formData.studioName,
+      source: formData.source,
       specialNote: {
         text: formData.note,
         startDate: formData.noteStartDate,
@@ -146,6 +150,24 @@ export function AddLeadModal({ isVisible, onClose, onSave }) {
                 required
                 className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
               />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Source</label>
+              <select
+                name="source"
+                value={formData.source}
+                onChange={handleChange}
+                required
+                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+              >
+                <option value="">Select source</option>
+                {leadSources.map((source, index) => (
+                  <option key={index} value={source}>
+                    {source}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>

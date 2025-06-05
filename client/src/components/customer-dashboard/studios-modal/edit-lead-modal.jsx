@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
-export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
+export function EditLeadModal({ isVisible, onClose, onSave, leadData, leadSources = [] }) {
   const [formData, setFormData] = useState({
     studioOwnerFirstName: "",
     studioOwnerLastName: "",
@@ -22,6 +22,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
     noteImportance: "unimportant",
     status: "passive",
     studioName: "",
+    source: "",
   })
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
         website: leadData.website || "",
         about: leadData.about || "",
         studioName: leadData.studioName || "",
+        source: leadData.source || "",
         // Extract note data from specialNote object
         note: leadData.specialNote?.text || "",
         noteStartDate: leadData.specialNote?.startDate || "",
@@ -73,6 +75,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
       website: formData.website,
       about: formData.about,
       studioName: formData.studioName,
+      source: formData.source,
       specialNote: {
         text: formData.note,
         startDate: formData.noteStartDate,
@@ -173,6 +176,24 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 required
                 className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
               />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Source</label>
+              <select
+                name="source"
+                value={formData.source}
+                onChange={handleChange}
+                required
+                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+              >
+                <option value="">Select source</option>
+                {leadSources.map((source, index) => (
+                  <option key={index} value={source}>
+                    {source}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
