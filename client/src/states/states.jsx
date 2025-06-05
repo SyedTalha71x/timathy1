@@ -210,8 +210,8 @@ export const studioFinanceData = {
 }
 
 export const studioStatsData = {
-    1: { members: 120, trainers: 8, classes: 15 },
-    2: { members: 85, trainers: 5, classes: 10 },
+    1: { members: 120, trainers: 8, classes: 15, leads: 4, contracts: 6 },
+    2: { members: 85, trainers: 5, classes: 10, leads: 4, contracts: 6 },
 }
 
 export const FranchiseData = [

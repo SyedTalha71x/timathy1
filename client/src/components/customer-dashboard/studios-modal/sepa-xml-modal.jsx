@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 import { Calendar, Download, X, Edit } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -12,6 +14,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   })
   const [isCustomPeriod, setIsCustomPeriod] = useState(false)
   const [editingAmount, setEditingAmount] = useState(null)
+  const [confirmEdit, setConfirmEdit] = useState(null)
 
   useEffect(() => {
     // Initialize selected transactions (only Pending and Failed)
@@ -195,7 +198,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                             </span>
                           )}
                           <button
-                            onClick={() => setEditingAmount(tx.id)}
+                            onClick={() => setConfirmEdit(tx.id)}
                             disabled={!selectedTransactions[tx.id]}
                             className={`p-1 rounded hover:bg-gray-700 ${
                               !selectedTransactions[tx.id]
@@ -219,6 +222,33 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
           )}
         </div>
 
+        {/* Confirmation Dialog */}
+        {confirmEdit && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+            <div className="bg-[#2F2F2F] rounded-lg p-6 max-w-sm mx-4">
+              <h3 className="text-white font-medium mb-3">Edit Amount</h3>
+              <p className="text-gray-300 text-sm mb-4">Do you want to edit the amount for this transaction?</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setConfirmEdit(null)}
+                  className="px-4 py-2 rounded-lg text-sm border border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingAmount(confirmEdit)
+                    setConfirmEdit(null)
+                  }}
+                  className="px-4 py-2 rounded-lg text-sm bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90"
+                >
+                  Yes, Edit
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
           <button
             onClick={onClose}
@@ -232,7 +262,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
             disabled={!Object.values(selectedTransactions).some((v) => v)}
           >
             <Download className="w-4 h-4" />
-            Generate SEPA XML
+            Run Payment
           </button>
         </div>
       </div>

@@ -45,6 +45,10 @@ import {
 import EditStudioModal from "../../components/customer-dashboard/studios-modal/edit-studio-modal"
 import ContractsModal from "../../components/customer-dashboard/studios-modal/contract-modal"
 import { EditLeadModal } from "../../components/edit-lead-modal"
+import { AddLeadModal } from "../../components/customer-dashboard/studios-modal/add-lead-modal"
+import { ViewLeadModal } from "../../components/customer-dashboard/studios-modal/view-lead-details"
+import AddStaffModal from "../../components/customer-dashboard/studios-modal/add-staff-modal"
+import { ViewStaffModal } from "../../components/customer-dashboard/studios-modal/view-staff-details"
 
 export default function Studios() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -93,6 +97,29 @@ export default function Studios() {
     joinDate: "",
     status: "active",
   })
+
+  const defaultSources = [
+    "Website",
+    "Google Ads",
+    "Social Media Ads",
+    "Email Campaign",
+    "Cold Call (Outbound)",
+    "Inbound Call",
+    "Event",
+    "Offline Advertising",
+    "Other",
+  ]
+
+  // New states for view details modals
+  const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
+  const [isStaffDetailsModalOpen, setIsStaffDetailsModalOpen] = useState(false)
+  const [isLeadDetailsModalOpen, setIsLeadDetailsModalOpen] = useState(false)
+  const [isContractDetailsModalOpen, setIsContractDetailsModalOpen] = useState(false)
+  const [selectedItemForDetails, setSelectedItemForDetails] = useState(null)
+
+  // New states for adding new items
+  const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false)
+  const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false)
 
   const [financesPeriod, setFinancesPeriod] = useState("month")
   const [showPassword, setShowPassword] = useState({})
@@ -373,6 +400,61 @@ export default function Studios() {
     setIsEditLeadModalOpen(false)
     setSelectedLeadForEdit(null)
     toast.success("Lead updated successfully")
+  }
+
+  // New handlers for view details
+  const handleViewMemberDetails = (member) => {
+    setSelectedItemForDetails(member)
+    setIsMemberDetailsModalOpen(true)
+  }
+
+  const handleViewStaffDetails = (staff) => {
+    setSelectedItemForDetails(staff)
+    setIsStaffDetailsModalOpen(true)
+  }
+
+  const handleViewLeadDetails = (lead) => {
+    setSelectedItemForDetails(lead)
+    setIsLeadDetailsModalOpen(true)
+  }
+
+  const handleViewContractDetails = (contract) => {
+    setSelectedItemForDetails(contract)
+    setIsContractDetailsModalOpen(true)
+  }
+
+  // New handlers for adding items
+  const handleAddNewStaff = (newStaff) => {
+    const staffWithId = {
+      ...newStaff,
+      id: Math.max(...(studioStaffs[selectedStudioForModal.id] || []).map((s) => s.id), 0) + 1,
+      joinDate: new Date().toISOString().split("T")[0],
+    }
+
+    setStudioStaffs((prev) => ({
+      ...prev,
+      [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), staffWithId],
+    }))
+
+    setIsAddStaffModalOpen(false)
+    toast.success("New staff member added successfully")
+  }
+
+  const handleAddNewLead = (newLead) => {
+    const leadWithId = {
+      ...newLead,
+      id: Math.max(...(studioLeads[selectedStudioForModal.id] || []).map((l) => l.id), 0) + 1,
+      createdAt: new Date().toISOString(),
+      status: "new",
+    }
+
+    setStudioLeads((prev) => ({
+      ...prev,
+      [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), leadWithId],
+    }))
+
+    setIsAddLeadModalOpen(false)
+    toast.success("New lead added successfully")
   }
 
   const notePopoverRef = useRef(null)
@@ -707,19 +789,6 @@ export default function Studios() {
     }
   }
 
-  const getLeadStatusColor = (status) => {
-    switch (status) {
-      case "new":
-        return "bg-blue-900 text-blue-300"
-      case "contacted":
-        return "bg-yellow-900 text-yellow-300"
-      case "converted":
-        return "bg-green-900 text-green-300"
-      default:
-        return "bg-gray-900 text-gray-300"
-    }
-  }
-
   const getFilteredMembers = () => {
     if (!selectedStudioForModal || !studioMembers[selectedStudioForModal.id]) return []
 
@@ -779,18 +848,16 @@ export default function Studios() {
               <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
                 <button
                   onClick={() => setViewMode("studios")}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                    viewMode === "studios" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${viewMode === "studios" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   <Building size={16} className="inline mr-2" />
                   Studios
                 </button>
                 <button
                   onClick={() => setViewMode("franchise")}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                    viewMode === "franchise" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${viewMode === "franchise" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   <Network size={16} className="inline mr-2" />
                   Franchise
@@ -817,9 +884,8 @@ export default function Studios() {
                   <span className="truncate">{filterOptions.find((opt) => opt.id === filterStatus)?.label}</span>
                   <ChevronDown
                     size={16}
-                    className={`transform transition-transform flex-shrink-0 ${
-                      isFilterDropdownOpen ? "rotate-180" : ""
-                    }`}
+                    className={`transform transition-transform flex-shrink-0 ${isFilterDropdownOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
                 {isFilterDropdownOpen && (
@@ -828,9 +894,8 @@ export default function Studios() {
                       <button
                         key={option.id}
                         onClick={() => handleFilterSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
-                          option.id === filterStatus ? "bg-[#000000]" : ""
-                        }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === filterStatus ? "bg-[#000000]" : ""
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -856,9 +921,8 @@ export default function Studios() {
                       <button
                         key={option.id}
                         onClick={() => handleSortSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
-                          option.id === sortBy ? "bg-[#000000]" : ""
-                        }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === sortBy ? "bg-[#000000]" : ""
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -910,9 +974,8 @@ export default function Studios() {
                         <div className="absolute p-2 top-0 left-0 z-10">
                           <div className="relative">
                             <div
-                              className={`${
-                                studio.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                              className={`${studio.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                                } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 setActiveNoteId(activeNoteId === studio.id ? null : studio.id)
@@ -983,9 +1046,8 @@ export default function Studios() {
                                 <h3 className="text-white font-medium truncate text-lg sm:text-base">{studio.name}</h3>
                                 <div className="flex items-center gap-2">
                                   <span
-                                    className={`px-2 py-0.5 text-xs rounded-full ${
-                                      studio.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                                    }`}
+                                    className={`px-2 py-0.5 text-xs rounded-full ${studio.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
+                                      }`}
                                   >
                                     {studio.isActive ? "Active" : "Inactive"}
                                   </span>
@@ -1047,27 +1109,29 @@ export default function Studios() {
                           </button>
 
                           <button
+                            onClick={() => handleOpenLeadsModal(studio)}
+                            className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 bg-transparent  border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
+                          >
+                            <FaUserGroup size={16} />
+                            <span>{studioStats[studio.id]?.leads || 0}</span>
+                            <span className="">Leads</span>
+                          </button>
+
+                          <button
                             onClick={() => handleOpenContractsModal(studio)}
                             className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 bg-transparent  border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
                           >
                             <RiContractFill size={16} />
+                            <span>{studioStats[studio.id]?.contracts || 0}</span>
                             <span className="">Contracts</span>
                           </button>
 
                           <button
                             onClick={() => handleOpenFinancesModal(studio)}
-                            className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
+                            className="flex md:w-auto w-full justify-center items-center cursor-pointer  gap-2 border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
                           >
                             <TbReportAnalytics size={16} />
                             <span className="">Finances</span>
-                          </button>
-
-                          <button
-                            onClick={() => handleOpenLeadsModal(studio)}
-                            className="flex md:w-auto w-full justify-center items-center cursor-pointer  gap-2 border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
-                          >
-                            <FaUserGroup size={16} />
-                            <span className="">Leads</span>
                           </button>
                         </div>
                       </div>
@@ -1086,101 +1150,100 @@ export default function Studios() {
                 </div>
               )
             ) : // Franchises View
-            filteredAndSortedFranchises().length > 0 ? (
-              <div className="space-y-3">
-                {filteredAndSortedFranchises().map((franchise) => (
-                  <div key={franchise.id} className="bg-[#161616] rounded-xl p-6 relative">
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
-                          <div className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
-                            {franchise.logo ? (
-                              <img
-                                src={franchise.logo || "/placeholder.svg"}
-                                alt={franchise.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Building2 size={24} className="text-white" />
-                            )}
-                          </div>
-                          <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
-                            <div className="flex flex-col sm:flex-row items-center gap-2">
-                              <h3 className="text-white font-medium truncate text-lg sm:text-base">{franchise.name}</h3>
-                              <span className="px-2 py-0.5 text-xs rounded-full bg-purple-900 text-purple-300">
-                                Franchise
-                              </span>
+              filteredAndSortedFranchises().length > 0 ? (
+                <div className="space-y-3">
+                  {filteredAndSortedFranchises().map((franchise) => (
+                    <div key={franchise.id} className="bg-[#161616] rounded-xl p-6 relative">
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
+                            <div className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                              {franchise.logo ? (
+                                <img
+                                  src={franchise.logo || "/placeholder.svg"}
+                                  alt={franchise.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <Building2 size={24} className="text-white" />
+                              )}
                             </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <MapPin size={14} className="text-gray-400" />
-                              <p className="text-gray-400 text-sm truncate text-center sm:text-left">
-                                {franchise.city}, {franchise.zipCode}
+                            <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
+                              <div className="flex flex-col sm:flex-row items-center gap-2">
+                                <h3 className="text-white font-medium truncate text-lg sm:text-base">{franchise.name}</h3>
+                                <span className="px-2 py-0.5 text-xs rounded-full bg-purple-900 text-purple-300">
+                                  Franchise
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <MapPin size={14} className="text-gray-400" />
+                                <p className="text-gray-400 text-sm truncate text-center sm:text-left">
+                                  {franchise.city}, {franchise.zipCode}
+                                </p>
+                              </div>
+                              <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left">
+                                Owner: {franchise.ownerName}
                               </p>
                             </div>
-                            <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left">
-                              Owner: {franchise.ownerName}
-                            </p>
+                          </div>
+                          <div className="flex gap-2 items-center md:justify-end justify-center">
+                            <button
+                              onClick={() => handleEditFranchise(franchise)}
+                              className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                            >
+                              <Edit size={16} />
+                              <span className="hidden sm:inline">Edit</span>
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2 items-center md:justify-end justify-center">
-                          <button
-                            onClick={() => handleEditFranchise(franchise)}
-                            className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                          >
-                            <Edit size={16} />
-                            <span className="hidden sm:inline">Edit</span>
-                          </button>
-                        </div>
-                      </div>
 
-                      <div className="flex gap-3 items-center md:flex-row flex-col mt-3">
-                        <button
-                          onClick={() => handleOpenStudioManagement(franchise)}
-                          className="flex items-center md:w-auto w-full justify-center cursor-pointer gap-2 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm transition-colors"
-                        >
-                          <Building size={16} />
-                          <span>{getStudiosByFranchise(franchise.id).length}</span>
-                          <span>Studios</span>
-                        </button>
-                        <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
-                          <span>Login: {franchise.loginEmail}</span>
-                        </div>
-                        <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
-                          <span>Password: </span>
-                          <span className="font-mono">
-                            {showPassword[franchise.id] ? franchise.loginPassword : "••••••••"}
-                          </span>
+                        <div className="flex gap-3 items-center md:flex-row flex-col mt-3">
                           <button
-                            onClick={() => togglePasswordVisibility(franchise.id)}
-                            className="ml-1 text-gray-400 hover:text-white"
+                            onClick={() => handleOpenStudioManagement(franchise)}
+                            className="flex items-center md:w-auto w-full justify-center cursor-pointer gap-2 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm transition-colors"
                           >
-                            {showPassword[franchise.id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                            <Building size={16} />
+                            <span>{getStudiosByFranchise(franchise.id).length}</span>
+                            <span>Studios</span>
                           </button>
+                          <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
+                            <span>Login: {franchise.loginEmail}</span>
+                          </div>
+                          <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
+                            <span>Password: </span>
+                            <span className="font-mono">
+                              {showPassword[franchise.id] ? franchise.loginPassword : "••••••••"}
+                            </span>
+                            <button
+                              onClick={() => togglePasswordVisibility(franchise.id)}
+                              className="ml-1 text-gray-400 hover:text-white"
+                            >
+                              {showPassword[franchise.id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-gray-400 py-8">
-                <Building2 size={48} className="mx-auto mb-4 text-gray-600" />
-                <p>No franchises found.</p>
-                <button
-                  onClick={() => setIsCreateFranchiseModalOpen(true)}
-                  className="mt-4 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm"
-                >
-                  Create Your First Franchise
-                </button>
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-gray-400 py-8">
+                  <Building2 size={48} className="mx-auto mb-4 text-gray-600" />
+                  <p>No franchises found.</p>
+                  <button
+                    onClick={() => setIsCreateFranchiseModalOpen(true)}
+                    className="mt-4 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm"
+                  >
+                    Create Your First Franchise
+                  </button>
+                </div>
+              )}
           </div>
         </div>
 
         <aside
-          className={`w-80 bg-[#181818] p-6 fixed top-0 bottom-0 right-0 z-50 lg:static lg:block ${
-            isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-          } transition-transform duration-500 ease-in-out`}
+          className={`w-80 bg-[#181818] p-6 fixed top-0 bottom-0 right-0 z-50 lg:static lg:block ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+            } transition-transform duration-500 ease-in-out`}
         >
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold oxanium_font">Notification</h2>
@@ -1244,7 +1307,7 @@ export default function Studios() {
         toast={toast}
       />
 
-      {/* All existing modals remain the same */}
+      {/* Members Modal with View Details and Edit buttons */}
       {isMembersModalOpen && selectedStudioForModal && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
@@ -1302,13 +1365,22 @@ export default function Studios() {
                         </p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleEditMember(member)}
-                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm flex items-center gap-2"
-                    >
-                      <Edit size={16} />
-                      Edit
-                    </button>
+                    <div className="flex gap-2 flex-col md:flex-row">
+                      <button
+                        onClick={() => handleViewMemberDetails(member)}
+                        className="bg-gray-600 hover:bg-gray-500 px-3 py-2 rounded-lg text-sm flex items-center gap-2"
+                      >
+                        <Eye size={16} />
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => handleEditMember(member)}
+                        className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-3 py-2 rounded-lg text-sm flex items-center gap-2"
+                      >
+                        <Edit size={16} />
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1317,6 +1389,7 @@ export default function Studios() {
         </div>
       )}
 
+      {/* Staff Modal with View Details, Edit, and Add New buttons */}
       {isStaffsModalOpen && selectedStudioForModal && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
@@ -1325,15 +1398,40 @@ export default function Studios() {
                 <h2 className="text-white open_sans_font_700 text-lg font-semibold">
                   {selectedStudioForModal.name} - Staff ({studioStaffs[selectedStudioForModal.id]?.length || 0})
                 </h2>
+                <div className="flex gap-2">
+                <div className="md:block hidden">
+
+<button
+  onClick={() => setIsAddStaffModalOpen(true)}
+  className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
+>
+  <Plus size={18} />
+  <span className="open_sans_font">Add Staff</span>
+</button>
+</div>
+                  <button
+                    onClick={() => {
+                      setIsStaffsModalOpen(false)
+                      setSelectedStudioForModal(null)
+                      setStaffSearchQuery("")
+                    }}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X size={20} className="cursor-pointer" />
+                  </button>
+                </div>
+
+
+              </div>
+
+              <div className="md:hidden flex justify-end items-center mb-3">
+
                 <button
-                  onClick={() => {
-                    setIsStaffsModalOpen(false)
-                    setSelectedStudioForModal(null)
-                    setStaffSearchQuery("")
-                  }}
-                  className="text-gray-400 hover:text-white"
+                  onClick={() => setIsAddStaffModalOpen(true)}
+                  className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
                 >
-                  <X size={20} className="cursor-pointer" />
+                  <Plus size={18} />
+                  <span className="open_sans_font">Add Staff</span>
                 </button>
               </div>
 
@@ -1350,9 +1448,11 @@ export default function Studios() {
                 </div>
               </div>
 
+
+
               <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
                 {getFilteredStaff().map((staff) => (
-                  <div key={staff.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-center">
+                  <div key={staff.id} className="bg-[#161616] rounded-xl p-4 flex justify-between md:flex-row flex-col gap-3 items-center">
                     <div className="flex-1">
                       <div className="flex items-center gap-1">
                         <h3 className="font-medium text-white">{staff.firstName}</h3>
@@ -1367,16 +1467,25 @@ export default function Studios() {
                         </p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setselectedStaffForEdit(staff)
-                        setisEditStaffModalOpen(true)
-                      }}
-                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm flex items-center gap-2"
-                    >
-                      <Edit size={16} />
-                      Edit
-                    </button>
+                    <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
+                      <button
+                        onClick={() => handleViewStaffDetails(staff)}
+                        className="bg-gray-600 hover:bg-gray-500 px-3 py-2 justify-center rounded-lg text-sm flex items-center gap-2"
+                      >
+                        <Eye size={16} />
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => {
+                          setselectedStaffForEdit(staff)
+                          setisEditStaffModalOpen(true)
+                        }}
+                        className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-3 justify-center py-2 rounded-lg text-sm flex items-center gap-2"
+                      >
+                        <Edit size={16} />
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1385,6 +1494,7 @@ export default function Studios() {
         </div>
       )}
 
+      {/* Leads Modal with View Details, Edit, and Add New buttons */}
       {isLeadsModalOpen && selectedStudioForModal && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
@@ -1393,15 +1503,39 @@ export default function Studios() {
                 <h2 className="text-white open_sans_font_700 text-lg font-semibold">
                   {selectedStudioForModal.name} - Leads ({studioLeads[selectedStudioForModal.id]?.length || 0})
                 </h2>
+                <div className="flex gap-2">
+
+                  <div className="md:block hidden">
+
+                    <button
+                      onClick={() => setIsAddLeadModalOpen(true)}
+                      className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
+                    >
+                      <Plus size={18} />
+                      <span className="open_sans_font">Create Lead</span>
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsLeadsModalOpen(false)
+                      setSelectedStudioForModal(null)
+                      setLeadSearchQuery("")
+                    }}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X size={20} className="cursor-pointer" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="md:hidden flex justify-end items-center mb-3">
+
                 <button
-                  onClick={() => {
-                    setIsLeadsModalOpen(false)
-                    setSelectedStudioForModal(null)
-                    setLeadSearchQuery("")
-                  }}
-                  className="text-gray-400 hover:text-white"
+                  onClick={() => setIsAddLeadModalOpen(true)}
+                  className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
                 >
-                  <X size={20} className="cursor-pointer" />
+                  <Plus size={18} />
+                  <span className="open_sans_font">Create Lead</span>
                 </button>
               </div>
 
@@ -1418,9 +1552,11 @@ export default function Studios() {
                 </div>
               </div>
 
+
+
               <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
                 {getFilteredLeads().map((lead) => (
-                  <div key={lead.id} className="bg-[#161616] rounded-xl p-4 flex justify-between items-start">
+                  <div key={lead.id} className="bg-[#161616] rounded-xl p-4 flex justify-between md:flex-row flex-col gap-2 items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
                         <h3 className="font-medium text-white">
@@ -1446,13 +1582,22 @@ export default function Studios() {
                         </p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleEditMember(lead)}
-                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm flex items-center gap-2"
-                    >
-                      <Edit size={16} />
-                      Edit
-                    </button>
+                    <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
+                      <button
+                        onClick={() => handleViewLeadDetails(lead)}
+                        className="bg-gray-600 hover:bg-gray-500 justify-center text-gray-300 px-3 py-2 rounded-lg text-sm flex items-center gap-2"
+                      >
+                        <Eye size={16} />
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => handleEditMember(lead)}
+                        className="bg-[#3F74FF]  justify-center hover:bg-[#3F74FF]/90 px-1 py-2 rounded-lg text-sm flex items-center gap-2"
+                      >
+                        <Edit size={16} />
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1460,6 +1605,8 @@ export default function Studios() {
           </div>
         </div>
       )}
+
+      {/* Contracts Modal with View Details button */}
       <ContractsModal
         isOpen={isContractsModalOpen}
         onClose={() => setIsContractsModalOpen(false)}
@@ -1467,6 +1614,7 @@ export default function Studios() {
         studioContracts={studioContracts}
         handleFileUpload={handleFileUpload}
         handleDownloadFile={handleDownloadFile}
+        onViewDetails={handleViewContractDetails}
       />
 
       <StudioFinancesModal
@@ -1485,7 +1633,7 @@ export default function Studios() {
         onSave={handleMemberEditSubmit}
       />
 
-      <EditStaffModal // Now it will receive both e and formData
+      <EditStaffModal
         isOpen={isEditStaffModalOpen}
         onClose={() => {
           setisEditStaffModalOpen(false)
@@ -1512,7 +1660,7 @@ export default function Studios() {
         }}
       />
 
-      {/* edit studio modal */}
+      {/* Edit Studio Modal */}
       <EditStudioModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -1533,6 +1681,7 @@ export default function Studios() {
         DefaultStudioImage={DefaultStudioImage}
         isContractExpiringSoon={isContractExpiringSoon}
       />
+
       {/* Edit Lead Modal */}
       <EditLeadModal
         isVisible={isEditLeadModalOpen}
@@ -1543,6 +1692,148 @@ export default function Studios() {
         onSave={handleLeadEditSubmit}
         leadData={selectedLeadForEdit}
       />
+
+      {/* View Details Modals */}
+      {isMemberDetailsModalOpen && selectedItemForDetails && (
+        <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white text-lg font-semibold">Member Details</h2>
+                <button onClick={() => setIsMemberDetailsModalOpen(false)} className="text-gray-400 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="space-y-4 text-white">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-gray-400 text-sm">First Name</label>
+                    <p className="text-white">{selectedItemForDetails.firstName}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm">Last Name</label>
+                    <p className="text-white">{selectedItemForDetails.lastName}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm">Email</label>
+                    <p className="text-white">{selectedItemForDetails.email}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm">Phone</label>
+                    <p className="text-white">{selectedItemForDetails.phone}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm">Join Date</label>
+                    <p className="text-white">{selectedItemForDetails.joinDate}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm">Status</label>
+                    <p className="text-white">{selectedItemForDetails.status}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isStaffDetailsModalOpen && selectedItemForDetails && (
+       <ViewStaffModal 
+       isVisible={isStaffDetailsModalOpen}
+       onClose={() => setIsStaffDetailsModalOpen(false)}
+       staffData={selectedItemForDetails}
+       />
+      )}
+
+      {isLeadDetailsModalOpen && selectedItemForDetails && (
+        <ViewLeadModal
+          isVisible={isLeadDetailsModalOpen}
+          onClose={() => setIsLeadDetailsModalOpen(false)}
+          leadData={selectedItemForDetails}
+        />
+      )}
+
+      {isContractDetailsModalOpen && selectedItemForDetails && (
+        <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl relative">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-white text-lg font-semibold">Contract Details</h2>
+                <button onClick={() => setIsContractDetailsModalOpen(false)} className="text-gray-400 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="space-y-4 text-white">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-gray-400 text-sm">Contract Type</label>
+                    <p className="text-white">{selectedItemForDetails.type}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm">Start Date</label>
+                    <p className="text-white">{selectedItemForDetails.startDate}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm">End Date</label>
+                    <p className="text-white">{selectedItemForDetails.endDate}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm">Status</label>
+                    <p className="text-white">{selectedItemForDetails.status}</p>
+                  </div>
+                </div>
+                {selectedItemForDetails.files && selectedItemForDetails.files.length > 0 && (
+                  <div>
+                    <label className="text-gray-400 text-sm">Attached Files</label>
+                    <div className="mt-2 space-y-1">
+                      {selectedItemForDetails.files.map((file, index) => (
+                        <p key={index} className="text-blue-400">
+                          {file}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add New Staff Modal */}
+      {isAddStaffModalOpen && (
+       <AddStaffModal
+       isOpen={isAddStaffModalOpen}
+       onClose={() => setIsAddStaffModalOpen(false)}
+       onSave={(newStaff) => {
+         setStudioStaffs((prev) => ({
+           ...prev,
+           [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newStaff],
+         }))
+         setIsAddStaffModalOpen(false)
+         toast.success("Staff member added successfully")
+       }}
+       />
+      )}
+
+      {/* Add New Lead Modal */}
+      {isAddLeadModalOpen && (
+        <AddLeadModal
+          isVisible={isAddLeadModalOpen}
+          onClose={() => setIsAddLeadModalOpen(false)}
+          onSave={(newLead) => {
+            setStudioLeads((prev) => ({
+              ...prev,
+              [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newLead],
+            }))
+            setIsAddLeadModalOpen(false)
+            toast.success("Lead added successfully")
+          }}
+          studioId={selectedStudioForModal.id}
+          studioName={selectedStudioForModal.name}
+          leadSources={defaultSources}
+        />
+      )}
     </>
   )
 }
