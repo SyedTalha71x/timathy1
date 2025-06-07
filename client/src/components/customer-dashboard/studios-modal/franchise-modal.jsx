@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react"
@@ -20,7 +18,7 @@ const FranchiseModal = ({
   if (!isCreateModalOpen && !isEditModalOpen) return null
 
   return (
-    <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+    <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[100000] overflow-y-auto">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
@@ -74,16 +72,29 @@ const FranchiseModal = ({
               />
             </div>
 
-            <div>
-              <label className="text-sm text-gray-200 block mb-2">Owner Name</label>
-              <input
-                type="text"
-                name="ownerName"
-                value={franchiseForm.ownerName}
-                onChange={onInputChange}
-                className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">Owner First Name</label>
+                <input
+                  type="text"
+                  name="ownerFirstName"
+                  value={franchiseForm.ownerFirstName}
+                  onChange={onInputChange}
+                  className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">Owner Last Name</label>
+                <input
+                  type="text"
+                  name="ownerLastName"
+                  value={franchiseForm.ownerLastName}
+                  onChange={onInputChange}
+                  className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  required
+                />
+              </div>
             </div>
 
             <div>
@@ -118,6 +129,28 @@ const FranchiseModal = ({
                 onChange={onInputChange}
                 className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
               />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Country</label>
+              <select
+                name="country"
+                value={franchiseForm.country}
+                onChange={onInputChange}
+                className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+              >
+                <option value="">Select Country</option>
+                <option value="Germany">Germany</option>
+                <option value="Austria">Austria</option>
+                <option value="Switzerland">Switzerland</option>
+                <option value="Netherlands">Netherlands</option>
+                <option value="Belgium">Belgium</option>
+                <option value="France">France</option>
+                <option value="Italy">Italy</option>
+                <option value="Spain">Spain</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="United States">United States</option>
+              </select>
             </div>
 
             <div>
@@ -163,6 +196,63 @@ const FranchiseModal = ({
                 className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                 placeholder="Describe the franchise..."
               />
+            </div>
+
+            {/* Special Note Section */}
+            <div className="border border-slate-700 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-sm text-gray-200 font-medium">Special Note</label>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="franchiseNoteImportance"
+                    checked={franchiseForm.noteImportance === "important"}
+                    onChange={(e) => {
+                      onInputChange({
+                        target: {
+                          name: "noteImportance",
+                          value: e.target.checked ? "important" : "unimportant",
+                        },
+                      })
+                    }}
+                    className="mr-2 h-4 w-4 accent-[#FF843E]"
+                  />
+                  <label htmlFor="franchiseNoteImportance" className="text-sm text-gray-200">
+                    Important
+                  </label>
+                </div>
+              </div>
+
+              <textarea
+                name="specialNote"
+                value={franchiseForm.specialNote}
+                onChange={onInputChange}
+                className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                placeholder="Enter special note for this franchise..."
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Start Date</label>
+                  <input
+                    type="date"
+                    name="noteStartDate"
+                    value={franchiseForm.noteStartDate}
+                    onChange={onInputChange}
+                    className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">End Date</label>
+                  <input
+                    type="date"
+                    name="noteEndDate"
+                    value={franchiseForm.noteEndDate}
+                    onChange={onInputChange}
+                    className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="border border-slate-700 rounded-xl p-4">

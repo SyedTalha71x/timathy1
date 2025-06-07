@@ -1,8 +1,6 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React from 'react';
-import { X } from 'lucide-react'; // Assuming you're using lucide-react for icons
-import { toast } from 'react-hot-toast'; // Assuming you're using react-hot-toast
+import { X } from "lucide-react"
+import { toast } from "react-hot-toast"
 
 const EditStudioModal = ({
   isOpen,
@@ -12,20 +10,27 @@ const EditStudioModal = ({
   setEditForm,
   handleInputChange,
   handleEditSubmit,
-  DefaultStudioImage
+  DefaultStudioImage,
 }) => {
-  if (!isOpen || !selectedStudio) return null;
+  if (!isOpen || !selectedStudio) return null
+
+  const handleOpeningHoursChange = (day, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      openingHours: {
+        ...prev.openingHours,
+        [day]: value,
+      },
+    }))
+  }
 
   return (
-    <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+    <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[9999] overflow-y-auto">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white open_sans_font_700 text-lg font-semibold">Edit Studio</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={20} className="cursor-pointer" />
             </button>
           </div>
@@ -125,6 +130,40 @@ const EditStudioModal = ({
             </div>
 
             <div>
+              <label className="text-sm text-gray-200 block mb-2">IBAN</label>
+              <input
+                type="text"
+                name="iban"
+                value={editForm.iban}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                placeholder="DE89 3704 0044 0532 0130 00"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Country</label>
+              <select
+                name="country"
+                value={editForm.country}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+              >
+                <option value="">Select Country</option>
+                <option value="Germany">Germany</option>
+                <option value="Austria">Austria</option>
+                <option value="Switzerland">Switzerland</option>
+                <option value="Netherlands">Netherlands</option>
+                <option value="Belgium">Belgium</option>
+                <option value="France">France</option>
+                <option value="Italy">Italy</option>
+                <option value="Spain">Spain</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="United States">United States</option>
+              </select>
+            </div>
+
+            <div>
               <label className="text-sm text-gray-200 block mb-2">Street</label>
               <input
                 type="text"
@@ -156,6 +195,36 @@ const EditStudioModal = ({
                   className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                 />
               </div>
+            </div>
+
+            <div className="border border-slate-700 rounded-xl p-4">
+              <label className="text-sm text-gray-200 block mb-3 font-medium">Opening Hours</label>
+              <div className="space-y-2">
+                {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => (
+                  <div key={day} className="grid grid-cols-2 gap-2 items-center">
+                    <label className="text-xs text-gray-300 capitalize">{day}:</label>
+                    <input
+                      type="text"
+                      value={editForm.openingHours?.[day] || ""}
+                      onChange={(e) => handleOpeningHoursChange(day, e.target.value)}
+                      className="bg-[#101010] rounded-lg px-3 py-1 text-white outline-none text-xs"
+                      placeholder="9:00 - 22:00"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Closing Days</label>
+              <input
+                type="text"
+                name="closingDays"
+                value={editForm.closingDays}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                placeholder="e.g., Christmas Day, New Year's Day"
+              />
             </div>
 
             <div className="border border-slate-700 rounded-xl p-4">
@@ -252,7 +321,7 @@ const EditStudioModal = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default EditStudioModal;
+export default EditStudioModal

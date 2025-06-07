@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -28,6 +26,7 @@ import { FaUserGroup } from "react-icons/fa6"
 import FranchiseModal from "../../components/customer-dashboard/studios-modal/franchise-modal"
 import AssignStudioModal from "../../components/customer-dashboard/studios-modal/assign-studios-modal"
 import StudioManagementModal from "../../components/customer-dashboard/studios-modal/studio-management-modal"
+import FranchiseDetailsModal from "../../components/customer-dashboard/studios-modal/franchise-details-modal"
 
 import EditMemberModal from "../../components/customer-dashboard/studios-modal/edit-member-modal"
 import EditStaffModal from "../../components/customer-dashboard/studios-modal/edit-staff-modal"
@@ -68,6 +67,7 @@ export default function Studios() {
   const [viewMode, setViewMode] = useState("studios") // "studios" or "franchise"
   const [isCreateFranchiseModalOpen, setIsCreateFranchiseModalOpen] = useState(false)
   const [isEditFranchiseModalOpen, setIsEditFranchiseModalOpen] = useState(false)
+  const [isFranchiseDetailsModalOpen, setIsFranchiseDetailsModalOpen] = useState(false)
   const [isAssignStudioModalOpen, setIsAssignStudioModalOpen] = useState(false)
   const [isStudioManagementModalOpen, setIsStudioManagementModalOpen] = useState(false)
   const [selectedFranchise, setSelectedFranchise] = useState(null)
@@ -140,6 +140,19 @@ export default function Studios() {
     contractStart: "",
     contractEnd: "",
     ownerName: "",
+    taxId: "",
+    iban: "",
+    country: "",
+    openingHours: {
+      monday: "",
+      tuesday: "",
+      wednesday: "",
+      thursday: "",
+      friday: "",
+      saturday: "",
+      sunday: "",
+    },
+    closingDays: "",
   })
 
   const [franchiseForm, setFranchiseForm] = useState({
@@ -151,7 +164,13 @@ export default function Studios() {
     city: "",
     website: "",
     about: "",
-    ownerName: "",
+    ownerFirstName: "",
+    ownerLastName: "",
+    country: "",
+    specialNote: "",
+    noteImportance: "unimportant",
+    noteStartDate: "",
+    noteEndDate: "",
     loginEmail: "",
     loginPassword: "",
     confirmPassword: "",
@@ -220,6 +239,19 @@ export default function Studios() {
         contractStart: selectedStudio.contractStart,
         contractEnd: selectedStudio.contractEnd,
         ownerName: selectedStudio.ownerName,
+        taxId: selectedStudio.taxId || "",
+        iban: selectedStudio.iban || "",
+        country: selectedStudio.country || "",
+        openingHours: selectedStudio.openingHours || {
+          monday: "",
+          tuesday: "",
+          wednesday: "",
+          thursday: "",
+          friday: "",
+          saturday: "",
+          sunday: "",
+        },
+        closingDays: selectedStudio.closingDays || "",
       })
     }
   }, [selectedStudio])
@@ -235,7 +267,13 @@ export default function Studios() {
         city: selectedFranchise.city,
         website: selectedFranchise.website,
         about: selectedFranchise.about,
-        ownerName: selectedFranchise.ownerName,
+        ownerFirstName: selectedFranchise.ownerFirstName || "",
+        ownerLastName: selectedFranchise.ownerLastName || "",
+        country: selectedFranchise.country || "",
+        specialNote: selectedFranchise.specialNote || "",
+        noteImportance: selectedFranchise.noteImportance || "unimportant",
+        noteStartDate: selectedFranchise.noteStartDate || "",
+        noteEndDate: selectedFranchise.noteEndDate || "",
         loginEmail: selectedFranchise.loginEmail,
         loginPassword: selectedFranchise.loginPassword,
         confirmPassword: selectedFranchise.loginPassword,
@@ -351,7 +389,13 @@ export default function Studios() {
       city: "",
       website: "",
       about: "",
-      ownerName: "",
+      ownerFirstName: "",
+      ownerLastName: "",
+      country: "",
+      specialNote: "",
+      noteImportance: "unimportant",
+      noteStartDate: "",
+      noteEndDate: "",
       loginEmail: "",
       loginPassword: "",
       confirmPassword: "",
@@ -483,6 +527,9 @@ export default function Studios() {
       street: "Hauptstraße 123",
       zipCode: "10115",
       city: "Berlin",
+      country: "Germany",
+      iban: "DE89 3704 0044 0532 0130 00",
+      taxId: "DE123456789",
       image: null,
       isActive: true,
       note: "Premium partner, VIP treatment",
@@ -495,7 +542,17 @@ export default function Studios() {
       contractStart: "2022-03-01",
       contractEnd: "2023-03-01",
       ownerName: "Hans Mueller",
-      franchiseId: 1, // Assigned to franchise
+      franchiseId: 1,
+      openingHours: {
+        monday: "6:00 - 22:00",
+        tuesday: "6:00 - 22:00",
+        wednesday: "6:00 - 22:00",
+        thursday: "6:00 - 22:00",
+        friday: "6:00 - 22:00",
+        saturday: "8:00 - 20:00",
+        sunday: "10:00 - 18:00",
+      },
+      closingDays: "Christmas Day, New Year's Day",
     },
     {
       id: 2,
@@ -505,6 +562,9 @@ export default function Studios() {
       street: "Friedrichstraße 45",
       zipCode: "20354",
       city: "Hamburg",
+      country: "Germany",
+      iban: "DE12 5001 0517 0648 4898 90",
+      taxId: "DE987654321",
       image: null,
       isActive: false,
       note: "",
@@ -517,7 +577,17 @@ export default function Studios() {
       contractStart: "2021-11-15",
       contractEnd: "2024-04-15",
       ownerName: "Maria Schmidt",
-      franchiseId: 1, // Assigned to franchise
+      franchiseId: 1,
+      openingHours: {
+        monday: "5:00 - 23:00",
+        tuesday: "5:00 - 23:00",
+        wednesday: "5:00 - 23:00",
+        thursday: "5:00 - 23:00",
+        friday: "5:00 - 23:00",
+        saturday: "7:00 - 21:00",
+        sunday: "9:00 - 19:00",
+      },
+      closingDays: "Easter Sunday, Christmas Day",
     },
     {
       id: 3,
@@ -527,6 +597,9 @@ export default function Studios() {
       street: "Sportstraße 10",
       zipCode: "80331",
       city: "Munich",
+      country: "Germany",
+      iban: "DE89 7005 0000 0000 1234 56",
+      taxId: "DE555123456",
       image: null,
       isActive: true,
       note: "",
@@ -539,7 +612,17 @@ export default function Studios() {
       contractStart: "2023-01-15",
       contractEnd: "2024-01-15",
       ownerName: "Anna Weber",
-      franchiseId: null, // Unassigned
+      franchiseId: null,
+      openingHours: {
+        monday: "7:00 - 21:00",
+        tuesday: "7:00 - 21:00",
+        wednesday: "7:00 - 21:00",
+        thursday: "7:00 - 21:00",
+        friday: "7:00 - 21:00",
+        saturday: "9:00 - 18:00",
+        sunday: "Closed",
+      },
+      closingDays: "Public holidays",
     },
     {
       id: 4,
@@ -549,6 +632,9 @@ export default function Studios() {
       street: "Kraftstraße 25",
       zipCode: "50667",
       city: "Cologne",
+      country: "Germany",
+      iban: "DE44 5001 0517 5407 3249 31",
+      taxId: "DE666789012",
       image: null,
       isActive: true,
       note: "",
@@ -561,7 +647,17 @@ export default function Studios() {
       contractStart: "2023-02-01",
       contractEnd: "2024-02-01",
       ownerName: "Michael Klein",
-      franchiseId: null, // Unassigned
+      franchiseId: null,
+      openingHours: {
+        monday: "6:00 - 22:00",
+        tuesday: "6:00 - 22:00",
+        wednesday: "6:00 - 22:00",
+        thursday: "6:00 - 22:00",
+        friday: "6:00 - 22:00",
+        saturday: "8:00 - 20:00",
+        sunday: "10:00 - 16:00",
+      },
+      closingDays: "Christmas Eve, Christmas Day, New Year's Day",
     },
   ])
 
@@ -682,6 +778,34 @@ export default function Studios() {
   const handleViewDetails = (studio) => {
     setSelectedStudio(studio)
     setIsViewDetailsModalOpen(true)
+  }
+
+  const handleViewFranchiseDetails = (franchise) => {
+    setSelectedFranchise(franchise)
+    setIsFranchiseDetailsModalOpen(true)
+  }
+
+  const handleGoToContract = (studio) => {
+    setSelectedStudioForModal(studio)
+    setIsContractsModalOpen(true)
+    setIsViewDetailsModalOpen(false)
+  }
+
+  const handleDeleteFranchise = (franchiseId) => {
+    // Unassign all studios from this franchise
+    const updatedStudios = studios.map((studio) => {
+      if (studio.franchiseId === franchiseId) {
+        return { ...studio, franchiseId: null }
+      }
+      return studio
+    })
+    setStudios(updatedStudios)
+
+    // Remove the franchise
+    const updatedFranchises = franchises.filter((franchise) => franchise.id !== franchiseId)
+    setFranchises(updatedFranchises)
+
+    toast.success("Franchise deleted successfully. All studios have been unassigned.")
   }
 
   const handleAssignStudio = (franchiseId, studioId) => {
@@ -848,16 +972,18 @@ export default function Studios() {
               <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
                 <button
                   onClick={() => setViewMode("studios")}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${viewMode === "studios" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                    }`}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    viewMode === "studios" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
                 >
                   <Building size={16} className="inline mr-2" />
                   Studios
                 </button>
                 <button
                   onClick={() => setViewMode("franchise")}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${viewMode === "franchise" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                    }`}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    viewMode === "franchise" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
                 >
                   <Network size={16} className="inline mr-2" />
                   Franchise
@@ -884,8 +1010,9 @@ export default function Studios() {
                   <span className="truncate">{filterOptions.find((opt) => opt.id === filterStatus)?.label}</span>
                   <ChevronDown
                     size={16}
-                    className={`transform transition-transform flex-shrink-0 ${isFilterDropdownOpen ? "rotate-180" : ""
-                      }`}
+                    className={`transform transition-transform flex-shrink-0 ${
+                      isFilterDropdownOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
                 {isFilterDropdownOpen && (
@@ -894,8 +1021,9 @@ export default function Studios() {
                       <button
                         key={option.id}
                         onClick={() => handleFilterSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === filterStatus ? "bg-[#000000]" : ""
-                          }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
+                          option.id === filterStatus ? "bg-[#000000]" : ""
+                        }`}
                       >
                         {option.label}
                       </button>
@@ -921,8 +1049,9 @@ export default function Studios() {
                       <button
                         key={option.id}
                         onClick={() => handleSortSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === sortBy ? "bg-[#000000]" : ""
-                          }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
+                          option.id === sortBy ? "bg-[#000000]" : ""
+                        }`}
                       >
                         {option.label}
                       </button>
@@ -974,8 +1103,9 @@ export default function Studios() {
                         <div className="absolute p-2 top-0 left-0 z-10">
                           <div className="relative">
                             <div
-                              className={`${studio.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                                } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                              className={`${
+                                studio.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 setActiveNoteId(activeNoteId === studio.id ? null : studio.id)
@@ -1046,8 +1176,9 @@ export default function Studios() {
                                 <h3 className="text-white font-medium truncate text-lg sm:text-base">{studio.name}</h3>
                                 <div className="flex items-center gap-2">
                                   <span
-                                    className={`px-2 py-0.5 text-xs rounded-full ${studio.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                                      }`}
+                                    className={`px-2 py-0.5 text-xs rounded-full ${
+                                      studio.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
+                                    }`}
                                   >
                                     {studio.isActive ? "Active" : "Inactive"}
                                   </span>
@@ -1105,7 +1236,7 @@ export default function Studios() {
                           >
                             <UserCheck size={16} />
                             <span>{studioStats[studio.id]?.trainers || 0}</span>
-                            <span className="">Staffs</span>
+                            <span className="">Staff</span>
                           </button>
 
                           <button
@@ -1150,100 +1281,108 @@ export default function Studios() {
                 </div>
               )
             ) : // Franchises View
-              filteredAndSortedFranchises().length > 0 ? (
-                <div className="space-y-3">
-                  {filteredAndSortedFranchises().map((franchise) => (
-                    <div key={franchise.id} className="bg-[#161616] rounded-xl p-6 relative">
-                      <div className="flex flex-col gap-4">
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
-                            <div className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
-                              {franchise.logo ? (
-                                <img
-                                  src={franchise.logo || "/placeholder.svg"}
-                                  alt={franchise.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <Building2 size={24} className="text-white" />
-                              )}
+            filteredAndSortedFranchises().length > 0 ? (
+              <div className="space-y-3">
+                {filteredAndSortedFranchises().map((franchise) => (
+                  <div key={franchise.id} className="bg-[#161616] rounded-xl p-6 relative">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
+                          <div className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                            {franchise.logo ? (
+                              <img
+                                src={franchise.logo || "/placeholder.svg"}
+                                alt={franchise.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <Building2 size={24} className="text-white" />
+                            )}
+                          </div>
+                          <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row items-center gap-2">
+                              <h3 className="text-white font-medium truncate text-lg sm:text-base">{franchise.name}</h3>
+                              <span className="px-2 py-0.5 text-xs rounded-full bg-purple-900 text-purple-300">
+                                Franchise
+                              </span>
                             </div>
-                            <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">
-                              <div className="flex flex-col sm:flex-row items-center gap-2">
-                                <h3 className="text-white font-medium truncate text-lg sm:text-base">{franchise.name}</h3>
-                                <span className="px-2 py-0.5 text-xs rounded-full bg-purple-900 text-purple-300">
-                                  Franchise
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <MapPin size={14} className="text-gray-400" />
-                                <p className="text-gray-400 text-sm truncate text-center sm:text-left">
-                                  {franchise.city}, {franchise.zipCode}
-                                </p>
-                              </div>
-                              <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left">
-                                Owner: {franchise.ownerName}
+                            <div className="flex items-center gap-2 mt-1">
+                              <MapPin size={14} className="text-gray-400" />
+                              <p className="text-gray-400 text-sm truncate text-center sm:text-left">
+                                {franchise.city}, {franchise.zipCode}
                               </p>
                             </div>
-                          </div>
-                          <div className="flex gap-2 items-center md:justify-end justify-center">
-                            <button
-                              onClick={() => handleEditFranchise(franchise)}
-                              className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                            >
-                              <Edit size={16} />
-                              <span className="hidden sm:inline">Edit</span>
-                            </button>
+                            <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left">
+                              Owner: {franchise.ownerFirstName} {franchise.ownerLastName}
+                            </p>
                           </div>
                         </div>
-
-                        <div className="flex gap-3 items-center md:flex-row flex-col mt-3">
+                        <div className="flex gap-2 items-center md:justify-end justify-center">
                           <button
-                            onClick={() => handleOpenStudioManagement(franchise)}
-                            className="flex items-center md:w-auto w-full justify-center cursor-pointer gap-2 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm transition-colors"
+                            onClick={() => handleViewFranchiseDetails(franchise)}
+                            className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                           >
-                            <Building size={16} />
-                            <span>{getStudiosByFranchise(franchise.id).length}</span>
-                            <span>Studios</span>
+                            <Eye size={16} />
+                            <span className="hidden sm:inline">View Details</span>
                           </button>
-                          <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
-                            <span>Login: {franchise.loginEmail}</span>
-                          </div>
-                          <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
-                            <span>Password: </span>
-                            <span className="font-mono">
-                              {showPassword[franchise.id] ? franchise.loginPassword : "••••••••"}
-                            </span>
-                            <button
-                              onClick={() => togglePasswordVisibility(franchise.id)}
-                              className="ml-1 text-gray-400 hover:text-white"
-                            >
-                              {showPassword[franchise.id] ? <EyeOff size={14} /> : <Eye size={14} />}
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleEditFranchise(franchise)}
+                            className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                          >
+                            <Edit size={16} />
+                            <span className="hidden sm:inline">Edit</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 items-center md:flex-row flex-col mt-3">
+                        <button
+                          onClick={() => handleOpenStudioManagement(franchise)}
+                          className="flex items-center md:w-auto w-full justify-center cursor-pointer gap-2 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-lg text-sm transition-colors"
+                        >
+                          <Building size={16} />
+                          <span>{getStudiosByFranchise(franchise.id).length}</span>
+                          <span>Studios</span>
+                        </button>
+                        <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
+                          <span>Login: {franchise.loginEmail}</span>
+                        </div>
+                        <div className="flex items-center md:w-auto w-full justify-center gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm">
+                          <span>Password: </span>
+                          <span className="font-mono">
+                            {showPassword[franchise.id] ? franchise.loginPassword : "••••••••"}
+                          </span>
+                          <button
+                            onClick={() => togglePasswordVisibility(franchise.id)}
+                            className="ml-1 text-gray-400 hover:text-white"
+                          >
+                            {showPassword[franchise.id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                          </button>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-gray-400 py-8">
-                  <Building2 size={48} className="mx-auto mb-4 text-gray-600" />
-                  <p>No franchises found.</p>
-                  <button
-                    onClick={() => setIsCreateFranchiseModalOpen(true)}
-                    className="mt-4 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm"
-                  >
-                    Create Your First Franchise
-                  </button>
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-gray-400 py-8">
+                <Building2 size={48} className="mx-auto mb-4 text-gray-600" />
+                <p>No franchises found.</p>
+                <button
+                  onClick={() => setIsCreateFranchiseModalOpen(true)}
+                  className="mt-4 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm"
+                >
+                  Create Your First Franchise
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         <aside
-          className={`w-80 bg-[#181818] p-6 fixed top-0 bottom-0 right-0 z-50 lg:static lg:block ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-            } transition-transform duration-500 ease-in-out`}
+          className={`w-80 bg-[#181818] p-6 fixed top-0 bottom-0 right-0 z-50 lg:static lg:block ${
+            isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+          } transition-transform duration-500 ease-in-out`}
         >
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold oxanium_font">Notification</h2>
@@ -1278,6 +1417,16 @@ export default function Studios() {
         onInputChange={handleFranchiseInputChange}
         onSubmit={handleFranchiseSubmit}
         onLogoUpload={handleLogoUpload}
+      />
+
+      {/* Franchise Details Modal */}
+      <FranchiseDetailsModal
+        isOpen={isFranchiseDetailsModalOpen}
+        onClose={() => setIsFranchiseDetailsModalOpen(false)}
+        franchise={selectedFranchise}
+        onEditFranchise={handleEditFranchise}
+        onDeleteFranchise={handleDeleteFranchise}
+        assignedStudios={selectedFranchise ? getStudiosByFranchise(selectedFranchise.id) : []}
       />
 
       {/* Assign Studio to Franchise Modal */}
@@ -1399,16 +1548,15 @@ export default function Studios() {
                   {selectedStudioForModal.name} - Staff ({studioStaffs[selectedStudioForModal.id]?.length || 0})
                 </h2>
                 <div className="flex gap-2">
-                <div className="md:block hidden">
-
-<button
-  onClick={() => setIsAddStaffModalOpen(true)}
-  className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
->
-  <Plus size={18} />
-  <span className="open_sans_font">Add Staff</span>
-</button>
-</div>
+                  <div className="md:block hidden">
+                    <button
+                      onClick={() => setIsAddStaffModalOpen(true)}
+                      className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
+                    >
+                      <Plus size={18} />
+                      <span className="open_sans_font">Add Staff</span>
+                    </button>
+                  </div>
                   <button
                     onClick={() => {
                       setIsStaffsModalOpen(false)
@@ -1420,12 +1568,9 @@ export default function Studios() {
                     <X size={20} className="cursor-pointer" />
                   </button>
                 </div>
-
-
               </div>
 
               <div className="md:hidden flex justify-end items-center mb-3">
-
                 <button
                   onClick={() => setIsAddStaffModalOpen(true)}
                   className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
@@ -1448,11 +1593,12 @@ export default function Studios() {
                 </div>
               </div>
 
-
-
               <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
                 {getFilteredStaff().map((staff) => (
-                  <div key={staff.id} className="bg-[#161616] rounded-xl p-4 flex justify-between md:flex-row flex-col gap-3 items-center">
+                  <div
+                    key={staff.id}
+                    className="bg-[#161616] rounded-xl p-4 flex justify-between md:flex-row flex-col gap-3 items-center"
+                  >
                     <div className="flex-1">
                       <div className="flex items-center gap-1">
                         <h3 className="font-medium text-white">{staff.firstName}</h3>
@@ -1504,9 +1650,7 @@ export default function Studios() {
                   {selectedStudioForModal.name} - Leads ({studioLeads[selectedStudioForModal.id]?.length || 0})
                 </h2>
                 <div className="flex gap-2">
-
                   <div className="md:block hidden">
-
                     <button
                       onClick={() => setIsAddLeadModalOpen(true)}
                       className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
@@ -1529,7 +1673,6 @@ export default function Studios() {
               </div>
 
               <div className="md:hidden flex justify-end items-center mb-3">
-
                 <button
                   onClick={() => setIsAddLeadModalOpen(true)}
                   className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
@@ -1552,11 +1695,12 @@ export default function Studios() {
                 </div>
               </div>
 
-
-
               <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
                 {getFilteredLeads().map((lead) => (
-                  <div key={lead.id} className="bg-[#161616] rounded-xl p-4 flex justify-between md:flex-row flex-col gap-2 items-start">
+                  <div
+                    key={lead.id}
+                    className="bg-[#161616] rounded-xl p-4 flex justify-between md:flex-row flex-col gap-2 items-start"
+                  >
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
                         <h3 className="font-medium text-white">
@@ -1680,6 +1824,9 @@ export default function Studios() {
         studioStats={studioStats}
         DefaultStudioImage={DefaultStudioImage}
         isContractExpiringSoon={isContractExpiringSoon}
+        onEditStudio={handleEditStudio}
+        onGoToContract={handleGoToContract}
+        onViewFranchiseDetails={handleViewFranchiseDetails}
       />
 
       {/* Edit Lead Modal */}
@@ -1738,11 +1885,11 @@ export default function Studios() {
       )}
 
       {isStaffDetailsModalOpen && selectedItemForDetails && (
-       <ViewStaffModal 
-       isVisible={isStaffDetailsModalOpen}
-       onClose={() => setIsStaffDetailsModalOpen(false)}
-       staffData={selectedItemForDetails}
-       />
+        <ViewStaffModal
+          isVisible={isStaffDetailsModalOpen}
+          onClose={() => setIsStaffDetailsModalOpen(false)}
+          staffData={selectedItemForDetails}
+        />
       )}
 
       {isLeadDetailsModalOpen && selectedItemForDetails && (
@@ -1802,18 +1949,18 @@ export default function Studios() {
 
       {/* Add New Staff Modal */}
       {isAddStaffModalOpen && (
-       <AddStaffModal
-       isOpen={isAddStaffModalOpen}
-       onClose={() => setIsAddStaffModalOpen(false)}
-       onSave={(newStaff) => {
-         setStudioStaffs((prev) => ({
-           ...prev,
-           [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newStaff],
-         }))
-         setIsAddStaffModalOpen(false)
-         toast.success("Staff member added successfully")
-       }}
-       />
+        <AddStaffModal
+          isOpen={isAddStaffModalOpen}
+          onClose={() => setIsAddStaffModalOpen(false)}
+          onSave={(newStaff) => {
+            setStudioStaffs((prev) => ({
+              ...prev,
+              [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newStaff],
+            }))
+            setIsAddStaffModalOpen(false)
+            toast.success("Staff member added successfully")
+          }}
+        />
       )}
 
       {/* Add New Lead Modal */}

@@ -1,18 +1,21 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React from 'react';
-import { X, Users, Building } from 'lucide-react';
+import { X, Users, Building, Edit, FileText, Eye } from "lucide-react"
 
-const StudioDetailsModal = ({ 
-  isOpen, 
-  onClose, 
-  studio, 
-  franchises = [], 
+const StudioDetailsModal = ({
+  isOpen,
+  onClose,
+  studio,
+  franchises = [],
   studioStats = {},
   DefaultStudioImage,
-  isContractExpiringSoon 
+  isContractExpiringSoon,
+  onEditStudio,
+  onGoToContract,
+  onViewFranchiseDetails,
 }) => {
-  if (!isOpen || !studio) return null;
+  if (!isOpen || !studio) return null
+
+  const franchise = franchises.find((f) => f.id === studio.franchiseId)
 
   return (
     <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -20,16 +23,13 @@ const StudioDetailsModal = ({
         <div className="p-6 custom-scrollbar overflow-y-auto max-h-[80vh]">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white open_sans_font_700 text-lg font-semibold">Studio Details</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={20} className="cursor-pointer" />
             </button>
           </div>
 
           <div className="space-y-4 text-white">
-            <div className="flex items-center gap-4">
+            <div className="flex md:items-center flex-col md:flex-row justify-start items-start gap-4">
               <img
                 src={studio.image || DefaultStudioImage}
                 alt="Studio Logo"
@@ -43,10 +43,17 @@ const StudioDetailsModal = ({
                     {studio.contractEnd}
                   </span>
                 </p>
-                {studio.franchiseId && (
-                  <p className="text-purple-400 text-sm">
-                    Franchise: {franchises.find((f) => f.id === studio.franchiseId)?.name}
-                  </p>
+                {studio.franchiseId && franchise && (
+                  <div className="flex md:items-center mt-2 md:flex-row flex-col items-start gap-2">
+                    <p className="text-purple-400 text-sm">Franchise: {franchise.name}</p>
+                    <button
+                      onClick={() => onViewFranchiseDetails(franchise)}
+                      className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1"
+                    >
+                      <Eye size={14} />
+                      View Details
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -79,8 +86,47 @@ const StudioDetailsModal = ({
             </div>
 
             <div>
+              <p className="text-sm text-gray-400">IBAN</p>
+              <p>{studio.iban || "Not provided"}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-400">Country</p>
+              <p>{studio.country || "Not specified"}</p>
+            </div>
+
+            <div>
               <p className="text-sm text-gray-400">Address</p>
               <p>{`${studio.street}, ${studio.zipCode} ${studio.city}`}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-400">Lead Count</p>
+                <p className="text-lg font-semibold">{studioStats[studio.id]?.leads || 0}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Contract Count</p>
+                <p className="text-lg font-semibold">{studioStats[studio.id]?.contracts || 0}</p>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-400">Opening Hours</p>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <p>Monday: {studio.openingHours?.monday || "9:00 - 22:00"}</p>
+                <p>Tuesday: {studio.openingHours?.tuesday || "9:00 - 22:00"}</p>
+                <p>Wednesday: {studio.openingHours?.wednesday || "9:00 - 22:00"}</p>
+                <p>Thursday: {studio.openingHours?.thursday || "9:00 - 22:00"}</p>
+                <p>Friday: {studio.openingHours?.friday || "9:00 - 22:00"}</p>
+                <p>Saturday: {studio.openingHours?.saturday || "10:00 - 20:00"}</p>
+                <p>Sunday: {studio.openingHours?.sunday || "Closed"}</p>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-400">Closing Days</p>
+              <p>{studio.closingDays || "No special closing days"}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4 bg-[#161616] p-4 rounded-xl">
@@ -96,7 +142,7 @@ const StudioDetailsModal = ({
                   <Building size={16} className="text-green-400" />
                   <p className="text-xl font-semibold">{studioStats[studio.id]?.trainers || 0}</p>
                 </div>
-                <p className="text-xs text-gray-400">Trainers</p>
+                <p className="text-xs text-gray-400">Staff</p>
               </div>
             </div>
 
@@ -115,11 +161,28 @@ const StudioDetailsModal = ({
                 <p className="text-sm text-gray-400">Importance: {studio.noteImportance}</p>
               </div>
             )}
+
+            <div className="flex gap-3 md:flex-row flex-col pt-4">
+              <button
+                onClick={() => onEditStudio(studio)}
+                className="flex-1 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm flex items-center justify-center gap-2"
+              >
+                <Edit size={16} />
+                Edit Studio
+              </button>
+              <button
+                onClick={() => onGoToContract(studio)}
+                className="flex-1 bg-[#FF843E] hover:bg-[#FF843E]/90 px-4 py-2 rounded-xl text-sm flex items-center justify-center gap-2"
+              >
+                <FileText size={16} />
+                Go to Contract
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default StudioDetailsModal;
+export default StudioDetailsModal
