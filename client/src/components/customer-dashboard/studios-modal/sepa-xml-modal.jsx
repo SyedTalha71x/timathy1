@@ -1,7 +1,7 @@
 "use client"
 
 /* eslint-disable react/prop-types */
-import { Calendar, Download, X, Edit } from "lucide-react"
+import { Calendar, Download, X, Edit, Info } from "lucide-react"
 import { useEffect, useState } from "react"
 
 // eslint-disable-next-line no-unused-vars
@@ -15,6 +15,9 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   const [isCustomPeriod, setIsCustomPeriod] = useState(false)
   const [editingAmount, setEditingAmount] = useState(null)
   const [confirmEdit, setConfirmEdit] = useState(null)
+  const [servicesModalOpen, setServicesModalOpen] = useState(false)
+  const [selectedServices, setSelectedServices] = useState([])
+  const [selectedStudioName, setSelectedStudioName] = useState("")
 
   useEffect(() => {
     // Initialize selected transactions (only Pending and Failed)
@@ -76,6 +79,12 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
     setIsCustomPeriod(!isCustomPeriod)
   }
 
+  const handleShowServices = (services, studioName) => {
+    setSelectedServices(services)
+    setSelectedStudioName(studioName)
+    setServicesModalOpen(true)
+  }
+
   if (!isOpen) return null
 
   const filteredTransactions = transactions.filter((tx) => tx.status === "Pending" || tx.status === "Failed")
@@ -127,97 +136,119 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
         <div className="p-4 overflow-y-auto flex-grow">
           {filteredTransactions.length > 0 ? (
             <>
-              <p className="text-gray-300 mb-4">Review and select transactions to include in the SEPA XML file:</p>
-              <table className="w-full text-sm text-gray-300">
-                <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
-                  <tr>
-                    <th className="px-3 py-2 w-12 rounded-tl-lg">
-                      <input
-                        type="checkbox"
-                        className="rounded bg-black border-gray-700"
-                        checked={Object.values(selectedTransactions).every((v) => v)}
-                        onChange={() => {
-                          const allSelected = Object.values(selectedTransactions).every((v) => v)
-                          const newState = {}
-                          filteredTransactions.forEach((tx) => {
-                            newState[tx.id] = !allSelected
-                          })
-                          setSelectedTransactions(newState)
-                        }}
-                      />
-                    </th>
-                    <th className="px-3 py-2 text-left">Studio</th>
-                    <th className="px-3 py-2 text-left">Studio Owner</th>
-                    <th className="px-3 py-2 text-left">Date</th>
-                    <th className="px-3 py-2 text-left">Status</th>
-                    <th className="px-3 py-2 text-right rounded-tr-lg">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTransactions.map((tx) => (
-                    <tr key={tx.id} className="border-b border-gray-800">
-                      <td className="px-3 py-2">
-                        <input
-                          type="checkbox"
-                          className="rounded bg-black border-gray-700"
-                          checked={selectedTransactions[tx.id] || false}
-                          onChange={() => handleToggleTransaction(tx.id)}
-                        />
-                      </td>
-                      <td className="px-3 py-2">{tx.studioName}</td>
-                      <td className="px-3 py-2">{tx.studioOwner}</td>
-                      <td className="px-3 py-2">{new Date(tx.date).toLocaleDateString()}</td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                            tx.status === "Pending" ? "bg-yellow-900/30 text-yellow-500" : "bg-red-900/30 text-red-500"
-                          }`}
-                        >
-                          {tx.status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {editingAmount === tx.id ? (
+              <p className="text-gray-300 mb-4 text-sm">
+                Review and select transactions to include in the SEPA XML file:
+              </p>
+              <div className="overflow-x-auto">
+                <div className="min-w-[700px]">
+                  <table className="w-full text-sm text-gray-300">
+                    <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
+                      <tr>
+                        <th className="px-2 sm:px-3 py-2 w-12 rounded-tl-lg text-xs">
+                          <input
+                            type="checkbox"
+                            className="rounded bg-black border-gray-700"
+                            checked={Object.values(selectedTransactions).every((v) => v)}
+                            onChange={() => {
+                              const allSelected = Object.values(selectedTransactions).every((v) => v)
+                              const newState = {}
+                              filteredTransactions.forEach((tx) => {
+                                newState[tx.id] = !allSelected
+                              })
+                              setSelectedTransactions(newState)
+                            }}
+                          />
+                        </th>
+                        <th className="px-2 sm:px-3 py-2 text-left text-xs">Studio</th>
+                        <th className="px-2 sm:px-3 py-2 text-left text-xs">Studio Owner</th>
+                        <th className="px-2 sm:px-3 py-2 text-left text-xs">Date</th>
+                        <th className="px-2 sm:px-3 py-2 text-left text-xs">Status</th>
+                        <th className="px-2 sm:px-3 py-2 text-right text-xs">Amount</th>
+                        <th className="px-2 sm:px-3 py-2 text-center text-xs rounded-tr-lg">Services</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredTransactions.map((tx) => (
+                        <tr key={tx.id} className="border-b border-gray-800">
+                          <td className="px-2 sm:px-3 py-2">
                             <input
-                              type="number"
-                              value={editedAmounts[tx.id] || tx.amount}
-                              onChange={(e) => handleAmountChange(tx.id, e.target.value)}
-                              onBlur={() => setEditingAmount(null)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") setEditingAmount(null)
-                                if (e.key === "Escape") setEditingAmount(null)
-                              }}
-                              className="bg-black text-white w-20 px-2 py-1 rounded border border-gray-700 text-right"
-                              disabled={!selectedTransactions[tx.id]}
-                              autoFocus
+                              type="checkbox"
+                              className="rounded bg-black border-gray-700"
+                              checked={selectedTransactions[tx.id] || false}
+                              onChange={() => handleToggleTransaction(tx.id)}
                             />
-                          ) : (
-                            <span className={`${!selectedTransactions[tx.id] ? "text-gray-500" : "text-white"}`}>
-                              ${(editedAmounts[tx.id] || tx.amount).toFixed(2)}
+                          </td>
+                          <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm">{tx.studioName}</td>
+                          <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm">{tx.studioOwner}</td>
+                          <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm">
+                            {new Date(tx.date).toLocaleDateString()}
+                          </td>
+                          <td className="px-2 sm:px-3 py-2">
+                            <span
+                              className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                                tx.status === "Pending"
+                                  ? "bg-yellow-900/30 text-yellow-500"
+                                  : "bg-red-900/30 text-red-500"
+                              }`}
+                            >
+                              {tx.status}
                             </span>
-                          )}
-                          <button
-                            onClick={() => setConfirmEdit(tx.id)}
-                            disabled={!selectedTransactions[tx.id]}
-                            className={`p-1 rounded hover:bg-gray-700 ${
-                              !selectedTransactions[tx.id]
-                                ? "text-gray-600 cursor-not-allowed"
-                                : "text-gray-400 hover:text-white"
-                            }`}
-                          >
-                            <Edit className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="px-2 sm:px-3 py-2 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {editingAmount === tx.id ? (
+                                <input
+                                  type="number"
+                                  value={editedAmounts[tx.id] || tx.amount}
+                                  onChange={(e) => handleAmountChange(tx.id, e.target.value)}
+                                  onBlur={() => setEditingAmount(null)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") setEditingAmount(null)
+                                    if (e.key === "Escape") setEditingAmount(null)
+                                  }}
+                                  className="bg-black text-white w-16 sm:w-20 px-2 py-1 rounded border border-gray-700 text-right text-xs sm:text-sm"
+                                  disabled={!selectedTransactions[tx.id]}
+                                  autoFocus
+                                />
+                              ) : (
+                                <span
+                                  className={`text-xs sm:text-sm ${!selectedTransactions[tx.id] ? "text-gray-500" : "text-white"}`}
+                                >
+                                  ${(editedAmounts[tx.id] || tx.amount).toFixed(2)}
+                                </span>
+                              )}
+                              <button
+                                onClick={() => setConfirmEdit(tx.id)}
+                                disabled={!selectedTransactions[tx.id]}
+                                className={`p-1 rounded hover:bg-gray-700 ${
+                                  !selectedTransactions[tx.id]
+                                    ? "text-gray-600 cursor-not-allowed"
+                                    : "text-gray-400 hover:text-white"
+                                }`}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-2 sm:px-3 py-2 text-center">
+                            <button
+                              onClick={() => handleShowServices(tx.services, tx.studioName)}
+                              className="text-blue-400 hover:text-blue-300"
+                              disabled={!selectedTransactions[tx.id]}
+                            >
+                              <Info className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </>
           ) : (
             <div className="bg-[#141414] p-6 rounded-xl text-center">
-              <p className="text-gray-400">No pending or failed transactions for this period.</p>
+              <p className="text-gray-400 text-sm">No pending or failed transactions for this period.</p>
             </div>
           )}
         </div>
@@ -244,6 +275,48 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                 >
                   Yes, Edit
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Services Modal */}
+        {servicesModalOpen && (
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-20">
+            <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col mx-4">
+              <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+                <h2 className="text-white text-lg font-medium">Services Breakdown</h2>
+                <button onClick={() => setServicesModalOpen(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-4 overflow-y-auto flex-grow">
+                <div className="mb-4">
+                  <h3 className="text-white font-medium mb-2">{selectedStudioName}</h3>
+                  <p className="text-gray-400 text-sm">Cost breakdown for this studio</p>
+                </div>
+
+                <div className="space-y-3">
+                  {selectedServices.map((service, index) => (
+                    <div key={index} className="bg-[#141414] p-3 rounded-lg">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-white font-medium text-sm">{service.name}</span>
+                        <span className="text-white font-semibold text-sm">${service.cost.toFixed(2)}</span>
+                      </div>
+                      <p className="text-gray-400 text-xs">{service.description}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-800">
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-semibold text-sm">Total Amount</span>
+                    <span className="text-white font-bold text-lg">
+                      ${selectedServices.reduce((sum, service) => sum + service.cost, 0).toFixed(2)} USD
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

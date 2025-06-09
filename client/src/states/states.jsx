@@ -226,6 +226,8 @@ export const FranchiseData = [
         website: "www.fitchain.com",
         about: "Leading fitness franchise with multiple studio locations across Germany.",
         ownerName: "Klaus Weber",
+        ownerFirstName: "Klaus",
+        ownerLastName: "Weber",
         taxId: "DE111222333",
         loginEmail: "admin@fitchain.com",
         loginPassword: "franchise123",

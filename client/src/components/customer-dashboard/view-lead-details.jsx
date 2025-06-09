@@ -21,6 +21,35 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
     })
   }
 
+  // Lead source options for reference
+  const leadSources = [
+    "Website",
+    "Google Ads",
+    "Social Media Ads",
+    "Email Campaign",
+    "Cold Call (Outbound)",
+    "Inbound Call",
+    "Event",
+    "Offline Advertising",
+    "Other",
+  ]
+
+  // Get source color based on type
+  const getSourceColor = (source) => {
+    const sourceColors = {
+      Website: "bg-blue-900 text-blue-300",
+      "Google Ads": "bg-green-900 text-green-300",
+      "Social Media Ads": "bg-purple-900 text-purple-300",
+      "Email Campaign": "bg-orange-900 text-orange-300",
+      "Cold Call (Outbound)": "bg-red-900 text-red-300",
+      "Inbound Call": "bg-emerald-900 text-emerald-300",
+      Event: "bg-yellow-900 text-yellow-300",
+      "Offline Advertising": "bg-pink-900 text-pink-300",
+      Other: "bg-gray-900 text-gray-300",
+    }
+    return sourceColors[source] || "bg-gray-900 text-gray-300"
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 bg-opacity-50">
       <div className="bg-[#1C1C1C] rounded-lg lg:p-8 p-5 max-w-2xl w-full mx-4 custom-scrollbar max-h-[80vh] overflow-y-auto">
@@ -47,8 +76,15 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
             <p className="text-white">{leadData.phoneNumber || "N/A"}</p>
           </div>
           <div>
-            <p className="text-gray-400">Source:</p>
-            <p className="text-white">{leadData.source || "N/A"}</p>
+            <p className="text-gray-400">Lead Source:</p>
+            <div className="flex items-center gap-2">
+              <span className={`px-2 py-1 text-xs rounded-full ${getSourceColor(leadData.source)}`}>
+                {leadData.source || "N/A"}
+              </span>
+              {leadData.source && leadSources.includes(leadData.source) && (
+                <span className="text-xs text-gray-500">(Verified Source)</span>
+              )}
+            </div>
           </div>
           <div>
             <p className="text-gray-400">Street & ZIP Code:</p>
@@ -74,6 +110,16 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
             <p className="text-gray-400">Status:</p>
             <p className="text-white">{leadData.status || "N/A"}</p>
           </div>
+          <div>
+            <p className="text-gray-400">Trial Training:</p>
+            <span
+              className={`px-2 py-1 text-xs rounded-full ${
+                leadData.hasTrialTraining ? "bg-green-900 text-green-300" : "bg-gray-900 text-gray-300"
+              }`}
+            >
+              {leadData.hasTrialTraining ? "Scheduled" : "Not Scheduled"}
+            </span>
+          </div>
           <div className="md:col-span-2">
             <p className="text-gray-400">About:</p>
             <p className="text-white">{leadData.about || "N/A"}</p>
@@ -95,6 +141,26 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
               )}
             </p>
           </div>
+        </div>
+
+        {/* Lead Sources Reference Section */}
+        <div className="mt-6 pt-6 border-t border-gray-700">
+          <h4 className="text-white font-medium mb-3">Available Lead Sources:</h4>
+          <div className="flex flex-wrap gap-2">
+            {leadSources.map((source) => (
+              <span
+                key={source}
+                className={`px-2 py-1 text-xs rounded-full ${getSourceColor(source)} ${
+                  leadData.source === source ? "ring-2 ring-white" : ""
+                }`}
+              >
+                {source}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            The highlighted source indicates where this lead originated from.
+          </p>
         </div>
       </div>
     </div>

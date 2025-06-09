@@ -2,7 +2,7 @@ import React from "react"
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
-import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Settings, Plus } from "lucide-react"
+import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Settings, Plus } from 'lucide-react'
 import Draggable from "react-draggable"
 import { AddLeadModal } from "../../components/customer-dashboard/add-lead-modal"
 import { EditLeadModal } from "../../components/customer-dashboard/studios-modal/edit-lead-modal"
@@ -48,7 +48,7 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
     })
   }
 
-  const hasValidNote = lead.specialNote
+  const hasValidNote = lead.specialNote && lead.specialNote.text && lead.specialNote.text.trim() !== ""
 
   const handleDragStart = () => {
     setIsDragging(true)
@@ -667,15 +667,16 @@ export default function LeadManagement() {
           country: data.country,
           website: data.website,
           about: data.about,
-          specialNote: {
-            text: data.note || "",
-            isImportant: data.noteImportance === "important",
-            startDate: data.noteStartDate || null,
-            endDate: data.noteEndDate || null,
-          },
+          specialNote: data.specialNote && data.specialNote.text ? {
+            text: data.specialNote.text,
+            isImportant: data.specialNote.isImportant,
+            startDate: data.specialNote.startDate || null,
+            endDate: data.specialNote.endDate || null,
+          } : null,
         }
         : lead,
     )
+    
     setLeads(updatedLeads)
 
     // Only update localStorage with non-hardcoded leads
@@ -796,13 +797,6 @@ export default function LeadManagement() {
     setSelectedColumn(null)
   }
 
-  // Handle source configuration
-  const handleSaveSources = (newSources) => {
-    setLeadSources(newSources)
-    localStorage.setItem("leadSources", JSON.stringify(newSources))
-    setIsSourceConfigModalOpen(false)
-    toast.success("Lead sources updated")
-  }
 
   // Filter leads based on search query
   const filteredLeads = leads.filter((lead) => {

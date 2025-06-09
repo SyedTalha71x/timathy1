@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -1285,6 +1287,71 @@ export default function Studios() {
               <div className="space-y-3">
                 {filteredAndSortedFranchises().map((franchise) => (
                   <div key={franchise.id} className="bg-[#161616] rounded-xl p-6 relative">
+                    {franchise.specialNote && (
+                      <div className="absolute p-2 top-0 left-0 z-10">
+                        <div className="relative">
+                          <div
+                            className={`${
+                              franchise.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setActiveNoteId(
+                                activeNoteId === `franchise-${franchise.id}` ? null : `franchise-${franchise.id}`,
+                              )
+                            }}
+                          >
+                            {franchise.noteImportance === "important" ? (
+                              <AlertTriangle size={18} className="text-white" />
+                            ) : (
+                              <Info size={18} className="text-white" />
+                            )}
+                          </div>
+
+                          {activeNoteId === `franchise-${franchise.id}` && (
+                            <div
+                              ref={notePopoverRef}
+                              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+                            >
+                              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                                {franchise.noteImportance === "important" ? (
+                                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                                ) : (
+                                  <Info className="text-blue-500 shrink-0" size={18} />
+                                )}
+                                <h4 className="text-white flex gap-1 items-center font-medium">
+                                  <div>Special Note</div>
+                                  <div className="text-sm text-gray-400">
+                                    {franchise.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+                                  </div>
+                                </h4>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setActiveNoteId(null)
+                                  }}
+                                  className="ml-auto text-gray-400 hover:text-white"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+
+                              <div className="p-3">
+                                <p className="text-white text-sm leading-relaxed">{franchise.specialNote}</p>
+
+                                {franchise.noteStartDate && franchise.noteEndDate && (
+                                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                                    <p className="text-xs text-gray-300">
+                                      Valid from {franchise.noteStartDate} to {franchise.noteEndDate}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <div className="flex flex-col gap-4">
                       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
