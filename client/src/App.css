@@ -283,6 +283,11 @@ html, body {
   background-color: #101010 !important;
 }
 
+/* Force Recommended label to white */
+.custom-color-picker .ant-color-picker-presets .ant-color-picker-presets-item-label {
+  color: white !important;
+}
+
 .white-text .ant-input-number:hover,
 .white-text .ant-input-number:focus {
   border-color: #ffffff !important;

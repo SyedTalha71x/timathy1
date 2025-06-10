@@ -18,7 +18,7 @@ import Communication from "./dashboardpages/communications";
 import Payment from "./dashboardpages/payment"
 import Contract from './dashboardpages/contract'
 import Configuration from './dashboardpages/configuration'
-import Leets from './dashboardpages/leets'
+import Leets from './dashboardpages/leads'
 import TrialTraining from "./dashboardpages/trialtraining";
 import Selling from "./dashboardpages/selling";
 import Finances from "./dashboardpages/finances";

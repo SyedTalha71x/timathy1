@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -1561,7 +1559,7 @@ export default function Studios() {
                 {getFilteredMembers().map((member) => (
                   <div
                     key={member.id}
-                    className="bg-[#161616] rounded-xl lg:p-4 p-3 flex justify-between md:items-center items-start"
+                    className="bg-[#161616] rounded-xl lg:p-4 p-3 flex justify-between flex-col md:flex-row gap-2 md:items-center items-start"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-1">
@@ -1581,17 +1579,17 @@ export default function Studios() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-2 flex-col md:flex-row">
+                    <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
                       <button
                         onClick={() => handleViewMemberDetails(member)}
-                        className="bg-gray-600 hover:bg-gray-500 px-3 py-2 rounded-lg text-sm flex items-center gap-2"
+                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                       >
                         <Eye size={16} />
                         View Details
                       </button>
                       <button
                         onClick={() => handleEditMember(member)}
-                        className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-3 py-2 rounded-lg text-sm flex items-center gap-2"
+                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                       >
                         <Edit size={16} />
                         Edit
@@ -1683,7 +1681,7 @@ export default function Studios() {
                     <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
                       <button
                         onClick={() => handleViewStaffDetails(staff)}
-                        className="bg-gray-600 hover:bg-gray-500 px-3 py-2 justify-center rounded-lg text-sm flex items-center gap-2"
+                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                       >
                         <Eye size={16} />
                         View Details
@@ -1693,7 +1691,7 @@ export default function Studios() {
                           setselectedStaffForEdit(staff)
                           setisEditStaffModalOpen(true)
                         }}
-                        className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-3 justify-center py-2 rounded-lg text-sm flex items-center gap-2"
+                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                       >
                         <Edit size={16} />
                         Edit
@@ -1796,14 +1794,14 @@ export default function Studios() {
                     <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
                       <button
                         onClick={() => handleViewLeadDetails(lead)}
-                        className="bg-gray-600 hover:bg-gray-500 justify-center text-gray-300 px-3 py-2 rounded-lg text-sm flex items-center gap-2"
+                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                       >
                         <Eye size={16} />
                         View Details
                       </button>
                       <button
                         onClick={() => handleEditMember(lead)}
-                        className="bg-[#3F74FF]  justify-center hover:bg-[#3F74FF]/90 px-1 py-2 rounded-lg text-sm flex items-center gap-2"
+                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                       >
                         <Edit size={16} />
                         Edit
@@ -2046,7 +2044,7 @@ export default function Studios() {
           studioId={selectedStudioForModal.id}
           studioName={selectedStudioForModal.name}
           leadSources={defaultSources}
-        />
+        />  
       )}
     </>
   )

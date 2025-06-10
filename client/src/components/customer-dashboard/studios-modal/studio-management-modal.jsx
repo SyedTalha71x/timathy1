@@ -93,7 +93,7 @@ const StudioManagementModal = ({
                         <div className="flex gap-2">
                           <button
                             onClick={() => onEditStudio(studio)}
-                            className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
+                            className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                           >
                             <Edit size={14} />
                             Edit
@@ -160,7 +160,7 @@ const StudioManagementModal = ({
                         <div className="flex gap-2">
                           <button
                             onClick={() => onEditStudio(studio)}
-                            className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
+                            className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                           >
                             <Edit size={14} />
                             Edit

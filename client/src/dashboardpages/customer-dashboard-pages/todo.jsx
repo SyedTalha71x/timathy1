@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
 import { X, Plus, Calendar, Tag, ChevronDown, Filter, Tags } from "lucide-react"
@@ -197,7 +195,7 @@ export default function TodoApp() {
   })
 
   return (
-    <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden">
+    <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white text-base relative min-h-screen overflow-hidden">
       <div className="flex-1 p-4 sm:p-6">
         <div className="pb-16 sm:pb-24 lg:pb-36">
           {/* Header with title, filter tabs, and add button */}
@@ -347,6 +345,25 @@ export default function TodoApp() {
                     onUpdate={handleTaskUpdate}
                     onRemove={handleTaskRemove}
                     getTagColor={getTagColor}
+                    allTags={allTags}
+                    onAddTag={(taskId, tagName) => {
+                      const updatedTasks = tasks.map((task) =>
+                        task.id === taskId ? { ...task, tags: [...(task.tags || []), tagName] } : task,
+                      )
+                      setTasks(updatedTasks)
+                    }}
+                    onRemoveTag={(taskId, tagToRemove) => {
+                      const updatedTasks = tasks.map((task) =>
+                        task.id === taskId ? { ...task, tags: task.tags.filter((tag) => tag !== tagToRemove) } : task,
+                      )
+                      setTasks(updatedTasks)
+                    }}
+                    onUpdateDueDate={(taskId, newDate, newTime) => {
+                      const updatedTasks = tasks.map((task) =>
+                        task.id === taskId ? { ...task, dueDate: newDate, dueTime: newTime } : task,
+                      )
+                      setTasks(updatedTasks)
+                    }}
                   />
                 ))}
               </div>

@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useMemo } from 'react';
-import { X, Search } from 'lucide-react';
+import { X, Search, Plus } from 'lucide-react';
 
 const AssignStudioModal = ({
   isOpen,
@@ -140,8 +140,9 @@ const AssignStudioModal = ({
                       <button
                         onClick={() => handleAssignClick(studio.id)}
                         disabled={!selectedFranchiseForAssignment}
-                        className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 disabled:bg-gray-600 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-sm"
+                        className="bg-[#FF843E] hover:bg-[#FF843E]/90 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
                       >
+                        <Plus size={14} className="inline mr-1" />
                         Assign
                       </button>
                     </div>

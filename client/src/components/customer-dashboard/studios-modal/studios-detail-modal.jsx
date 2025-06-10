@@ -1,5 +1,7 @@
 /* eslint-disable react/prop-types */
 import { X, Users, Building, Edit, FileText, Eye } from "lucide-react"
+import { IoMdDocument } from "react-icons/io"
+import { TbPaperBag } from "react-icons/tb"
 
 const StudioDetailsModal = ({
   isOpen,
@@ -100,7 +102,7 @@ const StudioDetailsModal = ({
               <p>{`${studio.street}, ${studio.zipCode} ${studio.city}`}</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-400">Lead Count</p>
                 <p className="text-lg font-semibold">{studioStats[studio.id]?.leads || 0}</p>
@@ -109,7 +111,7 @@ const StudioDetailsModal = ({
                 <p className="text-sm text-gray-400">Contract Count</p>
                 <p className="text-lg font-semibold">{studioStats[studio.id]?.contracts || 0}</p>
               </div>
-            </div>
+            </div> */}
 
             <div>
               <p className="text-sm text-gray-400">Opening Hours</p>
@@ -139,10 +141,24 @@ const StudioDetailsModal = ({
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2">
-                  <Building size={16} className="text-green-400" />
+                  <Users size={16} className="text-blue-400" />
+                  <p className="text-xl font-semibold">{studioStats[studio.id]?.leads || 0}</p>
+                </div>
+                <p className="text-xs text-gray-400">Leads</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <Users size={16} className="text-green-400" />
                   <p className="text-xl font-semibold">{studioStats[studio.id]?.trainers || 0}</p>
                 </div>
                 <p className="text-xs text-gray-400">Staff</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <IoMdDocument size={16} className="text-green-400" />
+                  <p className="text-xl font-semibold">{studioStats[studio.id]?.contracts || 0}</p>
+                </div>
+                <p className="text-xs text-gray-400">Contracts</p>
               </div>
             </div>
 

@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
@@ -17,7 +15,6 @@ import {
   Plus,
   ExternalLink,
 } from "lucide-react"
-import Image10 from "../../../public/image10.png"
 import { Toaster, toast } from "react-hot-toast"
 import { WidgetSelectionModal } from "../../components/customer-dashboard/widgets"
 
@@ -52,6 +49,35 @@ const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEdit
   )
 }
 
+// Confirmation Modal Component
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+              <X size={16} />
+            </button>
+          </div>
+          <p className="text-zinc-400">{message}</p>
+          <div className="flex gap-2 justify-end mt-6">
+            <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700">
+              Cancel
+            </button>
+            <button onClick={onConfirm} className="px-4 py-2 text-sm rounded-xl bg-red-600 hover:bg-red-700">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function MyArea() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -63,6 +89,7 @@ export default function MyArea() {
   const navigate = useNavigate()
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
   const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
+  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
 
   const [isEditing, setIsEditing] = useState(false)
   const [widgets, setWidgets] = useState([
@@ -82,6 +109,7 @@ export default function MyArea() {
     { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
   ])
   const [sidebarSections, setSidebarSections] = useState([])
+  const [availableWidgetTypes] = useState(["chart", "todo", "websiteLink", "expiringContracts"])
 
   const [todos, setTodos] = useState([
     {
@@ -89,12 +117,16 @@ export default function MyArea() {
       title: "Review Design",
       description: "Review the new dashboard design",
       assignee: "Jack",
+      dueDate: "2024-12-15",
+      dueTime: "14:30",
     },
     {
       id: 2,
       title: "Team Meeting",
       description: "Weekly team sync",
       assignee: "Jack",
+      dueDate: "2024-12-16",
+      dueTime: "10:00",
     },
   ])
 
@@ -178,7 +210,15 @@ export default function MyArea() {
   }
 
   const removeCustomLink = (id) => {
-    setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
+    setConfirmationModal({ isOpen: true, linkId: id })
+  }
+
+  const confirmRemoveLink = () => {
+    if (confirmationModal.linkId) {
+      setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
+      toast.success("Website link removed successfully")
+    }
+    setConfirmationModal({ isOpen: false, linkId: null })
   }
 
   const moveSidebarSection = (id, direction) => {
@@ -435,9 +475,11 @@ export default function MyArea() {
     toast.success(`${widgetType} widget has been added to sidebar Successfully`)
   }
 
-  // Updated canAddWidget function to check if a widget type is already added in either sidebar
+  // Updated canAddWidget function to properly handle widget availability
   const canAddWidget = (widgetType) => {
+    // Check if widget type exists in available types and is not already added in either sidebar
     return (
+      availableWidgetTypes.includes(widgetType) &&
       !widgets.some((widget) => widget.type === widgetType) &&
       !rightWidgets.some((widget) => widget.type === widgetType)
     )
@@ -462,6 +504,7 @@ export default function MyArea() {
     }
   }, [activeNoteId])
 
+  // Updated expiring contracts - all set to "Expiring Soon" with yellow status
   const [expiringContracts, setExpiringContracts] = useState([
     {
       id: 1,
@@ -479,7 +522,19 @@ export default function MyArea() {
       id: 3,
       title: "Studio Space Rental",
       expiryDate: "August 5, 2025",
-      status: "Active",
+      status: "Expiring Soon",
+    },
+    {
+      id: 4,
+      title: "Insurance Policy",
+      expiryDate: "September 10, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 5,
+      title: "Software License",
+      expiryDate: "October 20, 2025",
+      status: "Expiring Soon",
     },
   ])
 
@@ -505,9 +560,6 @@ export default function MyArea() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {/* <button onClick={toggleSidebar} className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden">
-                  <BarChart3 />
-                </button> */}
                 <h1 className="text-xl font-bold">My Area</h1>
               </div>
               <div className="flex items-center gap-2">
@@ -579,8 +631,6 @@ export default function MyArea() {
                       </div>
                       <div className="overflow-x-auto">
                         <div className="min-w-[600px]">
-                          {" "}
-                          {/* Set minimum width to ensure chart doesn't get squeezed */}
                           <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
                         </div>
                       </div>
@@ -701,13 +751,7 @@ export default function MyArea() {
                                       <h3 className="text-sm font-medium">{contract.title}</h3>
                                       <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
                                     </div>
-                                    <span
-                                      className={`px-2 py-1 text-xs rounded-full ${
-                                        contract.status === "Expiring Soon"
-                                          ? "bg-yellow-500/20 text-yellow-400"
-                                          : "bg-green-500/20 text-green-400"
-                                      }`}
-                                    >
+                                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400">
                                       {contract.status}
                                     </span>
                                   </div>
@@ -738,11 +782,13 @@ export default function MyArea() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">Sidebar</h2>
               <div className="flex items-center gap-2">
+                {/* Desktop: Show "+ Add Widget" button, Mobile: Show only "+" */}
                 <button
                   onClick={() => setIsRightWidgetModalOpen(true)}
-                  className="p-2 bg-black text-white hover:bg-zinc-900 rounded-lg text-sm cursor-pointer flex items-center"
+                  className="p-2 bg-black text-white hover:bg-zinc-900 rounded-lg text-sm cursor-pointer flex items-center gap-1"
                 >
                   <Plus size={16} />
+                  <span className="hidden md:inline">Add Widget</span>
                 </button>
                 <button
                   onClick={toggleRightSidebar}
@@ -798,11 +844,16 @@ export default function MyArea() {
                         <div>
                           <h3 className="font-semibold open_sans_font text-sm">{todo.title}</h3>
                           <p className="text-xs open_sans_font text-zinc-400">{todo.description}</p>
+                          <span className="text-xs text-zinc-400">
+                            {todo.dueDate} {todo.dueTime}
+                          </span>
                         </div>
-                        <button className="px-3 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
-                          <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
-                          {todo.assignee}
-                        </button>
+                        <div className="flex flex-col items-end gap-1">
+                          <button className="px-3 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
+                            TO-DO
+                          </button>
+                        
+                        </div>
                       </div>
                     ))}
 
@@ -818,7 +869,7 @@ export default function MyArea() {
             ))}
 
             {rightWidgets.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-40 text-zinc-400">
+              <div className="md:flex hidden flex-col items-center justify-center h-40 text-zinc-400">
                 <p className="mb-4">No widgets added to sidebar</p>
                 <button
                   onClick={() => setIsRightWidgetModalOpen(true)}
@@ -831,7 +882,18 @@ export default function MyArea() {
             )}
           </div>
         </aside>
+
+        {/* Modals */}
         {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
+
+        <ConfirmationModal
+          isOpen={confirmationModal.isOpen}
+          onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
+          onConfirm={confirmRemoveLink}
+          title="Delete Website Link"
+          message="Are you sure you want to delete this website link? This action cannot be undone."
+        />
+
         <WidgetSelectionModal
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
