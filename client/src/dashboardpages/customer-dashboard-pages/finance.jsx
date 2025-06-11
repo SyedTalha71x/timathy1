@@ -618,6 +618,7 @@ export default function FinancesPage() {
           </p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
+
           <h3 className="text-gray-400 text-sm mb-1">Successful Payments</h3>
           <p className="text-green-500 text-xl font-semibold">
             {formatCurrency(financialState[selectedPeriod].successfulPayments)}
@@ -637,9 +638,7 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      {/* Search and Filter row */}
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
-        {/* Search input */}
         <div className="flex-grow">
           <input
             type="text"
@@ -669,6 +668,7 @@ export default function FinancesPage() {
                   onClick={() => {
                     setSelectedStatus(status)
                     setStatusFilterOpen(false)
+
                   }}
                 >
                   {status !== "All" && (
