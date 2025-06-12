@@ -1,6 +1,8 @@
+/* eslint-disable no-constant-binary-expression */
+
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
-import { X, FileText, Upload, Eye, ArrowLeft } from 'lucide-react'
+import { X, FileText, Upload, Eye, ArrowLeft } from "lucide-react"
 import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 
@@ -53,6 +55,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
   // eslint-disable-next-line no-unused-vars
   const [isDigital, setIsDigital] = useState(true)
   const [currentPage, setCurrentPage] = useState(0)
+  const [showLeadSelection, setShowLeadSelection] = useState(true)
   const [contractData, setContractData] = useState({
     fullName: "",
     studioName: "",
@@ -108,19 +111,30 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
   const sampleLeads = [
     {
       id: "lead-1",
-      studioName: "Elite Fitness Studio",
-      studioOwnerName: "Michael Brown",
+      firstName: "Michael",
+      lastName: "Brown",
       email: "michael@example.com",
       phone: "5551234567",
       interestedIn: "Premium",
+      company: "Elite Fitness Studio",
     },
     {
       id: "lead-2",
-      studioName: "Wellness Center Pro",
-      studioOwnerName: "Sarah Wilson",
+      firstName: "Sarah",
+      lastName: "Wilson",
       email: "sarah@example.com",
       phone: "5559876543",
       interestedIn: "Basic",
+      company: "Wellness Center Pro",
+    },
+    {
+      id: "lead-3",
+      firstName: "John",
+      lastName: "Davis",
+      email: "john@example.com",
+      phone: "5555551234",
+      interestedIn: "Bronze",
+      company: "FitZone Gym",
     },
   ]
 
@@ -143,12 +157,17 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     }
   }
 
-  // Filter leads based on search term (only by studio name)
+  // Filter leads based on search term
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setFilteredLeads([])
     } else {
-      const filtered = sampleLeads.filter((lead) => lead.studioName.toLowerCase().includes(searchTerm.toLowerCase()))
+      const filtered = sampleLeads.filter(
+        (lead) =>
+          `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          lead.company.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
       setFilteredLeads(filtered)
     }
   }, [searchTerm])
@@ -158,22 +177,20 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     if (leadData) {
       setContractData((prevData) => ({
         ...prevData,
-        studioName: leadData.studioName || "",
-        studioOwnerName: leadData.studioOwnerName || "",
-        fullName: leadData.studioOwnerName || "",
+        studioName: leadData.company || "",
+        studioOwnerName: `${leadData.firstName} ${leadData.lastName}` || "",
+        fullName: `${leadData.firstName} ${leadData.lastName}` || "",
         email: leadData.email || "",
         phone: leadData.phone || "",
         leadId: leadData.id || "",
         rateType: leadData.interestedIn || "",
-        // Split name into first and last name if available
-        ...(leadData.studioOwnerName && {
-          vorname: leadData.studioOwnerName.split(" ")[0] || "",
-          nachname: leadData.studioOwnerName.split(" ").slice(1).join(" ") || "",
-        }),
+        vorname: leadData.firstName || "",
+        nachname: leadData.lastName || "",
         emailAdresse: leadData.email || "",
         telefonnummer: leadData.phone || "",
       }))
-      setSearchTerm(leadData.studioName || "")
+      setSearchTerm(`${leadData.firstName} ${leadData.lastName}`)
+      setShowLeadSelection(false)
     }
   }, [leadData])
 
@@ -232,18 +249,29 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     setContractData({
       ...contractData,
       leadId: lead.id,
-      studioName: lead.studioName,
-      studioOwnerName: lead.studioOwnerName,
-      fullName: lead.studioOwnerName,
+      studioName: lead.company,
+      studioOwnerName: `${lead.firstName} ${lead.lastName}`,
+      fullName: `${lead.firstName} ${lead.lastName}`,
       email: lead.email,
       phone: lead.phone,
-      vorname: lead.studioOwnerName.split(" ")[0] || "",
-      nachname: lead.studioOwnerName.split(" ").slice(1).join(" ") || "",
+      vorname: lead.firstName,
+      nachname: lead.lastName,
       emailAdresse: lead.email,
       telefonnummer: lead.phone,
       rateType: lead.interestedIn,
     })
-    setSearchTerm(lead.studioName)
+    setSearchTerm(`${lead.firstName} ${lead.lastName}`)
+    setFilteredLeads([])
+    setShowLeadSelection(false)
+  }
+
+  const handleProceedWithoutLead = () => {
+    setShowLeadSelection(false)
+  }
+
+  const handleBackToLeadSelection = () => {
+    setShowLeadSelection(true)
+    setSearchTerm("")
     setFilteredLeads([])
   }
 
@@ -370,18 +398,27 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
         </div>
       )}
 
-      <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl ">
+      <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl">
         <div className="px-4 py-3 border-b border-gray-800 custom-scrollbar max-h-[10vh] sm:max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center">
-            <h2 className="text-base open_sans_font_700 text-white">Add Contract</h2> 
+            <h2 className="text-base open_sans_font_700 text-white">Add Contract</h2>
             <div className="flex items-center gap-2">
-              {!showFormView && (
+              {!showLeadSelection && !showFormView && (
                 <button
                   onClick={toggleView}
                   className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-xl flex items-center gap-1"
                 >
                   <ArrowLeft size={16} />
                   <span className="text-xs">Form View</span>
+                </button>
+              )}
+              {!showLeadSelection && (
+                <button
+                  onClick={handleBackToLeadSelection}
+                  className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-xl flex items-center gap-1"
+                >
+                  <ArrowLeft size={16} />
+                  <span className="text-xs">Back to Lead Selection</span>
                 </button>
               )}
               <button
@@ -395,35 +432,75 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
         </div>
 
         <div className="px-4 py-3 open_sans_font max-h-[75vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
-          {showFormView ? (
-            <div>
-              <div className="space-y-4 mb-4">
+          {showLeadSelection ? (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <h3 className="text-white text-lg font-semibold mb-2">Select Lead</h3>
+                <p className="text-gray-400 text-sm">Search for an existing lead or proceed without selecting one</p>
+              </div>
+
+              <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Studio</label>
+                  <label className="text-xs text-gray-200 block pl-1">Lead</label>
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Search for studio..."
+                      placeholder="Search for lead..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                     />
                     {filteredLeads.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 bg-[#101010] mt-1 rounded-xl z-10 shadow-lg max-h-40 overflow-y-auto">
+                      <div className="absolute top-full left-0 right-0 bg-[#101010] mt-1 rounded-xl z-10 shadow-lg max-h-40 overflow-y-auto border border-gray-700">
                         {filteredLeads.map((lead) => (
                           <div
                             key={lead.id}
-                            className="p-2 hover:bg-[#1a1a1a] text-white cursor-pointer rounded-xl"
+                            className="p-3 hover:bg-[#1a1a1a] text-white cursor-pointer border-b border-gray-800 last:border-b-0"
                             onClick={() => handleLeadSelect(lead)}
                           >
-                            <div className="font-medium">{lead.studioName}</div>
-                            <div className="text-sm text-gray-400">{lead.studioOwnerName}</div>
+                            <div className="font-medium">
+                              {lead.firstName} {lead.lastName}
+                            </div>
+                            <div className="text-sm text-gray-400">{lead.email}</div>
+                            <div className="text-xs text-gray-500">
+                              {lead.company} • Interested in: {lead.interestedIn}
+                            </div>
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
                 </div>
+
+                <div className="text-center">
+                  <button
+                    onClick={handleProceedWithoutLead}
+                    className="text-gray-400 hover:text-white text-sm underline transition-colors"
+                  >
+                    Proceed without selecting a lead
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : showFormView ? (
+            <div>
+              <div className="space-y-4 mb-4">
+                {contractData.leadId && (
+                  <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
+                    <h4 className="text-white text-sm font-medium mb-2">Selected Lead</h4>
+                    <div className="text-sm text-gray-300">
+                      <p>
+                        <span className="text-gray-400">Name:</span> {contractData.fullName}
+                      </p>
+                      <p>
+                        <span className="text-gray-400">Email:</span> {contractData.email}
+                      </p>
+                      <p>
+                        <span className="text-gray-400">Company:</span> {contractData.studioName}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <label className="text-xs text-gray-200 block pl-1">Rate Type</label>

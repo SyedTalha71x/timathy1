@@ -1,8 +1,8 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useState, useMemo } from 'react';
-import { X, Search, Plus } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { X, Search, Plus, ChevronDown } from 'lucide-react';
 
 const AssignStudioModal = ({
   isOpen,
@@ -16,6 +16,8 @@ const AssignStudioModal = ({
 }) => {
   const [franchiseSearchTerm, setFranchiseSearchTerm] = useState('');
   const [studioSearchTerm, setStudioSearchTerm] = useState('');
+  const [showFranchiseDropdown, setShowFranchiseDropdown] = useState(false);
+  const franchiseDropdownRef = useRef(null);
 
   // Filter franchises based on search term
   const filteredFranchises = useMemo(() => {
@@ -35,13 +37,38 @@ const AssignStudioModal = ({
     );
   }, [unassignedStudios, studioSearchTerm]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (franchiseDropdownRef.current && !franchiseDropdownRef.current.contains(event.target)) {
+        setShowFranchiseDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   if (!isOpen) return null;
 
-
-
-  const handleFranchiseChange = (e) => {
-    const franchise = franchises.find((f) => f.id === Number.parseInt(e.target.value));
+  const handleFranchiseSelect = (franchise) => {
     onFranchiseSelect(franchise);
+    setFranchiseSearchTerm(franchise.name);
+    setShowFranchiseDropdown(false);
+  };
+
+  const handleFranchiseInputChange = (e) => {
+    setFranchiseSearchTerm(e.target.value);
+    setShowFranchiseDropdown(true);
+    
+    // If input is cleared, clear selection
+    if (e.target.value === '') {
+      onFranchiseSelect(null);
+    }
+  };
+
+  const handleFranchiseInputClick = () => {
+    setShowFranchiseDropdown(true);
   };
 
   const handleAssignClick = (studioId) => {
@@ -55,6 +82,7 @@ const AssignStudioModal = ({
   const clearSearch = () => {
     setFranchiseSearchTerm('');
     setStudioSearchTerm('');
+    onFranchiseSelect(null);
   };
 
   return (
@@ -72,33 +100,51 @@ const AssignStudioModal = ({
             <div>
               <label className="text-sm text-gray-200 block mb-2">Select Franchise</label>
               
-              {/* Franchise Search */}
-              <div className="relative mb-3">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  placeholder="Search franchises..."
-                  value={franchiseSearchTerm}
-                  onChange={(e) => setFranchiseSearchTerm(e.target.value)}
-                  className="w-full bg-[#101010] rounded-xl pl-10 pr-4 py-2 text-white outline-none text-sm placeholder-gray-500"
-                />
+              {/* Combined Franchise Search & Select */}
+              <div className="relative" ref={franchiseDropdownRef}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type="text"
+                    placeholder="Search and select a franchise..."
+                    value={franchiseSearchTerm}
+                    onChange={handleFranchiseInputChange}
+                    onClick={handleFranchiseInputClick}
+                    className="w-full bg-[#101010] rounded-xl pl-10 pr-10 py-2 text-white outline-none text-sm placeholder-gray-500"
+                  />
+                  <ChevronDown 
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 transition-transform ${showFranchiseDropdown ? 'rotate-180' : ''}`} 
+                    size={16} 
+                  />
+                </div>
+
+                {/* Dropdown */}
+                {showFranchiseDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#101010] rounded-xl border border-gray-700 z-10 max-h-48 overflow-y-auto custom-scrollbar">
+                    {filteredFranchises.length > 0 ? (
+                      filteredFranchises.map((franchise) => (
+                        <div
+                          key={franchise.id}
+                          onClick={() => handleFranchiseSelect(franchise)}
+                          className="px-4 py-2 text-white hover:bg-[#1C1C1C] cursor-pointer text-sm border-b border-gray-700 last:border-b-0"
+                        >
+                          {franchise.name}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-2 text-gray-400 text-sm">
+                        No franchises found matching "{franchiseSearchTerm}"
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <select
-                value={selectedFranchiseForAssignment?.id || ""}
-                onChange={handleFranchiseChange}
-                className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-              >
-                <option value="">Select a franchise...</option>
-                {filteredFranchises.map((franchise) => (
-                  <option key={franchise.id} value={franchise.id}>
-                    {franchise.name}
-                  </option>
-                ))}
-              </select>
-              
-              {franchiseSearchTerm && filteredFranchises.length === 0 && (
-                <p className="text-gray-400 text-sm mt-2">No franchises found matching "{franchiseSearchTerm}"</p>
+              {/* Selected franchise indicator */}
+              {selectedFranchiseForAssignment && (
+                <div className="mt-2 text-sm text-green-400">
+                  ✓ Selected: {selectedFranchiseForAssignment.name}
+                </div>
               )}
             </div>
 
@@ -140,7 +186,7 @@ const AssignStudioModal = ({
                       <button
                         onClick={() => handleAssignClick(studio.id)}
                         disabled={!selectedFranchiseForAssignment}
-                        className="bg-[#FF843E] hover:bg-[#FF843E]/90 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
+                        className="bg-[#FF843E] hover:bg-[#FF843E]/90 disabled:bg-gray-600 disabled:cursor-not-allowed px-3 py-1 rounded-lg text-sm flex items-center gap-1"
                       >
                         <Plus size={14} className="inline mr-1" />
                         Assign

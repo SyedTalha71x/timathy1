@@ -1,22 +1,28 @@
 /* eslint-disable react/prop-types */
 "use client"
-import { X, Building, Edit, Trash2, AlertTriangle, Info } from "lucide-react"
+import { X, Building, Edit, AlertTriangle, Info } from "lucide-react"
 
 const FranchiseDetailsModal = ({
   isOpen,
   onClose,
   franchise,
   onEditFranchise,
-  onDeleteFranchise,
+  onArchiveFranchise,
   assignedStudios = [],
 }) => {
   if (!isOpen || !franchise) return null
 
-  const handleDelete = () => {
+  const handleArchive = () => {
     if (
-      window.confirm(`Are you sure you want to delete "${franchise.name}"? All assigned studios will be unassigned.`)
+      window.confirm(
+        `Are you sure you want to ${franchise.isArchived ? "unarchive" : "archive"} "${franchise.name}"? ${
+          !franchise.isArchived
+            ? "All assigned studios will remain assigned."
+            : "This will restore the franchise to active status."
+        }`,
+      )
     ) {
-      onDeleteFranchise(franchise.id)
+      onArchiveFranchise(franchise.id)
       onClose()
     }
   }
@@ -51,15 +57,11 @@ const FranchiseDetailsModal = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-400">Owner First Name</p>
-                <p>{franchise.ownerFirstName || "Not provided"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Owner Last Name</p>
-                <p>{franchise.ownerLastName || "Not provided"}</p>
-              </div>
+            <div>
+              <p className="text-sm text-gray-400">Owner Name</p>
+              <p>
+                {franchise.ownerFirstName} {franchise.ownerLastName || "Not provided"}
+              </p>
             </div>
 
             <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
@@ -153,11 +155,12 @@ const FranchiseDetailsModal = ({
                 Edit Franchise
               </button>
               <button
-                onClick={handleDelete}
-                className="flex-1 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-sm flex items-center justify-center gap-2"
+                onClick={handleArchive}
+                className={`flex-1 ${
+                  franchise.isArchived ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"
+                } px-4 py-2 rounded-xl text-sm flex items-center justify-center gap-2`}
               >
-                <Trash2 size={16} />
-                Delete Franchise
+                {franchise.isArchived ? "Unarchive" : "Archive"} Franchise
               </button>
             </div>
           </div>

@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -668,17 +670,18 @@ export default function Studios() {
     },
     {
       id: "active",
-      label: `Active ${viewMode === "studios" ? "Studios" : "Franchises"} (${viewMode === "studios" ? studios.filter((m) => m.isActive).length : franchises.length})`,
+      label: `Active ${viewMode === "studios" ? "Studios" : "Franchises"} (${viewMode === "studios" ? studios.filter((m) => m.isActive).length : franchises.filter((f) => !f.isArchived).length})`,
     },
     {
-      id: "inactive",
-      label: `Inactive ${viewMode === "studios" ? "Studios" : "Franchises"} (${viewMode === "studios" ? studios.filter((m) => !m.isActive).length : 0})`,
+      id: "archived",
+      label: `Archived ${viewMode === "studios" ? "Studios" : "Franchises"} (${viewMode === "studios" ? studios.filter((m) => !m.isActive).length : franchises.filter((f) => f.isArchived).length})`,
     },
   ]
 
   const sortOptions = [
     { id: "alphabetical", label: "Alphabetical" },
-    { id: "expiring", label: "Contracts Expiring Soon" },
+    { id: "studioCount", label: "Studio Count (High to Low)" },
+    { id: "studioCountLow", label: "Studio Count (Low to High)" },
   ]
 
   const isContractExpiringSoon = (contractEnd) => {
@@ -713,12 +716,24 @@ export default function Studios() {
   }
 
   const filteredAndSortedFranchises = () => {
-    const filtered = franchises.filter((franchise) =>
+    let filtered = franchises.filter((franchise) =>
       franchise.name.toLowerCase().includes(franchiseSearchQuery.toLowerCase()),
     )
 
+    if (filterStatus !== "all") {
+      if (filterStatus === "archived") {
+        filtered = filtered.filter((franchise) => franchise.isArchived)
+      } else {
+        filtered = filtered.filter((franchise) => !franchise.isArchived)
+      }
+    }
+
     if (sortBy === "alphabetical") {
       filtered.sort((a, b) => a.name.localeCompare(b.name))
+    } else if (sortBy === "studioCount") {
+      filtered.sort((a, b) => getStudiosByFranchise(b.id).length - getStudiosByFranchise(a.id).length)
+    } else if (sortBy === "studioCountLow") {
+      filtered.sort((a, b) => getStudiosByFranchise(a.id).length - getStudiosByFranchise(b.id).length)
     }
 
     return filtered
@@ -806,6 +821,17 @@ export default function Studios() {
     setFranchises(updatedFranchises)
 
     toast.success("Franchise deleted successfully. All studios have been unassigned.")
+  }
+
+  const handleArchiveFranchise = (franchiseId) => {
+    const updatedFranchises = franchises.map((franchise) => {
+      if (franchise.id === franchiseId) {
+        return { ...franchise, isArchived: !franchise.isArchived }
+      }
+      return franchise
+    })
+    setFranchises(updatedFranchises)
+    toast.success("Franchise archived successfully")
   }
 
   const handleAssignStudio = (franchiseId, studioId) => {
@@ -992,15 +1018,7 @@ export default function Studios() {
             </div>
 
             <div className="flex md:items-center items-start  md:flex-row flex-col gap-3 w-full sm:w-auto">
-              {viewMode === "franchise" && (
-                <button
-                  onClick={() => setIsCreateFranchiseModalOpen(true)}
-                  className="bg-[#3F74FF] md:w-auto w-full  justify-center  hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm flex items-center gap-2"
-                >
-                  <Plus size={16} />
-                  Create Franchise
-                </button>
-              )}
+             
 
               <div className="relative w-full md:w-auto filter-dropdown flex-1 sm:flex-none">
                 <button
@@ -1033,7 +1051,10 @@ export default function Studios() {
               </div>
 
               <div className="relative w-full md:w-auto sort-dropdown flex-1 sm:flex-none">
-                <button
+                <div>
+              
+
+<button
                   onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
                   className={`flex w-full sm:w-auto cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]`}
                 >
@@ -1043,6 +1064,8 @@ export default function Studios() {
                     className={`transform transition-transform flex-shrink-0 ${isSortDropdownOpen ? "rotate-180" : ""}`}
                   />
                 </button>
+                </div>
+              
                 {isSortDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-full sm:w-64 rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
                     {sortOptions.map((option) => (
@@ -1060,6 +1083,19 @@ export default function Studios() {
                 )}
               </div>
             </div>
+           
+          </div>
+
+          <div className="flex justify-end items-center mb-4">
+          {viewMode === "franchise" && (
+                <button
+                  onClick={() => setIsCreateFranchiseModalOpen(true)}
+                  className="bg-[#3F74FF] md:w-auto w-full  justify-center  hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Create Franchise
+                </button>
+              )}  
           </div>
 
           <div className="flex flex-col space-y-4 mb-6">
@@ -1482,6 +1518,8 @@ export default function Studios() {
         onInputChange={handleFranchiseInputChange}
         onSubmit={handleFranchiseSubmit}
         onLogoUpload={handleLogoUpload}
+        onArchive={handleArchiveFranchise}
+        selectedFranchise={selectedFranchise}
       />
 
       {/* Franchise Details Modal */}
@@ -1490,8 +1528,8 @@ export default function Studios() {
         onClose={() => setIsFranchiseDetailsModalOpen(false)}
         franchise={selectedFranchise}
         onEditFranchise={handleEditFranchise}
-        onDeleteFranchise={handleDeleteFranchise}
         assignedStudios={selectedFranchise ? getStudiosByFranchise(selectedFranchise.id) : []}
+        onArchiveFranchise={handleArchiveFranchise}
       />
 
       {/* Assign Studio to Franchise Modal */}
@@ -2044,7 +2082,7 @@ export default function Studios() {
           studioId={selectedStudioForModal.id}
           studioName={selectedStudioForModal.name}
           leadSources={defaultSources}
-        />  
+        />
       )}
     </>
   )

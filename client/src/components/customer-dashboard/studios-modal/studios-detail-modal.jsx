@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { X, Users, Building, Edit, FileText, Eye } from "lucide-react"
 import { IoMdDocument } from "react-icons/io"
