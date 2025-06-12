@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable react/prop-types */
 import { Calendar, Download, X, Edit, Info } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -14,7 +12,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   })
   const [isCustomPeriod, setIsCustomPeriod] = useState(false)
   const [editingAmount, setEditingAmount] = useState(null)
-  const [confirmEdit, setConfirmEdit] = useState(null)
+  const [tempAmount, setTempAmount] = useState("")
   const [servicesModalOpen, setServicesModalOpen] = useState(false)
   const [selectedServices, setSelectedServices] = useState([])
   const [selectedStudioName, setSelectedStudioName] = useState("")
@@ -46,11 +44,24 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
     }))
   }
 
-  const handleAmountChange = (id, amount) => {
+  const handleStartEdit = (id, currentAmount) => {
+    setEditingAmount(id)
+    setTempAmount(currentAmount.toString())
+  }
+
+  const handleSaveAmount = (id) => {
+    const newAmount = Number.parseFloat(tempAmount) || 0
     setEditedAmounts((prev) => ({
       ...prev,
-      [id]: Number.parseFloat(amount) || 0,
+      [id]: newAmount,
     }))
+    setEditingAmount(null)
+    setTempAmount("")
+  }
+
+  const handleCancelEdit = () => {
+    setEditingAmount(null)
+    setTempAmount("")
   }
 
   const handleGenerateXml = () => {
@@ -93,7 +104,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
     <div className="fixed inset-0 bg-black/70 flex p-2 items-center justify-center z-50">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
         <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-white text-lg font-medium">Generate SEPA XML</h2>
+          <h2 className="text-white text-lg font-medium">Run Payment</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X className="w-5 h-5" />
           </button>
@@ -197,37 +208,51 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                           <td className="px-2 sm:px-3 py-2 text-right">
                             <div className="flex items-center justify-end gap-2">
                               {editingAmount === tx.id ? (
-                                <input
-                                  type="number"
-                                  value={editedAmounts[tx.id] || tx.amount}
-                                  onChange={(e) => handleAmountChange(tx.id, e.target.value)}
-                                  onBlur={() => setEditingAmount(null)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") setEditingAmount(null)
-                                    if (e.key === "Escape") setEditingAmount(null)
-                                  }}
-                                  className="bg-black text-white w-16 sm:w-20 px-2 py-1 rounded border border-gray-700 text-right text-xs sm:text-sm"
-                                  disabled={!selectedTransactions[tx.id]}
-                                  autoFocus
-                                />
+                                <>
+                                  <input
+                                    type="number"
+                                    value={tempAmount}
+                                    onChange={(e) => setTempAmount(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleSaveAmount(tx.id)
+                                      if (e.key === "Escape") handleCancelEdit()
+                                    }}
+                                    className="bg-black text-white w-16 sm:w-20 px-2 py-1 rounded border border-gray-700 text-right text-xs sm:text-sm"
+                                    autoFocus
+                                  />
+                                  <button
+                                    onClick={() => handleSaveAmount(tx.id)}
+                                    className="p-1 rounded text-xs bg-green-600 hover:bg-green-700 text-white"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="p-1 rounded bg-red-600 hover:bg-red-700 text-white text-xs px-2"
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
                               ) : (
-                                <span
-                                  className={`text-xs sm:text-sm ${!selectedTransactions[tx.id] ? "text-gray-500" : "text-white"}`}
-                                >
-                                  ${(editedAmounts[tx.id] || tx.amount).toFixed(2)}
-                                </span>
+                                <>
+                                  <span
+                                    className={`text-xs sm:text-sm ${!selectedTransactions[tx.id] ? "text-gray-500" : "text-white"}`}
+                                  >
+                                    ${(editedAmounts[tx.id] || tx.amount).toFixed(2)}
+                                  </span>
+                                  <button
+                                    onClick={() => handleStartEdit(tx.id, editedAmounts[tx.id] || tx.amount)}
+                                    disabled={!selectedTransactions[tx.id]}
+                                    className={`p-1 rounded hover:bg-gray-700 ${
+                                      !selectedTransactions[tx.id]
+                                        ? "text-gray-600 cursor-not-allowed"
+                                        : "text-gray-400 hover:text-white"
+                                    }`}
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </button>
+                                </>
                               )}
-                              <button
-                                onClick={() => setConfirmEdit(tx.id)}
-                                disabled={!selectedTransactions[tx.id]}
-                                className={`p-1 rounded hover:bg-gray-700 ${
-                                  !selectedTransactions[tx.id]
-                                    ? "text-gray-600 cursor-not-allowed"
-                                    : "text-gray-400 hover:text-white"
-                                }`}
-                              >
-                                <Edit className="w-3 h-3" />
-                              </button>
                             </div>
                           </td>
                           <td className="px-2 sm:px-3 py-2 text-center">
@@ -252,33 +277,6 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
             </div>
           )}
         </div>
-
-        {/* Confirmation Dialog */}
-        {confirmEdit && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-            <div className="bg-[#2F2F2F] rounded-lg p-6 max-w-sm mx-4">
-              <h3 className="text-white font-medium mb-3">Edit Amount</h3>
-              <p className="text-gray-300 text-sm mb-4">Do you want to edit the amount for this transaction?</p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setConfirmEdit(null)}
-                  className="px-4 py-2 rounded-lg text-sm border border-gray-600 text-gray-300 hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingAmount(confirmEdit)
-                    setConfirmEdit(null)
-                  }}
-                  className="px-4 py-2 rounded-lg text-sm bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90"
-                >
-                  Yes, Edit
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Services Modal */}
         {servicesModalOpen && (
@@ -335,7 +333,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
             disabled={!Object.values(selectedTransactions).some((v) => v)}
           >
             <Download className="w-4 h-4" />
-            Run Payment
+            Generate SEPA XML
           </button>
         </div>
       </div>

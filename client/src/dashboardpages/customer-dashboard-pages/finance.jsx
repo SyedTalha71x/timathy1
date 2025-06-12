@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 import { useState, useEffect } from "react"
-import { Download, Calendar, ChevronDown, RefreshCw, Filter, Edit2, Info, X } from "lucide-react"
+import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X } from "lucide-react"
 import CheckFundsModal from "../../components/customer-dashboard/studios-modal/check-funds-modal"
 import SepaXmlModal from "../../components/customer-dashboard/studios-modal/sepa-xml-modal"
 
@@ -592,7 +592,7 @@ export default function FinancesPage() {
               className="bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
             >
               <Download className="w-4 h-4" />
-              <span>Generate Sepa Xml</span>
+              <span> Run Payment</span>
             </button>
 
             {/* Check Funds button - only show if there are transactions to check */}
@@ -752,7 +752,7 @@ export default function FinancesPage() {
                           onClick={() => handleEditAmount(transaction.id, transaction.amount)}
                           className="text-gray-400 hover:text-white"
                         >
-                          <Edit2 className="w-3 h-3" />
+                          {/* <Edit2 className="w-3 h-3" /> */}
                         </button>
                       </div>
                     )}
