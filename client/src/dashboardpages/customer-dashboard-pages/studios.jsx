@@ -1237,21 +1237,21 @@ export default function Studios() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex gap-2 items-center md:justify-end justify-center">
+                          <div className="flex gap-2 items-center md:flex-row flex-col md:justify-end justify-center">
                             <button
                               onClick={() => handleViewDetails(studio)}
-                              className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                              className="text-gray-200 md:w-auto w-full cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                             >
                               <Eye size={16} />
-                              <span className="hidden sm:inline">View Details</span>
+                              <span className="inline">View Details</span>
                             </button>
 
                             <button
                               onClick={() => handleEditStudio(studio)}
-                              className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                              className="text-gray-200 md:w-auto w-full cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                             >
                               <Edit size={16} />
-                              <span className="hidden sm:inline">Edit</span>
+                              <span className="inline">Edit</span>
                             </button>
                           </div>
                         </div>
@@ -1418,20 +1418,20 @@ export default function Studios() {
                             </p>
                           </div>
                         </div>
-                        <div className="flex gap-2 items-center md:justify-end justify-center">
+                        <div className="flex gap-2 items-center md:flex-row flex-col md:justify-end justify-center">
                           <button
                             onClick={() => handleViewFranchiseDetails(franchise)}
-                            className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                            className="text-gray-200 md:w-auto w-full cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                           >
                             <Eye size={16} />
-                            <span className="hidden sm:inline">View Details</span>
+                            <span className="inline">View Details</span>
                           </button>
                           <button
                             onClick={() => handleEditFranchise(franchise)}
-                            className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                            className="text-gray-200 md:w-auto w-full cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                           >
                             <Edit size={16} />
-                            <span className="hidden sm:inline">Edit</span>
+                            <span className="inline">Edit</span>
                           </button>
                         </div>
                       </div>

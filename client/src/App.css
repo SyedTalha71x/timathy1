@@ -283,9 +283,16 @@ html, body {
   background-color: #101010 !important;
 }
 
-/* Force Recommended label to white */
-.custom-color-picker .ant-color-picker-presets .ant-color-picker-presets-item-label {
-  color: white !important;
+.custom-color-picker .react-colorful__presets > div:first-child > span {
+  color: white; /* label color */
+  font-weight: bold;
+}
+
+.ant-color-picker-presets {
+  background-color: #1e1e1e; /* your custom background */
+  padding: 8px;
+  border-radius: 8px;
+  color: white !important; /* text color */
 }
 
 .white-text .ant-input-number:hover,

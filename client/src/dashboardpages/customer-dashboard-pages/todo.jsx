@@ -418,10 +418,9 @@ export default function TodoApp() {
                     value={newTagColor}
                     onChange={(color) => setNewTagColor(color.toHexString())}
                     showText
-                    className="custom-color-picker"
+                    className="custom-color-picker white-text"
                     presets={[
-                      {
-                        label: "Recommended",
+                      {                        
                         colors: [
                           "#FF5252",
                           "#FFD740",
