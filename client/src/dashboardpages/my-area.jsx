@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Info,
   CalendarIcon,
+  Menu,
 } from "lucide-react"
 import Rectangle1 from "../../public/Rectangle 1.png"
 import SelectedAppointmentModal from "../components/selected-appointment-modal"
@@ -116,6 +117,7 @@ export default function MyArea() {
   const chartDropdownRef = useRef(null)
   const navigate = useNavigate()
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
+  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
 
   const [isEditing, setIsEditing] = useState(false)
   const [widgets, setWidgets] = useState([
@@ -124,6 +126,15 @@ export default function MyArea() {
     { id: "employeeCheckIn", type: "employeeCheckIn", position: 2 },
     { id: "websiteLink", type: "websiteLink", position: 3 },
   ])
+
+  // Add right sidebar widgets state
+  const [rightSidebarWidgets, setRightSidebarWidgets] = useState([
+    { id: "communications", type: "communications", position: 0 },
+    { id: "todo", type: "todo", position: 1 },
+    { id: "birthday", type: "birthday", position: 2 },
+    { id: "websiteLinks", type: "websiteLinks", position: 3 },
+  ])
+
   const [customLinks, setCustomLinks] = useState([
     {
       id: "link1",
@@ -131,11 +142,6 @@ export default function MyArea() {
       title: "Timathy Fitness Town",
     },
     { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
-  ])
-  const [sidebarSections, setSidebarSections] = useState([
-    { id: "communications", title: "Communications" },
-    { id: "todo", title: "TO-DO" },
-    { id: "birthday", title: "Upcoming Birthday" },
   ])
 
   const [communications, setCommunications] = useState([
@@ -185,6 +191,7 @@ export default function MyArea() {
     },
   ])
 
+  // Updated member types with new statistics
   const memberTypes = {
     "All members": {
       data: [
@@ -209,6 +216,30 @@ export default function MyArea() {
       ],
       growth: "-1%",
       title: "Cancelled Appointments",
+    },
+    Finances: {
+      data: [
+        [150, 320, 280, 500, 350, 450, 380, 300, 520],
+        [200, 250, 300, 200, 280, 400, 500, 200, 480],
+      ],
+      growth: "8%",
+      title: "Financial Overview",
+    },
+    Selling: {
+      data: [
+        [80, 220, 180, 380, 280, 350, 320, 250, 400],
+        [120, 180, 220, 120, 200, 320, 420, 150, 380],
+      ],
+      growth: "6%",
+      title: "Sales Performance",
+    },
+    Leads: {
+      data: [
+        [40, 160, 120, 280, 180, 250, 220, 180, 300],
+        [60, 100, 140, 80, 120, 200, 280, 100, 260],
+      ],
+      growth: "5%",
+      title: "Lead Generation",
     },
   }
 
@@ -309,15 +340,20 @@ export default function MyArea() {
   }
 
   const removeWidget = (id) => {
-    // // Check if the widget is the website links widget
-    // const widgetToRemove = widgets.find((w) => w.id === id);
-    // if (widgetToRemove && widgetToRemove.type === "websiteLink") {
-    //   // Don't allow removal of website links widget
-    //   toast.error("Website links widget cannot be removed");
-    //   return;
-    // }
-
     setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
+  }
+
+  // Add functions for right sidebar widgets
+  const moveRightSidebarWidget = (fromIndex, toIndex) => {
+    if (toIndex < 0 || toIndex >= rightSidebarWidgets.length) return
+    const newWidgets = [...rightSidebarWidgets]
+    const [movedWidget] = newWidgets.splice(fromIndex, 1)
+    newWidgets.splice(toIndex, 0, movedWidget)
+    setRightSidebarWidgets(newWidgets.map((w, i) => ({ ...w, position: i })))
+  }
+
+  const removeRightSidebarWidget = (id) => {
+    setRightSidebarWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
   }
 
   const [editingLink, setEditingLink] = useState(null)
@@ -340,29 +376,11 @@ export default function MyArea() {
         appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment,
       ),
     )
-    // Toast message changes based on check-in status
     toast.success(
       appointments.find((app) => app.id === appointmentId)?.isCheckedIn
         ? "Member checked In successfully"
         : "Member check in successfully",
     )
-  }
-
-  const moveSidebarSection = (id, direction) => {
-    setSidebarSections((currentSections) => {
-      const index = currentSections.findIndex((section) => section.id === id)
-      if ((direction === "up" && index === 0) || (direction === "down" && index === currentSections.length - 1)) {
-        return currentSections
-      }
-      const newSections = [...currentSections]
-      const swap = direction === "up" ? index - 1 : index + 1
-      ;[newSections[index], newSections[swap]] = [newSections[swap], newSections[index]]
-      return newSections
-    })
-  }
-
-  const removeSidebarSection = (id) => {
-    setSidebarSections((currentSections) => currentSections.filter((section) => section.id !== id))
   }
 
   const moveCustomLink = (id, direction) => {
@@ -380,7 +398,7 @@ export default function MyArea() {
 
   const handleDeleteAppointment = (appointmentId) => {
     setAppointments((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
-    setSelectedAppointment(null) // Clear the selected appointment
+    setSelectedAppointment(null)
     toast.success("Appointment deleted successfully")
   }
 
@@ -423,8 +441,8 @@ export default function MyArea() {
     },
     yaxis: {
       min: 0,
-      max: 500,
-      tickAmount: 5,
+      max: 600,
+      tickAmount: 6,
       labels: {
         style: { colors: "#999999", fontSize: "12px" },
         formatter: (value) => Math.round(value),
@@ -504,11 +522,9 @@ export default function MyArea() {
       if (!title.trim() || !url.trim()) return
 
       if (link?.id) {
-        // Editing existing link
         updateCustomLink(link.id, "title", title)
         updateCustomLink(link.id, "url", url)
       } else {
-        // Adding new link
         const newLink = {
           id: `link${Date.now()}`,
           url: url.trim(),
@@ -584,14 +600,34 @@ export default function MyArea() {
     toast.success(`${widgetType} widget has been added Successfully`)
   }
 
-  // Updated canAddWidget function to check if a widget type is already added
+  const handleAddRightSidebarWidget = (widgetType) => {
+    const newWidget = {
+      id: `rightWidget${Date.now()}`,
+      type: widgetType,
+      position: rightSidebarWidgets.length,
+    }
+    setRightSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    setIsRightWidgetModalOpen(false)
+    toast.success(`${widgetType} widget has been added to sidebar`)
+  }
+
+  // Updated canAddWidget function to check both main and right sidebar widgets
   const canAddWidget = (widgetType) => {
-    return !widgets.some((widget) => widget.type === widgetType)
+    return (
+      !widgets.some((widget) => widget.type === widgetType) &&
+      !rightSidebarWidgets.some((widget) => widget.type === widgetType)
+    )
+  }
+
+  const canAddRightSidebarWidget = (widgetType) => {
+    return (
+      !rightSidebarWidgets.some((widget) => widget.type === widgetType) &&
+      !widgets.some((widget) => widget.type === widgetType)
+    )
   }
 
   const notePopoverRef = useRef(null)
 
-  // Effect to handle clicking outside of note popover
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
@@ -599,7 +635,6 @@ export default function MyArea() {
       }
     }
 
-    // Add event listener when popover is open
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -607,17 +642,15 @@ export default function MyArea() {
       }
     }
   }, [activeNoteId])
+
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
-      // If no note text, return null
       if (!specialNote.text) return null
 
-      // Check note validity
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
 
-      // If note is not active, return null
       if (!isActive) return null
 
       const handleNoteClick = (e) => {
@@ -645,7 +678,6 @@ export default function MyArea() {
               ref={notePopoverRef}
               className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
             >
-              {/* Header section with icon and title */}
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                 {specialNote.isImportant === "important" ? (
                   <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
@@ -669,11 +701,9 @@ export default function MyArea() {
                 </button>
               </div>
 
-              {/* Note content */}
               <div className="p-3">
                 <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
 
-                {/* Date validity section */}
                 {specialNote.startDate && specialNote.endDate ? (
                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                     <p className="text-xs text-gray-300 flex items-center gap-1.5">
@@ -699,6 +729,39 @@ export default function MyArea() {
     [activeNoteId, setActiveNoteId],
   )
 
+  // Right sidebar widget component with remove functionality
+  const RightSidebarWidget = ({ id, children, index, isEditing }) => {
+    return (
+      <div className="relative mb-6">
+        {isEditing && (
+          <div className="absolute top-2 right-2 z-10 flex gap-2">
+            <button
+              onClick={() => moveRightSidebarWidget(index, index - 1)}
+              className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
+              disabled={index === 0}
+            >
+              <ArrowUp size={12} />
+            </button>
+            <button
+              onClick={() => moveRightSidebarWidget(index, index + 1)}
+              className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
+              disabled={index === rightSidebarWidgets.length - 1}
+            >
+              <ArrowDown size={12} />
+            </button>
+            <button
+              onClick={() => removeRightSidebarWidget(id)}
+              className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        )}
+        {children}
+      </div>
+    )
+  }
+
   return (
     <>
       <Toaster
@@ -712,6 +775,7 @@ export default function MyArea() {
         }}
       />
       <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
+        {/* Mobile overlay for right sidebar */}
         {isRightSidebarOpen && (
           <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={toggleRightSidebar} />
         )}
@@ -725,6 +789,13 @@ export default function MyArea() {
                   <BarChart3 />
                 </button>
                 <h1 className="text-xl font-bold">My Area</h1>
+                {/* Mobile right sidebar toggle */}
+                <button
+                  onClick={toggleRightSidebar}
+                  className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden ml-auto"
+                >
+                  <Menu />
+                </button>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -788,7 +859,7 @@ export default function MyArea() {
                         )}
                       </div>
                       <div className="w-full">
-                        <Chart options={chartOptions} series={chartSeries} type="line" height={200} />
+                        <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
                       </div>
                     </div>
                   </DraggableWidget>
@@ -879,7 +950,6 @@ export default function MyArea() {
                           )}
                         </div>
 
-                        {/* Centered "See all" link */}
                         <div className="flex justify-center">
                           <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
                             See all
@@ -1120,234 +1190,255 @@ export default function MyArea() {
             `}
         >
           <div className="p-4 md:p-5 h-full overflow-y-auto">
-            {/* Close button for mobile */}
-            <button
-              onClick={toggleRightSidebar}
-              className="absolute top-4 right-4 p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl md:hidden"
-              aria-label="Close sidebar"
-            >
-              <X size={20} />
-            </button>
+            {/* Header with close button and add widget button */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Sidebar</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsRightWidgetModalOpen(true)}
+                  className="p-2 bg-black text-white hover:bg-zinc-900 rounded-lg text-sm cursor-pointer"
+                  title="Add Widget"
+                >
+                  <Plus size={16} />
+                </button>
+                <button
+                  onClick={toggleRightSidebar}
+                  className="p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl md:hidden"
+                  aria-label="Close sidebar"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
 
-            {sidebarSections.map((section, index) => (
-              <div key={section.id} className="mb-6 mt-8 md:mt-0 relative">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">{section.title}</h2>
-                  {isEditing && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => moveSidebarSection(section.id, "up")}
-                        className="p-1 bg-zinc-700 rounded-md hover:bg-zinc-600"
-                        disabled={index === 0}
-                      >
-                        <ArrowUp size={16} />
-                      </button>
-                      <button
-                        onClick={() => moveSidebarSection(section.id, "down")}
-                        className="p-1 bg-zinc-700 rounded-md hover:bg-zinc-600"
-                        disabled={index === sidebarSections.length - 1}
-                      >
-                        <ArrowDown size={16} />
-                      </button>
+            {/* Render right sidebar widgets */}
+            {rightSidebarWidgets
+              .sort((a, b) => a.position - b.position)
+              .map((widget, index) => (
+                <RightSidebarWidget key={widget.id} id={widget.id} index={index} isEditing={isEditing}>
+                  {widget.type === "communications" && (
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Communications</h2>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          {communications.slice(0, 2).map((comm) => (
+                            <div
+                              onClick={redirectToCommunication}
+                              key={comm.id}
+                              className="p-2 cursor-pointer bg-black rounded-xl"
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                <img
+                                  src={comm.avatar || "/placeholder.svg"}
+                                  alt="User"
+                                  className="rounded-full h-8 w-8"
+                                />
+                                <div>
+                                  <h3 className="open_sans_font text-sm">{comm.name}</h3>
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs open_sans_font text-zinc-400">{comm.message}</p>
+                                <p className="text-xs mt-1 flex gap-1 items-center open_sans_font text-zinc-400">
+                                  <Clock size={12} />
+                                  {comm.time}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                          <Link
+                            to={"/dashboard/communication"}
+                            className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
+                          >
+                            See all
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   )}
-                </div>
 
-                {section.id === "communications" && (
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      {[1, 2].map((message) => (
-                        <div
-                          onClick={redirectToCommunication}
-                          key={message}
-                          className="p-2 cursor-pointer bg-black rounded-xl"
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <img src={Rectangle1 || "/placeholder.svg"} alt="User" className="rounded-full h-8 w-8" />
+                  {widget.type === "todo" && (
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">TO-DO</h2>
+                      </div>
+                      <div className="space-y-3 open_sans_font">
+                        {todos.slice(0, 2).map((todo) => (
+                          <div
+                            onClick={redirectToTodos}
+                            key={todo.id}
+                            className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
+                          >
                             <div>
-                              <h3 className="open_sans_font text-sm">Jennifer Markus</h3>
+                              <h3 className="font-semibold open_sans_font text-sm">{todo.title}</h3>
+                              <p className="text-xs open_sans_font text-zinc-400">{todo.description}</p>
+                            </div>
+                            <button className="px-3 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
+                              <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
+                              {todo.assignee}
+                            </button>
+                          </div>
+                        ))}
+                        <Link
+                          to={"/dashboard/to-do"}
+                          className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
+                        >
+                          See all
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {widget.type === "birthday" && (
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Upcoming Birthday</h2>
+                      </div>
+                      <div className="space-y-2 open_sans_font">
+                        {birthdays.slice(0, 2).map((birthday) => (
+                          <div
+                            key={birthday.id}
+                            className="p-2 cursor-pointer bg-black rounded-xl flex items-center gap-2"
+                          >
+                            <div>
+                              <img src={birthday.avatar || "/placeholder.svg"} className="h-8 w-8" alt="" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold open_sans_font text-sm">{birthday.name}</h3>
+                              <p className="text-xs open_sans_font text-zinc-400">{birthday.date}</p>
                             </div>
                           </div>
-                          <div>
-                            <p className="text-xs open_sans_font text-zinc-400">
-                              Hey! Did you think the NFT marketplace for Alice app design?
-                            </p>
-                            <p className="text-xs mt-1 flex gap-1 items-center open_sans_font text-zinc-400">
-                              <Clock size={12} />
-                              Today | 05:30 PM
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                      <Link
-                        to={"/dashboard/communication"}
-                        className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                      >
-                        See all
-                      </Link>
-                    </div>
-                  </div>
-                )}
-
-                {section.id === "todo" && (
-                  <div className="space-y-3 open_sans_font">
-                    {[1, 2].map((task) => (
-                      <div
-                        onClick={redirectToTodos}
-                        key={task}
-                        className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
-                      >
-                        <div>
-                          <h3 className="font-semibold open_sans_font text-sm">Task</h3>
-                          <p className="text-xs open_sans_font text-zinc-400">Description</p>
-                        </div>
-                        <button className="px-3 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
-                          <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
-                          Jack
-                        </button>
+                        ))}
                       </div>
-                    ))}
-
-                    <Link
-                      to={"/dashboard/to-do"}
-                      className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                    >
-                      See all
-                    </Link>
-                  </div>
-                )}
-
-                {section.id === "birthday" && (
-                  <>
-                    <div className="space-y-2 open_sans_font">
-                      {[1, 2].map((task) => (
-                        <div key={task} className="p-2 cursor-pointer bg-black rounded-xl flex items-center gap-2">
-                          <div>
-                            <img src={Avatar || "/placeholder.svg"} className="h-8 w-8" alt="" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold open_sans_font text-sm">Yolando</h3>
-                            <p className="text-xs open_sans_font text-zinc-400">Mon | 02 01 2025</p>
-                          </div>
-                        </div>
-                      ))}
                     </div>
-                  </>
-                )}
-              </div>
-            ))}
+                  )}
 
-            {/* Website Links */}
-            <div className="mt-6">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
-                </div>
-                <div className="max-h-[250px] overflow-y-auto custom-scrollbar">
-                  {" "}
-                  {/* Add scrollable container */}
-                  <div className="space-y-3">
-                    {" "}
-                    {/* Maintain spacing between links */}
-                    {customLinks.map((link, index) => (
-                      <div key={link.id} className="p-1.5 bg-black rounded-xl relative">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h3 className="text-sm font-medium">{link.title}</h3>
-                            <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() =>
-                                window.open(link.url.startsWith("http") ? link.url : `https://${link.url}`, "_blank")
-                              }
-                              className="p-2 hover:bg-zinc-700 rounded-lg"
-                            >
-                              <ExternalLink size={16} />
-                            </button>
-                            {!isEditing && (
-                              <div className="relative">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    toggleDropdown(`sidebar-link-${link.id}`)
-                                  }}
-                                  className="p-2 hover:bg-zinc-700 rounded-lg"
-                                >
-                                  <MoreVertical size={16} />
-                                </button>
-                                {openDropdownIndex === `sidebar-link-${link.id}` && (
-                                  <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                  {widget.type === "websiteLinks" && (
+                    <div className="mb-6">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center mb-2">
+                          <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer">
+                            Website Links
+                          </h2>
+                        </div>
+                        <div className="max-h-[250px] overflow-y-auto custom-scrollbar">
+                          <div className="space-y-3">
+                            {customLinks.map((link, linkIndex) => (
+                              <div key={link.id} className="p-1.5 bg-black rounded-xl relative">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <h3 className="text-sm font-medium">{link.title}</h3>
+                                    <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
+                                  </div>
+                                  <div className="flex items-center gap-1">
                                     <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        setEditingLink(link)
-                                        setOpenDropdownIndex(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                      onClick={() =>
+                                        window.open(
+                                          link.url.startsWith("http") ? link.url : `https://${link.url}`,
+                                          "_blank",
+                                        )
+                                      }
+                                      className="p-2 hover:bg-zinc-700 rounded-lg"
                                     >
-                                      Edit
+                                      <ExternalLink size={16} />
+                                    </button>
+                                    {!isEditing && (
+                                      <div className="relative">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            toggleDropdown(`sidebar-link-${link.id}`)
+                                          }}
+                                          className="p-2 hover:bg-zinc-700 rounded-lg"
+                                        >
+                                          <MoreVertical size={16} />
+                                        </button>
+                                        {openDropdownIndex === `sidebar-link-${link.id}` && (
+                                          <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                setEditingLink(link)
+                                                setOpenDropdownIndex(null)
+                                              }}
+                                              className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                            >
+                                              Edit
+                                            </button>
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                removeCustomLink(link.id)
+                                                setOpenDropdownIndex(null)
+                                              }}
+                                              className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                            >
+                                              Remove
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                {isEditing && (
+                                  <div className="absolute top-2 right-2 z-10 flex gap-2">
+                                    <button
+                                      onClick={() => moveCustomLink(link.id, "up")}
+                                      className="p-1 bg-gray-800 rounded hover:bg-gray-700"
+                                      disabled={linkIndex === 0}
+                                    >
+                                      <ArrowUp size={12} />
                                     </button>
                                     <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        removeCustomLink(link.id)
-                                        setOpenDropdownIndex(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                      onClick={() => moveCustomLink(link.id, "down")}
+                                      className="p-1 bg-gray-800 rounded hover:bg-gray-700"
+                                      disabled={linkIndex === customLinks.length - 1}
                                     >
-                                      Remove
+                                      <ArrowDown size={16} />
+                                    </button>
+                                    <button
+                                      onClick={() => removeCustomLink(link.id)}
+                                      className="p-1 bg-gray-800 rounded hover:bg-gray-700 "
+                                    >
+                                      <X size={12} />
                                     </button>
                                   </div>
                                 )}
                               </div>
-                            )}
+                            ))}
                           </div>
                         </div>
-                        {isEditing && (
-                          <div className="absolute top-2 right-2 z-10 flex gap-2">
-                            <button
-                              onClick={() => moveCustomLink(link.id, "up")}
-                              className="p-1 bg-gray-800 rounded hover:bg-gray-700"
-                              disabled={index === 0}
-                            >
-                              <ArrowUp size={12} />
-                            </button>
-                            <button
-                              onClick={() => moveCustomLink(link.id, "down")}
-                              className="p-1 bg-gray-800 rounded hover:bg-gray-700"
-                              disabled={index === customLinks.length - 1}
-                            >
-                              <ArrowDown size={16} />
-                            </button>
-                            <button
-                              onClick={() => removeCustomLink(link.id)}
-                              className="p-1 bg-gray-800 rounded hover:bg-gray-700 "
-                            >
-                              <X size={12} />
-                            </button>
-                          </div>
-                        )}
+                        <button
+                          onClick={addCustomLink}
+                          className="w-full p-2 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
+                        >
+                          Add website link...
+                        </button>
                       </div>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  onClick={addCustomLink}
-                  className="w-full p-2 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
-                >
-                  Add website link...
-                </button>
-              </div>
-            </div>
+                    </div>
+                  )}
+                </RightSidebarWidget>
+              ))}
           </div>
         </aside>
+
         {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
+
         <WidgetSelectionModal
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
           onSelectWidget={handleAddWidget}
           canAddWidget={canAddWidget}
+        />
+
+        <WidgetSelectionModal
+          isOpen={isRightWidgetModalOpen}
+          onClose={() => setIsRightWidgetModalOpen(false)}
+          onSelectWidget={handleAddRightSidebarWidget}
+          canAddWidget={canAddRightSidebarWidget}
         />
 
         <SelectedAppointmentModal
