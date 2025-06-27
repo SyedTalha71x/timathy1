@@ -3,7 +3,21 @@
 
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
-import { X, Search, ChevronDown, Cake, Eye, FileText, Info, AlertTriangle, Calendar, Plus, Minus } from "lucide-react"
+import {
+  X,
+  Search,
+  ChevronDown,
+  Cake,
+  Eye,
+  FileText,
+  Info,
+  AlertTriangle,
+  Calendar,
+  History,
+  MessageCircle,
+  Edit3,
+  Trash2,
+} from "lucide-react"
 import DefaultAvatar from "../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
 
@@ -15,9 +29,56 @@ export default function Members() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
-  const [sortBy, setSortBy] = useState("alphabetical") // "alphabetical" or "expiring"
+  const [sortBy, setSortBy] = useState("alphabetical")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
   const [activeNoteId, setActiveNoteId] = useState(null)
+  const [activeTab, setActiveTab] = useState("details")
+
+  // Calendar and Appointment states
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
+  const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
+  const [memberContingent, setMemberContingent] = useState({
+    1: { used: 2, total: 7 },
+    2: { used: 1, total: 8 },
+  })
+  const [showContingentModal, setShowContingentModal] = useState(false)
+  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
+  const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
+
+  // History states
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [historyTab, setHistoryTab] = useState("general")
+
+  // Relations states
+  const [showRelationsModal, setShowRelationsModal] = useState(false)
+  const [memberRelations, setMemberRelations] = useState({
+    1: {
+      family: [
+        { name: "Anna Doe", relation: "Mother", id: 101 },
+        { name: "Peter Doe", relation: "Father", id: 102 },
+        { name: "Lisa Doe", relation: "Sister", id: 103 },
+      ],
+      friendship: [{ name: "Max Miller", relation: "Best Friend", id: 201 }],
+      relationship: [
+        { name: "Marie Smith", relation: "Partner", id: 301 },
+        { name: "Julia Brown", relation: "Ex-Partner", id: 302 },
+      ],
+      work: [
+        { name: "Tom Wilson", relation: "Colleague", id: 401 },
+        { name: "Mr. Johnson", relation: "Boss", id: 402 },
+      ],
+      other: [{ name: "Mrs. Smith", relation: "Neighbor", id: 501 }],
+    },
+    2: {
+      family: [],
+      friendship: [],
+      relationship: [],
+      work: [],
+      other: [],
+    },
+  })
+  const [editingRelations, setEditingRelations] = useState(false)
+  const [newRelation, setNewRelation] = useState({ name: "", relation: "", category: "family" })
 
   const [editForm, setEditForm] = useState({
     firstName: "",
@@ -39,19 +100,77 @@ export default function Members() {
 
   const [memberAppointments, setMemberAppointments] = useState({
     1: [
-      { id: 1, title: "Strength Training", date: "2025-04-20", time: "10:00 - 11:00" },
-      { id: 2, title: "Cardio Session", date: "2025-04-22", time: "14:00 - 15:00" },
+      { id: 1, title: "Strength Training", date: "2025-04-20T10:00", status: "upcoming", type: "Training" },
+      { id: 2, title: "Cardio Session", date: "2025-04-22T14:00", status: "upcoming", type: "Cardio" },
     ],
-    2: [{ id: 3, title: "Yoga Class", date: "2025-04-21", time: "09:00 - 10:30" }],
+    2: [{ id: 3, title: "Yoga Class", date: "2025-04-21T09:00", status: "upcoming", type: "Yoga" }],
   })
 
-  const [memberCapacity, setMemberCapacity] = useState({
-    1: { total: 10, used: 2 },
-    2: { total: 8, used: 1 },
+  // History data
+  const [memberHistory, setMemberHistory] = useState({
+    1: {
+      general: [
+        {
+          id: 1,
+          date: "2025-01-15",
+          action: "Email updated",
+          details: "Changed from old@email.com to john@example.com",
+          user: "Admin",
+        },
+        { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
+      ],
+      checkins: [
+        { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "John Doe" },
+        { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "John Doe" },
+      ],
+      appointments: [
+        { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
+        { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
+      ],
+      finance: [
+        {
+          id: 1,
+          date: "2025-01-01",
+          type: "Payment",
+          amount: "$99.99",
+          description: "Monthly membership fee",
+          status: "completed",
+        },
+        {
+          id: 2,
+          date: "2024-12-01",
+          type: "Payment",
+          amount: "$99.99",
+          description: "Monthly membership fee",
+          status: "completed",
+        },
+      ],
+      contracts: [
+        {
+          id: 1,
+          date: "2024-03-01",
+          action: "Contract signed",
+          details: "Initial 12-month membership contract",
+          user: "Admin",
+        },
+        { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
+      ],
+    },
+    2: {
+      general: [],
+      checkins: [],
+      appointments: [],
+      finance: [],
+      contracts: [],
+    },
   })
 
-  const [isAppointmentsModalOpen, setIsAppointmentsModalOpen] = useState(false)
-  const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
+  const appointmentTypes = [
+    { name: "Training", duration: 60, color: "bg-blue-700" },
+    { name: "Cardio", duration: 45, color: "bg-green-700" },
+    { name: "Yoga", duration: 90, color: "bg-purple-600" },
+    { name: "Consultation", duration: 30, color: "bg-orange-600" },
+  ]
 
   useEffect(() => {
     if (selectedMember) {
@@ -112,7 +231,6 @@ export default function Members() {
       }
     }
 
-    // Add event listener when popover is open
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -203,7 +321,6 @@ export default function Members() {
       filtered = filtered.filter((member) => (filterStatus === "active" ? member.isActive : !member.isActive))
     }
 
-    // Sort members
     if (sortBy === "alphabetical") {
       filtered.sort((a, b) => a.title.localeCompare(b.title))
     } else if (sortBy === "expiring") {
@@ -251,6 +368,7 @@ export default function Members() {
 
   const handleViewDetails = (member) => {
     setSelectedMember(member)
+    setActiveTab("details")
     setIsViewDetailsModalOpen(true)
   }
 
@@ -279,39 +397,82 @@ export default function Members() {
 
   const handleAvatarChange = (e) => {
     e.preventDefault()
-    // In a real app, you would handle file upload here
     toast.success("Avatar update functionality would be implemented here")
   }
 
-  const handleViewAppointments = (member) => {
+  // Calendar functions
+  const handleCalendarClick = (member) => {
     setSelectedMemberForAppointments(member)
-    setIsAppointmentsModalOpen(true)
+    setShowAppointmentModal(true)
   }
 
-  const increaseCapacity = (memberId) => {
-    setMemberCapacity((prev) => ({
-      ...prev,
-      [memberId]: {
-        ...prev[memberId],
-        total: prev[memberId].total + 1,
-      },
-    }))
-    toast.success("Appointment capacity increased")
+  const handleManageContingent = (memberId) => {
+    const contingent = memberContingent[memberId] || { used: 0, total: 0 }
+    setTempContingent(contingent)
+    setShowContingentModal(true)
   }
 
-  const decreaseCapacity = (memberId) => {
-    if (memberCapacity[memberId].total > memberCapacity[memberId].used) {
-      setMemberCapacity((prev) => ({
+  const handleSaveContingent = () => {
+    if (selectedMemberForAppointments) {
+      setMemberContingent((prev) => ({
         ...prev,
-        [memberId]: {
-          ...prev[memberId],
-          total: prev[memberId].total - 1,
-        },
+        [selectedMemberForAppointments.id]: tempContingent,
       }))
-      toast.success("Appointment capacity decreased")
-    } else {
-      toast.error("Cannot decrease capacity below used appointments")
+      toast.success("Contingent updated successfully")
     }
+    setShowContingentModal(false)
+  }
+
+  // History functions
+  const handleHistoryClick = (member) => {
+    setSelectedMember(member)
+    setShowHistoryModal(true)
+  }
+
+  // Chat function
+  const handleChatClick = (member) => {
+    // Redirect to communications with member selected
+    window.location.href = `/dashboard/communication`
+  }
+
+  // Relations functions
+  const handleAddRelation = () => {
+    if (!newRelation.name || !newRelation.relation) {
+      toast.error("Please fill in all fields")
+      return
+    }
+
+    const relationId = Date.now()
+    const updatedRelations = { ...memberRelations }
+
+    if (!updatedRelations[selectedMember.id]) {
+      updatedRelations[selectedMember.id] = {
+        family: [],
+        friendship: [],
+        relationship: [],
+        work: [],
+        other: [],
+      }
+    }
+
+    updatedRelations[selectedMember.id][newRelation.category].push({
+      id: relationId,
+      name: newRelation.name,
+      relation: newRelation.relation,
+    })
+
+    setMemberRelations(updatedRelations)
+    setNewRelation({ name: "", relation: "", category: "family" })
+    toast.success("Relation added successfully")
+  }
+
+  const handleDeleteRelation = (category, relationId) => {
+    const updatedRelations = { ...memberRelations }
+    updatedRelations[selectedMember.id][category] = updatedRelations[selectedMember.id][category].filter(
+      (rel) => rel.id !== relationId,
+    )
+    setMemberRelations(updatedRelations)
+    toast.success("Relation deleted successfully")
   }
 
   return (
@@ -405,6 +566,8 @@ export default function Members() {
               </div>
             </div>
           </div>
+
+          {/* Edit Modal */}
           {isEditModalOpen && selectedMember && (
             <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
               <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
@@ -437,9 +600,7 @@ export default function Members() {
                         className="hidden"
                         accept="image/*"
                         onChange={(e) => {
-                          // Handle file selection logic here
                           if (e.target.files && e.target.files[0]) {
-                            // In a real app, you would handle the file upload
                             toast.success("Avatar selected successfully")
                           }
                         }}
@@ -595,6 +756,89 @@ export default function Members() {
                       </div>
                     </div>
 
+                    {/* Relations Section in Edit Modal */}
+                    <div className="border border-slate-700 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="text-sm text-gray-200 font-medium">Relations</label>
+                        <button
+                          type="button"
+                          onClick={() => setEditingRelations(!editingRelations)}
+                          className="text-sm text-blue-400 hover:text-blue-300"
+                        >
+                          {editingRelations ? "Done" : "Edit"}
+                        </button>
+                      </div>
+
+                      {editingRelations && (
+                        <div className="mb-4 p-3 bg-[#101010] rounded-xl">
+                          <div className="grid grid-cols-2 gap-2 mb-2">
+                            <input
+                              type="text"
+                              placeholder="Name"
+                              value={newRelation.name}
+                              onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
+                              className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Relation"
+                              value={newRelation.relation}
+                              onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
+                              className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <select
+                              value={newRelation.category}
+                              onChange={(e) => setNewRelation({ ...newRelation, category: e.target.value })}
+                              className="bg-[#222] text-white rounded px-3 py-2 text-sm flex-1"
+                            >
+                              <option value="family">Family</option>
+                              <option value="friendship">Friendship</option>
+                              <option value="relationship">Relationship</option>
+                              <option value="work">Work</option>
+                              <option value="other">Other</option>
+                            </select>
+                            <button
+                              type="button"
+                              onClick={handleAddRelation}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="space-y-2 max-h-32 overflow-y-auto">
+                        {selectedMember &&
+                          memberRelations[selectedMember.id] &&
+                          Object.entries(memberRelations[selectedMember.id]).map(([category, relations]) =>
+                            relations.map((relation) => (
+                              <div
+                                key={relation.id}
+                                className="flex items-center justify-between bg-[#101010] rounded px-3 py-2"
+                              >
+                                <div className="text-sm">
+                                  <span className="text-white">{relation.name}</span>
+                                  <span className="text-gray-400 ml-2">({relation.relation})</span>
+                                  <span className="text-blue-400 ml-2 capitalize">- {category}</span>
+                                </div>
+                                {editingRelations && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteRelation(category, relation.id)}
+                                    className="text-red-400 hover:text-red-300"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                )}
+                              </div>
+                            )),
+                          )}
+                      </div>
+                    </div>
+
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">About</label>
                       <textarea
@@ -622,7 +866,6 @@ export default function Members() {
               <div className="space-y-3">
                 {filteredAndSortedMembers().map((member) => (
                   <div key={member.id} className="bg-[#161616] rounded-xl p-6 relative">
-                    {/* Special note icon in top left corner */}
                     {member.note && (
                       <div className="absolute p-2 top-0 left-0 z-10">
                         <div className="relative">
@@ -647,7 +890,6 @@ export default function Members() {
                               ref={notePopoverRef}
                               className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
                             >
-                              {/* Header section with icon and title */}
                               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                                 {member.noteImportance === "important" ? (
                                   <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
@@ -671,11 +913,9 @@ export default function Members() {
                                 </button>
                               </div>
 
-                              {/* Note content */}
                               <div className="p-3">
                                 <p className="text-white text-sm leading-relaxed">{member.note}</p>
 
-                                {/* Date validity section */}
                                 {member.noteStartDate && member.noteEndDate && (
                                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                                     <p className="text-xs text-gray-300">
@@ -723,9 +963,34 @@ export default function Members() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center justify-center sm:justify-end gap-3 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
-                        
-                     
+                      <div className="flex items-center justify-center sm:justify-end gap-2 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
+                        {/* Calendar Button */}
+                        <button
+                          onClick={() => handleCalendarClick(member)}
+                          className="text-blue-500 md:w-auto w-full hover:text-blue-400 bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                          title="View Appointments"
+                        >
+                          <Calendar size={16} />
+                        </button>
+
+                        {/* History Button */}
+                        <button
+                          onClick={() => handleHistoryClick(member)}
+                          className="text-purple-500 md:w-auto w-full hover:text-purple-400 bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                          title="View History"
+                        >
+                          <History size={16} />
+                        </button>
+
+                        {/* Chat Button */}
+                        <button
+                          onClick={() => handleChatClick(member)}
+                          className="text-green-500 md:w-auto w-full hover:text-green-400 bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                          title="Start Chat"
+                        >
+                          <MessageCircle size={16} />
+                        </button>
+
                         <button
                           onClick={() => handleViewDetails(member)}
                           className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
@@ -787,9 +1052,10 @@ export default function Members() {
         </aside>
       </div>
 
+      {/* View Details Modal with Tabs */}
       {isViewDetailsModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl my-8 relative">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-white open_sans_font_700 text-lg font-semibold">Member Details</h2>
@@ -804,87 +1070,367 @@ export default function Members() {
                 </button>
               </div>
 
-              <div className="space-y-4 text-white">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={selectedMember.image || DefaultAvatar}
-                    alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover"
-                  />
+              {/* Tab Navigation */}
+              <div className="flex border-b border-gray-700 mb-6">
+                <button
+                  onClick={() => setActiveTab("details")}
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "details"
+                      ? "text-blue-400 border-b-2 border-blue-400"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Details
+                </button>
+                <button
+                  onClick={() => setActiveTab("relations")}
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "relations"
+                      ? "text-blue-400 border-b-2 border-blue-400"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Relations
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              {activeTab === "details" && (
+                <div className="space-y-4 text-white">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={selectedMember.image || DefaultAvatar}
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="text-xl font-semibold">
+                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
+                      </h3>
+                      <p className="text-gray-400">
+                        Contract: {selectedMember.contractStart} -
+                        <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
+                          {selectedMember.contractEnd}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-400">Email</p>
+                      <p>{selectedMember.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Phone</p>
+                      <p>{selectedMember.phone}</p>
+                    </div>
+                  </div>
+
                   <div>
-                    <h3 className="text-xl font-semibold">
-                      {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
-                    </h3>
-                    <p className="text-gray-400">
-                      Contract: {selectedMember.contractStart} -
-                      <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                        {selectedMember.contractEnd}
-                      </span>
-                    </p>
+                    <p className="text-sm text-gray-400">Address</p>
+                    <p>{`${selectedMember.street}, ${selectedMember.zipCode} ${selectedMember.city}`}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-400">Date of Birth</p>
+                      <p>
+                        {selectedMember.dateOfBirth} (Age: {calculateAge(selectedMember.dateOfBirth)})
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Join Date</p>
+                      <p>{selectedMember.joinDate}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-400">About</p>
+                    <p>{selectedMember.about}</p>
+                  </div>
+
+                  {selectedMember.note && (
+                    <div>
+                      <p className="text-sm text-gray-400">Special Note</p>
+                      <p>{selectedMember.note}</p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Note Period: {selectedMember.noteStartDate} to {selectedMember.noteEndDate}
+                      </p>
+                      <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-4 mt-6">
+                    <button
+                      onClick={redirectToContract}
+                      className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
+                    >
+                      <FileText size={16} />
+                      View Contract
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsViewDetailsModalOpen(false)
+                        handleEditMember(selectedMember)
+                      }}
+                      className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
+                    >
+                      Edit Member
+                    </button>
                   </div>
                 </div>
+              )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-400">Email</p>
-                    <p>{selectedMember.email}</p>
+              {activeTab === "relations" && (
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+                  {/* Relations Tree Visualization */}
+                  <div className="bg-[#161616] rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-center">Relationship Tree</h3>
+                    <div className="flex flex-col items-center space-y-8">
+                      {/* Central Member */}
+                      <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
+                        {selectedMember.title}
+                      </div>
+
+                      {/* Connection Lines and Categories */}
+                      <div className="relative w-full">
+                        {/* Horizontal line */}
+                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
+
+                        {/* Category sections */}
+                        <div className="grid grid-cols-5 gap-4 pt-8">
+                          {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
+                            <div key={category} className="flex flex-col items-center space-y-4">
+                              {/* Vertical line */}
+                              <div className="w-0.5 h-8 bg-gray-600"></div>
+
+                              {/* Category header */}
+                              <div
+                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
+                                  category === "family"
+                                    ? "bg-yellow-600 text-yellow-100"
+                                    : category === "friendship"
+                                      ? "bg-green-600 text-green-100"
+                                      : category === "relationship"
+                                        ? "bg-red-600 text-red-100"
+                                        : category === "work"
+                                          ? "bg-blue-600 text-blue-100"
+                                          : "bg-gray-600 text-gray-100"
+                                }`}
+                              >
+                                {category}
+                              </div>
+
+                              {/* Relations in this category */}
+                              <div className="space-y-2">
+                                {relations.map((relation) => (
+                                  <div
+                                    key={relation.id}
+                                    className="bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px]"
+                                  >
+                                    <div className="text-white text-sm font-medium">{relation.name}</div>
+                                    <div className="text-gray-400 text-xs">({relation.relation})</div>
+                                  </div>
+                                ))}
+                                {relations.length === 0 && (
+                                  <div className="text-gray-500 text-xs text-center">No relations</div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Phone</p>
-                    <p>{selectedMember.phone}</p>
+
+                  {/* Relations List */}
+                  <div className="bg-[#161616] rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
+                    <div className="space-y-4">
+                      {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
+                        <div key={category}>
+                          <h4 className="text-md font-medium text-gray-300 capitalize mb-2">{category}</h4>
+                          <div className="space-y-2 ml-4">
+                            {relations.length > 0 ? (
+                              relations.map((relation) => (
+                                <div
+                                  key={relation.id}
+                                  className="flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3"
+                                >
+                                  <div>
+                                    <span className="text-white font-medium">{relation.name}</span>
+                                    <span className="text-gray-400 ml-2">- {relation.relation}</span>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-gray-500 text-sm">No {category} relations</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
-                <div>
-                  <p className="text-sm text-gray-400">Address</p>
-                  <p>{`${selectedMember.street}, ${selectedMember.zipCode} ${selectedMember.city}`}</p>
-                </div>
+      {/* Appointment Calendar Modal */}
+      {showAppointmentModal && selectedMemberForAppointments && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg text-white font-medium">{selectedMemberForAppointments.title}'s Appointments</h2>
+                <button onClick={() => setShowAppointmentModal(false)} className="p-2 hover:bg-zinc-700 text-white rounded-lg">
+                  <X size={16} />
+                </button>
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-400">Date of Birth</p>
-                    <p>
-                      {selectedMember.dateOfBirth} (Age: {calculateAge(selectedMember.dateOfBirth)})
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Join Date</p>
-                    <p>{selectedMember.joinDate}</p>
-                  </div>
-                </div>
+              <div className="space-y-3 mb-4">
+                <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
+                {memberAppointments[selectedMemberForAppointments.id]?.length > 0 ? (
+                  memberAppointments[selectedMemberForAppointments.id].map((appointment) => {
+                    const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
+                    const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
 
-                <div>
-                  <p className="text-sm text-gray-400">About</p>
-                  <p>{selectedMember.about}</p>
-                </div>
-
-                {selectedMember.note && (
-                  <div>
-                    <p className="text-sm text-gray-400">Special Note</p>
-                    <p>{selectedMember.note}</p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Note Period: {selectedMember.noteStartDate} to {selectedMember.noteEndDate}
-                    </p>
-                    <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
+                    return (
+                      <div
+                        key={appointment.id}
+                        className={`${backgroundColor} rounded-xl p-3 hover:opacity-90 transition-colors`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-sm text-white">{appointment.title}</p>
+                            <div>
+                              <p className="text-sm text-white/70">
+                                {new Date(appointment.date).toLocaleString([], {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </p>
+                              <p className="text-xs text-white/70">
+                                {new Date(appointment.date).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}{" "}
+                                -{" "}
+                                {new Date(
+                                  new Date(appointment.date).getTime() + (appointmentType?.duration || 30) * 60000,
+                                ).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="text-center py-4 text-gray-400 bg-[#222222] rounded-xl">
+                    No appointments scheduled
                   </div>
                 )}
+              </div>
 
-                <div className="flex justify-end gap-4 mt-6">
+              {/* Contingent Display */}
+              <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
+                <div className="text-sm text-gray-300">
+                  Contingent ({currentBillingPeriod}): {memberContingent[selectedMemberForAppointments.id]?.used || 0} /{" "}
+                  {memberContingent[selectedMemberForAppointments.id]?.total || 0}
+                </div>
+                <button
+                  onClick={() => handleManageContingent(selectedMemberForAppointments.id)}
+                  className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
+                >
+                  <Edit3 size={16} />
+                  Manage
+                </button>
+              </div>
+
+              {/* Remaining contingent display */}
+              <div className="bg-[#222222] rounded-xl p-3 mb-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">
+                    {(memberContingent[selectedMemberForAppointments.id]?.total || 0) -
+                      (memberContingent[selectedMemberForAppointments.id]?.used || 0)}
+                  </div>
+                  <div className="text-sm text-gray-400">Appointments Remaining</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contingent Management Modal */}
+      {showContingentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg text-white font-medium">Manage Appointment Contingent</h2>
+                <button onClick={() => setShowContingentModal(false)} className="p-2 hover:bg-zinc-700 text-white rounded-lg">
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Billing Period: {currentBillingPeriod}
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <label className="block text-sm text-gray-400 mb-1">Used Appointments</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={tempContingent.total}
+                        value={tempContingent.used}
+                        onChange={(e) =>
+                          setTempContingent({ ...tempContingent, used: Number.parseInt(e.target.value) })
+                        }
+                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm text-gray-400 mb-1">Total Appointments</label>
+                      <input
+                        type="number"
+                        min={tempContingent.used}
+                        value={tempContingent.total}
+                        onChange={(e) =>
+                          setTempContingent({ ...tempContingent, total: Number.parseInt(e.target.value) })
+                        }
+                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Remaining: {tempContingent.total - tempContingent.used} appointments
+                  </p>
+                </div>
+
+                <div className="flex gap-2 justify-end">
                   <button
-                    onClick={redirectToContract}
-                    className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
+                    onClick={() => setShowContingentModal(false)}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm"
                   >
-                    <FileText size={16} />
-                    View Contract
+                    Cancel
                   </button>
                   <button
-                    onClick={() => {
-                      setIsViewDetailsModalOpen(false)
-                      handleEditMember(selectedMember)
-                    }}
-                    className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
+                    onClick={handleSaveContingent}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
                   >
-                    Edit Member
+                    Save Changes
                   </button>
                 </div>
               </div>
@@ -892,80 +1438,178 @@ export default function Members() {
           </div>
         </div>
       )}
-      {isAppointmentsModalOpen && selectedMemberForAppointments && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
+
+      {/* History Modal */}
+      {showHistoryModal && selectedMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                  {selectedMemberForAppointments.title}'s Appointments
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsAppointmentsModalOpen(false)
-                    setSelectedMemberForAppointments(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
+              <div className="flex text-white justify-between items-center mb-6">
+                <h2 className="text-lg font-medium">{selectedMember.title} - History & Changelog</h2>
+                <button onClick={() => setShowHistoryModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                  <X size={16} />
                 </button>
               </div>
 
-              <div className="space-y-4 text-white">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-400">
-                    Appointment Capacity: {memberCapacity[selectedMemberForAppointments.id]?.used || 0}/
-                    {memberCapacity[selectedMemberForAppointments.id]?.total || 0}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => decreaseCapacity(selectedMemberForAppointments.id)}
-                      className="bg-gray-800 hover:bg-gray-700 p-1 rounded"
-                      title="Decrease capacity"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <button
-                      onClick={() => increaseCapacity(selectedMemberForAppointments.id)}
-                      className="bg-gray-800 hover:bg-gray-700 p-1 rounded"
-                      title="Increase capacity"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
+              {/* History Tab Navigation */}
+              <div className="flex border-b border-gray-700 mb-6 overflow-x-auto">
+                {[
+                  { id: "general", label: "General Changes" },
+                  { id: "checkins", label: "Check-ins & Check-outs" },
+                  { id: "appointments", label: "Past Appointments" },
+                  { id: "finance", label: "Finance Transactions" },
+                  { id: "contracts", label: "Contract Changes" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setHistoryTab(tab.id)}
+                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${
+                      historyTab === tab.id
+                        ? "text-blue-400 border-b-2 border-blue-400"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
 
-                {memberAppointments[selectedMemberForAppointments.id]?.length > 0 ? (
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
-                    {memberAppointments[selectedMemberForAppointments.id].map((appointment) => (
-                      <div key={appointment.id} className="bg-[#161616] rounded-xl p-4">
-                        <h3 className="font-medium">{appointment.title}</h3>
-                        <div className="flex justify-between mt-2 text-sm text-gray-400">
-                          <p>{appointment.date}</p>
-                          <p>{appointment.time}</p>
+              {/* History Content */}
+              <div className="space-y-4">
+                {historyTab === "general" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">General Changes</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.general?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-white font-medium">{item.action}</p>
+                              <p className="text-gray-400 text-sm mt-1">{item.details}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-400 text-sm">{item.date}</p>
+                              <p className="text-gray-500 text-xs">by {item.user}</p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )) || <p className="text-gray-400">No general changes recorded</p>}
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-center text-gray-400 py-8">No upcoming appointments</p>
                 )}
 
-                <div className="flex justify-between items-center pt-4 border-t border-gray-800">
-                  <p className="text-sm">
-                    <span className="text-gray-400">Used:</span>{" "}
-                    {memberCapacity[selectedMemberForAppointments.id]?.used || 0}
-                  </p>
-                  <p className="text-sm">
-                    <span className="text-gray-400">Available:</span>{" "}
-                    {(memberCapacity[selectedMemberForAppointments.id]?.total || 0) -
-                      (memberCapacity[selectedMemberForAppointments.id]?.used || 0)}
-                  </p>
-                  <p className="text-sm">
-                    <span className="text-gray-400">Total:</span>{" "}
-                    {memberCapacity[selectedMemberForAppointments.id]?.total || 0}
-                  </p>
-                </div>
+                {historyTab === "checkins" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">Check-ins & Check-outs History</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.checkins?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-3 h-3 rounded-full ${item.type === "Check-in" ? "bg-green-500" : "bg-red-500"}`}
+                              ></div>
+                              <div>
+                                <p className="text-white font-medium">{item.type}</p>
+                                <p className="text-gray-400 text-sm">{item.location}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-400 text-sm">
+                                {new Date(item.date).toLocaleDateString()} at {new Date(item.date).toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No check-in/check-out history</p>}
+                    </div>
+                  </div>
+                )}
+
+                {historyTab === "appointments" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">Past Appointments History</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.appointments?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-white font-medium">{item.title}</p>
+                              <p className="text-gray-400 text-sm">with {item.trainer}</p>
+                              <span
+                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
+                                  item.status === "completed"
+                                    ? "bg-green-900 text-green-300"
+                                    : "bg-yellow-900 text-yellow-300"
+                                }`}
+                              >
+                                {item.status}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-400 text-sm">
+                                {new Date(item.date).toLocaleDateString()} at {new Date(item.date).toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No past appointments</p>}
+                    </div>
+                  </div>
+                )}
+
+                {historyTab === "finance" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">Finance Transactions History</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.finance?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-white font-medium">{item.type}</p>
+                              <p className="text-gray-400 text-sm">{item.description}</p>
+                              <span
+                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
+                                  item.status === "completed"
+                                    ? "bg-green-900 text-green-300"
+                                    : "bg-yellow-900 text-yellow-300"
+                                }`}
+                              >
+                                {item.status}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-green-400 font-semibold">{item.amount}</p>
+                              <p className="text-gray-400 text-sm">{item.date}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No financial transactions</p>}
+                    </div>
+                  </div>
+                )}
+
+                {historyTab === "contracts" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">Contract Changes History</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.contracts?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-white font-medium">{item.action}</p>
+                              <p className="text-gray-400 text-sm mt-1">{item.details}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-400 text-sm">{item.date}</p>
+                              <p className="text-gray-500 text-xs">by {item.user}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No contract changes</p>}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

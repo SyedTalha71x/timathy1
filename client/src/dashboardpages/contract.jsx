@@ -1,7 +1,8 @@
+"use client"
 
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText } from "lucide-react"
+import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText, History } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
 import { AddContractModal } from "../components/add-contract-modal"
@@ -11,6 +12,9 @@ import { CancelContractModal } from "../components/cancel-contract-modal"
 import { EditContractModal } from "../components/edit-contract-modal"
 import { DocumentManagementModal } from "../components/document-management-modal"
 import { BonusTimeModal } from "../components/bonus-time-modal"
+import { RenewContractModal } from "../components/reniew-contract-modal"
+import { ChangeContractModal } from "../components/change-contract-modal"
+import { ContractHistoryModal } from "../components/contract-history-modal"
 
 const initialContracts = [
   {
@@ -64,6 +68,41 @@ const initialContracts = [
     isDigital: false,
   },
 ]
+
+// Sample contract history data
+const contractHistory = {
+  "12321-1": [
+    {
+      id: "hist-1",
+      date: "2023-12-15",
+      action: "Contract Changed",
+      details: "Changed from Basic to Premium",
+      performedBy: "Admin User",
+      oldValue: "Basic",
+      newValue: "Premium",
+    },
+    {
+      id: "hist-2",
+      date: "2023-11-20",
+      action: "Contract Renewed",
+      details: "Renewed for 12 months",
+      performedBy: "System",
+      oldValue: "2023-01-01 to 2024-01-01",
+      newValue: "2024-01-01 to 2025-01-01",
+    },
+  ],
+  "12321-2": [
+    {
+      id: "hist-3",
+      date: "2023-10-10",
+      action: "Contract Paused",
+      details: "Paused due to Pregnancy",
+      performedBy: "Admin User",
+      oldValue: "Active",
+      newValue: "Paused",
+    },
+  ],
+}
 
 // Sample lead data for pre-filling contracts
 const sampleLeads = [
@@ -141,6 +180,14 @@ export default function ContractList() {
   const [selectedLead, setSelectedLead] = useState(null)
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const [isBonusTimeModalOpen, setIsBonusTimeModalOpen] = useState(false)
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false)
+  const [isChangeModalOpen, setIsChangeModalOpen] = useState(false)
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+
+  const handleRenewContract = (contractId) => {
+    setSelectedContract(contracts.find((contract) => contract.id === contractId))
+    setIsRenewModalOpen(true)
+  }
 
   // Update filtered contracts when selectedFilter, contracts, or searchTerm change
   useEffect(() => {
@@ -197,6 +244,56 @@ export default function ContractList() {
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
+
+  const handleRenewSubmit = (renewalData) => {
+    setIsRenewModalOpen(false)
+    if (selectedContract) {
+      // Calculate new end date based on renewal duration
+      const startDate = renewalData.startAfterCurrent
+        ? new Date(selectedContract.endDate)
+        : new Date(renewalData.customStartDate)
+
+      const endDate = new Date(startDate)
+      endDate.setMonth(endDate.getMonth() + Number.parseInt(renewalData.duration))
+
+      const updatedContracts = contracts.map((contract) =>
+        contract.id === selectedContract.id
+          ? {
+              ...contract,
+              contractType: renewalData.contractType,
+              endDate: endDate.toISOString().split("T")[0],
+              status: "Active",
+            }
+          : contract,
+      )
+      setContracts(updatedContracts)
+    }
+    setSelectedContract(null)
+    toast.success("Contract renewed successfully")
+  }
+
+  const handleChangeSubmit = (changeData) => {
+    setIsChangeModalOpen(false)
+    if (selectedContract) {
+      const updatedContracts = contracts.map((contract) =>
+        contract.id === selectedContract.id
+          ? {
+              ...contract,
+              contractType: changeData.newContractType,
+              // You might want to update other fields based on the change
+            }
+          : contract,
+      )
+      setContracts(updatedContracts)
+    }
+    setSelectedContract(null)
+    toast.success("Contract changed successfully")
+  }
+
+  const handleChangeContract = (contractId) => {
+    setSelectedContract(contracts.find((contract) => contract.id === contractId))
+    setIsChangeModalOpen(true)
+  }
 
   const handleViewDetails = (contract) => {
     setSelectedContract(contract)
@@ -289,6 +386,11 @@ export default function ContractList() {
   const handleAddBonusTime = (contractId) => {
     setSelectedContract(contracts.find((contract) => contract.id === contractId))
     setIsBonusTimeModalOpen(true)
+  }
+
+  const handleViewHistory = (contractId) => {
+    setSelectedContract(contracts.find((contract) => contract.id === contractId))
+    setIsHistoryModalOpen(true)
   }
 
   return (
@@ -430,6 +532,13 @@ export default function ContractList() {
                 >
                   <FileText className="w-5 h-5" />
                 </button>
+                <button
+                  onClick={() => handleViewHistory(contract.id)}
+                  className="p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors"
+                  title="View Contract History"
+                >
+                  <History className="w-5 h-5" />
+                </button>
                 <div className="relative">
                   <button
                     onClick={(e) => toggleDropdown(contract.id, e)}
@@ -440,8 +549,17 @@ export default function ContractList() {
 
                   {activeDropdownId === contract.id && (
                     <div className="dropdown-menu absolute right-0 sm:right-3 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
-                      <button className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left">
+                      <button
+                        onClick={() => handleRenewContract(contract.id)}
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                      >
                         Renew Contract{" "}
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                        onClick={() => handleChangeContract(contract.id)}
+                      >
+                        Change Contract
                       </button>
                       <button
                         className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
@@ -545,8 +663,35 @@ export default function ContractList() {
             }}
           />
         )}
+
+        {/* Renew Contract Modal */}
+        {isRenewModalOpen && selectedContract && (
+          <RenewContractModal
+            contract={selectedContract}
+            onClose={() => setIsRenewModalOpen(false)}
+            onSubmit={handleRenewSubmit}
+          />
+        )}
+
+        {isChangeModalOpen && selectedContract && (
+          <ChangeContractModal
+            contract={selectedContract}
+            onClose={() => setIsChangeModalOpen(false)}
+            onSubmit={handleChangeSubmit}
+          />
+        )}
+        {/* Contract History Modal */}
+        {isHistoryModalOpen && selectedContract && (
+          <ContractHistoryModal
+            contract={selectedContract}
+            history={contractHistory[selectedContract.id] || []}
+            onClose={() => {
+              setIsHistoryModalOpen(false)
+              setSelectedContract(null)
+            }}
+          />
+        )}
       </div>
     </>
   )
 }
-
