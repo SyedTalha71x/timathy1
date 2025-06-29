@@ -12,6 +12,8 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, canAddWi
     { id: "communication", name: "Communications", description: "Recent messages and communications" },
     { id: "todo", name: "TO-DO", description: "Tasks and to-do items" },
     { id: "birthdays", name: "Birthdays", description: "Upcoming birthdays" },
+    { id: "expiringContacts", name: "Expiring Contracts", description: "Expired Contracts" },
+
   ]
 
   return (

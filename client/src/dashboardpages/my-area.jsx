@@ -125,6 +125,7 @@ export default function MyArea() {
     { id: "appointments", type: "appointments", position: 1 },
     { id: "employeeCheckIn", type: "employeeCheckIn", position: 2 },
     { id: "websiteLink", type: "websiteLink", position: 3 },
+    { id: "expiringContracts", type: "expiringContracts", position: 4 }, // Fixed: Changed position from 3 to 4
   ])
 
   // Add right sidebar widgets state
@@ -382,6 +383,39 @@ export default function MyArea() {
         : "Member check in successfully",
     )
   }
+
+  const [expiringContracts, setExpiringContracts] = useState([
+    {
+      id: 1,
+      title: "Oxygen Gym Membership",
+      expiryDate: "June 30, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 2,
+      title: "Timathy Fitness Equipment Lease",
+      expiryDate: "July 15, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 3,
+      title: "Studio Space Rental",
+      expiryDate: "August 5, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 4,
+      title: "Insurance Policy",
+      expiryDate: "September 10, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 5,
+      title: "Software License",
+      expiryDate: "October 20, 2025",
+      status: "Expiring Soon",
+    },
+  ])
 
   const moveCustomLink = (id, direction) => {
     setCustomLinks((currentLinks) => {
@@ -1071,7 +1105,10 @@ export default function MyArea() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {widgets
                   .filter(
-                    (widget) => !["chart", "appointments", "employeeCheckIn", "websiteLink"].includes(widget.type),
+                    (widget) =>
+                      !["chart", "appointments", "employeeCheckIn", "websiteLink", "expiringContracts"].includes(
+                        widget.type,
+                      ),
                   )
                   .sort((a, b) => a.position - b.position)
                   .map((widget, index) => (
@@ -1175,7 +1212,50 @@ export default function MyArea() {
                       )}
                     </DraggableWidget>
                   ))}
+
+               
               </div>
+
+               {/* Expiring Contracts Widget - Now properly integrated in the grid */}
+               {widgets
+                  .filter((widget) => widget.type === "expiringContracts")
+                  .sort((a, b) => a.position - b.position)
+                  .map((widget) => (
+                    <DraggableWidget
+                      key={widget.id}
+                      id={widget.id}
+                      index={widgets.findIndex((w) => w.id === widget.id)}
+                      moveWidget={moveWidget}
+                      removeWidget={removeWidget}
+                      isEditing={isEditing}
+                      widgets={widgets}
+                    >
+                      <div className="space-y-3 p-4  rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Expiring Contracts</h2>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                          <div className="grid grid-cols-1 gap-3">
+                            {expiringContracts.map((contract) => (
+                              <Link to={"/dashboard/contract"} key={contract.id}>
+                                <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h3 className="text-sm font-medium">{contract.title}</h3>
+                                      <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
+                                    </div>
+                                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400">
+                                      {contract.status}
+                                    </span>
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </DraggableWidget>
+                  ))}
             </div>
           </div>
         </main>

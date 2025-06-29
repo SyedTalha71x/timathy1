@@ -32,7 +32,7 @@ import SelectedAppointmentModal from "../components/selected-appointment-modal"
 import MiniCalendar from "../components/mini-calender"
 import BlockAppointmentModal from "../components/block-appointment-modal"
 
-function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selectedDate, setAppointments }) {
+function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery = "", selectedDate, setAppointments }) {
   const [calendarSize, setCalendarSize] = useState(100)
   const [calendarHeight, setCalendarHeight] = useState("auto")
   const [activeNoteId, setActiveNoteId] = useState(null)
@@ -54,14 +54,13 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
-  // New state for the appointment action modal
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] = useState(false)
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
 
-  // Sample appointment types - you can replace this with your actual data
+  // Sample appointment types
   const appointmentTypes = [
     { name: "Regular Training", duration: 60, color: "bg-blue-500" },
     { name: "Consultation", duration: 30, color: "bg-green-500" },
@@ -71,8 +70,6 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
-
-      // Always change to day view when a date is selected from mini calendar
       calendarApi.changeView("timeGridDay", selectedDate)
     }
   }, [selectedDate])
@@ -80,7 +77,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   const generateFreeDates = () => {
     const now = new Date()
     const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()))
-    const freeDates = new Set() // Use a Set to store unique month-date pairs
+    const freeDates = new Set()
     const slots = []
 
     // Toggle view mode
@@ -91,25 +88,21 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
       const weekStart = new Date(startOfWeek)
       weekStart.setDate(weekStart.getDate() + week * 7)
 
-      // Generate 3-4 random slots per week
-      const slotsPerWeek = 3 + Math.floor(Math.random() * 2) // Either 3 or 4 slots
-
+      const slotsPerWeek = 3 + Math.floor(Math.random() * 2)
       for (let i = 0; i < slotsPerWeek; i++) {
-        const randomDay = Math.floor(Math.random() * 7) // 0-6 (Sun-Sat)
-        const randomHour = 8 + Math.floor(Math.random() * 10) // Between 8 AM and 6 PM
-        const randomMinute = Math.floor(Math.random() * 4) * 15 // 0, 15, 30, or 45 minutes
+        const randomDay = Math.floor(Math.random() * 7)
+        const randomHour = 8 + Math.floor(Math.random() * 10)
+        const randomMinute = Math.floor(Math.random() * 4) * 15
 
         const freeDate = new Date(weekStart)
         freeDate.setDate(weekStart.getDate() + randomDay)
         freeDate.setHours(randomHour, randomMinute, 0)
 
-        // Skip dates in the past
         if (freeDate < new Date()) continue
 
         const formattedDate = formatDate(freeDate)
         const formattedTime = freeDate.toTimeString().split(" ")[0].substring(0, 5)
 
-        // Store unique month-date pairs
         freeDates.add(freeDate.toLocaleDateString("en-US", { month: "long", day: "numeric" }))
 
         slots.push({
@@ -122,81 +115,82 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
 
     setFreeAppointments(slots)
 
-    if (slots.length > 0 && viewMode === "free") {
+    if (slots.length > 0 && viewMode === "all") {
       toast.success(
-        `Free slots generated for ${Array.from(freeDates).join(", ")}. Proceed to these months in the calendar below to see available slots.`,
+        `Free slots generated for ${Array.from(freeDates).join(", ")}. Available slots are now highlighted.`,
       )
     } else {
-      toast.success(viewMode === "all" ? "Showing all appointments" : "No free slots available.")
+      toast.success(viewMode === "all" ? "Showing all appointments" : "Showing free slots only.")
     }
   }
 
   const zoomIn = () => {
-    setCalendarSize((prev) => Math.min(prev + 10, 150)) // Max 150%
+    setCalendarSize((prev) => Math.min(prev + 10, 150))
   }
 
   const zoomOut = () => {
-    setCalendarSize((prev) => Math.max(prev - 10, 70)) // Min 70%
+    setCalendarSize((prev) => Math.max(prev - 10, 70))
   }
 
   const resetZoom = () => {
-    setCalendarSize(100) // Reset to default
+    setCalendarSize(100)
   }
 
   const handleViewChange = (viewInfo) => {
     if (viewInfo.view.type === "dayGridMonth") {
       setCalendarHeight("auto")
     } else {
-      // For week and day views, set a fixed height that will scale with zoom
       setCalendarHeight("650px")
     }
   }
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
-      id: appointments.length + 1,
+      id: (appointments?.length || 0) + 1,
       ...trialData,
       status: "pending",
       isTrial: true,
     }
-    setAppointments([...appointments, newTrial])
+    if (setAppointments) {
+      setAppointments([...(appointments || []), newTrial])
+    }
     toast.success("Trial training booked successfully")
     setIsTrialModalOpen(false)
   }
 
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
-      id: appointments.length + 1,
+      id: (appointments?.length || 0) + 1,
       ...appointmentData,
       status: "scheduled",
     }
-    setAppointments([...appointments, newAppointment])
+    if (setAppointments) {
+      setAppointments([...(appointments || []), newAppointment])
+    }
     toast.success("Appointment booked successfully")
     setIsAppointmentModalOpen(false)
   }
 
   const handleEventDrop = (info) => {
     const { event } = info
-
-    // Calculate the duration of the event in milliseconds
     const duration = event.end - event.start
 
-    // Update the appointment in the state
+    if (!appointments || !setAppointments) return
+
     const updatedAppointments = appointments.map((appointment) => {
       if (appointment.id === Number(event.id)) {
         return {
           ...appointment,
-          startTime: event.start.toTimeString().split(" ")[0], // New start time
-          endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0], // New end time (same duration)
+          startTime: event.start.toTimeString().split(" ")[0],
+          endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0],
           date: `${event.start.toLocaleString("en-US", {
             weekday: "short",
-          })} | ${formatDate(event.start)}`, // New date
+          })} | ${formatDate(event.start)}`,
         }
       }
       return appointment
     })
 
-    // Update the state with the new appointments
     setAppointments(updatedAppointments)
     setIsNotifyMemberOpen(true)
   }
@@ -213,7 +207,6 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     } else if (type === "appointment") {
       setIsAppointmentModalOpen(true)
     } else if (type === "block") {
-      // Open the block modal with the selected date/time
       setIsBlockModalOpen(true)
     } else if (selectedSlotInfo && onDateSelect) {
       onDateSelect({ ...selectedSlotInfo, eventType: type })
@@ -223,23 +216,26 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
     if (shouldNotify) {
-      console.log("Notify member about the new time:", eventInfo.event.start)
+      console.log("Notify member about the new time:", eventInfo?.event?.start)
       toast.success("Member notified successfully!")
-      const updatedAppointments = appointments.map((appointment) => {
-        if (appointment.id === eventInfo.event.id) {
-          return {
-            ...appointment,
-            date: eventInfo.event.start.toISOString().split("T")[0],
-            startTime: eventInfo.event.start.toTimeString().split(" ")[0],
-            endTime: eventInfo.event.end.toTimeString().split(" ")[0],
+
+      if (appointments && setAppointments && eventInfo?.event) {
+        const updatedAppointments = appointments.map((appointment) => {
+          if (appointment.id === eventInfo.event.id) {
+            return {
+              ...appointment,
+              date: eventInfo.event.start.toISOString().split("T")[0],
+              startTime: eventInfo.event.start.toTimeString().split(" ")[0],
+              endTime: eventInfo.event.end.toTimeString().split(" ")[0],
+            }
           }
-        }
-        return appointment
-      })
+          return appointment
+        })
+        setAppointments(updatedAppointments)
+      }
     }
   }
 
-  // Handler for free slot click
   const handleFreeSlotClick = (clickInfo) => {
     if (clickInfo.event.extendedProps.isFree) {
       setSelectedSlotInfo({
@@ -250,17 +246,14 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     }
   }
 
-  // New handler for event clicks
   const handleEventClick = (clickInfo) => {
-    // Check if it's a free slot first
     if (clickInfo.event.extendedProps.isFree) {
       handleFreeSlotClick(clickInfo)
       return
     }
 
-    // Otherwise, handle as regular appointment
     const appointmentId = Number.parseInt(clickInfo.event.id)
-    const appointment = appointments.find((app) => app.id === appointmentId)
+    const appointment = appointments?.find((app) => app.id === appointmentId)
 
     if (appointment) {
       setSelectedAppointment(appointment)
@@ -281,11 +274,9 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     setIsAppointmentActionModalOpen(false)
     setNotifyAction("cancel")
     setIsNotifyMemberOpen(true)
-
-    // We'll use the same notification handler but add additional logic for cancellation
     setEventInfo({
       event: {
-        id: selectedAppointment.id,
+        id: selectedAppointment?.id,
         start: new Date(),
         end: new Date(),
       },
@@ -297,89 +288,95 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
     setIsMemberDetailsModalOpen(true)
   }
 
-  // Actually cancel the appointment after notification decision
   const actuallyHandleCancelAppointment = (shouldNotify) => {
+    if (!appointments || !setAppointments || !selectedAppointment) return
+
     const updatedAppointments = appointments.filter((app) => app.id !== selectedAppointment.id)
     setAppointments(updatedAppointments)
     toast.success("Appointment cancelled successfully")
-
     if (shouldNotify) {
       console.log("Notifying member about cancellation")
-      // Additional notification logic would go here
     }
   }
 
-  // Helper function to determine if an event is in the past
+  // Enhanced function to determine if an event is in the past
   const isEventInPast = (eventStart) => {
     const now = new Date()
-    return new Date(eventStart) < now
+    const eventDate = new Date(eventStart)
+    return eventDate < now
   }
 
+  // Safe appointments filtering with default empty array
+  const safeAppointments = appointments || []
+  const safeSearchQuery = searchQuery || ""
+
   const calendarEvents = [
-    ...appointments
+    ...safeAppointments
       .filter((appointment) => {
-        // Filter by search query
-        const nameMatch = appointment.name.toLowerCase().includes(searchQuery.toLowerCase())
-
-        // Filter by selected date
+        const nameMatch = appointment.name?.toLowerCase().includes(safeSearchQuery.toLowerCase()) || false
         let dateMatch = true
-        if (selectedDate) {
-          const [_, datePart] = appointment.date.split("|")
-          const appointmentDate = datePart.trim() // Format: dd-mm-yyyy
-          const formattedSelectedDate = formatDate(new Date(selectedDate))
-          dateMatch = appointmentDate === formattedSelectedDate
+        if (selectedDate && appointment.date) {
+          const dateParts = appointment.date.split("|")
+          if (dateParts.length > 1) {
+            const appointmentDate = dateParts[1].trim()
+            const formattedSelectedDate = formatDate(new Date(selectedDate))
+            dateMatch = appointmentDate === formattedSelectedDate
+          }
         }
-
         return nameMatch && dateMatch
       })
       .map((appointment) => {
-        const [_, datePart] = appointment.date.split("|")
-        const [day, month, year] = datePart.trim().split("-")
-        const dateStr = `${year}-${month}-${day}` // Format: yyyy-mm-dd for FullCalendar
+        const dateParts = appointment.date?.split("|") || []
+        if (dateParts.length < 2) return null
 
-        // Create ISO date strings for event start and end
-        const startDateTimeStr = `${dateStr}T${appointment.startTime}`
+        const datePart = dateParts[1].trim()
+        const dateComponents = datePart.split("-")
+        if (dateComponents.length !== 3) return null
 
-        // Determine if the event is in the past
+        const [day, month, year] = dateComponents
+        const dateStr = `${year}-${month}-${day}`
+        const startDateTimeStr = `${dateStr}T${appointment.startTime || "00:00"}`
+
         const isPastEvent = isEventInPast(startDateTimeStr)
-
-        // Get the original color
-        const backgroundColor = appointment.color.split("bg-[")[1].slice(0, -1)
+        const backgroundColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
 
         return {
           id: appointment.id,
-          title: appointment.name,
+          title: appointment.name || "Unnamed",
           start: startDateTimeStr,
-          end: `${dateStr}T${appointment.endTime}`,
-          backgroundColor: viewMode === "free" ? "#555555" : backgroundColor, // Dim all appointments in free mode
-          borderColor: viewMode === "free" ? "#555555" : backgroundColor,
-          textColor: viewMode === "free" ? "#999999" : "#FFFFFF", // Dim text in free mode
-          opacity: viewMode === "free" ? 0.5 : 1, // Make appointments semi-transparent in free mode
-          isPast: isPastEvent, // Add this flag to use in eventContent
+          end: `${dateStr}T${appointment.endTime || "01:00"}`,
+          backgroundColor: isPastEvent ? "#4a4a4a" : viewMode === "free" ? "#555555" : backgroundColor,
+          borderColor: isPastEvent ? "#4a4a4a" : viewMode === "free" ? "#555555" : backgroundColor,
+          textColor: isPastEvent ? "#999999" : viewMode === "free" ? "#999999" : "#FFFFFF",
+          opacity: isPastEvent ? 0.4 : viewMode === "free" ? 0.3 : 1,
+          isPast: isPastEvent,
           extendedProps: {
-            type: appointment.type,
+            type: appointment.type || "Unknown",
             isPast: isPastEvent,
             originalColor: backgroundColor,
             viewMode: viewMode,
           },
         }
-      }),
-    // Add the free appointments to the events
+      })
+      .filter(Boolean), // Remove null entries
+
+    // Enhanced free appointments styling
     ...freeAppointments.map((freeSlot) => {
       const [day, month, year] = freeSlot.date.split("-")
-      const dateStr = `${year}-${month}-${day}` // Format: yyyy-mm-dd for FullCalendar
+      const dateStr = `${year}-${month}-${day}`
       const startDateTimeStr = `${dateStr}T${freeSlot.time}`
 
       return {
         id: freeSlot.id,
-        title: "Free Slot",
+        title: "Available Slot",
         start: startDateTimeStr,
-        end: new Date(new Date(startDateTimeStr).getTime() + 60 * 60 * 1000).toISOString(), // Assuming 1-hour duration
-        backgroundColor: viewMode === "free" ? "#FFFFFF" : "#15803d", // White in free mode, green otherwise
-        borderColor: viewMode === "free" ? "#15803d" : "#15803d",
-        textColor: viewMode === "free" ? "#15803d" : "#FFFFFF", // Green text on white background in free mode
+        end: new Date(new Date(startDateTimeStr).getTime() + 60 * 60 * 1000).toISOString(),
+        backgroundColor: viewMode === "free" ? "#22c55e" : "#15803d",
+        borderColor: viewMode === "free" ? "#16a34a" : "#15803d",
+        textColor: "#FFFFFF",
+        opacity: viewMode === "free" ? 1 : 0.8,
         extendedProps: {
-          isFree: true, // Mark as free slot
+          isFree: true,
           viewMode: viewMode,
         },
       }
@@ -389,23 +386,20 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
   const handleEventResize = (info) => {
     const { event } = info
 
-    // Update the appointment in the state
+    if (!appointments || !setAppointments) return
+
     const updatedAppointments = appointments.map((appointment) => {
       if (appointment.id === Number(event.id)) {
         return {
           ...appointment,
-          startTime: event.start.toTimeString().split(" ")[0], // Start time stays the same
-          endTime: event.end.toTimeString().split(" ")[0], // New end time after resize
-          // Date format remains the same
+          startTime: event.start.toTimeString().split(" ")[0],
+          endTime: event.end.toTimeString().split(" ")[0],
         }
       }
       return appointment
     })
 
-    // Update the state with the new appointments
     setAppointments(updatedAppointments)
-
-    // Open notification modal to ask if user wants to notify member
     setNotifyAction("change")
     setEventInfo(info)
     setIsNotifyMemberOpen(true)
@@ -442,7 +436,9 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
           </div>
           <button
             onClick={generateFreeDates}
-            className="p-1.5 rounded-md lg:block bg-gray-600 cursor-pointer hover:bg-green-600 text-white px-3 py-2 font-medium text-sm"
+            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${
+              viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+            }`}
             aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
           >
             {viewMode === "all" ? "Free Slots" : "All Slots"}
@@ -455,7 +451,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
             style={{
               transform: `scale(${calendarSize / 100})`,
               transformOrigin: "top left",
-              width: `${10000 / calendarSize}%`, // Adjust container width to maintain layout
+              width: `${10000 / calendarSize}%`,
             }}
           >
             <FullCalendar
@@ -486,108 +482,122 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
               datesSet={handleViewChange}
               eventContent={(eventInfo) => (
                 <div
-                  className={`p-1 h-full overflow-hidden ${
-                    eventInfo.event.extendedProps.isPast ? "opacity-50" : ""
-                  } ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree ? "opacity-40" : ""}`}
+                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${
+                    eventInfo.event.extendedProps.isPast ? "opacity-40" : ""
+                  } ${
+                    eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                      ? "opacity-30"
+                      : ""
+                  } ${
+                    eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                      ? "ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
+                      : ""
+                  }`}
                 >
                   <div
                     className={`font-semibold text-xs sm:text-sm truncate ${
-                      eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                      eventInfo.event.extendedProps.isPast
                         ? "text-gray-400"
-                        : ""
+                        : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                          ? "text-gray-500"
+                          : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                            ? "text-white font-bold"
+                            : ""
                     }`}
                   >
-                    {eventInfo.event.title}
+                    {eventInfo.event.extendedProps.isPast ? `[PAST] ${eventInfo.event.title}` : eventInfo.event.title}
                   </div>
                   <div
                     className={`text-xs opacity-90 truncate ${
-                      eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                        ? "text-gray-400"
-                        : ""
+                      eventInfo.event.extendedProps.isPast
+                        ? "text-gray-500"
+                        : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                          ? "text-gray-500"
+                          : ""
                     }`}
                   >
-                    {eventInfo.event.extendedProps.isPast ? "Past: " : ""}
-                    {eventInfo.event.extendedProps.type}
+                    {eventInfo.event.extendedProps.type || "Available"}
                   </div>
                   <div className="text-xs mt-1">{eventInfo.timeText}</div>
                 </div>
               )}
               eventClassNames={(eventInfo) => {
+                const classes = []
                 if (eventInfo.event.extendedProps.isPast) {
-                  return "past-event"
+                  classes.push("past-event")
                 }
                 if (eventInfo.event.extendedProps.isFree) {
-                  return "free-slot-event cursor-pointer"
+                  classes.push("free-slot-event cursor-pointer")
+                  if (eventInfo.event.extendedProps.viewMode === "free") {
+                    classes.push("prominent-free-slot")
+                  }
                 }
-                return ""
+                return classes.join(" ")
               }}
             />
           </div>
         </div>
       </div>
 
-      {/* Add CSS for past events and free slots */}
+      {/* Enhanced CSS for better styling */}
       <style jsx>{`
         :global(.past-event) {
           cursor: default !important;
-          opacity: 0.6 !important;
+          opacity: 0.4 !important;
+          filter: grayscale(0.7);
         }
-
         :global(.free-slot-event) {
           cursor: pointer !important;
           border-left: 3px solid #15803d !important;
+          transition: all 0.3s ease;
         }
-        
+        :global(.prominent-free-slot) {
+          box-shadow: 0 0 15px rgba(34, 197, 94, 0.5) !important;
+          border: 2px solid #22c55e !important;
+          transform: scale(1.02);
+          z-index: 10;
+        }
         :global(.fc-event-main) {
           transition: all 0.3s ease;
         }
-        
         :global(.fc-theme-standard) {
           background-color: #000000;
           color: #ffffff;
         }
-        
         :global(.fc-theme-standard .fc-scrollgrid) {
           border-color: #333333;
         }
-        
         :global(.fc-theme-standard td, .fc-theme-standard th) {
           border-color: #333333;
         }
-        
         :global(.fc-col-header-cell) {
           background-color: #1a1a1a;
           color: #ffffff;
         }
-        
         :global(.fc-timegrid-slot) {
           background-color: #000000;
           border-color: #333333;
         }
-        
         :global(.fc-timegrid-slot-lane) {
           background-color: #000000;
         }
-        
         :global(.fc-timegrid-slot-minor) {
           border-color: #222222;
         }
-        
         :global(.fc-toolbar-title) {
           color: #ffffff;
         }
-        
         :global(.fc-button) {
           background-color: #333333 !important;
           border-color: #444444 !important;
           color: #ffffff !important;
         }
-        
         :global(.fc-button-active) {
           background-color: #555555 !important;
         }
       `}</style>
 
+      {/* All modals */}
       <TrialPlanningModal
         isOpen={isTrialModalOpen}
         onClose={() => setIsTrialModalOpen(false)}
@@ -625,7 +635,6 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
                 <X size={20} />
               </button>
             </div>
-
             <div className="p-6 space-y-4">
               <button
                 onClick={() => handleTypeSelection("trial")}
@@ -669,7 +678,6 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
                 <X size={20} />
               </button>
             </div>
-
             <div className="p-6 space-y-2">
               <div className="mb-4">
                 <h3 className="text-white font-medium">{selectedAppointment.name}</h3>
@@ -678,68 +686,74 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
                   {selectedAppointment.date && selectedAppointment.date.split("|")[1]} •{selectedAppointment.startTime}{" "}
                   - {selectedAppointment.endTime}
                 </p>
-                {isEventInPast(
-                  `${selectedAppointment.date
-                    .split("|")[1]
-                    .trim()
-                    .split("-")
-                    .reverse()
-                    .join("-")}T${selectedAppointment.startTime}`,
-                ) && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
-              </div>
-
-              <button
-                onClick={handleEditAppointment}
-                className={`w-full px-5 py-3 ${
+                {selectedAppointment.date &&
                   isEventInPast(
                     `${selectedAppointment.date
                       .split("|")[1]
-                      .trim()
-                      .split("-")
-                      .reverse()
-                      .join("-")}T${selectedAppointment.startTime}`,
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
+                  ) && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
+              </div>
+              <button
+                onClick={handleEditAppointment}
+                className={`w-full px-5 py-3 ${
+                  selectedAppointment.date &&
+                  isEventInPast(
+                    `${selectedAppointment.date
+                      .split("|")[1]
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
                   )
                     ? "bg-gray-600 cursor-not-allowed"
                     : "bg-[#3F74FF] hover:bg-[#3F74FF]/90 cursor-pointer"
                 } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
-                disabled={isEventInPast(
-                  `${selectedAppointment.date
-                    .split("|")[1]
-                    .trim()
-                    .split("-")
-                    .reverse()
-                    .join("-")}T${selectedAppointment.startTime}`,
-                )}
-              >
-                <Edit className="mr-2" size={16} /> Edit Appointment
-              </button>
-
-              <button
-                onClick={handleCancelAppointment}
-                className={`w-full px-5 py-3 ${
+                disabled={
+                  selectedAppointment.date &&
                   isEventInPast(
                     `${selectedAppointment.date
                       .split("|")[1]
-                      .trim()
-                      .split("-")
-                      .reverse()
-                      .join("-")}T${selectedAppointment.startTime}`,
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
+                  )
+                }
+              >
+                <Edit className="mr-2" size={16} /> Edit Appointment
+              </button>
+              <button
+                onClick={handleCancelAppointment}
+                className={`w-full px-5 py-3 ${
+                  selectedAppointment.date &&
+                  isEventInPast(
+                    `${selectedAppointment.date
+                      .split("|")[1]
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
                   )
                     ? "bg-gray-600 cursor-not-allowed"
                     : "bg-red-600 hover:bg-red-700 cursor-pointer"
                 } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
-                disabled={isEventInPast(
-                  `${selectedAppointment.date
-                    .split("|")[1]
-                    .trim()
-                    .split("-")
-                    .reverse()
-                    .join("-")}T${selectedAppointment.startTime}`,
-                )}
+                disabled={
+                  selectedAppointment.date &&
+                  isEventInPast(
+                    `${selectedAppointment.date
+                      .split("|")[1]
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
+                  )
+                }
               >
                 <X className="mr-2" size={16} /> Cancel Appointment
               </button>
-
               <button
                 onClick={handleViewMemberDetails}
                 className="w-full px-5 py-3 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 cursor-pointer transition-colors flex items-center justify-center"
@@ -770,14 +784,12 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
                 <X size={20} />
               </button>
             </div>
-
             <div className="p-6">
               <p className="text-white text-sm">
                 Do you want to notify the member about this{" "}
                 {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
               </p>
             </div>
-
             <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
               <button
                 onClick={() => {
@@ -809,6 +821,7 @@ function Calendar({ appointments, onEventClick, onDateSelect, searchQuery, selec
           </div>
         </div>
       )}
+
       <Toaster position="top-right" />
     </>
   )
@@ -838,11 +851,13 @@ export default function Appointments() {
     { id: "free2", date: "2025-01-03", time: "11:00" },
     { id: "free3", date: "2025-01-03", time: "14:00" },
   ])
+
   const [appointmentTypes, setAppointmentTypes] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
     { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
     { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
   ])
+
   const [appointments, setAppointments] = useState([
     {
       id: 1,
@@ -943,22 +958,19 @@ export default function Appointments() {
     }
   }, [activeNoteId])
 
-  // Consolidated function to apply all filters (date and search)
   const applyFilters = () => {
     let filtered = [...appointments]
 
-    // Apply date filter if a date is selected
     if (selectedDate) {
       const formattedSelectedDate = formatDate(selectedDate)
       filtered = filtered.filter((appointment) => {
-        const appointmentDate = appointment.date.split("|")[1].trim()
+        const appointmentDate = appointment.date?.split("|")[1]?.trim()
         return appointmentDate === formattedSelectedDate
       })
     }
 
-    // Apply search filter if query exists
     if (searchQuery) {
-      filtered = filtered.filter((appointment) => appointment.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      filtered = filtered.filter((appointment) => appointment.name?.toLowerCase().includes(searchQuery.toLowerCase()))
     }
 
     setFilteredAppointments(filtered)
@@ -966,7 +978,6 @@ export default function Appointments() {
 
   const handleDateSelect = (date) => {
     setSelectedDate(date)
-    // No need to filter here, as it will be done by the useEffect
   }
 
   const formatDate = (date) => {
@@ -989,6 +1000,7 @@ export default function Appointments() {
       setIsViewDropdownOpen(false)
       setActiveNoteId(null)
     }
+
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
@@ -999,11 +1011,11 @@ export default function Appointments() {
       ...appointmentData,
       status: "pending",
       isTrial: false,
-      // Format date properly when adding new appointment
       date: `${new Date(appointmentData.date).toLocaleString("en-US", {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
     }
+
     setAppointments([...appointments, newAppointment])
     toast.success("Appointment booked successfully")
   }
@@ -1014,11 +1026,11 @@ export default function Appointments() {
       ...trialData,
       status: "pending",
       isTrial: true,
-      // Format date properly when adding new trial
       date: `${new Date(trialData.date).toLocaleString("en-US", {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(trialData.date))}`,
     }
+
     setAppointments([...appointments, newTrial])
     toast.success("Trial training booked successfully")
   }
@@ -1029,6 +1041,7 @@ export default function Appointments() {
         appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment,
       ),
     )
+
     toast.success(
       appointments.find((app) => app.id === appointmentId)?.isCheckedIn
         ? "Member checked In successfully"
@@ -1049,17 +1062,16 @@ export default function Appointments() {
     })
   }
 
-
   const confirmRemoveAppointment = () => {
     setIsConfirmCancelOpen(false)
     setIsNotifyMemberOpen(true)
     setNotifyAction("cancel")
-    // We'll handle the actual removal after user decides on notification
   }
 
   const handleNotifyMember = (shouldNotify) => {
     const changes = {}
     let updatedAppointment
+
     if (notifyAction === "change") {
       updatedAppointment = { ...selectedAppointment, ...changes }
       const updatedAppointments = appointments.map((app) =>
@@ -1075,31 +1087,26 @@ export default function Appointments() {
     }
 
     if (shouldNotify) {
-      // Here you would implement the actual notification logic
       toast.success("Member notified successfully")
     }
 
     setIsNotifyMemberOpen(false)
   }
 
-  // Modified search handler to update the search query state
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase()
     setSearchQuery(query)
-
     if (query === "") {
       setSelectedMember(null)
     } else {
-      const foundMember = appointments.find((app) => app.name.toLowerCase().includes(query))
+      const foundMember = appointments.find((app) => app.name?.toLowerCase().includes(query))
       setSelectedMember(foundMember ? foundMember.name : null)
     }
-
-    // No need to filter here, as it will be done by the useEffect
   }
 
   const handleDeleteAppointment = (appointmentId) => {
     setAppointments((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
-    setSelectedAppointment(null) // Clear the selected appointment
+    setSelectedAppointment(null)
     toast.success("Appointment deleted successfully")
   }
 
@@ -1109,15 +1116,12 @@ export default function Appointments() {
 
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
-      // If no note text, return null
-      if (!specialNote.text) return null
+      if (!specialNote?.text) return null
 
-      // Check note validity
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
 
-      // If note is not active, return null
       if (!isActive) return null
 
       const handleNoteClick = (e) => {
@@ -1145,7 +1149,6 @@ export default function Appointments() {
               ref={notePopoverRef}
               className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
             >
-              {/* Header section with icon and title */}
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                 {specialNote.isImportant === "important" ? (
                   <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
@@ -1169,11 +1172,8 @@ export default function Appointments() {
                 </button>
               </div>
 
-              {/* Note content */}
               <div className="p-3">
                 <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-
-                {/* Date validity section */}
                 {specialNote.startDate && specialNote.endDate ? (
                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                     <p className="text-xs text-gray-300 flex items-center gap-1.5">
@@ -1208,12 +1208,13 @@ export default function Appointments() {
               <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
               <button
                 onClick={toggleSidebar}
-                className="  bg-[#3F74FF] text-white p-1.5 rounded-full z-10 shadow-lg hover:bg-[#3F74FF]/90 transition-colors lg:flex hidden"
+                className="bg-[#3F74FF] text-white p-1.5 rounded-full z-10 shadow-lg hover:bg-[#3F74FF]/90 transition-colors lg:flex hidden"
                 aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
               </button>
             </div>
+
             <div className="flex items-center md:flex-row flex-col gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -1274,6 +1275,7 @@ export default function Appointments() {
                           <div className="absolute p-2 top-0 left-0 z-10">
                             {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                           </div>
+
                           <div
                             className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
                             onClick={() => {
@@ -1289,10 +1291,11 @@ export default function Appointments() {
                                 <p className="font-semibold">{appointment.name}</p>
                                 <p className="text-xs flex gap-1 items-center opacity-80 justify-center sm:justify-start">
                                   <Clock size={14} />
-                                  {appointment.time} | {appointment.date.split("|")[0]}
+                                  {appointment.time} | {appointment.date?.split("|")[0]}
                                 </p>
                               </div>
                             </div>
+
                             <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
                               <div className="text-white text-center sm:text-right w-full sm:w-auto">
                                 <p className="text-xs">
@@ -1393,14 +1396,12 @@ export default function Appointments() {
                 <X size={20} />
               </button>
             </div>
-
             <div className="p-6">
               <p className="text-white text-sm">
                 Are you sure you want to cancel this appointment with {appointmentToRemove?.name} on{" "}
                 {appointmentToRemove?.date} at {appointmentToRemove?.time}?
               </p>
             </div>
-
             <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
               <button
                 onClick={confirmRemoveAppointment}
@@ -1437,14 +1438,12 @@ export default function Appointments() {
                 <X size={20} />
               </button>
             </div>
-
             <div className="p-6">
               <p className="text-white text-sm">
                 Do you want to notify the member about this{" "}
                 {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
               </p>
             </div>
-
             <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
               <button
                 onClick={() => handleNotifyMember(true)}
@@ -1462,6 +1461,7 @@ export default function Appointments() {
           </div>
         </div>
       )}
+
       <BlockAppointmentModal
         isOpen={isBlockModalOpen}
         onClose={() => setIsBlockModalOpen(false)}
@@ -1489,6 +1489,7 @@ export default function Appointments() {
             status: "blocked",
             isBlocked: true,
           }
+
           setAppointments([...appointments, newBlock])
           toast.success("Time slot blocked successfully")
           setIsBlockModalOpen(false)
