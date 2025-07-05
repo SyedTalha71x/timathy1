@@ -290,7 +290,7 @@ export default function AddStaffModal({
                 name="description"
                 value={newStaff.description}
                 onChange={handleInputChange}
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                className="w-full bg-[#101010] text-sm resize-none rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                 rows={3}
                 placeholder="Enter description (optional)"
               />

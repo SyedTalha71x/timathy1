@@ -1,4 +1,4 @@
-"use client"
+""
 
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
@@ -279,7 +279,7 @@ const EditStudioModal = ({
                   name="about"
                   value={editForm.about}
                   onChange={handleInputChange}
-                  className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[120px]"
+                  className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[120px]"
                   placeholder="Describe your studio, services, specialties, equipment, atmosphere, etc..."
                 />
                 <p className="text-xs text-gray-400 mt-2">
@@ -323,7 +323,7 @@ const EditStudioModal = ({
                   name="note"
                   value={editForm.note}
                   onChange={handleInputChange}
-                  className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                  className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                   placeholder="Enter internal note for this studio..."
                 />
 

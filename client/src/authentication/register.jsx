@@ -1,6 +1,4 @@
 /* eslint-disable react/no-unescaped-entities */
-"use client"
-
 import { useState, useRef, useEffect } from "react";
 import Art from "../../public/Art1.png";
 import { Link } from "react-router-dom";

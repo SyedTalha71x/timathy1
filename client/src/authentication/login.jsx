@@ -1,5 +1,4 @@
-"use client"
-
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from "react"

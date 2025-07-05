@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-"use client"
+""
 import { X, Building, Edit, AlertTriangle, Info } from "lucide-react"
 
 const FranchiseDetailsModal = ({

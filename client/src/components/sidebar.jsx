@@ -17,6 +17,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { RiContractLine, RiStockFill } from "react-icons/ri";
+import { BadgeDollarSign } from 'lucide-react';
+
 import { MdOutlineLeaderboard } from "react-icons/md";
 
 const Sidebar = () => {
@@ -94,7 +96,7 @@ const Sidebar = () => {
     { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
     { icon: MdOutlineLeaderboard, label: "Leads", to: "/dashboard/leads" },
     { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
-    { icon: RiStockFill, label: "Finances", to: "/dashboard/finances" },
+    { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
     { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
   ];
 
@@ -205,8 +207,8 @@ const Sidebar = () => {
 
               {!isCollapsed && (
                 <div className="flex flex-col gap-0.5 text-center">
+                  <p className="text-sm open_sans_font text-white">{studioName}</p>
                   <h2 className="open_sans_font_700 text-white">{fullName}</h2>
-                  <p className="text-sm open_sans_font text-zinc-400">{studioName}</p>
                 </div>
               )}
             </div>
@@ -216,7 +218,7 @@ const Sidebar = () => {
           <nav className="flex-1 overflow-y-auto">
             <ul className="space-y-2 p-4">
               {menuItems.map((item) => (
-                <li key={item.label}>
+                <li key={item.label}> 
                   <button
                     onClick={() => handleNavigation(item.to)}
                     className={`

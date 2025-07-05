@@ -4,7 +4,7 @@
 /* eslint-disable react/prop-types */
 import { X, FileText, Search } from "lucide-react"
 import { useState } from "react"
-import { DocumentManagementModal } from "../../document-management-modal"
+import { DocumentManagementModal } from "../document-management-modal"
 
 const ContractsModal = ({ isOpen, onClose, selectedStudio, studioContracts, handleFileUpload, handleDownloadFile }) => {
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)

@@ -1,4 +1,4 @@
-"use client"
+""
 
 import { FileUp, Trash2, X, Eye } from "lucide-react"
 import { useState } from "react"

@@ -1,10 +1,10 @@
-"use client"
+""
 
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react"
 import { X, Plus, Calendar, Tag, ChevronDown, Filter } from "lucide-react"
-import AddTaskModal from "../components/add-task-modal"
-import TaskItem from "../components/task-item"
+import AddTaskModal from "../components/task-components/add-task-modal"
+import TaskItem from "../components/task-components/task-item"
 import Notification from "../components/notification"
 
 export default function TodoApp() {

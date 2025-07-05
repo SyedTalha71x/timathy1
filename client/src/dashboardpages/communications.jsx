@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-"use client"
+""
 import { useState, useEffect, useRef } from "react"
 import {
   Menu,
@@ -21,8 +21,8 @@ import {
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
 import CommuncationBg from "../../public/communication-bg.svg"
-import AddAppointmentModal from "../components/add-appointment-modal"
-import SelectedAppointmentModal from "../components/selected-appointment-modal"
+import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
+import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 
 const img1 = "/Rectangle 1.png"
 const img2 = "/avatar3.png"
@@ -1275,7 +1275,7 @@ export default function Communications() {
                   <textarea
                     value={emailData.body}
                     onChange={(e) => setEmailData({ ...emailData, body: e.target.value })}
-                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm h-32 resize-none"
+                    className="w-full bg-[#222222] resize-none text-white rounded-xl px-4 py-2 text-sm h-32 resize-none"
                     placeholder="Type your email message here..."
                   />
                 </div>
@@ -1573,7 +1573,7 @@ export default function Communications() {
                   <textarea
                     value={newMessage.message}
                     onChange={(e) => setNewMessage({ ...newMessage, message: e.target.value })}
-                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm h-32 resize-none"
+                    className="w-full bg-[#222222] resize-none text-white rounded-xl px-4 py-2 text-sm h-32 resize-none"
                     placeholder="Enter your message content"
                   />
                 </div>

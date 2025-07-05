@@ -1,8 +1,7 @@
-"use client"
 
 import { FileUp, Trash2, X, Eye } from "lucide-react"
 import { useState } from "react"
-import Contract1 from "../../public/contract1.png"
+import Contract1 from "../../../public/contract1.png"
 
 /* eslint-disable react/prop-types */
 export function EditContractModal({ contract, onClose, onSave }) {

@@ -1,20 +1,20 @@
-"use client"
+""
 
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText, History } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
-import { AddContractModal } from "../components/add-contract-modal"
-import { ContractDetailsModal } from "../components/contract-details-modal"
-import { PauseContractModal } from "../components/pause-contract-modal"
-import { CancelContractModal } from "../components/cancel-contract-modal"
-import { EditContractModal } from "../components/edit-contract-modal"
-import { DocumentManagementModal } from "../components/document-management-modal"
-import { BonusTimeModal } from "../components/bonus-time-modal"
-import { RenewContractModal } from "../components/reniew-contract-modal"
-import { ChangeContractModal } from "../components/change-contract-modal"
-import { ContractHistoryModal } from "../components/contract-history-modal"
+import { AddContractModal } from "../components/contract-components/add-contract-modal"
+import { ContractDetailsModal } from "../components/contract-components/contract-details-modal"
+import { PauseContractModal } from "../components/contract-components/pause-contract-modal"
+import { CancelContractModal } from "../components/contract-components/cancel-contract-modal"
+import { EditContractModal } from "../components/contract-components/edit-contract-modal"
+import { DocumentManagementModal } from "../components/contract-components/document-management-modal"
+import { BonusTimeModal } from "../components/contract-components/bonus-time-modal"
+import { RenewContractModal } from "../components/contract-components/reniew-contract-modal"
+import { ChangeContractModal } from "../components/contract-components/change-contract-modal"
+import { ContractHistoryModal } from "../components/contract-components/contract-history-modal"
 
 const initialContracts = [
   {

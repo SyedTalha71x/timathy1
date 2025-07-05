@@ -1,6 +1,5 @@
-/* eslint-disable react/no-unescaped-entities */
 "use client"
-
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -17,9 +16,17 @@ import {
   MessageCircle,
   Edit3,
   Trash2,
+  Archive,
+  ArchiveRestore,
+  UserPlus,
+  Clock,
+  Users,
+  Filter,
 } from "lucide-react"
 import DefaultAvatar from "../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
+import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
+import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 
 export default function Members() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -34,9 +41,21 @@ export default function Members() {
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [activeTab, setActiveTab] = useState("details")
 
-  // Calendar and Appointment states
+  // New states for enhanced functionality
+  const [showCreateTempMemberModal, setShowCreateTempMemberModal] = useState(false)
+  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false)
+  const [memberTypeFilter, setMemberTypeFilter] = useState("all") // all, full, temporary
+  const [archivedFilter, setArchivedFilter] = useState("active") // active, archived, all
+
+  // Calendar and Appointment states - Enhanced from communication
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
   const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
+  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
+  const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
+  const [selectedAppointmentData, setSelectedAppointmentData] = useState(null)
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [notifyAction, setNotifyAction] = useState("")
+
   const [memberContingent, setMemberContingent] = useState({
     1: { used: 2, total: 7 },
     2: { used: 1, total: 8 },
@@ -51,23 +70,25 @@ export default function Members() {
 
   // Relations states
   const [showRelationsModal, setShowRelationsModal] = useState(false)
+  const [showRelationsTile, setShowRelationsTile] = useState(false)
+  const [selectedRelationMember, setSelectedRelationMember] = useState(null)
   const [memberRelations, setMemberRelations] = useState({
     1: {
       family: [
-        { name: "Anna Doe", relation: "Mother", id: 101 },
-        { name: "Peter Doe", relation: "Father", id: 102 },
-        { name: "Lisa Doe", relation: "Sister", id: 103 },
+        { name: "Anna Doe", relation: "Mother", id: 101, type: "member" },
+        { name: "Peter Doe", relation: "Father", id: 102, type: "lead" },
+        { name: "Lisa Doe", relation: "Sister", id: 103, type: "manual" },
       ],
-      friendship: [{ name: "Max Miller", relation: "Best Friend", id: 201 }],
+      friendship: [{ name: "Max Miller", relation: "Best Friend", id: 201, type: "member" }],
       relationship: [
-        { name: "Marie Smith", relation: "Partner", id: 301 },
-        { name: "Julia Brown", relation: "Ex-Partner", id: 302 },
+        { name: "Marie Smith", relation: "Partner", id: 301, type: "member" },
+        { name: "Julia Brown", relation: "Ex-Partner", id: 302, type: "manual" },
       ],
       work: [
-        { name: "Tom Wilson", relation: "Colleague", id: 401 },
-        { name: "Mr. Johnson", relation: "Boss", id: 402 },
+        { name: "Tom Wilson", relation: "Colleague", id: 401, type: "lead" },
+        { name: "Mr. Johnson", relation: "Boss", id: 402, type: "manual" },
       ],
-      other: [{ name: "Mrs. Smith", relation: "Neighbor", id: 501 }],
+      other: [{ name: "Mrs. Smith", relation: "Neighbor", id: 501, type: "manual" }],
     },
     2: {
       family: [],
@@ -78,7 +99,31 @@ export default function Members() {
     },
   })
   const [editingRelations, setEditingRelations] = useState(false)
-  const [newRelation, setNewRelation] = useState({ name: "", relation: "", category: "family" })
+  const [newRelation, setNewRelation] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
+
+  // Temporary member form state
+  const [tempMemberForm, setTempMemberForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    street: "",
+    zipCode: "",
+    city: "",
+    dateOfBirth: "",
+    about: "",
+    note: "",
+    noteStartDate: "",
+    noteEndDate: "",
+    noteImportance: "unimportant",
+    autoArchivePeriod: 6, // weeks
+  })
 
   const [editForm, setEditForm] = useState({
     firstName: "",
@@ -98,13 +143,57 @@ export default function Members() {
     contractEnd: "",
   })
 
-  const [memberAppointments, setMemberAppointments] = useState({
-    1: [
-      { id: 1, title: "Strength Training", date: "2025-04-20T10:00", status: "upcoming", type: "Training" },
-      { id: 2, title: "Cardio Session", date: "2025-04-22T14:00", status: "upcoming", type: "Cardio" },
-    ],
-    2: [{ id: 3, title: "Yoga Class", date: "2025-04-21T09:00", status: "upcoming", type: "Yoga" }],
-  })
+  // Enhanced appointment states from communication
+  const [appointments, setAppointments] = useState([
+    {
+      id: 1,
+      title: "Initial Consultation",
+      date: "2025-03-15T10:00",
+      status: "upcoming",
+      type: "Consultation",
+      memberId: 1,
+      specialNote: {
+        text: "First time client, needs introduction to equipment",
+        isImportant: true,
+        startDate: "2025-03-15",
+        endDate: "2025-03-20",
+      },
+    },
+    {
+      id: 2,
+      title: "Follow-up Meeting",
+      date: "2025-03-20T14:30",
+      status: "upcoming",
+      type: "Follow-up",
+      memberId: 1,
+    },
+    {
+      id: 3,
+      title: "Annual Review",
+      date: "2025-04-05T11:00",
+      status: "upcoming",
+      type: "Annual Review",
+      memberId: 2,
+    },
+  ])
+
+  const [appointmentTypes, setAppointmentTypes] = useState([
+    { name: "Consultation", duration: 30, color: "bg-blue-700" },
+    { name: "Follow-up", duration: 45, color: "bg-green-700" },
+    { name: "Annual Review", duration: 60, color: "bg-purple-600" },
+    { name: "Training", duration: 60, color: "bg-orange-600" },
+    { name: "Assessment", duration: 90, color: "bg-red-600" },
+  ])
+
+  const [freeAppointments, setFreeAppointments] = useState([
+    { id: 1, date: "2025-03-15", time: "9:00 AM" },
+    { id: 2, date: "2025-03-15", time: "11:00 AM" },
+    { id: 3, date: "2025-03-15", time: "2:00 PM" },
+    { id: 4, date: "2025-03-20", time: "10:00 AM" },
+    { id: 5, date: "2025-03-20", time: "1:30 PM" },
+    { id: 6, date: "2025-04-05", time: "9:30 AM" },
+    { id: 7, date: "2025-04-05", time: "3:00 PM" },
+  ])
 
   // History data
   const [memberHistory, setMemberHistory] = useState({
@@ -165,12 +254,24 @@ export default function Members() {
     },
   })
 
-  const appointmentTypes = [
-    { name: "Training", duration: 60, color: "bg-blue-700" },
-    { name: "Cardio", duration: 45, color: "bg-green-700" },
-    { name: "Yoga", duration: 90, color: "bg-purple-600" },
-    { name: "Consultation", duration: 30, color: "bg-orange-600" },
+  // Available members/leads for relations
+  const availableMembersLeads = [
+    { id: 101, name: "Anna Doe", type: "member" },
+    { id: 102, name: "Peter Doe", type: "lead" },
+    { id: 103, name: "Lisa Doe", type: "member" },
+    { id: 201, name: "Max Miller", type: "member" },
+    { id: 301, name: "Marie Smith", type: "member" },
+    { id: 401, name: "Tom Wilson", type: "lead" },
   ]
+
+  // Relation options by category
+  const relationOptions = {
+    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
+    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
+    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+  }
 
   useEffect(() => {
     if (selectedMember) {
@@ -202,9 +303,16 @@ export default function Members() {
     }))
   }
 
+  const handleTempMemberInputChange = (e) => {
+    const { name, value } = e.target
+    setTempMemberForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
   const handleEditSubmit = (e) => {
     e.preventDefault()
-
     const updatedMembers = members.map((member) => {
       if (member.id === selectedMember.id) {
         return {
@@ -215,22 +323,78 @@ export default function Members() {
       }
       return member
     })
-
     setMembers(updatedMembers)
     setIsEditModalOpen(false)
     setSelectedMember(null)
     toast.success("Member details have been updated successfully")
   }
 
-  const notePopoverRef = useRef(null)
+  const handleCreateTempMember = (e) => {
+    e.preventDefault()
+    const newId = Math.max(...members.map((m) => m.id)) + 1
+    const autoArchiveDate = new Date()
+    autoArchiveDate.setDate(autoArchiveDate.getDate() + tempMemberForm.autoArchivePeriod * 7)
 
+    const newTempMember = {
+      id: newId,
+      ...tempMemberForm,
+      title: `${tempMemberForm.firstName} ${tempMemberForm.lastName}`,
+      isActive: true,
+      isArchived: false,
+      memberType: "temporary",
+      joinDate: new Date().toISOString().split("T")[0],
+      contractStart: "",
+      contractEnd: "",
+      autoArchiveDate: autoArchiveDate.toISOString().split("T")[0],
+      image: null,
+    }
+
+    setMembers((prev) => [...prev, newTempMember])
+    setShowCreateTempMemberModal(false)
+    setTempMemberForm({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      street: "",
+      zipCode: "",
+      city: "",
+      dateOfBirth: "",
+      about: "",
+      note: "",
+      noteStartDate: "",
+      noteEndDate: "",
+      noteImportance: "unimportant",
+      autoArchivePeriod: 6,
+    })
+    toast.success("Temporary member created successfully")
+  }
+
+  const handleArchiveMember = (memberId) => {
+    setMembers((prev) =>
+      prev.map((member) =>
+        member.id === memberId
+          ? { ...member, isArchived: true, archivedDate: new Date().toISOString().split("T")[0] }
+          : member,
+      ),
+    )
+    toast.success("Member archived successfully")
+  }
+
+  const handleUnarchiveMember = (memberId) => {
+    setMembers((prev) =>
+      prev.map((member) => (member.id === memberId ? { ...member, isArchived: false, archivedDate: null } : member)),
+    )
+    toast.success("Member unarchived successfully")
+  }
+
+  const notePopoverRef = useRef(null)
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
         setActiveNoteId(null)
       }
     }
-
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -252,6 +416,8 @@ export default function Members() {
       city: "New York",
       image: null,
       isActive: true,
+      isArchived: false,
+      memberType: "full",
       note: "Allergic to peanuts",
       noteStartDate: "2023-01-01",
       noteEndDate: "2023-12-31",
@@ -274,6 +440,8 @@ export default function Members() {
       city: "Los Angeles",
       image: null,
       isActive: false,
+      isArchived: false,
+      memberType: "full",
       note: "",
       noteStartDate: "",
       noteEndDate: "",
@@ -287,14 +455,18 @@ export default function Members() {
   ])
 
   const filterOptions = [
-    { id: "all", label: `All Members (${members.length})` },
+    { id: "all", label: `All Members (${members.filter((m) => !m.isArchived).length})` },
     {
       id: "active",
-      label: `Active Members (${members.filter((m) => m.isActive).length})`,
+      label: `Active Members (${members.filter((m) => m.isActive && !m.isArchived).length})`,
     },
     {
       id: "inactive",
-      label: `Inactive Members (${members.filter((m) => !m.isActive).length})`,
+      label: `Inactive Members (${members.filter((m) => !m.isActive && !m.isArchived).length})`,
+    },
+    {
+      id: "archived",
+      label: `Archived Members (${members.filter((m) => m.isArchived).length})`,
     },
   ]
 
@@ -305,20 +477,37 @@ export default function Members() {
 
   const isContractExpiringSoon = (contractEnd) => {
     if (!contractEnd) return false
-
     const today = new Date()
     const endDate = new Date(contractEnd)
     const oneMonthFromNow = new Date()
     oneMonthFromNow.setMonth(today.getMonth() + 1)
-
     return endDate <= oneMonthFromNow && endDate >= today
   }
 
   const filteredAndSortedMembers = () => {
     let filtered = members.filter((member) => member.title.toLowerCase().includes(searchQuery.toLowerCase()))
 
-    if (filterStatus !== "all") {
-      filtered = filtered.filter((member) => (filterStatus === "active" ? member.isActive : !member.isActive))
+    // Apply archive filter
+    if (archivedFilter === "active") {
+      filtered = filtered.filter((member) => !member.isArchived)
+    } else if (archivedFilter === "archived") {
+      filtered = filtered.filter((member) => member.isArchived)
+    }
+
+    // Apply status filter
+    if (filterStatus === "active") {
+      filtered = filtered.filter((member) => member.isActive)
+    } else if (filterStatus === "inactive") {
+      filtered = filtered.filter((member) => !member.isActive)
+    } else if (filterStatus === "archived") {
+      filtered = filtered.filter((member) => member.isArchived)
+    }
+
+    // Apply member type filter
+    if (memberTypeFilter === "full") {
+      filtered = filtered.filter((member) => member.memberType === "full")
+    } else if (memberTypeFilter === "temporary") {
+      filtered = filtered.filter((member) => member.memberType === "temporary")
     }
 
     if (sortBy === "alphabetical") {
@@ -400,7 +589,7 @@ export default function Members() {
     toast.success("Avatar update functionality would be implemented here")
   }
 
-  // Calendar functions
+  // Enhanced Calendar functions from communication
   const handleCalendarClick = (member) => {
     setSelectedMemberForAppointments(member)
     setShowAppointmentModal(true)
@@ -423,6 +612,55 @@ export default function Members() {
     setShowContingentModal(false)
   }
 
+  // Enhanced appointment functions from communication
+  const handleEditAppointment = (appointment) => {
+    const fullAppointment = {
+      ...appointment,
+      name: selectedMemberForAppointments?.title || "Member",
+      specialNote: appointment.specialNote || {
+        text: "",
+        isImportant: false,
+        startDate: "",
+        endDate: "",
+      },
+    }
+    setSelectedAppointmentData(fullAppointment)
+    setShowSelectedAppointmentModal(true)
+    setShowAppointmentModal(false)
+  }
+
+  const handleCreateNewAppointment = () => {
+    setShowAddAppointmentModal(true)
+    setShowAppointmentModal(false)
+  }
+
+  const handleAddAppointmentSubmit = (data) => {
+    const newAppointment = {
+      id: Math.max(0, ...appointments.map((a) => a.id)) + 1,
+      ...data,
+      memberId: selectedMemberForAppointments?.id,
+    }
+    setAppointments([...appointments, newAppointment])
+    setShowAddAppointmentModal(false)
+  }
+
+  const handleDeleteAppointment = (id) => {
+    setAppointments(appointments.filter((app) => app.id !== id))
+    setSelectedAppointmentData(null)
+    setShowSelectedAppointmentModal(false)
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("delete")
+  }
+
+  const handleAppointmentChange = (changes) => {
+    if (selectedAppointmentData) {
+      setSelectedAppointmentData({
+        ...selectedAppointmentData,
+        ...changes,
+      })
+    }
+  }
+
   // History functions
   const handleHistoryClick = (member) => {
     setSelectedMember(member)
@@ -436,6 +674,11 @@ export default function Members() {
   }
 
   // Relations functions
+  const handleRelationClick = (member) => {
+    setSelectedRelationMember(member)
+    setShowRelationsTile(true)
+  }
+
   const handleAddRelation = () => {
     if (!newRelation.name || !newRelation.relation) {
       toast.error("Please fill in all fields")
@@ -444,7 +687,6 @@ export default function Members() {
 
     const relationId = Date.now()
     const updatedRelations = { ...memberRelations }
-
     if (!updatedRelations[selectedMember.id]) {
       updatedRelations[selectedMember.id] = {
         family: [],
@@ -459,10 +701,11 @@ export default function Members() {
       id: relationId,
       name: newRelation.name,
       relation: newRelation.relation,
+      type: newRelation.type,
     })
 
     setMemberRelations(updatedRelations)
-    setNewRelation({ name: "", relation: "", category: "family" })
+    setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
     toast.success("Relation added successfully")
   }
 
@@ -473,6 +716,11 @@ export default function Members() {
     )
     setMemberRelations(updatedRelations)
     toast.success("Relation deleted successfully")
+  }
+
+  // Get member appointments
+  const getMemberAppointments = (memberId) => {
+    return appointments.filter((app) => app.memberId === memberId)
   }
 
   return (
@@ -487,16 +735,29 @@ export default function Members() {
           },
         }}
       />
-
       <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative">
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
             <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
             <div className="flex items-center md:flex-row flex-col gap-3 w-full sm:w-auto">
+              <button
+                onClick={() => setShowCreateTempMemberModal(true)}
+                className="md:w-auto w-full justify-center flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm"
+              >
+                <UserPlus size={16} />
+                Create Temp Member
+              </button>
+              <button
+                onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}
+                className="md:w-auto w-full flex justify-center items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
+              >
+                <Filter size={16} />
+                Advanced Filter
+              </button>
               <div className="relative filter-dropdown flex-1 sm:flex-none">
                 <button
                   onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                  className={`flex w-full sm:w-auto cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]`}
+                  className={`flex md:w-auto w-full cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] `}
                 >
                   <span className="truncate">{filterOptions.find((opt) => opt.id === filterStatus)?.label}</span>
                   <ChevronDown
@@ -522,11 +783,10 @@ export default function Members() {
                   </div>
                 )}
               </div>
-
               <div className="relative sort-dropdown flex-1 sm:flex-none">
                 <button
                   onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                  className={`flex w-full sm:w-auto cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]`}
+                  className={`md:w-auto w-full flex  cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]`}
                 >
                   <span className="truncate">Sort: {sortOptions.find((opt) => opt.id === sortBy)?.label}</span>
                   <ChevronDown
@@ -552,6 +812,40 @@ export default function Members() {
               </div>
             </div>
           </div>
+
+          {/* Advanced Filter Panel */}
+          {showAdvancedFilter && (
+            <div className="bg-[#161616] rounded-xl p-4 mb-6">
+              <h3 className="text-lg font-semibold mb-4">Advanced Filters</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Member Type</label>
+                  <select
+                    value={memberTypeFilter}
+                    onChange={(e) => setMemberTypeFilter(e.target.value)}
+                    className="w-full bg-[#101010] text-white rounded-xl px-4 py-2 text-sm"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="full">Full Members (with contract)</option>
+                    <option value="temporary">Temporary Members (without contract)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Archive Status</label>
+                  <select
+                    value={archivedFilter}
+                    onChange={(e) => setArchivedFilter(e.target.value)}
+                    className="w-full bg-[#101010] text-white rounded-xl px-4 py-2 text-sm"
+                  >
+                    <option value="active">Active Only</option>
+                    <option value="archived">Archived Only</option>
+                    <option value="all">All Members</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col space-y-4 mb-6">
             <div className="flex gap-3">
               <div className="relative flex-1">
@@ -567,7 +861,158 @@ export default function Members() {
             </div>
           </div>
 
-          {/* Edit Modal */}
+          {showCreateTempMemberModal && (
+            <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+              <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-white open_sans_font_700 text-lg font-semibold">Create Temporary Member</h2>
+                    <button
+                      onClick={() => setShowCreateTempMemberModal(false)}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <X size={20} className="cursor-pointer" />
+                    </button>
+                  </div>
+                  <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-xl p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <Info className="text-yellow-500 mt-0.5" size={16} />
+                      <div>
+                        <p className="text-yellow-200 text-sm font-medium mb-1">Temporary Member Information</p>
+                        <p className="text-yellow-300/80 text-xs">
+                          Temporary members are members without a contract and are not included in payment runs. They
+                          will be automatically archived after the specified period.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <form
+                    onSubmit={handleCreateTempMember}
+                    className="space-y-4 custom-scrollbar overflow-y-auto max-h-[60vh]"
+                  >
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">First Name</label>
+                        <input
+                          type="text"
+                          name="firstName"
+                          value={tempMemberForm.firstName}
+                          onChange={handleTempMemberInputChange}
+                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Last Name</label>
+                        <input
+                          type="text"
+                          name="lastName"
+                          value={tempMemberForm.lastName}
+                          onChange={handleTempMemberInputChange}
+                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={tempMemberForm.email}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Phone</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={tempMemberForm.phone}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Street</label>
+                      <input
+                        type="text"
+                        name="street"
+                        value={tempMemberForm.street}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                        <input
+                          type="text"
+                          name="zipCode"
+                          value={tempMemberForm.zipCode}
+                          onChange={handleTempMemberInputChange}
+                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">City</label>
+                        <input
+                          type="text"
+                          name="city"
+                          value={tempMemberForm.city}
+                          onChange={handleTempMemberInputChange}
+                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
+                      <input
+                        type="date"
+                        name="dateOfBirth"
+                        value={tempMemberForm.dateOfBirth}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Auto-Archive Period (weeks)</label>
+                      <input
+                        type="number"
+                        name="autoArchivePeriod"
+                        value={tempMemberForm.autoArchivePeriod}
+                        onChange={handleTempMemberInputChange}
+                        min="1"
+                        max="52"
+                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">
+                        Member will be automatically archived after this period
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">About</label>
+                      <textarea
+                        name="about"
+                        value={tempMemberForm.about}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-2 text-sm cursor-pointer"
+                    >
+                      Create Temporary Member
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
           {isEditModalOpen && selectedMember && (
             <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
               <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
@@ -584,7 +1029,6 @@ export default function Members() {
                       <X size={20} className="cursor-pointer" />
                     </button>
                   </div>
-
                   <form onSubmit={handleEditSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
                     <div className="flex flex-col items-start">
                       <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
@@ -612,7 +1056,6 @@ export default function Members() {
                         Update picture
                       </label>
                     </div>
-
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm text-gray-200 block mb-2">First Name</label>
@@ -645,7 +1088,6 @@ export default function Members() {
                         className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
                     </div>
-
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Phone</label>
                       <input
@@ -656,7 +1098,6 @@ export default function Members() {
                         className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
                     </div>
-
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Street</label>
                       <input
@@ -667,7 +1108,6 @@ export default function Members() {
                         className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
                     </div>
-
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
@@ -690,7 +1130,6 @@ export default function Members() {
                         />
                       </div>
                     </div>
-
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
                       <input
@@ -701,7 +1140,6 @@ export default function Members() {
                         className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
                     </div>
-
                     <div className="border border-slate-700 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-4">
                         <label className="text-sm text-gray-200 font-medium">Special Note</label>
@@ -723,15 +1161,13 @@ export default function Members() {
                           </label>
                         </div>
                       </div>
-
                       <textarea
                         name="note"
                         value={editForm.note}
                         onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                        className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
                         placeholder="Enter special note..."
                       />
-
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm text-gray-200 block mb-2">Start Date</label>
@@ -755,7 +1191,6 @@ export default function Members() {
                         </div>
                       </div>
                     </div>
-
                     {/* Relations Section in Edit Modal */}
                     <div className="border border-slate-700 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-4">
@@ -768,30 +1203,63 @@ export default function Members() {
                           {editingRelations ? "Done" : "Edit"}
                         </button>
                       </div>
-
                       {editingRelations && (
                         <div className="mb-4 p-3 bg-[#101010] rounded-xl">
-                          <div className="grid grid-cols-2 gap-2 mb-2">
-                            <input
-                              type="text"
-                              placeholder="Name"
-                              value={newRelation.name}
-                              onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
+                          <div className="grid grid-cols-1 gap-2 mb-2">
+                            <select
+                              value={newRelation.type}
+                              onChange={(e) => {
+                                const type = e.target.value
+                                setNewRelation({ ...newRelation, type, name: "", selectedMemberId: null })
+                              }}
                               className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                            />
-                            <input
-                              type="text"
-                              placeholder="Relation"
-                              value={newRelation.relation}
-                              onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
-                              className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                            />
+                            >
+                              <option value="manual">Manual Entry</option>
+                              <option value="member">Select Member</option>
+                              <option value="lead">Select Lead</option>
+                            </select>
+                            {newRelation.type === "manual" ? (
+                              <input
+                                type="text"
+                                placeholder="Name"
+                                value={newRelation.name}
+                                onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
+                                className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                              />
+                            ) : (
+                              <select
+                                value={newRelation.selectedMemberId || ""}
+                                onChange={(e) => {
+                                  const selectedId = e.target.value
+                                  const selectedPerson = availableMembersLeads.find(
+                                    (p) => p.id.toString() === selectedId,
+                                  )
+                                  setNewRelation({
+                                    ...newRelation,
+                                    selectedMemberId: selectedId,
+                                    name: selectedPerson ? selectedPerson.name : "",
+                                  })
+                                }}
+                                className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                              >
+                                <option value="">Select {newRelation.type}</option>
+                                {availableMembersLeads
+                                  .filter((p) => p.type === newRelation.type)
+                                  .map((person) => (
+                                    <option key={person.id} value={person.id}>
+                                      {person.name} ({person.type})
+                                    </option>
+                                  ))}
+                              </select>
+                            )}
                           </div>
-                          <div className="flex gap-2">
+                          <div className="grid grid-cols-2 gap-2 mb-2">
                             <select
                               value={newRelation.category}
-                              onChange={(e) => setNewRelation({ ...newRelation, category: e.target.value })}
-                              className="bg-[#222] text-white rounded px-3 py-2 text-sm flex-1"
+                              onChange={(e) =>
+                                setNewRelation({ ...newRelation, category: e.target.value, relation: "" })
+                              }
+                              className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                             >
                               <option value="family">Family</option>
                               <option value="friendship">Friendship</option>
@@ -799,17 +1267,28 @@ export default function Members() {
                               <option value="work">Work</option>
                               <option value="other">Other</option>
                             </select>
-                            <button
-                              type="button"
-                              onClick={handleAddRelation}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm"
+                            <select
+                              value={newRelation.relation}
+                              onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
+                              className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                             >
-                              Add
-                            </button>
+                              <option value="">Select Relation</option>
+                              {relationOptions[newRelation.category]?.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </select>
                           </div>
+                          <button
+                            type="button"
+                            onClick={handleAddRelation}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full"
+                          >
+                            Add Relation
+                          </button>
                         </div>
                       )}
-
                       <div className="space-y-2 max-h-32 overflow-y-auto">
                         {selectedMember &&
                           memberRelations[selectedMember.id] &&
@@ -823,6 +1302,17 @@ export default function Members() {
                                   <span className="text-white">{relation.name}</span>
                                   <span className="text-gray-400 ml-2">({relation.relation})</span>
                                   <span className="text-blue-400 ml-2 capitalize">- {category}</span>
+                                  <span
+                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${
+                                      relation.type === "member"
+                                        ? "bg-green-600 text-green-100"
+                                        : relation.type === "lead"
+                                          ? "bg-blue-600 text-blue-100"
+                                          : "bg-gray-600 text-gray-100"
+                                    }`}
+                                  >
+                                    {relation.type}
+                                  </span>
                                 </div>
                                 {editingRelations && (
                                   <button
@@ -838,23 +1328,53 @@ export default function Members() {
                           )}
                       </div>
                     </div>
-
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">About</label>
                       <textarea
                         name="about"
                         value={editForm.about}
                         onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                        className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                       />
                     </div>
-
-                    <button
-                      type="submit"
-                      className="w-full bg-[#FF843E] text-white rounded-xl py-2 text-sm cursor-pointer"
-                    >
-                      Save Changes
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="flex-1 bg-[#FF843E] text-white rounded-xl py-2 text-sm cursor-pointer"
+                      >
+                        Save Changes
+                      </button>
+                      {selectedMember && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (selectedMember.isArchived) {
+                              handleUnarchiveMember(selectedMember.id)
+                            } else {
+                              handleArchiveMember(selectedMember.id)
+                            }
+                            setIsEditModalOpen(false)
+                          }}
+                          className={`px-4 py-2 rounded-xl text-sm ${
+                            selectedMember.isArchived
+                              ? "bg-green-600 hover:bg-green-700 text-white"
+                              : "bg-gray-600 hover:bg-gray-700 text-white"
+                          }`}
+                        >
+                          {selectedMember.isArchived ? (
+                            <>
+                              <ArchiveRestore size={16} className="inline mr-1" />
+                              Unarchive
+                            </>
+                          ) : (
+                            <>
+                              <Archive size={16} className="inline mr-1" />
+                              Archive
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </form>
                 </div>
               </div>
@@ -884,7 +1404,6 @@ export default function Members() {
                               <Info size={18} className="text-white" />
                             )}
                           </div>
-
                           {activeNoteId === member.id && (
                             <div
                               ref={notePopoverRef}
@@ -912,10 +1431,8 @@ export default function Members() {
                                   <X size={16} />
                                 </button>
                               </div>
-
                               <div className="p-3">
                                 <p className="text-white text-sm leading-relaxed">{member.note}</p>
-
                                 {member.noteStartDate && member.noteEndDate && (
                                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                                     <p className="text-xs text-gray-300">
@@ -944,53 +1461,84 @@ export default function Members() {
                             <div className="flex items-center gap-2">
                               <span
                                 className={`px-2 py-0.5 text-xs rounded-full ${
-                                  member.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
+                                  member.isActive ? "bg-green-900 text-green-300" : "bg-orange-400 text-white"
                                 }`}
                               >
-                                {member.isActive ? "Active" : "Inactive"}
+                                {member.isActive ? "Active" : "Paused"}
                               </span>
+                              <span
+                                className={`px-2 py-0.5 text-xs rounded-full ${
+                                  member.memberType === "full"
+                                    ? "bg-blue-900 text-blue-300"
+                                    : "bg-purple-900 text-purple-300"
+                                }`}
+                              >
+                                {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                              </span>
+                              {member.isArchived && (
+                                <span className="px-2 py-0.5 text-xs rounded-full bg-gray-900 text-gray-300">
+                                  Archived
+                                </span>
+                              )}
                               {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
                             </div>
                           </div>
                           <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
-                            Contract: {member.contractStart} -{" "}
-                            <span className={isContractExpiringSoon(member.contractEnd) ? "text-red-500" : ""}>
-                              {member.contractEnd}
-                            </span>
-                            {isContractExpiringSoon(member.contractEnd) && (
-                              <Info size={16} className="text-red-500 ml-1" />
+                            {member.memberType === "full" ? (
+                              <>
+                                Contract: {member.contractStart} -{" "}
+                                <span className={isContractExpiringSoon(member.contractEnd) ? "text-red-500" : ""}>
+                                  {member.contractEnd}
+                                </span>
+                                {isContractExpiringSoon(member.contractEnd) && (
+                                  <Info size={16} className="text-red-500 ml-1" />
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                No Contract - Auto-archive: {member.autoArchiveDate}
+                                {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
+                                  <Clock size={16} className="text-orange-500 ml-1" />
+                                )}
+                              </>
                             )}
                           </p>
+                          {memberRelations[member.id] &&
+                            Object.values(memberRelations[member.id]).some((relations) => relations.length > 0) && (
+                              <div className="mt-2">
+                                <button
+                                  onClick={() => handleRelationClick(member)}
+                                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                >
+                                  <Users size={12} />
+                                  Relations ({Object.values(memberRelations[member.id]).flat().length})
+                                </button>
+                              </div>
+                            )}
                         </div>
                       </div>
                       <div className="flex items-center justify-center sm:justify-end gap-2 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
-                        {/* Calendar Button */}
                         <button
                           onClick={() => handleCalendarClick(member)}
-                          className="text-blue-500 md:w-auto w-full hover:text-blue-400 bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                          className="text-white md:w-auto w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                           title="View Appointments"
                         >
                           <Calendar size={16} />
                         </button>
-
-                        {/* History Button */}
                         <button
                           onClick={() => handleHistoryClick(member)}
-                          className="text-purple-500 md:w-auto w-full hover:text-purple-400 bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                          className="text-white md:w-auto w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                           title="View History"
                         >
                           <History size={16} />
                         </button>
-
-                        {/* Chat Button */}
                         <button
                           onClick={() => handleChatClick(member)}
-                          className="text-green-500 md:w-auto w-full hover:text-green-400 bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                          className="text-white md:w-auto w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                           title="Start Chat"
                         >
                           <MessageCircle size={16} />
                         </button>
-
                         <button
                           onClick={() => handleViewDetails(member)}
                           className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
@@ -1016,13 +1564,14 @@ export default function Members() {
                     ? "No active members found."
                     : filterStatus === "inactive"
                       ? "No inactive members found."
-                      : "No members found."}
+                      : filterStatus === "archived"
+                        ? "No archived members found."
+                        : "No members found."}
                 </p>
               </div>
             )}
           </div>
         </div>
-
         <aside
           className={`w-80 bg-[#181818] p-6 fixed top-0 bottom-0 right-0 z-50 lg:static lg:block ${
             isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
@@ -1034,7 +1583,6 @@ export default function Members() {
               <X size={24} />
             </button>
           </div>
-
           <div className="space-y-4 open_sans_font">
             {notifications.map((notification) => (
               <div key={notification.id} className="bg-[#1C1C1C] rounded-xl p-4 relative">
@@ -1052,7 +1600,70 @@ export default function Members() {
         </aside>
       </div>
 
-      {/* View Details Modal with Tabs */}
+      {showRelationsTile && selectedRelationMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-medium text-white">{selectedRelationMember.title} - Relations</h2>
+                <button
+                  onClick={() => setShowRelationsTile(false)}
+                  className="p-2 hover:bg-zinc-700 cursor-pointer text-white rounded-lg"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => {
+                    setSelectedMember(selectedRelationMember)
+                    setActiveTab("relations")
+                    setIsViewDetailsModalOpen(true)
+                    setShowRelationsTile(false)
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl text-center"
+                >
+                  <Users className="mx-auto mb-2" size={24} />
+                  <p className="text-sm font-medium">View Relations</p>
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedMember(selectedRelationMember)
+                    setEditingRelations(true)
+                    setIsEditModalOpen(true)
+                    setShowRelationsTile(false)
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-xl text-center"
+                >
+                  <Edit3 className="mx-auto mb-2" size={24} />
+                  <p className="text-sm font-medium">Edit Relations</p>
+                </button>
+                <button
+                  onClick={() => {
+                    handleViewDetails(selectedRelationMember)
+                    setShowRelationsTile(false)
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-xl text-center"
+                >
+                  <Eye className="mx-auto mb-2" size={24} />
+                  <p className="text-sm font-medium">View Details</p>
+                </button>
+                <button
+                  onClick={() => {
+                    handleEditMember(selectedRelationMember)
+                    setShowRelationsTile(false)
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-xl text-center"
+                >
+                  <Edit3 className="mx-auto mb-2" size={24} />
+                  <p className="text-sm font-medium">Edit Member</p>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isViewDetailsModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
@@ -1069,7 +1680,6 @@ export default function Members() {
                   <X size={20} className="cursor-pointer" />
                 </button>
               </div>
-
               {/* Tab Navigation */}
               <div className="flex border-b border-gray-700 mb-6">
                 <button
@@ -1093,7 +1703,6 @@ export default function Members() {
                   Relations
                 </button>
               </div>
-
               {/* Tab Content */}
               {activeTab === "details" && (
                 <div className="space-y-4 text-white">
@@ -1107,15 +1716,33 @@ export default function Members() {
                       <h3 className="text-xl font-semibold">
                         {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
                       </h3>
-                      <p className="text-gray-400">
-                        Contract: {selectedMember.contractStart} -
-                        <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                          {selectedMember.contractEnd}
+                      <div className="flex items-center gap-2 mt-2">
+                        <span
+                          className={`px-2 py-0.5 text-xs rounded-full ${
+                            selectedMember.memberType === "full"
+                              ? "bg-blue-900 text-blue-300"
+                              : "bg-purple-900 text-purple-300"
+                          }`}
+                        >
+                          {selectedMember.memberType === "full"
+                            ? "Full Member (with contract)"
+                            : "Temporary Member (without contract)"}
                         </span>
+                      </div>
+                      <p className="text-gray-400 mt-1">
+                        {selectedMember.memberType === "full" ? (
+                          <>
+                            Contract: {selectedMember.contractStart} -
+                            <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
+                              {selectedMember.contractEnd}
+                            </span>
+                          </>
+                        ) : (
+                          <>Auto-archive date: {selectedMember.autoArchiveDate}</>
+                        )}
                       </p>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-400">Email</p>
@@ -1126,12 +1753,10 @@ export default function Members() {
                       <p>{selectedMember.phone}</p>
                     </div>
                   </div>
-
                   <div>
                     <p className="text-sm text-gray-400">Address</p>
                     <p>{`${selectedMember.street}, ${selectedMember.zipCode} ${selectedMember.city}`}</p>
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-400">Date of Birth</p>
@@ -1144,12 +1769,10 @@ export default function Members() {
                       <p>{selectedMember.joinDate}</p>
                     </div>
                   </div>
-
                   <div>
                     <p className="text-sm text-gray-400">About</p>
                     <p>{selectedMember.about}</p>
                   </div>
-
                   {selectedMember.note && (
                     <div>
                       <p className="text-sm text-gray-400">Special Note</p>
@@ -1160,15 +1783,16 @@ export default function Members() {
                       <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
                     </div>
                   )}
-
                   <div className="flex justify-end gap-4 mt-6">
-                    <button
-                      onClick={redirectToContract}
-                      className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
-                    >
-                      <FileText size={16} />
-                      View Contract
-                    </button>
+                    {selectedMember.memberType === "full" && (
+                      <button
+                        onClick={redirectToContract}
+                        className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
+                      >
+                        <FileText size={16} />
+                        View Contract
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         setIsViewDetailsModalOpen(false)
@@ -1181,7 +1805,6 @@ export default function Members() {
                   </div>
                 </div>
               )}
-
               {activeTab === "relations" && (
                 <div className="space-y-6 max-h-[60vh] overflow-y-auto">
                   {/* Relations Tree Visualization */}
@@ -1192,19 +1815,16 @@ export default function Members() {
                       <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
                         {selectedMember.title}
                       </div>
-
                       {/* Connection Lines and Categories */}
                       <div className="relative w-full">
                         {/* Horizontal line */}
                         <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
-
                         {/* Category sections */}
                         <div className="grid grid-cols-5 gap-4 pt-8">
                           {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
                             <div key={category} className="flex flex-col items-center space-y-4">
                               {/* Vertical line */}
                               <div className="w-0.5 h-8 bg-gray-600"></div>
-
                               {/* Category header */}
                               <div
                                 className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
@@ -1221,16 +1841,36 @@ export default function Members() {
                               >
                                 {category}
                               </div>
-
                               {/* Relations in this category */}
                               <div className="space-y-2">
                                 {relations.map((relation) => (
                                   <div
                                     key={relation.id}
-                                    className="bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px]"
+                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${
+                                      relation.type === "member" || relation.type === "lead"
+                                        ? "border border-blue-500/30"
+                                        : ""
+                                    }`}
+                                    onClick={() => {
+                                      if (relation.type === "member" || relation.type === "lead") {
+                                        // Handle click for member/lead relations
+                                        toast.info(`Clicked on ${relation.name} (${relation.type})`)
+                                      }
+                                    }}
                                   >
                                     <div className="text-white text-sm font-medium">{relation.name}</div>
                                     <div className="text-gray-400 text-xs">({relation.relation})</div>
+                                    <div
+                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${
+                                        relation.type === "member"
+                                          ? "bg-green-600 text-green-100"
+                                          : relation.type === "lead"
+                                            ? "bg-blue-600 text-blue-100"
+                                            : "bg-gray-600 text-gray-100"
+                                      }`}
+                                    >
+                                      {relation.type}
+                                    </div>
                                   </div>
                                 ))}
                                 {relations.length === 0 && (
@@ -1243,7 +1883,6 @@ export default function Members() {
                       </div>
                     </div>
                   </div>
-
                   {/* Relations List */}
                   <div className="bg-[#161616] rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
@@ -1256,11 +1895,31 @@ export default function Members() {
                               relations.map((relation) => (
                                 <div
                                   key={relation.id}
-                                  className="flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3"
+                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${
+                                    relation.type === "member" || relation.type === "lead"
+                                      ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
+                                      : ""
+                                  }`}
+                                  onClick={() => {
+                                    if (relation.type === "member" || relation.type === "lead") {
+                                      toast.info(`Clicked on ${relation.name} (${relation.type})`)
+                                    }
+                                  }}
                                 >
                                   <div>
                                     <span className="text-white font-medium">{relation.name}</span>
                                     <span className="text-gray-400 ml-2">- {relation.relation}</span>
+                                    <span
+                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${
+                                        relation.type === "member"
+                                          ? "bg-green-600 text-green-100"
+                                          : relation.type === "lead"
+                                            ? "bg-blue-600 text-blue-100"
+                                            : "bg-gray-600 text-gray-100"
+                                      }`}
+                                    >
+                                      {relation.type}
+                                    </span>
                                   </div>
                                 </div>
                               ))
@@ -1279,29 +1938,34 @@ export default function Members() {
         </div>
       )}
 
-      {/* Appointment Calendar Modal */}
+      {/* Enhanced Appointment Modal from Communication */}
       {showAppointmentModal && selectedMemberForAppointments && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
           <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg text-white font-medium">{selectedMemberForAppointments.title}'s Appointments</h2>
-                <button onClick={() => setShowAppointmentModal(false)} className="p-2 hover:bg-zinc-700 text-white rounded-lg">
+                <h2 className="text-lg font-medium text-white">{selectedMemberForAppointments.title}'s Appointments</h2>
+                <button
+                  onClick={() => {
+                    setShowAppointmentModal(false)
+                    setSelectedMemberForAppointments(null)
+                  }}
+                  className="p-2 hover:bg-zinc-700 text-white rounded-lg"
+                >
                   <X size={16} />
                 </button>
               </div>
-
               <div className="space-y-3 mb-4">
                 <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
-                {memberAppointments[selectedMemberForAppointments.id]?.length > 0 ? (
-                  memberAppointments[selectedMemberForAppointments.id].map((appointment) => {
+                {getMemberAppointments(selectedMemberForAppointments.id).length > 0 ? (
+                  getMemberAppointments(selectedMemberForAppointments.id).map((appointment) => {
                     const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
                     const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
-
                     return (
                       <div
                         key={appointment.id}
-                        className={`${backgroundColor} rounded-xl p-3 hover:opacity-90 transition-colors`}
+                        className={`${backgroundColor} rounded-xl p-3 hover:opacity-90 transition-colors cursor-pointer`}
+                        onClick={() => handleEditAppointment(appointment)}
                       >
                         <div className="flex justify-between items-start">
                           <div>
@@ -1329,6 +1993,26 @@ export default function Members() {
                               </p>
                             </div>
                           </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEditAppointment(appointment)
+                              }}
+                              className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteAppointment(appointment.id)
+                              }}
+                              className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )
@@ -1339,8 +2023,6 @@ export default function Members() {
                   </div>
                 )}
               </div>
-
-              {/* Contingent Display */}
               <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
                 <div className="text-sm text-gray-300">
                   Contingent ({currentBillingPeriod}): {memberContingent[selectedMemberForAppointments.id]?.used || 0} /{" "}
@@ -1348,40 +2030,62 @@ export default function Members() {
                 </div>
                 <button
                   onClick={() => handleManageContingent(selectedMemberForAppointments.id)}
-                  className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
+                  className="flex items-center gap-1 bg-gray-700 text-white hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
                 >
                   <Edit3 size={16} />
                   Manage
                 </button>
               </div>
-
-              {/* Remaining contingent display */}
-              <div className="bg-[#222222] rounded-xl p-3 mb-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">
-                    {(memberContingent[selectedMemberForAppointments.id]?.total || 0) -
-                      (memberContingent[selectedMemberForAppointments.id]?.used || 0)}
-                  </div>
-                  <div className="text-sm text-gray-400">Appointments Remaining</div>
-                </div>
-              </div>
+              <button
+                onClick={handleCreateNewAppointment}
+                className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
+              >
+                Create New Appointment
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Contingent Management Modal */}
+      {/* Add Appointment Modal */}
+      {showAddAppointmentModal && (
+        <AddAppointmentModal
+          isOpen={showAddAppointmentModal}
+          onClose={() => setShowAddAppointmentModal(false)}
+          appointmentTypes={appointmentTypes}
+          onSubmit={handleAddAppointmentSubmit}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          freeAppointments={freeAppointments}
+        />
+      )}
+
+      {/* Edit Appointment Modal */}
+      {showSelectedAppointmentModal && selectedAppointmentData && (
+        <SelectedAppointmentModal
+          selectedAppointment={selectedAppointmentData}
+          setSelectedAppointment={setSelectedAppointmentData}
+          appointmentTypes={appointmentTypes}
+          freeAppointments={freeAppointments}
+          handleAppointmentChange={handleAppointmentChange}
+          appointments={appointments}
+          setAppointments={setAppointments}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          onDelete={handleDeleteAppointment}
+        />
+      )}
+
       {showContingentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg text-white font-medium">Manage Appointment Contingent</h2>
+                <h2 className="text-lg font-medium text-white">Manage Appointment Contingent</h2>
                 <button onClick={() => setShowContingentModal(false)} className="p-2 hover:bg-zinc-700 text-white rounded-lg">
                   <X size={16} />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
@@ -1417,8 +2121,13 @@ export default function Members() {
                   <p className="text-xs text-gray-400 mt-2">
                     Remaining: {tempContingent.total - tempContingent.used} appointments
                   </p>
+                  <div className="mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
+                    <p className="text-blue-200 text-sm">
+                      <Info className="inline mr-1" size={14} />
+                      You can edit the contingent for future billing periods here.
+                    </p>
+                  </div>
                 </div>
-
                 <div className="flex gap-2 justify-end">
                   <button
                     onClick={() => setShowContingentModal(false)}
@@ -1439,7 +2148,6 @@ export default function Members() {
         </div>
       )}
 
-      {/* History Modal */}
       {showHistoryModal && selectedMember && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#181818] rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
@@ -1450,7 +2158,6 @@ export default function Members() {
                   <X size={16} />
                 </button>
               </div>
-
               {/* History Tab Navigation */}
               <div className="flex border-b border-gray-700 mb-6 overflow-x-auto">
                 {[
@@ -1473,7 +2180,6 @@ export default function Members() {
                   </button>
                 ))}
               </div>
-
               {/* History Content */}
               <div className="space-y-4">
                 {historyTab === "general" && (
@@ -1497,7 +2203,6 @@ export default function Members() {
                     </div>
                   </div>
                 )}
-
                 {historyTab === "checkins" && (
                   <div>
                     <h3 className="text-md font-semibold text-white mb-4">Check-ins & Check-outs History</h3>
@@ -1525,7 +2230,6 @@ export default function Members() {
                     </div>
                   </div>
                 )}
-
                 {historyTab === "appointments" && (
                   <div>
                     <h3 className="text-md font-semibold text-white mb-4">Past Appointments History</h3>
@@ -1557,7 +2261,6 @@ export default function Members() {
                     </div>
                   </div>
                 )}
-
                 {historyTab === "finance" && (
                   <div>
                     <h3 className="text-md font-semibold text-white mb-4">Finance Transactions History</h3>
@@ -1588,7 +2291,6 @@ export default function Members() {
                     </div>
                   </div>
                 )}
-
                 {historyTab === "contracts" && (
                   <div>
                     <h3 className="text-md font-semibold text-white mb-4">Contract Changes History</h3>
@@ -1615,6 +2317,44 @@ export default function Members() {
           </div>
         </div>
       )}
+
+      {isNotifyMemberOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-medium text-white">Notify Member</h2>
+                <button onClick={() => setIsNotifyMemberOpen(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                  <X size={16} />
+                </button>
+              </div>
+              <p className="text-gray-300 text-sm mb-4">
+                {notifyAction === "book" && "Would you like to notify the member about their new appointment?"}
+                {notifyAction === "change" && "Would you like to notify the member about changes to their appointment?"}
+                {notifyAction === "delete" &&
+                  "Would you like to notify the member that their appointment has been cancelled?"}
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setIsNotifyMemberOpen(false)}
+                  className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded-xl"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => {
+                    toast.success("Member has been notified successfully!")
+                    setIsNotifyMemberOpen(false)
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-sm text-white rounded-xl"
+                >
+                  Yes, Notify
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
-  )
+  ) 
 }

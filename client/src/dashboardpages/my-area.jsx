@@ -1,12 +1,10 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
+import React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
 import {
-  BarChart3,
   MoreVertical,
   X,
   Clock,
@@ -20,57 +18,337 @@ import {
   Info,
   CalendarIcon,
   Menu,
+  Users,
+  TrendingUp,
+  Award,
 } from "lucide-react"
 import Rectangle1 from "../../public/Rectangle 1.png"
-import SelectedAppointmentModal from "../components/selected-appointment-modal"
+import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 import Image10 from "../../public/image10.png"
 import { Toaster, toast } from "react-hot-toast"
 import { WidgetSelectionModal } from "../components/widget-selection-modal"
 import { ExternalLink } from "lucide-react"
 import Avatar from "../../public/avatar.png"
 
-function EmployeeCheckInWidget() {
+// Mock logged-in staff data
+const loggedInStaff = {
+  id: 1,
+  name: "John Smith",
+  password: "staff123",
+}
+
+// Mock staff list for additional check-ins
+const staffList = [
+  { id: 1, name: "John Smith", password: "staff123" },
+  { id: 2, name: "Sarah Johnson", password: "sarah456" },
+  { id: 3, name: "Mike Wilson", password: "mike789" },
+  { id: 4, name: "Emma Davis", password: "emma321" },
+]
+
+// Mock statistics data
+const statisticsData = {
+  topSelling: [
+    { name: "Personal Training", revenue: 15420, count: 89 },
+    { name: "Yoga Classes", revenue: 8750, count: 125 },
+    { name: "Strength Training", revenue: 7200, count: 72 },
+    { name: "Cardio Sessions", revenue: 5800, count: 95 },
+    { name: "Nutrition Consultation", revenue: 4200, count: 42 },
+  ],
+  mostFrequent: [
+    { name: "Yoga Classes", count: 125, percentage: 28 },
+    { name: "Cardio Sessions", count: 95, percentage: 21 },
+    { name: "Personal Training", count: 89, percentage: 20 },
+    { name: "Strength Training", count: 72, percentage: 16 },
+    { name: "Group Fitness", count: 65, percentage: 15 },
+  ],
+}
+
+function StaffCheckInWidget() {
   const [isCheckedIn, setIsCheckedIn] = useState(false)
   const [checkInTime, setCheckInTime] = useState(null)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [password, setPassword] = useState("")
+  const [showAdditionalStaff, setShowAdditionalStaff] = useState(false)
+  const [additionalStaffCheckIns, setAdditionalStaffCheckIns] = useState({})
+  const [bookingTimeout, setBookingTimeout] = useState(null)
+  const [canCheckOut, setCanCheckOut] = useState(true)
 
   const handleCheckInOut = () => {
-    if (isCheckedIn) {
-      setIsCheckedIn(false)
-      setCheckInTime(null)
+    setShowPasswordModal(true)
+  }
+
+  const handlePasswordSubmit = () => {
+    if (password === loggedInStaff.password) {
+      if (isCheckedIn) {
+        if (!canCheckOut) {
+          toast.error("Cannot check out yet. Please wait for the 2-minute timeout.")
+          setShowPasswordModal(false)
+          setPassword("")
+          return
+        }
+        setIsCheckedIn(false)
+        setCheckInTime(null)
+        setBookingTimeout(null)
+        setCanCheckOut(true)
+        toast.success("Checked out successfully")
+      } else {
+        setIsCheckedIn(true)
+        const now = new Date()
+        setCheckInTime(now)
+        setCanCheckOut(false)
+
+        // Set 2-minute timeout
+        const timeoutTime = new Date(now.getTime() + 2 * 60 * 1000)
+        setBookingTimeout(timeoutTime)
+
+        setTimeout(
+          () => {
+            setCanCheckOut(true)
+            toast.success("You can now check out")
+          },
+          2 * 60 * 1000,
+        )
+
+        toast.success("Checked in successfully")
+      }
+      setShowPasswordModal(false)
+      setPassword("")
     } else {
-      setIsCheckedIn(true)
-      setCheckInTime(new Date())
+      toast.error("Incorrect password")
+    }
+  }
+
+  const handleAdditionalStaffCheckIn = (staffId, staffPassword) => {
+    const staff = staffList.find((s) => s.id === staffId)
+    if (staff && staffPassword === staff.password) {
+      setAdditionalStaffCheckIns((prev) => ({
+        ...prev,
+        [staffId]: !prev[staffId],
+      }))
+      toast.success(`${staff.name} ${additionalStaffCheckIns[staffId] ? "checked out" : "checked in"} successfully`)
+    } else {
+      toast.error("Incorrect password")
     }
   }
 
   return (
-    <div className="p-3 bg-[#000000] rounded-xl min-h-[120px]">
-      <h2 className="text-lg font-semibold mb-3">Employee Check-In</h2>
+    <div className="p-3 bg-[#000000] rounded-xl md:h-[340px] h-auto">
+      <h2 className="text-lg font-semibold mb-3">Staff Check-In</h2>
       <div className="flex flex-col gap-3">
         <div>
           <p className="text-sm mb-1">Status: {isCheckedIn ? "Checked In" : "Checked Out"}</p>
           {checkInTime && (
-            <p className="text-xs text-zinc-400 flex items-center gap-1">
-              <Clock size={14} />
-              {checkInTime.toLocaleTimeString()}
-            </p>
+            <div className="text-xs text-zinc-400">
+              <p className="flex items-center gap-1">
+                <Clock size={14} />
+                {checkInTime.toLocaleTimeString()}
+              </p>
+              {bookingTimeout && !canCheckOut && (
+                <p className="text-yellow-400 mt-1">Can check out after: {bookingTimeout.toLocaleTimeString()}</p>
+              )}
+            </div>
           )}
         </div>
+
         {!isCheckedIn ? (
           <button
             onClick={handleCheckInOut}
             className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors bg-yellow-400 text-black"
           >
-            Check In
+            {loggedInStaff.name} - Check In
           </button>
         ) : (
           <button
             onClick={handleCheckInOut}
-            className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors bg-red-600 text-white"
+            className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors ${canCheckOut ? "bg-red-600 text-white" : "bg-gray-600 text-gray-300 cursor-not-allowed"
+              }`}
+            disabled={!canCheckOut}
           >
-            Check Out
+            {loggedInStaff.name} - Check Out
           </button>
         )}
+
+        <button
+          onClick={() => setShowAdditionalStaff(true)}
+          className="w-full py-2 rounded-xl text-sm font-medium transition-colors bg-blue-600 text-white flex items-center justify-center gap-2"
+        >
+          <Users size={16} />
+          Check in additional staff
+        </button>
+      </div>
+
+      {/* Password Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Enter Password</h3>
+              <button
+                onClick={() => {
+                  setShowPasswordModal(false)
+                  setPassword("")
+                }}
+                className="p-2 hover:bg-zinc-700 rounded-lg"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                  placeholder="Enter your password"
+                  onKeyPress={(e) => e.key === "Enter" && handlePasswordSubmit()}
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => {
+                    setShowPasswordModal(false)
+                    setPassword("")
+                  }}
+                  className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePasswordSubmit}
+                  className="px-4 py-2 text-sm rounded-xl bg-blue-600 hover:bg-blue-700"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Additional Staff Modal */}
+      {showAdditionalStaff && (
+        <AdditionalStaffModal
+          staffList={staffList}
+          additionalStaffCheckIns={additionalStaffCheckIns}
+          onCheckIn={handleAdditionalStaffCheckIn}
+          onClose={() => setShowAdditionalStaff(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function AdditionalStaffModal({ staffList, additionalStaffCheckIns, onCheckIn, onClose }) {
+  const [selectedStaff, setSelectedStaff] = useState(null)
+  const [password, setPassword] = useState("")
+
+  const handleSubmit = () => {
+    if (selectedStaff && password) {
+      onCheckIn(selectedStaff.id, password)
+      setPassword("")
+      setSelectedStaff(null)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Additional Staff Check-In</h3>
+          <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-zinc-400 mb-2">Select Staff Member</label>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {staffList.map((staff) => (
+                <div
+                  key={staff.id}
+                  onClick={() => setSelectedStaff(staff)}
+                  className={`p-3 rounded-xl cursor-pointer transition-colors ${selectedStaff?.id === staff.id ? "bg-blue-600" : "bg-black hover:bg-zinc-800"
+                    }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">{staff.name}</span>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${additionalStaffCheckIns[staff.id]
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-gray-500/20 text-gray-400"
+                        }`}
+                    >
+                      {additionalStaffCheckIns[staff.id] ? "Checked In" : "Checked Out"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {selectedStaff && (
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1">Password for {selectedStaff.name}</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                placeholder="Enter password"
+                onKeyPress={(e) => e.key === "Enter" && handleSubmit()}
+              />
+            </div>
+          )}
+
+          <div className="flex gap-2 justify-end">
+            <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700">
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!selectedStaff || !password}
+              className={`px-4 py-2 text-sm rounded-xl ${selectedStaff && password ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-600/50 cursor-not-allowed"
+                }`}
+            >
+              {additionalStaffCheckIns[selectedStaff?.id] ? "Check Out" : "Check In"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatisticsWidget({ type }) {
+  const data = type === "topSelling" ? statisticsData.topSelling : statisticsData.mostFrequent
+  const title = type === "topSelling" ? "Top-Selling Products & Services" : "Most Frequently Sold"
+
+  return (
+    <div className="space-y-3 p-4 rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
+      <div className="flex items-center gap-2 mb-3">
+          <h2 className="text-lg font-semibold">{title}</h2>
+      </div>
+      <div className="space-y-3  rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col ">
+        {data.map((item, index) => (
+          <div key={index} className="p-2 bg-black rounded-xl">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-sm font-medium">{item.name}</h3>
+                <p className="text-xs text-zinc-400">
+                  {type === "topSelling"
+                    ? `$${item.revenue.toLocaleString()} • ${item.count} sales`
+                    : `${item.count} sales • ${item.percentage}%`}
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="text-sm font-bold text-yellow-400">#{index + 1}</span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -78,6 +356,7 @@ function EmployeeCheckInWidget() {
 
 const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
   const ref = useRef(null)
+
   return (
     <div ref={ref} className="relative mb-4 w-full">
       {isEditing && (
@@ -96,7 +375,6 @@ const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEdit
           >
             <ArrowDown size={12} />
           </button>
-
           <button onClick={() => removeWidget(id)} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700">
             <X size={12} />
           </button>
@@ -118,14 +396,15 @@ export default function MyArea() {
   const navigate = useNavigate()
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
   const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
-
   const [isEditing, setIsEditing] = useState(false)
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 },
     { id: "appointments", type: "appointments", position: 1 },
-    { id: "employeeCheckIn", type: "employeeCheckIn", position: 2 },
+    { id: "staffCheckIn", type: "staffCheckIn", position: 2 },
     { id: "websiteLink", type: "websiteLink", position: 3 },
-    { id: "expiringContracts", type: "expiringContracts", position: 4 }, // Fixed: Changed position from 3 to 4
+    { id: "topSelling", type: "topSelling", position: 4 },
+    { id: "mostFrequent", type: "mostFrequent", position: 5 },
+    { id: "expiringContracts", type: "expiringContracts", position: 6 },
   ])
 
   // Add right sidebar widgets state
@@ -143,6 +422,7 @@ export default function MyArea() {
       title: "Timathy Fitness Town",
     },
     { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
+    { id: "link3", url: "https://google.com", title: "Fitness Gyms" },
   ])
 
   const [communications, setCommunications] = useState([
@@ -331,6 +611,8 @@ export default function MyArea() {
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("change")
+  const [editingNoteId, setEditingNoteId] = useState(null)
+  const [editingNoteText, setEditingNoteText] = useState("")
 
   const moveWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= widgets.length) return
@@ -392,12 +674,6 @@ export default function MyArea() {
       status: "Expiring Soon",
     },
     {
-      id: 2,
-      title: "Timathy Fitness Equipment Lease",
-      expiryDate: "July 15, 2025",
-      status: "Expiring Soon",
-    },
-    {
       id: 3,
       title: "Studio Space Rental",
       expiryDate: "August 5, 2025",
@@ -425,7 +701,7 @@ export default function MyArea() {
       }
       const newLinks = [...currentLinks]
       const swap = direction === "up" ? index - 1 : index + 1
-      ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
+        ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
       return newLinks
     })
   }
@@ -434,6 +710,22 @@ export default function MyArea() {
     setAppointments((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
     setSelectedAppointment(null)
     toast.success("Appointment deleted successfully")
+  }
+
+  const handleEditNote = (appointmentId, currentNote) => {
+    setEditingNoteId(appointmentId)
+    setEditingNoteText(currentNote)
+  }
+
+  const handleSaveNote = (appointmentId) => {
+    setAppointments((prev) =>
+      prev.map((app) =>
+        app.id === appointmentId ? { ...app, specialNote: { ...app.specialNote, text: editingNoteText } } : app,
+      ),
+    )
+    setEditingNoteId(null)
+    setEditingNoteText("")
+    toast.success("Special note updated successfully")
   }
 
   useEffect(() => {
@@ -445,7 +737,6 @@ export default function MyArea() {
         setIsChartDropdownOpen(false)
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside)
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
@@ -554,7 +845,6 @@ export default function MyArea() {
 
     const handleSave = () => {
       if (!title.trim() || !url.trim()) return
-
       if (link?.id) {
         updateCustomLink(link.id, "title", title)
         updateCustomLink(link.id, "url", url)
@@ -608,9 +898,8 @@ export default function MyArea() {
               <button
                 onClick={handleSave}
                 disabled={!title.trim() || !url.trim()}
-                className={`px-4 py-2 text-sm rounded-xl ${
-                  !title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                }`}
+                className={`px-4 py-2 text-sm rounded-xl ${!title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                  }`}
               >
                 Save
               </button>
@@ -620,8 +909,6 @@ export default function MyArea() {
       </div>
     )
   }
-
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
   const handleAddWidget = (widgetType) => {
     const newWidget = {
@@ -668,7 +955,6 @@ export default function MyArea() {
         setActiveNoteId(null)
       }
     }
-
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -680,11 +966,9 @@ export default function MyArea() {
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
       if (!specialNote.text) return null
-
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
-
       if (!isActive) return null
 
       const handleNoteClick = (e) => {
@@ -695,9 +979,8 @@ export default function MyArea() {
       return (
         <div className="relative">
           <div
-            className={`${
-              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
@@ -706,11 +989,10 @@ export default function MyArea() {
               <Info size={18} className="text-white" />
             )}
           </div>
-
           {activeNoteId === memberId && (
             <div
               ref={notePopoverRef}
-              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+              className="absolute left-0 top-6 w-74 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
             >
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                 {specialNote.isImportant === "important" ? (
@@ -718,26 +1000,59 @@ export default function MyArea() {
                 ) : (
                   <Info className="text-blue-500 shrink-0" size={18} />
                 )}
-                <h4 className="text-white flex gap-1 items-center font-medium">
+                <h4 className="text-white flex text-sm gap-1   items-center font-medium">
                   <div>Special Note</div>
                   <div className="text-sm text-gray-400 ">
                     {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
                   </div>
                 </h4>
                 <button
+                  onClick={() => handleEditNote(memberId, specialNote.text)}
+                  className="ml-auto text-gray-400 hover:text-white mr-2"
+                >
+                  <Edit size={16} />
+                </button>
+                <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setActiveNoteId(null)
                   }}
-                  className="ml-auto text-gray-400 hover:text-white"
+                  className="text-gray-400 hover:text-white"
                 >
                   <X size={16} />
                 </button>
               </div>
-
               <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-
+                {editingNoteId === memberId ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={editingNoteText}
+                      onChange={(e) => setEditingNoteText(e.target.value)}
+                      className="w-full p-2 bg-gray-700  rounded text-white text-sm resize-none"
+                      rows={3}
+                      placeholder="Enter special note..."
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => {
+                          setEditingNoteId(null)
+                          setEditingNoteText("")
+                        }}
+                        className="px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 rounded"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleSaveNote(memberId)}
+                        className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
+                )}
                 {specialNote.startDate && specialNote.endDate ? (
                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                     <p className="text-xs text-gray-300 flex items-center gap-1.5">
@@ -760,7 +1075,7 @@ export default function MyArea() {
         </div>
       )
     },
-    [activeNoteId, setActiveNoteId],
+    [activeNoteId, setActiveNoteId, editingNoteId, editingNoteText],
   )
 
   // Right sidebar widget component with remove functionality
@@ -809,29 +1124,16 @@ export default function MyArea() {
         }}
       />
       <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
-        {/* Mobile overlay for right sidebar */}
         {isRightSidebarOpen && (
           <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={toggleRightSidebar} />
         )}
-
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-3 md:p-5 space-y-4">
-            {/* Header */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button onClick={toggleSidebar} className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden">
-                  <BarChart3 />
-                </button>
+              <div className="flex items-center">
                 <h1 className="text-xl font-bold">My Area</h1>
-                {/* Mobile right sidebar toggle */}
-                <button
-                  onClick={toggleRightSidebar}
-                  className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden ml-auto"
-                >
-                  <Menu />
-                </button>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0.5">
                 <button
                   onClick={() => setIsWidgetModalOpen(true)}
                   className="py-2 px-4 bg-black text-white hover:bg-zinc-900 rounded-xl text-sm cursor-pointer flex items-center gap-1"
@@ -841,11 +1143,16 @@ export default function MyArea() {
                 </button>
                 <button
                   onClick={toggleEditing}
-                  className={`p-2 ${
-                    isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                  } rounded-lg flex items-center gap-1`}
+                  className={`p-2 ${isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                    } rounded-lg flex items-center gap-1`}
                 >
                   {isEditing ? <Check size={16} /> : <Edit size={16} />}
+                </button>
+                <button
+                  onClick={toggleRightSidebar}
+                  className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg md:hidden ml-auto"
+                >
+                  <Menu />
                 </button>
               </div>
             </div>
@@ -899,9 +1206,7 @@ export default function MyArea() {
                   </DraggableWidget>
                 ))}
 
-              {/* Two Column Grid for Appointments and Website Links */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Appointments Widget */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {widgets
                   .filter((widget) => widget.type === "appointments")
                   .sort((a, b) => a.position - b.position)
@@ -915,8 +1220,8 @@ export default function MyArea() {
                       isEditing={isEditing}
                       widgets={widgets}
                     >
-                      <div className="space-y-3 p-4 rounded-xl h-full bg-[#2F2F2F]">
-                        <div className="flex justify-between items-center">
+                      <div className="space-y-3 p-4 rounded-xl md:h-[340px] h-auto bg-[#2F2F2F]">
+                        <div className="flex justify-between items-cent0er">
                           <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
                         </div>
                         <div className="space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar pr-1">
@@ -930,13 +1235,13 @@ export default function MyArea() {
                                   {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                                 </div>
                                 <div
-                                  className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
+                                  className="flex flex-col items-center justify-between gap-2 cursor-pointer"
                                   onClick={() => {
                                     setSelectedAppointment(appointment)
                                     setIsAppointmentActionModalOpen(true)
                                   }}
                                 >
-                                  <div className="flex items-center gap-2 ml-5 relative w-full sm:w-auto justify-center sm:justify-start">
+                                  <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
                                     <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
                                       <img
                                         src={Avatar || "/placeholder.svg"}
@@ -946,35 +1251,28 @@ export default function MyArea() {
                                     </div>
                                     <div className="text-white text-left">
                                       <p className="font-semibold">{appointment.name}</p>
-                                      <p className="text-xs flex gap-1 items-center opacity-80 justify-center sm:justify-start">
+                                      <p className="text-xs flex gap-1 items-center opacity-80">
                                         <Clock size={14} />
                                         {appointment.time} | {appointment.date.split("|")[0]}
                                       </p>
+                                      <p className="text-xs opacity-80 mt-1">
+                                        {appointment.isTrial ? "Trial Session" : appointment.type}
+                                      </p>
                                     </div>
                                   </div>
-                                  <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
-                                    <div className="text-white text-center sm:text-right w-full sm:w-auto">
-                                      <p className="text-xs">
-                                        {appointment.isTrial ? (
-                                          <span className="font-medium ">Trial Session</span>
-                                        ) : (
-                                          appointment.type
-                                        )}
-                                      </p>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleCheckIn(appointment.id)
-                                        }}
-                                        className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
-                                          appointment.isCheckedIn
-                                            ? "bg-gray-500 bg-opacity-50 text-white"
-                                            : "bg-black text-white"
+                                  <div className="flex justify-center gap-2 mt-2 w-full">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleCheckIn(appointment.id)
+                                      }}
+                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
+                                        ? "bg-gray-500 bg-opacity-50 text-white"
+                                        : "bg-black text-white"
                                         }`}
-                                      >
-                                        {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                                      </button>
-                                    </div>
+                                    >
+                                      {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -983,7 +1281,6 @@ export default function MyArea() {
                             <p className="text-white text-center">No appointments scheduled for this date.</p>
                           )}
                         </div>
-
                         <div className="flex justify-center">
                           <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
                             See all
@@ -993,29 +1290,142 @@ export default function MyArea() {
                     </DraggableWidget>
                   ))}
 
-                {/* Employee Check-in and Website Links in a column */}
-                <div className="flex flex-col">
-                  {/* Employee Check-in Widget */}
-                  {widgets
-                    .filter((widget) => widget.type === "employeeCheckIn")
-                    .sort((a, b) => a.position - b.position)
-                    .map((widget) => (
-                      <DraggableWidget
-                        key={widget.id}
-                        id={widget.id}
-                        index={widgets.findIndex((w) => w.id === widget.id)}
-                        moveWidget={moveWidget}
-                        removeWidget={removeWidget}
-                        isEditing={isEditing}
-                        widgets={widgets}
-                      >
-                        <EmployeeCheckInWidget />
-                      </DraggableWidget>
-                    ))}
+                {widgets
+                  .filter((widget) => widget.type === "staffCheckIn")
+                  .sort((a, b) => a.position - b.position)
+                  .map((widget) => (
+                    <DraggableWidget
+                      key={widget.id}
+                      id={widget.id}
+                      index={widgets.findIndex((w) => w.id === widget.id)}
+                      moveWidget={moveWidget}
+                      removeWidget={removeWidget}
+                      isEditing={isEditing}
+                      widgets={widgets}
+                    >
+                      <StaffCheckInWidget />
+                    </DraggableWidget>
+                  ))}
 
-                  {/* Website Link Widget */}
+                {widgets
+                  .filter((widget) => widget.type === "websiteLink")
+                  .sort((a, b) => a.position - b.position)
+                  .map((widget) => (
+                    <DraggableWidget
+                      key={widget.id}
+                      id={widget.id}
+                      index={widgets.findIndex((w) => w.id === widget.id)}
+                      moveWidget={moveWidget}
+                      removeWidget={removeWidget}
+                      isEditing={isEditing}
+                      widgets={widgets}
+                    >
+                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Website Links</h2>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                          <div className="grid grid-cols-1 gap-3">
+                            {customLinks.map((link) => (
+                              <div key={link.id} className="p-5 bg-black rounded-xl flex items-center justify-between">
+                                <div>
+                                  <h3 className="text-sm font-medium">{link.title}</h3>
+                                  <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => window.open(link.url, "_blank")}
+                                    className="p-2 hover:bg-zinc-700 rounded-lg"
+                                  >
+                                    <ExternalLink size={16} />
+                                  </button>
+                                  <div className="relative">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        toggleDropdown(`link-${link.id}`)
+                                      }}
+                                      className="p-2 hover:bg-zinc-700 rounded-lg"
+                                    >
+                                      <MoreVertical size={16} />
+                                    </button>
+                                    {openDropdownIndex === `link-${link.id}` && (
+                                      <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setEditingLink(link)
+                                            setOpenDropdownIndex(null)
+                                          }}
+                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            removeCustomLink(link.id)
+                                            setOpenDropdownIndex(null)
+                                          }}
+                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                        >
+                                          Remove
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <button
+                          onClick={addCustomLink}
+                          className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 mt-auto"
+                        >
+                          Add website link...
+                        </button>
+                      </div>
+                    </DraggableWidget>
+                  ))}
+
+                {widgets
+                  .filter((widget) => widget.type === "topSelling")
+                  .sort((a, b) => a.position - b.position)
+                  .map((widget) => (
+                    <DraggableWidget
+                      key={widget.id}
+                      id={widget.id}
+                      index={widgets.findIndex((w) => w.id === widget.id)}
+                      moveWidget={moveWidget}
+                      removeWidget={removeWidget}
+                      isEditing={isEditing}
+                      widgets={widgets}
+                    >
+                      <StatisticsWidget type="topSelling" />
+                    </DraggableWidget>
+                  ))}
+
+                {widgets
+                  .filter((widget) => widget.type === "mostFrequent")
+                  .sort((a, b) => a.position - b.position)
+                  .map((widget) => (
+                    <DraggableWidget
+                      key={widget.id}
+                      id={widget.id}
+                      index={widgets.findIndex((w) => w.id === widget.id)}
+                      moveWidget={moveWidget}
+                      removeWidget={removeWidget}
+                      isEditing={isEditing}
+                      widgets={widgets}
+                    >
+                      <StatisticsWidget type="mostFrequent" />
+                    </DraggableWidget>
+                  ))}
+
+                <div className="">
                   {widgets
-                    .filter((widget) => widget.type === "websiteLink")
+                    .filter((widget) => widget.type === "expiringContracts")
                     .sort((a, b) => a.position - b.position)
                     .map((widget) => (
                       <DraggableWidget
@@ -1027,88 +1437,47 @@ export default function MyArea() {
                         isEditing={isEditing}
                         widgets={widgets}
                       >
-                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[200px] flex flex-col">
+                        <div className="space-y-3 p-4 rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
                           <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">Website Links</h2>
+                            <h2 className="text-lg font-semibold">Expiring Contracts</h2>
                           </div>
                           <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
                             <div className="grid grid-cols-1 gap-3">
-                              {customLinks.map((link) => (
-                                <div
-                                  key={link.id}
-                                  className="p-5 bg-black rounded-xl flex items-center justify-between"
-                                >
-                                  <div>
-                                    <h3 className="text-sm font-medium">{link.title}</h3>
-                                    <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      onClick={() => window.open(link.url, "_blank")}
-                                      className="p-2 hover:bg-zinc-700 rounded-lg"
-                                    >
-                                      <ExternalLink size={16} />
-                                    </button>
-                                    <div className="relative">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          toggleDropdown(`link-${link.id}`)
-                                        }}
-                                        className="p-2 hover:bg-zinc-700 rounded-lg"
-                                      >
-                                        <MoreVertical size={16} />
-                                      </button>
-                                      {openDropdownIndex === `link-${link.id}` && (
-                                        <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              setEditingLink(link)
-                                              setOpenDropdownIndex(null)
-                                            }}
-                                            className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
-                                          >
-                                            Edit
-                                          </button>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              removeCustomLink(link.id)
-                                              setOpenDropdownIndex(null)
-                                            }}
-                                            className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                                          >
-                                            Remove
-                                          </button>
-                                        </div>
-                                      )}
+                              {expiringContracts.map((contract) => (
+                                <Link to={"/dashboard/contract"} key={contract.id}>
+                                  <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <h3 className="text-sm font-medium">{contract.title}</h3>
+                                        <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
+                                      </div>
+                                      <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400">
+                                        {contract.status}
+                                      </span>
                                     </div>
                                   </div>
-                                </div>
+                                </Link>
                               ))}
                             </div>
                           </div>
-                          <button
-                            onClick={addCustomLink}
-                            className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 mt-auto"
-                          >
-                            Add website link...
-                          </button>
                         </div>
                       </DraggableWidget>
                     ))}
                 </div>
-              </div>
 
-              {/* Other Widgets in 2-column Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Other Widgets */}
                 {widgets
                   .filter(
                     (widget) =>
-                      !["chart", "appointments", "employeeCheckIn", "websiteLink", "expiringContracts"].includes(
-                        widget.type,
-                      ),
+                      ![
+                        "chart",
+                        "appointments",
+                        "staffCheckIn",
+                        "websiteLink",
+                        "topSelling",
+                        "mostFrequent",
+                        "expiringContracts",
+                      ].includes(widget.type),
                   )
                   .sort((a, b) => a.position - b.position)
                   .map((widget, index) => (
@@ -1158,7 +1527,6 @@ export default function MyArea() {
                           </div>
                         </div>
                       )}
-
                       {widget.type === "todo" && (
                         <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
                           <div className="flex justify-between items-center">
@@ -1187,7 +1555,6 @@ export default function MyArea() {
                           </div>
                         </div>
                       )}
-
                       {widget.type === "birthdays" && (
                         <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
                           <div className="flex justify-between items-center">
@@ -1212,55 +1579,13 @@ export default function MyArea() {
                       )}
                     </DraggableWidget>
                   ))}
-
-               
               </div>
 
-               {/* Expiring Contracts Widget - Now properly integrated in the grid */}
-               {widgets
-                  .filter((widget) => widget.type === "expiringContracts")
-                  .sort((a, b) => a.position - b.position)
-                  .map((widget) => (
-                    <DraggableWidget
-                      key={widget.id}
-                      id={widget.id}
-                      index={widgets.findIndex((w) => w.id === widget.id)}
-                      moveWidget={moveWidget}
-                      removeWidget={removeWidget}
-                      isEditing={isEditing}
-                      widgets={widgets}
-                    >
-                      <div className="space-y-3 p-4  rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">Expiring Contracts</h2>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                          <div className="grid grid-cols-1 gap-3">
-                            {expiringContracts.map((contract) => (
-                              <Link to={"/dashboard/contract"} key={contract.id}>
-                                <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
-                                  <div className="flex justify-between items-start">
-                                    <div>
-                                      <h3 className="text-sm font-medium">{contract.title}</h3>
-                                      <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
-                                    </div>
-                                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400">
-                                      {contract.status}
-                                    </span>
-                                  </div>
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </DraggableWidget>
-                  ))}
+
             </div>
           </div>
         </main>
 
-        {/* Right Sidebar */}
         <aside
           className={`
               fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 lg:w-80 bg-[#181818] 
@@ -1338,7 +1663,6 @@ export default function MyArea() {
                       </div>
                     </div>
                   )}
-
                   {widget.type === "todo" && (
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-2">
@@ -1370,7 +1694,6 @@ export default function MyArea() {
                       </div>
                     </div>
                   )}
-
                   {widget.type === "birthday" && (
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-2">
@@ -1394,7 +1717,6 @@ export default function MyArea() {
                       </div>
                     </div>
                   )}
-
                   {widget.type === "websiteLinks" && (
                     <div className="mb-6">
                       <div className="space-y-3">
@@ -1506,21 +1828,18 @@ export default function MyArea() {
         </aside>
 
         {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
-
         <WidgetSelectionModal
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
           onSelectWidget={handleAddWidget}
           canAddWidget={canAddWidget}
         />
-
         <WidgetSelectionModal
           isOpen={isRightWidgetModalOpen}
           onClose={() => setIsRightWidgetModalOpen(false)}
           onSelectWidget={handleAddRightSidebarWidget}
           canAddWidget={canAddRightSidebarWidget}
         />
-
         <SelectedAppointmentModal
           selectedAppointment={selectedAppointment}
           setSelectedAppointment={setSelectedAppointment}

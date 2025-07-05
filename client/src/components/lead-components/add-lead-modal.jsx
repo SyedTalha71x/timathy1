@@ -1,10 +1,9 @@
 /* eslint-disable react/prop-types */
-
-import { useState, useEffect } from "react"
-import { X } from "lucide-react"
+import { useState } from "react"
+import { X, Plus } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
-export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
+export function AddLeadModal({ isVisible, onClose, onSave }) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -22,29 +21,6 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
     status: "passive",
   })
 
-  useEffect(() => {
-    if (leadData) {
-      // Map leadData to formData structure
-      setFormData({
-        firstName: leadData.firstName || "",
-        lastName: leadData.surname || "", // Map surname to lastName
-        email: leadData.email || "",
-        phone: leadData.phoneNumber || "", // Map phoneNumber to phone
-        street: leadData.street || "",
-        zipCode: leadData.zipCode || "",
-        city: leadData.city || "",
-        dateOfBirth: leadData.dateOfBirth || "",
-        about: leadData.about || "",
-        // Extract note data from specialNote object
-        note: leadData.specialNote?.text || "",
-        noteStartDate: leadData.specialNote?.startDate || "",
-        noteEndDate: leadData.specialNote?.endDate || "",
-        noteImportance: leadData.specialNote?.isImportant ? "important" : "unimportant",
-        status: leadData.hasTrialTraining ? "trial" : leadData.status || "passive",
-      })
-    }
-  }, [leadData])
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     setFormData((prev) => ({
@@ -55,13 +31,12 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Map formData back to the structure expected by the parent component
+    // Map formData to the structure expected by the parent component
     const mappedData = {
-      ...leadData,
       firstName: formData.firstName,
-      surname: formData.lastName, // Map lastName back to surname
+      surname: formData.lastName, // Map lastName to surname for consistency with EditLeadModal
       email: formData.email,
-      phoneNumber: formData.phone, // Map phone back to phoneNumber
+      phoneNumber: formData.phone, // Map phone to phoneNumber for consistency
       street: formData.street,
       zipCode: formData.zipCode,
       city: formData.city,
@@ -74,11 +49,11 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
         isImportant: formData.noteImportance === "important",
       },
       hasTrialTraining: formData.status === "trial",
-      status: formData.status === "trial" ? leadData.status || "passive" : formData.status,
+      status: formData.status,
     }
 
     onSave(mappedData)
-    toast.success("Lead updated successfully!")
+    toast.success("Lead created successfully!")
     setTimeout(() => {
       onClose()
     }, 200)
@@ -101,7 +76,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl text-white font-bold">Edit Lead</h2>
+            <h2 className="text-xl text-white font-bold">Create Lead</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={24} />
             </button>
@@ -244,7 +219,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 name="note"
                 value={formData.note}
                 onChange={handleChange}
-                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                className="w-full bg-[#141414] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
                 placeholder="Enter special note..."
               />
 
@@ -278,7 +253,7 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
                 name="about"
                 value={formData.about}
                 onChange={handleChange}
-                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                className="w-full bg-[#141414] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                 placeholder="Enter additional information about the lead..."
               />
             </div>
@@ -293,9 +268,10 @@ export function EditLeadModal({ isVisible, onClose, onSave, leadData }) {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl outline-none hover:bg-[#E64D2E] transition-colors duration-200"
+                className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl outline-none hover:bg-[#E64D2E] transition-colors duration-200 flex items-center gap-1"
               >
-                Save Changes
+                <Plus size={16} />
+                Create Lead
               </button>
             </div>
           </form>

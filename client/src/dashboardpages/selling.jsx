@@ -528,7 +528,7 @@ function App() {
                     value={formData.details}
                     onChange={handleInputChange}
                     placeholder="Enter product description"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                    className="w-full resize-none bg-[#101010] resize-none text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     rows={3}
                   />
                 </div>

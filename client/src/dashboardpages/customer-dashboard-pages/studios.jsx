@@ -1,4 +1,4 @@
-"use client"
+""
 
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
@@ -45,7 +45,7 @@ import {
 } from "../../states/states"
 import EditStudioModal from "../../components/customer-dashboard/studios-modal/edit-studio-modal"
 import ContractsModal from "../../components/customer-dashboard/studios-modal/contract-modal"
-import { EditLeadModal } from "../../components/edit-lead-modal"
+import { EditLeadModal } from "../../components/lead-components/edit-lead-modal"
 import { AddLeadModal } from "../../components/customer-dashboard/studios-modal/add-lead-modal"
 import { ViewLeadModal } from "../../components/customer-dashboard/studios-modal/view-lead-details"
 import AddStaffModal from "../../components/customer-dashboard/studios-modal/add-staff-modal"

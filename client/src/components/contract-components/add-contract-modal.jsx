@@ -1,7 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
-"use client";
-
 import { X, FileText, Upload, Eye, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";

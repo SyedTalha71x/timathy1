@@ -1,10 +1,10 @@
-"use client"
+""
 
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { MoreHorizontal, Tag, Calendar } from "lucide-react"
-import Avatar from "../../public/image10.png"
+import Avatar from "../../../public/image10.png"
 import EditTaskModal from "./edit-task-modal"
 import { Toaster, toast } from "react-hot-toast"
 

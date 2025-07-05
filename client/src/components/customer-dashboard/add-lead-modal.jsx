@@ -1,4 +1,4 @@
-"use client"
+""
 
 /* eslint-disable react/prop-types */
 import { useState } from "react"
@@ -268,7 +268,7 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
                 name="note"
                 value={formData.note}
                 onChange={handleChange}
-                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                className="w-full bg-[#141414] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
                 placeholder="Enter special note..."
               />
 
@@ -302,7 +302,7 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
                 name="about"
                 value={formData.about}
                 onChange={handleChange}
-                className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                className="w-full bg-[#141414] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                 placeholder="Enter additional information about the lead..."
               />
             </div>

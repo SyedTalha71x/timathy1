@@ -425,7 +425,7 @@ const AddAppointmentModal = ({
                     },
                   })
                 }
-                className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
                 placeholder="Enter special note..."
               />
 

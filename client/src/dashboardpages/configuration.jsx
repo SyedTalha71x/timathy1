@@ -1,4 +1,4 @@
-"use client"
+""
 
 import { Checkbox } from "antd"
 /* eslint-disable react/no-unescaped-entities */
@@ -1225,6 +1225,7 @@ const ConfigurationPage = () => {
                         </Form.Item>
                         <Form.Item label={<span className="text-white">Content</span>}>
                           <TextArea
+                          className="resize-none"
                             value={section.content}
                             onChange={(e) => {
                               const updated = [...contractSections]
@@ -1488,6 +1489,7 @@ const ConfigurationPage = () => {
                           message: e.target.value,
                         })
                       }
+                      className="resize-none"
                       rows={4}
                       style={inputStyle}
                       placeholder="Use {Studio_Name} and {Member_Name} as placeholders"
@@ -1545,6 +1547,7 @@ const ConfigurationPage = () => {
                             }}
                           />
                           <TextArea
+                          className="resize-none"
                             id={`broadcast-message-textarea-${index}`}
                             value={message.message}
                             onChange={(e) => handleUpdateBroadcastMessage(index, "message", e.target.value)}

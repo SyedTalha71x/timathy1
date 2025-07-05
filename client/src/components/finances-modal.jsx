@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-"use client"
+""
 
 import { X, Download, ChevronDown } from "lucide-react"
 import { useState } from "react"

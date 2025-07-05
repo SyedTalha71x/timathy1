@@ -159,7 +159,7 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypes, onSubmit, se
                 value={blockData.note}
                 onChange={handleChange}
                 placeholder="Add a note about why this time is blocked"
-                className="w-full bg-[#0D0D0D] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[80px]"
+                className="w-full bg-[#0D0D0D] resize-none text-white resize-none  rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[80px]"
               />
             </div>
           </div>

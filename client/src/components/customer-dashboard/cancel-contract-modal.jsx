@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-"use client"
+""
 
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"

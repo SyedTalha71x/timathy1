@@ -1,4 +1,4 @@
-"use client"
+""
 
 import Image from "../../public/image.png"
 import Contact from "../../public/Contact.png"
@@ -70,7 +70,7 @@ export default function ContactSection() {
               <textarea
                 placeholder="Message"
                 rows={5}
-                className="w-full rounded-xl bg-gradient-to-r from-neutral-800/80 to-neutral-800/40 px-4 py-2 text-sm text-white placeholder-gray-400 outline-none"
+                className="w-full rounded-xl resize-none bg-gradient-to-r from-neutral-800/80 to-neutral-800/40 px-4 py-2 text-sm text-white placeholder-gray-400 outline-none"
                 required
               />
               <button

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client"
+""
 
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */

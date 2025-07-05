@@ -108,7 +108,7 @@ const EditTaskModal = ({
                 onChange={(e) =>
                   setEditedTask({ ...editedTask, description: e.target.value })
                 }
-                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+                className="w-full bg-[#101010] resize-none mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
                 rows={3}
               />
             </div>
