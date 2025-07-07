@@ -10,6 +10,9 @@ import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import DefaultAvatar from "../../../public/default-avatar.avif"
+import AddAppointmentModal from "./add-appointment-modal"
+import BlockAppointmentModal from "./block-appointment-modal"
+import TrialPlanningModal from "../lead-components/add-trial"
 
 function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery = "", selectedDate, setAppointments }) {
   const [calendarSize, setCalendarSize] = useState(100)
@@ -490,6 +493,12 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
   const [selectedMember, setSelectedMember] = useState(null)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
 
+  const [appointmentTypes, setAppointmentTypes] = useState([
+    { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
+    { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
+    { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
+  ])
+
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
@@ -509,6 +518,29 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
     return age
   }
 
+  const formatDateForDisplay = (date) => {
+    const day = String(date.getDate()).padStart(2, "0")
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const year = date.getFullYear()
+    return `${day}/${month}/${year}`
+  }
+
+  const handleAppointmentSubmit = (appointmentData) => {
+    const newAppointment = {
+      id: appointments.length + 1,
+      ...appointmentData,
+      status: "pending",
+      isTrial: false,
+      date: `${new Date(appointmentData.date).toLocaleString("en-US", {
+        weekday: "short",
+      })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
+    }
+
+    setAppointments([...appointments, newAppointment])
+    toast.success("Appointment booked successfully")
+  }
+
+
   const isContractExpiringSoon = (contractEnd) => {
     if (!contractEnd) return false
     const today = new Date()
@@ -520,6 +552,21 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
 
   const redirectToContract = () => {
     window.location.href = "/dashboard/contract"
+  }
+
+  const handleTrialSubmit = (trialData) => {
+    const newTrial = {
+      id: appointments.length + 1,
+      ...trialData,
+      status: "pending",
+      isTrial: true,
+      date: `${new Date(trialData.date).toLocaleString("en-US", {
+        weekday: "short",
+      })} | ${formatDateForDisplay(new Date(trialData.date))}`,
+    }
+
+    setAppointments([...appointments, newTrial])
+    toast.success("Trial training booked successfully")
   }
 
   const generateFreeDates = () => {
@@ -875,9 +922,8 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
         <div className="flex items-center justify-end mb-2 gap-2">
           <button
             onClick={generateFreeDates}
-            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${
-              viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-            }`}
+            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+              }`}
             aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
           >
             {viewMode === "all" ? "Free Slots" : "All Slots"}
@@ -924,39 +970,34 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
               eventMaxStack={10}
               eventContent={(eventInfo) => (
                 <div
-                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${
-                    eventInfo.event.extendedProps.isPast ? "opacity-40" : ""
-                  } ${
-                    eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-40" : ""
+                    } ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                       ? "opacity-30"
                       : ""
-                  } ${
-                    eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                    } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                       ? "ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
                       : ""
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`font-semibold text-xs sm:text-sm truncate ${
-                      eventInfo.event.extendedProps.isPast
+                    className={`font-semibold text-xs sm:text-sm truncate ${eventInfo.event.extendedProps.isPast
                         ? "text-gray-400"
                         : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                           ? "text-gray-500"
                           : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                             ? "text-white font-bold"
                             : ""
-                    }`}
+                      }`}
                   >
                     {eventInfo.event.extendedProps.isPast ? `${eventInfo.event.title}` : eventInfo.event.title}
                   </div>
                   <div
-                    className={`text-xs opacity-90 truncate ${
-                      eventInfo.event.extendedProps.isPast
+                    className={`text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast
                         ? "text-gray-500"
                         : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                           ? "text-gray-500"
                           : ""
-                    }`}
+                      }`}
                   >
                     {eventInfo.event.extendedProps.type || "Available"}
                   </div>
@@ -1100,9 +1141,8 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                         {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
                       </h2>
                       <span
-                        className={`px-3 py-1 text-xs rounded-full font-medium ${
-                          selectedMember.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                        }`}
+                        className={`px-3 py-1 text-xs rounded-full font-medium ${selectedMember.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
+                          }`}
                       >
                         {selectedMember.isActive ? "Active" : "Inactive"}
                       </span>
@@ -1201,21 +1241,19 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
               <div className="flex border-b border-gray-700 mb-6">
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeTab === "details"
+                  className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   Details
                 </button>
                 <button
                   onClick={() => setActiveTab("relations")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeTab === "relations"
+                  className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   Relations
                 </button>
@@ -1325,8 +1363,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
 
                               {/* Category header */}
                               <div
-                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
-                                  category === "family"
+                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
                                     ? "bg-yellow-600 text-yellow-100"
                                     : category === "friendship"
                                       ? "bg-green-600 text-green-100"
@@ -1335,7 +1372,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                                         : category === "work"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                }`}
+                                  }`}
                               >
                                 {category}
                               </div>
@@ -1397,35 +1434,59 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
         </div>
       )}
 
-      {isTrialModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4">Trial Planning</h2>
-            <p>Trial planning modal content goes here...</p>
-            <button
-              onClick={() => setIsTrialModalOpen(false)}
-              className="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {isAppointmentModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4">Add Appointment</h2>
-            <p>Add appointment modal content goes here...</p>
-            <button
-              onClick={() => setIsAppointmentModalOpen(false)}
-              className="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <AddAppointmentModal
+          isOpen={isAppointmentModalOpen}
+          onClose={() => setIsAppointmentModalOpen(false)}
+          appointmentTypes={appointmentTypes}
+          onSubmit={handleAppointmentSubmit}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+        />
       )}
+
+
+<TrialPlanningModal
+        isOpen={isTrialModalOpen}
+        onClose={() => setIsTrialModalOpen(false)}
+        freeAppointments={freeAppointments}
+        onSubmit={handleTrialSubmit}
+      />
+
+
+      <BlockAppointmentModal
+        isOpen={isBlockModalOpen}
+        onClose={() => setIsBlockModalOpen(false)}
+        appointmentTypes={appointmentTypes}
+        selectedDate={selectedDate || new Date()}
+        onSubmit={(blockData) => {
+          const newBlock = {
+            id: appointments.length + 1,
+            name: "BLOCKED",
+            time: `${blockData.startTime} - ${blockData.endTime}`,
+            date: `${new Date(blockData.date).toLocaleString("en-US", {
+              weekday: "short",
+            })} | ${formatDateForDisplay(new Date(blockData.date))}`,
+            color: "bg-[#FF4D4F]",
+            startTime: blockData.startTime,
+            endTime: blockData.endTime,
+            type: "Blocked Time",
+            specialNote: {
+              text: blockData.note || "This time slot is blocked",
+              startDate: null,
+              endDate: null,
+              isImportant: true,
+            },
+            status: "blocked",
+            isBlocked: true,
+          }
+
+          setAppointments([...appointments, newBlock])
+          toast.success("Time slot blocked successfully")
+          setIsBlockModalOpen(false)
+        }}
+      />
 
       {isTypeSelectionOpen && (
         <div
@@ -1497,29 +1558,25 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                 </p>
                 {selectedAppointment.date &&
                   isEventInPast(
-                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${
-                      selectedAppointment.startTime
+                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
                     }`,
                   ) && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
               </div>
 
               <button
                 onClick={handleEditAppointment}
-                className={`w-full px-5 py-3 ${
-                  selectedAppointment.date &&
-                  isEventInPast(
-                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${
-                      selectedAppointment.startTime
-                    }`,
-                  )
+                className={`w-full px-5 py-3 ${selectedAppointment.date &&
+                    isEventInPast(
+                      `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
+                      }`,
+                    )
                     ? "bg-gray-600 cursor-not-allowed"
                     : "bg-[#3F74FF] hover:bg-[#3F74FF]/90 cursor-pointer"
-                } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
+                  } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
                 disabled={
                   selectedAppointment.date &&
                   isEventInPast(
-                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${
-                      selectedAppointment.startTime
+                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
                     }`,
                   )
                 }
@@ -1529,21 +1586,18 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
 
               <button
                 onClick={handleCancelAppointment}
-                className={`w-full px-5 py-3 ${
-                  selectedAppointment.date &&
-                  isEventInPast(
-                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${
-                      selectedAppointment.startTime
-                    }`,
-                  )
+                className={`w-full px-5 py-3 ${selectedAppointment.date &&
+                    isEventInPast(
+                      `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
+                      }`,
+                    )
                     ? "bg-gray-600 cursor-not-allowed"
                     : "bg-red-600 hover:bg-red-700 cursor-pointer"
-                } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
+                  } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
                 disabled={
                   selectedAppointment.date &&
                   isEventInPast(
-                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${
-                      selectedAppointment.startTime
+                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
                     }`,
                   )
                 }

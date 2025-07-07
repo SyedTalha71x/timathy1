@@ -18,6 +18,8 @@ import {
   Archive,
   Eye,
   EyeOff,
+  User,
+  Building2,
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
 import CommuncationBg from "../../public/communication-bg.svg"
@@ -33,7 +35,7 @@ export default function Communications() {
   const [showChatDropdown, setShowChatDropdown] = useState(false)
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [chatType, setChatType] = useState("staff")
+  const [chatType, setChatType] = useState("member")
   const [activeScreen, setActiveScreen] = useState("chat")
   const [selectedMembers, setSelectedMembers] = useState([])
   const [messageText, setMessageText] = useState("")
@@ -646,42 +648,33 @@ export default function Communications() {
           </div>
 
           <div className="flex gap-2 items-center justify-between mb-4">
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                className={`px-5 py-2 text-sm ${
-                  chatType === "staff"
-                    ? "bg-white text-black"
-                    : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                } rounded-xl`}
-                onClick={() => setChatType("staff")}
-              >
-                Staff
-              </button>
-              <button
-                className={`px-5 py-2 text-sm ${
-                  chatType === "member"
-                    ? "bg-white text-black"
-                    : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                } rounded-xl`}
-                onClick={() => setChatType("member")}
-              >
-                Member
-              </button>
-              <button
-                className={`px-4 py-2 text-sm border border-slate-300 rounded-xl ${
-                  chatType === "company" ? "bg-white text-black" : "text-gray-200 hover:bg-gray-800"
-                }`}
-                onClick={() => setChatType("company")}
-              >
-                Fit Chain GmbH
-              </button>
-              <button
-                className="px-4 py-2 text-sm border border-slate-300 rounded-xl hover:bg-gray-800"
-                onClick={handleEmailClick}
-              >
-                Email
-              </button>
-            </div>
+          <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
+  <button
+    className={`px-4 py-2 flex items-center rounded-lg text-sm transition-colors ${
+      chatType === "member" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+    }`}
+    onClick={() => setChatType("member")}
+  >
+    <User size={16} className="inline mr-2" />
+    Member
+  </button>
+  <button
+    className={`px-4 flex items-center py-2 rounded-lg text-sm transition-colors ${
+      chatType === "company" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+    }`}
+    onClick={() => setChatType("company")}
+  >
+    <Building2 size={16} className="inline mr-2" />
+    Studio
+  </button>
+  <button
+    className="px-4 py-2 flex items-center rounded-lg text-sm text-gray-400 hover:text-white transition-colors"
+    onClick={handleEmailClick}
+  >
+    <Mail size={16} className="inline mr-2" />
+    Email
+  </button>
+</div>
 
             {chatType !== "company" && (
               <div className="relative">

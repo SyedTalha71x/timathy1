@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Search, X } from "lucide-react";
+import { Search, X, Plus, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 
 const AddAppointmentModal = ({
@@ -18,16 +18,18 @@ const AddAppointmentModal = ({
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [alternativeSlots, setAlternativeSlots] = useState([]);
 
-  // Single appointment state
+  // Single appointment state with support for multiple members
   const [appointmentData, setAppointmentData] = useState({
     date: "",
     timeSlot: "",
     type: "",
-    member: "",
-    specialNote: "",
-    isImportant: false,
-    noteStartDate: "",
-    noteEndDate: "",
+    members: [{ id: 1, name: "", searchValue: "" }], // Array of members
+    specialNote: {
+      text: "",
+      isImportant: false,
+      startDate: "",
+      endDate: "",
+    },
   });
 
   // Recurring appointment options
@@ -51,6 +53,39 @@ const AddAppointmentModal = ({
     }
   };
 
+  // Add a new member to the appointment
+  const addMember = () => {
+    const newMember = {
+      id: Date.now(), // Simple ID generation
+      name: "",
+      searchValue: "",
+    };
+    setAppointmentData({
+      ...appointmentData,
+      members: [...appointmentData.members, newMember],
+    });
+  };
+
+  // Remove a member from the appointment
+  const removeMember = (memberId) => {
+    if (appointmentData.members.length > 1) {
+      setAppointmentData({
+        ...appointmentData,
+        members: appointmentData.members.filter(member => member.id !== memberId),
+      });
+    }
+  };
+
+  // Update a specific member's information
+  const updateMember = (memberId, field, value) => {
+    setAppointmentData({
+      ...appointmentData,
+      members: appointmentData.members.map(member =>
+        member.id === memberId ? { ...member, [field]: value } : member
+      ),
+    });
+  };
+
   // Update recurring options
   const updateRecurringOptions = (field, value) => {
     setRecurringOptions({
@@ -61,7 +96,13 @@ const AddAppointmentModal = ({
 
   // Check availability and show alternatives if needed
   const checkAvailability = () => {
-    const { date, timeSlot } = appointmentData;
+    const { date, timeSlot, members } = appointmentData;
+    const validMembers = members.filter(member => member.name.trim() !== "");
+
+    if (validMembers.length === 0) {
+      alert("Please add at least one member to the appointment.");
+      return;
+    }
 
     // This would be replaced with actual availability logic
     // For this example, we'll just generate some alternative slots
@@ -134,7 +175,7 @@ const AddAppointmentModal = ({
       onClick={onClose}
     >
       <div
-        className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+        className="bg-[#181818] w-[90%] sm:w-[520px] rounded-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
@@ -148,21 +189,51 @@ const AddAppointmentModal = ({
         </div>
 
         <div className="p-6">
-          <form className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]">
+          <div className="space-y-4 custom-scrollbar overflow-y-auto max-h-[60vh]">
+            {/* Members Section */}
             <div className="space-y-1.5">
-              <label className="text-sm text-gray-200">Member</label>
-              <div className="relative">
-                <Search
-                  size={18}
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-base"
-                />
-                <input
-                  type="text"
-                  placeholder="Search member..."
-                  value={appointmentData.member}
-                  onChange={(e) => updateAppointment("member", e.target.value)}
-                  className="w-full bg-[#101010] text-sm rounded-xl px-10 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                />
+              <div className="flex justify-between items-center">
+                <label className="text-sm text-gray-200 flex items-center gap-2">
+                  <Users size={16} />
+                  Members ({appointmentData.members.length})
+                </label>
+                <button
+                  type="button"
+                  onClick={addMember}
+                  className="flex items-center gap-1 px-3 py-1 bg-[#3F74FF] text-white text-xs rounded-lg hover:bg-[#3F74FF]/90 transition-colors"
+                >
+                  <Plus size={14} />
+                  Add Member
+                </button>
+              </div>
+              
+              <div className="space-y-2">
+                {appointmentData.members.map((member, index) => (
+                  <div key={member.id} className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Search
+                        size={18}
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                      />
+                      <input
+                        type="text"
+                        placeholder={`Member ${index + 1} name...`}
+                        value={member.name}
+                        onChange={(e) => updateMember(member.id, "name", e.target.value)}
+                        className="w-full bg-[#101010] text-sm rounded-xl px-10 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                      />
+                    </div>
+                    {appointmentData.members.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeMember(member.id)}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -397,11 +468,9 @@ const AddAppointmentModal = ({
                     id="isImportant"
                     checked={appointmentData.specialNote.isImportant}
                     onChange={(e) =>
-                      updateAppointment({
-                        specialNote: {
-                          ...appointmentData.specialNote,
-                          isImportant: e.target.checked,
-                        },
+                      updateAppointment("specialNote", {
+                        ...appointmentData.specialNote,
+                        isImportant: e.target.checked,
                       })
                     }
                     className="mr-2 h-4 w-4 accent-[#FF843E]"
@@ -418,11 +487,9 @@ const AddAppointmentModal = ({
               <textarea
                 value={appointmentData.specialNote.text}
                 onChange={(e) =>
-                  updateAppointment({
-                    specialNote: {
-                      ...appointmentData.specialNote,
-                      text: e.target.value,
-                    },
+                  updateAppointment("specialNote", {
+                    ...appointmentData.specialNote,
+                    text: e.target.value,
                   })
                 }
                 className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
@@ -438,11 +505,9 @@ const AddAppointmentModal = ({
                     type="date"
                     value={appointmentData.specialNote.startDate || ""}
                     onChange={(e) =>
-                      updateAppointment({
-                        specialNote: {
-                          ...appointmentData.specialNote,
-                          startDate: e.target.value,
-                        },
+                      updateAppointment("specialNote", {
+                        ...appointmentData.specialNote,
+                        startDate: e.target.value,
                       })
                     }
                     className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
@@ -456,11 +521,9 @@ const AddAppointmentModal = ({
                     type="date"
                     value={appointmentData.specialNote.endDate || ""}
                     onChange={(e) =>
-                      updateAppointment({
-                        specialNote: {
-                          ...appointmentData.specialNote,
-                          endDate: e.target.value,
-                        },
+                      updateAppointment("specialNote", {
+                        ...appointmentData.specialNote,
+                        endDate: e.target.value,
                       })
                     }
                     className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
@@ -468,7 +531,7 @@ const AddAppointmentModal = ({
                 </div>
               </div>
             </div>
-          </form>
+          </div>
         </div>
 
         <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
@@ -479,7 +542,7 @@ const AddAppointmentModal = ({
           >
             {showRecurringOptions
               ? "Book Mass Appointments"
-              : "Book Appointment"}
+              : `Book Appointment${appointmentData.members.length > 1 ? 's' : ''}`}
           </button>
         </div>
       </div>
