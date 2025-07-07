@@ -1,5 +1,3 @@
-// utils/studioMembersData.js
-
 export const studioMembersData = {
     1: [
         {
@@ -235,7 +233,6 @@ export const FranchiseData = [
         studioCount: 2,
     }
 ];
-
 
 export const appointmentsData =  [
       {

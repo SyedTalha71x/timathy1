@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ChevronDown, Copy } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Import styles for the date picker
-import "../customCss/marketing-table-style.css";
+import "../custom-css/marketing-table-style.css";
 import { useNavigate } from "react-router-dom";
 
 const MarketingTable = () => {

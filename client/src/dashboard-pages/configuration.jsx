@@ -116,13 +116,6 @@ const ConfigurationPage = () => {
   const [appointmentTypes, setAppointmentTypes] = useState([])
   const [tags, setTags] = useState([])
   const [contractStatuses, setContractStatuses] = useState([])
-  const [bankDetails, setBankDetails] = useState({
-    bankName: "",
-    iban: "",
-    bic: "",
-    creditorId: "",
-    creditorName: "",
-  })
 
   // Countries for selection with currency
   const [countries, setCountries] = useState([
