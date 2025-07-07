@@ -25,7 +25,7 @@ import AddAppointmentModal from "../components/appointments-components/add-appoi
 import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 import MiniCalendar from "../components/appointments-components/mini-calender"
 import BlockAppointmentModal from "../components/appointments-components/block-appointment-modal"
-import {appointmentsData} from "../states/states"
+import {appointmentsData} from "../utils/states"
 import Calendar from "../components/appointments-components/calendar"
 
 export default function Appointments() {
@@ -40,9 +40,7 @@ export default function Appointments() {
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
   const [appointmentToRemove, setAppointmentToRemove] = useState(null)
-  const [isShowDetails, setisShowDetails] = useState(false)
   const [activeNoteId, setActiveNoteId] = useState(null)
-  const [checkedOutMembers, setCheckedOutMembers] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedMember, setSelectedMember] = useState(null)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)

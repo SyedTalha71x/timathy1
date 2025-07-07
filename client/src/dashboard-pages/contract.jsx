@@ -69,7 +69,6 @@ const initialContracts = [
   },
 ]
 
-// Sample contract history data
 const contractHistory = {
   "12321-1": [
     {
@@ -104,7 +103,6 @@ const contractHistory = {
   ],
 }
 
-// Sample lead data for pre-filling contracts
 const sampleLeads = [
   {
     id: "lead-1",

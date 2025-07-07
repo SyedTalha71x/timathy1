@@ -7,32 +7,32 @@ import Register from './pages/register'
 import Profile from './pages/profile'
 
 import Dashboardlayout from "./layouts/dashboard-layout";
-import MyArea from './dashboardpages/my-area'
-import ProfileDashboard from './dashboardpages/profile'
-import Appointments from "./dashboardpages/appointments";
-import ToDo from './dashboardpages/todo'
-import Members from './dashboardpages/members'
-import Staff from './dashboardpages/staff'
-import Marketing from './dashboardpages/marketing'
-import Communication from "./dashboardpages/communications";
-import Payment from "./dashboardpages/payment"
-import Contract from './dashboardpages/contract'
-import Configuration from './dashboardpages/configuration'
-import Leets from './dashboardpages/leads'
-import TrialTraining from "./dashboardpages/trialtraining";
-import Selling from "./dashboardpages/selling";
-import Finances from "./dashboardpages/finances";
+import MyArea from './dashboard-pages/my-area'
+import ProfileDashboard from './dashboard-pages/profile'
+import Appointments from "./dashboard-pages/appointments";
+import ToDo from './dashboard-pages/todo'
+import Members from './dashboard-pages/members'
+import Staff from './dashboard-pages/staff'
+import Marketing from './dashboard-pages/marketing'
+import Communication from "./dashboard-pages/communications";
+import Payment from "./dashboard-pages/payment"
+import Contract from './dashboard-pages/contract'
+import Configuration from './dashboard-pages/configuration'
+import Leets from './dashboard-pages/leads'
+import TrialTraining from "./dashboard-pages/trialtraining";
+import Selling from "./dashboard-pages/selling";
+import Finances from "./dashboard-pages/finances";
 
 
 // Customer Dashboard
 import CustomerDashboardlayout from "./layouts/customer-dashboard-layout";
-import CustomerMyArea from './dashboardpages/customer-dashboard-pages/my-area'
-import Studios from "./dashboardpages/customer-dashboard-pages/studios";
-import CustomerLeads from './dashboardpages/customer-dashboard-pages/leads'
-import CustomerTodo from './dashboardpages/customer-dashboard-pages/todo'
-import CustomerConfiguration from './dashboardpages/customer-dashboard-pages/configuration'
-import CustomerFinance from './dashboardpages/customer-dashboard-pages/finance'
-import CustomerContracts from './dashboardpages/customer-dashboard-pages/contract'
+import CustomerMyArea from './dashboard-pages/customer-dashboard-pages/my-area'
+import Studios from "./dashboard-pages/customer-dashboard-pages/studios";
+import CustomerLeads from './dashboard-pages/customer-dashboard-pages/leads'
+import CustomerTodo from './dashboard-pages/customer-dashboard-pages/todo'
+import CustomerConfiguration from './dashboard-pages/customer-dashboard-pages/configuration'
+import CustomerFinance from './dashboard-pages/customer-dashboard-pages/finance'
+import CustomerContracts from './dashboard-pages/customer-dashboard-pages/contract'
 
 function App() {
   const location = useLocation();

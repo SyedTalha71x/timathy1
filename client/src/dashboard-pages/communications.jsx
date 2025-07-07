@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-""
 import { useState, useEffect, useRef } from "react"
 import {
   Menu,
@@ -13,13 +12,17 @@ import {
   Send,
   Gift,
   Calendar,
-  XCircle,
   Mail,
   Archive,
   Eye,
   EyeOff,
   User,
   Building2,
+  Settings,
+  Pin,
+  Check,
+  CheckCheck,
+  FolderPlus,
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
 import CommuncationBg from "../../public/communication-bg.svg"
@@ -53,31 +56,56 @@ export default function Communications() {
   const [messageReactions, setMessageReactions] = useState({})
   const [unreadMessages, setUnreadMessages] = useState(new Set())
   const [showEmailModal, setShowEmailModal] = useState(false)
+  const [showEmailFrontend, setShowEmailFrontend] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showArchive, setShowArchive] = useState(false)
+  const [showChatMenu, setShowChatMenu] = useState(null)
+  const [pinnedChats, setPinnedChats] = useState(new Set())
+  const [showFolderModal, setShowFolderModal] = useState(false)
+  const [broadcastFolders, setBroadcastFolders] = useState([
+    { id: 1, name: "General", messages: [] },
+    { id: 2, name: "Announcements", messages: [] },
+    { id: 3, name: "Events", messages: [] },
+  ])
+  const [selectedFolder, setSelectedFolder] = useState(null)
+  const [newFolderName, setNewFolderName] = useState("")
   const [emailData, setEmailData] = useState({
     to: "",
     subject: "",
     body: "",
+  })
+  const [settings, setSettings] = useState({
+    autoArchiveDuration: 30, // days
+    emailNotifications: true,
+    chatNotifications: true,
+    emailSignature: "Best regards,\nYour Team",
+    broadcastEmail: true,
+    broadcastChat: true,
   })
   const [preConfiguredMessages, setPreConfiguredMessages] = useState([
     {
       id: 1,
       title: "Meeting Reminder",
       message: "This is a reminder about our upcoming meeting.",
+      folderId: 1,
     },
     {
       id: 2,
       title: "Event Announcement",
       message: "We're excited to announce our upcoming event!",
+      folderId: 2,
     },
     {
       id: 3,
       title: "Important Update",
       message: "There has been an important update to our policies.",
+      folderId: 2,
     },
     {
       id: 4,
       title: "Welcome Message",
       message: "Welcome to our platform! We're glad to have you here.",
+      folderId: 1,
     },
   ])
   const [selectedMessage, setSelectedMessage] = useState(null)
@@ -131,12 +159,11 @@ export default function Communications() {
     { id: 7, date: "2025-04-05", time: "3:00 PM" },
   ])
   const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
-  const [newMessage, setNewMessage] = useState({ title: "", message: "" })
+  const [newMessage, setNewMessage] = useState({ title: "", message: "", folderId: 1 })
   const [contingent, setContingent] = useState({ used: 1, total: 7 })
   const [showContingentModal, setShowContingentModal] = useState(false)
   const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
   const [tempContingent, setTempContingent] = useState(1)
-  const [showArchive, setShowArchive] = useState(false)
 
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
@@ -146,6 +173,7 @@ export default function Communications() {
   const recipientDropdownRef = useRef(null)
   const fileInputRef = useRef(null)
   const messagesEndRef = useRef(null)
+  const chatMenuRef = useRef(null)
 
   const handleSearchClick = () => {
     setIsSearchOpen(!isSearchOpen)
@@ -161,20 +189,19 @@ export default function Communications() {
       ) {
         setActiveDropdownId(null)
       }
-
       if (chatDropdownRef.current && !chatDropdownRef.current.contains(event.target)) {
         setShowChatDropdown(false)
       }
-
       if (groupDropdownRef.current && !groupDropdownRef.current.contains(event.target)) {
         setShowGroupDropdown(false)
       }
-
       if (recipientDropdownRef.current && !recipientDropdownRef.current.contains(event.target)) {
         setShowRecipientDropdown(false)
       }
+      if (chatMenuRef.current && !chatMenuRef.current.contains(event.target)) {
+        setShowChatMenu(null)
+      }
     }
-
     document.addEventListener("mousedown", handleClickOutside)
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
@@ -203,6 +230,8 @@ export default function Communications() {
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
       logo: img1,
       isBirthday: true,
+      isRead: false,
+      messageStatus: "read",
       messages: [
         {
           id: 1,
@@ -210,6 +239,7 @@ export default function Communications() {
           content: "Oh, hello! All perfectly. I will check it and get back to you soon.",
           time: "04:45 PM",
           isUnread: false,
+          status: "read",
         },
         {
           id: 2,
@@ -217,6 +247,7 @@ export default function Communications() {
           content: "Yes, hello! All perfectly. I will check it and get back to you soon.",
           time: "04:45 PM",
           isUnread: false,
+          status: "read",
         },
       ],
     },
@@ -227,6 +258,8 @@ export default function Communications() {
       verified: true,
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
       logo: img1,
+      isRead: true,
+      messageStatus: "delivered",
       messages: [
         {
           id: 1,
@@ -234,6 +267,7 @@ export default function Communications() {
           content: "Have you seen the latest design updates?",
           time: "03:30 PM",
           isUnread: false,
+          status: "delivered",
         },
         {
           id: 2,
@@ -241,6 +275,7 @@ export default function Communications() {
           content: "Not yet, I'll take a look right away.",
           time: "03:32 PM",
           isUnread: false,
+          status: "sent",
         },
       ],
     },
@@ -253,6 +288,8 @@ export default function Communications() {
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
       logo: img2,
+      isRead: true,
+      messageStatus: "read",
       messages: [
         {
           id: 1,
@@ -260,6 +297,7 @@ export default function Communications() {
           content: "When is our next meeting scheduled?",
           time: "02:15 PM",
           isUnread: false,
+          status: "read",
         },
         {
           id: 2,
@@ -267,6 +305,7 @@ export default function Communications() {
           content: "Tomorrow at 10 AM.",
           time: "02:17 PM",
           isUnread: false,
+          status: "read",
         },
       ],
     },
@@ -277,6 +316,8 @@ export default function Communications() {
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
       logo: img2,
       isBirthday: true,
+      isRead: false,
+      messageStatus: "sent",
       messages: [
         {
           id: 1,
@@ -284,6 +325,7 @@ export default function Communications() {
           content: "Can we discuss the project timeline?",
           time: "01:45 PM",
           isUnread: false,
+          status: "sent",
         },
         {
           id: 2,
@@ -291,6 +333,7 @@ export default function Communications() {
           content: "Sure, I'm available this afternoon.",
           time: "01:50 PM",
           isUnread: false,
+          status: "delivered",
         },
       ],
     },
@@ -300,6 +343,8 @@ export default function Communications() {
       time: "Today | 05:30 PM",
       message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
       logo: img1,
+      isRead: true,
+      messageStatus: "delivered",
       messages: [
         {
           id: 1,
@@ -307,6 +352,7 @@ export default function Communications() {
           content: "Did you review the latest feedback?",
           time: "11:20 AM",
           isUnread: false,
+          status: "delivered",
         },
         {
           id: 2,
@@ -314,6 +360,7 @@ export default function Communications() {
           content: "Yes, I've incorporated the changes.",
           time: "11:25 AM",
           isUnread: false,
+          status: "read",
         },
       ],
     },
@@ -327,6 +374,8 @@ export default function Communications() {
       time: "Today | 05:30 PM",
       message: "Welcome to Fit Chain GmbH communications",
       logo: img1,
+      isRead: true,
+      messageStatus: "read",
       messages: [
         {
           id: 1,
@@ -334,6 +383,7 @@ export default function Communications() {
           content: "Welcome to Fit Chain GmbH internal communications.",
           time: "09:00 AM",
           isUnread: false,
+          status: "read",
         },
       ],
     },
@@ -353,9 +403,9 @@ export default function Communications() {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
-  }, [])
+  }, [messages])
 
-  const handleCloseChat = (chatId, e) => {
+  const handleArchiveChat = (chatId, e) => {
     e.stopPropagation()
     const chatToArchive = chatList.find((chat) => chat.id === chatId)
     if (chatToArchive) {
@@ -365,6 +415,7 @@ export default function Communications() {
     if (selectedChat && selectedChat.id === chatId) {
       setSelectedChat(null)
     }
+    setShowChatMenu(null)
   }
 
   const handleRestoreChat = (chatId) => {
@@ -373,6 +424,47 @@ export default function Communications() {
       setChatList((prev) => [...prev, chatToRestore])
       setArchivedChats((prev) => prev.filter((chat) => chat.id !== chatId))
     }
+  }
+
+  const handlePinChat = (chatId, e) => {
+    e.stopPropagation()
+    setPinnedChats((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(chatId)) {
+        newSet.delete(chatId)
+      } else {
+        newSet.add(chatId)
+      }
+      return newSet
+    })
+    setShowChatMenu(null)
+  }
+
+  const handleMarkChatAsRead = (chatId, e) => {
+    e.stopPropagation()
+    setChatList((prevList) => prevList.map((chat) => (chat.id === chatId ? { ...chat, isRead: true } : chat)))
+    setShowChatMenu(null)
+  }
+
+  const handleMarkChatAsUnread = (chatId, e) => {
+    e.stopPropagation()
+    setChatList((prevList) => prevList.map((chat) => (chat.id === chatId ? { ...chat, isRead: false } : chat)))
+    setShowChatMenu(null)
+  }
+
+  const handleGoToMember = (chatId, e) => {
+    e.stopPropagation()
+    const chat = chatList.find((c) => c.id === chatId) || archivedChats.find((c) => c.id === chatId)
+    if (chat) {
+      // If chat is archived, restore it first
+      if (archivedChats.some((archived) => archived.id === chatId)) {
+        handleRestoreChat(chatId)
+      }
+      setSelectedChat(chat)
+      setMessages(chat.messages || [])
+      setIsMessagesOpen(false)
+    }
+    setShowChatMenu(null)
   }
 
   const handleSendMessage = () => {
@@ -387,23 +479,38 @@ export default function Communications() {
         minute: "2-digit",
       }),
       isUnread: false,
+      status: "sent",
     }
 
     setMessages([...messages, newMessage])
-
     setChatList((prevList) =>
       prevList.map((chat) =>
         chat.id === selectedChat.id
           ? {
-              ...chat,
-              messages: [...(chat.messages || []), newMessage],
-              message: messageText,
-            }
+            ...chat,
+            messages: [...(chat.messages || []), newMessage],
+            message: messageText,
+            messageStatus: "sent",
+          }
           : chat,
       ),
     )
 
+    // Auto-dearchive if chat was archived
+    if (archivedChats.some((chat) => chat.id === selectedChat.id)) {
+      handleRestoreChat(selectedChat.id)
+    }
+
     setMessageText("")
+
+    // Simulate message status updates
+    setTimeout(() => {
+      setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg)))
+    }, 1000)
+
+    setTimeout(() => {
+      setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "read" } : msg)))
+    }, 3000)
   }
 
   const handleReaction = (messageId, reaction) => {
@@ -430,7 +537,7 @@ export default function Communications() {
   }
 
   const handleEmailClick = () => {
-    setShowEmailModal(true)
+    setShowEmailFrontend(true)
   }
 
   const handleSendEmail = () => {
@@ -438,11 +545,13 @@ export default function Communications() {
       alert("Please fill in all email fields")
       return
     }
+    // Add signature if enabled
+    const bodyWithSignature = settings.emailSignature
+      ? `${emailData.body}\n\n${settings.emailSignature}`
+      : emailData.body
 
-    // In a real application, you would send this to your backend
-    console.log("Sending email:", emailData)
+    console.log("Sending email:", { ...emailData, body: bodyWithSignature })
     alert("Email sent successfully!")
-
     setEmailData({ to: "", subject: "", body: "" })
     setShowEmailModal(false)
   }
@@ -505,9 +614,8 @@ export default function Communications() {
   const handleSelectAll = () => {
     const newSelectAll = !selectAll
     setSelectAll(newSelectAll)
-
     if (newSelectAll) {
-      const filteredList = chatList.filter(
+      const filteredList = [...chatList, ...archivedChats].filter(
         (chat) => searchMember === "" || chat.name.toLowerCase().includes(searchMember.toLowerCase()),
       )
       setSelectedRecipients(filteredList)
@@ -534,18 +642,28 @@ export default function Communications() {
       alert("Please select a message to broadcast")
       return
     }
-
     if (selectedRecipients.length === 0) {
       alert("Please select at least one recipient")
       return
     }
 
+    // Add message to selected folder
+    if (selectedFolder) {
+      setBroadcastFolders((prev) =>
+        prev.map((folder) =>
+          folder.id === selectedFolder.id ? { ...folder, messages: [...folder.messages, selectedMessage] } : folder,
+        ),
+      )
+    }
+
     console.log("Broadcasting message to recipients:", selectedRecipients)
     console.log("Broadcast title:", selectedMessage.title)
     console.log("Broadcast message:", selectedMessage.message)
+    console.log("Distribution methods:", { email: settings.broadcastEmail, chat: settings.broadcastChat })
 
-    alert(`Broadcast sent to ${selectedRecipients.length} recipients`)
-
+    alert(
+      `Broadcast sent to ${selectedRecipients.length} recipients via ${settings.broadcastEmail && settings.broadcastChat ? "Email and Chat" : settings.broadcastEmail ? "Email" : "Chat"}`,
+    )
     setSelectedMessage(null)
     setSelectedRecipients([])
     setActiveScreen("chat")
@@ -560,18 +678,17 @@ export default function Communications() {
       alert("Please enter both title and message")
       return
     }
-
     const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1
     const messageToAdd = {
       id: newId,
       title: newMessage.title,
       message: newMessage.message,
+      folderId: newMessage.folderId,
     }
-
     setPreConfiguredMessages([...preConfiguredMessages, messageToAdd])
     setSelectedMessage(messageToAdd)
     setShowCreateMessageModal(false)
-    setNewMessage({ title: "", message: "" })
+    setNewMessage({ title: "", message: "", folderId: 1 })
   }
 
   const handleChatSelect = (chat) => {
@@ -611,6 +728,36 @@ export default function Communications() {
     setShowContingentModal(false)
   }
 
+  const handleSaveSettings = () => {
+    // Save settings logic here
+    setShowSettings(false)
+    alert("Settings saved successfully!")
+  }
+
+  const handleCreateFolder = () => {
+    if (!newFolderName.trim()) {
+      alert("Please enter a folder name")
+      return
+    }
+    const newId = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1
+    setBroadcastFolders([...broadcastFolders, { id: newId, name: newFolderName, messages: [] }])
+    setNewFolderName("")
+    setShowFolderModal(false)
+  }
+
+  const getMessageStatusIcon = (status) => {
+    switch (status) {
+      case "sent":
+        return <Check className="w-4 h-4 text-gray-400" />
+      case "delivered":
+        return <CheckCheck className="w-4 h-4 text-gray-400" />
+      case "read":
+        return <CheckCheck className="w-4 h-4 text-blue-500" />
+      default:
+        return null
+    }
+  }
+
   const reactions = [
     { emoji: "❤️", name: "heart" },
     { emoji: "😂", name: "laugh" },
@@ -618,6 +765,20 @@ export default function Communications() {
     { emoji: "😢", name: "sad" },
     { emoji: "😡", name: "angry" },
   ]
+
+  // Filter and sort chats (pinned first, then by time)
+  const sortedChatList = [...chatList].sort((a, b) => {
+    const aPinned = pinnedChats.has(a.id)
+    const bPinned = pinnedChats.has(b.id)
+    if (aPinned && !bPinned) return -1
+    if (!aPinned && bPinned) return 1
+    return 0
+  })
+
+  // Combined search for both active and archived chats
+  const searchResults = searchMember
+    ? [...chatList, ...archivedChats].filter((chat) => chat.name.toLowerCase().includes(searchMember.toLowerCase()))
+    : []
 
   return (
     <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
@@ -631,50 +792,56 @@ export default function Communications() {
 
       {/* Sidebar */}
       <div
-        className={`fixed md:relative inset-y-0 left-0 md:w-[380px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${
-          isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } bg-black z-40`}
+        className={`fixed md:relative inset-y-0 left-0 md:w-[380px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          } bg-black z-40`}
       >
         <div className="p-4 h-full flex flex-col relative">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">Communications</h1>
-            <button
-              onClick={() => setIsMessagesOpen(false)}
-              className="md:hidden text-gray-400 hover:text-gray-300"
-              aria-label="Close messages"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowSettings(true)}
+                className="p-2 hover:bg-gray-800 rounded-full"
+                aria-label="Settings"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setIsMessagesOpen(false)}
+                className="md:hidden text-gray-400 hover:text-gray-300"
+                aria-label="Close messages"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-2 items-center justify-between mb-4">
-          <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
-  <button
-    className={`px-4 py-2 flex items-center rounded-lg text-sm transition-colors ${
-      chatType === "member" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-    }`}
-    onClick={() => setChatType("member")}
-  >
-    <User size={16} className="inline mr-2" />
-    Member
-  </button>
-  <button
-    className={`px-4 flex items-center py-2 rounded-lg text-sm transition-colors ${
-      chatType === "company" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-    }`}
-    onClick={() => setChatType("company")}
-  >
-    <Building2 size={16} className="inline mr-2" />
-    Studio
-  </button>
-  <button
-    className="px-4 py-2 flex items-center rounded-lg text-sm text-gray-400 hover:text-white transition-colors"
-    onClick={handleEmailClick}
-  >
-    <Mail size={16} className="inline mr-2" />
-    Email
-  </button>
-</div>
+            <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
+              <button
+                className={`px-4 py-2 flex items-center rounded-lg text-sm transition-colors ${chatType === "member" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
+                onClick={() => setChatType("member")}
+              >
+                <User size={16} className="inline mr-2" />
+                Member
+              </button>
+              <button
+                className={`px-4 flex items-center py-2 rounded-lg text-sm transition-colors ${chatType === "company" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
+                onClick={() => setChatType("company")}
+              >
+                <Building2 size={16} className="inline mr-2" />
+                Studio
+              </button>
+              <button
+                className="px-4 py-2 flex items-center rounded-lg text-sm text-gray-400 hover:text-white transition-colors"
+                onClick={handleEmailClick}
+              >
+                <Mail size={16} className="inline mr-2" />
+                Email
+              </button>
+            </div>
 
             {chatType !== "company" && (
               <div className="relative">
@@ -686,7 +853,6 @@ export default function Communications() {
                 >
                   <MoreVertical className="w-6 h-6 cursor-pointer text-gray-200" />
                 </button>
-
                 {activeDropdownId === "main" && (
                   <div
                     ref={dropdownRef}
@@ -702,16 +868,8 @@ export default function Communications() {
                     <button className="w-full px-4 py-2 text-sm hover:bg-gray-800 text-left" onClick={handleNewGroup}>
                       New Group
                     </button>
-                    <div className="h-[1px] bg-[#BCBBBB] w-[85%] mx-auto" />
-                    <button
-                      className="w-full px-4 py-2 text-sm hover:bg-gray-800 text-left"
-                      onClick={() => setShowArchive(true)}
-                    >
-                      Archive
-                    </button>
                   </div>
                 )}
-
                 {showChatDropdown && (
                   <div
                     ref={chatDropdownRef}
@@ -743,7 +901,6 @@ export default function Communications() {
                     </div>
                   </div>
                 )}
-
                 {showGroupDropdown && (
                   <div
                     ref={groupDropdownRef}
@@ -780,65 +937,176 @@ export default function Communications() {
           </div>
 
           {chatType !== "company" && (
-            <div className="relative mb-4">
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full px-4 py-2 pl-10 border border-slate-200 bg-black rounded-xl text-sm outline-none"
-              />
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            </div>
+            <>
+              <div className="relative mb-4">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchMember}
+                  onChange={(e) => setSearchMember(e.target.value)}
+                  className="w-full px-4 py-2 pl-10 border border-slate-200 bg-black rounded-xl text-sm outline-none"
+                />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              </div>
+
+              {/* Archive Button */}
+              <button
+                onClick={() => setShowArchive(true)}
+                className="flex items-center gap-2 px-4 py-2 mb-4 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-sm transition-colors"
+              >
+                <Archive className="w-4 h-4" />
+                Archived ({archivedChats.length})
+              </button>
+            </>
           )}
 
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
-            {chatList.map((chat, index) => (
-              <div
-                key={index}
-                className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${
-                  selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
-                } cursor-pointer relative group`}
-                onClick={() => handleChatSelect(chat)}
-              >
-                <div className="relative">
-                  <img
-                    src={chat.logo || "/placeholder.svg?height=40&width=40"}
-                    alt={`${chat.name}'s avatar`}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                  {chat.isBirthday && (
-                    <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
-                      <Gift className="w-3 h-3 text-white" />
+            {/* Show search results if searching */}
+            {searchMember && searchResults.length > 0
+              ? searchResults.map((chat, index) => (
+                <div
+                  key={`search-${chat.id}-${index}`}
+                  className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
+                    } cursor-pointer relative group`}
+                  onClick={() => handleChatSelect(chat)}
+                >
+                  <div className="relative">
+                    <img
+                      src={chat.logo || "/placeholder.svg?height=40&width=40"}
+                      alt={`${chat.name}'s avatar`}
+                      width={40}
+                      height={40}
+                      className="rounded-full cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleGoToMember(chat.id, e)
+                      }}
+                    />
+                    {chat.isBirthday && (
+                      <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
+                        <Gift className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium truncate">{chat.name}</span>
+                        {pinnedChats.has(chat.id) && <Pin className="w-3 h-3 text-gray-400" />}
+                        {archivedChats.some((archived) => archived.id === chat.id) && (
+                          <span className="text-xs bg-gray-600 px-2 py-1 rounded">Archived</span>
+                        )}
+                      </div>
+                      {!chat.isRead && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <p className="truncate">{chat.message}</p>
+                      {getMessageStatusIcon(chat.messageStatus)}
+                    </div>
+                    <div className="flex mt-1 text-gray-400 items-center gap-1">
+                      <Clock size={15} />
+                      <span className="text-sm text-gray-400">{chat.time}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+              : /* Regular chat list */
+              sortedChatList.map((chat, index) => (
+                <div
+                  key={index}
+                  className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
+                    } cursor-pointer relative group`}
+                  onClick={() => handleChatSelect(chat)}
+                >
+                  <div className="relative">
+                    <img
+                      src={chat.logo || "/placeholder.svg?height=40&width=40"}
+                      alt={`${chat.name}'s avatar`}
+                      width={40}
+                      height={40}
+                      className="rounded-full cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleGoToMember(chat.id, e)
+                      }}
+                    />
+                    {chat.isBirthday && (
+                      <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
+                        <Gift className="w-5 h-5 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium truncate">{chat.name}</span>
+                        {pinnedChats.has(chat.id) && <Pin className="w-4 h-4 text-gray-400" />}
+                      </div>
+                      {!chat.isRead && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <p className="truncate">{chat.message}</p>
+                      {getMessageStatusIcon(chat.messageStatus)}
+                    </div>
+                    <div className="flex mt-1 text-gray-400 items-center gap-1">
+                      <Clock size={15} />
+                      <span className="text-sm text-gray-400">{chat.time}</span>
+                    </div>
+                  </div>
+                  {chatType !== "company" && (
+                    <div className="relative">
+                      <button
+                        className="opacity-100 p-1 hover:bg-gray-600 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setShowChatMenu(showChatMenu === chat.id ? null : chat.id)
+                        }}
+                        aria-label="Chat options"
+                      >
+                        <MoreVertical className="w-5 h-5 text-gray-300" />
+                      </button>
+                      {showChatMenu === chat.id && (
+                        <div
+                          ref={chatMenuRef}
+                          className="absolute right-0 top-8 w-48 bg-[#2F2F2F] rounded-xl border border-gray-800 shadow-lg overflow-hidden z-20"
+                        >
+                          <button
+                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                            onClick={(e) =>
+                              chat.isRead ? handleMarkChatAsUnread(chat.id, e) : handleMarkChatAsRead(chat.id, e)
+                            }
+                          >
+                            {chat.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            Mark as {chat.isRead ? "unread" : "read"}
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                            onClick={(e) => handlePinChat(chat.id, e)}
+                          >
+                            <Pin className="w-4 h-4" />
+                            {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                            onClick={(e) => handleArchiveChat(chat.id, e)}
+                          >
+                            <Archive className="w-4 h-4" />
+                            Archive chat
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                            onClick={(e) => handleGoToMember(chat.id, e)}
+                          >
+                            <User className="w-4 h-4" />
+                            Go to member
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium truncate">{chat.name}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <p className="truncate">{chat.message}</p>
-                  </div>
-                  <div className="flex mt-1 text-gray-400 items-center gap-1">
-                    <Clock size={15} />
-                    <span className="text-sm text-gray-400">{chat.time}</span>
-                  </div>
-                </div>
-                {chatType !== "company" && (
-                  <button
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 bg-gray-700 hover:bg-gray-600 rounded-full"
-                    onClick={(e) => handleCloseChat(chat.id, e)}
-                    aria-label="Archive chat"
-                  >
-                    <XCircle className="w-4 h-4 text-gray-300" />
-                  </button>
-                )}
-              </div>
-            ))}
-            {chatList.length === 0 && (
+              ))}
+            {sortedChatList.length === 0 && !searchMember && (
               <div className="flex flex-col items-center justify-center h-40 text-gray-400">
                 <p className="mb-2">No chats available</p>
                 {chatType !== "company" && (
@@ -856,7 +1124,7 @@ export default function Communications() {
             onClick={() => setActiveScreen("send-message")}
             className="absolute bottom-6 right-6 p-3 bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg"
           >
-            <IoIosMegaphone className="w-5 h-5 text-white" />
+            <IoIosMegaphone className="w-6 h-6 text-white" />
           </button>
         </div>
       </div>
@@ -879,8 +1147,8 @@ export default function Communications() {
               />
             </div>
             <p className="md:w-[50%] text-gray-400 text-sm mx-auto w-full">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam odio quaerat aliquam magnam omnis
-              inventore deserunt unde ut explicabo corporis.
+              Select a chat to start messaging or choose from your archived conversations. Click on a member's name or
+              avatar to view their profile.
             </p>
           </div>
         )}
@@ -902,15 +1170,21 @@ export default function Communications() {
                     alt="Current chat avatar"
                     width={48}
                     height={48}
-                    className="rounded-full"
+                    className="rounded-full cursor-pointer"
+                    onClick={() => handleGoToMember(selectedChat.id, {})}
                   />
                   {selectedChat.isBirthday && (
                     <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
-                      <Gift className="w-3 h-3 text-white" />
+                      <Gift className="w-5 h-5 text-white" />
                     </div>
                   )}
                 </div>
-                <span className="font-medium">{selectedChat.name}</span>
+                <span
+                  className="font-medium cursor-pointer hover:text-blue-400"
+                  onClick={() => handleGoToMember(selectedChat.id, {})}
+                >
+                  {selectedChat.name}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -919,6 +1193,20 @@ export default function Communications() {
                   onClick={handleCalendarClick}
                 >
                   <Calendar className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="text-gray-400 hover:text-gray-300"
+                  aria-label="Settings"
+                >
+                  <Settings className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={handleEmailClick}
+                  className="text-gray-400 hover:text-gray-300"
+                  aria-label="Send Email"
+                >
+                  <Mail className="w-6 h-6" />
                 </button>
                 <div className="relative flex items-center">
                   <button
@@ -940,27 +1228,24 @@ export default function Communications() {
                     }}
                   />
                 </div>
-                <button
+                {/* <button
                   className="text-gray-400 hover:text-gray-300 p-1 rounded-full hover:bg-gray-800"
                   onClick={() => setSelectedChat(null)}
                   aria-label="Close current chat"
                 >
                   <X className="w-6 h-6" />
-                </button>
+                </button> */}
               </div>
             </div>
-
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map((message) => (
                 <div key={message.id} className={`flex gap-3 ${message.sender === "You" ? "justify-end" : ""} group`}>
                   <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""}`}>
                     <div
-                      className={`rounded-xl p-4 text-sm max-w-md relative ${
-                        message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
-                      } ${unreadMessages.has(message.id) ? "border-2 border-yellow-500" : ""}`}
+                      className={`rounded-xl p-4 text-sm max-w-md relative ${message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
+                        } ${unreadMessages.has(message.id) ? "border-2 border-yellow-500" : ""}`}
                     >
                       <p>{message.content}</p>
-
                       {/* Message actions */}
                       <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
                         <button
@@ -968,7 +1253,7 @@ export default function Communications() {
                           className="p-1 bg-gray-700 hover:bg-gray-600 rounded-full"
                           title="Add reaction"
                         >
-                          <Smile className="w-3 h-3" />
+                          <Smile className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleMarkAsUnread(message.id)}
@@ -976,13 +1261,12 @@ export default function Communications() {
                           title={unreadMessages.has(message.id) ? "Mark as read" : "Mark as unread"}
                         >
                           {unreadMessages.has(message.id) ? (
-                            <Eye className="w-3 h-3" />
+                            <Eye className="w-5 h-5" />
                           ) : (
-                            <EyeOff className="w-3 h-3" />
+                            <EyeOff className="w-5 h-5" />
                           )}
                         </button>
                       </div>
-
                       {/* Reaction picker */}
                       {showReactionPicker === message.id && (
                         <div className="absolute -top-12 left-0 bg-gray-800 rounded-lg shadow-lg p-2 flex gap-1 z-10">
@@ -990,14 +1274,13 @@ export default function Communications() {
                             <button
                               key={reaction.name}
                               onClick={() => handleReaction(message.id, reaction.name)}
-                              className="p-1 hover:bg-gray-700 rounded"
+                              className="p-1 hover:bg-gray-700 rounded text-xl"
                             >
                               {reaction.emoji}
                             </button>
                           ))}
                         </div>
                       )}
-
                       {/* Display reactions */}
                       {messageReactions[message.id] && (
                         <div className="flex gap-1 mt-2">
@@ -1008,20 +1291,22 @@ export default function Communications() {
                                 key={reactionName}
                                 className="bg-gray-700 rounded-full px-2 py-1 text-xs flex items-center gap-1"
                               >
-                                {reaction?.emoji} {count}
+                                <span className="text-lg">{reaction?.emoji}</span> {count}
                               </span>
                             )
                           })}
                         </div>
                       )}
                     </div>
-                    <span className="text-sm text-gray-400">{message.time}</span>
+                    <div className="flex items-center gap-1 text-sm text-gray-400">
+                      <span>{message.time}</span>
+                      {message.sender === "You" && getMessageStatusIcon(message.status)}
+                    </div>
                   </div>
                 </div>
               ))}
               <div ref={messagesEndRef} />
             </div>
-
             <div className="p-4 border-t border-gray-800">
               <div className="flex items-center gap-2 bg-black rounded-xl p-2">
                 <button
@@ -1029,7 +1314,7 @@ export default function Communications() {
                   aria-label="Add emoji"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 >
-                  <Smile className="w-5 h-5 text-gray-200" />
+                  <Smile className="w-7 h-7 text-gray-200" />
                 </button>
                 <input
                   type="text"
@@ -1050,7 +1335,7 @@ export default function Communications() {
                     aria-label="Send message"
                     onClick={handleSendMessage}
                   >
-                    <Send className="w-5 h-5 text-gray-200" />
+                    <Send className="w-7 h-7 text-gray-200" />
                   </button>
                 </div>
               </div>
@@ -1061,7 +1346,7 @@ export default function Communications() {
                       {["😀", "😂", "😊", "❤️", "👍", "🎉", "🔥", "⭐", "🙏", "👏"].map((emoji, i) => (
                         <button
                           key={i}
-                          className="p-2 hover:bg-gray-700 rounded-md"
+                          className="p-2 hover:bg-gray-700 rounded-md text-2xl"
                           onClick={() => handleEmojiSelect({ native: emoji })}
                         >
                           {emoji}
@@ -1076,8 +1361,8 @@ export default function Communications() {
         )}
 
         {activeScreen === "send-message" && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 overflow-y-auto">
+            <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
               <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-medium">New Broadcast</h2>
@@ -1085,28 +1370,55 @@ export default function Communications() {
                     <X size={16} />
                   </button>
                 </div>
-
                 <div className="space-y-4">
+                  {/* Folder Selection */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-400">Message Folder</label>
+                      <button
+                        onClick={() => setShowFolderModal(true)}
+                        className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
+                      >
+                        <FolderPlus className="w-4 h-4" />
+                        New Folder
+                      </button>
+                    </div>
+                    <select
+                      value={selectedFolder?.id || ""}
+                      onChange={(e) =>
+                        setSelectedFolder(broadcastFolders.find((f) => f.id === Number.parseInt(e.target.value)))
+                      }
+                      className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                    >
+                      <option value="">Select folder...</option>
+                      {broadcastFolders.map((folder) => (
+                        <option key={folder.id} value={folder.id}>
+                          {folder.name} ({folder.messages.length} messages)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-1">
                       Select Pre-configured Message
                     </label>
-                    <div className="bg-[#222222] rounded-xl overflow-hidden">
-                      {preConfiguredMessages.map((msg) => (
-                        <div
-                          key={msg.id}
-                          onClick={() => setSelectedMessage(msg)}
-                          className={`p-3 cursor-pointer hover:bg-[#2F2F2F] ${
-                            selectedMessage?.id === msg.id ? "bg-[#2F2F2F] border-l-4 border-blue-500" : ""
-                          }`}
-                        >
-                          <p className="font-medium text-sm">{msg.title}</p>
-                          <p className="text-xs text-gray-400 truncate">{msg.message}</p>
-                        </div>
-                      ))}
+                    <div className="bg-[#222222] rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                      {preConfiguredMessages
+                        .filter((msg) => !selectedFolder || msg.folderId === selectedFolder.id)
+                        .map((msg) => (
+                          <div
+                            key={msg.id}
+                            onClick={() => setSelectedMessage(msg)}
+                            className={`p-3 cursor-pointer hover:bg-[#2F2F2F] ${selectedMessage?.id === msg.id ? "bg-[#2F2F2F] border-l-4 border-blue-500" : ""
+                              }`}
+                          >
+                            <p className="font-medium text-sm">{msg.title}</p>
+                            <p className="text-xs text-gray-400 truncate">{msg.message}</p>
+                          </div>
+                        ))}
                     </div>
                   </div>
-
                   <div className="mb-4">
                     <button
                       onClick={handleCreateMessage}
@@ -1115,7 +1427,6 @@ export default function Communications() {
                       Create New Message
                     </button>
                   </div>
-
                   <div className="relative">
                     <button
                       onClick={() => {
@@ -1128,7 +1439,6 @@ export default function Communications() {
                     >
                       Select Recipients
                     </button>
-
                     {showRecipientDropdown && (
                       <div
                         ref={recipientDropdownRef}
@@ -1156,7 +1466,7 @@ export default function Communications() {
                             />
                           </div>
                         </div>
-                        {chatList
+                        {[...chatList, ...archivedChats]
                           .filter(
                             (chat) =>
                               searchMember === "" || chat.name.toLowerCase().includes(searchMember.toLowerCase()),
@@ -1185,7 +1495,6 @@ export default function Communications() {
                       </div>
                     )}
                   </div>
-
                   <div className="space-y-2">
                     {selectedRecipients.map((recipient, i) => (
                       <div key={i} className="flex items-center justify-between bg-[#222222] rounded-xl p-3">
@@ -1207,14 +1516,44 @@ export default function Communications() {
                     ))}
                   </div>
 
+                  {/* Broadcast Distribution Options */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-400">Distribution Methods</label>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.broadcastEmail}
+                          onChange={(e) => setSettings({ ...settings, broadcastEmail: e.target.checked })}
+                          className="rounded border-gray-600 bg-transparent"
+                        />
+                        <span className="text-sm text-gray-300">Email</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.broadcastChat}
+                          onChange={(e) => setSettings({ ...settings, broadcastChat: e.target.checked })}
+                          className="rounded border-gray-600 bg-transparent"
+                        />
+                        <span className="text-sm text-gray-300">Chat Notification</span>
+                      </label>
+                    </div>
+                  </div>
+
                   <button
                     onClick={handleBroadcast}
-                    className={`w-full py-3 ${
-                      selectedMessage && selectedRecipients.length > 0
+                    className={`w-full py-3 ${selectedMessage &&
+                        selectedRecipients.length > 0 &&
+                        (settings.broadcastEmail || settings.broadcastChat)
                         ? "bg-[#FF843E] text-sm hover:bg-orange-600"
                         : "bg-gray-600"
-                    } text-white text-sm rounded-xl`}
-                    disabled={!selectedMessage || selectedRecipients.length === 0}
+                      } text-white text-sm rounded-xl`}
+                    disabled={
+                      !selectedMessage ||
+                      selectedRecipients.length === 0 ||
+                      (!settings.broadcastEmail && !settings.broadcastChat)
+                    }
                   >
                     Send Broadcast
                   </button>
@@ -1225,10 +1564,202 @@ export default function Communications() {
         )}
       </div>
 
+      {/* Email Frontend Modal */}
+      {showEmailFrontend && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-medium flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  Email Management
+                </h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowEmailModal(true)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm flex items-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    Send Email
+                  </button>
+                  <button onClick={() => setShowSettings(true)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                    <Settings className="w-5 h-5" />
+                  </button>
+                  <button onClick={() => setShowEmailFrontend(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Email Tabs */}
+              <div className="flex gap-2 mb-4 border-b border-gray-700">
+                <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-t-lg">Sent</button>
+                <button className="px-4 py-2 text-sm text-gray-400 hover:text-white">Outbox</button>
+                <button className="px-4 py-2 text-sm text-gray-400 hover:text-white">Archive</button>
+                <button className="px-4 py-2 text-sm text-gray-400 hover:text-white">Error</button>
+              </div>
+
+              {/* Email List */}
+              <div className="space-y-2">
+                {[
+                  {
+                    id: 1,
+                    recipient: "member@example.com",
+                    subject: "Meeting Reminder",
+                    status: "Delivered",
+                    time: "28.06.2025, 10:00",
+                  },
+                  {
+                    id: 2,
+                    recipient: "member2@example.com",
+                    subject: "Event Announcement",
+                    status: "Read",
+                    time: "28.06.2025, 08:30",
+                  },
+                  {
+                    id: 3,
+                    recipient: "member3@example.com",
+                    subject: "Important Update",
+                    status: "Delivered",
+                    time: "27.06.2025, 19:15",
+                  },
+                ].map((email) => (
+                  <div
+                    key={email.id}
+                    className="flex items-center justify-between p-3 bg-[#222222] rounded-xl hover:bg-[#2F2F2F]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" className="rounded border-gray-600 bg-transparent" />
+                      <div>
+                        <p className="font-medium text-sm">{email.recipient}</p>
+                        <p className="text-xs text-gray-400">{email.subject}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${email.status === "Read"
+                            ? "bg-blue-600"
+                            : email.status === "Delivered"
+                              ? "bg-green-600"
+                              : "bg-gray-600"
+                          }`}
+                      >
+                        {email.status}
+                      </span>
+                      <span className="text-xs text-gray-400">{email.time}</span>
+                      <button className="p-1 hover:bg-gray-600 rounded">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-medium flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  Settings
+                </h2>
+                <button onClick={() => setShowSettings(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Auto-Archive Duration (days)</label>
+                  <input
+                    type="number"
+                    value={settings.autoArchiveDuration}
+                    onChange={(e) => setSettings({ ...settings, autoArchiveDuration: Number.parseInt(e.target.value) })}
+                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                    min="1"
+                    max="365"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Notifications</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.emailNotifications}
+                        onChange={(e) => setSettings({ ...settings, emailNotifications: e.target.checked })}
+                        className="rounded border-gray-600 bg-transparent"
+                      />
+                      <span className="text-sm text-gray-300">Email Notifications</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.chatNotifications}
+                        onChange={(e) => setSettings({ ...settings, chatNotifications: e.target.checked })}
+                        className="rounded border-gray-600 bg-transparent"
+                      />
+                      <span className="text-sm text-gray-300">Chat Notifications</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Default Email Signature</label>
+                  <textarea
+                    value={settings.emailSignature}
+                    onChange={(e) => setSettings({ ...settings, emailSignature: e.target.value })}
+                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm h-24 resize-none"
+                    placeholder="Enter your default email signature..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Default Broadcast Distribution</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.broadcastEmail}
+                        onChange={(e) => setSettings({ ...settings, broadcastEmail: e.target.checked })}
+                        className="rounded border-gray-600 bg-transparent"
+                      />
+                      <span className="text-sm text-gray-300">Email</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.broadcastChat}
+                        onChange={(e) => setSettings({ ...settings, broadcastChat: e.target.checked })}
+                        className="rounded border-gray-600 bg-transparent"
+                      />
+                      <span className="text-sm text-gray-300">Chat Notification</span>
+                    </label>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleSaveSettings}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
+                >
+                  Save Settings
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Email Modal */}
       {showEmailModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+          <div className="bg-[#181818] rounded-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-medium flex items-center gap-2">
@@ -1239,7 +1770,6 @@ export default function Communications() {
                   <X size={16} />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">To</label>
@@ -1251,7 +1781,6 @@ export default function Communications() {
                     placeholder="recipient@example.com"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Subject</label>
                   <input
@@ -1262,17 +1791,27 @@ export default function Communications() {
                     placeholder="Email subject"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Message</label>
-                  <textarea
-                    value={emailData.body}
-                    onChange={(e) => setEmailData({ ...emailData, body: e.target.value })}
-                    className="w-full bg-[#222222] resize-none text-white rounded-xl px-4 py-2 text-sm h-32 resize-none"
-                    placeholder="Type your email message here..."
-                  />
+                  <div className="bg-[#222222] rounded-xl">
+                    {/* Email Toolbar */}
+                    <div className="flex items-center gap-2 p-2 border-b border-gray-700">
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm font-bold">B</button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm italic">I</button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm underline">U</button>
+                      <div className="w-px h-4 bg-gray-600 mx-1" />
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm">📎</button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm">🔗</button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm">📊</button>
+                    </div>
+                    <textarea
+                      value={emailData.body}
+                      onChange={(e) => setEmailData({ ...emailData, body: e.target.value })}
+                      className="w-full bg-transparent text-white px-4 py-2 text-sm h-48 resize-none focus:outline-none"
+                      placeholder="Type your email message here..."
+                    />
+                  </div>
                 </div>
-
                 <div className="flex gap-2 justify-end">
                   <button
                     onClick={() => setShowEmailModal(false)}
@@ -1297,7 +1836,7 @@ export default function Communications() {
       {/* Archive Modal */}
       {showArchive && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto">
+          <div className="bg-[#181818] rounded-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-medium flex items-center gap-2">
@@ -1308,7 +1847,6 @@ export default function Communications() {
                   <X size={16} />
                 </button>
               </div>
-
               <div className="space-y-2">
                 {archivedChats.length === 0 ? (
                   <div className="text-center py-8 text-gray-400">
@@ -1319,7 +1857,8 @@ export default function Communications() {
                   archivedChats.map((chat) => (
                     <div
                       key={chat.id}
-                      className="flex items-center gap-3 p-3 bg-[#222222] rounded-xl hover:bg-[#2F2F2F]"
+                      className="flex items-center gap-3 p-3 bg-[#222222] rounded-xl hover:bg-[#2F2F2F] cursor-pointer"
+                      onClick={() => handleGoToMember(chat.id, {})}
                     >
                       <img
                         src={chat.logo || "/placeholder.svg?height=32&width=32"}
@@ -1333,7 +1872,10 @@ export default function Communications() {
                         <p className="text-xs text-gray-400 truncate">{chat.message}</p>
                       </div>
                       <button
-                        onClick={() => handleRestoreChat(chat.id)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleRestoreChat(chat.id)
+                        }}
                         className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs"
                       >
                         Restore
@@ -1341,6 +1883,52 @@ export default function Communications() {
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Folder Creation Modal */}
+      {showFolderModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-medium flex items-center gap-2">
+                  <FolderPlus className="w-5 h-5" />
+                  Create New Folder
+                </h2>
+                <button onClick={() => setShowFolderModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Folder Name</label>
+                  <input
+                    type="text"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                    placeholder="Enter folder name"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => setShowFolderModal(false)}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateFolder}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
+                  >
+                    Create Folder
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1369,14 +1957,12 @@ export default function Communications() {
                   <X size={16} />
                 </button>
               </div>
-
               <div className="space-y-3 mb-4">
                 <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
                 {appointments.length > 0 ? (
                   appointments.map((appointment) => {
                     const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
                     const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
-
                     return (
                       <div
                         key={appointment.id}
@@ -1470,7 +2056,6 @@ export default function Communications() {
                   </div>
                 )}
               </div>
-
               <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
                 <div className="text-sm text-gray-300">
                   Contingent ({currentBillingPeriod}): {contingent.used} / {contingent.total}
@@ -1496,7 +2081,6 @@ export default function Communications() {
                   Manage
                 </button>
               </div>
-
               <button
                 onClick={handleCreateNewAppointment}
                 className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
@@ -1537,7 +2121,6 @@ export default function Communications() {
         />
       )}
 
-      {/* Create Message Modal */}
       {showCreateMessageModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
@@ -1548,8 +2131,21 @@ export default function Communications() {
                   <X size={16} />
                 </button>
               </div>
-
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Folder</label>
+                  <select
+                    value={newMessage.folderId}
+                    onChange={(e) => setNewMessage({ ...newMessage, folderId: Number.parseInt(e.target.value) })}
+                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                  >
+                    {broadcastFolders.map((folder) => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
                   <input
@@ -1560,7 +2156,6 @@ export default function Communications() {
                     placeholder="Enter message title"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Message</label>
                   <textarea
@@ -1570,7 +2165,6 @@ export default function Communications() {
                     placeholder="Enter your message content"
                   />
                 </div>
-
                 <button
                   onClick={handleSaveNewMessage}
                   className="w-full py-3 bg-[#FF843E] text-sm hover:bg-orange-600 text-white rounded-xl"
@@ -1584,7 +2178,6 @@ export default function Communications() {
         </div>
       )}
 
-      {/* Contingent Management Modal */}
       {showContingentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
@@ -1595,7 +2188,6 @@ export default function Communications() {
                   <X size={16} />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
@@ -1627,7 +2219,6 @@ export default function Communications() {
                     Note: You can only increase the current usage, not the maximum value.
                   </p>
                 </div>
-
                 <div className="flex gap-2 justify-end">
                   <button
                     onClick={() => setShowContingentModal(false)}
@@ -1658,14 +2249,12 @@ export default function Communications() {
                   <X size={16} />
                 </button>
               </div>
-
               <p className="text-gray-300 text-sm mb-4">
                 {notifyAction === "book" && "Would you like to notify the member about their new appointment?"}
                 {notifyAction === "change" && "Would you like to notify the member about changes to their appointment?"}
                 {notifyAction === "delete" &&
                   "Would you like to notify the member that their appointment has been cancelled?"}
               </p>
-
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setIsNotifyMemberOpen(false)}

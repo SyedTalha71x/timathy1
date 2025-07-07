@@ -42,7 +42,7 @@ import {
   studioMembersData,
   studioStaffData,
   studioStatsData,
-} from "../../states/states"
+} from "../../utils/states"
 import EditStudioModal from "../../components/customer-dashboard/studios-modal/edit-studio-modal"
 import ContractsModal from "../../components/customer-dashboard/studios-modal/contract-modal"
 import { EditLeadModal } from "../../components/lead-components/edit-lead-modal"

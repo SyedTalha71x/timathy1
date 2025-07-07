@@ -23,6 +23,8 @@ import { MdOutlineLeaderboard } from "react-icons/md";
 
 const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(2);
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
@@ -218,7 +220,7 @@ const Sidebar = () => {
           <nav className="flex-1 overflow-y-auto">
             <ul className="space-y-2 p-4">
               {menuItems.map((item) => (
-                <li key={item.label}> 
+                <li key={item.label}>
                   <button
                     onClick={() => handleNavigation(item.to)}
                     className={`
@@ -231,7 +233,14 @@ const Sidebar = () => {
                     `}
                   >
                     <item.icon size={20} className={`${location.pathname === item.to ? "text-white" : "text-zinc-400 group-hover:text-white"}`} />
-                    {!isCollapsed && <span>{item.label}</span>}
+                    {!isCollapsed && <span className="relative">
+                      {item.label}
+                      {item.label === "Communication" && unreadMessages > 0 && (
+                        <span className="absolute bottom-1 -right-5 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                          {unreadMessages}
+                        </span>
+                      )}
+                    </span>}
                   </button>
                 </li>
               ))}
@@ -267,8 +276,7 @@ const Sidebar = () => {
         className={`
           fixed top-0 right-0 bottom-0 w-[320px] bg-[#181818] p-6 z-50 
           lg:static lg:w-80 lg:hidden block lg:rounded-3xl
-          transform ${
-            isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+          transform ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
           }
           transition-all duration-500 ease-in-out
           overflow-y-auto
