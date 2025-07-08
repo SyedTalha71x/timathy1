@@ -5,328 +5,14 @@ import { useState, useEffect } from "react"
 import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X } from "lucide-react"
 import CheckFundsModal from "../components/finance-components/check-funds-modal"
 import SepaXmlModal from "../components/finance-components/sepa-xml-modal"
+import { financialData } from "../utils/states"
+import { useNavigate } from "react-router-dom"
 
-const financialData = {
-  "This Month": {
-    totalRevenue: 12500,
-    pendingPayments: 1800,
-    failedPayments: 750,
-    successfulPayments: 9950,
-    transactions: [
-      {
-        id: "tx-001",
-        memberName: "John Doe",
-        date: "2023-05-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 100, description: "Monthly membership fee" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-002",
-        memberName: "Jane Smith",
-        date: "2023-05-14",
-        amount: 200,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Membership", cost: 150, description: "Premium membership with extra benefits" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-003",
-        memberName: "Bob Johnson",
-        date: "2023-05-12",
-        amount: 150,
-        status: "Failed",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 120, description: "Monthly membership fee" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-      {
-        id: "tx-004",
-        memberName: "Alice Williams",
-        date: "2023-05-10",
-        amount: 300,
-        status: "Pending",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Membership", cost: 200, description: "Premium membership with extra benefits" },
-          { name: "Equipment Rental", cost: 50, description: "Specialized equipment rental" },
-          { name: "Technical Support", cost: 50, description: "Dedicated technical support" },
-        ],
-      },
-      {
-        id: "tx-005",
-        memberName: "Charlie Brown",
-        date: "2023-05-08",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 100, description: "Monthly membership fee" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-    ],
-  },
-  "Last Month": {
-    totalRevenue: 11800,
-    pendingPayments: 1200,
-    failedPayments: 600,
-    successfulPayments: 10000,
-    transactions: [
-      {
-        id: "tx-101",
-        memberName: "John Doe",
-        date: "2023-04-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 100, description: "Monthly membership fee" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-102",
-        memberName: "Jane Smith",
-        date: "2023-04-14",
-        amount: 200,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Membership", cost: 150, description: "Premium membership with extra benefits" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-103",
-        memberName: "Bob Johnson",
-        date: "2023-04-12",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 120, description: "Monthly membership fee" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-    ],
-  },
-  "Last 3 Months": {
-    totalRevenue: 35400,
-    pendingPayments: 3600,
-    failedPayments: 1800,
-    successfulPayments: 30000,
-    transactions: [
-      {
-        id: "tx-201",
-        memberName: "John Doe",
-        date: "2023-03-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 100, description: "Monthly membership fee" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-202",
-        memberName: "Jane Smith",
-        date: "2023-02-14",
-        amount: 200,
-        status: "Failed",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Membership", cost: 150, description: "Premium membership with extra benefits" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-203",
-        memberName: "Bob Johnson",
-        date: "2023-01-12",
-        amount: 150,
-        status: "Pending",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 120, description: "Monthly membership fee" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-    ],
-  },
-  "Last 6 Months": {
-    totalRevenue: 70800,
-    pendingPayments: 7200,
-    failedPayments: 3600,
-    successfulPayments: 60000,
-    transactions: [
-      {
-        id: "tx-301",
-        memberName: "John Doe",
-        date: "2022-12-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 100, description: "Monthly membership fee" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-302",
-        memberName: "Jane Smith",
-        date: "2022-11-14",
-        amount: 200,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Membership", cost: 150, description: "Premium membership with extra benefits" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-303",
-        memberName: "Bob Johnson",
-        date: "2022-10-12",
-        amount: 150,
-        status: "Failed",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 120, description: "Monthly membership fee" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-    ],
-  },
-  "This Year": {
-    totalRevenue: 141600,
-    pendingPayments: 14400,
-    failedPayments: 7200,
-    successfulPayments: 120000,
-    transactions: [
-      {
-        id: "tx-401",
-        memberName: "John Doe",
-        date: "2023-01-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 100, description: "Monthly membership fee" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-402",
-        memberName: "Jane Smith",
-        date: "2023-02-14",
-        amount: 200,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Membership", cost: 150, description: "Premium membership with extra benefits" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-403",
-        memberName: "Bob Johnson",
-        date: "2023-03-12",
-        amount: 150,
-        status: "Pending",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 120, description: "Monthly membership fee" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-    ],
-  },
-  Overall: {
-    totalRevenue: 284100,
-    pendingPayments: 28800,
-    failedPayments: 14400,
-    successfulPayments: 240900,
-    transactions: [
-      // Combined transactions from all periods
-      {
-        id: "tx-001",
-        memberName: "John Doe",
-        date: "2023-05-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 100, description: "Monthly membership fee" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-002",
-        memberName: "Jane Smith",
-        date: "2023-05-14",
-        amount: 200,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Membership", cost: 150, description: "Premium membership with extra benefits" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-101",
-        memberName: "John Doe",
-        date: "2023-04-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 100, description: "Monthly membership fee" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-201",
-        memberName: "John Doe",
-        date: "2023-03-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Basic Membership", cost: 100, description: "Monthly membership fee" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-    ],
-  },
-}
+import Avatar from "../../public/avatar.png"
+import Rectangle1 from "../../public/Rectangle 1.png"
+import { IoIosMenu } from "react-icons/io"
+import { SidebarArea } from "../components/custom-sidebar"
 
-// Services Modal Component
 const ServicesModal = ({ isOpen, onClose, services, memberName }) => {
   if (!isOpen) return null
 
@@ -368,8 +54,6 @@ const ServicesModal = ({ isOpen, onClose, services, memberName }) => {
     </div>
   )
 }
-
-// Custom Date Range Modal Component
 const CustomDateModal = ({ isOpen, onClose, onApply }) => {
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
@@ -433,6 +117,9 @@ const CustomDateModal = ({ isOpen, onClose, onApply }) => {
 }
 
 export default function FinancesPage() {
+  const navigate = useNavigate();
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
   const [statusFilterOpen, setStatusFilterOpen] = useState(false)
@@ -449,16 +136,11 @@ export default function FinancesPage() {
   const [customDateModalOpen, setCustomDateModalOpen] = useState(false)
   const [customDateRange, setCustomDateRange] = useState(null)
 
+
   const transactionsPerPage = 5
 
   // Get all possible status values
   const statusOptions = ["All", "Successful", "Pending", "Failed", "Check incoming funds"]
-
-  // Enhanced period options with Overall and Custom
-  const periodOptions = [
-    ...Object.keys(financialState),
-    ...(customDateRange ? [`Custom (${customDateRange.start} to ${customDateRange.end})`] : []),
-  ]
 
   useEffect(() => {
     // Filter transactions based on search term and selected status
@@ -682,17 +364,109 @@ export default function FinancesPage() {
     return financialState[selectedPeriod] || financialData[selectedPeriod]
   }
 
+  const [communications, setCommunications] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      message: "Hey, how's the project going?",
+      time: "2 min ago",
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      message: "Meeting scheduled for tomorrow",
+      time: "10 min ago",
+      avatar: Rectangle1,
+    },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review project proposal",
+      description: "Check the latest updates",
+      assignee: "Mike",
+    },
+    {
+      id: 2,
+      title: "Update documentation",
+      description: "Add new features info",
+      assignee: "Sarah",
+    },
+  ])
+
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "Alice Johnson",
+      date: "Dec 15, 2024",
+      avatar: Avatar,
+    },
+    {
+      id: 2,
+      name: "Bob Wilson",
+      date: "Dec 20, 2024",
+      avatar: Avatar,
+    },
+  ])
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: 1,
+      title: "Google Drive",
+      url: "https://drive.google.com",
+    },
+    {
+      id: 2,
+      title: "GitHub",
+      url: "https://github.com",
+    },
+  ])
+
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsRightSidebarOpen(false)
+  }
+
+  const redirectToCommunication = () => {
+    navigate("/dashboard/communication")
+  }
+
+  const redirectToTodos = () => {
+    console.log("Redirecting to todos page")
+    navigate("/dashboard/to-do")
+  }
+
+  const toggleDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
+
+
   const currentPeriodData = getCurrentPeriodData()
 
   return (
     <div className="bg-[#1C1C1C] p-4 md:p-6 rounded-3xl w-full">
-      {/* Header with back button */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex w-full md:w-auto justify-between items-center gap-3">
+
           <h1 className="text-white oxanium_font text-xl md:text-2xl">Finances</h1>
+          <div> </div>
+          <div className="md:hidden block">
+            <IoIosMenu
+              onClick={toggleRightSidebar}
+              size={25}
+              className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+            />
+          </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          {/* Period selector */}
           <div className="relative w-full sm:w-auto">
             <button
               onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
@@ -728,9 +502,7 @@ export default function FinancesPage() {
               </div>
             )}
           </div>
-          {/* Export buttons */}
-          <div className="flex gap-2 w-full sm:w-auto">
-            {/* CSV Export button */}
+          <div className="flex gap-2 items-center w-full sm:w-auto">
             <button
               onClick={exportToCSV}
               className="bg-green-600 text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-green-600/90 transition-colors w-full sm:w-auto"
@@ -738,7 +510,6 @@ export default function FinancesPage() {
               <Download className="w-4 h-4" />
               <span>Export CSV</span>
             </button>
-            {/* SEPA XML button */}
             <button
               onClick={() => setSepaModalOpen(true)}
               className="bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
@@ -746,7 +517,13 @@ export default function FinancesPage() {
               <Download className="w-4 h-4" />
               <span>Run Payment</span>
             </button>
-            {/* Check Funds button - only show if there are transactions to check */}
+            <div className="md:block hidden">
+              <IoIosMenu
+                onClick={toggleRightSidebar}
+                size={25}
+                className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+              />
+            </div>
             {hasCheckingTransactions && (
               <button
                 onClick={() => setCheckFundsModalOpen(true)}
@@ -807,9 +584,8 @@ export default function FinancesPage() {
               {statusOptions.map((status) => (
                 <button
                   key={status}
-                  className={`w-full px-4 py-2 text-sm text-left flex items-center space-x-2 hover:bg-black ${
-                    selectedStatus === status ? "bg-black/50" : ""
-                  }`}
+                  className={`w-full px-4 py-2 text-sm text-left flex items-center space-x-2 hover:bg-black ${selectedStatus === status ? "bg-black/50" : ""
+                    }`}
                   onClick={() => {
                     setSelectedStatus(status)
                     setStatusFilterOpen(false)
@@ -855,9 +631,8 @@ export default function FinancesPage() {
             {paginatedTransactions.map((transaction, index) => (
               <tr
                 key={transaction.id}
-                className={`border-b border-gray-800 ${
-                  index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""
-                }`}
+                className={`border-b border-gray-800 ${index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""
+                  }`}
               >
                 <td className="px-4 py-3">{transaction.memberName}</td>
                 <td className="px-4 py-3">{formatDate(transaction.date)}</td>
@@ -873,15 +648,14 @@ export default function FinancesPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                      transaction.status === "Successful"
+                    className={`px-2 py-1 rounded-lg text-xs font-medium ${transaction.status === "Successful"
                         ? "bg-green-900/30 text-green-500"
                         : transaction.status === "Pending"
                           ? "bg-yellow-900/30 text-yellow-500"
                           : transaction.status === "Check incoming funds"
                             ? "bg-blue-900/30 text-blue-500"
                             : "bg-red-900/30 text-red-500"
-                    }`}
+                      }`}
                   >
                     {transaction.status}
                   </span>
@@ -914,11 +688,10 @@ export default function FinancesPage() {
               <button
                 key={page}
                 onClick={() => handlePageChange(page)}
-                className={`px-3 py-1.5 rounded-xl transition-colors border ${
-                  currentPage === page
+                className={`px-3 py-1.5 rounded-xl transition-colors border ${currentPage === page
                     ? "bg-[#3F74FF] text-white border-transparent"
                     : "bg-black text-white border-gray-800 hover:bg-gray-900"
-                }`}
+                  }`}
               >
                 {page}
               </button>
@@ -932,6 +705,26 @@ export default function FinancesPage() {
             Next
           </button>
         </div>
+      )}
+
+
+      <SidebarArea
+        isOpen={isRightSidebarOpen}
+        onClose={closeSidebar}
+        communications={communications}
+        todos={todos}
+        birthdays={birthdays}
+        customLinks={customLinks}
+        setCustomLinks={setCustomLinks}
+        redirectToCommunication={redirectToCommunication}
+        redirectToTodos={redirectToTodos}
+        toggleDropdown={toggleDropdown}
+        openDropdownIndex={openDropdownIndex}
+        setEditingLink={setEditingLink}
+      />
+
+      {isRightSidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
       )}
 
       <SepaXmlModal

@@ -5,8 +5,6 @@ import {
   X,
   Plus,
   ShoppingBasket,
-  Minus,
-  Trash2,
   MoreVertical,
   AlertTriangle,
   ArrowLeft,
@@ -14,14 +12,17 @@ import {
   Edit,
   Check,
   Move,
-  Search,
   ExternalLink,
-  UserPlus,
+  Menu,
 } from "lucide-react"
 import ProductImage from "../../public/1_55ce827a-2b63-4b1d-aa55-2c2b6dc6c96e.webp"
 import MenJordanShows from "../../public/jd_product_list.webp"
 import { FaProductHunt } from "react-icons/fa6"
 import { RiServiceFill } from "react-icons/ri"
+import SidebarAreaSelling from "../components/custom-sidebar-selling"
+
+import Avatar from "../../public/avatar.png"
+import Rectangle1 from "../../public/Rectangle 1.png"
 
 function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -59,6 +60,29 @@ function App() {
   const [selectedMember, setSelectedMember] = useState("")
   const [memberSearchQuery, setMemberSearchQuery] = useState("")
   const [showMemberResults, setShowMemberResults] = useState(false)
+
+  // Sidebar state
+  const [customLinks, setCustomLinks] = useState([
+    { id: "link1", title: "Google", url: "https://google.com" },
+    { id: "link2", title: "GitHub", url: "https://github.com" },
+  ])
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+
+  // Mock data for sidebar
+  const communications = [
+    { id: 1, name: "John Doe", message: "Hello, how are you?", time: "2 min ago", avatar: Rectangle1 },
+    { id: 2, name: "Jane Smith", message: "Meeting at 3 PM", time: "5 min ago", avatar: Rectangle1 },
+  ]
+
+  const todos = [
+    { id: 1, title: "Review proposals", description: "Check new member applications", assignee: "Admin" },
+    { id: 2, title: "Update website", description: "Add new features", assignee: "Dev" },
+  ]
+
+  const birthdays = [
+    { id: 1, name: "Alice Johnson", date: "Tomorrow", avatar: Avatar },
+    { id: 2, name: "Bob Wilson", date: "Next week", avatar: Avatar },
+  ]
 
   // Members list (example)
   const [members, setMembers] = useState([
@@ -99,7 +123,7 @@ function App() {
       id: 101,
       name: "Personal Training Session",
       price: 75.0,
-      image: "https://cdn.prod.website-files.com/64649432a9fa6bf423043c60/65d3674df1397c34b67e7e9a_IMG_8049.jpg", // Added image support
+      image: "https://cdn.prod.website-files.com/64649432a9fa6bf423043c60/65d3674df1397c34b67e7e9a_IMG_8049.jpg",
       paymentOption: "Card",
       type: "service",
       position: 0,
@@ -109,7 +133,7 @@ function App() {
       id: 102,
       name: "Nutrition Consultation",
       price: 50.0,
-      image: "https://foodandfitnesspro.com/wp-content/uploads/2022/08/iStock-1160789077-768x512.jpg", // Added image support
+      image: "https://foodandfitnesspro.com/wp-content/uploads/2022/08/iStock-1160789077-768x512.jpg",
       paymentOption: "Cash",
       type: "service",
       position: 1,
@@ -119,6 +143,10 @@ function App() {
 
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+  const toggleDropdown = (id) => {
+    setOpenDropdownIndex(openDropdownIndex === id ? null : id)
   }
 
   const openAddModal = () => {
@@ -204,7 +232,7 @@ function App() {
         name: formData.name,
         brandName: isService ? undefined : formData.brandName,
         price: Number.parseFloat(formData.price) || 0,
-        image: selectedImage || ProductImage, // Services now support images
+        image: selectedImage || ProductImage,
         articalNo: isService ? undefined : formData.articalNo,
         paymentOption: formData.paymentOption,
         type: isService ? "service" : "product",
@@ -226,7 +254,7 @@ function App() {
               price: Number.parseFloat(formData.price) || item.price,
               articalNo: isService ? undefined : formData.articalNo,
               paymentOption: formData.paymentOption,
-              image: selectedImage || item.image, // Services now support images
+              image: selectedImage || item.image,
               brandName: isService ? undefined : formData.brandName,
               link: formData.link,
             }
@@ -317,6 +345,17 @@ function App() {
   const vatAmount = afterDiscount * (selectedVat / 100)
   const total = afterDiscount + vatAmount
 
+  const filteredMembers = members.filter((member) =>
+    member.name.toLowerCase().includes(memberSearchQuery.toLowerCase()),
+  )
+
+  const selectMember = (member) => {
+    setSelectedMember(member.id)
+    setMemberSearchQuery(member.name)
+    setShowMemberResults(false)
+    setSellWithoutMember(false)
+  }
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (openDropdownId !== null && !event.target.closest(".dropdown-container")) {
@@ -384,17 +423,6 @@ function App() {
       })
       setItems(newItems)
     }
-  }
-
-  const filteredMembers = members.filter((member) =>
-    member.name.toLowerCase().includes(memberSearchQuery.toLowerCase()),
-  )
-
-  const selectMember = (member) => {
-    setSelectedMember(member.id)
-    setMemberSearchQuery(member.name)
-    setShowMemberResults(false)
-    setSellWithoutMember(false)
   }
 
   const getCurrentItems = () => {
@@ -555,7 +583,6 @@ function App() {
                 }}
                 className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]"
               >
-                {/* Image upload section - now available for both products and services */}
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
                     <img
@@ -670,7 +697,24 @@ function App() {
       <main className="flex-1 min-w-0">
         <div className="p-4 md:p-8">
           <div className="flex md:items-center items-start gap-2 md:flex-row flex-col md:justify-between justify-start md:mb-8 mb-3">
+          <div className="flex justify-between items-center gap-2 md:w-auto w-full">
+
             <h1 className="text-xl md:text-2xl font-bold oxanium_font">Selling</h1>
+<div></div>
+
+            <button
+                  onClick={toggleRightSidebar}
+                  className="p-2 cursor-pointer rounded-xl text-sm hover:bg-[#555555] text-gray-300 transition-colors md:hidden flex items-center gap-2"
+                  title="Open Shopping Cart"
+                  >
+                  <Menu size={16} />
+                  {cart.length > 0 && (
+                    <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    </span>
+                  )}
+                </button>
+                  </div>
             <div className="flex md:flex-row flex-col gap-3  items-center">
               <div className=" flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
                 <button
@@ -720,6 +764,19 @@ function App() {
                     </>
                   )}
                 </button>
+                {/* Menu button to open sidebar */}
+                <button
+                  onClick={toggleRightSidebar}
+                  className="p-2 cursor-pointer rounded-xl text-sm bg-[#333333] hover:bg-[#555555] text-gray-300 transition-colors md:flex hidden items-center gap-2"
+                  title="Open Shopping Cart"
+                >
+                  <Menu size={16} />
+                  {cart.length > 0 && (
+                    <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -767,7 +824,7 @@ function App() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
               <div key={item.id} className="w-full bg-[#181818] rounded-2xl overflow-hidden relative">
                 {isEditModeActive && (
@@ -794,7 +851,6 @@ function App() {
                   </div>
                 )}
                 <div className="relative w-full h-48 overflow-hidden">
-                  {/* Services now display images */}
                   <img
                     src={item.image || ProductImage}
                     alt={item.name}
@@ -839,7 +895,6 @@ function App() {
                       </button>
                     )}
                   </div>
-                  {/* Services now have the same edit/delete functionality as products */}
                   {isEditModeActive && (
                     <div className="mt-2">
                       <div className="flex justify-end items-center">
@@ -886,239 +941,57 @@ function App() {
         </div>
       </main>
 
-      <aside
-        className={`
-          fixed top-0 right-0 bottom-0 w-[320px] bg-[#181818] p-6 z-50 
-          lg:static lg:w-80 lg:block lg:rounded-3xl
-          transform ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
-          transition-all duration-500 ease-in-out
-          overflow-y-auto
-        `}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl md:text-2xl font-bold oxanium_font">Shopping Basket</h2>
-          <button
-            onClick={toggleRightSidebar}
-            className="lg:hidden p-2 hover:bg-zinc-700 rounded-lg transition-colors duration-200"
-          >
-            <X size={20} />
-          </button>
-        </div>
+      {/* Sidebar Component */}
+      <SidebarAreaSelling
+        isOpen={isRightSidebarOpen}
+        onClose={() => setIsRightSidebarOpen(false)}
+        communications={communications}
+        todos={todos}
+        birthdays={birthdays}
+        customLinks={customLinks}
+        setCustomLinks={setCustomLinks}
+        redirectToCommunication={() => console.log("Redirect to communication")}
+        redirectToTodos={() => console.log("Redirect to todos")}
+        toggleDropdown={toggleDropdown}
+        openDropdownIndex={openDropdownIndex}
+        setEditingLink={() => {}}
+        isEditing={false}
+        // Shopping cart props
+        cart={cart}
+        updateQuantity={updateQuantity}
+        removeFromCart={removeFromCart}
+        selectedPaymentMethod={selectedPaymentMethod}
+        setSelectedPaymentMethod={setSelectedPaymentMethod}
+        discount={discount}
+        setDiscount={setDiscount}
+        selectedVat={selectedVat}
+        setSelectedVat={setSelectedVat}
+        selectedMember={selectedMember}
+        setSelectedMember={setSelectedMember}
+        memberSearchQuery={memberSearchQuery}
+        setMemberSearchQuery={setMemberSearchQuery}
+        showMemberResults={showMemberResults}
+        setShowMemberResults={setShowMemberResults}
+        members={members}
+        sellWithoutMember={sellWithoutMember}
+        setSellWithoutMember={setSellWithoutMember}
+        setIsTempMemberModalOpen={setIsTempMemberModalOpen}
+        filteredMembers={filteredMembers}
+        selectMember={selectMember}
+        subtotal={subtotal}
+        discountValue={discountValue}
+        discountAmount={discountAmount}
+        afterDiscount={afterDiscount}
+        vatAmount={vatAmount}
+        total={total}
+      />
 
-        {/* Member selection with search */}
-        <div className="mb-4 relative member-search-container">
-          <label className="text-sm text-gray-200 block mb-2">Search Member</label>
-          <div className="relative">
-            <input
-              type="text"
-              value={memberSearchQuery}
-              onChange={(e) => {
-                setMemberSearchQuery(e.target.value)
-                setShowMemberResults(true)
-                setSellWithoutMember(false)
-              }}
-              onFocus={() => setShowMemberResults(true)}
-              placeholder="Search for a member..."
-              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-              disabled={sellWithoutMember}
-            />
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-          </div>
-          {showMemberResults && !sellWithoutMember && (
-            <div className="absolute z-10 mt-1 w-full bg-[#101010] rounded-xl shadow-lg border border-[#333333] max-h-48 overflow-y-auto">
-              <div
-                onClick={() => setIsTempMemberModalOpen(true)}
-                className="px-4 py-2 hover:bg-[#181818] cursor-pointer text-sm border-b border-[#333333] text-[#3F74FF] flex items-center gap-2"
-              >
-                <UserPlus size={16} />
-                Create Temporary Member
-              </div>
-              {filteredMembers.length > 0 ? (
-                filteredMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    onClick={() => selectMember(member)}
-                    className="px-4 py-2 hover:bg-[#181818] cursor-pointer text-sm flex items-center justify-between"
-                  >
-                    <span>{member.name}</span>
-                    {member.isTemp && <span className="text-xs bg-orange-500 px-2 py-1 rounded">Temp</span>}
-                  </div>
-                ))
-              ) : (
-                <div className="px-4 py-2 text-gray-400 text-sm">No members found</div>
-              )}
-            </div>
-          )}
-          {/* Sell without member option */}
-          <div className="mt-3">
-            <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={sellWithoutMember}
-                onChange={(e) => {
-                  setSellWithoutMember(e.target.checked)
-                  if (e.target.checked) {
-                    setSelectedMember("")
-                    setMemberSearchQuery("")
-                    setShowMemberResults(false)
-                  }
-                }}
-                className="rounded border-gray-300"
-              />
-              Sell without member
-            </label>
-          </div>
-        </div>
-
-        {/* Cart items */}
-        <div className="space-y-4 max-h-[40vh] overflow-y-auto mb-4">
-          {cart.length === 0 ? (
-            <div className="text-center py-6 text-gray-400">Your basket is empty</div>
-          ) : (
-            cart.map((item) => (
-              <div key={item.id} className="bg-[#1C1C1C] rounded-lg p-4 relative">
-                <div className="flex gap-3">
-                  {/* Services now display images in cart */}
-                  {item.image && (
-                    <img
-                      src={item.image || ProductImage}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h3 className="mb-1 oxanium_font">{item.name}</h3>
-                    {item.type === "product" && item.articalNo && (
-                      <p className="text-xs text-zinc-400 mb-1">Art. No: {item.articalNo}</p>
-                    )}
-                    <p className="text-sm font-bold">${item.price.toFixed(2)}</p>
-                    <span className="text-xs bg-gray-600 px-2 py-1 rounded">
-                      {item.type === "service" ? "Service" : "Product"}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="p-1 bg-[#101010] rounded-md hover:bg-[#333333]"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className="w-8 text-center">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="p-1 bg-[#101010] rounded-md hover:bg-[#333333]"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="text-zinc-500 hover:text-red-500 transition-colors duration-200"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Payment options */}
-        {cart.length > 0 && (
-          <>
-            <div className="space-y-4 mb-4">
-              <div>
-                <label className="text-sm text-gray-200 block mb-2">Payment Method</label>
-                <div className="grid grid-cols-3 gap-1">
-                  {["Cash", "Card", "Pay Later"].map((method) => (
-                    <button
-                      key={method}
-                      onClick={() => setSelectedPaymentMethod(method)}
-                      className={`py-2 px-3 text-sm rounded-lg border ${
-                        selectedPaymentMethod === method
-                          ? "border-[#3F74FF] bg-[#3F74FF]/20"
-                          : "border-[#333333] hover:bg-[#101010]"
-                      }`}
-                    >
-                      {method}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Discount (%)</label>
-                  <input
-                    type="text"
-                    value={discount}
-                    onChange={(e) => {
-                      const value = e.target.value
-                      if (value === "" || (/^\d*\.?\d*$/.test(value) && Number.parseFloat(value) <= 100)) {
-                        setDiscount(value)
-                      }
-                    }}
-                    placeholder="0"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">VAT (%)</label>
-                  <select
-                    value={selectedVat}
-                    onChange={(e) => setSelectedVat(Number(e.target.value))}
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                  >
-                    <option value="19">19%</option>
-                    <option value="7">7%</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Order summary */}
-            <div className="border-t border-[#333333] pt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Subtotal:</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              {discountValue > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Discount ({discountValue}%):</span>
-                  <span>-${discountAmount.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">VAT ({selectedVat}%):</span>
-                <span>${vatAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between font-bold mt-2 pt-2 border-t border-[#333333]">
-                <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-            </div>
-
-            {/* Member/No member indicator */}
-            <div className="mt-4 p-3 bg-[#101010] rounded-xl">
-              <div className="text-sm text-gray-300">
-                {sellWithoutMember ? (
-                  <span className="text-orange-400">Selling without member</span>
-                ) : selectedMember ? (
-                  <span className="text-green-400">Member: {members.find((m) => m.id === selectedMember)?.name}</span>
-                ) : (
-                  <span className="text-gray-400">No member selected</span>
-                )}
-              </div>
-            </div>
-
-            {/* Checkout button */}
-            <button className="w-full mt-4 bg-[#FF843E] text-sm text-white py-3 rounded-xl hover:bg-[#FF843E]/90 transition-colors">
-              Checkout
-            </button>
-          </>
-        )}
-      </aside>
+      {isRightSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 cursor-pointer"
+          onClick={() => setIsRightSidebarOpen(false)}
+        ></div>
+      )}
     </div>
   )
 }

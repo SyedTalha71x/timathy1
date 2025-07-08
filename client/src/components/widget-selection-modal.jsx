@@ -1,19 +1,88 @@
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
+import {
+  BarChart3,
+  Calendar,
+  Users,
+  Link,
+  TrendingUp,
+  Award,
+  MessageSquare,
+  CheckSquare,
+  Gift,
+  ExternalLink,
+} from "lucide-react"
 
 export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, canAddWidget }) {
   if (!isOpen) return null
 
-  const widgetOptions = [
-    { id: "chart", name: "Chart", description: "Display data in a chart format" },
-    { id: "appointments", name: "Appointments", description: "Show upcoming appointments" },
-    { id: "employeeCheckIn", name: "Employee Check-In", description: "Check in/out functionality" },
-    { id: "websiteLink", name: "Website Links", description: "Quick access to important websites" },
-    { id: "communication", name: "Communications", description: "Recent messages and communications" },
-    { id: "todo", name: "TO-DO", description: "Tasks and to-do items" },
-    { id: "birthdays", name: "Birthdays", description: "Upcoming birthdays" },
-    { id: "expiringContacts", name: "Expiring Contracts", description: "Expired Contracts" },
-
+  const widgetTypes = [
+    {
+      id: "chart",
+      name: "Analytics Chart",
+      description: "Display member statistics and analytics",
+      icon: BarChart3,
+    },
+    {
+      id: "appointments",
+      name: "Appointments",
+      description: "Show upcoming appointments",
+      icon: Calendar,
+    },
+    {
+      id: "staffCheckIn",
+      name: "Staff Check-In",
+      description: "Staff check-in/out functionality",
+      icon: Users,
+    },
+    {
+      id: "websiteLink",
+      name: "Website Links",
+      description: "Quick access to important websites",
+      icon: Link,
+    },
+    {
+      id: "topSelling",
+      name: "Top Selling",
+      description: "Display top-selling products and services",
+      icon: TrendingUp,
+    },
+    {
+      id: "mostFrequent",
+      name: "Most Frequent",
+      description: "Show most frequently sold items",
+      icon: Award,
+    },
+    {
+      id: "expiringContracts",
+      name: "Expiring Contracts",
+      description: "Track contracts nearing expiration",
+      icon: Calendar,
+    },
+    {
+      id: "communications",
+      name: "Communications",
+      description: "Recent messages and communications",
+      icon: MessageSquare,
+    },
+    {
+      id: "todo",
+      name: "TO-DO",
+      description: "Task management and to-do items",
+      icon: CheckSquare,
+    },
+    {
+      id: "birthday",
+      name: "Birthdays",
+      description: "Upcoming member birthdays",
+      icon: Gift,
+    },
+    {
+      id: "websiteLinks",
+      name: "Website Links (Sidebar)",
+      description: "Website links for sidebar",
+      icon: ExternalLink,
+    },
   ]
 
   return (
@@ -27,7 +96,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, canAddWi
             </button>
           </div>
           <div className="space-y-3">
-            {widgetOptions.map((widget) => {
+            {widgetTypes.map((widget) => {
               const isAvailable = canAddWidget(widget.id)
               return (
                 <button

@@ -1,34 +1,26 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-
-import {
-  X,
-  Clock,
-  Info,
-  Search,
-  AlertTriangle,
-  Edit,
-  User,
-  ZoomOut,
-  ZoomIn,
-  RotateCcw,
-  CalendarIcon,
-  ChevronRight,
-  ChevronLeft,
-} from "lucide-react"
+import { X, Clock, Info, Search, AlertTriangle, CalendarIcon, ChevronRight, ChevronLeft } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import Avatar from "../../public/avatar.png"
 import toast, { Toaster } from "react-hot-toast"
-
+import { IoIosMenu } from "react-icons/io"
 import TrialPlanningModal from "../components/lead-components/add-trial"
 import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
 import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 import MiniCalendar from "../components/appointments-components/mini-calender"
 import BlockAppointmentModal from "../components/appointments-components/block-appointment-modal"
-import {appointmentsData} from "../utils/states"
+import { appointmentsData } from "../utils/states"
 import Calendar from "../components/appointments-components/calendar"
+import { useNavigate } from "react-router-dom"
+import { SidebarArea } from "../components/custom-sidebar"
+
+import Rectangle1 from "../../public/Rectangle 1.png"
+
+
 
 export default function Appointments() {
+  const navigate = useNavigate()
   const [appointments, setAppointments] = useState(appointmentsData)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
@@ -46,6 +38,9 @@ export default function Appointments() {
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("")
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+
   const [freeAppointments, setFreeAppointments] = useState([
     { id: "free1", date: "2025-01-03", time: "10:00" },
     { id: "free2", date: "2025-01-03", time: "11:00" },
@@ -68,13 +63,100 @@ export default function Appointments() {
 
   const notePopoverRef = useRef(null)
 
+  const [communications, setCommunications] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      message: "Hey, how's the project going?",
+      time: "2 min ago",
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      message: "Meeting scheduled for tomorrow",
+      time: "10 min ago",
+      avatar: Rectangle1,
+    },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review project proposal",
+      description: "Check the latest updates",
+      assignee: "Mike",
+    },
+    {
+      id: 2,
+      title: "Update documentation",
+      description: "Add new features info",
+      assignee: "Sarah",
+    },
+  ])
+
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "Alice Johnson",
+      date: "Dec 15, 2024",
+      avatar: Avatar,
+    },
+    {
+      id: 2,
+      name: "Bob Wilson",
+      date: "Dec 20, 2024",
+      avatar: Avatar,
+    },
+  ])
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: 1,
+      title: "Google Drive",
+      url: "https://drive.google.com",
+    },
+    {
+      id: 2,
+      title: "GitHub",
+      url: "https://github.com",
+    },
+  ])
+
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsRightSidebarOpen(false)
+  }
+
+  const redirectToCommunication = () => {
+    navigate("/dashboard/communication")
+  }
+
+  const redirectToTodos = () => {
+    console.log("Redirecting to todos page")
+    navigate("/dashboard/to-do")
+  }
+
+  const toggleDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
+
+  const toggleEditing = () => {
+    setIsEditing(!isEditing)
+  }
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
         setActiveNoteId(null)
       }
     }
-
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -85,7 +167,6 @@ export default function Appointments() {
 
   const applyFilters = () => {
     let filtered = [...appointments]
-
     if (selectedDate) {
       const formattedSelectedDate = formatDate(selectedDate)
       filtered = filtered.filter((appointment) => {
@@ -93,11 +174,9 @@ export default function Appointments() {
         return appointmentDate === formattedSelectedDate
       })
     }
-
     if (searchQuery) {
       filtered = filtered.filter((appointment) => appointment.name?.toLowerCase().includes(searchQuery.toLowerCase()))
     }
-
     setFilteredAppointments(filtered)
   }
 
@@ -125,7 +204,6 @@ export default function Appointments() {
       setIsViewDropdownOpen(false)
       setActiveNoteId(null)
     }
-
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
@@ -140,7 +218,6 @@ export default function Appointments() {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
     }
-
     setAppointments([...appointments, newAppointment])
     toast.success("Appointment booked successfully")
   }
@@ -155,7 +232,6 @@ export default function Appointments() {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(trialData.date))}`,
     }
-
     setAppointments([...appointments, newTrial])
     toast.success("Trial training booked successfully")
   }
@@ -166,7 +242,6 @@ export default function Appointments() {
         appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment,
       ),
     )
-
     toast.success(
       appointments.find((app) => app.id === appointmentId)?.isCheckedIn
         ? "Member checked In successfully"
@@ -196,7 +271,6 @@ export default function Appointments() {
   const handleNotifyMember = (shouldNotify) => {
     const changes = {}
     let updatedAppointment
-
     if (notifyAction === "change") {
       updatedAppointment = { ...selectedAppointment, ...changes }
       const updatedAppointments = appointments.map((app) =>
@@ -210,18 +284,15 @@ export default function Appointments() {
       setAppointmentToRemove(null)
       toast.success("Appointment removed successfully")
     }
-
     if (shouldNotify) {
       toast.success("Member notified successfully")
     }
-
     setIsNotifyMemberOpen(false)
   }
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase()
     setSearchQuery(query)
-
     if (query === "") {
       setSelectedMember(null)
     } else {
@@ -243,11 +314,9 @@ export default function Appointments() {
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
       if (!specialNote?.text) return null
-
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
-
       if (!isActive) return null
 
       const handleNoteClick = (e) => {
@@ -269,7 +338,6 @@ export default function Appointments() {
               <Info size={18} className="text-white" />
             )}
           </div>
-
           {activeNoteId === memberId && (
             <div
               ref={notePopoverRef}
@@ -329,53 +397,82 @@ export default function Appointments() {
       <main className="flex-1 min-w-0">
         <div className="">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
-              <button
-                onClick={toggleSidebar}
-                className="bg-[#3F74FF] text-white p-1.5 rounded-full z-10 shadow-lg hover:bg-[#3F74FF]/90 transition-colors lg:flex hidden"
-                aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              >
-                {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-              </button>
+            <div className="flex justify-between items-center gap-2">
+              <div></div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
+                <button
+                  onClick={toggleSidebar}
+                  className="bg-[#3F74FF] text-white p-1.5 rounded-full z-10 shadow-lg hover:bg-[#3F74FF]/90 transition-colors lg:flex hidden"
+                  aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                >
+                  {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                </button>
+              </div>
+              <div className="md:hidden block">
+                <IoIosMenu
+                  onClick={toggleRightSidebar}
+                  size={25}
+                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                />
+              </div>
             </div>
-
             <div className="flex items-center md:flex-row flex-col gap-2 w-full sm:w-auto">
-  <button
-    onClick={() => setIsModalOpen(true)}
-    className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 flex items-center justify-center gap-1"
-  >
-    <span>+</span> Add appointment
-  </button>
-  <button
-    onClick={() => setIsTrialModalOpen(true)}
-    className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-1"
-  >
-    <span>+</span> Add trial training
-  </button>
-  <button
-    onClick={() => setIsBlockModalOpen(true)}
-    className="w-full sm:w-auto bg-gray-600 text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-gray-700/90 transition-colors duration-200 flex items-center justify-center gap-1"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M6 9h12M6 13h12M6 17h6"
-      />
-    </svg>
-    Block time slot
-  </button>
-</div>
-
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 flex items-center justify-center gap-1"
+              >
+                <span>+</span> Add appointment
+              </button>
+              <button
+                onClick={() => setIsTrialModalOpen(true)}
+                className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-1"
+              >
+                <span>+</span> Add trial training
+              </button>
+              <button
+                onClick={() => setIsBlockModalOpen(true)}
+                className="w-full sm:w-auto bg-gray-600 text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-gray-700/90 transition-colors duration-200 flex items-center justify-center gap-1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 9h12M6 13h12M6 17h6" />
+                </svg>
+                Block time slot
+              </button>
+              <div className="md:block hidden">
+                <IoIosMenu
+                  onClick={toggleRightSidebar}
+                  size={25}
+                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                />
+              </div>
+            </div>
           </div>
+
+          <SidebarArea
+            isOpen={isRightSidebarOpen}
+            onClose={closeSidebar}
+            communications={communications}
+            todos={todos}
+            birthdays={birthdays}
+            customLinks={customLinks}
+            setCustomLinks={setCustomLinks}
+            redirectToCommunication={redirectToCommunication}
+            redirectToTodos={redirectToTodos}
+            toggleDropdown={toggleDropdown}
+            openDropdownIndex={openDropdownIndex}
+            setEditingLink={setEditingLink}
+          />
+
+          {isRightSidebarOpen && (
+            <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
+          )}
 
           <div className="flex lg:flex-row flex-col gap-6 relative">
             <div
@@ -388,7 +485,6 @@ export default function Appointments() {
               <div className="">
                 <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
               </div>
-
               <div className="w-full flex flex-col gap-4">
                 <div className="flex items-center gap-4">
                   <div className="relative w-full">
@@ -402,7 +498,6 @@ export default function Appointments() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                   </div>
                 </div>
-
                 <div>
                   <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
                   <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
@@ -415,7 +510,6 @@ export default function Appointments() {
                           <div className="absolute p-2 top-0 left-0 z-10">
                             {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                           </div>
-
                           <div
                             className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
                             onClick={() => {
@@ -435,7 +529,6 @@ export default function Appointments() {
                                 </p>
                               </div>
                             </div>
-
                             <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
                               <div className="text-white text-center sm:text-right w-full sm:w-auto">
                                 <p className="text-xs">
@@ -470,7 +563,6 @@ export default function Appointments() {
                 </div>
               </div>
             </div>
-
             <div
               className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${
                 isSidebarCollapsed ? "lg:w-full" : ""
@@ -627,7 +719,6 @@ export default function Appointments() {
             status: "blocked",
             isBlocked: true,
           }
-
           setAppointments([...appointments, newBlock])
           toast.success("Time slot blocked successfully")
           setIsBlockModalOpen(false)

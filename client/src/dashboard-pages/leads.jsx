@@ -13,6 +13,11 @@ import ViewLeadDetailsModal from "../components/lead-user-panel-components/view-
 import ConfirmationModal from "../components/lead-user-panel-components/confirmation-modal"
 import EditColumnModal from "../components/lead-user-panel-components/edit-column-modal"
 import TrialTrainingModal from "../components/lead-user-panel-components/add-trial-planning"
+import { IoIosMenu } from "react-icons/io"
+import { SidebarArea } from "../components/custom-sidebar"
+import { useNavigate } from "react-router-dom"
+import Rectangle1 from "../../public/Rectangle 1.png"
+
 
 const LeadCard = ({
   lead,
@@ -98,16 +103,14 @@ const LeadCard = ({
     >
       <div
         ref={nodeRef}
-        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${
-          isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
-        }`}
+        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
+          }`}
       >
         <div className="flex items-center mb-3 relative">
           {hasValidNote && (
             <div
-              className={`absolute -top-2 -left-2 ${
-                lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-1 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag z-10`}
+              className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+                } rounded-full p-1 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag z-10`}
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
@@ -354,6 +357,9 @@ export default function LeadManagement() {
   const [selectedColumn, setSelectedColumn] = useState(null)
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false)
   const [leadToDeleteId, setLeadToDeleteId] = useState(null)
+  const navigate = useNavigate();
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+
 
   // Relations states - copied from Members component
   const [memberRelations, setMemberRelations] = useState({
@@ -562,23 +568,23 @@ export default function LeadManagement() {
     const updatedLeads = leads.map((lead) =>
       lead.id === data.id
         ? {
-            ...lead,
-            firstName: data.firstName,
-            surname: data.surname,
-            email: data.email,
-            phoneNumber: data.phoneNumber,
-            trialPeriod: data.trialPeriod,
-            hasTrialTraining: data.hasTrialTraining,
-            avatar: data.avatar,
-            status: data.status || lead.status,
-            columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
-            specialNote: {
-              text: data.specialNote?.text || "",
-              isImportant: data.specialNote?.isImportant || false,
-              startDate: data.specialNote?.startDate || null,
-              endDate: data.specialNote?.endDate || null,
-            },
-          }
+          ...lead,
+          firstName: data.firstName,
+          surname: data.surname,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+          trialPeriod: data.trialPeriod,
+          hasTrialTraining: data.hasTrialTraining,
+          avatar: data.avatar,
+          status: data.status || lead.status,
+          columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+          specialNote: {
+            text: data.specialNote?.text || "",
+            isImportant: data.specialNote?.isImportant || false,
+            startDate: data.specialNote?.startDate || null,
+            endDate: data.specialNote?.endDate || null,
+          },
+        }
         : lead,
     )
 
@@ -696,6 +702,90 @@ export default function LeadManagement() {
     )
   })
 
+  const [communications, setCommunications] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      message: "Hey, how's the project going?",
+      time: "2 min ago",
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      message: "Meeting scheduled for tomorrow",
+      time: "10 min ago",
+      avatar: Rectangle1,
+    },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review project proposal",
+      description: "Check the latest updates",
+      assignee: "Mike",
+    },
+    {
+      id: 2,
+      title: "Update documentation",
+      description: "Add new features info",
+      assignee: "Sarah",
+    },
+  ])
+
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "Alice Johnson",
+      date: "Dec 15, 2024",
+      avatar: Avatar,
+    },
+    {
+      id: 2,
+      name: "Bob Wilson",
+      date: "Dec 20, 2024",
+      avatar: Avatar,
+    },
+  ])
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: 1,
+      title: "Google Drive",
+      url: "https://drive.google.com",
+    },
+    {
+      id: 2,
+      title: "GitHub",
+      url: "https://github.com",
+    },
+  ])
+
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsRightSidebarOpen(false)
+  }
+
+  const redirectToCommunication = () => {
+    navigate("/dashboard/communication")
+  }
+
+  const redirectToTodos = () => {
+    console.log("Redirecting to todos page")
+    navigate("/dashboard/to-do")
+  }
+
+  const toggleDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
+
   return (
     <div className="container mx-auto md:p-4 p-1">
       <Toaster
@@ -710,15 +800,36 @@ export default function LeadManagement() {
       />
 
       <div className="flex md:flex-row flex-col gap-2 justify-between md:items-center items-start mb-6">
-        <h1 className="text-2xl text-white font-bold">Leads</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl flex items-center gap-2"
-        >
-          <Plus size={16} />
-          Create Lead
-        </button>
+        <div className="gap-2 w-full md:w-auto flex justify-between items-center ">
+          <h1 className="text-2xl text-white font-bold">Leads</h1>
+          <div></div>
+          <div className="md:hidden block">
+            <IoIosMenu
+              onClick={toggleRightSidebar}
+              size={25}
+              className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl flex items-center gap-2"
+          >
+            <Plus size={16} />
+            Create Lead
+          </button>
+          <div className="md:block hidden">
+            <IoIosMenu
+              onClick={toggleRightSidebar}
+              size={25}
+              className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+            />
+          </div>
+        </div>
       </div>
+
 
       <div className="mb-6 relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -754,6 +865,25 @@ export default function LeadManagement() {
       </div>
 
       <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
+
+      <SidebarArea
+        isOpen={isRightSidebarOpen}
+        onClose={closeSidebar}
+        communications={communications}
+        todos={todos}
+        birthdays={birthdays}
+        customLinks={customLinks}
+        setCustomLinks={setCustomLinks}
+        redirectToCommunication={redirectToCommunication}
+        redirectToTodos={redirectToTodos}
+        toggleDropdown={toggleDropdown}
+        openDropdownIndex={openDropdownIndex}
+        setEditingLink={setEditingLink}
+      />
+
+      {isRightSidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
+      )}
 
       <EditLeadModal
         isVisible={isEditModalOpen}
@@ -810,11 +940,11 @@ export default function LeadManagement() {
           leadData={
             selectedLead
               ? {
-                  id: selectedLead.id,
-                  name: `${selectedLead.firstName} ${selectedLead.surname}`,
-                  email: selectedLead.email,
-                  phone: selectedLead.phoneNumber,
-                }
+                id: selectedLead.id,
+                name: `${selectedLead.firstName} ${selectedLead.surname}`,
+                email: selectedLead.email,
+                phone: selectedLead.phoneNumber,
+              }
               : null
           }
         />

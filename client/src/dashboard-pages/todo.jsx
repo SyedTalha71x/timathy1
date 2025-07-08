@@ -1,19 +1,25 @@
-""
-
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react"
 import { X, Plus, Calendar, Tag, ChevronDown, Filter } from "lucide-react"
 import AddTaskModal from "../components/task-components/add-task-modal"
 import TaskItem from "../components/task-components/task-item"
-import Notification from "../components/notification"
+import { IoIosMenu } from "react-icons/io"
+
+import Avatar from "../../public/avatar.png"
+import Rectangle1 from "../../public/Rectangle 1.png"
+import { useNavigate } from "react-router-dom"
+import { SidebarArea } from "../components/custom-sidebar"
 
 export default function TodoApp() {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [activeFilter, setActiveFilter] = useState("ongoing")
   const [sortOption, setSortOption] = useState("dueDate-asc")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+
   const [tasks, setTasks] = useState([
     {
       id: 1,
@@ -72,23 +78,7 @@ export default function TodoApp() {
     },
   ])
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "completed",
-      message: "Task 'Prepare weekly report' has been completed",
-    },
-    {
-      id: 2,
-      type: "ongoing",
-      message: "New task 'Client meeting' has been assigned to you",
-    },
-    {
-      id: 3,
-      type: "canceled",
-      message: "Task 'Review project proposal' has been canceled",
-    },
-  ])
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -104,9 +94,6 @@ export default function TodoApp() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const removeNotification = (id) => {
-    setNotifications(notifications.filter((n) => n.id !== id))
-  }
 
   const handleTaskStatusChange = (taskId, newStatus) => {
     setTasks(tasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)))
@@ -124,23 +111,8 @@ export default function TodoApp() {
     setTasks([...tasks, newTask])
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "ongoing":
-        return " text-white"
-      case "completed":
-        return " text-white"
-      case "canceled":
-        return " text-white"
-      default:
-        return ""
-    }
-  }
-
-  // Filter tasks by status
   const filteredTasks = tasks.filter((task) => task.status === activeFilter)
 
-  // Sort tasks based on selected option
   const sortedTasks = [...filteredTasks].sort((a, b) => {
     const [criteria, direction] = sortOption.split("-")
 
@@ -157,54 +129,162 @@ export default function TodoApp() {
     return 0
   })
 
+  const [communications, setCommunications] = useState([
+      {
+        id: 1,
+        name: "John Doe",
+        message: "Hey, how's the project going?",
+        time: "2 min ago",
+        avatar: Rectangle1,
+      },
+      {
+        id: 2,
+        name: "Jane Smith",
+        message: "Meeting scheduled for tomorrow",
+        time: "10 min ago",
+        avatar: Rectangle1,
+      },
+    ])
+  
+    const [todos, setTodos] = useState([
+      {
+        id: 1,
+        title: "Review project proposal",
+        description: "Check the latest updates",
+        assignee: "Mike",
+      },
+      {
+        id: 2,
+        title: "Update documentation",
+        description: "Add new features info",
+        assignee: "Sarah",
+      },
+    ])
+  
+    const [birthdays, setBirthdays] = useState([
+      {
+        id: 1,
+        name: "Alice Johnson",
+        date: "Dec 15, 2024",
+        avatar: Avatar,
+      },
+      {
+        id: 2,
+        name: "Bob Wilson",
+        date: "Dec 20, 2024",
+        avatar: Avatar,
+      },
+    ])
+  
+    const [customLinks, setCustomLinks] = useState([
+      {
+        id: 1,
+        title: "Google Drive",
+        url: "https://drive.google.com",
+      },
+      {
+        id: 2,
+        title: "GitHub",
+        url: "https://github.com",
+      },
+    ])
+  
+    const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+    const [editingLink, setEditingLink] = useState(null)
+  
+    const toggleRightSidebar = () => {
+      setIsRightSidebarOpen(!isRightSidebarOpen)
+    }
+  
+    const closeSidebar = () => {
+      setIsRightSidebarOpen(false)
+    }
+  
+    const redirectToCommunication = () => {
+      navigate("/dashboard/communication")
+    }
+  
+    const redirectToTodos = () => {
+      console.log("Redirecting to todos page")
+      navigate("/dashboard/to-do")
+    }
+  
+    const toggleDropdown = (index) => {
+      setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+    }
+
   return (
     <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden">
       <div className="flex-1 p-4 sm:p-6">
         <div className="pb-16 sm:pb-24 lg:pb-36">
-          {/* Header with title, filter tabs, and add button */}
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-white">To-Do</h1>
 
+<div className="flex items-center gap-2">
+
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="bg-[#FF843E] cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
-              >
+                >
                 <Plus size={18} />
                 <span className="open_sans_font">Add task</span>
               </button>
+
+              <div className="">
+                <IoIosMenu
+                  onClick={toggleRightSidebar}
+                  size={25}
+                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                  />
+              </div>
+                  </div>
             </div>
 
-            {/* Filter and Sort Controls */}
+                      <SidebarArea
+                        isOpen={isRightSidebarOpen}
+                        onClose={closeSidebar}
+                        communications={communications}
+                        todos={todos}
+                        birthdays={birthdays}
+                        customLinks={customLinks}
+                        setCustomLinks={setCustomLinks}
+                        redirectToCommunication={redirectToCommunication}
+                        redirectToTodos={redirectToTodos}
+                        toggleDropdown={toggleDropdown}
+                        openDropdownIndex={openDropdownIndex}
+                        setEditingLink={setEditingLink}
+                      />
+            
+                      {isRightSidebarOpen && (
+                        <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
+                      )}
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              {/* Status Tabs */}
               <div className="flex gap-1 items-center">
                 <button
-                  className={`md:px-4 px-2.5 py-2 text-sm ${
-                    activeFilter === "ongoing"
+                  className={`md:px-4 px-2.5 py-2 text-sm ${activeFilter === "ongoing"
                       ? "bg-white text-black"
                       : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                  } rounded-xl`}
+                    } rounded-xl`}
                   onClick={() => setActiveFilter("ongoing")}
                 >
                   Ongoing
                 </button>
                 <button
-                  className={`md:px-4 px-2.5 py-2 text-sm ${
-                    activeFilter === "completed"
+                  className={`md:px-4 px-2.5 py-2 text-sm ${activeFilter === "completed"
                       ? "bg-white text-black"
                       : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                  } rounded-xl`}
+                    } rounded-xl`}
                   onClick={() => setActiveFilter("completed")}
                 >
                   Completed
                 </button>
                 <button
-                  className={`md:px-4 px-2.5 py-2 text-sm ${
-                    activeFilter === "canceled"
+                  className={`md:px-4 px-2.5 py-2 text-sm ${activeFilter === "canceled"
                       ? "bg-white text-black"
                       : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                  } rounded-xl`}
+                    } rounded-xl`}
                   onClick={() => setActiveFilter("canceled")}
                 >
                   Canceled
@@ -236,9 +316,8 @@ export default function TodoApp() {
                           setSortOption("dueDate-asc")
                           setIsSortDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
-                        }`}
+                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                       >
                         <Calendar size={14} />
                         <span>Earliest First</span>
@@ -248,9 +327,8 @@ export default function TodoApp() {
                           setSortOption("dueDate-desc")
                           setIsSortDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
-                        }`}
+                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                       >
                         <Calendar size={14} />
                         <span>Latest First</span>
@@ -262,9 +340,8 @@ export default function TodoApp() {
                           setSortOption("tag-asc")
                           setIsSortDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
-                        }`}
+                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                       >
                         <Tag size={14} />
                         <span>A to Z</span>
@@ -274,9 +351,8 @@ export default function TodoApp() {
                           setSortOption("tag-desc")
                           setIsSortDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
-                        }`}
+                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                       >
                         <Tag size={14} />
                         <span>Z to A</span>
@@ -308,23 +384,7 @@ export default function TodoApp() {
         </div>
       </div>
 
-      <div
-        className={`fixed lg:static inset-y-0 right-0 w-[320px] bg-[#181818] p-6 transform transition-transform duration-500 ease-in-out ${
-          isNotificationOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-        } z-40`}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl oxanium_font text-white">Notification</h2>
-          <button onClick={() => setIsNotificationOpen(false)} className="lg:hidden text-gray-400 hover:text-white">
-            <X size={20} />
-          </button>
-        </div>
-        <div className="space-y-3">
-          {notifications.map((notification) => (
-            <Notification key={notification.id} notification={notification} onRemove={removeNotification} />
-          ))}
-        </div>
-      </div>
+
 
       {isModalOpen && <AddTaskModal onClose={() => setIsModalOpen(false)} onAddTask={handleAddTask} />}
     </div>

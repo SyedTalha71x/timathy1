@@ -10,6 +10,10 @@ import EmployeePlanningModal from "../components/staff-components/employee-plann
 import AttendanceOverviewModal from "../components/staff-components/attendance-overview-modal"
 import VacationRequestModal from "../components/staff-components/vacation-request-modal"
 import StaffHistoryModal from "../components/staff-components/staff-history-modal"
+import { SidebarArea } from "../components/custom-sidebar"
+import { useNavigate } from "react-router-dom"
+import Rectangle1 from "../../public/Rectangle 1.png"
+
 
 const StaffContext = createContext(null)
 
@@ -29,9 +33,7 @@ export default function StaffManagement() {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   const [selectedStaffForHistory, setSelectedStaffForHistory] = useState(null)
 
-  const openModal = () => setIsModalVisible(true)
-  const closeModal = () => setIsModalVisible(false)
-
+  const navigate = useNavigate();
   const [staffMembers, setStaffMembers] = useState([
     {
       id: 1,
@@ -69,42 +71,6 @@ export default function StaffManagement() {
     },
   ])
 
-  const handleLeaveRequest = (staffId, startDate, endDate) => {
-    const newRequest = {
-      id: leaveRequests.length + 1,
-      staffId,
-      startDate,
-      endDate,
-      status: "Pending",
-    }
-    setLeaveRequests([...leaveRequests, newRequest])
-    toast.success("Leave request submitted for approval")
-  }
-
-  const handleApproveLeave = (requestId) => {
-    setLeaveRequests(
-      leaveRequests.map((request) => (request.id === requestId ? { ...request, status: "Approved" } : request)),
-    )
-    toast.success("Leave request approved")
-  }
-
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      heading: "New Staff Member",
-      description: "John Doe has been added to the staff.",
-    },
-    {
-      id: 2,
-      heading: "Schedule Update",
-      description: "Sarah's work hours have been updated for next week.",
-    },
-  ])
-
-  const removeNotification = (id) => {
-    setNotifications(notifications.filter((n) => n.id !== id))
-  }
-
   const handleEdit = (staff) => {
     setSelectedStaff(staff)
     setIsShowDetails(true)
@@ -139,6 +105,90 @@ export default function StaffManagement() {
     // toast.success(`Redirecting to Staff Communication with @${staff.firstName} ${staff.lastName} tagged`)
   }
 
+  const [communications, setCommunications] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      message: "Hey, how's the project going?",
+      time: "2 min ago",
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      message: "Meeting scheduled for tomorrow",
+      time: "10 min ago",
+      avatar: Rectangle1,
+    },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review project proposal",
+      description: "Check the latest updates",
+      assignee: "Mike",
+    },
+    {
+      id: 2,
+      title: "Update documentation",
+      description: "Add new features info",
+      assignee: "Sarah",
+    },
+  ])
+
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "Alice Johnson",
+      date: "Dec 15, 2024",
+      avatar: Avatar,
+    },
+    {
+      id: 2,
+      name: "Bob Wilson",
+      date: "Dec 20, 2024",
+      avatar: Avatar,
+    },
+  ])
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: 1,
+      title: "Google Drive",
+      url: "https://drive.google.com",
+    },
+    {
+      id: 2,
+      title: "GitHub",
+      url: "https://github.com",
+    },
+  ])
+
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsRightSidebarOpen(false)
+  }
+
+  const redirectToCommunication = () => {
+    navigate("/dashboard/communication")
+  }
+
+  const redirectToTodos = () => {
+    console.log("Redirecting to todos page")
+    navigate("/dashboard/to-do")
+  }
+
+  const toggleDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
+
   return (
     <StaffContext.Provider value={{ staffMembers, setStaffMembers }}>
       <>
@@ -155,7 +205,17 @@ export default function StaffManagement() {
         <div className="flex relative rounded-3xl cursor-pointer bg-[#1C1C1C] text-white">
           <div className="flex-1 min-w-0 p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
-              <h1 className="text-xl sm:text-2xl oxanium_font text-white">Staff management</h1>
+              <div className="flex md:w-auto w-full justify-between items-center gap-2">
+
+                <div></div>
+                <h1 className="text-xl sm:text-2xl oxanium_font text-white">Staff management</h1>
+                <button
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className=" lg:hidden text-sm rounded-xl cursor-pointer block"
+                >
+                  <Menu className="h-4 w-4" />
+                </button>
+              </div>
               <div className="flex items-center md:flex-row flex-col gap-4 w-full sm:w-auto">
                 <button
                   onClick={() => setIsPlanningModalOpen(true)}
@@ -186,7 +246,7 @@ export default function StaffManagement() {
                 </button>
                 <button
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className=" lg:w-auto lg:block hidden w-full text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                  className=" lg:w-auto lg:block  w-full text-sm rounded-xl cursor-pointer hidden items-center justify-center gap-2"
                 >
                   <Menu className="h-4 w-4" />
                 </button>
@@ -236,39 +296,29 @@ export default function StaffManagement() {
               ))}
             </div>
           </div>
-          <aside
-            className={`
-            w-80 bg-[#181818] p-6 md:rounded-3xl rounded-none fixed top-0 bottom-0 right-0 z-50
-            ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
-            transition-transform duration-500 ease-in-out
-            `}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl sm:text-2xl oxanium_font font-bold">Notifications</h2>
-              <button
-                onClick={() => setIsRightSidebarOpen(false)}
-                className=" p-2 hover:bg-black/20 rounded-full transition-colors"
-                aria-label="Close notifications"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="space-y-4 open_sans_font">
-              {notifications.map((notification) => (
-                <div key={notification.id} className="bg-[#1C1C1C] rounded-xl  p-4 relative">
-                  <button
-                    onClick={() => removeNotification(notification.id)}
-                    className="absolute top-4 right-4 text-zinc-500 hover:text-white"
-                  >
-                    <X size={16} />
-                  </button>
-                  <h3 className="font-semibold open_sans_font_700 mb-2">{notification.heading}</h3>
-                  <p className="text-sm text-zinc-400">{notification.description}</p>
-                </div>
-              ))}
-            </div>
-          </aside>
+
+
         </div>
+
+        <SidebarArea
+          isOpen={isRightSidebarOpen}
+          onClose={closeSidebar}
+          communications={communications}
+          todos={todos}
+          birthdays={birthdays}
+          customLinks={customLinks}
+          setCustomLinks={setCustomLinks}
+          redirectToCommunication={redirectToCommunication}
+          redirectToTodos={redirectToTodos}
+          toggleDropdown={toggleDropdown}
+          openDropdownIndex={openDropdownIndex}
+          setEditingLink={setEditingLink}
+        />
+
+        {isRightSidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
+        )}
+
         {isModalOpen && (
           <AddStaffModal
             setIsModalOpen={setIsModalOpen}

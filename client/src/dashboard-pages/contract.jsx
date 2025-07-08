@@ -1,8 +1,6 @@
-""
-
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText, History } from "lucide-react"
+import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText, History, Menu } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
 import { AddContractModal } from "../components/contract-components/add-contract-modal"
@@ -15,6 +13,11 @@ import { BonusTimeModal } from "../components/contract-components/bonus-time-mod
 import { RenewContractModal } from "../components/contract-components/reniew-contract-modal"
 import { ChangeContractModal } from "../components/contract-components/change-contract-modal"
 import { ContractHistoryModal } from "../components/contract-components/contract-history-modal"
+
+import Avatar from "../../public/avatar.png"
+import Rectangle1 from "../../public/Rectangle 1.png"
+import { useNavigate } from "react-router-dom"
+import { SidebarArea } from "../components/custom-sidebar"
 
 const initialContracts = [
   {
@@ -135,11 +138,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            className={`px-3 py-1.5 rounded-xl transition-colors border ${
-              currentPage === page
-                ? "bg-[#F27A30] text-white border-transparent"
-                : "bg-black text-white border-gray-800 hover:bg-gray-900"
-            }`}
+            className={`px-3 py-1.5 rounded-xl transition-colors border ${currentPage === page
+              ? "bg-[#F27A30] text-white border-transparent"
+              : "bg-black text-white border-gray-800 hover:bg-gray-900"
+              }`}
           >
             {page}
           </button>
@@ -169,6 +171,9 @@ export default function ContractList() {
   const [filteredContracts, setFilteredContracts] = useState(initialContracts)
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const navigate = useNavigate();
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+
   const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -257,11 +262,11 @@ export default function ContractList() {
       const updatedContracts = contracts.map((contract) =>
         contract.id === selectedContract.id
           ? {
-              ...contract,
-              contractType: renewalData.contractType,
-              endDate: endDate.toISOString().split("T")[0],
-              status: "Active",
-            }
+            ...contract,
+            contractType: renewalData.contractType,
+            endDate: endDate.toISOString().split("T")[0],
+            status: "Active",
+          }
           : contract,
       )
       setContracts(updatedContracts)
@@ -276,10 +281,10 @@ export default function ContractList() {
       const updatedContracts = contracts.map((contract) =>
         contract.id === selectedContract.id
           ? {
-              ...contract,
-              contractType: changeData.newContractType,
-              // You might want to update other fields based on the change
-            }
+            ...contract,
+            contractType: changeData.newContractType,
+            // You might want to update other fields based on the change
+          }
           : contract,
       )
       setContracts(updatedContracts)
@@ -391,6 +396,90 @@ export default function ContractList() {
     setIsHistoryModalOpen(true)
   }
 
+  const [communications, setCommunications] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      message: "Hey, how's the project going?",
+      time: "2 min ago",
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      message: "Meeting scheduled for tomorrow",
+      time: "10 min ago",
+      avatar: Rectangle1,
+    },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review project proposal",
+      description: "Check the latest updates",
+      assignee: "Mike",
+    },
+    {
+      id: 2,
+      title: "Update documentation",
+      description: "Add new features info",
+      assignee: "Sarah",
+    },
+  ])
+
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "Alice Johnson",
+      date: "Dec 15, 2024",
+      avatar: Avatar,
+    },
+    {
+      id: 2,
+      name: "Bob Wilson",
+      date: "Dec 20, 2024",
+      avatar: Avatar,
+    },
+  ])
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: 1,
+      title: "Google Drive",
+      url: "https://drive.google.com",
+    },
+    {
+      id: 2,
+      title: "GitHub",
+      url: "https://github.com",
+    },
+  ])
+
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsRightSidebarOpen(false)
+  }
+
+  const redirectToCommunication = () => {
+    navigate("/dashboard/communication")
+  }
+
+  const redirectToTodos = () => {
+    console.log("Redirecting to todos page")
+    navigate("/dashboard/to-do")
+  }
+
+  const toggleContractDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
+
   return (
     <>
       <Toaster
@@ -406,7 +495,16 @@ export default function ContractList() {
 
       <div className="bg-[#1C1C1C] p-6 rounded-3xl w-full">
         <div className="flex flex-col sm:flex-row sm:justify-between justify-start items-start md:items-center mb-8">
-          <h2 className="text-white oxanium_font text-2xl mb-4 sm:mb-0 text-left">Contracts</h2>
+          <div className="flex items-center mb-4 justify-between gap-2 w-full md:w-auto">
+
+          <h2 className="text-white oxanium_font text-2xl  text-left">Contracts</h2>
+          <button
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className="md:hidden block  text-sm text-white rounded-xl cursor-pointer "
+              >
+              <Menu className="h-4 w-4" />
+            </button>
+              </div>
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 w-full sm:w-auto">
             {/* Filter Dropdown */}
             <div className="relative filter-dropdown w-full sm:w-auto">
@@ -462,7 +560,6 @@ export default function ContractList() {
               )}
             </div>
 
-            {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
                 onClick={handleAddContract}
@@ -472,6 +569,13 @@ export default function ContractList() {
                 <span>Add Contract</span>
               </button>
             </div>
+
+            <button
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className="md:block hidden  text-sm text-white rounded-xl cursor-pointer "
+            >
+              <Menu className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
@@ -495,13 +599,12 @@ export default function ContractList() {
               <div className="flex flex-col items-start justify-start">
                 {/* Status Tag */}
                 <span
-                  className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${
-                    contract.status === "Active"
-                      ? "bg-green-600 text-white"
-                      : contract.status === "Paused"
-                        ? "bg-yellow-600 text-white"
-                        : "bg-red-600 text-white"
-                  }`}
+                  className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${contract.status === "Active"
+                    ? "bg-green-600 text-white"
+                    : contract.status === "Paused"
+                      ? "bg-yellow-600 text-white"
+                      : "bg-red-600 text-white"
+                    }`}
                 >
                   {contract.status}
                   {contract.pauseReason && ` (${contract.pauseReason})`}
@@ -594,6 +697,26 @@ export default function ContractList() {
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
           )}
         </div>
+
+        <SidebarArea
+          isOpen={isRightSidebarOpen}
+          onClose={closeSidebar}
+          communications={communications}
+          todos={todos}
+          birthdays={birthdays}
+          customLinks={customLinks}
+          setCustomLinks={setCustomLinks}
+          redirectToCommunication={redirectToCommunication}
+          redirectToTodos={redirectToTodos}
+          toggleDropdown={toggleContractDropdown}
+          openDropdownIndex={openDropdownIndex}
+          setEditingLink={setEditingLink}
+        />
+
+        {isRightSidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
+        )}
+
 
         {/* Add Contract Modal */}
         {isModalOpen && (

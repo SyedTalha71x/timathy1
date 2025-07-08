@@ -5,6 +5,10 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Import styles for the date picker
 import "../custom-css/marketing-table-style.css";
 import { useNavigate } from "react-router-dom";
+import { SidebarArea } from "../components/custom-sidebar";
+import Avatar from "../../public/avatar.png"
+import Rectangle1 from "../../public/Rectangle 1.png"
+import { IoIosMenu } from "react-icons/io";
 
 const MarketingTable = () => {
   const [isDateOpen, setIsDateOpen] = useState(false);
@@ -13,6 +17,8 @@ const MarketingTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const campaignsPerPage = 4; // Number of campaigns per page
   const navigate = useNavigate();
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+
   const [isCopied, setIsCopied] = useState(false); // State to manage copy feedback
 
   const trialTrainingUrl = "https://example.com/trial-training"; // Replace with your actual URL
@@ -84,17 +90,109 @@ const MarketingTable = () => {
     setMetaLoggedIn(true);
   };
 
-  const handleTrialTrainingBooking = () => {
-    navigate("/dashboard/trialtraining");
-  };
+  const [communications, setCommunications] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      message: "Hey, how's the project going?",
+      time: "2 min ago",
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      message: "Meeting scheduled for tomorrow",
+      time: "10 min ago",
+      avatar: Rectangle1,
+    },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review project proposal",
+      description: "Check the latest updates",
+      assignee: "Mike",
+    },
+    {
+      id: 2,
+      title: "Update documentation",
+      description: "Add new features info",
+      assignee: "Sarah",
+    },
+  ])
+
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "Alice Johnson",
+      date: "Dec 15, 2024",
+      avatar: Avatar,
+    },
+    {
+      id: 2,
+      name: "Bob Wilson",
+      date: "Dec 20, 2024",
+      avatar: Avatar,
+    },
+  ])
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: 1,
+      title: "Google Drive",
+      url: "https://drive.google.com",
+    },
+    {
+      id: 2,
+      title: "GitHub",
+      url: "https://github.com",
+    },
+  ])
+
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsRightSidebarOpen(false)
+  }
+
+  const redirectToCommunication = () => {
+    navigate("/dashboard/communication")
+  }
+
+  const redirectToTodos = () => {
+    console.log("Redirecting to todos page")
+    navigate("/dashboard/to-do")
+  }
+
+  const toggleDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
 
   return (
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] lg:p-6 md:p-5 sm:p-2 p-1">
       <div className="rounded-xl lg:p-6 md:p-5 sm:p-4 p-4 w-full overflow-hidden">
         <div className="flex justify-between items-center mb-8 relative flex-wrap gap-4">
-          <h1 className="text-2xl oxanium_font text-white">Marketing</h1>
+          <div className="w-full flex justify-between items-center md:w-auto">
 
-          <div className="flex lg:flex-row flex-col lg:gap-4 gap-2 w-full lg:w-auto">
+
+            <h1 className="text-2xl oxanium_font text-white">Marketing</h1>
+
+            <div></div>
+            <div className="md:hidden block">
+              <IoIosMenu
+                onClick={toggleRightSidebar}
+                size={25}
+                className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+              />
+            </div>
+          </div>
+          <div className="flex lg:flex-row flex-col lg:gap-4 items-center gap-2 w-full lg:w-auto">
             <button
               className="flex justify-center open_sans_font items-center gap-2 cursor-pointer bg-blue-600 text-white px-7 py-2 rounded-xl text-sm w-full lg:w-auto"
               onClick={handleMetaLogin}
@@ -114,6 +212,13 @@ const MarketingTable = () => {
               Date
               <ChevronDown size={16} />
             </button>
+            <div className="md:block hidden">
+              <IoIosMenu
+                onClick={toggleRightSidebar}
+                size={25}
+                className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+              />
+            </div>
           </div>
 
           {isDateOpen && (
@@ -197,11 +302,10 @@ const MarketingTable = () => {
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
-                  className={`px-3 py-1.5 rounded-xl transition-colors border ${
-                    currentPage === page
-                      ? "bg-[#F27A30] text-white border-transparent"
-                      : "bg-black text-white border-gray-800 hover:bg-gray-900"
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl transition-colors border ${currentPage === page
+                    ? "bg-[#F27A30] text-white border-transparent"
+                    : "bg-black text-white border-gray-800 hover:bg-gray-900"
+                    }`}
                 >
                   {page}
                 </button>
@@ -217,6 +321,26 @@ const MarketingTable = () => {
           </div>
         )}
       </div>
+
+
+      <SidebarArea
+        isOpen={isRightSidebarOpen}
+        onClose={closeSidebar}
+        communications={communications}
+        todos={todos}
+        birthdays={birthdays}
+        customLinks={customLinks}
+        setCustomLinks={setCustomLinks}
+        redirectToCommunication={redirectToCommunication}
+        redirectToTodos={redirectToTodos}
+        toggleDropdown={toggleDropdown}
+        openDropdownIndex={openDropdownIndex}
+        setEditingLink={setEditingLink}
+      />
+
+      {isRightSidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
+      )}
     </div>
   );
 };

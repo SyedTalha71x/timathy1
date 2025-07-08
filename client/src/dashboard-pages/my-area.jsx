@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React from "react"
+"use client"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
@@ -19,8 +19,6 @@ import {
   CalendarIcon,
   Menu,
   Users,
-  TrendingUp,
-  Award,
 } from "lucide-react"
 import Rectangle1 from "../../public/Rectangle 1.png"
 import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
@@ -96,11 +94,9 @@ function StaffCheckInWidget() {
         const now = new Date()
         setCheckInTime(now)
         setCanCheckOut(false)
-
         // Set 2-minute timeout
         const timeoutTime = new Date(now.getTime() + 2 * 60 * 1000)
         setBookingTimeout(timeoutTime)
-
         setTimeout(
           () => {
             setCanCheckOut(true)
@@ -108,7 +104,6 @@ function StaffCheckInWidget() {
           },
           2 * 60 * 1000,
         )
-
         toast.success("Checked in successfully")
       }
       setShowPasswordModal(false)
@@ -149,7 +144,6 @@ function StaffCheckInWidget() {
             </div>
           )}
         </div>
-
         {!isCheckedIn ? (
           <button
             onClick={handleCheckInOut}
@@ -160,14 +154,14 @@ function StaffCheckInWidget() {
         ) : (
           <button
             onClick={handleCheckInOut}
-            className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors ${canCheckOut ? "bg-red-600 text-white" : "bg-gray-600 text-gray-300 cursor-not-allowed"
-              }`}
+            className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              canCheckOut ? "bg-red-600 text-white" : "bg-gray-600 text-gray-300 cursor-not-allowed"
+            }`}
             disabled={!canCheckOut}
           >
             {loggedInStaff.name} - Check Out
           </button>
         )}
-
         <button
           onClick={() => setShowAdditionalStaff(true)}
           className="w-full py-2 rounded-xl text-sm font-medium transition-colors bg-blue-600 text-white flex items-center justify-center gap-2"
@@ -261,7 +255,6 @@ function AdditionalStaffModal({ staffList, additionalStaffCheckIns, onCheckIn, o
             <X size={16} />
           </button>
         </div>
-
         <div className="space-y-4">
           <div>
             <label className="block text-sm text-zinc-400 mb-2">Select Staff Member</label>
@@ -270,16 +263,18 @@ function AdditionalStaffModal({ staffList, additionalStaffCheckIns, onCheckIn, o
                 <div
                   key={staff.id}
                   onClick={() => setSelectedStaff(staff)}
-                  className={`p-3 rounded-xl cursor-pointer transition-colors ${selectedStaff?.id === staff.id ? "bg-blue-600" : "bg-black hover:bg-zinc-800"
-                    }`}
+                  className={`p-3 rounded-xl cursor-pointer transition-colors ${
+                    selectedStaff?.id === staff.id ? "bg-blue-600" : "bg-black hover:bg-zinc-800"
+                  }`}
                 >
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">{staff.name}</span>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${additionalStaffCheckIns[staff.id]
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-gray-500/20 text-gray-400"
-                        }`}
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        additionalStaffCheckIns[staff.id]
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-gray-500/20 text-gray-400"
+                      }`}
                     >
                       {additionalStaffCheckIns[staff.id] ? "Checked In" : "Checked Out"}
                     </span>
@@ -288,7 +283,6 @@ function AdditionalStaffModal({ staffList, additionalStaffCheckIns, onCheckIn, o
               ))}
             </div>
           </div>
-
           {selectedStaff && (
             <div>
               <label className="block text-sm text-zinc-400 mb-1">Password for {selectedStaff.name}</label>
@@ -302,7 +296,6 @@ function AdditionalStaffModal({ staffList, additionalStaffCheckIns, onCheckIn, o
               />
             </div>
           )}
-
           <div className="flex gap-2 justify-end">
             <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700">
               Cancel
@@ -310,8 +303,9 @@ function AdditionalStaffModal({ staffList, additionalStaffCheckIns, onCheckIn, o
             <button
               onClick={handleSubmit}
               disabled={!selectedStaff || !password}
-              className={`px-4 py-2 text-sm rounded-xl ${selectedStaff && password ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-600/50 cursor-not-allowed"
-                }`}
+              className={`px-4 py-2 text-sm rounded-xl ${
+                selectedStaff && password ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-600/50 cursor-not-allowed"
+              }`}
             >
               {additionalStaffCheckIns[selectedStaff?.id] ? "Check Out" : "Check In"}
             </button>
@@ -329,9 +323,9 @@ function StatisticsWidget({ type }) {
   return (
     <div className="space-y-3 p-4 rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
       <div className="flex items-center gap-2 mb-3">
-          <h2 className="text-lg font-semibold">{title}</h2>
+        <h2 className="text-lg font-semibold">{title}</h2>
       </div>
-      <div className="space-y-3  rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col ">
+      <div className="space-y-3 rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
         {data.map((item, index) => (
           <div key={index} className="p-2 bg-black rounded-xl">
             <div className="flex justify-between items-center">
@@ -357,19 +351,27 @@ function StatisticsWidget({ type }) {
 const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
   const ref = useRef(null)
 
+  const handleMoveUp = () => {
+    if (index > 0) {
+      moveWidget(index, index - 1)
+    }
+  }
+
+  const handleMoveDown = () => {
+    if (index < widgets.length - 1) {
+      moveWidget(index, index + 1)
+    }
+  }
+
   return (
     <div ref={ref} className="relative mb-4 w-full">
       {isEditing && (
         <div className="absolute top-2 right-2 z-10 flex gap-2">
-          <button
-            onClick={() => moveWidget(index, index - 1)}
-            className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
-            disabled={index === 0}
-          >
+          <button onClick={handleMoveUp} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700" disabled={index === 0}>
             <ArrowUp size={12} />
           </button>
           <button
-            onClick={() => moveWidget(index, index + 1)}
+            onClick={handleMoveDown}
             className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
             disabled={index === widgets.length - 1}
           >
@@ -397,6 +399,8 @@ export default function MyArea() {
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
   const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [isSidebarEditing, setIsSidebarEditing] = useState(false) // Separate edit state for sidebar
+
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 },
     { id: "appointments", type: "appointments", position: 1 },
@@ -606,6 +610,8 @@ export default function MyArea() {
   const redirectToCommunication = () => navigate("/dashboard/communication")
   const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   const toggleEditing = () => setIsEditing(!isEditing)
+  const toggleSidebarEditing = () => setIsSidebarEditing(!isSidebarEditing) // Toggle sidebar edit mode
+
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
@@ -614,29 +620,60 @@ export default function MyArea() {
   const [editingNoteId, setEditingNoteId] = useState(null)
   const [editingNoteText, setEditingNoteText] = useState("")
 
+  // Fixed moveWidget function
   const moveWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= widgets.length) return
+
     const newWidgets = [...widgets]
     const [movedWidget] = newWidgets.splice(fromIndex, 1)
     newWidgets.splice(toIndex, 0, movedWidget)
-    setWidgets(newWidgets.map((w, i) => ({ ...w, position: i })))
+
+    // Update positions
+    const updatedWidgets = newWidgets.map((widget, index) => ({
+      ...widget,
+      position: index,
+    }))
+
+    setWidgets(updatedWidgets)
   }
 
   const removeWidget = (id) => {
-    setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
+    setWidgets((currentWidgets) => {
+      const filtered = currentWidgets.filter((w) => w.id !== id)
+      // Update positions after removal
+      return filtered.map((widget, index) => ({
+        ...widget,
+        position: index,
+      }))
+    })
   }
 
-  // Add functions for right sidebar widgets
+  // Fixed functions for right sidebar widgets
   const moveRightSidebarWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= rightSidebarWidgets.length) return
+
     const newWidgets = [...rightSidebarWidgets]
     const [movedWidget] = newWidgets.splice(fromIndex, 1)
     newWidgets.splice(toIndex, 0, movedWidget)
-    setRightSidebarWidgets(newWidgets.map((w, i) => ({ ...w, position: i })))
+
+    // Update positions
+    const updatedWidgets = newWidgets.map((widget, index) => ({
+      ...widget,
+      position: index,
+    }))
+
+    setRightSidebarWidgets(updatedWidgets)
   }
 
   const removeRightSidebarWidget = (id) => {
-    setRightSidebarWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
+    setRightSidebarWidgets((currentWidgets) => {
+      const filtered = currentWidgets.filter((w) => w.id !== id)
+      // Update positions after removal
+      return filtered.map((widget, index) => ({
+        ...widget,
+        position: index,
+      }))
+    })
   }
 
   const [editingLink, setEditingLink] = useState(null)
@@ -701,7 +738,7 @@ export default function MyArea() {
       }
       const newLinks = [...currentLinks]
       const swap = direction === "up" ? index - 1 : index + 1
-        ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
+      ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
       return newLinks
     })
   }
@@ -845,6 +882,7 @@ export default function MyArea() {
 
     const handleSave = () => {
       if (!title.trim() || !url.trim()) return
+
       if (link?.id) {
         updateCustomLink(link.id, "title", title)
         updateCustomLink(link.id, "url", url)
@@ -898,8 +936,9 @@ export default function MyArea() {
               <button
                 onClick={handleSave}
                 disabled={!title.trim() || !url.trim()}
-                className={`px-4 py-2 text-sm rounded-xl ${!title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                  }`}
+                className={`px-4 py-2 text-sm rounded-xl ${
+                  !title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                }`}
               >
                 Save
               </button>
@@ -910,41 +949,53 @@ export default function MyArea() {
     )
   }
 
+  // Fixed handleAddWidget function
   const handleAddWidget = (widgetType) => {
+    if (!canAddWidget(widgetType)) {
+      toast.error("This widget is already added to your dashboard")
+      return
+    }
+
     const newWidget = {
-      id: `widget${Date.now()}`,
+      id: `widget_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: widgetType,
       position: widgets.length,
     }
+
     setWidgets((currentWidgets) => [...currentWidgets, newWidget])
     setIsWidgetModalOpen(false)
-    toast.success(`${widgetType} widget has been added Successfully`)
+    toast.success(`${widgetType} widget has been added successfully`)
   }
 
+  // Fixed handleAddRightSidebarWidget function
   const handleAddRightSidebarWidget = (widgetType) => {
+    if (!canAddRightSidebarWidget(widgetType)) {
+      toast.error("This widget is already added to your dashboard")
+      return
+    }
+
     const newWidget = {
-      id: `rightWidget${Date.now()}`,
+      id: `rightWidget_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: widgetType,
       position: rightSidebarWidgets.length,
     }
+
     setRightSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
     setIsRightWidgetModalOpen(false)
     toast.success(`${widgetType} widget has been added to sidebar`)
   }
 
-  // Updated canAddWidget function to check both main and right sidebar widgets
+  // Updated canAddWidget functions with proper checking
   const canAddWidget = (widgetType) => {
-    return (
-      !widgets.some((widget) => widget.type === widgetType) &&
-      !rightSidebarWidgets.some((widget) => widget.type === widgetType)
-    )
+    const existsInMain = widgets.some((widget) => widget.type === widgetType)
+    const existsInSidebar = rightSidebarWidgets.some((widget) => widget.type === widgetType)
+    return !existsInMain && !existsInSidebar
   }
 
   const canAddRightSidebarWidget = (widgetType) => {
-    return (
-      !rightSidebarWidgets.some((widget) => widget.type === widgetType) &&
-      !widgets.some((widget) => widget.type === widgetType)
-    )
+    const existsInSidebar = rightSidebarWidgets.some((widget) => widget.type === widgetType)
+    const existsInMain = widgets.some((widget) => widget.type === widgetType)
+    return !existsInSidebar && !existsInMain
   }
 
   const notePopoverRef = useRef(null)
@@ -966,9 +1017,11 @@ export default function MyArea() {
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
       if (!specialNote.text) return null
+
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+
       if (!isActive) return null
 
       const handleNoteClick = (e) => {
@@ -979,8 +1032,9 @@ export default function MyArea() {
       return (
         <div className="relative">
           <div
-            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${
+              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
@@ -1000,9 +1054,9 @@ export default function MyArea() {
                 ) : (
                   <Info className="text-blue-500 shrink-0" size={18} />
                 )}
-                <h4 className="text-white flex text-sm gap-1   items-center font-medium">
+                <h4 className="text-white flex text-sm gap-1 items-center font-medium">
                   <div>Special Note</div>
-                  <div className="text-sm text-gray-400 ">
+                  <div className="text-sm text-gray-400">
                     {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
                   </div>
                 </h4>
@@ -1028,7 +1082,7 @@ export default function MyArea() {
                     <textarea
                       value={editingNoteText}
                       onChange={(e) => setEditingNoteText(e.target.value)}
-                      className="w-full p-2 bg-gray-700  rounded text-white text-sm resize-none"
+                      className="w-full p-2 bg-gray-700 rounded text-white text-sm resize-none"
                       rows={3}
                       placeholder="Enter special note..."
                     />
@@ -1080,19 +1134,31 @@ export default function MyArea() {
 
   // Right sidebar widget component with remove functionality
   const RightSidebarWidget = ({ id, children, index, isEditing }) => {
+    const handleMoveUp = () => {
+      if (index > 0) {
+        moveRightSidebarWidget(index, index - 1)
+      }
+    }
+
+    const handleMoveDown = () => {
+      if (index < rightSidebarWidgets.length - 1) {
+        moveRightSidebarWidget(index, index + 1)
+      }
+    }
+
     return (
       <div className="relative mb-6">
         {isEditing && (
           <div className="absolute top-2 right-2 z-10 flex gap-2">
             <button
-              onClick={() => moveRightSidebarWidget(index, index - 1)}
+              onClick={handleMoveUp}
               className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
               disabled={index === 0}
             >
               <ArrowUp size={12} />
             </button>
             <button
-              onClick={() => moveRightSidebarWidget(index, index + 1)}
+              onClick={handleMoveDown}
               className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
               disabled={index === rightSidebarWidgets.length - 1}
             >
@@ -1127,6 +1193,7 @@ export default function MyArea() {
         {isRightSidebarOpen && (
           <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={toggleRightSidebar} />
         )}
+
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-3 md:p-5 space-y-4">
             <div className="flex items-center justify-between">
@@ -1143,8 +1210,9 @@ export default function MyArea() {
                 </button>
                 <button
                   onClick={toggleEditing}
-                  className={`p-2 ${isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                    } rounded-lg flex items-center gap-1`}
+                  className={`p-2 ${
+                    isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                  } rounded-lg flex items-center gap-1`}
                 >
                   {isEditing ? <Check size={16} /> : <Edit size={16} />}
                 </button>
@@ -1221,7 +1289,7 @@ export default function MyArea() {
                       widgets={widgets}
                     >
                       <div className="space-y-3 p-4 rounded-xl md:h-[340px] h-auto bg-[#2F2F2F]">
-                        <div className="flex justify-between items-cent0er">
+                        <div className="flex justify-between items-center">
                           <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
                         </div>
                         <div className="space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar pr-1">
@@ -1266,10 +1334,11 @@ export default function MyArea() {
                                         e.stopPropagation()
                                         handleCheckIn(appointment.id)
                                       }}
-                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                        ? "bg-gray-500 bg-opacity-50 text-white"
-                                        : "bg-black text-white"
-                                        }`}
+                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${
+                                        appointment.isCheckedIn
+                                          ? "bg-gray-500 bg-opacity-50 text-white"
+                                          : "bg-black text-white"
+                                      }`}
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                     </button>
@@ -1527,6 +1596,7 @@ export default function MyArea() {
                           </div>
                         </div>
                       )}
+
                       {widget.type === "todo" && (
                         <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
                           <div className="flex justify-between items-center">
@@ -1555,6 +1625,7 @@ export default function MyArea() {
                           </div>
                         </div>
                       )}
+
                       {widget.type === "birthdays" && (
                         <div className="space-y-2 p-4 bg-[#2F2F2F] rounded-xl h-full">
                           <div className="flex justify-between items-center">
@@ -1580,19 +1651,17 @@ export default function MyArea() {
                     </DraggableWidget>
                   ))}
               </div>
-
-
             </div>
           </div>
         </main>
 
         <aside
           className={`
-              fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 lg:w-80 bg-[#181818] 
-              transform transition-transform duration-500 ease-in-out
-              ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
-              md:relative md:translate-x-0
-            `}
+            fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 lg:w-80 bg-[#181818] 
+            transform transition-transform duration-500 ease-in-out
+            ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
+            md:relative md:translate-x-0
+          `}
         >
           <div className="p-4 md:p-5 h-full overflow-y-auto">
             {/* Header with close button and add widget button */}
@@ -1605,6 +1674,15 @@ export default function MyArea() {
                   title="Add Widget"
                 >
                   <Plus size={16} />
+                </button>
+                <button
+                  onClick={toggleSidebarEditing}
+                  className={`p-2 ${
+                    isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                  } rounded-lg flex items-center gap-1`}
+                  title="Edit Sidebar"
+                >
+                  {isSidebarEditing ? <Check size={16} /> : <Edit size={16} />}
                 </button>
                 <button
                   onClick={toggleRightSidebar}
@@ -1620,7 +1698,7 @@ export default function MyArea() {
             {rightSidebarWidgets
               .sort((a, b) => a.position - b.position)
               .map((widget, index) => (
-                <RightSidebarWidget key={widget.id} id={widget.id} index={index} isEditing={isEditing}>
+                <RightSidebarWidget key={widget.id} id={widget.id} index={index} isEditing={isSidebarEditing}>
                   {widget.type === "communications" && (
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-2">
@@ -1663,6 +1741,7 @@ export default function MyArea() {
                       </div>
                     </div>
                   )}
+
                   {widget.type === "todo" && (
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-2">
@@ -1694,6 +1773,7 @@ export default function MyArea() {
                       </div>
                     </div>
                   )}
+
                   {widget.type === "birthday" && (
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-2">
@@ -1717,6 +1797,7 @@ export default function MyArea() {
                       </div>
                     </div>
                   )}
+
                   {widget.type === "websiteLinks" && (
                     <div className="mb-6">
                       <div className="space-y-3">
@@ -1746,7 +1827,7 @@ export default function MyArea() {
                                     >
                                       <ExternalLink size={16} />
                                     </button>
-                                    {!isEditing && (
+                                    {!isSidebarEditing && (
                                       <div className="relative">
                                         <button
                                           onClick={(e) => {
@@ -1785,7 +1866,7 @@ export default function MyArea() {
                                     )}
                                   </div>
                                 </div>
-                                {isEditing && (
+                                {isSidebarEditing && (
                                   <div className="absolute top-2 right-2 z-10 flex gap-2">
                                     <button
                                       onClick={() => moveCustomLink(link.id, "up")}
@@ -1803,7 +1884,7 @@ export default function MyArea() {
                                     </button>
                                     <button
                                       onClick={() => removeCustomLink(link.id)}
-                                      className="p-1 bg-gray-800 rounded hover:bg-gray-700 "
+                                      className="p-1 bg-gray-800 rounded hover:bg-gray-700"
                                     >
                                       <X size={12} />
                                     </button>
@@ -1828,18 +1909,21 @@ export default function MyArea() {
         </aside>
 
         {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
+
         <WidgetSelectionModal
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
           onSelectWidget={handleAddWidget}
           canAddWidget={canAddWidget}
         />
+
         <WidgetSelectionModal
           isOpen={isRightWidgetModalOpen}
           onClose={() => setIsRightWidgetModalOpen(false)}
           onSelectWidget={handleAddRightSidebarWidget}
           canAddWidget={canAddRightSidebarWidget}
         />
+
         <SelectedAppointmentModal
           selectedAppointment={selectedAppointment}
           setSelectedAppointment={setSelectedAppointment}

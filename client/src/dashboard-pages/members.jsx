@@ -26,8 +26,16 @@ import DefaultAvatar from "../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
 import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
 import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
+import { IoIosMenu } from "react-icons/io"
+
+
+import Avatar from "../../public/avatar.png"
+import Rectangle1 from "../../public/Rectangle 1.png"
+import { useNavigate } from "react-router-dom"
+import { SidebarArea } from "../components/custom-sidebar"
 
 export default function Members() {
+  const navigate = useNavigate()
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
@@ -722,6 +730,90 @@ export default function Members() {
     return appointments.filter((app) => app.memberId === memberId)
   }
 
+  const [communications, setCommunications] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      message: "Hey, how's the project going?",
+      time: "2 min ago",
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      message: "Meeting scheduled for tomorrow",
+      time: "10 min ago",
+      avatar: Rectangle1,
+    },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review project proposal",
+      description: "Check the latest updates",
+      assignee: "Mike",
+    },
+    {
+      id: 2,
+      title: "Update documentation",
+      description: "Add new features info",
+      assignee: "Sarah",
+    },
+  ])
+
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "Alice Johnson",
+      date: "Dec 15, 2024",
+      avatar: Avatar,
+    },
+    {
+      id: 2,
+      name: "Bob Wilson",
+      date: "Dec 20, 2024",
+      avatar: Avatar,
+    },
+  ])
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: 1,
+      title: "Google Drive",
+      url: "https://drive.google.com",
+    },
+    {
+      id: 2,
+      title: "GitHub",
+      url: "https://github.com",
+    },
+  ])
+
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsRightSidebarOpen(false)
+  }
+
+  const redirectToCommunication = () => {
+    navigate("/dashboard/communication")
+  }
+
+  const redirectToTodos = () => {
+    console.log("Redirecting to todos page")
+    navigate("/dashboard/to-do")
+  }
+
+  const toggleDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
+
   return (
     <>
       <Toaster
@@ -737,8 +829,22 @@ export default function Members() {
       <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white relative">
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
-            <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
+            <div className="flex md:w-auto w-full items-center gap-3 justify-between">
+
+              <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
+              <div></div>
+              <div className="md:hidden block">
+                <IoIosMenu
+                  onClick={toggleRightSidebar}
+                  size={25}
+                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                />
+              </div>
+            </div>
             <div className="flex items-center md:flex-row flex-col gap-3 w-full sm:w-auto">
+
+
+
               <button
                 onClick={() => setShowCreateTempMemberModal(true)}
                 className="md:w-auto w-full justify-center flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm"
@@ -746,6 +852,7 @@ export default function Members() {
                 <UserPlus size={16} />
                 Create Temp Member
               </button>
+
               <button
                 onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}
                 className="md:w-auto w-full flex justify-center items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
@@ -761,9 +868,8 @@ export default function Members() {
                   <span className="truncate">{filterOptions.find((opt) => opt.id === filterStatus)?.label}</span>
                   <ChevronDown
                     size={16}
-                    className={`transform transition-transform flex-shrink-0 ${
-                      isFilterDropdownOpen ? "rotate-180" : ""
-                    }`}
+                    className={`transform transition-transform flex-shrink-0 ${isFilterDropdownOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
                 {isFilterDropdownOpen && (
@@ -772,9 +878,8 @@ export default function Members() {
                       <button
                         key={option.id}
                         onClick={() => handleFilterSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
-                          option.id === filterStatus ? "bg-[#000000]" : ""
-                        }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === filterStatus ? "bg-[#000000]" : ""
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -799,9 +904,8 @@ export default function Members() {
                       <button
                         key={option.id}
                         onClick={() => handleSortSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
-                          option.id === sortBy ? "bg-[#000000]" : ""
-                        }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === sortBy ? "bg-[#000000]" : ""
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -809,8 +913,34 @@ export default function Members() {
                   </div>
                 )}
               </div>
+              <div className="md:block hidden">
+                <IoIosMenu
+                  onClick={toggleRightSidebar}
+                  size={25}
+                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                />
+              </div>
             </div>
           </div>
+
+          <SidebarArea
+            isOpen={isRightSidebarOpen}
+            onClose={closeSidebar}
+            communications={communications}
+            todos={todos}
+            birthdays={birthdays}
+            customLinks={customLinks}
+            setCustomLinks={setCustomLinks}
+            redirectToCommunication={redirectToCommunication}
+            redirectToTodos={redirectToTodos}
+            toggleDropdown={toggleDropdown}
+            openDropdownIndex={openDropdownIndex}
+            setEditingLink={setEditingLink}
+          />
+
+          {isRightSidebarOpen && (
+            <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
+          )}
 
           {/* Advanced Filter Panel */}
           {showAdvancedFilter && (
@@ -1302,13 +1432,12 @@ export default function Members() {
                                   <span className="text-gray-400 ml-2">({relation.relation})</span>
                                   <span className="text-blue-400 ml-2 capitalize">- {category}</span>
                                   <span
-                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                      relation.type === "member"
+                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
                                         ? "bg-green-600 text-green-100"
                                         : relation.type === "lead"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                    }`}
+                                      }`}
                                   >
                                     {relation.type}
                                   </span>
@@ -1354,11 +1483,10 @@ export default function Members() {
                             }
                             setIsEditModalOpen(false)
                           }}
-                          className={`px-4 py-2 rounded-xl text-sm ${
-                            selectedMember.isArchived
+                          className={`px-4 py-2 rounded-xl text-sm ${selectedMember.isArchived
                               ? "bg-green-600 hover:bg-green-700 text-white"
                               : "bg-gray-600 hover:bg-gray-700 text-white"
-                          }`}
+                            }`}
                         >
                           {selectedMember.isArchived ? (
                             <>
@@ -1389,9 +1517,8 @@ export default function Members() {
                       <div className="absolute p-2 top-0 left-0 z-10">
                         <div className="relative">
                           <div
-                            className={`${
-                              member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                            className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
                             onClick={(e) => {
                               e.stopPropagation()
                               setActiveNoteId(activeNoteId === member.id ? null : member.id)
@@ -1459,18 +1586,16 @@ export default function Members() {
                             </h3>
                             <div className="flex items-center gap-2">
                               <span
-                                className={`px-2 py-0.5 text-xs rounded-full ${
-                                  member.isActive ? "bg-green-900 text-green-300" : "bg-orange-400 text-white"
-                                }`}
+                                className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-orange-400 text-white"
+                                  }`}
                               >
                                 {member.isActive ? "Active" : "Paused"}
                               </span>
                               <span
-                                className={`px-2 py-0.5 text-xs rounded-full ${
-                                  member.memberType === "full"
+                                className={`px-2 py-0.5 text-xs rounded-full ${member.memberType === "full"
                                     ? "bg-blue-900 text-blue-300"
                                     : "bg-purple-900 text-purple-300"
-                                }`}
+                                  }`}
                               >
                                 {member.memberType === "full" ? "Full Member" : "Temporary Member"}
                               </span>
@@ -1571,32 +1696,7 @@ export default function Members() {
             )}
           </div>
         </div>
-        <aside
-          className={`w-80 bg-[#181818] p-6 fixed top-0 bottom-0 right-0 z-50 lg:static lg:block ${
-            isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-          } transition-transform duration-500 ease-in-out`}
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold oxanium_font">Notification</h2>
-            <button onClick={() => setIsRightSidebarOpen(false)} className="text-gray-400 hover:text-white lg:hidden">
-              <X size={24} />
-            </button>
-          </div>
-          <div className="space-y-4 open_sans_font">
-            {notifications.map((notification) => (
-              <div key={notification.id} className="bg-[#1C1C1C] rounded-xl p-4 relative">
-                <button
-                  onClick={() => removeNotification(notification.id)}
-                  className="absolute top-4 right-4 text-zinc-500 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-                <h3 className="open_sans_font_700 mb-2">{notification.heading}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">{notification.description}</p>
-              </div>
-            ))}
-          </div>
-        </aside>
+
       </div>
 
       {showRelationsTile && selectedRelationMember && (
@@ -1683,21 +1783,19 @@ export default function Members() {
               <div className="flex border-b border-gray-700 mb-6">
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeTab === "details"
+                  className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   Details
                 </button>
                 <button
                   onClick={() => setActiveTab("relations")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeTab === "relations"
+                  className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   Relations
                 </button>
@@ -1717,11 +1815,10 @@ export default function Members() {
                       </h3>
                       <div className="flex items-center gap-2 mt-2">
                         <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${
-                            selectedMember.memberType === "full"
+                          className={`px-2 py-0.5 text-xs rounded-full ${selectedMember.memberType === "full"
                               ? "bg-blue-900 text-blue-300"
                               : "bg-purple-900 text-purple-300"
-                          }`}
+                            }`}
                         >
                           {selectedMember.memberType === "full"
                             ? "Full Member (with contract)"
@@ -1826,8 +1923,7 @@ export default function Members() {
                               <div className="w-0.5 h-8 bg-gray-600"></div>
                               {/* Category header */}
                               <div
-                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
-                                  category === "family"
+                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
                                     ? "bg-yellow-600 text-yellow-100"
                                     : category === "friendship"
                                       ? "bg-green-600 text-green-100"
@@ -1836,7 +1932,7 @@ export default function Members() {
                                         : category === "work"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                }`}
+                                  }`}
                               >
                                 {category}
                               </div>
@@ -1845,11 +1941,10 @@ export default function Members() {
                                 {relations.map((relation) => (
                                   <div
                                     key={relation.id}
-                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${
-                                      relation.type === "member" || relation.type === "lead"
+                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${relation.type === "member" || relation.type === "lead"
                                         ? "border border-blue-500/30"
                                         : ""
-                                    }`}
+                                      }`}
                                     onClick={() => {
                                       if (relation.type === "member" || relation.type === "lead") {
                                         // Handle click for member/lead relations
@@ -1860,13 +1955,12 @@ export default function Members() {
                                     <div className="text-white text-sm font-medium">{relation.name}</div>
                                     <div className="text-gray-400 text-xs">({relation.relation})</div>
                                     <div
-                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${
-                                        relation.type === "member"
+                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${relation.type === "member"
                                           ? "bg-green-600 text-green-100"
                                           : relation.type === "lead"
                                             ? "bg-blue-600 text-blue-100"
                                             : "bg-gray-600 text-gray-100"
-                                      }`}
+                                        }`}
                                     >
                                       {relation.type}
                                     </div>
@@ -1894,11 +1988,10 @@ export default function Members() {
                               relations.map((relation) => (
                                 <div
                                   key={relation.id}
-                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${
-                                    relation.type === "member" || relation.type === "lead"
+                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
                                       ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
                                       : ""
-                                  }`}
+                                    }`}
                                   onClick={() => {
                                     if (relation.type === "member" || relation.type === "lead") {
                                       toast.info(`Clicked on ${relation.name} (${relation.type})`)
@@ -1909,13 +2002,12 @@ export default function Members() {
                                     <span className="text-white font-medium">{relation.name}</span>
                                     <span className="text-gray-400 ml-2">- {relation.relation}</span>
                                     <span
-                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                        relation.type === "member"
+                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
                                           ? "bg-green-600 text-green-100"
                                           : relation.type === "lead"
                                             ? "bg-blue-600 text-blue-100"
                                             : "bg-gray-600 text-gray-100"
-                                      }`}
+                                        }`}
                                     >
                                       {relation.type}
                                     </span>
@@ -2169,11 +2261,10 @@ export default function Members() {
                   <button
                     key={tab.id}
                     onClick={() => setHistoryTab(tab.id)}
-                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${
-                      historyTab === tab.id
+                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${historyTab === tab.id
                         ? "text-blue-400 border-b-2 border-blue-400"
                         : "text-gray-400 hover:text-white"
-                    }`}
+                      }`}
                   >
                     {tab.label}
                   </button>
@@ -2240,11 +2331,10 @@ export default function Members() {
                               <p className="text-white font-medium">{item.title}</p>
                               <p className="text-gray-400 text-sm">with {item.trainer}</p>
                               <span
-                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
-                                  item.status === "completed"
+                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
                                     ? "bg-green-900 text-green-300"
                                     : "bg-yellow-900 text-yellow-300"
-                                }`}
+                                  }`}
                               >
                                 {item.status}
                               </span>
@@ -2271,11 +2361,10 @@ export default function Members() {
                               <p className="text-white font-medium">{item.type}</p>
                               <p className="text-gray-400 text-sm">{item.description}</p>
                               <span
-                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
-                                  item.status === "completed"
+                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
                                     ? "bg-green-900 text-green-300"
                                     : "bg-yellow-900 text-yellow-300"
-                                }`}
+                                  }`}
                               >
                                 {item.status}
                               </span>
@@ -2355,5 +2444,5 @@ export default function Members() {
         </div>
       )}
     </>
-  ) 
+  )
 }
