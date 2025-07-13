@@ -22,6 +22,9 @@ import Leets from './dashboard-pages/leads'
 import TrialTraining from "./dashboard-pages/trialtraining";
 import Selling from "./dashboard-pages/selling";
 import Finances from "./dashboard-pages/finances";
+import Training from "./dashboard-pages/training";
+import ActivityMonitor from "./dashboard-pages/activity-monitor";
+import Analytics from './dashboard-pages/analytics'
 
 
 // Customer Dashboard
@@ -64,6 +67,9 @@ function App() {
           <Route path="trialtraining" element={<TrialTraining />} />
           <Route path="selling" element={<Selling />} />
           <Route path="finances" element={<Finances />} />
+          <Route path="training" element={<Training />} />
+          <Route path="activity-monitor" element={<ActivityMonitor />} />
+          <Route path="analytics" element={<Analytics />} />
 
         </Route>
 

@@ -11,13 +11,13 @@ import { useNavigate } from "react-router-dom"
 import { SidebarArea } from "../components/custom-sidebar"
 
 export default function TodoApp() {
-  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [activeFilter, setActiveFilter] = useState("ongoing")
   const [sortOption, setSortOption] = useState("dueDate-asc")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
+  const navigate = useNavigate();
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
 
   const [tasks, setTasks] = useState([

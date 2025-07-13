@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
@@ -21,14 +23,14 @@ import {
   Clock,
   Users,
   Filter,
+  Lock,
+  Plus,
 } from "lucide-react"
 import DefaultAvatar from "../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
 import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
 import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 import { IoIosMenu } from "react-icons/io"
-
-
 import Avatar from "../../public/avatar.png"
 import Rectangle1 from "../../public/Rectangle 1.png"
 import { useNavigate } from "react-router-dom"
@@ -63,13 +65,50 @@ export default function Members() {
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("")
 
+  // Enhanced contingent management
   const [memberContingent, setMemberContingent] = useState({
-    1: { used: 2, total: 7 },
-    2: { used: 1, total: 8 },
+    1: {
+      current: { used: 2, total: 7 },
+      future: {
+        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
+        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
+      },
+    },
+    2: {
+      current: { used: 1, total: 8 },
+      future: {
+        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
+        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
+      },
+    },
   })
+
   const [showContingentModal, setShowContingentModal] = useState(false)
   const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
   const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
+  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current")
+  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
+  const [newBillingPeriod, setNewBillingPeriod] = useState("")
+
+  // Available billing periods
+  const getBillingPeriods = (memberId) => {
+    const memberData = memberContingent[memberId]
+    if (!memberData) return []
+
+    const periods = [{ id: "current", label: `Current (${currentBillingPeriod})`, data: memberData.current }]
+
+    if (memberData.future) {
+      Object.entries(memberData.future).forEach(([period, data]) => {
+        periods.push({
+          id: period,
+          label: `Future (${period})`,
+          data: data,
+        })
+      })
+    }
+
+    return periods
+  }
 
   // History states
   const [showHistoryModal, setShowHistoryModal] = useState(false)
@@ -396,12 +435,14 @@ export default function Members() {
   }
 
   const notePopoverRef = useRef(null)
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
         setActiveNoteId(null)
       }
     }
+
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -603,20 +644,60 @@ export default function Members() {
   }
 
   const handleManageContingent = (memberId) => {
-    const contingent = memberContingent[memberId] || { used: 0, total: 0 }
-    setTempContingent(contingent)
+    const memberData = memberContingent[memberId]
+    if (memberData) {
+      setTempContingent(memberData.current)
+      setSelectedBillingPeriod("current")
+    } else {
+      setTempContingent({ used: 0, total: 0 })
+    }
     setShowContingentModal(true)
+  }
+
+  const handleBillingPeriodChange = (periodId) => {
+    setSelectedBillingPeriod(periodId)
+    const memberData = memberContingent[selectedMemberForAppointments.id]
+
+    if (periodId === "current") {
+      setTempContingent(memberData.current)
+    } else {
+      setTempContingent(memberData.future[periodId] || { used: 0, total: 0 })
+    }
   }
 
   const handleSaveContingent = () => {
     if (selectedMemberForAppointments) {
-      setMemberContingent((prev) => ({
-        ...prev,
-        [selectedMemberForAppointments.id]: tempContingent,
-      }))
+      const updatedContingent = { ...memberContingent }
+
+      if (selectedBillingPeriod === "current") {
+        updatedContingent[selectedMemberForAppointments.id].current = { ...tempContingent }
+      } else {
+        if (!updatedContingent[selectedMemberForAppointments.id].future) {
+          updatedContingent[selectedMemberForAppointments.id].future = {}
+        }
+        updatedContingent[selectedMemberForAppointments.id].future[selectedBillingPeriod] = { ...tempContingent }
+      }
+
+      setMemberContingent(updatedContingent)
       toast.success("Contingent updated successfully")
     }
     setShowContingentModal(false)
+  }
+
+  const handleAddBillingPeriod = () => {
+    if (newBillingPeriod.trim() && selectedMemberForAppointments) {
+      const updatedContingent = { ...memberContingent }
+
+      if (!updatedContingent[selectedMemberForAppointments.id].future) {
+        updatedContingent[selectedMemberForAppointments.id].future = {}
+      }
+
+      updatedContingent[selectedMemberForAppointments.id].future[newBillingPeriod] = { used: 0, total: 0 }
+      setMemberContingent(updatedContingent)
+      setNewBillingPeriod("")
+      setShowAddBillingPeriodModal(false)
+      toast.success("New billing period added successfully")
+    }
   }
 
   // Enhanced appointment functions from communication
@@ -694,6 +775,7 @@ export default function Members() {
 
     const relationId = Date.now()
     const updatedRelations = { ...memberRelations }
+
     if (!updatedRelations[selectedMember.id]) {
       updatedRelations[selectedMember.id] = {
         family: [],
@@ -830,7 +912,6 @@ export default function Members() {
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
             <div className="flex md:w-auto w-full items-center gap-3 justify-between">
-
               <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
               <div></div>
               <div className="md:hidden block">
@@ -842,9 +923,6 @@ export default function Members() {
               </div>
             </div>
             <div className="flex items-center md:flex-row flex-col gap-3 w-full sm:w-auto">
-
-
-
               <button
                 onClick={() => setShowCreateTempMemberModal(true)}
                 className="md:w-auto w-full justify-center flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm"
@@ -852,7 +930,6 @@ export default function Members() {
                 <UserPlus size={16} />
                 Create Temp Member
               </button>
-
               <button
                 onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}
                 className="md:w-auto w-full flex justify-center items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
@@ -868,8 +945,9 @@ export default function Members() {
                   <span className="truncate">{filterOptions.find((opt) => opt.id === filterStatus)?.label}</span>
                   <ChevronDown
                     size={16}
-                    className={`transform transition-transform flex-shrink-0 ${isFilterDropdownOpen ? "rotate-180" : ""
-                      }`}
+                    className={`transform transition-transform flex-shrink-0 ${
+                      isFilterDropdownOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
                 {isFilterDropdownOpen && (
@@ -878,8 +956,9 @@ export default function Members() {
                       <button
                         key={option.id}
                         onClick={() => handleFilterSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === filterStatus ? "bg-[#000000]" : ""
-                          }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
+                          option.id === filterStatus ? "bg-[#000000]" : ""
+                        }`}
                       >
                         {option.label}
                       </button>
@@ -904,8 +983,9 @@ export default function Members() {
                       <button
                         key={option.id}
                         onClick={() => handleSortSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === sortBy ? "bg-[#000000]" : ""
-                          }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
+                          option.id === sortBy ? "bg-[#000000]" : ""
+                        }`}
                       >
                         {option.label}
                       </button>
@@ -938,9 +1018,7 @@ export default function Members() {
             setEditingLink={setEditingLink}
           />
 
-          {isRightSidebarOpen && (
-            <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
-          )}
+          {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>}
 
           {/* Advanced Filter Panel */}
           {showAdvancedFilter && (
@@ -1432,12 +1510,13 @@ export default function Members() {
                                   <span className="text-gray-400 ml-2">({relation.relation})</span>
                                   <span className="text-blue-400 ml-2 capitalize">- {category}</span>
                                   <span
-                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
+                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${
+                                      relation.type === "member"
                                         ? "bg-green-600 text-green-100"
                                         : relation.type === "lead"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                      }`}
+                                    }`}
                                   >
                                     {relation.type}
                                   </span>
@@ -1483,10 +1562,11 @@ export default function Members() {
                             }
                             setIsEditModalOpen(false)
                           }}
-                          className={`px-4 py-2 rounded-xl text-sm ${selectedMember.isArchived
+                          className={`px-4 py-2 rounded-xl text-sm ${
+                            selectedMember.isArchived
                               ? "bg-green-600 hover:bg-green-700 text-white"
                               : "bg-gray-600 hover:bg-gray-700 text-white"
-                            }`}
+                          }`}
                         >
                           {selectedMember.isArchived ? (
                             <>
@@ -1517,8 +1597,9 @@ export default function Members() {
                       <div className="absolute p-2 top-0 left-0 z-10">
                         <div className="relative">
                           <div
-                            className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                            className={`${
+                              member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
                             onClick={(e) => {
                               e.stopPropagation()
                               setActiveNoteId(activeNoteId === member.id ? null : member.id)
@@ -1586,16 +1667,18 @@ export default function Members() {
                             </h3>
                             <div className="flex items-center gap-2">
                               <span
-                                className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-orange-400 text-white"
-                                  }`}
+                                className={`px-2 py-0.5 text-xs rounded-full ${
+                                  member.isActive ? "bg-green-900 text-green-300" : "bg-orange-400 text-white"
+                                }`}
                               >
                                 {member.isActive ? "Active" : "Paused"}
                               </span>
                               <span
-                                className={`px-2 py-0.5 text-xs rounded-full ${member.memberType === "full"
+                                className={`px-2 py-0.5 text-xs rounded-full ${
+                                  member.memberType === "full"
                                     ? "bg-blue-900 text-blue-300"
                                     : "bg-purple-900 text-purple-300"
-                                  }`}
+                                }`}
                               >
                                 {member.memberType === "full" ? "Full Member" : "Temporary Member"}
                               </span>
@@ -1696,7 +1779,6 @@ export default function Members() {
             )}
           </div>
         </div>
-
       </div>
 
       {showRelationsTile && selectedRelationMember && (
@@ -1783,19 +1865,21 @@ export default function Members() {
               <div className="flex border-b border-gray-700 mb-6">
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "details"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                    }`}
+                  }`}
                 >
                   Details
                 </button>
                 <button
                   onClick={() => setActiveTab("relations")}
-                  className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "relations"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                    }`}
+                  }`}
                 >
                   Relations
                 </button>
@@ -1815,10 +1899,11 @@ export default function Members() {
                       </h3>
                       <div className="flex items-center gap-2 mt-2">
                         <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${selectedMember.memberType === "full"
+                          className={`px-2 py-0.5 text-xs rounded-full ${
+                            selectedMember.memberType === "full"
                               ? "bg-blue-900 text-blue-300"
                               : "bg-purple-900 text-purple-300"
-                            }`}
+                          }`}
                         >
                           {selectedMember.memberType === "full"
                             ? "Full Member (with contract)"
@@ -1923,7 +2008,8 @@ export default function Members() {
                               <div className="w-0.5 h-8 bg-gray-600"></div>
                               {/* Category header */}
                               <div
-                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
+                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
+                                  category === "family"
                                     ? "bg-yellow-600 text-yellow-100"
                                     : category === "friendship"
                                       ? "bg-green-600 text-green-100"
@@ -1932,7 +2018,7 @@ export default function Members() {
                                         : category === "work"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                  }`}
+                                }`}
                               >
                                 {category}
                               </div>
@@ -1941,10 +2027,11 @@ export default function Members() {
                                 {relations.map((relation) => (
                                   <div
                                     key={relation.id}
-                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${relation.type === "member" || relation.type === "lead"
+                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${
+                                      relation.type === "member" || relation.type === "lead"
                                         ? "border border-blue-500/30"
                                         : ""
-                                      }`}
+                                    }`}
                                     onClick={() => {
                                       if (relation.type === "member" || relation.type === "lead") {
                                         // Handle click for member/lead relations
@@ -1955,12 +2042,13 @@ export default function Members() {
                                     <div className="text-white text-sm font-medium">{relation.name}</div>
                                     <div className="text-gray-400 text-xs">({relation.relation})</div>
                                     <div
-                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${relation.type === "member"
+                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${
+                                        relation.type === "member"
                                           ? "bg-green-600 text-green-100"
                                           : relation.type === "lead"
                                             ? "bg-blue-600 text-blue-100"
                                             : "bg-gray-600 text-gray-100"
-                                        }`}
+                                      }`}
                                     >
                                       {relation.type}
                                     </div>
@@ -1988,10 +2076,11 @@ export default function Members() {
                               relations.map((relation) => (
                                 <div
                                   key={relation.id}
-                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
+                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${
+                                    relation.type === "member" || relation.type === "lead"
                                       ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
                                       : ""
-                                    }`}
+                                  }`}
                                   onClick={() => {
                                     if (relation.type === "member" || relation.type === "lead") {
                                       toast.info(`Clicked on ${relation.name} (${relation.type})`)
@@ -2002,12 +2091,13 @@ export default function Members() {
                                     <span className="text-white font-medium">{relation.name}</span>
                                     <span className="text-gray-400 ml-2">- {relation.relation}</span>
                                     <span
-                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
+                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${
+                                        relation.type === "member"
                                           ? "bg-green-600 text-green-100"
                                           : relation.type === "lead"
                                             ? "bg-blue-600 text-blue-100"
                                             : "bg-gray-600 text-gray-100"
-                                        }`}
+                                      }`}
                                     >
                                       {relation.type}
                                     </span>
@@ -2116,8 +2206,9 @@ export default function Members() {
               </div>
               <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
                 <div className="text-sm text-gray-300">
-                  Contingent ({currentBillingPeriod}): {memberContingent[selectedMemberForAppointments.id]?.used || 0} /{" "}
-                  {memberContingent[selectedMemberForAppointments.id]?.total || 0}
+                  Contingent ({currentBillingPeriod}):{" "}
+                  {memberContingent[selectedMemberForAppointments.id]?.current?.used || 0} /{" "}
+                  {memberContingent[selectedMemberForAppointments.id]?.current?.total || 0}
                 </div>
                 <button
                   onClick={() => handleManageContingent(selectedMemberForAppointments.id)}
@@ -2167,21 +2258,65 @@ export default function Members() {
         />
       )}
 
+      {/* Enhanced Contingent Management Modal */}
       {showContingentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
+          <div className="bg-[#181818] rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-medium text-white">Manage Appointment Contingent</h2>
-                <button onClick={() => setShowContingentModal(false)} className="p-2 hover:bg-zinc-700 text-white rounded-lg">
+                <button
+                  onClick={() => setShowContingentModal(false)}
+                  className="p-2 hover:bg-zinc-700 text-white rounded-lg"
+                >
                   <X size={16} />
                 </button>
               </div>
+
+              {/* Billing Period Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-400 mb-3">Select Billing Period</label>
+                <div className="space-y-2">
+                  {selectedMemberForAppointments &&
+                    getBillingPeriods(selectedMemberForAppointments.id).map((period) => (
+                      <button
+                        key={period.id}
+                        onClick={() => handleBillingPeriodChange(period.id)}
+                        className={`w-full text-left p-3 rounded-xl border transition-colors ${
+                          selectedBillingPeriod === period.id
+                            ? "bg-blue-600/20 border-blue-500 text-blue-300"
+                            : "bg-[#222222] border-gray-600 text-gray-300 hover:bg-[#2A2A2A]"
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">{period.label}</span>
+                          <span className="text-sm">
+                            {period.data.used}/{period.data.total}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                </div>
+
+                {/* Add New Billing Period Button */}
+                <button
+                  onClick={() => setShowAddBillingPeriodModal(true)}
+                  className="w-full mt-3 p-3 border-2 border-dashed border-gray-600 rounded-xl text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus size={16} />
+                  Add Future Billing Period
+                </button>
+              </div>
+
+              {/* Contingent Management */}
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Billing Period: {currentBillingPeriod}
-                  </label>
+                <div className="bg-[#222222] rounded-xl p-4">
+                  <h3 className="text-white font-medium mb-3">
+                    {selectedBillingPeriod === "current"
+                      ? `Current Period (${currentBillingPeriod})`
+                      : `Future Period (${selectedBillingPeriod})`}
+                  </h3>
+
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
                       <label className="block text-sm text-gray-400 mb-1">Used Appointments</label>
@@ -2193,219 +2328,332 @@ export default function Members() {
                         onChange={(e) =>
                           setTempContingent({ ...tempContingent, used: Number.parseInt(e.target.value) })
                         }
-                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                        className="w-full bg-[#333333] text-white rounded-xl px-4 py-2 text-sm"
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="block text-sm text-gray-400 mb-1">Total Appointments</label>
+                      <label className="block text-sm text-gray-400 mb-1 flex items-center gap-2">
+                        Total Appointments
+                        {selectedBillingPeriod === "current" && (
+                          <Lock size={14} className="text-gray-500" title="Locked for current period" />
+                        )}
+                      </label>
                       <input
                         type="number"
-                        min={tempContingent.used}
+                        min={selectedBillingPeriod === "current" ? tempContingent.used : 0}
                         value={tempContingent.total}
                         onChange={(e) =>
                           setTempContingent({ ...tempContingent, total: Number.parseInt(e.target.value) })
                         }
-                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                        disabled={selectedBillingPeriod === "current"}
+                        className={`w-full rounded-xl px-4 py-2 text-sm ${
+                          selectedBillingPeriod === "current"
+                            ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                            : "bg-[#333333] text-white"
+                        }`}
                       />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Remaining: {tempContingent.total - tempContingent.used} appointments
-                  </p>
-                  <div className="mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
-                    <p className="text-blue-200 text-sm">
-                      <Info className="inline mr-1" size={14} />
-                      You can edit the contingent for future billing periods here.
-                    </p>
+
+                  <div className="mt-3 flex justify-between items-center text-sm">
+                    <span className="text-gray-400">Remaining:</span>
+                    <span className="text-white font-medium">
+                      {tempContingent.total - tempContingent.used} appointments
+                    </span>
                   </div>
                 </div>
-                <div className="flex gap-2 justify-end">
-                  <button
-                    onClick={() => setShowContingentModal(false)}
-                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveContingent}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
-                  >
-                    Save Changes
-                  </button>
-                </div>
+
+                {selectedBillingPeriod === "current" && (
+                  <div className="p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-xl">
+                    <p className="text-yellow-200 text-sm flex items-center gap-2">
+                      <Lock size={14} />
+                      Total appointments are locked for the current billing period. You can only edit used appointments.
+                    </p>
+                  </div>
+                )}
+
+                {selectedBillingPeriod !== "current" && (
+                  <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
+                    <p className="text-blue-200 text-sm flex items-center gap-2">
+                      <Info size={14} />
+                      You can edit both used and total appointments for future billing periods.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-end mt-6">
+                <button
+                  onClick={() => setShowContingentModal(false)}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveContingent}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
+                >
+                  Save Changes
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {showHistoryModal && selectedMember && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+      {/* Add Billing Period Modal */}
+      {showAddBillingPeriodModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
             <div className="p-6">
-              <div className="flex text-white justify-between items-center mb-6">
-                <h2 className="text-lg font-medium">{selectedMember.title} - History & Changelog</h2>
-                <button onClick={() => setShowHistoryModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-medium text-white">Add Future Billing Period</h2>
+                <button
+                  onClick={() => setShowAddBillingPeriodModal(false)}
+                  className="p-2 hover:bg-zinc-700 text-white rounded-lg"
+                >
                   <X size={16} />
                 </button>
               </div>
-              {/* History Tab Navigation */}
-              <div className="flex border-b border-gray-700 mb-6 overflow-x-auto">
-                {[
-                  { id: "general", label: "General Changes" },
-                  { id: "checkins", label: "Check-ins & Check-outs" },
-                  { id: "appointments", label: "Past Appointments" },
-                  { id: "finance", label: "Finance Transactions" },
-                  { id: "contracts", label: "Contract Changes" },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setHistoryTab(tab.id)}
-                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${historyTab === tab.id
-                        ? "text-blue-400 border-b-2 border-blue-400"
-                        : "text-gray-400 hover:text-white"
-                      }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-              {/* History Content */}
+
               <div className="space-y-4">
-                {historyTab === "general" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">General Changes</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.general?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-white font-medium">{item.action}</p>
-                              <p className="text-gray-400 text-sm mt-1">{item.details}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-gray-400 text-sm">{item.date}</p>
-                              <p className="text-gray-500 text-xs">by {item.user}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No general changes recorded</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "checkins" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">Check-ins & Check-outs History</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.checkins?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-3 h-3 rounded-full ${item.type === "Check-in" ? "bg-green-500" : "bg-red-500"}`}
-                              ></div>
-                              <div>
-                                <p className="text-white font-medium">{item.type}</p>
-                                <p className="text-gray-400 text-sm">{item.location}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-gray-400 text-sm">
-                                {new Date(item.date).toLocaleDateString()} at {new Date(item.date).toLocaleTimeString()}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No check-in/check-out history</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "appointments" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">Past Appointments History</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.appointments?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-white font-medium">{item.title}</p>
-                              <p className="text-gray-400 text-sm">with {item.trainer}</p>
-                              <span
-                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
-                                    ? "bg-green-900 text-green-300"
-                                    : "bg-yellow-900 text-yellow-300"
-                                  }`}
-                              >
-                                {item.status}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-gray-400 text-sm">
-                                {new Date(item.date).toLocaleDateString()} at {new Date(item.date).toLocaleTimeString()}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No past appointments</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "finance" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">Finance Transactions History</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.finance?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-white font-medium">{item.type}</p>
-                              <p className="text-gray-400 text-sm">{item.description}</p>
-                              <span
-                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
-                                    ? "bg-green-900 text-green-300"
-                                    : "bg-yellow-900 text-yellow-300"
-                                  }`}
-                              >
-                                {item.status}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-green-400 font-semibold">{item.amount}</p>
-                              <p className="text-gray-400 text-sm">{item.date}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No financial transactions</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "contracts" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">Contract Changes History</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.contracts?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-white font-medium">{item.action}</p>
-                              <p className="text-gray-400 text-sm mt-1">{item.details}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-gray-400 text-sm">{item.date}</p>
-                              <p className="text-gray-500 text-xs">by {item.user}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No contract changes</p>}
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Billing Period (e.g., "07.14.25 - 07.18.2025")
+                  </label>
+                  <input
+                    type="text"
+                    value={newBillingPeriod}
+                    onChange={(e) => setNewBillingPeriod(e.target.value)}
+                    placeholder="MM.DD.YY - MM.DD.YYYY"
+                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
+                  <p className="text-blue-200 text-sm">
+                    <Info className="inline mr-1" size={14} />
+                    New billing periods will start with 0 used appointments and 0 total appointments. You can edit these
+                    values after creation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 justify-end mt-6">
+                <button
+                  onClick={() => setShowAddBillingPeriodModal(false)}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddBillingPeriod}
+                  disabled={!newBillingPeriod.trim()}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl text-sm"
+                >
+                  Add Period
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* History Modal */}
+      {showHistoryModal && selectedMember && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">
+                History - {selectedMember.firstName} {selectedMember.lastName}
+              </h2>
+              <button onClick={() => setShowHistoryModal(false)} className="text-gray-300 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex space-x-1 mb-6 bg-[#141414] rounded-lg p-1">
+              <button
+                onClick={() => setHistoryTab("general")}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                  historyTab === "general" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                }`}
+              >
+                General Changes
+              </button>
+              <button
+                onClick={() => setHistoryTab("checkins")}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                  historyTab === "checkins" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                }`}
+              >
+                Check-ins & Check-outs
+              </button>
+              <button
+                onClick={() => setHistoryTab("appointments")}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                  historyTab === "appointments" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                }`}
+              >
+                Past Appointments
+              </button>
+              <button
+                onClick={() => setHistoryTab("finance")}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                  historyTab === "finance" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                }`}
+              >
+                Finance Transactions
+              </button>
+              <button
+                onClick={() => setHistoryTab("contracts")}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                  historyTab === "contracts" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                }`}
+              >
+                Contract Changes
+              </button>
+            </div>
+            <div className="bg-[#141414] rounded-xl p-4">
+              {historyTab === "general" && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">General Changes</h3>
+                  <div className="space-y-3">
+                    {memberHistory[selectedMember.id]?.general?.map((change) => (
+                      <div key={change.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-medium text-white">{change.action}</p>
+                            <p className="text-sm text-gray-400">
+                              {change.date} by {change.user}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-sm">
+                          <p className="text-gray-300">{change.details}</p>
+                        </div>
+                      </div>
+                    )) || <p className="text-gray-400">No general changes recorded</p>}
+                  </div>
+                </div>
+              )}
+              {historyTab === "checkins" && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Check-ins & Check-outs</h3>
+                  <div className="space-y-3">
+                    {memberHistory[selectedMember.id]?.checkins?.map((activity) => (
+                      <div key={activity.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-white flex items-center gap-2">
+                              <span
+                                className={`w-2 h-2 rounded-full ${
+                                  activity.type === "Check-in" ? "bg-green-500" : "bg-red-500"
+                                }`}
+                              ></span>
+                              {activity.type}
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              {new Date(activity.date).toLocaleDateString()} at{" "}
+                              {new Date(activity.date).toLocaleTimeString()}
+                            </p>
+                            <p className="text-sm text-gray-300">Location: {activity.location}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )) || <p className="text-gray-400">No check-in/check-out history</p>}
+                  </div>
+                </div>
+              )}
+              {historyTab === "appointments" && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Past Appointments</h3>
+                  <div className="space-y-3">
+                    {memberHistory[selectedMember.id]?.appointments?.map((appointment) => (
+                      <div key={appointment.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-medium text-white">{appointment.title}</p>
+                            <p className="text-sm text-gray-400">
+                              {new Date(appointment.date).toLocaleDateString()} at{" "}
+                              {new Date(appointment.date).toLocaleTimeString()} with {appointment.trainer}
+                            </p>
+                          </div>
+                          <span
+                            className={`px-2 py-1 rounded text-xs ${
+                              appointment.status === "completed"
+                                ? "bg-green-600 text-white"
+                                : "bg-orange-600 text-white"
+                            }`}
+                          >
+                            {appointment.status}
+                          </span>
+                        </div>
+                      </div>
+                    )) || <p className="text-gray-400">No past appointments</p>}
+                  </div>
+                </div>
+              )}
+              {historyTab === "finance" && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Finance Transactions</h3>
+                  <div className="space-y-3">
+                    {memberHistory[selectedMember.id]?.finance?.map((transaction) => (
+                      <div key={transaction.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-medium text-white">
+                              {transaction.type} - {transaction.amount}
+                            </p>
+                            <p className="text-sm text-gray-400">{transaction.date}</p>
+                          </div>
+                          <span
+                            className={`px-2 py-1 rounded text-xs ${
+                              transaction.status === "completed"
+                                ? "bg-green-600 text-white"
+                                : "bg-orange-600 text-white"
+                            }`}
+                          >
+                            {transaction.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-300">{transaction.description}</p>
+                      </div>
+                    )) || <p className="text-gray-400">No financial transactions</p>}
+                  </div>
+                </div>
+              )}
+              {historyTab === "contracts" && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Contract Changes</h3>
+                  <div className="space-y-3">
+                    {memberHistory[selectedMember.id]?.contracts?.map((contract) => (
+                      <div key={contract.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-medium text-white">{contract.action}</p>
+                            <p className="text-sm text-gray-400">
+                              {contract.date} by {contract.user}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-300">{contract.details}</p>
+                      </div>
+                    )) || <p className="text-gray-400">No contract changes</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setShowHistoryModal(false)}
+              className="mt-6 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Notify Member Modal */}
       {isNotifyMemberOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">

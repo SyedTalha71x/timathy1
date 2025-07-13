@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react"
@@ -17,7 +19,6 @@ import { IoIosMenu } from "react-icons/io"
 import { SidebarArea } from "../components/custom-sidebar"
 import { useNavigate } from "react-router-dom"
 import Rectangle1 from "../../public/Rectangle 1.png"
-
 
 const LeadCard = ({
   lead,
@@ -103,14 +104,16 @@ const LeadCard = ({
     >
       <div
         ref={nodeRef}
-        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
-          }`}
+        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${
+          isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
+        }`}
       >
         <div className="flex items-center mb-3 relative">
           {hasValidNote && (
             <div
-              className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-                } rounded-full p-1 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag z-10`}
+              className={`absolute -top-2 -left-2 ${
+                lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-1 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag z-10`}
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
@@ -332,10 +335,6 @@ const Column = ({
   )
 }
 
-
-
-
-
 export default function LeadManagement() {
   const [columns, setColumns] = useState([
     { id: "active", title: "Active prospect", color: "#10b981" },
@@ -357,11 +356,10 @@ export default function LeadManagement() {
   const [selectedColumn, setSelectedColumn] = useState(null)
   const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] = useState(false)
   const [leadToDeleteId, setLeadToDeleteId] = useState(null)
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
 
-
-  // Relations states - copied from Members component
+  // Relations states - enhanced for leads
   const [memberRelations, setMemberRelations] = useState({
     h1: {
       family: [
@@ -381,6 +379,76 @@ export default function LeadManagement() {
       other: [],
     },
   })
+
+  // Relations functionality
+  const [editingRelations, setEditingRelations] = useState(false)
+  const [newRelation, setNewRelation] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
+
+  // Available members/leads for relations
+  const availableMembersLeads = [
+    { id: 101, name: "Anna Doe", type: "member" },
+    { id: 102, name: "Peter Doe", type: "lead" },
+    { id: 103, name: "Lisa Doe", type: "member" },
+    { id: 201, name: "Max Miller", type: "member" },
+    { id: 301, name: "Marie Smith", type: "member" },
+    { id: 401, name: "Tom Wilson", type: "lead" },
+  ]
+
+  // Relation options by category
+  const relationOptions = {
+    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
+    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
+    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+  }
+
+  // Relations functions
+  const handleAddRelation = () => {
+    if (!newRelation.name || !newRelation.relation) {
+      toast.error("Please fill in all fields")
+      return
+    }
+
+    const relationId = Date.now()
+    const updatedRelations = { ...memberRelations }
+
+    if (!updatedRelations[selectedLead.id]) {
+      updatedRelations[selectedLead.id] = {
+        family: [],
+        friendship: [],
+        relationship: [],
+        work: [],
+        other: [],
+      }
+    }
+
+    updatedRelations[selectedLead.id][newRelation.category].push({
+      id: relationId,
+      name: newRelation.name,
+      relation: newRelation.relation,
+      type: newRelation.type,
+    })
+
+    setMemberRelations(updatedRelations)
+    setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
+    toast.success("Relation added successfully")
+  }
+
+  const handleDeleteRelation = (category, relationId) => {
+    const updatedRelations = { ...memberRelations }
+    updatedRelations[selectedLead.id][category] = updatedRelations[selectedLead.id][category].filter(
+      (rel) => rel.id !== relationId,
+    )
+    setMemberRelations(updatedRelations)
+    toast.success("Relation deleted successfully")
+  }
 
   const columnRefs = useRef({})
 
@@ -568,23 +636,23 @@ export default function LeadManagement() {
     const updatedLeads = leads.map((lead) =>
       lead.id === data.id
         ? {
-          ...lead,
-          firstName: data.firstName,
-          surname: data.surname,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-          trialPeriod: data.trialPeriod,
-          hasTrialTraining: data.hasTrialTraining,
-          avatar: data.avatar,
-          status: data.status || lead.status,
-          columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
-          specialNote: {
-            text: data.specialNote?.text || "",
-            isImportant: data.specialNote?.isImportant || false,
-            startDate: data.specialNote?.startDate || null,
-            endDate: data.specialNote?.endDate || null,
-          },
-        }
+            ...lead,
+            firstName: data.firstName,
+            surname: data.surname,
+            email: data.email,
+            phoneNumber: data.phoneNumber,
+            trialPeriod: data.trialPeriod,
+            hasTrialTraining: data.hasTrialTraining,
+            avatar: data.avatar,
+            status: data.status || lead.status,
+            columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+            specialNote: {
+              text: data.specialNote?.text || "",
+              isImportant: data.specialNote?.isImportant || false,
+              startDate: data.specialNote?.startDate || null,
+              endDate: data.specialNote?.endDate || null,
+            },
+          }
         : lead,
     )
 
@@ -812,7 +880,6 @@ export default function LeadManagement() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl flex items-center gap-2"
@@ -829,7 +896,6 @@ export default function LeadManagement() {
           </div>
         </div>
       </div>
-
 
       <div className="mb-6 relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -881,9 +947,7 @@ export default function LeadManagement() {
         setEditingLink={setEditingLink}
       />
 
-      {isRightSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
-      )}
+      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>}
 
       <EditLeadModal
         isVisible={isEditModalOpen}
@@ -895,6 +959,15 @@ export default function LeadManagement() {
         leadData={selectedLead}
         memberRelations={memberRelations}
         setMemberRelations={setMemberRelations}
+        // Relations props
+        editingRelations={editingRelations}
+        setEditingRelations={setEditingRelations}
+        newRelation={newRelation}
+        setNewRelation={setNewRelation}
+        availableMembersLeads={availableMembersLeads}
+        relationOptions={relationOptions}
+        handleAddRelation={handleAddRelation}
+        handleDeleteRelation={handleDeleteRelation}
       />
 
       <ViewLeadDetailsModal
@@ -940,11 +1013,11 @@ export default function LeadManagement() {
           leadData={
             selectedLead
               ? {
-                id: selectedLead.id,
-                name: `${selectedLead.firstName} ${selectedLead.surname}`,
-                email: selectedLead.email,
-                phone: selectedLead.phoneNumber,
-              }
+                  id: selectedLead.id,
+                  name: `${selectedLead.firstName} ${selectedLead.surname}`,
+                  email: selectedLead.email,
+                  phone: selectedLead.phoneNumber,
+                }
               : null
           }
         />

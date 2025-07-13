@@ -1,8 +1,9 @@
+"use client"
+
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { X, Clock, Info, Search, AlertTriangle, CalendarIcon, ChevronRight, ChevronLeft } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
-import Avatar from "../../public/avatar.png"
 import toast, { Toaster } from "react-hot-toast"
 import { IoIosMenu } from "react-icons/io"
 import TrialPlanningModal from "../components/lead-components/add-trial"
@@ -14,10 +15,8 @@ import { appointmentsData } from "../utils/states"
 import Calendar from "../components/appointments-components/calendar"
 import { useNavigate } from "react-router-dom"
 import { SidebarArea } from "../components/custom-sidebar"
-
+import Avatar from "../../public/avatar.png"
 import Rectangle1 from "../../public/Rectangle 1.png"
-
-
 
 export default function Appointments() {
   const navigate = useNavigate()
@@ -41,6 +40,15 @@ export default function Appointments() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
+  // Filter state
+  const [appointmentFilters, setAppointmentFilters] = useState({
+    "Strength Training": true,
+    Cardio: true,
+    Yoga: true,
+    "Trial Training": true,
+    "Blocked Time Slots": true,
+  })
+
   const [freeAppointments, setFreeAppointments] = useState([
     { id: "free1", date: "2025-01-03", time: "10:00" },
     { id: "free2", date: "2025-01-03", time: "11:00" },
@@ -59,7 +67,7 @@ export default function Appointments() {
 
   useEffect(() => {
     applyFilters()
-  }, [appointments, selectedDate, searchQuery])
+  }, [appointments, selectedDate, searchQuery, appointmentFilters])
 
   const notePopoverRef = useRef(null)
 
@@ -157,6 +165,7 @@ export default function Appointments() {
         setActiveNoteId(null)
       }
     }
+
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -165,8 +174,10 @@ export default function Appointments() {
     }
   }, [activeNoteId])
 
+  // Updated applyFilters function to include type filtering
   const applyFilters = () => {
     let filtered = [...appointments]
+
     if (selectedDate) {
       const formattedSelectedDate = formatDate(selectedDate)
       filtered = filtered.filter((appointment) => {
@@ -174,10 +185,46 @@ export default function Appointments() {
         return appointmentDate === formattedSelectedDate
       })
     }
+
     if (searchQuery) {
       filtered = filtered.filter((appointment) => appointment.name?.toLowerCase().includes(searchQuery.toLowerCase()))
     }
+
+    // Apply appointment type filters
+    filtered = filtered.filter((appointment) => {
+      if (appointment.isTrial) {
+        return appointmentFilters["Trial Training"]
+      } else if (appointment.isBlocked || appointment.type === "Blocked Time") {
+        return appointmentFilters["Blocked Time Slots"]
+      } else {
+        // Check if the appointment type is in the selected filters
+        return appointmentFilters[appointment.type] || false
+      }
+    })
+
     setFilteredAppointments(filtered)
+  }
+
+  // Function to handle filter changes
+  const handleFilterChange = (filterName) => {
+    setAppointmentFilters((prev) => ({
+      ...prev,
+      [filterName]: !prev[filterName],
+    }))
+  }
+
+  // Function to toggle all filters
+  const toggleAllFilters = () => {
+    const allSelected = Object.values(appointmentFilters).every((value) => value)
+    const newState = !allSelected
+
+    setAppointmentFilters({
+      "Strength Training": newState,
+      Cardio: newState,
+      Yoga: newState,
+      "Trial Training": newState,
+      "Blocked Time Slots": newState,
+    })
   }
 
   const handleDateSelect = (date) => {
@@ -204,6 +251,7 @@ export default function Appointments() {
       setIsViewDropdownOpen(false)
       setActiveNoteId(null)
     }
+
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
@@ -218,6 +266,7 @@ export default function Appointments() {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
     }
+
     setAppointments([...appointments, newAppointment])
     toast.success("Appointment booked successfully")
   }
@@ -232,6 +281,7 @@ export default function Appointments() {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(trialData.date))}`,
     }
+
     setAppointments([...appointments, newTrial])
     toast.success("Trial training booked successfully")
   }
@@ -242,6 +292,7 @@ export default function Appointments() {
         appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment,
       ),
     )
+
     toast.success(
       appointments.find((app) => app.id === appointmentId)?.isCheckedIn
         ? "Member checked In successfully"
@@ -252,12 +303,14 @@ export default function Appointments() {
   const handleAppointmentChange = (changes) => {
     setSelectedAppointment((prev) => {
       const updatedAppointment = { ...prev, ...changes }
+
       if (changes.specialNote) {
         updatedAppointment.specialNote = {
           ...prev.specialNote,
           ...changes.specialNote,
         }
       }
+
       return updatedAppointment
     })
   }
@@ -271,6 +324,7 @@ export default function Appointments() {
   const handleNotifyMember = (shouldNotify) => {
     const changes = {}
     let updatedAppointment
+
     if (notifyAction === "change") {
       updatedAppointment = { ...selectedAppointment, ...changes }
       const updatedAppointments = appointments.map((app) =>
@@ -284,15 +338,18 @@ export default function Appointments() {
       setAppointmentToRemove(null)
       toast.success("Appointment removed successfully")
     }
+
     if (shouldNotify) {
       toast.success("Member notified successfully")
     }
+
     setIsNotifyMemberOpen(false)
   }
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase()
     setSearchQuery(query)
+
     if (query === "") {
       setSelectedMember(null)
     } else {
@@ -314,9 +371,11 @@ export default function Appointments() {
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
       if (!specialNote?.text) return null
+
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+
       if (!isActive) return null
 
       const handleNoteClick = (e) => {
@@ -470,9 +529,7 @@ export default function Appointments() {
             setEditingLink={setEditingLink}
           />
 
-          {isRightSidebarOpen && (
-            <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
-          )}
+          {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>}
 
           <div className="flex lg:flex-row flex-col gap-6 relative">
             <div
@@ -485,7 +542,58 @@ export default function Appointments() {
               <div className="">
                 <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
               </div>
+
               <div className="w-full flex flex-col gap-4">
+                {/* Filter Section */}
+                <div className="bg-[#000000] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-white font-semibold text-sm">Appointment Filters</h3>
+                    <button
+                      onClick={toggleAllFilters}
+                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {/* Appointment Types */}
+                    {appointmentTypes.map((type) => (
+                      <label key={type.name} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={appointmentFilters[type.name]}
+                          onChange={() => handleFilterChange(type.name)}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <div className={`w-3 h-3 rounded-full ${type.color}`}></div>
+                        <span className="text-white text-sm">{type.name}</span>
+                      </label>
+                    ))}
+                    {/* Trial Training */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={appointmentFilters["Trial Training"]}
+                        onChange={() => handleFilterChange("Trial Training")}
+                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                      <div className="w-3 h-3 rounded-full bg-[#3F74FF]"></div>
+                      <span className="text-white text-sm">Trial Training</span>
+                    </label>
+                    {/* Blocked Time Slots */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={appointmentFilters["Blocked Time Slots"]}
+                        onChange={() => handleFilterChange("Blocked Time Slots")}
+                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                      <div className="w-3 h-3 rounded-full bg-[#FF4D4F]"></div>
+                      <span className="text-white text-sm">Blocked Time Slots</span>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-4">
                   <div className="relative w-full">
                     <input
@@ -498,6 +606,7 @@ export default function Appointments() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                   </div>
                 </div>
+
                 <div>
                   <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
                   <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
@@ -563,6 +672,7 @@ export default function Appointments() {
                 </div>
               </div>
             </div>
+
             <div
               className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${
                 isSidebarCollapsed ? "lg:w-full" : ""
@@ -574,6 +684,7 @@ export default function Appointments() {
                 searchQuery={searchQuery}
                 selectedDate={selectedDate}
                 setAppointments={setAppointments}
+                appointmentFilters={appointmentFilters}
               />
             </div>
           </div>
@@ -719,6 +830,7 @@ export default function Appointments() {
             status: "blocked",
             isBlocked: true,
           }
+
           setAppointments([...appointments, newBlock])
           toast.success("Time slot blocked successfully")
           setIsBlockModalOpen(false)

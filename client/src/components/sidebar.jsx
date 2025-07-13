@@ -17,7 +17,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { RiContractLine, RiStockFill } from "react-icons/ri";
+import { CiMonitor } from "react-icons/ci";
+import { TbBrandGoogleAnalytics } from "react-icons/tb";
+
+
 import { BadgeDollarSign } from 'lucide-react';
+import { CgGym } from "react-icons/cg";
 
 import { MdOutlineLeaderboard } from "react-icons/md";
 
@@ -99,6 +104,12 @@ const Sidebar = () => {
     { icon: MdOutlineLeaderboard, label: "Leads", to: "/dashboard/leads" },
     { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
     { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
+    { icon: CgGym
+      , label: "Training", to: "/dashboard/training" },
+      { icon: CiMonitor
+        , label: "Activity Monitor", to: "/dashboard/activity-monitor" },
+        { icon: TbBrandGoogleAnalytics
+          , label: "Analytics", to: "/dashboard/analytics" },
     { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
   ];
 
@@ -161,7 +172,7 @@ const Sidebar = () => {
           fixed top-0 left-0 z-50 h-screen bg-[#111111] transition-all duration-500 overflow-hidden 
           md:relative md:block
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-          ${isCollapsed ? "md:w-20" : "md:w-64 w-64"}
+          ${isCollapsed ? "md:w-26" : "md:w-64 w-64"}
         `}
       >
         {/* Collapse Toggle */}

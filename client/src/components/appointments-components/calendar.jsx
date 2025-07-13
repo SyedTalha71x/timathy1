@@ -1,9 +1,10 @@
+"use client"
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unescaped-entities */
 import FullCalendar from "@fullcalendar/react"
-import { Edit, User, X, FileText, CalendarIcon, History, MessageCircle, Eye } from "lucide-react"
+import { Edit, User, X, FileText, CalendarIcon, History, MessageCircle, Eye, Info, Edit3, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import dayGridPlugin from "@fullcalendar/daygrid"
@@ -14,13 +15,253 @@ import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialPlanningModal from "../lead-components/add-trial"
 
-function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery = "", selectedDate, setAppointments }) {
+function Calendar({
+  appointments = [],
+  onEventClick,
+  onDateSelect,
+  searchQuery = "",
+  selectedDate,
+  setAppointments,
+  appointmentFilters = {},
+}) {
   const [calendarSize, setCalendarSize] = useState(100)
   const [calendarHeight, setCalendarHeight] = useState("auto")
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [freeAppointments, setFreeAppointments] = useState([])
   const [viewMode, setViewMode] = useState("all")
   const [activeTab, setActiveTab] = useState("details")
+
+  // Enhanced states for member functionality
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
+  const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
+  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
+  const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
+  const [selectedAppointmentData, setSelectedAppointmentData] = useState(null)
+  const [showContingentModal, setShowContingentModal] = useState(false)
+  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
+  const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [historyTab, setHistoryTab] = useState("general")
+  const [showRelationsModal, setShowRelationsModal] = useState(false)
+  const [showRelationsTile, setShowRelationsTile] = useState(false)
+  const [selectedRelationMember, setSelectedRelationMember] = useState(null)
+  const [editingRelations, setEditingRelations] = useState(false)
+  const [newRelation, setNewRelation] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
+
+  // Member contingent data
+  const [memberContingent, setMemberContingent] = useState({
+    1: { used: 2, total: 7 },
+    2: { used: 1, total: 8 },
+    3: { used: 0, total: 5 },
+    4: { used: 3, total: 6 },
+    5: { used: 1, total: 8 },
+    6: { used: 4, total: 7 },
+    7: { used: 2, total: 5 },
+    8: { used: 0, total: 6 },
+    9: { used: 1, total: 7 },
+    10: { used: 3, total: 8 },
+    11: { used: 2, total: 6 },
+    12: { used: 1, total: 5 },
+    13: { used: 0, total: 7 },
+    14: { used: 2, total: 6 },
+    15: { used: 1, total: 8 },
+    16: { used: 3, total: 7 },
+    17: { used: 0, total: 5 },
+    18: { used: 2, total: 6 },
+  })
+
+  // Enhanced appointment types
+  const [appointmentTypes, setAppointmentTypes] = useState([
+    { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
+    { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
+    { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
+    { name: "Consultation", color: "bg-blue-700", duration: 30 },
+    { name: "Follow-up", color: "bg-green-700", duration: 45 },
+    { name: "Annual Review", color: "bg-purple-600", duration: 60 },
+    { name: "Training", color: "bg-orange-600", duration: 60 },
+    { name: "Assessment", color: "bg-red-600", duration: 90 },
+  ])
+
+  // Enhanced appointments data for members
+  const [memberAppointments, setMemberAppointments] = useState([
+    {
+      id: 1,
+      title: "Initial Consultation",
+      date: "2025-03-15T10:00",
+      status: "upcoming",
+      type: "Consultation",
+      memberId: 1,
+      specialNote: {
+        text: "First time client, needs introduction to equipment",
+        isImportant: true,
+        startDate: "2025-03-15",
+        endDate: "2025-03-20",
+      },
+    },
+    {
+      id: 2,
+      title: "Follow-up Meeting",
+      date: "2025-03-20T14:30",
+      status: "upcoming",
+      type: "Follow-up",
+      memberId: 1,
+    },
+    {
+      id: 3,
+      title: "Annual Review",
+      date: "2025-04-05T11:00",
+      status: "upcoming",
+      type: "Annual Review",
+      memberId: 2,
+    },
+    {
+      id: 4,
+      title: "Strength Training",
+      date: "2025-03-18T09:00",
+      status: "upcoming",
+      type: "Strength Training",
+      memberId: 3,
+    },
+    {
+      id: 5,
+      title: "Yoga Session",
+      date: "2025-03-22T16:00",
+      status: "upcoming",
+      type: "Yoga",
+      memberId: 4,
+    },
+  ])
+
+  // History data for members
+  const [memberHistory, setMemberHistory] = useState({
+    1: {
+      general: [
+        {
+          id: 1,
+          date: "2025-01-15",
+          action: "Email updated",
+          details: "Changed from old@email.com to yolanda@example.com",
+          user: "Admin",
+        },
+        { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
+      ],
+      checkins: [
+        { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "Yolanda Martinez" },
+        { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "Yolanda Martinez" },
+      ],
+      appointments: [
+        { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
+        { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
+      ],
+      finance: [
+        {
+          id: 1,
+          date: "2025-01-01",
+          type: "Payment",
+          amount: "$99.99",
+          description: "Monthly membership fee",
+          status: "completed",
+        },
+        {
+          id: 2,
+          date: "2024-12-01",
+          type: "Payment",
+          amount: "$99.99",
+          description: "Monthly membership fee",
+          status: "completed",
+        },
+      ],
+      contracts: [
+        {
+          id: 1,
+          date: "2024-03-01",
+          action: "Contract signed",
+          details: "Initial 12-month membership contract",
+          user: "Admin",
+        },
+        { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
+      ],
+    },
+    2: {
+      general: [
+        {
+          id: 1,
+          date: "2025-01-12",
+          action: "Profile updated",
+          details: "Updated personal information",
+          user: "Admin",
+        },
+      ],
+      checkins: [
+        { id: 1, date: "2025-01-19T08:00", type: "Check-in", location: "Main Entrance", user: "Denis Johnson" },
+        { id: 2, date: "2025-01-19T10:30", type: "Check-out", location: "Main Entrance", user: "Denis Johnson" },
+      ],
+      appointments: [
+        { id: 1, date: "2025-01-17T14:00", title: "Cardio Session", status: "completed", trainer: "Lisa Davis" },
+      ],
+      finance: [
+        {
+          id: 1,
+          date: "2025-01-01",
+          type: "Payment",
+          amount: "$89.99",
+          description: "Monthly membership fee",
+          status: "completed",
+        },
+      ],
+      contracts: [
+        {
+          id: 1,
+          date: "2021-11-15",
+          action: "Contract signed",
+          details: "Initial membership contract",
+          user: "Admin",
+        },
+      ],
+    },
+    // Add default empty history for other members
+    3: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    4: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    5: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    6: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    7: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    8: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    9: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    10: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    11: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    12: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    13: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    14: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    15: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    16: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    17: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+    18: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+  })
+
+  // Available members/leads for relations
+  const availableMembersLeads = [
+    { id: 101, name: "Anna Martinez", type: "member" },
+    { id: 102, name: "Peter Martinez", type: "lead" },
+    { id: 103, name: "Lisa Martinez", type: "member" },
+    { id: 201, name: "Max Miller", type: "member" },
+    { id: 301, name: "Marie Smith", type: "member" },
+    { id: 401, name: "Tom Wilson", type: "lead" },
+  ]
+
+  // Relation options by category
+  const relationOptions = {
+    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
+    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
+    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+  }
 
   // Sample member data - in real app, this would come from props or API
   const [members] = useState([
@@ -413,7 +654,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
       isActive: true,
       note: "Trial training participant",
       noteStartDate: "2023-01-01",
-      noteEndDate: "2023-12-31",
+      noteNoteEndDate: "2023-12-31",
       noteImportance: "important",
       dateOfBirth: "1995-11-15",
       about: "New member interested in comprehensive fitness program.",
@@ -493,12 +734,6 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
   const [selectedMember, setSelectedMember] = useState(null)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
 
-  const [appointmentTypes, setAppointmentTypes] = useState([
-    { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
-    { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
-    { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
-  ])
-
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
@@ -539,7 +774,6 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
     setAppointments([...appointments, newAppointment])
     toast.success("Appointment booked successfully")
   }
-
 
   const isContractExpiringSoon = (contractEnd) => {
     if (!contractEnd) return false
@@ -586,6 +820,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
         const randomDay = Math.floor(Math.random() * 7)
         const randomHour = 8 + Math.floor(Math.random() * 10)
         const randomMinute = Math.floor(Math.random() * 4) * 15
+
         const freeDate = new Date(weekStart)
         freeDate.setDate(weekStart.getDate() + randomDay)
         freeDate.setHours(randomHour, randomMinute, 0)
@@ -606,6 +841,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
     }
 
     setFreeAppointments(slots)
+
     if (slots.length > 0 && viewMode === "all") {
       toast.success(
         `Free slots generated for ${Array.from(freeDates).join(", ")}. Available slots are now highlighted.`,
@@ -666,6 +902,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
 
   const handleTypeSelection = (type) => {
     setIsTypeSelectionOpen(false)
+
     if (type === "trial") {
       setIsTrialModalOpen(true)
     } else if (type === "appointment") {
@@ -679,9 +916,11 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
 
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
+
     if (shouldNotify) {
       console.log("Notify member about the new time:", eventInfo?.event?.start)
       toast.success("Member notified successfully!")
+
       if (appointments && setAppointments && eventInfo?.event) {
         const updatedAppointments = appointments.map((appointment) => {
           if (appointment.id === eventInfo.event.id) {
@@ -694,6 +933,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
           }
           return appointment
         })
+
         setAppointments(updatedAppointments)
       }
     }
@@ -765,6 +1005,26 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
     setIsMemberDetailsModalOpen(true)
   }
 
+  // Enhanced Calendar functions from members component
+  const handleCalendarFromOverview = () => {
+    setIsMemberOverviewModalOpen(false)
+    setSelectedMemberForAppointments(selectedMember)
+    setShowAppointmentModal(true)
+  }
+
+  // Enhanced History functions from members component
+  const handleHistoryFromOverview = () => {
+    setIsMemberOverviewModalOpen(false)
+    setShowHistoryModal(true)
+  }
+
+  // Enhanced Communication functions from members component
+  const handleCommunicationFromOverview = () => {
+    setIsMemberOverviewModalOpen(false)
+    // Redirect to communications with member selected
+    window.location.href = `/dashboard/communication`
+  }
+
   // New function to handle edit from overview
   const handleEditFromOverview = () => {
     setIsMemberOverviewModalOpen(false)
@@ -772,25 +1032,77 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
     toast.success("Edit functionality would be implemented here")
   }
 
-  // New function to handle calendar from overview
-  const handleCalendarFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    // You can add calendar functionality here
-    toast.success("Calendar functionality would be implemented here")
+  // Enhanced appointment functions from members component
+  const handleEditAppointmentFromModal = (appointment) => {
+    const fullAppointment = {
+      ...appointment,
+      name: selectedMemberForAppointments?.title || "Member",
+      specialNote: appointment.specialNote || {
+        text: "",
+        isImportant: false,
+        startDate: "",
+        endDate: "",
+      },
+    }
+    setSelectedAppointmentData(fullAppointment)
+    setShowSelectedAppointmentModal(true)
+    setShowAppointmentModal(false)
   }
 
-  // New function to handle history from overview
-  const handleHistoryFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    // You can add history functionality here
-    toast.success("History functionality would be implemented here")
+  const handleCreateNewAppointment = () => {
+    setShowAddAppointmentModal(true)
+    setShowAppointmentModal(false)
   }
 
-  // New function to handle communication from overview
-  const handleCommunicationFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    // You can add communication functionality here
-    toast.success("Communication functionality would be implemented here")
+  const handleAddAppointmentSubmit = (data) => {
+    const newAppointment = {
+      id: Math.max(0, ...memberAppointments.map((a) => a.id)) + 1,
+      ...data,
+      memberId: selectedMemberForAppointments?.id,
+    }
+    setMemberAppointments([...memberAppointments, newAppointment])
+    setShowAddAppointmentModal(false)
+    toast.success("Appointment created successfully")
+  }
+
+  const handleDeleteAppointment = (id) => {
+    setMemberAppointments(memberAppointments.filter((app) => app.id !== id))
+    setSelectedAppointmentData(null)
+    setShowSelectedAppointmentModal(false)
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("delete")
+    toast.success("Appointment deleted successfully")
+  }
+
+  const handleAppointmentChange = (changes) => {
+    if (selectedAppointmentData) {
+      setSelectedAppointmentData({
+        ...selectedAppointmentData,
+        ...changes,
+      })
+    }
+  }
+
+  const handleManageContingent = (memberId) => {
+    const contingent = memberContingent[memberId] || { used: 0, total: 0 }
+    setTempContingent(contingent)
+    setShowContingentModal(true)
+  }
+
+  const handleSaveContingent = () => {
+    if (selectedMemberForAppointments) {
+      setMemberContingent((prev) => ({
+        ...prev,
+        [selectedMemberForAppointments.id]: tempContingent,
+      }))
+      toast.success("Contingent updated successfully")
+    }
+    setShowContingentModal(false)
+  }
+
+  // Get member appointments
+  const getMemberAppointments = (memberId) => {
+    return memberAppointments.filter((app) => app.memberId === memberId)
   }
 
   const actuallyHandleCancelAppointment = (shouldNotify) => {
@@ -814,6 +1126,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
   const safeAppointments = appointments || []
   const safeSearchQuery = searchQuery || ""
 
+  // Updated filteredAppointments to include appointment type filtering
   const filteredAppointments = safeAppointments.filter((appointment) => {
     const nameMatch = appointment.name?.toLowerCase().includes(safeSearchQuery.toLowerCase()) || false
 
@@ -827,7 +1140,19 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
       }
     }
 
-    return nameMatch && dateMatch
+    // Apply appointment type filters
+    let typeMatch = true
+    if (appointmentFilters && Object.keys(appointmentFilters).length > 0) {
+      if (appointment.isTrial) {
+        typeMatch = appointmentFilters["Trial Training"] || false
+      } else if (appointment.isBlocked || appointment.type === "Blocked Time") {
+        typeMatch = appointmentFilters["Blocked Time Slots"] || false
+      } else {
+        typeMatch = appointmentFilters[appointment.type] || false
+      }
+    }
+
+    return nameMatch && dateMatch && typeMatch
   })
 
   const calendarEvents = [
@@ -922,8 +1247,9 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
         <div className="flex items-center justify-end mb-2 gap-2">
           <button
             onClick={generateFreeDates}
-            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-              }`}
+            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${
+              viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+            }`}
             aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
           >
             {viewMode === "all" ? "Free Slots" : "All Slots"}
@@ -970,34 +1296,39 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
               eventMaxStack={10}
               eventContent={(eventInfo) => (
                 <div
-                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-40" : ""
-                    } ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${
+                    eventInfo.event.extendedProps.isPast ? "opacity-40" : ""
+                  } ${
+                    eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                       ? "opacity-30"
                       : ""
-                    } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                  } ${
+                    eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                       ? "ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
                       : ""
-                    }`}
+                  }`}
                 >
                   <div
-                    className={`font-semibold text-xs sm:text-sm truncate ${eventInfo.event.extendedProps.isPast
+                    className={`font-semibold text-xs sm:text-sm truncate ${
+                      eventInfo.event.extendedProps.isPast
                         ? "text-gray-400"
                         : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                           ? "text-gray-500"
                           : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                             ? "text-white font-bold"
                             : ""
-                      }`}
+                    }`}
                   >
                     {eventInfo.event.extendedProps.isPast ? `${eventInfo.event.title}` : eventInfo.event.title}
                   </div>
                   <div
-                    className={`text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast
+                    className={`text-xs opacity-90 truncate ${
+                      eventInfo.event.extendedProps.isPast
                         ? "text-gray-500"
                         : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                           ? "text-gray-500"
                           : ""
-                      }`}
+                    }`}
                   >
                     {eventInfo.event.extendedProps.type || "Available"}
                   </div>
@@ -1119,7 +1450,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
         }
       `}</style>
 
-      {/* Member Overview Modal - NEW */}
+      {/* Member Overview Modal - ENHANCED */}
       {isMemberOverviewModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] overflow-y-auto">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-6xl mx-4 my-8 relative">
@@ -1133,7 +1464,6 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                     alt="Profile"
                     className="w-16 h-16 rounded-full object-cover"
                   />
-
                   {/* Member Info */}
                   <div>
                     <div className="flex items-center gap-3">
@@ -1141,8 +1471,9 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                         {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
                       </h2>
                       <span
-                        className={`px-3 py-1 text-xs rounded-full font-medium ${selectedMember.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                          }`}
+                        className={`px-3 py-1 text-xs rounded-full font-medium ${
+                          selectedMember.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
+                        }`}
                       >
                         {selectedMember.isActive ? "Active" : "Inactive"}
                       </span>
@@ -1241,19 +1572,21 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
               <div className="flex border-b border-gray-700 mb-6">
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "details"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                    }`}
+                  }`}
                 >
                   Details
                 </button>
                 <button
                   onClick={() => setActiveTab("relations")}
-                  className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "relations"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                    }`}
+                  }`}
                 >
                   Relations
                 </button>
@@ -1280,7 +1613,6 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                       </p>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-400">Email</p>
@@ -1291,12 +1623,10 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                       <p>{selectedMember.phone}</p>
                     </div>
                   </div>
-
                   <div>
                     <p className="text-sm text-gray-400">Address</p>
                     <p>{`${selectedMember.street}, ${selectedMember.zipCode} ${selectedMember.city}`}</p>
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-400">Date of Birth</p>
@@ -1309,12 +1639,10 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                       <p>{selectedMember.joinDate}</p>
                     </div>
                   </div>
-
                   <div>
                     <p className="text-sm text-gray-400">About</p>
                     <p>{selectedMember.about}</p>
                   </div>
-
                   {selectedMember.note && (
                     <div>
                       <p className="text-sm text-gray-400">Special Note</p>
@@ -1325,7 +1653,6 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                       <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
                     </div>
                   )}
-
                   <div className="flex justify-end gap-4 mt-6">
                     <button
                       onClick={redirectToContract}
@@ -1363,7 +1690,8 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
 
                               {/* Category header */}
                               <div
-                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
+                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
+                                  category === "family"
                                     ? "bg-yellow-600 text-yellow-100"
                                     : category === "friendship"
                                       ? "bg-green-600 text-green-100"
@@ -1372,7 +1700,7 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                                         : category === "work"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                  }`}
+                                }`}
                               >
                                 {category}
                               </div>
@@ -1434,6 +1762,384 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
         </div>
       )}
 
+      {/* Enhanced Appointment Modal from Members Component */}
+      {showAppointmentModal && selectedMemberForAppointments && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-medium text-white">{selectedMemberForAppointments.title}'s Appointments</h2>
+                <button
+                  onClick={() => {
+                    setShowAppointmentModal(false)
+                    setSelectedMemberForAppointments(null)
+                  }}
+                  className="p-2 hover:bg-zinc-700 text-white rounded-lg"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-3 mb-4">
+                <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
+                {getMemberAppointments(selectedMemberForAppointments.id).length > 0 ? (
+                  getMemberAppointments(selectedMemberForAppointments.id).map((appointment) => {
+                    const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
+                    const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
+
+                    return (
+                      <div
+                        key={appointment.id}
+                        className={`${backgroundColor} rounded-xl p-3 hover:opacity-90 transition-colors cursor-pointer`}
+                        onClick={() => handleEditAppointmentFromModal(appointment)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-sm text-white">{appointment.title}</p>
+                            <div>
+                              <p className="text-sm text-white/70">
+                                {new Date(appointment.date).toLocaleString([], {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </p>
+                              <p className="text-xs text-white/70">
+                                {new Date(appointment.date).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}{" "}
+                                -{" "}
+                                {new Date(
+                                  new Date(appointment.date).getTime() + (appointmentType?.duration || 30) * 60000,
+                                ).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEditAppointmentFromModal(appointment)
+                              }}
+                              className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteAppointment(appointment.id)
+                              }}
+                              className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="text-center py-4 text-gray-400 bg-[#222222] rounded-xl">
+                    No appointments scheduled
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
+                <div className="text-sm text-gray-300">
+                  Contingent ({currentBillingPeriod}): {memberContingent[selectedMemberForAppointments.id]?.used || 0} /{" "}
+                  {memberContingent[selectedMemberForAppointments.id]?.total || 0}
+                </div>
+                <button
+                  onClick={() => handleManageContingent(selectedMemberForAppointments.id)}
+                  className="flex items-center gap-1 bg-gray-700 text-white hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
+                >
+                  <Edit3 size={16} />
+                  Manage
+                </button>
+              </div>
+
+              <button
+                onClick={handleCreateNewAppointment}
+                className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
+              >
+                Create New Appointment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contingent Management Modal */}
+      {showContingentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-medium text-white">Manage Appointment Contingent</h2>
+                <button
+                  onClick={() => setShowContingentModal(false)}
+                  className="p-2 hover:bg-zinc-700 text-white rounded-lg"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Billing Period: {currentBillingPeriod}
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <label className="block text-sm text-gray-400 mb-1">Used Appointments</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={tempContingent.total}
+                        value={tempContingent.used}
+                        onChange={(e) =>
+                          setTempContingent({ ...tempContingent, used: Number.parseInt(e.target.value) })
+                        }
+                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm text-gray-400 mb-1">Total Appointments</label>
+                      <input
+                        type="number"
+                        min={tempContingent.used}
+                        value={tempContingent.total}
+                        onChange={(e) =>
+                          setTempContingent({ ...tempContingent, total: Number.parseInt(e.target.value) })
+                        }
+                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Remaining: {tempContingent.total - tempContingent.used} appointments
+                  </p>
+                  <div className="mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
+                    <p className="text-blue-200 text-sm">
+                      <Info className="inline mr-1" size={14} />
+                      You can edit the contingent for future billing periods here.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => setShowContingentModal(false)}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveContingent}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {showHistoryModal && selectedMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex text-white justify-between items-center mb-6">
+                <h2 className="text-lg font-medium">{selectedMember.title} - History & Changelog</h2>
+                <button onClick={() => setShowHistoryModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* History Tab Navigation */}
+              <div className="flex border-b border-gray-700 mb-6 overflow-x-auto">
+                {[
+                  { id: "general", label: "General Changes" },
+                  { id: "checkins", label: "Check-ins & Check-outs" },
+                  { id: "appointments", label: "Past Appointments" },
+                  { id: "finance", label: "Finance Transactions" },
+                  { id: "contracts", label: "Contract Changes" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setHistoryTab(tab.id)}
+                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${
+                      historyTab === tab.id
+                        ? "text-blue-400 border-b-2 border-blue-400"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* History Content */}
+              <div className="space-y-4">
+                {historyTab === "general" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">General Changes</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.general?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-white font-medium">{item.action}</p>
+                              <p className="text-gray-400 text-sm mt-1">{item.details}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-400 text-sm">{item.date}</p>
+                              <p className="text-gray-500 text-xs">by {item.user}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No general changes recorded</p>}
+                    </div>
+                  </div>
+                )}
+
+                {historyTab === "checkins" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">Check-ins & Check-outs History</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.checkins?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-3 h-3 rounded-full ${item.type === "Check-in" ? "bg-green-500" : "bg-red-500"}`}
+                              ></div>
+                              <div>
+                                <p className="text-white font-medium">{item.type}</p>
+                                <p className="text-gray-400 text-sm">{item.location}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-400 text-sm">
+                                {new Date(item.date).toLocaleDateString()} at {new Date(item.date).toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No check-in/check-out history</p>}
+                    </div>
+                  </div>
+                )}
+
+                {historyTab === "appointments" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">Past Appointments History</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.appointments?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-white font-medium">{item.title}</p>
+                              <p className="text-gray-400 text-sm">with {item.trainer}</p>
+                              <span
+                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
+                                  item.status === "completed"
+                                    ? "bg-green-900 text-green-300"
+                                    : "bg-yellow-900 text-yellow-300"
+                                }`}
+                              >
+                                {item.status}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-400 text-sm">
+                                {new Date(item.date).toLocaleDateString()} at {new Date(item.date).toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No past appointments</p>}
+                    </div>
+                  </div>
+                )}
+
+                {historyTab === "finance" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">Finance Transactions History</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.finance?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-white font-medium">{item.type}</p>
+                              <p className="text-gray-400 text-sm">{item.description}</p>
+                              <span
+                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
+                                  item.status === "completed"
+                                    ? "bg-green-900 text-green-300"
+                                    : "bg-yellow-900 text-yellow-300"
+                                }`}
+                              >
+                                {item.status}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-green-400 font-semibold">{item.amount}</p>
+                              <p className="text-gray-400 text-sm">{item.date}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No financial transactions</p>}
+                    </div>
+                  </div>
+                )}
+
+                {historyTab === "contracts" && (
+                  <div>
+                    <h3 className="text-md font-semibold text-white mb-4">Contract Changes History</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.contracts?.map((item) => (
+                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-white font-medium">{item.action}</p>
+                              <p className="text-gray-400 text-sm mt-1">{item.details}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-400 text-sm">{item.date}</p>
+                              <p className="text-gray-500 text-xs">by {item.user}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No contract changes</p>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Appointment Modal */}
+      {showAddAppointmentModal && (
+        <AddAppointmentModal
+          isOpen={showAddAppointmentModal}
+          onClose={() => setShowAddAppointmentModal(false)}
+          appointmentTypes={appointmentTypes}
+          onSubmit={handleAddAppointmentSubmit}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          freeAppointments={freeAppointments}
+        />
+      )}
 
       {isAppointmentModalOpen && (
         <AddAppointmentModal
@@ -1446,14 +2152,12 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
         />
       )}
 
-
-<TrialPlanningModal
+      <TrialPlanningModal
         isOpen={isTrialModalOpen}
         onClose={() => setIsTrialModalOpen(false)}
         freeAppointments={freeAppointments}
         onSubmit={handleTrialSubmit}
       />
-
 
       <BlockAppointmentModal
         isOpen={isBlockModalOpen}
@@ -1481,7 +2185,6 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
             status: "blocked",
             isBlocked: true,
           }
-
           setAppointments([...appointments, newBlock])
           toast.success("Time slot blocked successfully")
           setIsBlockModalOpen(false)
@@ -1558,53 +2261,72 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
                 </p>
                 {selectedAppointment.date &&
                   isEventInPast(
-                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
-                    }`,
+                    `${selectedAppointment.date
+                      .split("|")[1]
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
                   ) && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
               </div>
-
               <button
                 onClick={handleEditAppointment}
-                className={`w-full px-5 py-3 ${selectedAppointment.date &&
-                    isEventInPast(
-                      `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
-                      }`,
-                    )
+                className={`w-full px-5 py-3 ${
+                  selectedAppointment.date &&
+                  isEventInPast(
+                    `${selectedAppointment.date
+                      .split("|")[1]
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
+                  )
                     ? "bg-gray-600 cursor-not-allowed"
                     : "bg-[#3F74FF] hover:bg-[#3F74FF]/90 cursor-pointer"
-                  } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
+                } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
                 disabled={
                   selectedAppointment.date &&
                   isEventInPast(
-                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
-                    }`,
+                    `${selectedAppointment.date
+                      .split("|")[1]
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
                   )
                 }
               >
                 <Edit className="mr-2" size={16} /> Edit Appointment
               </button>
-
               <button
                 onClick={handleCancelAppointment}
-                className={`w-full px-5 py-3 ${selectedAppointment.date &&
-                    isEventInPast(
-                      `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
-                      }`,
-                    )
+                className={`w-full px-5 py-3 ${
+                  selectedAppointment.date &&
+                  isEventInPast(
+                    `${selectedAppointment.date
+                      .split("|")[1]
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
+                  )
                     ? "bg-gray-600 cursor-not-allowed"
                     : "bg-red-600 hover:bg-red-700 cursor-pointer"
-                  } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
+                } text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center`}
                 disabled={
                   selectedAppointment.date &&
                   isEventInPast(
-                    `${selectedAppointment.date.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${selectedAppointment.startTime
-                    }`,
+                    `${selectedAppointment.date
+                      .split("|")[1]
+                      ?.trim()
+                      ?.split("-")
+                      ?.reverse()
+                      ?.join("-")}T${selectedAppointment.startTime}`,
                   )
                 }
               >
                 <X className="mr-2" size={16} /> Cancel Appointment
               </button>
-
               <button
                 onClick={handleViewMemberDetails}
                 className="w-full px-5 py-3 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 cursor-pointer transition-colors flex items-center justify-center"
@@ -1637,7 +2359,14 @@ function Calendar({ appointments = [], onEventClick, onDateSelect, searchQuery =
             <div className="p-6">
               <p className="text-white text-sm">
                 Do you want to notify the member about this{" "}
-                {notifyAction === "change" ? "change" : notifyAction === "cancel" ? "cancellation" : "booking"}?
+                {notifyAction === "change"
+                  ? "change"
+                  : notifyAction === "cancel"
+                    ? "cancellation"
+                    : notifyAction === "delete"
+                      ? "deletion"
+                      : "booking"}
+                ?
               </p>
             </div>
             <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
