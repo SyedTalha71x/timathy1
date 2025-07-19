@@ -28,38 +28,18 @@ import { WidgetSelectionModal } from "../components/widget-selection-modal"
 import { ExternalLink } from "lucide-react"
 import Avatar from "../../public/avatar.png"
 
-// Mock logged-in staff data
 const loggedInStaff = {
   id: 1,
   name: "John Smith",
   password: "staff123",
 }
 
-// Mock staff list for additional check-ins
 const staffList = [
   { id: 1, name: "John Smith", password: "staff123" },
   { id: 2, name: "Sarah Johnson", password: "sarah456" },
   { id: 3, name: "Mike Wilson", password: "mike789" },
   { id: 4, name: "Emma Davis", password: "emma321" },
 ]
-
-// Mock statistics data
-const statisticsData = {
-  topSelling: [
-    { name: "Personal Training", revenue: 15420, count: 89 },
-    { name: "Yoga Classes", revenue: 8750, count: 125 },
-    { name: "Strength Training", revenue: 7200, count: 72 },
-    { name: "Cardio Sessions", revenue: 5800, count: 95 },
-    { name: "Nutrition Consultation", revenue: 4200, count: 42 },
-  ],
-  mostFrequent: [
-    { name: "Yoga Classes", count: 125, percentage: 28 },
-    { name: "Cardio Sessions", count: 95, percentage: 21 },
-    { name: "Personal Training", count: 89, percentage: 20 },
-    { name: "Strength Training", count: 72, percentage: 16 },
-    { name: "Group Fitness", count: 65, percentage: 15 },
-  ],
-}
 
 function StaffCheckInWidget() {
   const [isCheckedIn, setIsCheckedIn] = useState(false)
@@ -316,37 +296,6 @@ function AdditionalStaffModal({ staffList, additionalStaffCheckIns, onCheckIn, o
   )
 }
 
-function StatisticsWidget({ type }) {
-  const data = type === "topSelling" ? statisticsData.topSelling : statisticsData.mostFrequent
-  const title = type === "topSelling" ? "Top-Selling Products & Services" : "Most Frequently Sold"
-
-  return (
-    <div className="space-y-3 p-4 rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
-      <div className="flex items-center gap-2 mb-3">
-        <h2 className="text-lg font-semibold">{title}</h2>
-      </div>
-      <div className="space-y-3 rounded-xl max-h-[300px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
-        {data.map((item, index) => (
-          <div key={index} className="p-2 bg-black rounded-xl">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-sm font-medium">{item.name}</h3>
-                <p className="text-xs text-zinc-400">
-                  {type === "topSelling"
-                    ? `$${item.revenue.toLocaleString()} • ${item.count} sales`
-                    : `${item.count} sales • ${item.percentage}%`}
-                </p>
-              </div>
-              <div className="text-right">
-                <span className="text-sm font-bold text-yellow-400">#{index + 1}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
   const ref = useRef(null)
@@ -525,6 +474,22 @@ export default function MyArea() {
       ],
       growth: "5%",
       title: "Lead Generation",
+    },
+    "Top-selling by revenue": {
+      data: [
+        [4000, 5200, 6100, 7300, 6800, 7900, 8500, 9100, 10200],
+        [3000, 4200, 5100, 5900, 5500, 6000, 6800, 7500, 8000],  
+      ],
+      growth: "12%",
+      title: "Top-selling by revenue",
+    },
+    "Most frequently sold": {
+      data: [
+        [120, 140, 160, 200, 190, 220, 230, 210, 240], 
+        [100, 130, 150, 170, 160, 190, 200, 195, 210],
+      ],
+      growth: "8%",
+      title: "Most frequently sold",
     },
   }
 
@@ -1458,40 +1423,7 @@ export default function MyArea() {
                     </DraggableWidget>
                   ))}
 
-                {widgets
-                  .filter((widget) => widget.type === "topSelling")
-                  .sort((a, b) => a.position - b.position)
-                  .map((widget) => (
-                    <DraggableWidget
-                      key={widget.id}
-                      id={widget.id}
-                      index={widgets.findIndex((w) => w.id === widget.id)}
-                      moveWidget={moveWidget}
-                      removeWidget={removeWidget}
-                      isEditing={isEditing}
-                      widgets={widgets}
-                    >
-                      <StatisticsWidget type="topSelling" />
-                    </DraggableWidget>
-                  ))}
-
-                {widgets
-                  .filter((widget) => widget.type === "mostFrequent")
-                  .sort((a, b) => a.position - b.position)
-                  .map((widget) => (
-                    <DraggableWidget
-                      key={widget.id}
-                      id={widget.id}
-                      index={widgets.findIndex((w) => w.id === widget.id)}
-                      moveWidget={moveWidget}
-                      removeWidget={removeWidget}
-                      isEditing={isEditing}
-                      widgets={widgets}
-                    >
-                      <StatisticsWidget type="mostFrequent" />
-                    </DraggableWidget>
-                  ))}
-
+          
                 <div className="">
                   {widgets
                     .filter((widget) => widget.type === "expiringContracts")

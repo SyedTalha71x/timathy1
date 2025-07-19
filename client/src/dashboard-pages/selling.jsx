@@ -884,16 +884,7 @@ function App() {
                     {activeTab === "products" && item.articalNo && (
                       <p className="text-xs text-slate-400 mb-1 open_sans_font">Art. No: {item.articalNo}</p>
                     )}
-                    <p className="text-base font-bold text-gray-400">{item.price.toFixed(2)} $</p>
-                    {item.link && !isEditModeActive && (
-                      <button
-                        onClick={() => window.open(item.link, "_blank")}
-                        className="mt-2 flex items-center gap-1 text-xs text-[#3F74FF] hover:text-[#3F74FF]/80 transition-colors"
-                      >
-                        <ExternalLink size={12} />
-                        View Link
-                      </button>
-                    )}
+                   
                   </div>
                   {isEditModeActive && (
                     <div className="mt-2">

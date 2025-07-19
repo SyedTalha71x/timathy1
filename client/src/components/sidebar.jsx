@@ -18,6 +18,10 @@ import {
 } from "lucide-react";
 import { RiContractLine, RiStockFill } from "react-icons/ri";
 import { CiMonitor } from "react-icons/ci";
+import { FaUsers } from "react-icons/fa6";
+
+import { IoIosPeople } from "react-icons/io";
+
 import { TbBrandGoogleAnalytics } from "react-icons/tb";
 
 
@@ -51,7 +55,9 @@ const Sidebar = () => {
 
   // Replace with real data
   const studioName = "Studio One";
-  const fullName = "Samantha Johnson";
+  const fullName = "Samantha";
+  const role = "Trainer";
+
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -94,28 +100,34 @@ const Sidebar = () => {
 
   const menuItems = [
     { icon: Home, label: "My Area", to: "/dashboard/my-area" },
+    {
+      icon: CiMonitor
+      , label: "Activity Monitor", to: "/dashboard/activity-monitor"
+    },
     { icon: Calendar, label: "Appointments", to: "/dashboard/appointments" },
     { icon: MessageCircle, label: "Communication", to: "/dashboard/communication" },
     { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
     { icon: Users, label: "Members", to: "/dashboard/members" },
-    { icon: Users, label: "Staff", to: "/dashboard/staff" },
+    { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
     { icon: RiContractLine, label: "Contract", to: "/dashboard/contract" },
     { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
-    { icon: MdOutlineLeaderboard, label: "Leads", to: "/dashboard/leads" },
+    { icon: IoIosPeople, label: "Leads", to: "/dashboard/leads" },
     { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
     { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
-    { icon: CgGym
-      , label: "Training", to: "/dashboard/training" },
-      { icon: CiMonitor
-        , label: "Activity Monitor", to: "/dashboard/activity-monitor" },
-        { icon: TbBrandGoogleAnalytics
-          , label: "Analytics", to: "/dashboard/analytics" },
+    {
+      icon: CgGym
+      , label: "Training", to: "/dashboard/training"
+    },
+
+    {
+      icon: TbBrandGoogleAnalytics
+      , label: "Analytics", to: "/dashboard/analytics"
+    },
     { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
   ];
 
   return (
     <>
-      {/* Mobile Top Nav */}
       <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between md:hidden z-40">
         {isSidebarOpen && (
           <div
@@ -166,7 +178,6 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Sidebar */}
       <aside
         className={`
           fixed top-0 left-0 z-50 h-screen bg-[#111111] transition-all duration-500 overflow-hidden 
@@ -218,17 +229,21 @@ const Sidebar = () => {
                 </div>
               )}
 
-              {!isCollapsed && (
-                <div className="flex flex-col gap-0.5 text-center">
-                  <p className="text-sm open_sans_font text-white">{studioName}</p>
-                  <h2 className="open_sans_font_700 text-white">{fullName}</h2>
-                </div>
-              )}
+{!isCollapsed && (
+  <div className="flex flex-col gap-0.5 text-center">
+    <p className="text-md  open_sans_font_700 text-white">{studioName}</p>
+    <h2 className="font-bold text-white flex items-center justify-center gap-1">
+      {fullName}
+      <span className="font-bold text-white">•</span>
+      {role}
+    </h2>
+  </div>
+)}
             </div>
           </div>
 
           {/* Navigation Menu */}
-          <nav className="flex-1 overflow-y-auto">
+          <nav className="flex-1 overflow-y-auto custom-scrollbar">
             <ul className="space-y-2 p-4">
               {menuItems.map((item) => (
                 <li key={item.label}>
@@ -243,15 +258,19 @@ const Sidebar = () => {
                         : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`}
                     `}
                   >
-                    <item.icon size={20} className={`${location.pathname === item.to ? "text-white" : "text-zinc-400 group-hover:text-white"}`} />
-                    {!isCollapsed && <span className="relative">
-                      {item.label}
+                    <div className="relative">
+                      <item.icon
+                        size={24}
+                        className={`cursor-pointer ${location.pathname === item.to ? "text-white" : "text-zinc-400 group-hover:text-white"
+                          }`}
+                      />
                       {item.label === "Communication" && unreadMessages > 0 && (
-                        <span className="absolute bottom-1 -right-5 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                        <span className="absolute -top-1 -right-2 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                           {unreadMessages}
                         </span>
                       )}
-                    </span>}
+                    </div>
+                    {!isCollapsed && <span>{item.label}</span>}
                   </button>
                 </li>
               ))}

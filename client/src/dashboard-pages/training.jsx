@@ -12,7 +12,6 @@ import {
   Trash2,
   X,
   Clock,
-  Users,
   Target,
   Calendar,
   ChevronDown,
@@ -21,7 +20,6 @@ import {
   Share2,
   BookOpen,
   Dumbbell,
-  Heart,
   User,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
@@ -44,15 +42,13 @@ export default function Training() {
 
   // Training video categories
   const categories = [
-    { id: "all", name: "All Exercises", icon: "🏋️", color: "bg-gray-600" },
-    { id: "chest", name: "Chest", icon: "💪", color: "bg-red-600" },
-    { id: "back", name: "Back", icon: "🔙", color: "bg-blue-600" },
-    { id: "shoulders", name: "Shoulders", icon: "🤲", color: "bg-yellow-600" },
-    { id: "arms", name: "Arms", icon: "💪", color: "bg-green-600" },
-    { id: "legs", name: "Legs", icon: "🦵", color: "bg-purple-600" },
-    { id: "core", name: "Core", icon: "⭕", color: "bg-orange-600" },
-    { id: "cardio", name: "Cardio", icon: "❤️", color: "bg-pink-600" },
-    { id: "flexibility", name: "Flexibility", icon: "🤸", color: "bg-indigo-600" },
+    { id: "chest", name: "Chest", color: "bg-red-600" },
+    { id: "back", name: "Back", color: "bg-blue-600" },
+    { id: "shoulders", name: "Shoulders", color: "bg-yellow-600" },
+    { id: "arms", name: "Arms", color: "bg-green-600" },
+    { id: "legs", name: "Legs", color: "bg-purple-600" },
+    { id: "glutes", name: "Glutes", color: "bg-purple-800" },
+    { id: "core", name: "Core", color: "bg-orange-600" },
   ]
 
   // Sample training videos
@@ -278,7 +274,6 @@ export default function Training() {
     isPublic: true,
   })
 
-  const [newTag, setNewTag] = useState("")
   const [selectedExercises, setSelectedExercises] = useState([])
 
   // Filter videos based on category and search
@@ -383,24 +378,7 @@ export default function Training() {
       exercises: updatedExercises,
     })
   }
-
-  const handleAddTag = () => {
-    if (newTag.trim() && !planForm.tags.includes(newTag.trim())) {
-      setPlanForm({
-        ...planForm,
-        tags: [...planForm.tags, newTag.trim()],
-      })
-      setNewTag("")
-    }
-  }
-
-  const handleRemoveTag = (tagToRemove) => {
-    setPlanForm({
-      ...planForm,
-      tags: planForm.tags.filter((tag) => tag !== tagToRemove),
-    })
-  }
-
+  
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case "Beginner":
@@ -426,8 +404,7 @@ export default function Training() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Training Center</h1>
-              <p className="text-gray-400">Access training videos and create workout plans</p>
+              <h1 className="text-xl font-bold text-white mb-2">Training</h1>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 bg-[#161616] rounded-xl px-4 py-2">
@@ -441,30 +418,31 @@ export default function Training() {
             </div>
           </div>
 
-          <div className="flex border-b border-gray-700 mb-8">
-            <button
-              onClick={() => setActiveTab("videos")}
-              className={`px-6 py-3 text-sm font-medium transition-colors ${
-                activeTab === "videos" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Play size={16} />
-                Training Videos
+          <div className="max-w-xs mr-auto w-full">
+
+        
+          
+          <div className="flex bg-[#000000] mb-3 rounded-xl border border-slate-300/30 p-1">
+                <button
+                  onClick={() => setActiveTab("videos")}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    activeTab === "videos" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <Play size={16} className="inline mr-2" />
+                  Training Videos
+                </button>
+                <button
+                  onClick={() => setActiveTab("plans")}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    activeTab === "plans" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <Target size={16} className="inline mr-2" />
+                  Training Plans
+                </button>
               </div>
-            </button>
-            <button
-              onClick={() => setActiveTab("plans")}
-              className={`px-6 py-3 text-sm font-medium transition-colors ${
-                activeTab === "plans" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Target size={16} />
-                Training Plans
               </div>
-            </button>
-          </div>
 
           {activeTab === "videos" && (
             <div>
@@ -518,13 +496,12 @@ export default function Training() {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${
                       selectedCategory === category.id
                         ? `${category.color} text-white`
                         : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                     }`}
                   >
-                    <span className="mr-2">{category.icon}</span>
                     {category.name}
                   </button>
                 ))}
@@ -560,10 +537,7 @@ export default function Training() {
                     <div className="p-4">
                       <h3 className="font-semibold text-white mb-2 line-clamp-2">{video.title}</h3>
                       <p className="text-gray-400 text-sm mb-3 line-clamp-2">{video.description}</p>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{video.instructor}</span>
-                        <span>{video.views} views</span>
-                      </div>
+                    
                       <div className="flex flex-wrap gap-1 mt-2">
                         {video.targetMuscles.slice(0, 2).map((muscle, index) => (
                           <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs">
@@ -595,7 +569,6 @@ export default function Training() {
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-2">Training Plans</h2>
-                  <p className="text-gray-400">Create and share workout plans with your team</p>
                 </div>
                 <button
                   onClick={() => setIsCreatePlanModalOpen(true)}
@@ -635,27 +608,10 @@ export default function Training() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {plan.tags.slice(0, 3).map((tag, index) => (
-                        <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs">
-                          #{tag}
-                        </span>
-                      ))}
-                      {plan.tags.length > 3 && <span className="text-gray-500 text-xs">+{plan.tags.length - 3}</span>}
-                    </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Heart size={12} />
-                          {plan.likes}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users size={12} />
-                          {plan.uses}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-end">
+          
+                      <div className="flex items-center cursor-pointer justify-end gap-2">
                         <button
                           onClick={() => {
                             setSelectedPlan(plan)
@@ -665,12 +621,7 @@ export default function Training() {
                         >
                           <Eye size={16} className="text-gray-400" />
                         </button>
-                        <button
-                          onClick={() => toast.success("Plan copied to your library!")}
-                          className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                        >
-                          <Copy size={16} className="text-gray-400" />
-                        </button>
+                      
                       </div>
                     </div>
                   </div>
@@ -752,10 +703,6 @@ export default function Training() {
                   <p className="text-gray-400 mb-4">{selectedVideo.description}</p>
 
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">Instructor:</span>
-                      <span className="text-white">{selectedVideo.instructor}</span>
-                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500">Duration:</span>
                       <span className="text-white">{selectedVideo.duration}</span>
@@ -909,38 +856,6 @@ export default function Training() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Tags</label>
-                    <div className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
-                        className="flex-1 bg-[#161616] rounded-xl px-4 py-2 text-white border border-gray-700 focus:border-blue-500 outline-none"
-                        placeholder="Add tag..."
-                      />
-                      <button
-                        onClick={handleAddTag}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-white transition-colors"
-                      >
-                        Add
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {planForm.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="bg-[#2F2F2F] text-gray-300 px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                        >
-                          #{tag}
-                          <button onClick={() => handleRemoveTag(tag)} className="text-gray-500 hover:text-red-400">
-                            <X size={12} />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
 
                   <div className="flex items-center gap-2">
                     <input

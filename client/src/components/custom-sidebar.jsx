@@ -315,7 +315,7 @@ export const SidebarArea = ({
       >
         <div className="p-4 md:p-5 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Sidebar</h2>
+            <h2 className="text-lg font-semibold text-white">Select View</h2>
             <div className="flex items-center gap-2">
             {activeTab === 'widgets' &&  <button
                 onClick={() => setIsWidgetModalOpen(true)}

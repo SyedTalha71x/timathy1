@@ -279,8 +279,7 @@ export default function AnalyticsDashboard() {
                 <Menu size={24} />
               </button> */}
               <div>
-                <h1 className="text-2xl font-bold text-white">Analytics Dashboard</h1>
-                <p className="text-gray-400 text-sm">Comprehensive business insights and metrics</p>
+                <h1 className="text-xl font-bold">Analytics</h1>
               </div>
             </div>
             
