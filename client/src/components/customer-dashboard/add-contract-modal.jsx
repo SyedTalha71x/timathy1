@@ -485,22 +485,17 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
           ) : showFormView ? (
             <div>
               <div className="space-y-4 mb-4">
-                {contractData.leadId && (
-                  <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
-                    <h4 className="text-white text-sm font-medium mb-2">Selected Lead</h4>
-                    <div className="text-sm text-gray-300">
-                      <p>
-                        <span className="text-gray-400">Name:</span> {contractData.fullName}
-                      </p>
-                      <p>
-                        <span className="text-gray-400">Email:</span> {contractData.email}
-                      </p>
-                      <p>
-                        <span className="text-gray-400">Company:</span> {contractData.studioName}
-                      </p>
-                    </div>
-                  </div>
-                )}
+              {contractData.leadId > 0 && contractData.fullName && (
+  <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
+    <h4 className="text-white text-sm font-medium mb-2">Selected Lead</h4>
+    <div className="text-sm text-gray-300">
+      <p>
+        <span className="text-gray-400">Name:</span> {contractData.fullName}
+      </p>
+    </div>
+  </div>
+)}
+
 
                 <div className="space-y-1.5">
                   <label className="text-xs text-gray-200 block pl-1">Rate Type</label>

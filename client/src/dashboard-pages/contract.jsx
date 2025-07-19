@@ -51,7 +51,7 @@ const initialContracts = [
     contractType: "Premium",
     startDate: "2023-03-01",
     endDate: "2024-03-01",
-    status: "Inactive",
+    status: "Cancelled",
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -517,7 +517,7 @@ export default function ContractList() {
               </button>
               {filterDropdownOpen && (
                 <div className="absolute right-0 text-sm mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
-                  {["All Contracts", "Active", "Paused", "Inactive"].map((filter) => (
+                  {["All Contracts", "Active", "Paused", "Cancelled"].map((filter) => (
                     <button
                       key={filter}
                       className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
@@ -566,7 +566,7 @@ export default function ContractList() {
                 className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5" />
-                <span>Add Contract</span>
+                <span>Create Contract</span>
               </button>
             </div>
 

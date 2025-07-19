@@ -125,7 +125,9 @@ export default function FinancesPage() {
   const [statusFilterOpen, setStatusFilterOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("All")
-  const [filteredTransactions, setFilteredTransactions] = useState(financialData[selectedPeriod].transactions)
+  const [filteredTransactions, setFilteredTransactions] = useState(
+    financialData[selectedPeriod]?.transactions || []
+  )  
   const [currentPage, setCurrentPage] = useState(1)
   const [sepaModalOpen, setSepaModalOpen] = useState(false)
   const [financialState, setFinancialState] = useState(financialData)
@@ -505,7 +507,7 @@ export default function FinancesPage() {
           <div className="flex gap-2 items-center w-full sm:w-auto">
             <button
               onClick={exportToCSV}
-              className="bg-green-600 text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-green-600/90 transition-colors w-full sm:w-auto"
+              className="bg-gray-600 cursor-pointer text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm  transition-colors w-full sm:w-auto"
             >
               <Download className="w-4 h-4" />
               <span>Export CSV</span>

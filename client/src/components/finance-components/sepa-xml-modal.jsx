@@ -16,6 +16,8 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   const [servicesModalOpen, setServicesModalOpen] = useState(false)
   const [selectedServices, setSelectedServices] = useState([])
   const [selectedStudioName, setSelectedStudioName] = useState("")
+  const [confirmationModalOpen, setConfirmationModalOpen] = useState(false)
+  const [shouldDownload, setShouldDownload] = useState(true)
 
   useEffect(() => {
     // Initialize selected transactions (only Pending and Failed)
@@ -64,7 +66,11 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
     setTempAmount("")
   }
 
-  const handleGenerateXml = () => {
+  const handleGenerateXmlClick = () => {
+    setConfirmationModalOpen(true)
+  }
+
+  const handleConfirmGeneration = () => {
     const selectedTxs = transactions
       .filter((tx) => selectedTransactions[tx.id])
       .map((tx) => ({
@@ -74,8 +80,13 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
 
     const period = isCustomPeriod ? `${customPeriod.startDate} - ${customPeriod.endDate}` : selectedPeriod
 
-    onGenerateXml(selectedTxs, period)
+    onGenerateXml(selectedTxs, period, shouldDownload)
+    setConfirmationModalOpen(false)
     onClose()
+  }
+
+  const handleCancelGeneration = () => {
+    setConfirmationModalOpen(false)
   }
 
   const toggleCustomPeriod = () => {
@@ -99,6 +110,10 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   if (!isOpen) return null
 
   const filteredTransactions = transactions.filter((tx) => tx.status === "Pending" || tx.status === "Failed")
+  const selectedCount = Object.values(selectedTransactions).filter(v => v).length
+  const totalAmount = transactions
+    .filter((tx) => selectedTransactions[tx.id])
+    .reduce((sum, tx) => sum + (editedAmounts[tx.id] || tx.amount), 0)
 
   return (
     <div className="fixed inset-0 bg-black/70 flex p-2 items-center justify-center z-50">
@@ -318,6 +333,69 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
           </div>
         )}
 
+        {/* Confirmation Modal */}
+        {confirmationModalOpen && (
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-30">
+            <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md mx-4">
+              <div className="p-4 border-b border-gray-800">
+                <h2 className="text-white text-lg font-medium">Generate SEPA XML</h2>
+              </div>
+
+              <div className="p-4">
+                <p className="text-gray-300 text-sm mb-4">
+                  Are you sure you want to generate the SEPA XML file?
+                </p>
+                
+                <div className="bg-[#141414] p-3 rounded-lg mb-4">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-400">Selected transactions:</span>
+                    <span className="text-white font-medium">{selectedCount}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-400">Total amount:</span>
+                    <span className="text-white font-medium">${totalAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Period:</span>
+                    <span className="text-white font-medium">
+                      {isCustomPeriod ? `${customPeriod.startDate} - ${customPeriod.endDate}` : selectedPeriod}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mb-4">
+                  <input
+                    type="checkbox"
+                    id="shouldDownload"
+                    checked={shouldDownload}
+                    onChange={(e) => setShouldDownload(e.target.checked)}
+                    className="rounded bg-black border-gray-700"
+                  />
+                  <label htmlFor="shouldDownload" className="text-sm text-gray-300">
+                    Download SEPA XML file automatically
+                  </label>
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
+                <button
+                  onClick={handleCancelGeneration}
+                  className="px-4 py-2 rounded-xl text-sm border border-gray-700 text-gray-300 hover:bg-[#141414]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmGeneration}
+                  className="px-4 py-2 rounded-xl text-sm bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90 flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Generate XML
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
           <button
             onClick={onClose}
@@ -326,7 +404,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
             Cancel
           </button>
           <button
-            onClick={handleGenerateXml}
+            onClick={handleGenerateXmlClick}
             className="px-4 py-2 rounded-xl text-sm bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90 flex items-center gap-2"
             disabled={!Object.values(selectedTransactions).some((v) => v)}
           >
