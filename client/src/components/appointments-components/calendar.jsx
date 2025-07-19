@@ -15,7 +15,7 @@ import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialPlanningModal from "../lead-components/add-trial"
 
-function Calendar({
+export default function Calendar({
   appointments = [],
   onEventClick,
   onDateSelect,
@@ -28,9 +28,8 @@ function Calendar({
   const [calendarHeight, setCalendarHeight] = useState("auto")
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [freeAppointments, setFreeAppointments] = useState([])
-  const [viewMode, setViewMode] = useState("all")
+  const [viewMode, setViewMode] = useState("all") // "all" or "free"
   const [activeTab, setActiveTab] = useState("details")
-
   // Enhanced states for member functionality
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
   const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
@@ -53,7 +52,6 @@ function Calendar({
     type: "manual",
     selectedMemberId: null,
   })
-
   // Member contingent data
   const [memberContingent, setMemberContingent] = useState({
     1: { used: 2, total: 7 },
@@ -75,7 +73,6 @@ function Calendar({
     17: { used: 0, total: 5 },
     18: { used: 2, total: 6 },
   })
-
   // Enhanced appointment types
   const [appointmentTypes, setAppointmentTypes] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
@@ -87,7 +84,6 @@ function Calendar({
     { name: "Training", color: "bg-orange-600", duration: 60 },
     { name: "Assessment", color: "bg-red-600", duration: 90 },
   ])
-
   // Enhanced appointments data for members
   const [memberAppointments, setMemberAppointments] = useState([
     {
@@ -137,7 +133,6 @@ function Calendar({
       memberId: 4,
     },
   ])
-
   // History data for members
   const [memberHistory, setMemberHistory] = useState({
     1: {
@@ -243,7 +238,6 @@ function Calendar({
     17: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
     18: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
   })
-
   // Available members/leads for relations
   const availableMembersLeads = [
     { id: 101, name: "Anna Martinez", type: "member" },
@@ -253,7 +247,6 @@ function Calendar({
     { id: 301, name: "Marie Smith", type: "member" },
     { id: 401, name: "Tom Wilson", type: "lead" },
   ]
-
   // Relation options by category
   const relationOptions = {
     family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
@@ -262,7 +255,6 @@ function Calendar({
     work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
     other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
   }
-
   // Sample member data - in real app, this would come from props or API
   const [members] = useState([
     {
@@ -663,7 +655,6 @@ function Calendar({
       contractEnd: "2026-05-01",
     },
   ])
-
   // Also update the memberRelations to include data for these new members
   const [memberRelations] = useState({
     1: {
@@ -710,18 +701,16 @@ function Calendar({
     17: { family: [], friendship: [], relationship: [], work: [], other: [] },
     18: { family: [], friendship: [], relationship: [], work: [], other: [] },
   })
-
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, "0")
     const month = String(date.getMonth() + 1).padStart(2, "0")
     const year = date.getFullYear()
     return `${day}-${month}-${year}`
   }
-
   const calendarRef = useRef(null)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("change")
-  const [eventInfo, setEventInfo] = useState(null)
+  const [pendingEventInfo, setPendingEventInfo] = useState(null) // State to hold event info for drag/drop rollback
   const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
   const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
@@ -752,29 +741,27 @@ function Calendar({
     }
     return age
   }
-
   const formatDateForDisplay = (date) => {
     const day = String(date.getDate()).padStart(2, "0")
     const month = String(date.getMonth() + 1).padStart(2, "0")
     const year = date.getFullYear()
     return `${day}/${month}/${year}`
   }
-
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
       id: appointments.length + 1,
       ...appointmentData,
       status: "pending",
       isTrial: false,
+      isCancelled: false, // Default for new appointments
+      isPast: false, // Default for new appointments
       date: `${new Date(appointmentData.date).toLocaleString("en-US", {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
     }
-
     setAppointments([...appointments, newAppointment])
     toast.success("Appointment booked successfully")
   }
-
   const isContractExpiringSoon = (contractEnd) => {
     if (!contractEnd) return false
     const today = new Date()
@@ -783,55 +770,45 @@ function Calendar({
     oneMonthFromNow.setMonth(today.getMonth() + 1)
     return endDate <= oneMonthFromNow && endDate >= today
   }
-
   const redirectToContract = () => {
     window.location.href = "/dashboard/contract"
   }
-
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
       id: appointments.length + 1,
       ...trialData,
       status: "pending",
       isTrial: true,
+      isCancelled: false, // Default for new trials
+      isPast: false, // Default for new trials
       date: `${new Date(trialData.date).toLocaleString("en-US", {
         weekday: "short",
       })} | ${formatDateForDisplay(new Date(trialData.date))}`,
     }
-
     setAppointments([...appointments, newTrial])
     toast.success("Trial training booked successfully")
   }
-
   const generateFreeDates = () => {
     const now = new Date()
     const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()))
     const freeDates = new Set()
     const slots = []
-
     setViewMode(viewMode === "all" ? "free" : "all")
-
     for (let week = 0; week < 3; week++) {
       const weekStart = new Date(startOfWeek)
       weekStart.setDate(weekStart.getDate() + week * 7)
       const slotsPerWeek = 3 + Math.floor(Math.random() * 2)
-
       for (let i = 0; i < slotsPerWeek; i++) {
         const randomDay = Math.floor(Math.random() * 7)
         const randomHour = 8 + Math.floor(Math.random() * 10)
         const randomMinute = Math.floor(Math.random() * 4) * 15
-
         const freeDate = new Date(weekStart)
-        freeDate.setDate(weekStart.getDate() + randomDay)
+        freeDate.setDate(freeDate.getDate() + randomDay) // Use freeDate directly
         freeDate.setHours(randomHour, randomMinute, 0)
-
         if (freeDate < new Date()) continue
-
         const formattedDate = formatDate(freeDate)
         const formattedTime = freeDate.toTimeString().split(" ")[0].substring(0, 5)
-
         freeDates.add(freeDate.toLocaleDateString("en-US", { month: "long", day: "numeric" }))
-
         slots.push({
           id: `free-${week}-${i}`,
           date: formattedDate,
@@ -839,9 +816,7 @@ function Calendar({
         })
       }
     }
-
     setFreeAppointments(slots)
-
     if (slots.length > 0 && viewMode === "all") {
       toast.success(
         `Free slots generated for ${Array.from(freeDates).join(", ")}. Available slots are now highlighted.`,
@@ -850,19 +825,15 @@ function Calendar({
       toast.success(viewMode === "all" ? "Showing all appointments" : "Showing free slots only.")
     }
   }
-
   const zoomIn = () => {
     setCalendarSize((prev) => Math.min(prev + 10, 150))
   }
-
   const zoomOut = () => {
     setCalendarSize((prev) => Math.max(prev - 10, 70))
   }
-
   const resetZoom = () => {
     setCalendarSize(100)
   }
-
   const handleViewChange = (viewInfo) => {
     if (viewInfo.view.type === "dayGridMonth") {
       setCalendarHeight("auto")
@@ -871,27 +842,10 @@ function Calendar({
     }
   }
 
+  // Modified handleEventDrop to store info for potential rollback
   const handleEventDrop = (info) => {
-    const { event } = info
-    const duration = event.end - event.start
-
-    if (!appointments || !setAppointments) return
-
-    const updatedAppointments = appointments.map((appointment) => {
-      if (appointment.id === Number(event.id)) {
-        return {
-          ...appointment,
-          startTime: event.start.toTimeString().split(" ")[0],
-          endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0],
-          date: `${event.start.toLocaleString("en-US", {
-            weekday: "short",
-          })} | ${formatDate(event.start)}`,
-        }
-      }
-      return appointment
-    })
-
-    setAppointments(updatedAppointments)
+    setPendingEventInfo(info) // Store the info object
+    setNotifyAction("change")
     setIsNotifyMemberOpen(true)
   }
 
@@ -899,10 +853,8 @@ function Calendar({
     setSelectedSlotInfo(selectInfo)
     setIsTypeSelectionOpen(true)
   }
-
   const handleTypeSelection = (type) => {
     setIsTypeSelectionOpen(false)
-
     if (type === "trial") {
       setIsTrialModalOpen(true)
     } else if (type === "appointment") {
@@ -914,27 +866,39 @@ function Calendar({
     }
   }
 
+  // Modified handleNotifyMember to handle rollback for drag/drop
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
-
-    if (shouldNotify) {
-      console.log("Notify member about the new time:", eventInfo?.event?.start)
-      toast.success("Member notified successfully!")
-
-      if (appointments && setAppointments && eventInfo?.event) {
+    if (pendingEventInfo) {
+      if (shouldNotify) {
+        // User confirmed, apply the change
+        const { event } = pendingEventInfo
+        const duration = event.end - event.start
         const updatedAppointments = appointments.map((appointment) => {
-          if (appointment.id === eventInfo.event.id) {
+          if (appointment.id === Number(event.id)) {
             return {
               ...appointment,
-              date: eventInfo.event.start.toISOString().split("T")[0],
-              startTime: eventInfo.event.start.toTimeString().split(" ")[0],
-              endTime: eventInfo.event.end.toTimeString().split(" ")[0],
+              startTime: event.start.toTimeString().split(" ")[0],
+              endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0],
+              date: `${event.start.toLocaleString("en-US", {
+                weekday: "short",
+              })} | ${formatDate(event.start)}`,
             }
           }
           return appointment
         })
-
         setAppointments(updatedAppointments)
+        toast.success("Appointment updated successfully and member notified!")
+      } else {
+        // User cancelled, revert the event visually
+        pendingEventInfo.revert()
+        toast.error("Appointment move cancelled.")
+      }
+      setPendingEventInfo(null) // Clear pending info
+    } else {
+      // This part handles notifications for other actions (e.g., cancellation from modal)
+      if (shouldNotify) {
+        toast.success("Member notified successfully!")
       }
     }
   }
@@ -948,42 +912,50 @@ function Calendar({
       setIsTypeSelectionOpen(true)
     }
   }
-
   const handleEventClick = (clickInfo) => {
     if (clickInfo.event.extendedProps.isFree) {
       handleFreeSlotClick(clickInfo)
       return
     }
-
     const appointmentId = Number.parseInt(clickInfo.event.id)
     const appointment = appointments?.find((app) => app.id === appointmentId)
-
     if (appointment) {
       setSelectedAppointment(appointment)
       setIsAppointmentActionModalOpen(true)
     }
-
     if (onEventClick) {
       onEventClick(clickInfo)
     }
   }
-
   const handleEditAppointment = () => {
     setIsAppointmentActionModalOpen(false)
     setIsEditAppointmentModalOpen(true)
   }
 
+  // Modified handleCancelAppointment to update status instead of setting eventInfo for deletion
   const handleCancelAppointment = () => {
     setIsAppointmentActionModalOpen(false)
     setNotifyAction("cancel")
-    setIsNotifyMemberOpen(true)
-    setEventInfo({
-      event: {
-        id: selectedAppointment?.id,
-        start: new Date(),
-        end: new Date(),
-      },
-    })
+    if (selectedAppointment) {
+      // Update the selected appointment's status locally for the modal
+      const updatedApp = { ...selectedAppointment, status: "cancelled", isCancelled: true }
+      setSelectedAppointment(updatedApp)
+      setIsNotifyMemberOpen(true) // Show notification modal
+    }
+  }
+
+  // Modified actuallyHandleCancelAppointment to update status in main appointments array
+  const actuallyHandleCancelAppointment = (shouldNotify) => {
+    if (!appointments || !setAppointments || !selectedAppointment) return
+    const updatedAppointments = appointments.map((app) =>
+      app.id === selectedAppointment.id ? { ...app, status: "cancelled", isCancelled: true } : app,
+    )
+    setAppointments(updatedAppointments)
+    toast.success("Appointment cancelled successfully")
+    if (shouldNotify) {
+      console.log("Notifying member about cancellation")
+    }
+    setSelectedAppointment(null) // Clear selected appointment after action
   }
 
   const handleViewMemberDetails = () => {
@@ -997,41 +969,35 @@ function Calendar({
       toast.error("Member details not found")
     }
   }
-
   // New function to handle going from overview to detailed view
   const handleViewDetailedInfo = () => {
     setIsMemberOverviewModalOpen(false)
     setActiveTab("details")
     setIsMemberDetailsModalOpen(true)
   }
-
   // Enhanced Calendar functions from members component
   const handleCalendarFromOverview = () => {
     setIsMemberOverviewModalOpen(false)
     setSelectedMemberForAppointments(selectedMember)
     setShowAppointmentModal(true)
   }
-
   // Enhanced History functions from members component
   const handleHistoryFromOverview = () => {
     setIsMemberOverviewModalOpen(false)
     setShowHistoryModal(true)
   }
-
   // Enhanced Communication functions from members component
   const handleCommunicationFromOverview = () => {
     setIsMemberOverviewModalOpen(false)
     // Redirect to communications with member selected
     window.location.href = `/dashboard/communication`
   }
-
   // New function to handle edit from overview
   const handleEditFromOverview = () => {
     setIsMemberOverviewModalOpen(false)
     // You can add edit functionality here
     toast.success("Edit functionality would be implemented here")
   }
-
   // Enhanced appointment functions from members component
   const handleEditAppointmentFromModal = (appointment) => {
     const fullAppointment = {
@@ -1048,12 +1014,10 @@ function Calendar({
     setShowSelectedAppointmentModal(true)
     setShowAppointmentModal(false)
   }
-
   const handleCreateNewAppointment = () => {
     setShowAddAppointmentModal(true)
     setShowAppointmentModal(false)
   }
-
   const handleAddAppointmentSubmit = (data) => {
     const newAppointment = {
       id: Math.max(0, ...memberAppointments.map((a) => a.id)) + 1,
@@ -1064,7 +1028,6 @@ function Calendar({
     setShowAddAppointmentModal(false)
     toast.success("Appointment created successfully")
   }
-
   const handleDeleteAppointment = (id) => {
     setMemberAppointments(memberAppointments.filter((app) => app.id !== id))
     setSelectedAppointmentData(null)
@@ -1073,7 +1036,6 @@ function Calendar({
     setNotifyAction("delete")
     toast.success("Appointment deleted successfully")
   }
-
   const handleAppointmentChange = (changes) => {
     if (selectedAppointmentData) {
       setSelectedAppointmentData({
@@ -1082,13 +1044,11 @@ function Calendar({
       })
     }
   }
-
   const handleManageContingent = (memberId) => {
     const contingent = memberContingent[memberId] || { used: 0, total: 0 }
     setTempContingent(contingent)
     setShowContingentModal(true)
   }
-
   const handleSaveContingent = () => {
     if (selectedMemberForAppointments) {
       setMemberContingent((prev) => ({
@@ -1099,22 +1059,9 @@ function Calendar({
     }
     setShowContingentModal(false)
   }
-
   // Get member appointments
   const getMemberAppointments = (memberId) => {
     return memberAppointments.filter((app) => app.memberId === memberId)
-  }
-
-  const actuallyHandleCancelAppointment = (shouldNotify) => {
-    if (!appointments || !setAppointments || !selectedAppointment) return
-
-    const updatedAppointments = appointments.filter((app) => app.id !== selectedAppointment.id)
-    setAppointments(updatedAppointments)
-    toast.success("Appointment cancelled successfully")
-
-    if (shouldNotify) {
-      console.log("Notifying member about cancellation")
-    }
   }
 
   const isEventInPast = (eventStart) => {
@@ -1125,11 +1072,9 @@ function Calendar({
 
   const safeAppointments = appointments || []
   const safeSearchQuery = searchQuery || ""
-
   // Updated filteredAppointments to include appointment type filtering
   const filteredAppointments = safeAppointments.filter((appointment) => {
     const nameMatch = appointment.name?.toLowerCase().includes(safeSearchQuery.toLowerCase()) || false
-
     let dateMatch = true
     if (selectedDate && appointment.date) {
       const dateParts = appointment.date.split("|")
@@ -1139,7 +1084,6 @@ function Calendar({
         dateMatch = appointmentDate === formattedSelectedDate
       }
     }
-
     // Apply appointment type filters
     let typeMatch = true
     if (appointmentFilters && Object.keys(appointmentFilters).length > 0) {
@@ -1147,11 +1091,14 @@ function Calendar({
         typeMatch = appointmentFilters["Trial Training"] || false
       } else if (appointment.isBlocked || appointment.type === "Blocked Time") {
         typeMatch = appointmentFilters["Blocked Time Slots"] || false
+      } else if (appointment.isCancelled) {
+        typeMatch = appointmentFilters["Cancelled Appointments"] || false
+      } else if (appointment.isPast && !appointment.isCancelled) {
+        typeMatch = appointmentFilters["Past Appointments"] || false
       } else {
         typeMatch = appointmentFilters[appointment.type] || false
       }
     }
-
     return nameMatch && dateMatch && typeMatch
   })
 
@@ -1160,22 +1107,41 @@ function Calendar({
       .map((appointment) => {
         const dateParts = appointment.date?.split("|") || []
         if (dateParts.length < 2) return null
-
         const datePart = dateParts[1].trim()
         const dateComponents = datePart.split("-")
         if (dateComponents.length !== 3) return null
-
         const [day, month, year] = dateComponents
         const dateStr = `${year}-${month}-${day}`
         const startDateTimeStr = `${dateStr}T${appointment.startTime || "00:00"}`
         const endDateTimeStr = `${dateStr}T${appointment.endTime || "01:00"}`
 
         const isPastEvent = isEventInPast(startDateTimeStr)
-        const backgroundColor = isPastEvent
-          ? "#4a4a4a"
-          : viewMode === "free"
-            ? "#555555"
-            : appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
+        const isCancelledEvent = appointment.isCancelled // Use the new flag
+
+        let backgroundColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
+        let borderColor = backgroundColor
+        let textColor = "#FFFFFF"
+        let opacity = 1
+
+        if (isCancelledEvent) {
+          // Specific styling for cancelled appointments (diagonal stripes)
+          backgroundColor = "#4a4a4a" // Muted background for cancelled
+          borderColor = "#777777"
+          textColor = "#bbbbbb"
+          opacity = 0.6
+        } else if (isPastEvent) {
+          // Styling for past appointments (transparent/grayed out)
+          backgroundColor = "#4a4a4a"
+          borderColor = "#4a4a4a"
+          textColor = "#999999"
+          opacity = 0.4
+        } else if (viewMode === "free") {
+          // When showing free slots, other appointments are grayed out
+          backgroundColor = "#555555"
+          borderColor = "#555555"
+          textColor = "#999999"
+          opacity = 0.3
+        }
 
         return {
           id: appointment.id,
@@ -1183,14 +1149,16 @@ function Calendar({
           start: startDateTimeStr,
           end: endDateTimeStr,
           backgroundColor: backgroundColor,
-          borderColor: backgroundColor,
-          textColor: isPastEvent ? "#999999" : viewMode === "free" ? "#999999" : "#FFFFFF",
-          opacity: isPastEvent ? 0.4 : viewMode === "free" ? 0.3 : 1,
+          borderColor: borderColor,
+          textColor: textColor,
+          opacity: opacity,
           isPast: isPastEvent,
+          isCancelled: isCancelledEvent, // Pass the cancelled flag
           extendedProps: {
             type: appointment.type || "Unknown",
             isPast: isPastEvent,
-            originalColor: backgroundColor,
+            isCancelled: isCancelledEvent, // Pass the cancelled flag
+            originalColor: appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1",
             viewMode: viewMode,
             appointment: appointment,
           },
@@ -1201,16 +1169,15 @@ function Calendar({
       const [day, month, year] = freeSlot.date.split("-")
       const dateStr = `${year}-${month}-${day}`
       const startDateTimeStr = `${dateStr}T${freeSlot.time}`
-
       return {
         id: freeSlot.id,
         title: "Available Slot",
         start: startDateTimeStr,
         end: new Date(new Date(startDateTimeStr).getTime() + 60 * 60 * 1000).toISOString(),
-        backgroundColor: viewMode === "free" ? "#22c55e" : "#15803d",
-        borderColor: viewMode === "free" ? "#16a34a" : "#15803d",
+        backgroundColor: viewMode === "free" ? "#22c55e" : "#444444", // Gray for "all" mode
+        borderColor: viewMode === "free" ? "#16a34a" : "#555555", // Gray for "all" mode
         textColor: "#FFFFFF",
-        opacity: viewMode === "free" ? 1 : 0.8,
+        opacity: viewMode === "free" ? 1 : 0.6, // Reduced opacity for grayed out free slots
         extendedProps: {
           isFree: true,
           viewMode: viewMode,
@@ -1218,12 +1185,9 @@ function Calendar({
       }
     }),
   ]
-
   const handleEventResize = (info) => {
     const { event } = info
-
     if (!appointments || !setAppointments) return
-
     const updatedAppointments = appointments.map((appointment) => {
       if (appointment.id === Number(event.id)) {
         return {
@@ -1234,13 +1198,11 @@ function Calendar({
       }
       return appointment
     })
-
     setAppointments(updatedAppointments)
     setNotifyAction("change")
-    setEventInfo(info)
+    setPendingEventInfo(info) // Store info for resize notification
     setIsNotifyMemberOpen(true)
   }
-
   return (
     <>
       <div className="h-full w-full">
@@ -1255,7 +1217,6 @@ function Calendar({
             {viewMode === "all" ? "Free Slots" : "All Slots"}
           </button>
         </div>
-
         <div className="max-w-full overflow-x-auto bg-black" style={{ WebkitOverflowScrolling: "touch" }}>
           <div
             className="min-w-[1200px] transition-all duration-300 ease-in-out"
@@ -1299,6 +1260,10 @@ function Calendar({
                   className={`p-1 h-full overflow-hidden transition-all duration-200 ${
                     eventInfo.event.extendedProps.isPast ? "opacity-40" : ""
                   } ${
+                    eventInfo.event.extendedProps.isCancelled
+                      ? "cancelled-event-content" // Apply content styling for cancelled
+                      : ""
+                  } ${
                     eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                       ? "opacity-30"
                       : ""
@@ -1312,22 +1277,30 @@ function Calendar({
                     className={`font-semibold text-xs sm:text-sm truncate ${
                       eventInfo.event.extendedProps.isPast
                         ? "text-gray-400"
-                        : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                          ? "text-gray-500"
-                          : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
-                            ? "text-white font-bold"
-                            : ""
+                        : eventInfo.event.extendedProps.isCancelled
+                          ? "text-gray-300" // Muted text for cancelled
+                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                            ? "text-gray-500"
+                            : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                              ? "text-white font-bold"
+                              : ""
                     }`}
                   >
-                    {eventInfo.event.extendedProps.isPast ? `${eventInfo.event.title}` : eventInfo.event.title}
+                    {eventInfo.event.extendedProps.isCancelled
+                      ? `${eventInfo.event.title} (Cancelled)`
+                      : eventInfo.event.extendedProps.isPast
+                        ? `${eventInfo.event.title} (Past)`
+                        : eventInfo.event.title}
                   </div>
                   <div
                     className={`text-xs opacity-90 truncate ${
                       eventInfo.event.extendedProps.isPast
                         ? "text-gray-500"
-                        : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                          ? "text-gray-500"
-                          : ""
+                        : eventInfo.event.extendedProps.isCancelled
+                          ? "text-gray-400" // Muted text for cancelled
+                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                            ? "text-gray-500"
+                            : ""
                     }`}
                   >
                     {eventInfo.event.extendedProps.type || "Available"}
@@ -1339,6 +1312,9 @@ function Calendar({
                 const classes = []
                 if (eventInfo.event.extendedProps.isPast) {
                   classes.push("past-event")
+                }
+                if (eventInfo.event.extendedProps.isCancelled) {
+                  classes.push("cancelled-event") // Add class for cancelled events
                 }
                 if (eventInfo.event.extendedProps.isFree) {
                   classes.push("free-slot-event cursor-pointer")
@@ -1352,12 +1328,30 @@ function Calendar({
           </div>
         </div>
       </div>
-
       <style jsx>{`
         :global(.past-event) {
           cursor: default !important;
           opacity: 0.4 !important;
           filter: grayscale(0.7);
+        }
+        :global(.cancelled-event) {
+          background-image: linear-gradient(
+            -45deg,
+            rgba(255, 255, 255, 0.1) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.1) 75%,
+            transparent 75%,
+            transparent
+          ) !important;
+          background-size: 10px 10px !important;
+          opacity: 0.6 !important;
+          filter: grayscale(0.5);
+          border-color: #777777 !important;
+        }
+        :global(.cancelled-event-content) {
+          color: #bbbbbb !important; /* Ensure text color is muted */
         }
         :global(.free-slot-event) {
           cursor: pointer !important;
@@ -1449,7 +1443,6 @@ function Calendar({
           margin: 1px 2px !important;
         }
       `}</style>
-
       {/* Member Overview Modal - ENHANCED */}
       {isMemberOverviewModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] overflow-y-auto">
@@ -1486,7 +1479,6 @@ function Calendar({
                     </p>
                   </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className="flex items-center gap-3">
                   {/* Calendar Button */}
@@ -1497,7 +1489,6 @@ function Calendar({
                   >
                     <CalendarIcon size={20} />
                   </button>
-
                   {/* History Button */}
                   <button
                     onClick={handleHistoryFromOverview}
@@ -1506,7 +1497,6 @@ function Calendar({
                   >
                     <History size={20} />
                   </button>
-
                   {/* Communication Button */}
                   <button
                     onClick={handleCommunicationFromOverview}
@@ -1515,7 +1505,6 @@ function Calendar({
                   >
                     <MessageCircle size={20} />
                   </button>
-
                   {/* View Details Button */}
                   <button
                     onClick={handleViewDetailedInfo}
@@ -1524,7 +1513,6 @@ function Calendar({
                     <Eye size={16} />
                     View Details
                   </button>
-
                   {/* Edit Button */}
                   <button
                     onClick={handleEditFromOverview}
@@ -1532,7 +1520,6 @@ function Calendar({
                   >
                     Edit
                   </button>
-
                   {/* Close Button */}
                   <button
                     onClick={() => {
@@ -1549,7 +1536,6 @@ function Calendar({
           </div>
         </div>
       )}
-
       {/* Member Details Modal with Tabs - EXISTING */}
       {isMemberDetailsModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -1567,7 +1553,6 @@ function Calendar({
                   <X size={20} className="cursor-pointer" />
                 </button>
               </div>
-
               {/* Tab Navigation */}
               <div className="flex border-b border-gray-700 mb-6">
                 <button
@@ -1591,7 +1576,6 @@ function Calendar({
                   Relations
                 </button>
               </div>
-
               {/* Tab Content */}
               {activeTab === "details" && (
                 <div className="space-y-4 text-white">
@@ -1664,7 +1648,6 @@ function Calendar({
                   </div>
                 </div>
               )}
-
               {activeTab === "relations" && (
                 <div className="space-y-6 max-h-[60vh] overflow-y-auto">
                   {/* Relations Tree Visualization */}
@@ -1675,19 +1658,16 @@ function Calendar({
                       <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
                         {selectedMember.title}
                       </div>
-
                       {/* Connection Lines and Categories */}
                       <div className="relative w-full">
                         {/* Horizontal line */}
                         <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
-
                         {/* Category sections */}
                         <div className="grid grid-cols-5 gap-4 pt-8">
                           {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
                             <div key={category} className="flex flex-col items-center space-y-4">
                               {/* Vertical line */}
                               <div className="w-0.5 h-8 bg-gray-600"></div>
-
                               {/* Category header */}
                               <div
                                 className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
@@ -1704,7 +1684,6 @@ function Calendar({
                               >
                                 {category}
                               </div>
-
                               {/* Relations in this category */}
                               <div className="space-y-2">
                                 {relations.map((relation) => (
@@ -1726,7 +1705,6 @@ function Calendar({
                       </div>
                     </div>
                   </div>
-
                   {/* Relations List */}
                   <div className="bg-[#161616] rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
@@ -1761,7 +1739,6 @@ function Calendar({
           </div>
         </div>
       )}
-
       {/* Enhanced Appointment Modal from Members Component */}
       {showAppointmentModal && selectedMemberForAppointments && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -1779,14 +1756,12 @@ function Calendar({
                   <X size={16} />
                 </button>
               </div>
-
               <div className="space-y-3 mb-4">
                 <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
                 {getMemberAppointments(selectedMemberForAppointments.id).length > 0 ? (
                   getMemberAppointments(selectedMemberForAppointments.id).map((appointment) => {
                     const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
                     const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
-
                     return (
                       <div
                         key={appointment.id}
@@ -1849,7 +1824,6 @@ function Calendar({
                   </div>
                 )}
               </div>
-
               <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
                 <div className="text-sm text-gray-300">
                   Contingent ({currentBillingPeriod}): {memberContingent[selectedMemberForAppointments.id]?.used || 0} /{" "}
@@ -1863,7 +1837,6 @@ function Calendar({
                   Manage
                 </button>
               </div>
-
               <button
                 onClick={handleCreateNewAppointment}
                 className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
@@ -1874,7 +1847,6 @@ function Calendar({
           </div>
         </div>
       )}
-
       {/* Contingent Management Modal */}
       {showContingentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -1950,7 +1922,6 @@ function Calendar({
           </div>
         </div>
       )}
-
       {/* History Modal */}
       {showHistoryModal && selectedMember && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -1962,7 +1933,6 @@ function Calendar({
                   <X size={16} />
                 </button>
               </div>
-
               {/* History Tab Navigation */}
               <div className="flex border-b border-gray-700 mb-6 overflow-x-auto">
                 {[
@@ -1985,7 +1955,6 @@ function Calendar({
                   </button>
                 ))}
               </div>
-
               {/* History Content */}
               <div className="space-y-4">
                 {historyTab === "general" && (
@@ -2009,7 +1978,6 @@ function Calendar({
                     </div>
                   </div>
                 )}
-
                 {historyTab === "checkins" && (
                   <div>
                     <h3 className="text-md font-semibold text-white mb-4">Check-ins & Check-outs History</h3>
@@ -2037,7 +2005,6 @@ function Calendar({
                     </div>
                   </div>
                 )}
-
                 {historyTab === "appointments" && (
                   <div>
                     <h3 className="text-md font-semibold text-white mb-4">Past Appointments History</h3>
@@ -2069,7 +2036,6 @@ function Calendar({
                     </div>
                   </div>
                 )}
-
                 {historyTab === "finance" && (
                   <div>
                     <h3 className="text-md font-semibold text-white mb-4">Finance Transactions History</h3>
@@ -2100,7 +2066,6 @@ function Calendar({
                     </div>
                   </div>
                 )}
-
                 {historyTab === "contracts" && (
                   <div>
                     <h3 className="text-md font-semibold text-white mb-4">Contract Changes History</h3>
@@ -2127,7 +2092,6 @@ function Calendar({
           </div>
         </div>
       )}
-
       {/* Add Appointment Modal */}
       {showAddAppointmentModal && (
         <AddAppointmentModal
@@ -2140,7 +2104,6 @@ function Calendar({
           freeAppointments={freeAppointments}
         />
       )}
-
       {isAppointmentModalOpen && (
         <AddAppointmentModal
           isOpen={isAppointmentModalOpen}
@@ -2151,14 +2114,12 @@ function Calendar({
           setNotifyAction={setNotifyAction}
         />
       )}
-
       <TrialPlanningModal
         isOpen={isTrialModalOpen}
         onClose={() => setIsTrialModalOpen(false)}
         freeAppointments={freeAppointments}
         onSubmit={handleTrialSubmit}
       />
-
       <BlockAppointmentModal
         isOpen={isBlockModalOpen}
         onClose={() => setIsBlockModalOpen(false)}
@@ -2184,13 +2145,14 @@ function Calendar({
             },
             status: "blocked",
             isBlocked: true,
+            isCancelled: false, // Default for new blocks
+            isPast: false, // Default for new blocks
           }
           setAppointments([...appointments, newBlock])
           toast.success("Time slot blocked successfully")
           setIsBlockModalOpen(false)
         }}
       />
-
       {isTypeSelectionOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -2232,7 +2194,6 @@ function Calendar({
           </div>
         </div>
       )}
-
       {isAppointmentActionModalOpen && selectedAppointment && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -2299,7 +2260,7 @@ function Calendar({
                 <Edit className="mr-2" size={16} /> Edit Appointment
               </button>
               <button
-                onClick={handleCancelAppointment}
+                onClick={handleCancelAppointment} // Calls the modified cancel handler
                 className={`w-full px-5 py-3 ${
                   selectedAppointment.date &&
                   isEventInPast(
@@ -2337,7 +2298,6 @@ function Calendar({
           </div>
         </div>
       )}
-
       {isNotifyMemberOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -2350,7 +2310,19 @@ function Calendar({
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
               <h2 className="text-lg font-semibold text-white">Notify Member</h2>
               <button
-                onClick={() => setIsNotifyMemberOpen(false)}
+                onClick={() => {
+                  // If user closes modal with X, it's a "No, Don't Notify" action
+                  if (notifyAction === "cancel") {
+                    // If it was a cancellation, the status is already updated. No rollback needed here.
+                    // This is just for the notification prompt.
+                  } else if (pendingEventInfo) {
+                    // For drag/drop or resize, revert if not confirmed
+                    pendingEventInfo.revert()
+                    toast.error("Action cancelled.")
+                  }
+                  setIsNotifyMemberOpen(false)
+                  setPendingEventInfo(null) // Clear pending info
+                }}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
               >
                 <X size={20} />
@@ -2373,9 +2345,9 @@ function Calendar({
               <button
                 onClick={() => {
                   if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(true)
+                    actuallyHandleCancelAppointment(true) // Confirm cancellation and notify
                   } else {
-                    handleNotifyMember(true)
+                    handleNotifyMember(true) // Confirm other changes and notify
                   }
                   setIsNotifyMemberOpen(false)
                 }}
@@ -2386,9 +2358,9 @@ function Calendar({
               <button
                 onClick={() => {
                   if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(false)
+                    actuallyHandleCancelAppointment(false) // Confirm cancellation without notifying
                   } else {
-                    handleNotifyMember(false)
+                    handleNotifyMember(false) // Cancel other changes and don't notify (triggers revert)
                   }
                   setIsNotifyMemberOpen(false)
                 }}
@@ -2400,10 +2372,7 @@ function Calendar({
           </div>
         </div>
       )}
-
       <Toaster position="top-right" />
     </>
   )
 }
-
-export default Calendar
