@@ -170,24 +170,15 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
             <h2 className="text-xl font-bold">Attendance Overview</h2>
             <button
               onClick={exportToCSV}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+              className="bg-gray-700 cursor-pointer hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
             >
               <Download className="h-4 w-4" />
               Export CSV
             </button>
           </div>
           <div className="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 items-start sm:items-center">
-            <select
-              value={selectedPeriod}
-              onChange={(e) => handlePeriodChange(e.target.value)}
-              className="bg-[#141414] rounded px-3 py-2 text-sm md:text-base w-full sm:w-auto"
-            >
-              <option value="day">Day</option>
-              <option value="week">Week</option>
-              <option value="month">Month</option>
-            </select>
-            {renderPeriodDisplay()}
-            <select
+        
+          <select
               value={selectedStaffId}
               onChange={(e) => setSelectedStaffId(e.target.value)}
               className="bg-[#141414] rounded px-3 py-2 text-sm md:text-base w-full sm:w-auto"
@@ -199,6 +190,17 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
                 </option>
               ))}
             </select>
+            <select
+              value={selectedPeriod}
+              onChange={(e) => handlePeriodChange(e.target.value)}
+              className="bg-[#141414] rounded px-3 py-2 text-sm md:text-base w-full sm:w-auto"
+            >
+              <option value="day">Day</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+            </select>
+            {renderPeriodDisplay()}
+
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[500px]">

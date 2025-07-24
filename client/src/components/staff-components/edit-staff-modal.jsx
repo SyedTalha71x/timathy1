@@ -166,6 +166,42 @@ function EditStaffModal({
                 rows={3}
               />
             </div>
+
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Street</label>
+              <input
+                type="text"
+                name="street"
+                value={editedStaff.street}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                <input
+                  type="text"
+                  name="zipCode"
+                  value={editedStaff.zipCode}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">City</label>
+                <input
+                  type="text"
+                  name="city"
+                  value={editedStaff.city}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  required
+                />
+              </div>
+            </div>
           </div>
         )
       } else if (activeTab === "access") {
@@ -220,41 +256,7 @@ function EditStaffModal({
                 </button>
               </div>
             </div>
-            <div>
-              <label className="text-sm text-gray-200 block mb-2">Street</label>
-              <input
-                type="text"
-                name="street"
-                value={editedStaff.street}
-                onChange={handleInputChange}
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-                <input
-                  type="text"
-                  name="zipCode"
-                  value={editedStaff.zipCode}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm text-gray-200 block mb-2">City</label>
-                <input
-                  type="text"
-                  name="city"
-                  value={editedStaff.city}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                  required
-                />
-              </div>
-            </div>
+          
           </div>
         )
       }

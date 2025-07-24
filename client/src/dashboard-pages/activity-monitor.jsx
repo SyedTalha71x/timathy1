@@ -17,11 +17,12 @@ import {
   RefreshCw,
   Archive,
   AlertCircle,
-  Briefcase,
   MessageSquare,
   Activity,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
+import { MdOutlineHolidayVillage } from "react-icons/md";
+
 
 export default function ActivityMonitor() {
   const [selectedFilter, setSelectedFilter] = useState("all")
@@ -33,7 +34,7 @@ export default function ActivityMonitor() {
 
   // Activity types configuration
   const activityTypes = {
-    vacation: { name: "Vacation Requests", icon: Briefcase, color: "bg-blue-600", textColor: "text-blue-400" }, // Icon changed
+    vacation: { name: "Vacation Requests", icon: MdOutlineHolidayVillage, color: "bg-blue-600", textColor: "text-blue-400" }, // Icon changed
     email: { name: "Email Issues", icon: MailX, color: "bg-red-600", textColor: "text-red-400" },
     contract: { name: "Contract Expiring", icon: FileText, color: "bg-yellow-600", textColor: "text-yellow-400" },
     appointment: { name: "Appointment Requests", icon: Calendar, color: "bg-green-600", textColor: "text-green-400" },
@@ -457,11 +458,11 @@ export default function ActivityMonitor() {
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <span
+                              {/* <span
                                 className={`px-2 py-1 rounded text-xs font-medium ${config ? config.textColor : "text-gray-400"} bg-opacity-20 ${config ? config.color : "bg-gray-600"}`}
                               >
                                 {config ? config.name : "Unknown Type"}
-                              </span>
+                              </span> */}
                               {activity.actionRequired && (
                                 <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-600 text-white">
                                   ACTION REQUIRED

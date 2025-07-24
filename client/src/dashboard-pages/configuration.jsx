@@ -1,9 +1,9 @@
-""
+"use client"
 
 import { Checkbox } from "antd"
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Input,
   Select,
@@ -34,8 +34,11 @@ import {
   InfoCircleOutlined,
   BgColorsOutlined,
   SettingOutlined,
+  BoldOutlined,
+  ItalicOutlined,
+  UnderlineOutlined,
 } from "@ant-design/icons"
-import VariablePicker from "../components/variable-picker"
+import VariablePicker from "../components/variable-picker" // Assuming VariablePicker is in components folder
 
 const { Option } = Select
 const { TabPane } = Tabs
@@ -50,19 +53,16 @@ const inputStyle = {
   padding: "10px 10px",
   outline: "none",
 }
-
 const selectStyle = {
   backgroundColor: "#101010",
   border: "none",
   color: "#000",
 }
-
 const buttonStyle = {
   backgroundColor: "#101010",
   border: "1px solid #303030",
   color: "#fff",
 }
-
 const saveButtonStyle = {
   backgroundColor: "#FF843E",
   border: "1px solid #303030",
@@ -74,7 +74,6 @@ const saveButtonStyle = {
   outline: "none",
   fontSize: "14px",
 }
-
 const sectionHeaderStyle = {
   display: "flex",
   justifyContent: "space-between",
@@ -85,7 +84,6 @@ const sectionHeaderStyle = {
   marginBottom: "16px",
   cursor: "default",
 }
-
 const tooltipStyle = {
   marginLeft: "8px",
   color: "rgba(255, 255, 255, 0.5)",
@@ -103,20 +101,17 @@ const ConfigurationPage = () => {
   const [studioEmail, setStudioEmail] = useState("")
   const [studioWebsite, setStudioWebsite] = useState("")
   const [currency, setCurrency] = useState("€")
-
   // Opening hours and closing days
   const [openingHours, setOpeningHours] = useState([])
   const [closingDays, setClosingDays] = useState([])
   const [publicHolidays, setPublicHolidays] = useState([])
   const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
-
   // Other studio settings
   const [logo, setLogo] = useState([])
   const [roles, setRoles] = useState([])
-  const [appointmentTypes, setAppointmentTypes] = useState([])
+  const [appointmentTypes, setAppointmentTypes] = useState([]) // Added images array to each type
   const [tags, setTags] = useState([])
   const [contractStatuses, setContractStatuses] = useState([])
-
   // Countries for selection with currency
   const [countries, setCountries] = useState([
     { code: "AT", name: "Austria", currency: "€" },
@@ -150,7 +145,6 @@ const ConfigurationPage = () => {
     { code: "GB", name: "United Kingdom", currency: "£" },
     { code: "US", name: "United States", currency: "$" },
   ])
-
   const [maxCapacity, setMaxCapacity] = useState(10)
   const [contractTypes, setContractTypes] = useState([])
   const [contractSections, setContractSections] = useState([
@@ -165,18 +159,27 @@ const ConfigurationPage = () => {
   const [extensionPeriod, setExtensionPeriod] = useState(12)
   const [additionalDocs, setAdditionalDocs] = useState([])
   const [holidaysDialogVisible, setHolidaysDialogVisible] = useState(false)
+
+  // Communication Configuration States (updated and new)
+  const [autoArchiveDuration, setAutoArchiveDuration] = useState(30)
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [chatNotifications, setChatNotifications] = useState(true)
+  const [studioChatNotifications, setStudioChatNotifications] = useState(true)
+  const [memberChatNotifications, setMemberChatNotifications] = useState(true)
+  const [emailSignature, setEmailSignature] = useState("Best regards,\n{Studio_Name} Team")
+  const [broadcastEmail, setBroadcastEmail] = useState(true)
+  const [broadcastChat, setBroadcastChat] = useState(true)
+
   const [birthdayMessage, setBirthdayMessage] = useState({
     enabled: false,
     message: "Happy Birthday! 🎉 Best wishes from {Studio_Name}",
   })
-
   const [trialTraining, setTrialTraining] = useState({
     name: "Trial Training",
     duration: 60,
     capacity: 1,
     color: "#1890ff",
   })
-
   const [broadcastMessages, setBroadcastMessages] = useState([
     {
       title: "",
@@ -184,28 +187,29 @@ const ConfigurationPage = () => {
       sendVia: ["email", "platform"],
     },
   ])
-
   const [appointmentNotifications, setAppointmentNotifications] = useState([
     {
       type: "booking",
       title: "Appointment Confirmation",
       message: "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}.",
       sendVia: ["email", "platform"],
+      enabled: true, // Added enabled field
     },
     {
       type: "cancellation",
       title: "Appointment Cancellation",
       message: "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
       sendVia: ["email", "platform"],
+      enabled: true, // Added enabled field
     },
     {
       type: "rescheduled",
       title: "Appointment Rescheduled",
       message: "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}.",
       sendVia: ["email", "platform"],
+      enabled: true, // Added enabled field
     },
   ])
-
   const [emailConfig, setEmailConfig] = useState({
     smtpServer: "",
     smtpPort: 587,
@@ -213,10 +217,10 @@ const ConfigurationPage = () => {
     password: "",
     useSSL: false,
     senderName: "",
+    smtpUser: "", // Added from reference
+    smtpPass: "", // Added from reference
   })
-
   const [leadProspectCategories, setLeadProspectCategories] = useState([])
-
   const [vatRates, setVatRates] = useState([
     { name: "Standard", percentage: 19, description: "Standard VAT rate" },
     {
@@ -225,7 +229,6 @@ const ConfigurationPage = () => {
       description: "Reduced VAT rate for essential goods",
     },
   ])
-
   // Appearance settings
   const [appearance, setAppearance] = useState({
     theme: "dark",
@@ -234,11 +237,17 @@ const ConfigurationPage = () => {
     allowUserThemeToggle: true,
   })
 
+  // Lead Sources (new state)
+  const [leadSources, setLeadSources] = useState([
+    { id: 1, name: "Website" },
+    { id: 2, name: "Referral" },
+  ])
+  const nextLeadSourceId = useRef(leadSources.length > 0 ? Math.max(...leadSources.map((s) => s.id)) + 1 : 1)
+
   // Fetch public holidays when country changes
   useEffect(() => {
     if (studioCountry) {
       fetchPublicHolidays(studioCountry)
-
       // Set currency based on country
       const selectedCountry = countries.find((c) => c.code === studioCountry)
       if (selectedCountry) {
@@ -250,28 +259,22 @@ const ConfigurationPage = () => {
   // Function to fetch public holidays based on country
   const fetchPublicHolidays = async (countryCode) => {
     if (!countryCode) return
-
     setIsLoadingHolidays(true)
     try {
       // Using Nager.Date API for public holidays
       const currentYear = new Date().getFullYear()
       const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentYear}/${countryCode}`)
-
       if (!response.ok) {
         throw new Error("Failed to fetch holidays")
       }
-
       const data = await response.json()
-
       // Process the holidays data
       const holidays = data.map((holiday) => ({
         date: holiday.date,
         name: holiday.name,
         countryCode: holiday.countryCode,
       }))
-
       setPublicHolidays(holidays)
-
       notification.success({
         message: "Holidays Loaded",
         description: `Successfully loaded ${data.length} public holidays for ${countryCode}`,
@@ -296,11 +299,9 @@ const ConfigurationPage = () => {
       })
       return
     }
-
     // Filter out holidays that are already in closing days
     const existingDates = closingDays.map((day) => day.date?.format("YYYY-MM-DD"))
     const newHolidays = holidaysToProcess.filter((holiday) => !existingDates.includes(holiday.date))
-
     if (newHolidays.length === 0) {
       notification.info({
         message: "No New Holidays",
@@ -308,15 +309,12 @@ const ConfigurationPage = () => {
       })
       return
     }
-
     // Add new holidays to closing days - using dayjs directly instead of DatePicker.dayjs
     const holidaysToAdd = newHolidays.map((holiday) => ({
       date: holiday.date ? dayjs(holiday.date) : null,
       description: holiday.name,
     }))
-
     setClosingDays([...closingDays, ...holidaysToAdd])
-
     notification.success({
       message: "Holidays Added",
       description: `Added ${holidaysToAdd.length} public holidays to closing days.`,
@@ -364,6 +362,7 @@ const ConfigurationPage = () => {
         capacity: 1,
         color: "#1890ff",
         interval: 30,
+        images: [], // Initialize with empty array for images
       },
     ])
   }
@@ -388,7 +387,6 @@ const ConfigurationPage = () => {
     // Check for duplicate dates
     const dates = closingDays.map((day) => day.date?.format("YYYY-MM-DD")).filter(Boolean)
     const uniqueDates = new Set(dates)
-
     if (dates.length !== uniqueDates.size) {
       notification.warning({
         message: "Duplicate Dates",
@@ -396,7 +394,6 @@ const ConfigurationPage = () => {
       })
       return false
     }
-
     // Check for missing descriptions
     const missingDescriptions = closingDays.some((day) => day.date && !day.description)
     if (missingDescriptions) {
@@ -406,7 +403,6 @@ const ConfigurationPage = () => {
       })
       return false
     }
-
     return true
   }
 
@@ -415,11 +411,9 @@ const ConfigurationPage = () => {
       notification.error({ message: "Please fill in all required fields in Studio Data." })
       return
     }
-
     if (!validateClosingDays()) {
       return
     }
-
     notification.success({ message: "Configuration saved successfully!" })
   }
 
@@ -461,12 +455,22 @@ const ConfigurationPage = () => {
     setAppointmentTypes(updatedTypes)
   }
 
+  const handleUpdateAppointmentTypeImages = (index, fileList) => {
+    const updatedTypes = [...appointmentTypes]
+    updatedTypes[index].images = fileList
+    setAppointmentTypes(updatedTypes)
+  }
+
   const handleViewBlankContract = () => {
     console.log("check handle view blank contract")
   }
 
   const testEmailConnection = () => {
-    console.log("Test Email connection")
+    console.log("Test Email connection", emailConfig)
+    notification.info({
+      message: "Test Connection",
+      description: "Attempting to connect to SMTP server...",
+    })
   }
 
   const handleAddLeadProspectCategory = () => {
@@ -500,10 +504,62 @@ const ConfigurationPage = () => {
     setAppointmentNotifications(updatedNotifications)
   }
 
+  // Lead Sources Handlers
+  const handleAddLeadSource = () => {
+    setLeadSources([...leadSources, { id: nextLeadSourceId.current++, name: "" }])
+  }
+
+  const handleUpdateLeadSource = (id, field, value) => {
+    setLeadSources(leadSources.map((source) => (source.id === id ? { ...source, [field]: value } : source)))
+  }
+
+  const handleRemoveLeadSource = (id) => {
+    setLeadSources(leadSources.filter((source) => source.id !== id))
+  }
+
+  // Basic text formatting for contract sections
+  const applyFormatting = (index, formatType) => {
+    const textarea = document.getElementById(`contract-content-textarea-${index}`)
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = textarea.value.substring(start, end)
+    let formattedText = selectedText
+
+    switch (formatType) {
+      case "bold":
+        formattedText = `<strong>${selectedText}</strong>`
+        break
+      case "italic":
+        formattedText = `<em>${selectedText}</em>`
+        break
+      case "underline":
+        formattedText = `<u>${selectedText}</u>`
+        break
+      default:
+        break
+    }
+
+    const newContent = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end)
+    const updated = [...contractSections]
+    updated[index].content = newContent
+    setContractSections(updated)
+
+    // Restore selection
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + formattedText.length, start + formattedText.length)
+    }, 0)
+  }
+
+  const renderHtmlContent = (htmlString) => {
+    return <div dangerouslySetInnerHTML={{ __html: htmlString }} className="prose prose-invert max-w-none" />
+  }
+
   return (
     <div className=" w-full mx-auto lg:p-10 p-5 rounded-3xl space-y-8 bg-[#181818] min-h-screen text-white">
       <h1 className="lg:text-3xl text-2xl font-bold oxanium_font">Studio Configuration</h1>
-
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="Studio Data" key="1">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
@@ -517,7 +573,6 @@ const ConfigurationPage = () => {
                     style={inputStyle}
                   />
                 </Form.Item>
-
                 <Form.Item label={<span className="text-white">Studio Operator</span>}>
                   <Input
                     value={studioOperator}
@@ -526,7 +581,6 @@ const ConfigurationPage = () => {
                     style={inputStyle}
                   />
                 </Form.Item>
-
                 <Form.Item label={<span className="text-white">Phone No</span>} required>
                   <Input
                     value={studioPhoneNo}
@@ -535,7 +589,6 @@ const ConfigurationPage = () => {
                     style={inputStyle}
                   />
                 </Form.Item>
-
                 <Form.Item label={<span className="text-white">Email</span>} required>
                   <Input
                     value={studioEmail}
@@ -544,7 +597,6 @@ const ConfigurationPage = () => {
                     style={inputStyle}
                   />
                 </Form.Item>
-
                 <Form.Item label={<span className="text-white">Street (with number)</span>} required>
                   <Input
                     value={studioStreet}
@@ -553,7 +605,6 @@ const ConfigurationPage = () => {
                     style={inputStyle}
                   />
                 </Form.Item>
-
                 <Form.Item label={<span className="text-white">ZIP Code</span>} required>
                   <Input
                     value={studioZipCode}
@@ -562,7 +613,6 @@ const ConfigurationPage = () => {
                     style={inputStyle}
                   />
                 </Form.Item>
-
                 <Form.Item label={<span className="text-white">City</span>} required>
                   <Input
                     value={studioCity}
@@ -571,7 +621,6 @@ const ConfigurationPage = () => {
                     style={inputStyle}
                   />
                 </Form.Item>
-
                 <Form.Item
                   label={<span className="text-white">Country</span>}
                   required
@@ -590,7 +639,6 @@ const ConfigurationPage = () => {
                     ))}
                   </Select>
                 </Form.Item>
-
                 <Form.Item label={<span className="text-white">Studio Website</span>}>
                   <Input
                     value={studioWebsite}
@@ -599,7 +647,6 @@ const ConfigurationPage = () => {
                     style={inputStyle}
                   />
                 </Form.Item>
-
                 <Form.Item label={<span className="text-white">Studio Logo</span>}>
                   <Upload accept="image/*" maxCount={1} onChange={handleLogoUpload} fileList={logo}>
                     <Button icon={<UploadOutlined />} style={buttonStyle}>
@@ -609,7 +656,6 @@ const ConfigurationPage = () => {
                 </Form.Item>
               </Form>
             </Panel>
-
             <Panel header="Opening Hours" key="2" className="bg-[#202020]">
               <div className="space-y-4">
                 {openingHours.map((hour, index) => (
@@ -677,7 +723,6 @@ const ConfigurationPage = () => {
                 </Button>
               </div>
             </Panel>
-
             <Panel header="Closing Days" key="3" className="bg-[#202020]">
               <div className="space-y-4">
                 {studioCountry && (
@@ -706,7 +751,6 @@ const ConfigurationPage = () => {
                     />
                   </div>
                 )}
-
                 {closingDays.map((day, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
                     <DatePicker
@@ -755,7 +799,6 @@ const ConfigurationPage = () => {
             </Panel>
           </Collapse>
         </TabPane>
-
         <TabPane tab="Resources" key="2">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
             <Panel header="Appointments" key="1" className="bg-[#202020]">
@@ -786,68 +829,84 @@ const ConfigurationPage = () => {
                 <Panel header="Appointment Types" key="1" className="bg-[#252525]">
                   <div className="space-y-4">
                     {appointmentTypes.map((type, index) => (
-                      <div key={index} className="flex flex-wrap gap-4 items-center">
-                        <Input
-                          placeholder="Appointment Type Name"
-                          value={type.name}
-                          onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
-                          className="w-full sm:w-64 white-text"
-                          style={inputStyle}
-                        />
-                        <div className="flex items-center">
-                          <InputNumber
-                            placeholder="Duration"
-                            value={type.duration}
-                            onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
-                            className="w-full sm:w-24 white-text"
+                      <div key={index} className="flex flex-col gap-4 p-4 border border-[#303030] rounded-lg">
+                        <div className="flex flex-wrap gap-4 items-center">
+                          <Input
+                            placeholder="Appointment Type Name"
+                            value={type.name}
+                            onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
+                            className="w-full sm:w-64 white-text"
                             style={inputStyle}
                           />
-                          <Tooltip title="Duration in minutes">
-                            <InfoCircleOutlined style={tooltipStyle} />
-                          </Tooltip>
+                          <div className="flex items-center">
+                            <InputNumber
+                              placeholder="Duration"
+                              value={type.duration}
+                              onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
+                              className="w-full sm:w-24 white-text"
+                              style={inputStyle}
+                            />
+                            <Tooltip title="Duration in minutes">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <div className="flex items-center">
+                            <InputNumber
+                              placeholder="Capacity"
+                              value={type.capacity}
+                              onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
+                              className="w-full sm:w-24 white-text"
+                              style={inputStyle}
+                            />
+                            <Tooltip title="Maximum number of participants">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <div className="flex items-center">
+                            <ColorPicker
+                              value={type.color}
+                              onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
+                            />
+                            <Tooltip title="Calendar display color">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <div className="flex items-center">
+                            <InputNumber
+                              placeholder="Interval"
+                              value={type.interval}
+                              onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
+                              className="w-full sm:w-24 white-text"
+                              style={inputStyle}
+                            />
+                            <Tooltip title="Time between appointments in minutes">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))}
+                            className="w-full sm:w-auto"
+                            style={buttonStyle}
+                          >
+                            Remove
+                          </Button>
                         </div>
-                        <div className="flex items-center">
-                          <InputNumber
-                            placeholder="Capacity"
-                            value={type.capacity}
-                            onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
-                            className="w-full sm:w-24 white-text"
-                            style={inputStyle}
-                          />
-                          <Tooltip title="Maximum number of participants">
-                            <InfoCircleOutlined style={tooltipStyle} />
-                          </Tooltip>
-                        </div>
-                        <div className="flex items-center">
-                          <ColorPicker
-                            value={type.color}
-                            onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
-                          />
-                          <Tooltip title="Calendar display color">
-                            <InfoCircleOutlined style={tooltipStyle} />
-                          </Tooltip>
-                        </div>
-                        <div className="flex items-center">
-                          <InputNumber
-                            placeholder="Interval"
-                            value={type.interval}
-                            onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
-                            className="w-full sm:w-24 white-text"
-                            style={inputStyle}
-                          />
-                          <Tooltip title="Time between appointments in minutes">
-                            <InfoCircleOutlined style={tooltipStyle} />
-                          </Tooltip>
-                        </div>
-                        <Button
-                          danger
-                          icon={<DeleteOutlined />}
-                          onClick={() => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))}
-                          className="w-full sm:w-auto"
-                          style={buttonStyle}
-                        >
-                          Remove
-                        </Button>
+                        {/* New: Upload Pictures for Appointment Type */}
+                        <Form.Item label={<span className="text-white">Upload Images</span>}>
+                          <Upload
+                            accept="image/*"
+                            multiple
+                            fileList={type.images}
+                            onChange={({ fileList }) => handleUpdateAppointmentTypeImages(index, fileList)}
+                            listType="picture"
+                          >
+                            <Button icon={<UploadOutlined />} style={buttonStyle}>
+                              Upload Images
+                            </Button>
+                          </Upload>
+                        </Form.Item>
                       </div>
                     ))}
                     <Button
@@ -861,11 +920,9 @@ const ConfigurationPage = () => {
                     </Button>
                   </div>
                 </Panel>
-
                 <Panel header="Trial Training Settings" key="2" className="bg-[#252525]">
                   <div className="space-y-4">
                     <Form layout="vertical">
-                    
                       <Form.Item
                         label={
                           <div className="flex items-center">
@@ -889,7 +946,6 @@ const ConfigurationPage = () => {
                           />
                         </div>
                       </Form.Item>
-
                       <Form.Item
                         label={
                           <div className="flex items-center">
@@ -934,7 +990,6 @@ const ConfigurationPage = () => {
                 </Panel>
               </Collapse>
             </Panel>
-
             <Panel header="Staff Management" key="2" className="bg-[#202020]">
               <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
                 <Panel header="Staff Roles" key="1" className="bg-[#252525]">
@@ -992,57 +1047,43 @@ const ConfigurationPage = () => {
                 </Panel>
               </Collapse>
             </Panel>
-
-            {/* <Panel header="Lead Settings" key="3" className="bg-[#202020]">
+            <Panel header="Lead Sources" key="3" className="bg-[#202020]">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-white">Lead Prospect Categories</h3>
-                {leadProspectCategories.map((category, index) => (
-                  <div key={index} className="flex flex-wrap gap-4 items-center">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg text-white font-medium">Manage Lead Sources</h3>
+                  <Button onClick={handleAddLeadSource} icon={<PlusOutlined />} style={saveButtonStyle}>
+                    Add Lead Source
+                  </Button>
+                </div>
+                {leadSources.map((source) => (
+                  <div key={source.id} className="flex items-center justify-between bg-[#252525] p-3 rounded-lg">
                     <Input
-                      placeholder="Category Name"
-                      value={category.name}
-                      onChange={(e) => {
-                        const updatedCategories = [...leadProspectCategories]
-                        updatedCategories[index].name = e.target.value
-                        setLeadProspectCategories(updatedCategories)
-                      }}
-                      className="w-full sm:w-64"
+                      value={source.name}
+                      onChange={(e) => handleUpdateLeadSource(source.id, "name", e.target.value)}
                       style={inputStyle}
+                      placeholder="Source name"
+                      className="mr-2"
                     />
-                    <div className="flex items-center gap-2">
-                      <span className="text-white">Circle Color:</span>
-                      <ColorPicker
-                        value={category.circleColor}
-                        onChange={(color) => {
-                          const updatedCategories = [...leadProspectCategories]
-                          updatedCategories[index].circleColor = color
-                          setLeadProspectCategories(updatedCategories)
-                        }}
-                      />
-                    </div>
                     <Button
                       danger
                       icon={<DeleteOutlined />}
-                      onClick={() => setLeadProspectCategories(leadProspectCategories.filter((_, i) => i !== index))}
-                      className="w-full sm:w-auto"
+                      onClick={() => handleRemoveLeadSource(source.id)}
                       style={buttonStyle}
                     >
                       Remove
                     </Button>
                   </div>
                 ))}
-                <Button
-                  type="dashed"
-                  onClick={handleAddLeadProspectCategory}
-                  icon={<PlusOutlined />}
-                  className="w-full sm:w-auto"
-                  style={buttonStyle}
-                >
-                  Add Lead Prospect Category
-                </Button>
+                {leadSources.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400 mb-4">No lead sources configured yet.</p>
+                    <Button onClick={handleAddLeadSource} icon={<PlusOutlined />} style={saveButtonStyle}>
+                      Add Your First Lead Source
+                    </Button>
+                  </div>
+                )}
               </div>
-            </Panel> */}
-
+            </Panel>
             <Panel header="TO-DO" key="4" className="bg-[#202020]">
               <div className="space-y-4">
                 <h3 className="text-lg text-white font-medium">TO-DO Tags</h3>
@@ -1091,7 +1132,6 @@ const ConfigurationPage = () => {
             </Panel>
           </Collapse>
         </TabPane>
-
         <TabPane tab="Contracts" key="3">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
             <Panel header="Contract Types" key="1" className="bg-[#202020]">
@@ -1198,7 +1238,6 @@ const ConfigurationPage = () => {
                 </Button>
               </div>
             </Panel>
-
             <Panel header="Contract Sections" key="2" className="bg-[#202020]">
               <div className="space-y-4">
                 {contractSections.map((section, index) => (
@@ -1217,17 +1256,42 @@ const ConfigurationPage = () => {
                           />
                         </Form.Item>
                         <Form.Item label={<span className="text-white">Content</span>}>
+                          <div className="flex gap-2 mb-2">
+                            <Button
+                              icon={<BoldOutlined />}
+                              onClick={() => applyFormatting(index, "bold")}
+                              style={buttonStyle}
+                              size="small"
+                            />
+                            <Button
+                              icon={<ItalicOutlined />}
+                              onClick={() => applyFormatting(index, "italic")}
+                              style={buttonStyle}
+                              size="small"
+                            />
+                            <Button
+                              icon={<UnderlineOutlined />}
+                              onClick={() => applyFormatting(index, "underline")}
+                              style={buttonStyle}
+                              size="small"
+                            />
+                          </div>
                           <TextArea
-                          className="resize-none"
+                            id={`contract-content-textarea-${index}`}
+                            className="resize-none"
                             value={section.content}
                             onChange={(e) => {
                               const updated = [...contractSections]
                               updated[index].content = e.target.value
                               setContractSections(updated)
                             }}
-                            rows={4}
+                            rows={8}
                             style={inputStyle}
                           />
+                          <div className="mt-4 p-3 border border-[#303030] rounded-md bg-[#101010]">
+                            <h4 className="text-white text-sm mb-2">Preview:</h4>
+                            {renderHtmlContent(section.content)}
+                          </div>
                         </Form.Item>
                         <Form.Item label={<span className="text-white">Signature needed</span>}>
                           <Switch
@@ -1266,7 +1330,6 @@ const ConfigurationPage = () => {
                 </Button>
               </div>
             </Panel>
-
             <Panel header="Contract Pause Reasons" key="3" className="bg-[#202020]">
               <div className="space-y-4">
                 {contractPauseReasons.map((reason, index) => (
@@ -1282,7 +1345,6 @@ const ConfigurationPage = () => {
                       className="w-full sm:w-64"
                       style={inputStyle}
                     />
-
                     <Button
                       danger
                       icon={<DeleteOutlined />}
@@ -1305,7 +1367,6 @@ const ConfigurationPage = () => {
                 </Button>
               </div>
             </Panel>
-
             <Panel header="Additional Documents" key="4" className="bg-[#202020]">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -1328,10 +1389,142 @@ const ConfigurationPage = () => {
             </Panel>
           </Collapse>
         </TabPane>
-
         <TabPane tab="Communication" key="4">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-            <Panel header="Email Configuration" key="1" className="bg-[#202020]">
+            <Panel header="General Communication Settings" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Auto-Archive Duration (days)</span>}>
+                    <InputNumber
+                      min={1}
+                      max={365}
+                      value={autoArchiveDuration}
+                      onChange={(value) => setAutoArchiveDuration(value || 30)}
+                      style={inputStyle}
+                      className="white-text"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Notifications</span>}>
+                    <Space direction="vertical">
+                      <Checkbox checked={emailNotifications} onChange={(e) => setEmailNotifications(e.target.checked)}>
+                        Email Notifications
+                      </Checkbox>
+                      <Checkbox checked={chatNotifications} onChange={(e) => setChatNotifications(e.target.checked)}>
+                        General Chat Notifications
+                      </Checkbox>
+                      <Checkbox
+                        checked={studioChatNotifications}
+                        onChange={(e) => setStudioChatNotifications(e.target.checked)}
+                      >
+                        Studio Chat Notifications
+                      </Checkbox>
+                      <Checkbox
+                        checked={memberChatNotifications}
+                        onChange={(e) => setMemberChatNotifications(e.target.checked)}
+                      >
+                        Member Chat Notifications
+                      </Checkbox>
+                    </Space>
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+            <Panel header="Email Signature" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Default Email Signature</span>}>
+                    <div className="bg-[#222222] rounded-xl">
+                      <div className="flex items-center gap-2 p-2 border-b border-gray-700">
+                        <Button
+                          onClick={() => {
+                            const textarea = document.getElementById("email-signature-textarea")
+                            if (textarea) {
+                              const start = textarea.selectionStart
+                              const end = textarea.selectionEnd
+                              const selectedText = textarea.value.substring(start, end)
+                              const newText =
+                                textarea.value.substring(0, start) +
+                                `<strong>${selectedText}</strong>` +
+                                textarea.value.substring(end)
+                              setEmailSignature(newText)
+                              setTimeout(() => {
+                                textarea.focus()
+                                textarea.setSelectionRange(
+                                  start + `<strong>`.length + selectedText.length,
+                                  start + `<strong>`.length + selectedText.length,
+                                )
+                              }, 0)
+                            }
+                          }}
+                          className="p-1 hover:bg-gray-600 rounded text-sm font-bold"
+                          style={buttonStyle}
+                          icon={<BoldOutlined />}
+                        />
+                        <Button
+                          onClick={() => {
+                            const textarea = document.getElementById("email-signature-textarea")
+                            if (textarea) {
+                              const start = textarea.selectionStart
+                              const end = textarea.selectionEnd
+                              const selectedText = textarea.value.substring(start, end)
+                              const newText =
+                                textarea.value.substring(0, start) +
+                                `<em>${selectedText}</em>` +
+                                textarea.value.substring(end)
+                              setEmailSignature(newText)
+                              setTimeout(() => {
+                                textarea.focus()
+                                textarea.setSelectionRange(
+                                  start + `<em>`.length + selectedText.length,
+                                  start + `<em>`.length + selectedText.length,
+                                )
+                              }, 0)
+                            }
+                          }}
+                          className="p-1 hover:bg-gray-600 rounded text-sm italic"
+                          style={buttonStyle}
+                          icon={<ItalicOutlined />}
+                        />
+                        <Button
+                          onClick={() => {
+                            const textarea = document.getElementById("email-signature-textarea")
+                            if (textarea) {
+                              const start = textarea.selectionStart
+                              const end = textarea.selectionEnd
+                              const selectedText = textarea.value.substring(start, end)
+                              const newText =
+                                textarea.value.substring(0, start) +
+                                `<u>${selectedText}</u>` +
+                                textarea.value.substring(end)
+                              setEmailSignature(newText)
+                              setTimeout(() => {
+                                textarea.focus()
+                                textarea.setSelectionRange(
+                                  start + `<u>`.length + selectedText.length,
+                                  start + `<u>`.length + selectedText.length,
+                                )
+                              }, 0)
+                            }
+                          }}
+                          className="p-1 hover:bg-gray-600 rounded text-sm underline"
+                          style={buttonStyle}
+                          icon={<UnderlineOutlined />}
+                        />
+                      </div>
+                      <TextArea
+                        id="email-signature-textarea"
+                        value={emailSignature}
+                        onChange={(e) => setEmailSignature(e.target.value)}
+                        className="w-full bg-transparent text-white px-4 py-2 text-sm h-24 resize-none focus:outline-none"
+                        placeholder="Enter your default email signature..."
+                        style={inputStyle}
+                      />
+                    </div>
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+            <Panel header="SMTP Setup" key="3" className="bg-[#202020]">
               <div className="space-y-4">
                 <Form layout="vertical">
                   <Form.Item label={<span className="text-white white-text">SMTP Server</span>}>
@@ -1363,13 +1556,13 @@ const ConfigurationPage = () => {
                       />
                     </div>
                   </Form.Item>
-                  <Form.Item label={<span className="text-white">Email Address</span>}>
+                  <Form.Item label={<span className="text-white">Email Address (Username)</span>}>
                     <Input
-                      value={emailConfig.emailAddress}
+                      value={emailConfig.smtpUser} // Changed to smtpUser
                       onChange={(e) =>
                         setEmailConfig({
                           ...emailConfig,
-                          emailAddress: e.target.value,
+                          smtpUser: e.target.value,
                         })
                       }
                       style={inputStyle}
@@ -1378,11 +1571,11 @@ const ConfigurationPage = () => {
                   </Form.Item>
                   <Form.Item label={<span className="text-white white-text">Password</span>}>
                     <Input.Password
-                      value={emailConfig.password}
+                      value={emailConfig.smtpPass} // Changed to smtpPass
                       onChange={(e) =>
                         setEmailConfig({
                           ...emailConfig,
-                          password: e.target.value,
+                          smtpPass: e.target.value,
                         })
                       }
                       style={inputStyle}
@@ -1418,8 +1611,7 @@ const ConfigurationPage = () => {
                 </Form>
               </div>
             </Panel>
-
-            <Panel header="Birthday Messages" key="2" className="bg-[#202020]">
+            <Panel header="Birthday Messages" key="4" className="bg-[#202020]">
               <div className="space-y-4">
                 <Form layout="vertical">
                   <Form.Item label={<span className="text-white">Enable Birthday Messages</span>}>
@@ -1486,13 +1678,13 @@ const ConfigurationPage = () => {
                       rows={4}
                       style={inputStyle}
                       placeholder="Use {Studio_Name} and {Member_Name} as placeholders"
+                      disabled={!birthdayMessage.enabled}
                     />
                   </Form.Item>
                 </Form>
               </div>
             </Panel>
-
-            <Panel header="Broadcast Messages" key="3" className="bg-[#202020]">
+            <Panel header="Broadcast Messages" key="5" className="bg-[#202020]">
               <div className="space-y-4">
                 {broadcastMessages.map((message, index) => (
                   <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
@@ -1540,7 +1732,7 @@ const ConfigurationPage = () => {
                             }}
                           />
                           <TextArea
-                          className="resize-none"
+                            className="resize-none"
                             id={`broadcast-message-textarea-${index}`}
                             value={message.message}
                             onChange={(e) => handleUpdateBroadcastMessage(index, "message", e.target.value)}
@@ -1581,13 +1773,18 @@ const ConfigurationPage = () => {
                 </Button>
               </div>
             </Panel>
-
-            <Panel header="Appointment Notifications" key="4" className="bg-[#202020]">
+            <Panel header="Appointment Notifications" key="6" className="bg-[#202020]">
               <div className="space-y-4">
                 {appointmentNotifications.map((notification, index) => (
                   <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
                     <Panel header={notification.title || "New Notification"} key="1" className="bg-[#252525]">
                       <Form layout="vertical">
+                        <Form.Item label={<span className="text-white">Enable Notification</span>}>
+                          <Switch
+                            checked={notification.enabled}
+                            onChange={(checked) => handleUpdateAppointmentNotification(index, "enabled", checked)}
+                          />
+                        </Form.Item>
                         <Form.Item
                           label={
                             <div className="flex items-center">
@@ -1630,6 +1827,7 @@ const ConfigurationPage = () => {
                             onChange={(e) => handleUpdateAppointmentNotification(index, "message", e.target.value)}
                             rows={4}
                             style={inputStyle}
+                            disabled={!notification.enabled}
                           />
                         </Form.Item>
                         <Form.Item label={<span className="text-white">Send Via</span>}>
@@ -1640,6 +1838,7 @@ const ConfigurationPage = () => {
                             ]}
                             value={notification.sendVia}
                             onChange={(values) => handleUpdateAppointmentNotification(index, "sendVia", values)}
+                            disabled={!notification.enabled}
                           />
                         </Form.Item>
                       </Form>
@@ -1648,12 +1847,27 @@ const ConfigurationPage = () => {
                 ))}
               </div>
             </Panel>
+            <Panel header="Default Broadcast Distribution" key="7" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Default Broadcast Distribution</span>}>
+                    <Space direction="vertical">
+                      <Checkbox checked={broadcastEmail} onChange={(e) => setBroadcastEmail(e.target.checked)}>
+                        Email
+                      </Checkbox>
+                      <Checkbox checked={broadcastChat} onChange={(e) => setBroadcastChat(e.target.checked)}>
+                        Chat Notification
+                      </Checkbox>
+                    </Space>
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
           </Collapse>
         </TabPane>
-
         <TabPane tab="Finances" key="5">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-            <Panel header="Currency Settings" key="2" className="bg-[#202020]">
+            <Panel header="Currency Settings" key="1" className="bg-[#202020]">
               <div className="space-y-4">
                 <Form layout="vertical">
                   <Form.Item label={<span className="text-white">Currency</span>}>
@@ -1719,30 +1933,7 @@ const ConfigurationPage = () => {
                 </Form>
               </div>
             </Panel>
-
-            <Panel header="Currency Settings" key="2" className="bg-[#202020]">
-              <div className="space-y-4">
-                <Form layout="vertical">
-                  <Form.Item
-                    label={
-                      <div className="flex items-center">
-                        <span className="text-white">Currency Symbol</span>
-                        <Tooltip title="Automatically set based on country selection">
-                          <InfoCircleOutlined style={tooltipStyle} />
-                        </Tooltip>
-                      </div>
-                    }
-                  >
-                    <Input value={currency} disabled style={{ ...inputStyle, opacity: 0.7 }} />
-                    <div className="text-xs text-gray-400 mt-1">
-                      This is automatically set based on your country selection in Studio Data
-                    </div>
-                  </Form.Item>
-                </Form>
-              </div>
-            </Panel>
-
-            <Panel header="VAT Rates" key="3" className="bg-[#202020]">
+            <Panel header="VAT Rates" key="2" className="bg-[#202020]">
               <div className="space-y-4 white-text">
                 {vatRates.map((rate, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
@@ -1812,7 +2003,6 @@ const ConfigurationPage = () => {
             </Panel>
           </Collapse>
         </TabPane>
-
         <TabPane tab="Appearance" key="6">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
             <Panel header="Theme Settings" key="1" className="bg-[#202020]">
@@ -1839,16 +2029,13 @@ const ConfigurationPage = () => {
                       </Space>
                     </Radio.Group>
                   </Form.Item>
-
                   <Form.Item label={<span className="text-white">Allow Users to Toggle Theme</span>}>
                     <Switch
                       checked={appearance.allowUserThemeToggle}
                       onChange={(checked) => setAppearance({ ...appearance, allowUserThemeToggle: checked })}
                     />
                   </Form.Item>
-
                   <Divider style={{ borderColor: "#303030" }} />
-
                   <Form.Item
                     label={
                       <div className="flex items-center">
@@ -1872,7 +2059,6 @@ const ConfigurationPage = () => {
                       </div>
                     </div>
                   </Form.Item>
-
                   <Form.Item
                     label={
                       <div className="flex items-center">
@@ -1899,11 +2085,9 @@ const ConfigurationPage = () => {
                 </Form>
               </div>
             </Panel>
-
             <Panel header="Preview" key="2" className="bg-[#202020]">
               <div className="space-y-6">
                 <h3 className="text-lg font-medium text-white">Theme Preview</h3>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="p-4 rounded-lg border border-[#303030] bg-white">
                     <h4 className="text-black font-medium mb-3">Light Mode</h4>
@@ -1920,7 +2104,6 @@ const ConfigurationPage = () => {
                       <p style={{ color: appearance.primaryColor }}>Colored text using primary color</p>
                     </div>
                   </div>
-
                   <div className="p-4 rounded-lg border border-[#303030] bg-[#101010]">
                     <h4 className="text-white font-medium mb-3">Dark Mode</h4>
                     <div className="flex flex-wrap gap-2">
@@ -1944,7 +2127,6 @@ const ConfigurationPage = () => {
           </Collapse>
         </TabPane>
       </Tabs>
-
       <div className="flex justify-end mt-4">
         <Button
           type="primary"
@@ -1966,274 +2148,232 @@ const additionalStyles = `
     background-color: #181818 !important;
     border-color: #303030 !important;
   }
-
   .ant-collapse-header {
     color: white !important;
     background-color: #202020 !important;
     padding: 12px 16px !important;
     font-weight: 500 !important;
   }
-
   .ant-collapse-content {
     background-color: #181818 !important;
     border-color: #303030 !important;
   }
-
   .ant-collapse-item {
     border-color: #303030 !important;
     margin-bottom: 8px !important;
     border-radius: 8px !important;
     overflow: hidden !important;
   }
-
   .ant-collapse-arrow {
     color: white !important;
   }
-
   /* Checkbox Styles */
   .ant-checkbox-wrapper {
     color: white !important;
   }
-
   .ant-checkbox-checked .ant-checkbox-inner {
     background-color: #FF843E !important;
     border-color: #FF843E !important;
   }
-
   /* Radio Styles */
   .ant-radio-wrapper {
     color: white !important;
   }
-
   .ant-radio-checked .ant-radio-inner {
     border-color: #FF843E !important;
   }
-
   .ant-radio-inner::after {
     background-color: #FF843E !important;
   }
-
   /* Divider Styles */
   .ant-divider {
     border-color: #303030 !important;
-  }
-`
-
+  }`
 const styleOverrides = `
   /* Select Component Styles */
   .ant-select {
     background-color: #101010 !important;
     color: white !important;
   }
-
   .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
     border-color: #303030 !important;
   }
-
   .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
     border-color: #303030 !important;
     box-shadow: none !important;
   }
-
   .ant-select-selector {
     background-color: #101010 !important;
     border: none !important;
     color: white !important;
   }
-
   .ant-select-arrow {
     color: white !important;
   }
-
   .ant-select-selection-placeholder {
     color: rgba(255, 255, 255, 0.3) !important;
   }
-
   .ant-select-multiple .ant-select-selection-item {
     background-color: #1f1f1f !important;
     border-color: #303030 !important;
   }
-
   .ant-select-item-option-content {
     color: white !important;
   }
-
   .ant-select-dropdown {
     background-color: #101010 !important;
     border: 1px solid #303030 !important;
     padding: 4px !important;
   }
-
   .ant-select-item {
     color: white !important;
     background-color: #101010 !important;
   }
-
   .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
     background-color: #1f1f1f !important;
     color: white !important;
   }
-
   .ant-select-item-option-active {
     background-color: #1f1f1f !important;
   }
-
   .ant-select-item-option:hover {
     background-color: #1f1f1f !important;
   }
-
   /* TimePicker Styles */
   .ant-picker-dropdown {
     background-color: #101010 !important;
   }
-
   .ant-picker-panel-container {
     background-color: #101010 !important;
     border: 1px solid #303030 !important;
   }
-
   .ant-picker-content th,
   .ant-picker-content td {
     color: white !important;
   }
-
   .ant-form-item-label > label {
     color: white !important;
   }
-
   .ant-picker-header Button {
     color: white !important;
   }
-
   .ant-picker-header {
     border-bottom: 1px solid #303030 !important;
   }
-
   .ant-picker-cell {
     color: rgba(255, 255, 255, 0.7) !important;
   }
-
   .ant-picker-cell-in-view {
     color: white !important;
   }
-
   .ant-picker-cell-selected .ant-picker-cell-inner {
     background-color: #1890ff !important;
   }
-
   .ant-picker-time-panel-column > li.ant-picker-time-panel-cell .ant-picker-time-panel-cell-inner {
     color: white !important;
   }
-
   .ant-picker-time-panel {
     border-left: 1px solid #303030 !important;
   }
-
   /* Input Number Styles */
   .ant-input-number {
     background-color: #101010 !important;
     border: none !important;
     color: white !important;
   }
-
   .ant-input-number-handler-wrap {
     background-color: #181818 !important;
     border-left: 1px solid #303030 !important;
   }
-
   .ant-input-number-handler-up-inner,
   .ant-input-number-handler-down-inner {
     color: white !important;
   }
-
   /* Notification Styles */
   .ant-notification {
     background-color: #101010 !important;
     border: 1px solid #303030 !important;
   }
-
   .ant-notification-notice {
     background-color: #101010 !important;
   }
-
   .ant-notification-notice-message {
     color: white !important;
   }
-
   .ant-notification-notice-description {
     color: rgba(255, 255, 255, 0.7) !important;
   }
-
   /* Placeholder Styles */
   ::placeholder {
     color: rgba(255, 255, 255, 0.3) !important;
   }
-
   /* Tab Styles */
   .ant-tabs-tab {
     color: rgba(255, 255, 255, 0.7) !important;
   }
-
   .ant-tabs-tab-active {
     color: white !important;
   }
-
   .ant-tabs-ink-bar {
     background: #FF843E !important;
   }
-
   /* Switch Styles */
   .ant-switch {
     background-color: rgba(255, 255, 255, 0.2) !important;
   }
-
   .ant-switch-checked {
     background-color: #FF843E !important;
   }
-
   /* Upload Styles */
   .ant-upload-list {
     color: white !important;
   }
-
   .ant-upload-list-item {
     border-color: #303030 !important;
   }
-
   .ant-upload-list-item-name {
     color: white !important;
   }
-
   /* Collapse Styles */
   .ant-collapse {
     background-color: #181818 !important;
     border-color: #303030 !important;
   }
-
   .ant-collapse-header {
     color: white !important;
   }
-
   .ant-collapse-content {
     background-color: #181818 !important;
     border-color: #303030 !important;
   }
-
   /* Alert Styles */
   .ant-alert {
     background-color: #202020 !important;
     border-color: #303030 !important;
   }
-
   .ant-alert-message {
     color: white !important;
   }
-
   .ant-alert-description {
     color: rgba(255, 255, 255, 0.7) !important;
   }
+  /* Prose for rich text preview */
+  .prose {
+    color: white; /* Default text color for prose */
+  }
+  .prose strong {
+    font-weight: bold;
+  }
+  .prose em {
+    font-style: italic;
+  }
+  .prose u {
+    text-decoration: underline;
+  }
+  .prose-invert {
+    color: white;
+  }
 `
-
 const styleElement = document.createElement("style")
 styleElement.innerHTML = styleOverrides + additionalStyles
 document.head.appendChild(styleElement)

@@ -18,6 +18,7 @@ import Avatar from "../../public/avatar.png"
 import Rectangle1 from "../../public/Rectangle 1.png"
 import { useNavigate } from "react-router-dom"
 import { SidebarArea } from "../components/custom-sidebar"
+import { IoIosMenu } from "react-icons/io"
 
 const initialContracts = [
   {
@@ -502,7 +503,8 @@ export default function ContractList() {
               onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
               className="md:hidden block  text-sm text-white rounded-xl cursor-pointer "
               >
-              <Menu className="h-4 w-4" />
+                           <IoIosMenu size={23} />
+
             </button>
               </div>
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 w-full sm:w-auto">
@@ -572,9 +574,9 @@ export default function ContractList() {
 
             <button
               onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-              className="md:block hidden  text-sm text-white rounded-xl cursor-pointer "
+              className="md:block hidden  text-sm hover:bg-gray-100 hover:text-black text-white   rounded-md cursor-pointer "
             >
-              <Menu className="h-4 w-4" />
+              <IoIosMenu size={23} />
             </button>
           </div>
         </div>

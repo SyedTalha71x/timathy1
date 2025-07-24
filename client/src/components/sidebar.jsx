@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { MdOutlineHelpCenter } from "react-icons/md";
+
 import {
   Calendar,
   Home,
@@ -122,6 +124,10 @@ const Sidebar = () => {
     {
       icon: TbBrandGoogleAnalytics
       , label: "Analytics", to: "/dashboard/analytics"
+    },  
+    {
+      icon: MdOutlineHelpCenter
+      , label: "Help Center", to: "/dashboard/help-center"
     },
     { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
   ];

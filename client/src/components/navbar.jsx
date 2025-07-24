@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import FitnessLogo from "../../public/FitNess.png";
+
 import { Link } from "react-router-dom";
 
 export default function NavBar() {

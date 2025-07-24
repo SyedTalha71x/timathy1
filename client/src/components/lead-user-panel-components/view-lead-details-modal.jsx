@@ -1,13 +1,20 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 import { useState } from "react"
 import Avatar from '../../../public/default-avatar.avif'
 import toast from "react-hot-toast"
 
-const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations }) => {
+const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations, onEditLead }) => {
     const [activeTab, setActiveTab] = useState("details")
   
     if (!isVisible || !leadData) return null
+
+    const handleEditRelations = () => {
+      // Close the view modal and open the edit modal
+      onClose()
+      onEditLead(leadData)
+    }
   
     return (
       <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
@@ -43,7 +50,7 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations })
           {activeTab === "details" && (
             <div className="space-y-4 text-white">
               <div className="flex items-center gap-4">
-                <img src={leadData.avatar || Avatar} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
+                {/* <img src={leadData.avatar || Avatar} alt="Profile" className="w-24 h-24 rounded-full object-cover" /> */}
                 <div>
                   <h3 className="text-xl font-semibold">
                     {leadData.firstName} {leadData.surname}
@@ -93,6 +100,14 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations })
   
           {activeTab === "relations" && (
             <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+              <div className="">
+                <button 
+                  onClick={handleEditRelations}
+                  className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-md cursor-pointer text-sm transition-colors"
+                >
+                  Edit Relations
+                </button>
+              </div>
               {/* Relations Tree Visualization */}
               <div className="bg-[#161616] rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 text-center">Relationship Tree</h3>

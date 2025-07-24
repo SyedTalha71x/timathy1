@@ -3,18 +3,24 @@ import { useState } from "react"
 
 /* eslint-disable react/prop-types */
 const AddLeadModal = ({ isVisible, onClose, onSave }) => {
-    const [formData, setFormData] = useState({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      status: "passive",
-      hasTrialTraining: false,
-      note: "",
-      noteImportance: "unimportant",
-      noteStartDate: "",
-      noteEndDate: "",
-    })
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    status: "passive",
+    hasTrialTraining: false,
+    note: "",
+    noteImportance: "unimportant",
+    noteStartDate: "",
+    noteEndDate: "",
+    source: "",
+    street: "",
+    zipCode: "",
+    city: "",
+    country: "",
+  })
+  
   
     const handleSubmit = (e) => {
       e.preventDefault()
@@ -45,7 +51,7 @@ const AddLeadModal = ({ isVisible, onClose, onSave }) => {
               <X size={24} />
             </button>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-200 block mb-2">First Name</label>
@@ -101,6 +107,54 @@ const AddLeadModal = ({ isVisible, onClose, onSave }) => {
                 <option value="missed">Missed Call</option>
               </select>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+  <div>
+    <label className="text-sm text-gray-200 block mb-2">Source</label>
+    <input
+      type="text"
+      value={formData.source}
+      onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+    />
+  </div>
+  <div>
+    <label className="text-sm text-gray-200 block mb-2">Street</label>
+    <input
+      type="text"
+      value={formData.street}
+      onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+    />
+  </div>
+  <div>
+    <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+    <input
+      type="text"
+      value={formData.zipCode}
+      onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+    />
+  </div>
+  <div>
+    <label className="text-sm text-gray-200 block mb-2">City</label>
+    <input
+      type="text"
+      value={formData.city}
+      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+    />
+  </div>
+  <div>
+    <label className="text-sm text-gray-200 block mb-2">Country</label>
+    <input
+      type="text"
+      value={formData.country}
+      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+    />
+  </div>
+</div>
+
             <div className="border border-slate-700 rounded-xl p-4">
               <div className="flex items-center justify-between mb-4">
                 <label className="text-sm text-gray-200 font-medium">Special Note</label>

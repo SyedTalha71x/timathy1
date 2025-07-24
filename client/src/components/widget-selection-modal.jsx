@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 import {
@@ -13,7 +15,7 @@ import {
   ExternalLink,
 } from "lucide-react"
 
-export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, canAddWidget }) {
+export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus }) {
   if (!isOpen) return null
 
   const widgetTypes = [
@@ -97,23 +99,31 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, canAddWi
           </div>
           <div className="space-y-3">
             {widgetTypes.map((widget) => {
-              const isAvailable = canAddWidget(widget.id)
+              const { canAdd, location } = getWidgetStatus(widget.id)
+              const isAlreadyAdded = !canAdd
+              let message = ""
+              if (isAlreadyAdded) {
+                if (location === "dashboard") {
+                  message = "Already added to your dashboard"
+                } else if (location === "sidebar") {
+                  message = "Already added to your sidebar"
+                }
+              }
+
               return (
                 <button
                   key={widget.id}
-                  onClick={() => isAvailable && onSelectWidget(widget.id)}
-                  disabled={!isAvailable}
+                  onClick={() => !isAlreadyAdded && onSelectWidget(widget.id)}
+                  disabled={isAlreadyAdded}
                   className={`w-full p-3 rounded-xl text-left flex flex-col ${
-                    isAvailable
-                      ? "bg-black hover:bg-zinc-900 cursor-pointer"
-                      : "bg-black/50 cursor-not-allowed opacity-60"
+                    isAlreadyAdded
+                      ? "bg-black/50 cursor-not-allowed opacity-60"
+                      : "bg-black hover:bg-zinc-900 cursor-pointer"
                   }`}
                 >
                   <span className="font-medium">{widget.name}</span>
                   <span className="text-xs text-zinc-400">{widget.description}</span>
-                  {!isAvailable && (
-                    <span className="text-xs text-yellow-500 mt-1">Already added to your dashboard</span>
-                  )}
+                  {isAlreadyAdded && <span className="text-xs text-yellow-500 mt-1">{message}</span>}
                 </button>
               )
             })}
@@ -123,4 +133,3 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, canAddWi
     </div>
   )
 }
-

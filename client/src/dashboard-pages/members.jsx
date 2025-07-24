@@ -1,5 +1,4 @@
 "use client"
-
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
@@ -43,18 +42,19 @@ export default function Members() {
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
-  const [sortBy, setSortBy] = useState("alphabetical")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
+  const [sortBy, setSortBy] = useState("alphabetical")
   const [activeNoteId, setActiveNoteId] = useState(null)
-  const [activeTab, setActiveTab] = useState("details")
+  const [activeTab, setActiveTab] = useState("details") // For View Details Modal
+  const [tempMemberModalTab, setTempMemberModalTab] = useState("details") // For Create Temp Member Modal
+  const [editModalTab, setEditModalTab] = useState("details") // For Edit Member Modal
 
   // New states for enhanced functionality
   const [showCreateTempMemberModal, setShowCreateTempMemberModal] = useState(false)
-  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false)
+  const [showFilterModal, setShowFilterModal] = useState(false) // Combined filter modal
   const [memberTypeFilter, setMemberTypeFilter] = useState("all") // all, full, temporary
   const [archivedFilter, setArchivedFilter] = useState("active") // active, archived, all
+  const [filterStatus, setFilterStatus] = useState("all") // For primary status filter (All, Active, Paused, Archived)
 
   // Calendar and Appointment states - Enhanced from communication
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
@@ -82,7 +82,6 @@ export default function Members() {
       },
     },
   })
-
   const [showContingentModal, setShowContingentModal] = useState(false)
   const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
   const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
@@ -94,9 +93,7 @@ export default function Members() {
   const getBillingPeriods = (memberId) => {
     const memberData = memberContingent[memberId]
     if (!memberData) return []
-
     const periods = [{ id: "current", label: `Current (${currentBillingPeriod})`, data: memberData.current }]
-
     if (memberData.future) {
       Object.entries(memberData.future).forEach(([period, data]) => {
         periods.push({
@@ -106,7 +103,6 @@ export default function Members() {
         })
       })
     }
-
     return periods
   }
 
@@ -115,9 +111,14 @@ export default function Members() {
   const [historyTab, setHistoryTab] = useState("general")
 
   // Relations states
-  const [showRelationsModal, setShowRelationsModal] = useState(false)
-  const [showRelationsTile, setShowRelationsTile] = useState(false)
-  const [selectedRelationMember, setSelectedRelationMember] = useState(null)
+  const [editingRelations, setEditingRelations] = useState(false)
+  const [newRelation, setNewRelation] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
   const [memberRelations, setMemberRelations] = useState({
     1: {
       family: [
@@ -144,14 +145,6 @@ export default function Members() {
       other: [],
     },
   })
-  const [editingRelations, setEditingRelations] = useState(false)
-  const [newRelation, setNewRelation] = useState({
-    name: "",
-    relation: "",
-    category: "family",
-    type: "manual",
-    selectedMemberId: null,
-  })
 
   // Temporary member form state
   const [tempMemberForm, setTempMemberForm] = useState({
@@ -170,7 +163,6 @@ export default function Members() {
     noteImportance: "unimportant",
     autoArchivePeriod: 6, // weeks
   })
-
   const [editForm, setEditForm] = useState({
     firstName: "",
     lastName: "",
@@ -222,7 +214,6 @@ export default function Members() {
       memberId: 2,
     },
   ])
-
   const [appointmentTypes, setAppointmentTypes] = useState([
     { name: "Consultation", duration: 30, color: "bg-blue-700" },
     { name: "Follow-up", duration: 45, color: "bg-green-700" },
@@ -230,7 +221,6 @@ export default function Members() {
     { name: "Training", duration: 60, color: "bg-orange-600" },
     { name: "Assessment", duration: 90, color: "bg-red-600" },
   ])
-
   const [freeAppointments, setFreeAppointments] = useState([
     { id: 1, date: "2025-03-15", time: "9:00 AM" },
     { id: 2, date: "2025-03-15", time: "11:00 AM" },
@@ -380,7 +370,6 @@ export default function Members() {
     const newId = Math.max(...members.map((m) => m.id)) + 1
     const autoArchiveDate = new Date()
     autoArchiveDate.setDate(autoArchiveDate.getDate() + tempMemberForm.autoArchivePeriod * 7)
-
     const newTempMember = {
       id: newId,
       ...tempMemberForm,
@@ -394,7 +383,6 @@ export default function Members() {
       autoArchiveDate: autoArchiveDate.toISOString().split("T")[0],
       image: null,
     }
-
     setMembers((prev) => [...prev, newTempMember])
     setShowCreateTempMemberModal(false)
     setTempMemberForm({
@@ -435,14 +423,12 @@ export default function Members() {
   }
 
   const notePopoverRef = useRef(null)
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
         setActiveNoteId(null)
       }
     }
-
     if (activeNoteId !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
@@ -503,19 +489,10 @@ export default function Members() {
   ])
 
   const filterOptions = [
-    { id: "all", label: `All Members (${members.filter((m) => !m.isArchived).length})` },
-    {
-      id: "active",
-      label: `Active Members (${members.filter((m) => m.isActive && !m.isArchived).length})`,
-    },
-    {
-      id: "inactive",
-      label: `Inactive Members (${members.filter((m) => !m.isActive && !m.isArchived).length})`,
-    },
-    {
-      id: "archived",
-      label: `Archived Members (${members.filter((m) => m.isArchived).length})`,
-    },
+    { id: "all", label: `All Members (${members.length})` },
+    { id: "active", label: `Active Members (${members.filter((m) => m.isActive && !m.isArchived).length})` },
+    { id: "paused", label: `Paused Members (${members.filter((m) => !m.isActive && !m.isArchived).length})` },
+    { id: "archived", label: `Archived Members (${members.filter((m) => m.isArchived).length})` },
   ]
 
   const sortOptions = [
@@ -535,27 +512,27 @@ export default function Members() {
   const filteredAndSortedMembers = () => {
     let filtered = members.filter((member) => member.title.toLowerCase().includes(searchQuery.toLowerCase()))
 
-    // Apply archive filter
-    if (archivedFilter === "active") {
-      filtered = filtered.filter((member) => !member.isArchived)
-    } else if (archivedFilter === "archived") {
-      filtered = filtered.filter((member) => member.isArchived)
-    }
-
-    // Apply status filter
+    // Apply primary status filter (Active, Paused, Archived)
     if (filterStatus === "active") {
-      filtered = filtered.filter((member) => member.isActive)
-    } else if (filterStatus === "inactive") {
-      filtered = filtered.filter((member) => !member.isActive)
+      filtered = filtered.filter((member) => member.isActive && !member.isArchived)
+    } else if (filterStatus === "paused") {
+      filtered = filtered.filter((member) => !member.isActive && !member.isArchived)
     } else if (filterStatus === "archived") {
       filtered = filtered.filter((member) => member.isArchived)
     }
 
-    // Apply member type filter
+    // Apply member type filter (from advanced filter)
     if (memberTypeFilter === "full") {
       filtered = filtered.filter((member) => member.memberType === "full")
     } else if (memberTypeFilter === "temporary") {
       filtered = filtered.filter((member) => member.memberType === "temporary")
+    }
+
+    // Apply archive status filter (from advanced filter)
+    if (archivedFilter === "active") {
+      filtered = filtered.filter((member) => !member.isArchived)
+    } else if (archivedFilter === "archived") {
+      filtered = filtered.filter((member) => member.isArchived)
     }
 
     if (sortBy === "alphabetical") {
@@ -567,7 +544,6 @@ export default function Members() {
         return new Date(a.contractEnd) - new Date(b.contractEnd)
       })
     }
-
     return filtered
   }
 
@@ -586,7 +562,6 @@ export default function Members() {
 
   const handleFilterSelect = (filterId) => {
     setFilterStatus(filterId)
-    setIsFilterDropdownOpen(false)
   }
 
   const handleSortSelect = (sortId) => {
@@ -601,11 +576,12 @@ export default function Members() {
   const handleEditMember = (member) => {
     setSelectedMember(member)
     setIsEditModalOpen(true)
+    setEditModalTab("details") // Default to details tab when opening edit modal
   }
 
   const handleViewDetails = (member) => {
     setSelectedMember(member)
-    setActiveTab("details")
+    setActiveTab("details") // Default to details tab when opening view details modal
     setIsViewDetailsModalOpen(true)
   }
 
@@ -657,7 +633,6 @@ export default function Members() {
   const handleBillingPeriodChange = (periodId) => {
     setSelectedBillingPeriod(periodId)
     const memberData = memberContingent[selectedMemberForAppointments.id]
-
     if (periodId === "current") {
       setTempContingent(memberData.current)
     } else {
@@ -668,7 +643,6 @@ export default function Members() {
   const handleSaveContingent = () => {
     if (selectedMemberForAppointments) {
       const updatedContingent = { ...memberContingent }
-
       if (selectedBillingPeriod === "current") {
         updatedContingent[selectedMemberForAppointments.id].current = { ...tempContingent }
       } else {
@@ -677,7 +651,6 @@ export default function Members() {
         }
         updatedContingent[selectedMemberForAppointments.id].future[selectedBillingPeriod] = { ...tempContingent }
       }
-
       setMemberContingent(updatedContingent)
       toast.success("Contingent updated successfully")
     }
@@ -687,11 +660,9 @@ export default function Members() {
   const handleAddBillingPeriod = () => {
     if (newBillingPeriod.trim() && selectedMemberForAppointments) {
       const updatedContingent = { ...memberContingent }
-
       if (!updatedContingent[selectedMemberForAppointments.id].future) {
         updatedContingent[selectedMemberForAppointments.id].future = {}
       }
-
       updatedContingent[selectedMemberForAppointments.id].future[newBillingPeriod] = { used: 0, total: 0 }
       setMemberContingent(updatedContingent)
       setNewBillingPeriod("")
@@ -763,8 +734,9 @@ export default function Members() {
 
   // Relations functions
   const handleRelationClick = (member) => {
-    setSelectedRelationMember(member)
-    setShowRelationsTile(true)
+    setSelectedMember(member)
+    setActiveTab("relations") // Directly open relations tab in View Details
+    setIsViewDetailsModalOpen(true)
   }
 
   const handleAddRelation = () => {
@@ -772,10 +744,8 @@ export default function Members() {
       toast.error("Please fill in all fields")
       return
     }
-
     const relationId = Date.now()
     const updatedRelations = { ...memberRelations }
-
     if (!updatedRelations[selectedMember.id]) {
       updatedRelations[selectedMember.id] = {
         family: [],
@@ -785,14 +755,12 @@ export default function Members() {
         other: [],
       }
     }
-
     updatedRelations[selectedMember.id][newRelation.category].push({
       id: relationId,
       name: newRelation.name,
       relation: newRelation.relation,
       type: newRelation.type,
     })
-
     setMemberRelations(updatedRelations)
     setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
     toast.success("Relation added successfully")
@@ -925,47 +893,19 @@ export default function Members() {
             <div className="flex items-center md:flex-row flex-col gap-3 w-full sm:w-auto">
               <button
                 onClick={() => setShowCreateTempMemberModal(true)}
-                className="md:w-auto w-full justify-center flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm"
+                className="md:w-auto w-full justify-center flex items-center gap-2 px-4 py-2 bg-gray-700 cursor-pointer  hover:bg-gray-700 text-white rounded-xl text-sm"
               >
                 <UserPlus size={16} />
                 Create Temp Member
               </button>
+              {/* Combined Filter Button */}
               <button
-                onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}
+                onClick={() => setShowFilterModal(true)}
                 className="md:w-auto w-full flex justify-center items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
               >
                 <Filter size={16} />
-                Advanced Filter
+                Filter
               </button>
-              <div className="relative filter-dropdown flex-1 sm:flex-none">
-                <button
-                  onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                  className={`flex md:w-auto w-full cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] `}
-                >
-                  <span className="truncate">{filterOptions.find((opt) => opt.id === filterStatus)?.label}</span>
-                  <ChevronDown
-                    size={16}
-                    className={`transform transition-transform flex-shrink-0 ${
-                      isFilterDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {isFilterDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-full sm:w-64 rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
-                    {filterOptions.map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => handleFilterSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
-                          option.id === filterStatus ? "bg-[#000000]" : ""
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
               <div className="relative sort-dropdown flex-1 sm:flex-none">
                 <button
                   onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
@@ -1002,7 +942,6 @@ export default function Members() {
               </div>
             </div>
           </div>
-
           <SidebarArea
             isOpen={isRightSidebarOpen}
             onClose={closeSidebar}
@@ -1017,37 +956,79 @@ export default function Members() {
             openDropdownIndex={openDropdownIndex}
             setEditingLink={setEditingLink}
           />
-
           {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>}
 
-          {/* Advanced Filter Panel */}
-          {showAdvancedFilter && (
-            <div className="bg-[#161616] rounded-xl p-4 mb-6">
-              <h3 className="text-lg font-semibold mb-4">Advanced Filters</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Member Type</label>
-                  <select
-                    value={memberTypeFilter}
-                    onChange={(e) => setMemberTypeFilter(e.target.value)}
-                    className="w-full bg-[#101010] text-white rounded-xl px-4 py-2 text-sm"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="full">Full Members (with contract)</option>
-                    <option value="temporary">Temporary Members (without contract)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Archive Status</label>
-                  <select
-                    value={archivedFilter}
-                    onChange={(e) => setArchivedFilter(e.target.value)}
-                    className="w-full bg-[#101010] text-white rounded-xl px-4 py-2 text-sm"
-                  >
-                    <option value="active">Active Only</option>
-                    <option value="archived">Archived Only</option>
-                    <option value="all">All Members</option>
-                  </select>
+          {/* Combined Filter Modal */}
+          {showFilterModal && (
+            <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+              <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-white open_sans_font_700 text-lg font-semibold">Filter Members</h2>
+                    <button onClick={() => setShowFilterModal(false)} className="text-gray-400 hover:text-white">
+                      <X size={20} className="cursor-pointer" />
+                    </button>
+                  </div>
+                  <div className="space-y-6">
+                    {/* Primary Status Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">Member Status</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {filterOptions.map((option) => (
+                          <button
+                            key={option.id}
+                            onClick={() => setFilterStatus(option.id)}
+                            className={`w-full px-4 py-2 text-left text-sm rounded-xl border transition-colors ${
+                              option.id === filterStatus
+                                ? "bg-blue-600/20 border-blue-500 text-blue-300"
+                                : "bg-[#101010] border-slate-300/30 text-white hover:bg-[#2F2F2F]"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Advanced Filters */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Advanced Filters</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-400 mb-2">Member Type</label>
+                          <select
+                            value={memberTypeFilter}
+                            onChange={(e) => setMemberTypeFilter(e.target.value)}
+                            className="w-full bg-[#101010] text-white rounded-xl px-4 py-2 text-sm"
+                          >
+                            <option value="all">All Types</option>
+                            <option value="full">Full Members (with contract)</option>
+                            <option value="temporary">Temporary Members (without contract)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-400 mb-2">Archive Status</label>
+                          <select
+                            value={archivedFilter}
+                            onChange={(e) => setArchivedFilter(e.target.value)}
+                            className="w-full bg-[#101010] text-white rounded-xl px-4 py-2 text-sm"
+                          >
+                            <option value="active">Active Only</option>
+                            <option value="archived">Archived Only</option>
+                            <option value="all">All Members</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={() => setShowFilterModal(false)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1068,6 +1049,7 @@ export default function Members() {
             </div>
           </div>
 
+          {/* Create Temporary Member Modal */}
           {showCreateTempMemberModal && (
             <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
               <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
@@ -1083,7 +1065,7 @@ export default function Members() {
                   </div>
                   <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-xl p-4 mb-6">
                     <div className="flex items-start gap-3">
-                      <Info className="text-yellow-500 mt-0.5" size={16} />
+                      <Info className="text-yellow-500 " size={50} />
                       <div>
                         <p className="text-yellow-200 text-sm font-medium mb-1">Temporary Member Information</p>
                         <p className="text-yellow-300/80 text-xs">
@@ -1093,121 +1075,203 @@ export default function Members() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Tab Navigation for Create Temp Member */}
+                  <div className="flex border-b border-gray-700 mb-6">
+                    <button
+                      onClick={() => setTempMemberModalTab("details")}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        tempMemberModalTab === "details"
+                          ? "text-blue-400 border-b-2 border-blue-400"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      Details
+                    </button>
+                    <button
+                      onClick={() => setTempMemberModalTab("note")}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        tempMemberModalTab === "note"
+                          ? "text-blue-400 border-b-2 border-blue-400"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      Special Note
+                    </button>
+                  </div>
+
                   <form
                     onSubmit={handleCreateTempMember}
-                    className="space-y-4 custom-scrollbar overflow-y-auto max-h-[60vh]"
+                    className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]"
                   >
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">First Name</label>
-                        <input
-                          type="text"
-                          name="firstName"
-                          value={tempMemberForm.firstName}
+                    {tempMemberModalTab === "details" && (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">First Name</label>
+                            <input
+                              type="text"
+                              name="firstName"
+                              value={tempMemberForm.firstName}
+                              onChange={handleTempMemberInputChange}
+                              className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">Last Name</label>
+                            <input
+                              type="text"
+                              name="lastName"
+                              value={tempMemberForm.lastName}
+                              onChange={handleTempMemberInputChange}
+                              className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Email</label>
+                          <input
+                            type="email"
+                            name="email"
+                            value={tempMemberForm.email}
+                            onChange={handleTempMemberInputChange}
+                            className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Phone</label>
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={tempMemberForm.phone}
+                            onChange={handleTempMemberInputChange}
+                            className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Street</label>
+                          <input
+                            type="text"
+                            name="street"
+                            value={tempMemberForm.street}
+                            onChange={handleTempMemberInputChange}
+                            className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                            <input
+                              type="text"
+                              name="zipCode"
+                              value={tempMemberForm.zipCode}
+                              onChange={handleTempMemberInputChange}
+                              className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">City</label>
+                            <input
+                              type="text"
+                              name="city"
+                              value={tempMemberForm.city}
+                              onChange={handleTempMemberInputChange}
+                              className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
+                          <input
+                            type="date"
+                            name="dateOfBirth"
+                            value={tempMemberForm.dateOfBirth}
+                            onChange={handleTempMemberInputChange}
+                            className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Auto-Archive Period (weeks)</label>
+                          <input
+                            type="number"
+                            name="autoArchivePeriod"
+                            value={tempMemberForm.autoArchivePeriod}
+                            onChange={handleTempMemberInputChange}
+                            min="1"
+                            max="52"
+                            className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                          <p className="text-xs text-gray-400 mt-1">
+                            Member will be automatically archived after this period
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">About</label>
+                          <textarea
+                            name="about"
+                            value={tempMemberForm.about}
+                            onChange={handleTempMemberInputChange}
+                            className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {tempMemberModalTab === "note" && (
+                      <div className="border border-slate-700 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <label className="text-sm text-gray-200 font-medium">Special Note</label>
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id="tempNoteImportance"
+                              checked={tempMemberForm.noteImportance === "important"}
+                              onChange={(e) => {
+                                setTempMemberForm({
+                                  ...tempMemberForm,
+                                  noteImportance: e.target.checked ? "important" : "unimportant",
+                                })
+                              }}
+                              className="mr-2 h-4 w-4 accent-[#FF843E]"
+                            />
+                            <label htmlFor="tempNoteImportance" className="text-sm text-gray-200">
+                              Important
+                            </label>
+                          </div>
+                        </div>
+                        <textarea
+                          name="note"
+                          value={tempMemberForm.note}
                           onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                          required
+                          className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                          placeholder="Enter special note..."
                         />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">Start Date</label>
+                            <input
+                              type="date"
+                              name="noteStartDate"
+                              value={tempMemberForm.noteStartDate}
+                              onChange={handleTempMemberInputChange}
+                              className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">End Date</label>
+                            <input
+                              type="date"
+                              name="noteEndDate"
+                              value={tempMemberForm.noteEndDate}
+                              onChange={handleTempMemberInputChange}
+                              className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Last Name</label>
-                        <input
-                          type="text"
-                          name="lastName"
-                          value={tempMemberForm.lastName}
-                          onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={tempMemberForm.email}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Phone</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={tempMemberForm.phone}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Street</label>
-                      <input
-                        type="text"
-                        name="street"
-                        value={tempMemberForm.street}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-                        <input
-                          type="text"
-                          name="zipCode"
-                          value={tempMemberForm.zipCode}
-                          onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">City</label>
-                        <input
-                          type="text"
-                          name="city"
-                          value={tempMemberForm.city}
-                          onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
-                      <input
-                        type="date"
-                        name="dateOfBirth"
-                        value={tempMemberForm.dateOfBirth}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Auto-Archive Period (weeks)</label>
-                      <input
-                        type="number"
-                        name="autoArchivePeriod"
-                        value={tempMemberForm.autoArchivePeriod}
-                        onChange={handleTempMemberInputChange}
-                        min="1"
-                        max="52"
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                      <p className="text-xs text-gray-400 mt-1">
-                        Member will be automatically archived after this period
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">About</label>
-                      <textarea
-                        name="about"
-                        value={tempMemberForm.about}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                      />
-                    </div>
+                    )}
                     <button
                       type="submit"
                       className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-2 text-sm cursor-pointer"
@@ -1220,6 +1284,7 @@ export default function Members() {
             </div>
           )}
 
+          {/* Edit Member Modal */}
           {isEditModalOpen && selectedMember && (
             <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
               <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
@@ -1236,314 +1301,359 @@ export default function Members() {
                       <X size={20} className="cursor-pointer" />
                     </button>
                   </div>
+
+                  {/* Tab Navigation for Edit Member */}
+                  <div className="flex border-b border-gray-700 mb-6">
+                    <button
+                      onClick={() => setEditModalTab("details")}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        editModalTab === "details"
+                          ? "text-blue-400 border-b-2 border-blue-400"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      Details
+                    </button>
+                    <button
+                      onClick={() => setEditModalTab("note")}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        editModalTab === "note"
+                          ? "text-blue-400 border-b-2 border-blue-400"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      Special Note
+                    </button>
+                    <button
+                      onClick={() => setEditModalTab("relations")}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        editModalTab === "relations"
+                          ? "text-blue-400 border-b-2 border-blue-400"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      Relations
+                    </button>
+                  </div>
+
                   <form onSubmit={handleEditSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
-                    <div className="flex flex-col items-start">
-                      <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
-                        <img
-                          src={selectedMember.image || DefaultAvatar}
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <input
-                        type="file"
-                        id="avatar"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            toast.success("Avatar selected successfully")
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor="avatar"
-                        className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer"
-                      >
-                        Update picture
-                      </label>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">First Name</label>
-                        <input
-                          type="text"
-                          name="firstName"
-                          value={editForm.firstName}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Last Name</label>
-                        <input
-                          type="text"
-                          name="lastName"
-                          value={editForm.lastName}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={editForm.email}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Phone</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={editForm.phone}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Street</label>
-                      <input
-                        type="text"
-                        name="street"
-                        value={editForm.street}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-                        <input
-                          type="text"
-                          name="zipCode"
-                          value={editForm.zipCode}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">City</label>
-                        <input
-                          type="text"
-                          name="city"
-                          value={editForm.city}
-                          onChange={handleInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
-                      <input
-                        type="date"
-                        name="dateOfBirth"
-                        value={editForm.dateOfBirth}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div className="border border-slate-700 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <label className="text-sm text-gray-200 font-medium">Special Note</label>
-                        <div className="flex items-center">
+                    {editModalTab === "details" && (
+                      <>
+                        <div className="flex flex-col items-start">
+                          <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
+                            <img
+                              src={selectedMember.image || DefaultAvatar}
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                           <input
-                            type="checkbox"
-                            id="noteImportance"
-                            checked={editForm.noteImportance === "important"}
+                            type="file"
+                            id="avatar"
+                            className="hidden"
+                            accept="image/*"
                             onChange={(e) => {
-                              setEditForm({
-                                ...editForm,
-                                noteImportance: e.target.checked ? "important" : "unimportant",
-                              })
+                              if (e.target.files && e.target.files[0]) {
+                                toast.success("Avatar selected successfully")
+                              }
                             }}
-                            className="mr-2 h-4 w-4 accent-[#FF843E]"
                           />
-                          <label htmlFor="noteImportance" className="text-sm text-gray-200">
-                            Important
+                          <label
+                            htmlFor="avatar"
+                            className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer"
+                          >
+                            Update picture
                           </label>
                         </div>
-                      </div>
-                      <textarea
-                        name="note"
-                        value={editForm.note}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
-                        placeholder="Enter special note..."
-                      />
-                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">First Name</label>
+                            <input
+                              type="text"
+                              name="firstName"
+                              value={editForm.firstName}
+                              onChange={handleInputChange}
+                              className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">Last Name</label>
+                            <input
+                              type="text"
+                              name="lastName"
+                              value={editForm.lastName}
+                              onChange={handleInputChange}
+                              className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                        </div>
                         <div>
-                          <label className="text-sm text-gray-200 block mb-2">Start Date</label>
+                          <label className="text-sm text-gray-200 block mb-2">Email</label>
+                          <input
+                            type="email"
+                            name="email"
+                            value={editForm.email}
+                            onChange={handleInputChange}
+                            className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Phone</label>
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={editForm.phone}
+                            onChange={handleInputChange}
+                            className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Street</label>
+                          <input
+                            type="text"
+                            name="street"
+                            value={editForm.street}
+                            onChange={handleInputChange}
+                            className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                            <input
+                              type="text"
+                              name="zipCode"
+                              value={editForm.zipCode}
+                              onChange={handleInputChange}
+                              className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">City</label>
+                            <input
+                              type="text"
+                              name="city"
+                              value={editForm.city}
+                              onChange={handleInputChange}
+                              className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
                           <input
                             type="date"
-                            name="noteStartDate"
-                            value={editForm.noteStartDate}
+                            name="dateOfBirth"
+                            value={editForm.dateOfBirth}
                             onChange={handleInputChange}
                             className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-gray-200 block mb-2">End Date</label>
-                          <input
-                            type="date"
-                            name="noteEndDate"
-                            value={editForm.noteEndDate}
+                          <label className="text-sm text-gray-200 block mb-2">About</label>
+                          <textarea
+                            name="about"
+                            value={editForm.about}
                             onChange={handleInputChange}
-                            className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                           />
                         </div>
-                      </div>
-                    </div>
-                    {/* Relations Section in Edit Modal */}
-                    <div className="border border-slate-700 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <label className="text-sm text-gray-200 font-medium">Relations</label>
-                        <button
-                          type="button"
-                          onClick={() => setEditingRelations(!editingRelations)}
-                          className="text-sm text-blue-400 hover:text-blue-300"
-                        >
-                          {editingRelations ? "Done" : "Edit"}
-                        </button>
-                      </div>
-                      {editingRelations && (
-                        <div className="mb-4 p-3 bg-[#101010] rounded-xl">
-                          <div className="grid grid-cols-1 gap-2 mb-2">
-                            <select
-                              value={newRelation.type}
+                      </>
+                    )}
+
+                    {editModalTab === "note" && (
+                      <div className="border border-slate-700 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <label className="text-sm text-gray-200 font-medium">Special Note</label>
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id="editNoteImportance"
+                              checked={editForm.noteImportance === "important"}
                               onChange={(e) => {
-                                const type = e.target.value
-                                setNewRelation({ ...newRelation, type, name: "", selectedMemberId: null })
+                                setEditForm({
+                                  ...editForm,
+                                  noteImportance: e.target.checked ? "important" : "unimportant",
+                                })
                               }}
-                              className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                            >
-                              <option value="manual">Manual Entry</option>
-                              <option value="member">Select Member</option>
-                              <option value="lead">Select Lead</option>
-                            </select>
-                            {newRelation.type === "manual" ? (
-                              <input
-                                type="text"
-                                placeholder="Name"
-                                value={newRelation.name}
-                                onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
-                                className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                              />
-                            ) : (
+                              className="mr-2 h-4 w-4 accent-[#FF843E]"
+                            />
+                            <label htmlFor="editNoteImportance" className="text-sm text-gray-200">
+                              Important
+                            </label>
+                          </div>
+                        </div>
+                        <textarea
+                          name="note"
+                          value={editForm.note}
+                          onChange={handleInputChange}
+                          className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                          placeholder="Enter special note..."
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">Start Date</label>
+                            <input
+                              type="date"
+                              name="noteStartDate"
+                              value={editForm.noteStartDate}
+                              onChange={handleInputChange}
+                              className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-200 block mb-2">End Date</label>
+                            <input
+                              type="date"
+                              name="noteEndDate"
+                              value={editForm.noteEndDate}
+                              onChange={handleInputChange}
+                              className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {editModalTab === "relations" && (
+                      <div className="border border-slate-700 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <label className="text-sm text-gray-200 font-medium">Relations</label>
+                          <button
+                            type="button"
+                            onClick={() => setEditingRelations(!editingRelations)}
+                            className="text-sm text-blue-400 hover:text-blue-300"
+                          >
+                            {editingRelations ? "Done" : "Edit"}
+                          </button>
+                        </div>
+                        {editingRelations && (
+                          <div className="mb-4 p-3 bg-[#101010] rounded-xl">
+                            <div className="grid grid-cols-1 gap-2 mb-2">
                               <select
-                                value={newRelation.selectedMemberId || ""}
+                                value={newRelation.type}
                                 onChange={(e) => {
-                                  const selectedId = e.target.value
-                                  const selectedPerson = availableMembersLeads.find(
-                                    (p) => p.id.toString() === selectedId,
-                                  )
-                                  setNewRelation({
-                                    ...newRelation,
-                                    selectedMemberId: selectedId,
-                                    name: selectedPerson ? selectedPerson.name : "",
-                                  })
+                                  const type = e.target.value
+                                  setNewRelation({ ...newRelation, type, name: "", selectedMemberId: null })
                                 }}
                                 className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                               >
-                                <option value="">Select {newRelation.type}</option>
-                                {availableMembersLeads
-                                  .filter((p) => p.type === newRelation.type)
-                                  .map((person) => (
-                                    <option key={person.id} value={person.id}>
-                                      {person.name} ({person.type})
-                                    </option>
-                                  ))}
+                                <option value="manual">Manual Entry</option>
+                                <option value="member">Select Member</option>
+                                <option value="lead">Select Lead</option>
                               </select>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 mb-2">
-                            <select
-                              value={newRelation.category}
-                              onChange={(e) =>
-                                setNewRelation({ ...newRelation, category: e.target.value, relation: "" })
-                              }
-                              className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                            >
-                              <option value="family">Family</option>
-                              <option value="friendship">Friendship</option>
-                              <option value="relationship">Relationship</option>
-                              <option value="work">Work</option>
-                              <option value="other">Other</option>
-                            </select>
-                            <select
-                              value={newRelation.relation}
-                              onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
-                              className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                            >
-                              <option value="">Select Relation</option>
-                              {relationOptions[newRelation.category]?.map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleAddRelation}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full"
-                          >
-                            Add Relation
-                          </button>
-                        </div>
-                      )}
-                      <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {selectedMember &&
-                          memberRelations[selectedMember.id] &&
-                          Object.entries(memberRelations[selectedMember.id]).map(([category, relations]) =>
-                            relations.map((relation) => (
-                              <div
-                                key={relation.id}
-                                className="flex items-center justify-between bg-[#101010] rounded px-3 py-2"
+                              {newRelation.type === "manual" ? (
+                                <input
+                                  type="text"
+                                  placeholder="Name"
+                                  value={newRelation.name}
+                                  onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
+                                  className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                                />
+                              ) : (
+                                <select
+                                  value={newRelation.selectedMemberId || ""}
+                                  onChange={(e) => {
+                                    const selectedId = e.target.value
+                                    const selectedPerson = availableMembersLeads.find(
+                                      (p) => p.id.toString() === selectedId,
+                                    )
+                                    setNewRelation({
+                                      ...newRelation,
+                                      selectedMemberId: selectedId,
+                                      name: selectedPerson ? selectedPerson.name : "",
+                                    })
+                                  }}
+                                  className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                                >
+                                  <option value="">Select {newRelation.type}</option>
+                                  {availableMembersLeads
+                                    .filter((p) => p.type === newRelation.type)
+                                    .map((person) => (
+                                      <option key={person.id} value={person.id}>
+                                        {person.name} ({person.type})
+                                      </option>
+                                    ))}
+                                </select>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 mb-2">
+                              <select
+                                value={newRelation.category}
+                                onChange={(e) =>
+                                  setNewRelation({ ...newRelation, category: e.target.value, relation: "" })
+                                }
+                                className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                               >
-                                <div className="text-sm">
-                                  <span className="text-white">{relation.name}</span>
-                                  <span className="text-gray-400 ml-2">({relation.relation})</span>
-                                  <span className="text-blue-400 ml-2 capitalize">- {category}</span>
-                                  <span
-                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                      relation.type === "member"
-                                        ? "bg-green-600 text-green-100"
-                                        : relation.type === "lead"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                    }`}
-                                  >
-                                    {relation.type}
-                                  </span>
+                                <option value="family">Family</option>
+                                <option value="friendship">Friendship</option>
+                                <option value="relationship">Relationship</option>
+                                <option value="work">Work</option>
+                                <option value="other">Other</option>
+                              </select>
+                              <select
+                                value={newRelation.relation}
+                                onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
+                                className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                              >
+                                <option value="">Select Relation</option>
+                                {relationOptions[newRelation.category]?.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleAddRelation}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full"
+                            >
+                              Add Relation
+                            </button>
+                          </div>
+                        )}
+                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                          {selectedMember &&
+                            memberRelations[selectedMember.id] &&
+                            Object.entries(memberRelations[selectedMember.id]).map(([category, relations]) =>
+                              relations.map((relation) => (
+                                <div
+                                  key={relation.id}
+                                  className="flex items-center justify-between bg-[#101010] rounded px-3 py-2"
+                                >
+                                  <div className="text-sm">
+                                    <span className="text-white">{relation.name}</span>
+                                    <span className="text-gray-400 ml-2">({relation.relation})</span>
+                                    <span className="text-blue-400 ml-2 capitalize">- {category}</span>
+                                    <span
+                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${
+                                        relation.type === "member"
+                                          ? "bg-green-600 text-green-100"
+                                          : relation.type === "lead"
+                                            ? "bg-blue-600 text-blue-100"
+                                            : "bg-gray-600 text-gray-100"
+                                      }`}
+                                    >
+                                      {relation.type}
+                                    </span>
+                                  </div>
+                                  {editingRelations && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteRelation(category, relation.id)}
+                                      className="text-red-400 hover:text-red-300"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  )}
                                 </div>
-                                {editingRelations && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteRelation(category, relation.id)}
-                                    className="text-red-400 hover:text-red-300"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                )}
-                              </div>
-                            )),
-                          )}
+                              )),
+                            )}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">About</label>
-                      <textarea
-                        name="about"
-                        value={editForm.about}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                      />
-                    </div>
+                    )}
+
                     <div className="flex gap-2">
                       <button
                         type="submit"
@@ -1666,13 +1776,17 @@ export default function Members() {
                               {member.title} ({calculateAge(member.dateOfBirth)})
                             </h3>
                             <div className="flex items-center gap-2">
-                              <span
-                                className={`px-2 py-0.5 text-xs rounded-full ${
-                                  member.isActive ? "bg-green-900 text-green-300" : "bg-orange-400 text-white"
-                                }`}
-                              >
-                                {member.isActive ? "Active" : "Paused"}
-                              </span>
+                              {member.isArchived ? (
+                                <span className="px-2 py-0.5 text-xs rounded-full bg-red-500 text-white">Archived</span>
+                              ) : (
+                                <span
+                                  className={`px-2 py-0.5 text-xs rounded-full ${
+                                    member.isActive ? "bg-green-900 text-green-300" : "bg-orange-400 text-white"
+                                  }`}
+                                >
+                                  {member.isActive ? "Active" : "Paused"}
+                                </span>
+                              )}
                               <span
                                 className={`px-2 py-0.5 text-xs rounded-full ${
                                   member.memberType === "full"
@@ -1682,11 +1796,6 @@ export default function Members() {
                               >
                                 {member.memberType === "full" ? "Full Member" : "Temporary Member"}
                               </span>
-                              {member.isArchived && (
-                                <span className="px-2 py-0.5 text-xs rounded-full bg-gray-900 text-gray-300">
-                                  Archived
-                                </span>
-                              )}
                               {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
                             </div>
                           </div>
@@ -1710,18 +1819,16 @@ export default function Members() {
                               </>
                             )}
                           </p>
-                          {memberRelations[member.id] &&
-                            Object.values(memberRelations[member.id]).some((relations) => relations.length > 0) && (
-                              <div className="mt-2">
-                                <button
-                                  onClick={() => handleRelationClick(member)}
-                                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                                >
-                                  <Users size={12} />
-                                  Relations ({Object.values(memberRelations[member.id]).flat().length})
-                                </button>
-                              </div>
-                            )}
+                          {/* Relations button always displayed */}
+                          <div className="mt-2">
+                            <button
+                              onClick={() => handleRelationClick(member)}
+                              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                            >
+                              <Users size={12} />
+                              Relations ({Object.values(memberRelations[member.id] || {}).flat().length})
+                            </button>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center justify-center sm:justify-end gap-2 lg:flex-row md:flex-row flex-col mt-4 sm:mt-0 w-full sm:w-auto">
@@ -1769,8 +1876,8 @@ export default function Members() {
                 <p className="text-gray-400">
                   {filterStatus === "active"
                     ? "No active members found."
-                    : filterStatus === "inactive"
-                      ? "No inactive members found."
+                    : filterStatus === "paused"
+                      ? "No paused members found."
                       : filterStatus === "archived"
                         ? "No archived members found."
                         : "No members found."}
@@ -1781,70 +1888,7 @@ export default function Members() {
         </div>
       </div>
 
-      {showRelationsTile && selectedRelationMember && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium text-white">{selectedRelationMember.title} - Relations</h2>
-                <button
-                  onClick={() => setShowRelationsTile(false)}
-                  className="p-2 hover:bg-zinc-700 cursor-pointer text-white rounded-lg"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => {
-                    setSelectedMember(selectedRelationMember)
-                    setActiveTab("relations")
-                    setIsViewDetailsModalOpen(true)
-                    setShowRelationsTile(false)
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl text-center"
-                >
-                  <Users className="mx-auto mb-2" size={24} />
-                  <p className="text-sm font-medium">View Relations</p>
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedMember(selectedRelationMember)
-                    setEditingRelations(true)
-                    setIsEditModalOpen(true)
-                    setShowRelationsTile(false)
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-xl text-center"
-                >
-                  <Edit3 className="mx-auto mb-2" size={24} />
-                  <p className="text-sm font-medium">Edit Relations</p>
-                </button>
-                <button
-                  onClick={() => {
-                    handleViewDetails(selectedRelationMember)
-                    setShowRelationsTile(false)
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-xl text-center"
-                >
-                  <Eye className="mx-auto mb-2" size={24} />
-                  <p className="text-sm font-medium">View Details</p>
-                </button>
-                <button
-                  onClick={() => {
-                    handleEditMember(selectedRelationMember)
-                    setShowRelationsTile(false)
-                  }}
-                  className="bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-xl text-center"
-                >
-                  <Edit3 className="mx-auto mb-2" size={24} />
-                  <p className="text-sm font-medium">Edit Member</p>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* View Details Modal */}
       {isViewDetailsModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
@@ -1872,6 +1916,14 @@ export default function Members() {
                   }`}
                 >
                   Details
+                </button>
+                <button
+                  onClick={() => setActiveTab("note")}
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Special Note
                 </button>
                 <button
                   onClick={() => setActiveTab("relations")}
@@ -1954,16 +2006,6 @@ export default function Members() {
                     <p className="text-sm text-gray-400">About</p>
                     <p>{selectedMember.about}</p>
                   </div>
-                  {selectedMember.note && (
-                    <div>
-                      <p className="text-sm text-gray-400">Special Note</p>
-                      <p>{selectedMember.note}</p>
-                      <p className="text-sm text-gray-400 mt-2">
-                        Note Period: {selectedMember.noteStartDate} to {selectedMember.noteEndDate}
-                      </p>
-                      <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
-                    </div>
-                  )}
                   <div className="flex justify-end gap-4 mt-6">
                     {selectedMember.memberType === "full" && (
                       <button
@@ -1986,6 +2028,49 @@ export default function Members() {
                   </div>
                 </div>
               )}
+
+              {activeTab === "note" && (
+                <div className="space-y-4 text-white">
+                  <h3 className="text-lg font-semibold mb-4">Special Note</h3>
+                  {selectedMember.note ? (
+                    <div className="border border-slate-700 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        {selectedMember.noteImportance === "important" ? (
+                          <AlertTriangle className="text-yellow-500" size={20} />
+                        ) : (
+                          <Info className="text-blue-500" size={20} />
+                        )}
+                        <p className="font-medium">
+                          {selectedMember.noteImportance === "important" ? "Important Note" : "General Note"}
+                        </p>
+                      </div>
+                      <p className="text-sm leading-relaxed">{selectedMember.note}</p>
+                      {selectedMember.noteStartDate && selectedMember.noteEndDate && (
+                        <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                          <p className="text-xs text-gray-300">
+                            Valid from {selectedMember.noteStartDate} to {selectedMember.noteEndDate}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-gray-400 text-center py-8">No special note for this member.</div>
+                  )}
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={() => {
+                        setIsViewDetailsModalOpen(false)
+                        handleEditMember(selectedMember)
+                        setEditModalTab("note") // Open edit modal to note tab
+                      }}
+                      className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
+                    >
+                      Edit Note
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {activeTab === "relations" && (
                 <div className="space-y-6 max-h-[60vh] overflow-y-auto">
                   {/* Relations Tree Visualization */}
@@ -2112,6 +2197,18 @@ export default function Members() {
                       ))}
                     </div>
                   </div>
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={() => {
+                        setIsViewDetailsModalOpen(false)
+                        handleEditMember(selectedMember)
+                        setEditModalTab("relations") // Open edit modal to relations tab
+                      }}
+                      className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
+                    >
+                      Edit Relations
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -2228,7 +2325,6 @@ export default function Members() {
           </div>
         </div>
       )}
-
       {/* Add Appointment Modal */}
       {showAddAppointmentModal && (
         <AddAppointmentModal
@@ -2241,7 +2337,6 @@ export default function Members() {
           freeAppointments={freeAppointments}
         />
       )}
-
       {/* Edit Appointment Modal */}
       {showSelectedAppointmentModal && selectedAppointmentData && (
         <SelectedAppointmentModal
@@ -2257,7 +2352,6 @@ export default function Members() {
           onDelete={handleDeleteAppointment}
         />
       )}
-
       {/* Enhanced Contingent Management Modal */}
       {showContingentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -2272,7 +2366,6 @@ export default function Members() {
                   <X size={16} />
                 </button>
               </div>
-
               {/* Billing Period Selection */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-400 mb-3">Select Billing Period</label>
@@ -2297,7 +2390,6 @@ export default function Members() {
                       </button>
                     ))}
                 </div>
-
                 {/* Add New Billing Period Button */}
                 <button
                   onClick={() => setShowAddBillingPeriodModal(true)}
@@ -2307,7 +2399,6 @@ export default function Members() {
                   Add Future Billing Period
                 </button>
               </div>
-
               {/* Contingent Management */}
               <div className="space-y-4">
                 <div className="bg-[#222222] rounded-xl p-4">
@@ -2316,7 +2407,6 @@ export default function Members() {
                       ? `Current Period (${currentBillingPeriod})`
                       : `Future Period (${selectedBillingPeriod})`}
                   </h3>
-
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
                       <label className="block text-sm text-gray-400 mb-1">Used Appointments</label>
@@ -2354,7 +2444,6 @@ export default function Members() {
                       />
                     </div>
                   </div>
-
                   <div className="mt-3 flex justify-between items-center text-sm">
                     <span className="text-gray-400">Remaining:</span>
                     <span className="text-white font-medium">
@@ -2362,7 +2451,6 @@ export default function Members() {
                     </span>
                   </div>
                 </div>
-
                 {selectedBillingPeriod === "current" && (
                   <div className="p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-xl">
                     <p className="text-yellow-200 text-sm flex items-center gap-2">
@@ -2371,7 +2459,6 @@ export default function Members() {
                     </p>
                   </div>
                 )}
-
                 {selectedBillingPeriod !== "current" && (
                   <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
                     <p className="text-blue-200 text-sm flex items-center gap-2">
@@ -2381,7 +2468,6 @@ export default function Members() {
                   </div>
                 )}
               </div>
-
               <div className="flex gap-3 justify-end mt-6">
                 <button
                   onClick={() => setShowContingentModal(false)}
@@ -2400,7 +2486,6 @@ export default function Members() {
           </div>
         </div>
       )}
-
       {/* Add Billing Period Modal */}
       {showAddBillingPeriodModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
@@ -2415,7 +2500,6 @@ export default function Members() {
                   <X size={16} />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
@@ -2429,7 +2513,6 @@ export default function Members() {
                     className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
                   />
                 </div>
-
                 <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
                   <p className="text-blue-200 text-sm">
                     <Info className="inline mr-1" size={14} />
@@ -2438,7 +2521,6 @@ export default function Members() {
                   </p>
                 </div>
               </div>
-
               <div className="flex gap-2 justify-end mt-6">
                 <button
                   onClick={() => setShowAddBillingPeriodModal(false)}
@@ -2458,11 +2540,10 @@ export default function Members() {
           </div>
         </div>
       )}
-
       {/* History Modal */}
       {showHistoryModal && selectedMember && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">
                 History - {selectedMember.firstName} {selectedMember.lastName}
@@ -2652,7 +2733,6 @@ export default function Members() {
           </div>
         </div>
       )}
-
       {/* Notify Member Modal */}
       {isNotifyMemberOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react"
@@ -67,29 +65,17 @@ const LeadCard = ({
     })
   }
 
-  const isNoteValid = (note) => {
-    if (!note || !note.text) return false
-    if (!note.startDate || !note.endDate) return true
-    const now = new Date()
-    const startDate = new Date(note.startDate)
-    const endDate = new Date(note.endDate)
-    return now >= startDate && now <= endDate
-  }
-
   const hasValidNote = lead.specialNote && lead.specialNote.text && lead.specialNote.text.trim() !== ""
-
   const handleDragStart = () => {
     setIsDragging(true)
   }
-
   const handleDragStop = (e, data) => {
     setIsDragging(false)
     onDragStop(e, data, lead, columnId, index)
   }
 
-  // Check if lead has relations
-  const hasRelations =
-    memberRelations[lead.id] && Object.values(memberRelations[lead.id]).some((relations) => relations.length > 0)
+  // Calculate relations count
+  const hasRelationsCount = Object.values(memberRelations[lead.id] || {}).flat().length
 
   // Determine button based on column
   const isInTrialColumn = columnId === "trial"
@@ -105,15 +91,16 @@ const LeadCard = ({
       <div
         ref={nodeRef}
         className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${
-          isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
+          isDragging ? "opacity-70 z-50 shadow-lg fixed" : "opacity-100"
         }`}
+        data-lead-id={lead.id}
       >
         <div className="flex items-center mb-3 relative">
           {hasValidNote && (
             <div
               className={`absolute -top-2 -left-2 ${
-                lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-1 shadow-[0_0_0_1.5px_#1C1C1C] cursor-pointer no-drag z-10`}
+                lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
+              }  rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer`}
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
@@ -126,7 +113,6 @@ const LeadCard = ({
               )}
             </div>
           )}
-
           {isNoteOpen && hasValidNote && (
             <div
               ref={noteRef}
@@ -159,23 +145,20 @@ const LeadCard = ({
                 {lead.specialNote.startDate && lead.specialNote.endDate ? (
                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                     <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <Calendar size={12} />
-                      Valid from {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
+                      <Calendar size={12} /> Valid from {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
                       {new Date(lead.specialNote.endDate).toLocaleDateString()}
                     </p>
                   </div>
                 ) : (
                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                     <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <Calendar size={12} />
-                      Always valid
+                      <Calendar size={12} /> Always valid
                     </p>
                   </div>
                 )}
               </div>
             </div>
           )}
-
           <div className="flex-1 mt-6">
             <h4 className="font-medium text-white text-lg mb-1">{`${lead.firstName} ${lead.surname}`}</h4>
             <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
@@ -183,16 +166,16 @@ const LeadCard = ({
             <p className="text-gray-500 text-xs">
               Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
             </p>
-            {hasRelations && (
-              <div className="mt-2">
-                <div className="text-xs text-blue-400 flex items-center gap-1">
-                  <Users size={12} />
-                  Relations ({Object.values(memberRelations[lead.id]).flat().length})
-                </div>
+            {/* Always display relations line, even if count is 0, and make it clickable to edit */}
+            <div className="mt-2">
+              <div
+                className="text-xs text-blue-400 flex items-center gap-1 cursor-pointer"
+                onClick={() => onEditLead(lead, "relations")} // Changed to onEditLead and added 'relations' tab
+              >
+                <Users size={12} /> Relations ({hasRelationsCount})
               </div>
-            )}
+            </div>
           </div>
-
           {/* Three-dot menu */}
           <div className="absolute top-0 right-0">
             <button
@@ -213,8 +196,7 @@ const LeadCard = ({
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
                 >
-                  <Info size={14} />
-                  View Details
+                  <Info size={14} /> View Details
                 </button>
                 <button
                   onClick={() => {
@@ -223,8 +205,7 @@ const LeadCard = ({
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
                 >
-                  <Edit size={14} />
-                  Edit
+                  <Edit size={14} /> Edit
                 </button>
                 <button
                   onClick={() => {
@@ -233,14 +214,12 @@ const LeadCard = ({
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2"
                 >
-                  <Trash2 size={14} />
-                  Delete
+                  <Trash2 size={14} /> Delete
                 </button>
               </div>
             )}
           </div>
         </div>
-
         <div className="flex justify-center">
           {isInTrialColumn ? (
             <button
@@ -343,7 +322,6 @@ export default function LeadManagement() {
     { id: "missed", title: "Missed Call", color: "#8b5cf6" },
     { id: "trial", title: "Trial Training Arranged", color: "#3b82f6", isFixed: true },
   ])
-
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
@@ -358,6 +336,7 @@ export default function LeadManagement() {
   const [leadToDeleteId, setLeadToDeleteId] = useState(null)
   const navigate = useNavigate()
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [selectedEditTab, setSelectedEditTab] = useState("details") // New state for EditLeadModal tab
 
   // Relations states - enhanced for leads
   const [memberRelations, setMemberRelations] = useState({
@@ -415,10 +394,8 @@ export default function LeadManagement() {
       toast.error("Please fill in all fields")
       return
     }
-
     const relationId = Date.now()
     const updatedRelations = { ...memberRelations }
-
     if (!updatedRelations[selectedLead.id]) {
       updatedRelations[selectedLead.id] = {
         family: [],
@@ -428,14 +405,12 @@ export default function LeadManagement() {
         other: [],
       }
     }
-
     updatedRelations[selectedLead.id][newRelation.category].push({
       id: relationId,
       name: newRelation.name,
       relation: newRelation.relation,
       type: newRelation.type,
     })
-
     setMemberRelations(updatedRelations)
     setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
     toast.success("Relation added successfully")
@@ -451,7 +426,6 @@ export default function LeadManagement() {
   }
 
   const columnRefs = useRef({})
-
   useEffect(() => {
     columns.forEach((column) => {
       if (!columnRefs.current[column.id]) {
@@ -481,6 +455,10 @@ export default function LeadManagement() {
         endDate: "2025-03-15",
       },
       columnId: "active",
+      company: "Fitness Pro", // Added for contract pre-selection
+      interestedIn: "Premium", // Added for contract pre-selection
+      birthday: "1990-05-20", // Added for ViewLeadDetailsModal
+      address: "123 Main St, Anytown, USA", // Added for ViewLeadDetailsModal
     },
     {
       id: "h2",
@@ -501,6 +479,10 @@ export default function LeadManagement() {
         endDate: "2025-04-20",
       },
       columnId: "passive",
+      company: "Wellness Hub", // Added for contract pre-selection
+      interestedIn: "Basic", // Added for contract pre-selection
+      birthday: "1988-11-10", // Added for ViewLeadDetailsModal
+      address: "456 Oak Ave, Otherville, USA", // Added for ViewLeadDetailsModal
     },
     {
       id: "h3",
@@ -521,6 +503,10 @@ export default function LeadManagement() {
         endDate: "2025-02-25",
       },
       columnId: "trial",
+      company: "Gym Central", // Added for contract pre-selection
+      interestedIn: "Bronze", // Added for contract pre-selection
+      birthday: "1995-03-01", // Added for ViewLeadDetailsModal
+      address: "789 Pine Ln, Anycity, USA", // Added for ViewLeadDetailsModal
     },
     {
       id: "h4",
@@ -541,13 +527,16 @@ export default function LeadManagement() {
         endDate: "2025-05-01",
       },
       columnId: "uninterested",
+      company: "Active Life", // Added for contract pre-selection
+      interestedIn: "Basic", // Added for contract pre-selection
+      birthday: "1992-07-18", // Added for ViewLeadDetailsModal
+      address: "101 Elm St, Smalltown, USA", // Added for ViewLeadDetailsModal
     },
   ]
 
   useEffect(() => {
     const storedLeads = localStorage.getItem("leads")
     let combinedLeads = [...hardcodedLeads]
-
     if (storedLeads) {
       const parsedStoredLeads = JSON.parse(storedLeads).map((lead) => ({
         ...lead,
@@ -556,7 +545,6 @@ export default function LeadManagement() {
       }))
       combinedLeads = [...hardcodedLeads, ...parsedStoredLeads]
     }
-
     setLeads(combinedLeads)
   }, [])
 
@@ -575,8 +563,9 @@ export default function LeadManagement() {
     setIsCreateContractModalOpen(true)
   }
 
-  const handleEditLead = (lead) => {
+  const handleEditLead = (lead, tab = "details") => {
     setSelectedLead(lead)
+    setSelectedEditTab(tab) // Set the tab
     setIsEditModalOpen(true)
   }
 
@@ -589,13 +578,11 @@ export default function LeadManagement() {
     const leadToDelete = leads.find((lead) => lead.id === leadToDeleteId)
     const updatedLeads = leads.filter((lead) => lead.id !== leadToDeleteId)
     setLeads(updatedLeads)
-
     // Only update localStorage if the deleted lead was from localStorage
     if (leadToDelete?.source === "localStorage") {
       const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
       localStorage.setItem("leads", JSON.stringify(localStorageLeads))
     }
-
     setIsDeleteConfirmationModalOpen(false)
     toast.success("Lead has been deleted")
   }
@@ -621,11 +608,13 @@ export default function LeadManagement() {
         startDate: data.noteStartDate || null,
         endDate: data.noteEndDate || null,
       },
+      company: data.company || "", // Added
+      interestedIn: data.interestedIn || "", // Added
+      birthday: data.birthday || null, // Added
+      address: data.address || "", // Added
     }
-
     const updatedLeads = [...leads, newLead]
     setLeads(updatedLeads)
-
     // Store only localStorage leads
     const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
     localStorage.setItem("leads", JSON.stringify(localStorageLeads))
@@ -652,12 +641,14 @@ export default function LeadManagement() {
               startDate: data.specialNote?.startDate || null,
               endDate: data.specialNote?.endDate || null,
             },
+            company: data.company || lead.company, // Added
+            interestedIn: data.interestedIn || lead.interestedIn, // Added
+            birthday: data.birthday || lead.birthday, // Added
+            address: data.address || lead.address, // Added
           }
         : lead,
     )
-
     setLeads(updatedLeads)
-
     // Only update localStorage with non-hardcoded leads
     const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage")
     localStorage.setItem("leads", JSON.stringify(localStorageLeads))
@@ -673,7 +664,6 @@ export default function LeadManagement() {
     // Find which column the element is over
     let targetColumnId = null
     let targetColumnElement = null
-
     for (const [columnId, columnRef] of Object.entries(columnRefs.current)) {
       if (columnRef.current) {
         const columnRect = columnRef.current.getBoundingClientRect()
@@ -694,7 +684,6 @@ export default function LeadManagement() {
     if (targetColumnId) {
       const leadCards = targetColumnElement.querySelectorAll('[data-column-id="' + targetColumnId + '"] > div > div')
       let targetIndex = -1
-
       for (let i = 0; i < leadCards.length; i++) {
         const cardRect = leadCards[i].getBoundingClientRect()
         const cardCenterY = cardRect.top + cardRect.height / 2
@@ -703,7 +692,6 @@ export default function LeadManagement() {
           break
         }
       }
-
       // If no target index found, append to the end
       if (targetIndex === -1) {
         targetIndex = leadCards.length
@@ -711,18 +699,14 @@ export default function LeadManagement() {
 
       // Create a copy of the leads array
       const updatedLeads = [...leads]
-
       // If moving to a different column
       if (targetColumnId !== sourceColumnId) {
         // If dropping into trial column, set hasTrialTraining to true
         const hasTrialTraining = targetColumnId === "trial"
-
         // Find the lead to move
         const leadToMove = updatedLeads.find((l) => l.id === lead.id)
-
         // Remove the lead from its current position
         const filteredLeads = updatedLeads.filter((l) => l.id !== lead.id)
-
         // Update the lead's properties
         const updatedLead = {
           ...leadToMove,
@@ -730,17 +714,13 @@ export default function LeadManagement() {
           hasTrialTraining: hasTrialTraining || leadToMove.hasTrialTraining,
           status: targetColumnId !== "trial" ? targetColumnId : leadToMove.status,
         }
-
         // Insert the lead at the target position
         filteredLeads.splice(targetIndex, 0, updatedLead)
-
         // Update the leads state
         setLeads(filteredLeads)
-
         // Update localStorage
         const localStorageLeads = filteredLeads.filter((l) => l.source === "localStorage")
         localStorage.setItem("leads", JSON.stringify(localStorageLeads))
-
         toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title}`)
       }
     }
@@ -866,7 +846,6 @@ export default function LeadManagement() {
           },
         }}
       />
-
       <div className="flex md:flex-row flex-col gap-2 justify-between md:items-center items-start mb-6">
         <div className="gap-2 w-full md:w-auto flex justify-between items-center ">
           <h1 className="text-2xl text-white font-bold">Leads</h1>
@@ -884,8 +863,7 @@ export default function LeadManagement() {
             onClick={() => setIsModalOpen(true)}
             className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl flex items-center gap-2"
           >
-            <Plus size={16} />
-            Create Lead
+            <Plus size={16} /> Create Lead
           </button>
           <div className="md:block hidden">
             <IoIosMenu
@@ -896,7 +874,6 @@ export default function LeadManagement() {
           </div>
         </div>
       </div>
-
       <div className="mb-6 relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         <input
@@ -907,7 +884,6 @@ export default function LeadManagement() {
           className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
         />
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {columns.map((column) => (
           <Column
@@ -929,9 +905,7 @@ export default function LeadManagement() {
           />
         ))}
       </div>
-
       <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
-
       <SidebarArea
         isOpen={isRightSidebarOpen}
         onClose={closeSidebar}
@@ -946,14 +920,13 @@ export default function LeadManagement() {
         openDropdownIndex={openDropdownIndex}
         setEditingLink={setEditingLink}
       />
-
       {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>}
-
       <EditLeadModal
         isVisible={isEditModalOpen}
         onClose={() => {
           setIsEditModalOpen(false)
           setSelectedLead(null)
+          setSelectedEditTab("details") // Reset tab on close
         }}
         onSave={handleSaveEdit}
         leadData={selectedLead}
@@ -968,8 +941,8 @@ export default function LeadManagement() {
         relationOptions={relationOptions}
         handleAddRelation={handleAddRelation}
         handleDeleteRelation={handleDeleteRelation}
+        initialTab={selectedEditTab} // Pass the initial tab
       />
-
       <ViewLeadDetailsModal
         isVisible={isViewDetailsModalOpen}
         onClose={() => {
@@ -978,8 +951,8 @@ export default function LeadManagement() {
         }}
         leadData={selectedLead}
         memberRelations={memberRelations}
+        onEditLead={handleEditLead} // Pass onEditLead
       />
-
       <TrialTrainingModal
         isOpen={isTrialModalOpen}
         onClose={() => {
@@ -998,7 +971,6 @@ export default function LeadManagement() {
           { id: "slot3", date: "2023-10-02", time: "14:00" },
         ]}
       />
-
       {isCreateContractModalOpen && (
         <AddContractModal
           onClose={() => {
@@ -1017,12 +989,13 @@ export default function LeadManagement() {
                   name: `${selectedLead.firstName} ${selectedLead.surname}`,
                   email: selectedLead.email,
                   phone: selectedLead.phoneNumber,
+                  company: selectedLead.company, // Ensure company is passed
+                  interestedIn: selectedLead.interestedIn, // Ensure interestedIn is passed
                 }
               : null
           }
         />
       )}
-
       <EditColumnModal
         isVisible={isEditColumnModalOpen}
         onClose={() => {
@@ -1032,7 +1005,6 @@ export default function LeadManagement() {
         column={selectedColumn}
         onSave={handleSaveColumn}
       />
-
       <ConfirmationModal
         isVisible={isDeleteConfirmationModalOpen}
         onClose={() => setIsDeleteConfirmationModalOpen(false)}

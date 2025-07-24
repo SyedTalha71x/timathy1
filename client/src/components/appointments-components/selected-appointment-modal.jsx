@@ -235,7 +235,7 @@ const SelectedAppointmentModal = ({
                   onClick={() => toggleBookingType(false)}
                   className={`px-4 py-2 text-sm rounded-xl ${
                     !showRecurringOptions
-                      ? "bg-[#3F74FF] text-white"
+                      ? "bg-[#FF843E] text-white"
                       : "bg-[#101010] text-gray-300"
                   }`}
                 >
@@ -246,7 +246,7 @@ const SelectedAppointmentModal = ({
                   onClick={() => toggleBookingType(true)}
                   className={`px-4 py-2 text-sm rounded-xl ${
                     showRecurringOptions
-                      ? "bg-[#3F74FF] text-white"
+                      ? "bg-[#FF843E] text-white"
                       : "bg-[#101010] text-gray-300"
                   }`}
                 >
@@ -572,7 +572,7 @@ const SelectedAppointmentModal = ({
         <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
           <button
             onClick={checkAvailability}
-            className="w-full sm:w-auto px-5 py-2.5 text-sm bg-[#3F74FF]  font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 text-sm bg-[#FF843E]  font-medium text-white rounded-xl transition-colors"
           >
             {showRecurringOptions ? "Save Mass Bookings" : "Save Changes"}
           </button>

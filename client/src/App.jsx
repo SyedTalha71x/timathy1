@@ -25,6 +25,7 @@ import Finances from "./dashboard-pages/finances";
 import Training from "./dashboard-pages/training";
 import ActivityMonitor from "./dashboard-pages/activity-monitor";
 import Analytics from './dashboard-pages/analytics'
+import HelpCenter from "./dashboard-pages/help-center";
 
 
 // Customer Dashboard
@@ -70,6 +71,9 @@ function App() {
           <Route path="training" element={<Training />} />
           <Route path="activity-monitor" element={<ActivityMonitor />} />
           <Route path="analytics" element={<Analytics />} />
+                    <Route path="help-center" element={<HelpCenter />} />
+
+
 
         </Route>
 

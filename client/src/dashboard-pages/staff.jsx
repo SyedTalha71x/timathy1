@@ -273,23 +273,23 @@ export default function StaffManagement() {
                   <p className="text-gray-400 text-xs sm:text-sm mb-2">{staff.role}</p>
                   <p className="text-gray-400 text-xs sm:text-sm mb-4">{staff.description}</p>
                   <div className="flex gap-2 mt-2 flex-wrap justify-center">
-                    <button
-                      onClick={() => handleEdit(staff)}
-                      className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm"
-                    >
-                      Edit
-                    </button>
+                  <button
+                          onClick={() => handleEdit(staff)}
+                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto"
+                        >
+                          Edit
+                        </button>
                     <button
                       onClick={() => handleHistoryClick(staff)}
-                      className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm flex items-center gap-1"
+                      className="text-white md:w-12 w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                     >
-                      <History className="h-3 w-3" />
+                      <History size={16} />
                     </button>
                     <button
                       onClick={() => handleChatClick(staff)}
-                      className="text-white border border-slate-500 bg-black rounded-xl py-1.5 px-4 sm:px-6 hover:text-white text-sm flex items-center gap-1"
+                      className="text-white md:w-12 w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                     >
-                      <MessageCircle className="h-3 w-3" />
+                      <MessageCircle size={16} />
                     </button>
                   </div>
                 </div>

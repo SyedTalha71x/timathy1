@@ -231,9 +231,9 @@ export default function SidebarAreaSelling({
   discountAmount = 0,
   afterDiscount = 0,
   vatAmount = 0,
-  total = 0,
+  total = 0,  
 }){
-  const [activeTab, setActiveTab] = useState("widgets")
+  const [activeTab, setActiveTab] = useState("shopping")
   const [sidebarWidgets, setSidebarWidgets] = useState([
     { id: "communications", type: "communications", position: 0 },
     { id: "todo", type: "todo", position: 1 },
@@ -380,16 +380,7 @@ export default function SidebarAreaSelling({
 
           {/* Updated Tab Navigation with Shopping Tab */}
           <div className="flex mb-4 bg-black rounded-xl p-1">
-            <button
-              onClick={() => setActiveTab("widgets")}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              <Settings size={16} className="inline mr-2" />
-              Widgets
-            </button>
-            <button
+          <button
               onClick={() => setActiveTab("shopping")}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === "shopping" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
@@ -403,6 +394,16 @@ export default function SidebarAreaSelling({
                 </span>
               )}
             </button>
+            <button
+              onClick={() => setActiveTab("widgets")}
+              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Settings size={16} className="inline mr-2" />
+              Widgets
+            </button>
+          
             <button
               onClick={() => setActiveTab("notifications")}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
@@ -637,9 +638,28 @@ export default function SidebarAreaSelling({
             <div>
               <h2 className="text-xl md:text-2xl font-bold oxanium_font mb-6">Shopping Basket</h2>
 
+              <div className="mt-3">
+                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={sellWithoutMember}
+                      onChange={(e) => {
+                        setSellWithoutMember(e.target.checked)
+                        if (e.target.checked) {
+                          setSelectedMember("")
+                          setMemberSearchQuery("")
+                          setShowMemberResults(false)
+                        }
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                   Sell without selecting a member
+                  </label>
+                </div>
+
               {/* Member selection with search */}
-              <div className="mb-4 relative member-search-container">
-                <label className="text-sm text-gray-200 block mb-2">Search Member</label>
+              <div className="mb-4 relative member-search-container mt-3">
+                {/* <label className="text-sm text-gray-200 block mb-2">Search Member</label> */}
                 <div className="relative">
                   <input
                     type="text"
@@ -682,24 +702,7 @@ export default function SidebarAreaSelling({
                   </div>
                 )}
                 {/* Sell without member option */}
-                <div className="mt-3">
-                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sellWithoutMember}
-                      onChange={(e) => {
-                        setSellWithoutMember(e.target.checked)
-                        if (e.target.checked) {
-                          setSelectedMember("")
-                          setMemberSearchQuery("")
-                          setShowMemberResults(false)
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                    Sell without member
-                  </label>
-                </div>
+               
               </div>
 
               {/* Cart items */}
@@ -763,7 +766,7 @@ export default function SidebarAreaSelling({
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Payment Method</label>
                       <div className="grid grid-cols-3 gap-1">
-                        {["Cash", "Card", "Pay Later"].map((method) => (
+                        {["Cash", "Card", "Direct Debit"].map((method) => (
                           <button
                             key={method}
                             onClick={() => setSelectedPaymentMethod(method)}
