@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from "react"
@@ -13,18 +15,18 @@ import {
   Check,
   Move,
   ExternalLink,
-  Menu,
   Info,
+  History,
 } from "lucide-react"
 import ProductImage from "../../public/1_55ce827a-2b63-4b1d-aa55-2c2b6dc6c96e.webp"
 import MenJordanShows from "../../public/jd_product_list.webp"
 import { FaProductHunt } from "react-icons/fa6"
 import { RiServiceFill } from "react-icons/ri"
-import SidebarAreaSelling from "../components/custom-sidebar-selling"
-
+import SidebarAreaSelling from "../components/selling-components/custom-sidebar-selling"
 import Avatar from "../../public/avatar.png"
 import Rectangle1 from "../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
+import HistoryModal from "../components/selling-components/history-modal"
 
 function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -44,7 +46,7 @@ function App() {
     brandName: "",
     link: "",
   })
-  
+
   // New temporary member form state
   const [tempMemberForm, setTempMemberForm] = useState({
     firstName: "",
@@ -62,9 +64,7 @@ function App() {
     noteStartDate: "",
     noteEndDate: "",
   })
-  
   const [tempMemberModalTab, setTempMemberModalTab] = useState("details")
-  
   const [selectedImage, setSelectedImage] = useState(null)
   const fileInputRef = useRef(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -91,12 +91,10 @@ function App() {
     { id: 1, name: "John Doe", message: "Hello, how are you?", time: "2 min ago", avatar: Rectangle1 },
     { id: 2, name: "Jane Smith", message: "Meeting at 3 PM", time: "5 min ago", avatar: Rectangle1 },
   ]
-
   const todos = [
     { id: 1, title: "Review proposals", description: "Check new member applications", assignee: "Admin" },
     { id: 2, title: "Update website", description: "Add new features", assignee: "Dev" },
   ]
-
   const birthdays = [
     { id: 1, name: "Alice Johnson", date: "Tomorrow", avatar: Avatar },
     { id: 2, name: "Bob Wilson", date: "Next week", avatar: Avatar },
@@ -108,7 +106,6 @@ function App() {
     { id: 2, name: "Jane Smith" },
     { id: 3, name: "Mike Johnson" },
   ])
-
   const [products, setProducts] = useState([
     {
       id: 1,
@@ -135,7 +132,6 @@ function App() {
       link: "",
     },
   ])
-
   const [services, setServices] = useState([
     {
       id: 101,
@@ -158,18 +154,17 @@ function App() {
       link: "",
     },
   ])
-  
-  
-  
+
+  // New state for sales history
+  const [salesHistory, setSalesHistory] = useState([])
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
 
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
   }
-
   const toggleDropdown = (id) => {
     setOpenDropdownIndex(openDropdownIndex === id ? null : id)
   }
-
   const openAddModal = () => {
     setModalMode("add")
     setFormData({
@@ -184,7 +179,6 @@ function App() {
     setCurrentProduct(null)
     setIsModalOpen(true)
   }
-
   const openEditModal = (item) => {
     setModalMode("edit")
     setFormData({
@@ -199,7 +193,6 @@ function App() {
     setCurrentProduct(item)
     setIsModalOpen(true)
   }
-
   const closeModal = () => {
     setIsModalOpen(false)
   }
@@ -212,7 +205,6 @@ function App() {
       [name]: value,
     })
   }
-
   const handleCreateTempMember = (e) => {
     e.preventDefault()
     const newMember = {
@@ -236,7 +228,6 @@ function App() {
     setSelectedMember(newMember.id)
     setMemberSearchQuery(newMember.name)
     setShowMemberResults(false)
-    
     // Reset form
     setTempMemberForm({
       firstName: "",
@@ -257,7 +248,6 @@ function App() {
     setTempMemberModalTab("details")
     setShowCreateTempMemberModal(false)
   }
-
   const handleInputChange = (e) => {
     const { name, value } = e.target
     if (name === "price") {
@@ -274,7 +264,6 @@ function App() {
       })
     }
   }
-
   const handleImageUpload = (e) => {
     const file = e.target.files[0]
     if (file) {
@@ -285,7 +274,6 @@ function App() {
       reader.readAsDataURL(file)
     }
   }
-
   const handleSubmit = () => {
     const isService = activeTab === "services"
     if (modalMode === "add") {
@@ -344,11 +332,9 @@ function App() {
     }
     setIsRightSidebarOpen(true)
   }
-
   const removeFromCart = (itemId) => {
     setCart(cart.filter((item) => item.id !== itemId))
   }
-
   const updateQuantity = (itemId, newQuantity) => {
     if (newQuantity < 1) {
       removeFromCart(itemId)
@@ -356,17 +342,14 @@ function App() {
     }
     setCart(cart.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
   }
-
   const openDeleteModal = (item) => {
     setProductToDelete(item)
     setIsDeleteModalOpen(true)
   }
-
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false)
     setProductToDelete(null)
   }
-
   const confirmDelete = () => {
     if (productToDelete) {
       if (productToDelete.type === "service") {
@@ -384,6 +367,43 @@ function App() {
     }
   }
 
+  // Checkout function to record sales history
+  const handleCheckout = () => {
+    if (cart.length === 0) return
+
+    const newSale = {
+      id: Date.now(),
+      date: new Date().toLocaleString(),
+      items: cart.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        type: item.type,
+        articalNo: item.articalNo,
+        brandName: item.brandName,
+      })),
+      totalAmount: total,
+      subtotal: subtotal,
+      discountApplied: discountAmount,
+      vatApplied: vatAmount,
+      paymentMethod: selectedPaymentMethod,
+      soldBy: sellWithoutMember
+        ? "No Member"
+        : selectedMember
+          ? members.find((m) => m.id === selectedMember)?.name
+          : "No Member Selected",
+    }
+
+    setSalesHistory((prevHistory) => [newSale, ...prevHistory]) // Add new sale to the beginning
+    setCart([]) // Clear cart after checkout
+    setSelectedMember("") // Reset selected member
+    setMemberSearchQuery("") // Reset member search
+    setSellWithoutMember(false) // Reset sell without member
+    setDiscount("") // Reset discount
+    setSelectedPaymentMethod("Cash") // Reset payment method
+    setIsRightSidebarOpen(false) // Close sidebar after checkout
+  }
+
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const discountValue = discount === "" ? 0 : Number.parseFloat(discount)
@@ -391,18 +411,15 @@ function App() {
   const afterDiscount = subtotal - discountAmount
   const vatAmount = afterDiscount * (selectedVat / 100)
   const total = afterDiscount + vatAmount
-
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(memberSearchQuery.toLowerCase()),
   )
-
   const selectMember = (member) => {
     setSelectedMember(member.id)
     setMemberSearchQuery(member.name)
     setShowMemberResults(false)
     setSellWithoutMember(false)
   }
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (openDropdownId !== null && !event.target.closest(".dropdown-container")) {
@@ -417,11 +434,9 @@ function App() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [openDropdownId, showMemberResults])
-
   const [sortBy, setSortBy] = useState("name")
   const [sortDirection, setSortDirection] = useState("asc")
   const [isEditModeActive, setIsEditModeActive] = useState(false)
-
   const sortItems = (items, sortBy, sortDirection) => {
     const sortedItems = [...items].sort((a, b) => {
       let comparison
@@ -434,7 +449,6 @@ function App() {
     })
     return sortedItems
   }
-
   const moveItem = (fromIndex, direction, isService = false) => {
     const items = isService ? services : products
     const setItems = isService ? setServices : setProducts
@@ -445,7 +459,6 @@ function App() {
     else if (width >= 1024) columns = 4
     else if (width >= 768) columns = 3
     else if (width >= 640) columns = 2
-
     let toIndex
     switch (direction) {
       case "left":
@@ -461,7 +474,6 @@ function App() {
       default:
         return
     }
-
     if (toIndex !== undefined && toIndex !== fromIndex) {
       const [movedItem] = newItems.splice(fromIndex, 1)
       newItems.splice(toIndex, 0, movedItem)
@@ -471,11 +483,9 @@ function App() {
       setItems(newItems)
     }
   }
-
   const getCurrentItems = () => {
     return activeTab === "services" ? services : products
   }
-
   const getFilteredItems = () => {
     const items = getCurrentItems()
     return items.filter(
@@ -485,7 +495,6 @@ function App() {
         (item.articalNo && item.articalNo.toLowerCase().includes(searchQuery.toLowerCase())),
     )
   }
-
   useEffect(() => {
     const handleResize = () => {
       setProducts([...products])
@@ -506,10 +515,7 @@ function App() {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-white open_sans_font_700 text-lg font-semibold">Create Temporary Member</h2>
-                <button
-                  onClick={() => setShowCreateTempMemberModal(false)}
-                  className="text-gray-400 hover:text-white"
-                >
+                <button onClick={() => setShowCreateTempMemberModal(false)} className="text-gray-400 hover:text-white">
                   <X size={20} className="cursor-pointer" />
                 </button>
               </div>
@@ -519,13 +525,12 @@ function App() {
                   <div>
                     <p className="text-yellow-200 text-sm font-medium mb-1">Temporary Member Information</p>
                     <p className="text-yellow-300/80 text-xs">
-                      Temporary members are members without a contract and are not included in payment runs. They
-                      will be automatically archived after the specified period.
+                      Temporary members are members without a contract and are not included in payment runs. They will
+                      be automatically archived after the specified period.
                     </p>
                   </div>
                 </div>
               </div>
-
               {/* Tab Navigation for Create Temp Member */}
               <div className="flex border-b border-gray-700 mb-6">
                 <button
@@ -549,7 +554,6 @@ function App() {
                   Special Note
                 </button>
               </div>
-
               <form
                 onSubmit={handleCreateTempMember}
                 className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]"
@@ -668,7 +672,6 @@ function App() {
                     </div>
                   </>
                 )}
-
                 {tempMemberModalTab === "note" && (
                   <div className="border border-slate-700 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-4">
@@ -733,7 +736,6 @@ function App() {
           </div>
         </div>
       )}
-
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
@@ -769,7 +771,6 @@ function App() {
           </div>
         </div>
       )}
-
       {/* Edit/Add Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
@@ -832,22 +833,21 @@ function App() {
                   />
                 </div>
                 <div className={"grid grid-cols-2 gap-4"}>
-                <div>
-  <label className="text-sm text-gray-200 block mb-2">Price *</label>
-  <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-    <span className="px-3 text-white text-sm">€</span>
-    <input
-      type="text"
-      name="price"
-      value={formData.price}
-      onChange={handleInputChange}
-      placeholder="0.00"
-      className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
-      required
-    />
-  </div>
-</div>
-
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Price *</label>
+                    <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
+                      <span className="px-3 text-white text-sm">€</span>
+                      <input
+                        type="text"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        placeholder="0.00"
+                        className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
                   {activeTab === "products" && (
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Article Number</label>
@@ -906,7 +906,6 @@ function App() {
           </div>
         </div>
       )}
-
       <main className="flex-1 min-w-0">
         <div className="p-4 md:p-8">
           {/* Main Header Row */}
@@ -914,13 +913,13 @@ function App() {
             {/* Left side - Title and Tab Buttons */}
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <h1 className="text-xl md:text-2xl font-bold oxanium_font whitespace-nowrap">Selling</h1>
-
               {/* Tab Buttons */}
               <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
                 <button
                   onClick={() => setActiveTab("products")}
-                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${activeTab === "products" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                    }`}
+                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${
+                    activeTab === "products" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
                 >
                   <FaProductHunt size={16} className="inline mr-1 md:mr-2" />
                   <span className="hidden sm:inline">Products</span>
@@ -928,22 +927,23 @@ function App() {
                 </button>
                 <button
                   onClick={() => setActiveTab("services")}
-                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${activeTab === "services" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                    }`}
+                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${
+                    activeTab === "services" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
                 >
                   <RiServiceFill size={16} className="inline mr-1 md:mr-2" />
                   <span className="hidden sm:inline">Services</span>
                   {/* <span className="sm:hidden">Serv</span> */}
                 </button>
               </div>
-
               <div>
                 <button
                   onClick={() => setIsEditModeActive(!isEditModeActive)}
-                  className={`p-2 cursor-pointer rounded-xl text-sm ${isEditModeActive
-                    ? "bg-blue-600 hover:bg-blue-700 text-white"
-                    : "bg-[#333333] hover:bg-[#555555] text-gray-300"
-                    } transition-colors flex items-center gap-2 whitespace-nowrap`}
+                  className={`p-2 cursor-pointer rounded-xl text-sm ${
+                    isEditModeActive
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-[#333333] hover:bg-[#555555] text-gray-300"
+                  } transition-colors flex items-center gap-2 whitespace-nowrap`}
                 >
                   {isEditModeActive ? (
                     <>
@@ -959,14 +959,18 @@ function App() {
                 </button>
               </div>
             </div>
-
-
             <div className="flex items-center gap-2">
-
-
+              {/* History Icon */}
+              <button
+                onClick={() => setShowHistoryModal(true)}
+                className="cursor-pointer rounded-md text-sm hover:bg-white hover:text-black transition-colors flex items-center gap-2 p-2"
+                title="View Sales History"
+              >
+                <History size={25} />
+              </button>
               <button
                 onClick={toggleRightSidebar}
-                className="cursor-pointer rounded-md text-sm hover:bg-white hover:text-black transition-colors hidden md:flex items-center gap-2 p-2 relative"
+                className="cursor-pointer rounded-md text-sm hover:bg-white hover:text-black transition-colors flex items-center gap-2 p-2 relative"
                 title="Open Shopping Cart"
               >
                 <IoIosMenu size={25} />
@@ -978,36 +982,32 @@ function App() {
               </button>
             </div>
           </div>
-
           <div className="hidden lg:flex items-center mb-3 justify-end gap-2">
-  <label htmlFor="sort" className="text-sm text-gray-200 whitespace-nowrap">
-    Sort:
-  </label>
-  <select
-    id="sort"
-    value={`${sortBy}-${sortDirection}`}
-    onChange={(e) => {
-      const [field, direction] = e.target.value.split("-");
-      setSortBy(field);
-      setSortDirection(direction);
-    }}
-    className="bg-[#101010] text-sm rounded-xl px-3 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-  >
-    <option value="name-asc">Name (Ascending)</option>
-    <option value="name-desc">Name (Descending)</option>
-    <option value="price-asc">Price (Ascending)</option>
-    <option value="price-desc">Price (Descending)</option>
-    {activeTab === "products" && (
-      <>
-        <option value="articalNo-asc">Article No. (Ascending)</option>
-        <option value="articalNo-desc">Article No. (Descending)</option>
-      </>
-    )}
-  </select>
-</div>
-
-
-
+            <label htmlFor="sort" className="text-sm text-gray-200 whitespace-nowrap">
+              Sort:
+            </label>
+            <select
+              id="sort"
+              value={`${sortBy}-${sortDirection}`}
+              onChange={(e) => {
+                const [field, direction] = e.target.value.split("-")
+                setSortBy(field)
+                setSortDirection(direction)
+              }}
+              className="bg-[#101010] text-sm rounded-xl px-3 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+            >
+              <option value="name-asc">Name (Ascending)</option>
+              <option value="name-desc">Name (Descending)</option>
+              <option value="price-asc">Price (Ascending)</option>
+              <option value="price-desc">Price (Descending)</option>
+              {activeTab === "products" && (
+                <>
+                  <option value="articalNo-asc">Article No. (Ascending)</option>
+                  <option value="articalNo-desc">Article No. (Descending)</option>
+                </>
+              )}
+            </select>
+          </div>
           <div className="flex gap-2 items-center mb-4">
             <div className="relative flex-1">
               <input
@@ -1018,7 +1018,6 @@ function App() {
                 className="bg-[#181818] text-white rounded-xl px-4 py-2 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
               />
             </div>
-
             <button
               onClick={openAddModal}
               className="flex items-center justify-center gap-2 bg-[#FF843E] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 whitespace-nowrap"
@@ -1027,42 +1026,36 @@ function App() {
               <span className="hidden sm:inline">Add {activeTab === "services" ? "Service" : "Product"}</span>
               <span className="sm:hidden">Add</span>
             </button>
-
             {/* Desktop Menu button */}
-
           </div>
-
-
           <div className="md:hidden block mb-5 w-full">
-  <label htmlFor="sort" className="text-sm text-gray-200 hidden whitespace-nowrap">
-    Sort:
-  </label>
-  <div className="flex flex-col gap-3">
-    <select
-      id="sort"
-      value={`${sortBy}-${sortDirection}`}
-      onChange={(e) => {
-        const [field, direction] = e.target.value.split("-");
-        setSortBy(field);
-        setSortDirection(direction);
-      }}
-      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-    >
-      <option value="name-asc">Name (Ascending)</option>
-      <option value="name-desc">Name (Descending)</option>
-      <option value="price-asc">Price (Ascending)</option>
-      <option value="price-desc">Price (Descending)</option>
-      {activeTab === "products" && (
-        <>
-          <option value="articalNo-asc">Article No. (Ascending)</option>
-          <option value="articalNo-desc">Article No. (Descending)</option>
-        </>
-      )}
-    </select>
-  </div>
-</div>
-
-
+            <label htmlFor="sort" className="text-sm text-gray-200 hidden whitespace-nowrap">
+              Sort:
+            </label>
+            <div className="flex flex-col gap-3">
+              <select
+                id="sort"
+                value={`${sortBy}-${sortDirection}`}
+                onChange={(e) => {
+                  const [field, direction] = e.target.value.split("-")
+                  setSortBy(field)
+                  setSortDirection(direction)
+                }}
+                className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              >
+                <option value="name-asc">Name (Ascending)</option>
+                <option value="name-desc">Name (Descending)</option>
+                <option value="price-asc">Price (Ascending)</option>
+                <option value="price-desc">Price (Descending)</option>
+                {activeTab === "products" && (
+                  <>
+                    <option value="articalNo-asc">Article No. (Ascending)</option>
+                    <option value="articalNo-desc">Article No. (Descending)</option>
+                  </>
+                )}
+              </select>
+            </div>
+          </div>
           {isEditModeActive && (
             <div className="bg-[#101010] p-3 rounded-xl mb-4 text-sm text-gray-300">
               <div className="flex items-center gap-2 mb-2">
@@ -1071,7 +1064,6 @@ function App() {
               </div>
             </div>
           )}
-
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
               <div key={item.id} className="w-full bg-[#181818] rounded-2xl overflow-hidden relative">
@@ -1132,7 +1124,6 @@ function App() {
                     {activeTab === "products" && item.articalNo && (
                       <p className="text-xs text-slate-400 mb-1 open_sans_font">Art. No: {item.articalNo}</p>
                     )}
-
                   </div>
                   {isEditModeActive && (
                     <div className="mt-2">
@@ -1179,7 +1170,6 @@ function App() {
           </div>
         </div>
       </main>
-
       {/* Sidebar Component */}
       <SidebarAreaSelling
         isOpen={isRightSidebarOpen}
@@ -1193,7 +1183,7 @@ function App() {
         redirectToTodos={() => console.log("Redirect to todos")}
         toggleDropdown={toggleDropdown}
         openDropdownIndex={openDropdownIndex}
-        setEditingLink={() => { }}
+        setEditingLink={() => {}}
         isEditing={false}
         // Shopping cart props
         cart={cart}
@@ -1214,7 +1204,7 @@ function App() {
         members={members}
         sellWithoutMember={sellWithoutMember}
         setSellWithoutMember={setSellWithoutMember}
-        setIsTempMemberModalOpen={() => {setTempMemberModalTab(true)}}
+        setIsTempMemberModalOpen={() => setShowCreateTempMemberModal(true)}
         filteredMembers={filteredMembers}
         selectMember={selectMember}
         subtotal={subtotal}
@@ -1223,14 +1213,17 @@ function App() {
         afterDiscount={afterDiscount}
         vatAmount={vatAmount}
         total={total}
+        handleCheckout={handleCheckout} // Pass checkout function
       />
-
       {isRightSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 cursor-pointer"
           onClick={() => setIsRightSidebarOpen(false)}
         ></div>
       )}
+
+      {/* History Modal */}
+      {showHistoryModal && <HistoryModal salesHistory={salesHistory} onClose={() => setShowHistoryModal(false)} />}
     </div>
   )
 }

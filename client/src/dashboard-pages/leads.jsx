@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react"
@@ -35,7 +37,7 @@ const LeadCard = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const noteRef = useRef(null)
   const menuRef = useRef(null)
-  const nodeRef = useRef(null)
+  const nodeRef = useRef(null) // Ref for the draggable node
 
   // Handle clicking outside the note popover
   useEffect(() => {
@@ -66,9 +68,11 @@ const LeadCard = ({
   }
 
   const hasValidNote = lead.specialNote && lead.specialNote.text && lead.specialNote.text.trim() !== ""
+
   const handleDragStart = () => {
     setIsDragging(true)
   }
+
   const handleDragStop = (e, data) => {
     setIsDragging(false)
     onDragStop(e, data, lead, columnId, index)
@@ -85,13 +89,13 @@ const LeadCard = ({
       nodeRef={nodeRef}
       onStart={handleDragStart}
       onStop={handleDragStop}
-      position={{ x: 0, y: 0 }}
+      // Removed position={{ x: 0, y: 0 }} to allow react-draggable to manage its own position
       cancel=".no-drag"
     >
       <div
         ref={nodeRef}
         className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${
-          isDragging ? "opacity-70 z-50 shadow-lg fixed" : "opacity-100"
+          isDragging ? "opacity-70 z-50 shadow-lg absolute" : "opacity-100" // Changed 'fixed' to 'absolute' for better mobile drag behavior
         }`}
         data-lead-id={lead.id}
       >
@@ -100,7 +104,7 @@ const LeadCard = ({
             <div
               className={`absolute -top-2 -left-2 ${
                 lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
-              }  rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer`}
+              }  rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
@@ -169,7 +173,7 @@ const LeadCard = ({
             {/* Always display relations line, even if count is 0, and make it clickable to edit */}
             <div className="mt-2">
               <div
-                className="text-xs text-blue-400 flex items-center gap-1 cursor-pointer"
+                className="text-xs text-blue-400 flex items-center gap-1 cursor-pointer no-drag" // Added no-drag here to allow clicks without triggering drag
                 onClick={() => onEditLead(lead, "relations")} // Changed to onEditLead and added 'relations' tab
               >
                 <Users size={12} /> Relations ({hasRelationsCount})
@@ -224,7 +228,7 @@ const LeadCard = ({
           {isInTrialColumn ? (
             <button
               onClick={() => onCreateContract(lead)}
-              className="bg-[#FF843E] hover:bg-[#E6753A] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
+              className="bg-[#FF843E] hover:bg-[#E64D2E] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
             >
               Create Contract
             </button>
@@ -533,7 +537,6 @@ export default function LeadManagement() {
       address: "101 Elm St, Smalltown, USA", // Added for ViewLeadDetailsModal
     },
   ]
-
   useEffect(() => {
     const storedLeads = localStorage.getItem("leads")
     let combinedLeads = [...hardcodedLeads]
@@ -692,6 +695,7 @@ export default function LeadManagement() {
           break
         }
       }
+
       // If no target index found, append to the end
       if (targetIndex === -1) {
         targetIndex = leadCards.length
@@ -699,14 +703,18 @@ export default function LeadManagement() {
 
       // Create a copy of the leads array
       const updatedLeads = [...leads]
+
       // If moving to a different column
       if (targetColumnId !== sourceColumnId) {
         // If dropping into trial column, set hasTrialTraining to true
         const hasTrialTraining = targetColumnId === "trial"
+
         // Find the lead to move
         const leadToMove = updatedLeads.find((l) => l.id === lead.id)
+
         // Remove the lead from its current position
         const filteredLeads = updatedLeads.filter((l) => l.id !== lead.id)
+
         // Update the lead's properties
         const updatedLead = {
           ...leadToMove,
@@ -714,10 +722,13 @@ export default function LeadManagement() {
           hasTrialTraining: hasTrialTraining || leadToMove.hasTrialTraining,
           status: targetColumnId !== "trial" ? targetColumnId : leadToMove.status,
         }
+
         // Insert the lead at the target position
         filteredLeads.splice(targetIndex, 0, updatedLead)
+
         // Update the leads state
         setLeads(filteredLeads)
+
         // Update localStorage
         const localStorageLeads = filteredLeads.filter((l) => l.source === "localStorage")
         localStorage.setItem("leads", JSON.stringify(localStorageLeads))

@@ -23,11 +23,10 @@ import {
   UserPlus,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
-import Image10 from "../../public/image10.png"
+import Image10 from "../../../public/image10.png"
 
 const SidebarWidgetSelectionModal = ({ isOpen, onClose, onSelectWidget, canAddWidget }) => {
   if (!isOpen) return null
-
   const availableWidgets = [
     {
       id: "communications",
@@ -54,7 +53,6 @@ const SidebarWidgetSelectionModal = ({ isOpen, onClose, onSelectWidget, canAddWi
       icon: "🔗",
     },
   ]
-
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
       <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 p-6">
@@ -116,10 +114,8 @@ const mockNotifications = [
 const WebsiteLinkModal = ({ link, onClose, customLinks, setCustomLinks }) => {
   const [title, setTitle] = useState(link?.title?.trim() || "")
   const [url, setUrl] = useState(link?.url?.trim() || "")
-
   const handleSave = () => {
     if (!title.trim() || !url.trim()) return
-
     if (link?.id) {
       // Update existing link
       setCustomLinks((currentLinks) =>
@@ -137,7 +133,6 @@ const WebsiteLinkModal = ({ link, onClose, customLinks, setCustomLinks }) => {
     onClose()
     toast.success(link?.id ? "Link updated successfully" : "Link added successfully")
   }
-
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70]">
       <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
@@ -231,8 +226,9 @@ export default function SidebarAreaSelling({
   discountAmount = 0,
   afterDiscount = 0,
   vatAmount = 0,
-  total = 0,  
-}){
+  total = 0,
+  handleCheckout, // New prop for checkout function
+}) {
   const [activeTab, setActiveTab] = useState("shopping")
   const [sidebarWidgets, setSidebarWidgets] = useState([
     { id: "communications", type: "communications", position: 0 },
@@ -243,11 +239,9 @@ export default function SidebarAreaSelling({
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
   const [editingLinkLocal, setEditingLinkLocal] = useState(null)
   const [isSidebarEditing, setIsSidebarEditing] = useState(false)
-
   const toggleSidebarEditing = () => {
     setIsSidebarEditing(!isSidebarEditing)
   }
-
   const moveSidebarWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= sidebarWidgets.length) return
     const newWidgets = [...sidebarWidgets]
@@ -255,12 +249,10 @@ export default function SidebarAreaSelling({
     newWidgets.splice(toIndex, 0, movedWidget)
     setSidebarWidgets(newWidgets.map((w, i) => ({ ...w, position: i })))
   }
-
   const removeSidebarWidget = (id) => {
     setSidebarWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
     toast.success("Widget removed successfully")
   }
-
   const handleAddWidget = (widgetType) => {
     const newWidget = {
       id: `sidebarWidget${Date.now()}`,
@@ -271,20 +263,16 @@ export default function SidebarAreaSelling({
     setIsWidgetModalOpen(false)
     toast.success(`${widgetType} widget has been added to sidebar`)
   }
-
   const canAddWidget = (widgetType) => {
     return !sidebarWidgets.some((widget) => widget.type === widgetType)
   }
-
   const addCustomLink = () => {
     setEditingLinkLocal({})
   }
-
   const removeCustomLink = (id) => {
     setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
     toast.success("Link removed successfully")
   }
-
   const moveCustomLink = (id, direction) => {
     setCustomLinks((currentLinks) => {
       const index = currentLinks.findIndex((link) => link.id === id)
@@ -297,7 +285,6 @@ export default function SidebarAreaSelling({
       return newLinks
     })
   }
-
   // Sidebar Widget Component with full edit functionality
   const SidebarWidget = ({ id, children, index, isEditing }) => {
     return (
@@ -333,16 +320,13 @@ export default function SidebarAreaSelling({
       </div>
     )
   }
-
   return (
     <>
       {isOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />}
       <aside
-        className={`          
-          fixed top-0 right-0 h-full w-full lg:max-w-lg bg-[#181818] border-l border-gray-700 z-50          
-          transform transition-transform duration-500 ease-in-out
-          ${isOpen ? "translate-x-0" : "translate-x-full"}        
-        `}
+        className={`fixed top-0 right-0 h-full w-full lg:max-w-lg bg-[#181818] border-l border-gray-700 z-50 transform transition-transform duration-500 ease-in-out ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         <div className="p-4 md:p-5 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
@@ -377,17 +361,15 @@ export default function SidebarAreaSelling({
               </button>
             </div>
           </div>
-
           {/* Updated Tab Navigation with Shopping Tab */}
           <div className="flex mb-4 bg-black rounded-xl p-1">
-          <button
+            <button
               onClick={() => setActiveTab("shopping")}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === "shopping" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
               }`}
             >
-              <ShoppingBasket size={16} className="inline mr-2" />
-              Shopping
+              <ShoppingBasket size={16} className="inline mr-2" /> Shopping
               {cart.length > 0 && (
                 <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-2 py-1">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
@@ -400,21 +382,17 @@ export default function SidebarAreaSelling({
                 activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Settings size={16} className="inline mr-2" />
-              Widgets
+              <Settings size={16} className="inline mr-2" /> Widgets
             </button>
-          
             <button
               onClick={() => setActiveTab("notifications")}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Bell size={16} className="inline mr-2" />
-              Notifications
+              <Bell size={16} className="inline mr-2" /> Notifications
             </button>
           </div>
-
           {/* Widgets Tab */}
           {activeTab === "widgets" && (
             <div>
@@ -632,31 +610,28 @@ export default function SidebarAreaSelling({
                 ))}
             </div>
           )}
-
           {/* Shopping Tab */}
           {activeTab === "shopping" && (
             <div>
               <h2 className="text-xl md:text-2xl font-bold oxanium_font mb-6">Shopping Basket</h2>
-
               <div className="mt-3">
-                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sellWithoutMember}
-                      onChange={(e) => {
-                        setSellWithoutMember(e.target.checked)
-                        if (e.target.checked) {
-                          setSelectedMember("")
-                          setMemberSearchQuery("")
-                          setShowMemberResults(false)
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                   Sell without selecting a member
-                  </label>
-                </div>
-
+                <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={sellWithoutMember}
+                    onChange={(e) => {
+                      setSellWithoutMember(e.target.checked)
+                      if (e.target.checked) {
+                        setSelectedMember("")
+                        setMemberSearchQuery("")
+                        setShowMemberResults(false)
+                      }
+                    }}
+                    className="rounded border-gray-300"
+                  />{" "}
+                  Sell without selecting a member
+                </label>
+              </div>
               {/* Member selection with search */}
               <div className="mb-4 relative member-search-container mt-3">
                 {/* <label className="text-sm text-gray-200 block mb-2">Search Member</label> */}
@@ -679,11 +654,10 @@ export default function SidebarAreaSelling({
                 {showMemberResults && !sellWithoutMember && (
                   <div className="absolute z-10 mt-1 w-full bg-[#101010] rounded-xl shadow-lg border border-[#333333] max-h-48 overflow-y-auto">
                     <div
-                      onClick={() => setIsTempMemberModalOpen(true)}
+                      onClick={() => setIsTempMemberModalOpen()}
                       className="px-4 py-2 hover:bg-[#181818] cursor-pointer text-sm border-b border-[#333333] text-[#3F74FF] flex items-center gap-2"
                     >
-                      <UserPlus size={16} />
-                      Create Temporary Member
+                      <UserPlus size={16} /> Create Temporary Member
                     </div>
                     {filteredMembers.length > 0 ? (
                       filteredMembers.map((member) => (
@@ -702,9 +676,7 @@ export default function SidebarAreaSelling({
                   </div>
                 )}
                 {/* Sell without member option */}
-               
               </div>
-
               {/* Cart items */}
               <div className="space-y-4 max-h-[40vh] overflow-y-auto mb-4">
                 {cart.length === 0 ? (
@@ -758,7 +730,6 @@ export default function SidebarAreaSelling({
                   ))
                 )}
               </div>
-
               {/* Payment options */}
               {cart.length > 0 && (
                 <>
@@ -810,7 +781,6 @@ export default function SidebarAreaSelling({
                       </div>
                     </div>
                   </div>
-
                   {/* Order summary */}
                   <div className="border-t border-[#333333] pt-4 space-y-2">
                     <div className="flex justify-between text-sm">
@@ -832,7 +802,6 @@ export default function SidebarAreaSelling({
                       <span>${total.toFixed(2)}</span>
                     </div>
                   </div>
-
                   {/* Member/No member indicator */}
                   <div className="mt-4 p-3 bg-[#101010] rounded-xl">
                     <div className="text-sm text-gray-300">
@@ -847,16 +816,17 @@ export default function SidebarAreaSelling({
                       )}
                     </div>
                   </div>
-
                   {/* Checkout button */}
-                  <button className="w-full mt-4 bg-[#FF843E] text-sm text-white py-3 rounded-xl hover:bg-[#FF843E]/90 transition-colors">
+                  <button
+                    onClick={handleCheckout}
+                    className="w-full mt-4 bg-[#FF843E] text-sm text-white py-3 rounded-xl hover:bg-[#FF843E]/90 transition-colors"
+                  >
                     Checkout
                   </button>
                 </>
               )}
             </div>
           )}
-
           {/* Notifications Tab */}
           {activeTab === "notifications" && (
             <div className="space-y-4">
@@ -892,7 +862,6 @@ export default function SidebarAreaSelling({
           )}
         </div>
       </aside>
-
       {/* Sidebar Widget Selection Modal */}
       <SidebarWidgetSelectionModal
         isOpen={isWidgetModalOpen}
@@ -900,7 +869,6 @@ export default function SidebarAreaSelling({
         onSelectWidget={handleAddWidget}
         canAddWidget={canAddWidget}
       />
-
       {/* Website Link Modal */}
       {editingLinkLocal && (
         <WebsiteLinkModal
