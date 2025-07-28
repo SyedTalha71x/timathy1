@@ -13,6 +13,7 @@ import StaffHistoryModal from "../components/staff-components/staff-history-moda
 import { SidebarArea } from "../components/custom-sidebar"
 import { useNavigate } from "react-router-dom"
 import Rectangle1 from "../../public/Rectangle 1.png"
+import { IoIosMenu } from "react-icons/io"
 
 
 const StaffContext = createContext(null)
@@ -213,7 +214,7 @@ export default function StaffManagement() {
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
                   className=" lg:hidden text-sm rounded-xl cursor-pointer block"
                 >
-                  <Menu className="h-4 w-4" />
+                  <IoIosMenu size={24} />
                 </button>
               </div>
               <div className="flex items-center md:flex-row flex-col gap-4 w-full sm:w-auto">
@@ -248,7 +249,7 @@ export default function StaffManagement() {
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
                   className=" lg:w-auto lg:block  w-full text-sm rounded-xl cursor-pointer hidden items-center justify-center gap-2"
                 >
-                  <Menu className="h-4 w-4" />
+                 <IoIosMenu size={24} />
                 </button>
               </div>
             </div>

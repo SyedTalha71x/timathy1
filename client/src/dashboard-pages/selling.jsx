@@ -27,6 +27,8 @@ import Avatar from "../../public/avatar.png"
 import Rectangle1 from "../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
 import HistoryModal from "../components/selling-components/history-modal"
+import { MdOutlineProductionQuantityLimits } from "react-icons/md";
+
 
 function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -921,7 +923,7 @@ function App() {
                     activeTab === "products" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
                   }`}
                 >
-                  <FaProductHunt size={16} className="inline mr-1 md:mr-2" />
+                  <MdOutlineProductionQuantityLimits size={16} className="inline mr-1 md:mr-2" />
                   <span className="hidden sm:inline">Products</span>
                   {/* <span className="sm:hidden">Prod</span> */}
                 </button>

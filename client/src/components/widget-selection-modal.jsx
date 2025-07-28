@@ -121,9 +121,14 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
                       : "bg-black hover:bg-zinc-900 cursor-pointer"
                   }`}
                 >
-                  <span className="font-medium">{widget.name}</span>
+                  <div className="flex items-center gap-2 font-medium mb-1">
+                    <widget.icon size={18} />
+                    <span>{widget.name}</span>
+                  </div>
                   <span className="text-xs text-zinc-400">{widget.description}</span>
-                  {isAlreadyAdded && <span className="text-xs text-yellow-500 mt-1">{message}</span>}
+                  {isAlreadyAdded && (
+                    <span className="text-xs text-yellow-500 mt-1">{message}</span>
+                  )}
                 </button>
               )
             })}

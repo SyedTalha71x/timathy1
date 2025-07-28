@@ -1781,7 +1781,7 @@ export default function Members() {
                               ) : (
                                 <span
                                   className={`px-2 py-0.5 text-xs rounded-full ${
-                                    member.isActive ? "bg-green-900 text-green-300" : "bg-orange-400 text-white"
+                                    member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
                                   }`}
                                 >
                                   {member.isActive ? "Active" : "Paused"}

@@ -250,7 +250,6 @@ export default function Communications() {
   const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current") // For contingent modal
   const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false) // For contingent modal
   const [newBillingPeriod, setNewBillingPeriod] = useState("") // For contingent modal
-
   // Member contingent data structure (from Members.jsx reference)
   const [memberContingentData, setMemberContingentData] = useState({
     1: {
@@ -287,10 +286,8 @@ export default function Communications() {
       future: {},
     },
   })
-
   const [emailTab, setEmailTab] = useState("inbox") // 'inbox', 'sent', 'draft', 'outbox', 'archive', 'error'
   const [selectedEmail, setSelectedEmail] = useState(null) // For viewing full email content
-
   // Member View States (from Members.jsx context)
   const [isMemberOverviewModalOpen, setIsMemberOverviewModalOpen] = useState(false)
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
@@ -306,7 +303,6 @@ export default function Communications() {
     type: "manual",
     selectedMemberId: null,
   })
-
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
   const chatDropdownRef = useRef(null)
@@ -466,7 +462,6 @@ export default function Communications() {
       contractEnd: null,
     },
   ])
-
   // Dummy Member Relations Data (from Members.jsx context)
   const [memberRelations, setMemberRelations] = useState({
     1: {
@@ -491,7 +486,6 @@ export default function Communications() {
     5: { family: [], friendship: [], relationship: [], work: [], other: [] }, // Mary Freund
     100: { family: [], friendship: [], relationship: [], work: [], other: [] }, // Fit Chain GmbH
   })
-
   // Dummy Member History Data (from Members.jsx context)
   const [memberHistory, setMemberHistory] = useState({
     1: {
@@ -584,7 +578,6 @@ export default function Communications() {
     5: { general: [], checkins: [], appointments: [], finance: [], contracts: [] }, // Mary Freund
     100: { general: [], checkins: [], appointments: [], finance: [], contracts: [] }, // Fit Chain GmbH
   })
-
   // Dummy Available Members/Leads for Relations (from Members.jsx context)
   const availableMembersLeads = [
     { id: 1, name: "Jennifer Markus", type: "member" },
@@ -598,7 +591,6 @@ export default function Communications() {
     { id: 301, name: "Marie Smith", type: "member" },
     { id: 401, name: "Tom Wilson", type: "lead" },
   ]
-
   // Relation options by category (from Members.jsx context)
   const relationOptions = {
     family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
@@ -662,7 +654,6 @@ export default function Communications() {
     const memberUnread = memberChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
     const companyUnread = companyChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
     const emailUnread = emailList.inbox.filter((email) => !email.isRead).length
-
     setUnreadMessagesCount({
       member: memberUnread,
       company: companyUnread,
@@ -679,6 +670,7 @@ export default function Communications() {
     setShowGroupDropdown(false)
     setActiveDropdownId(null)
   }
+
   const handleNewGroup = () => {
     setShowGroupDropdown(true)
     setShowChatDropdown(false)
@@ -747,6 +739,7 @@ export default function Communications() {
       ],
     },
   ]
+
   const memberChatList = [
     {
       id: 3,
@@ -834,6 +827,7 @@ export default function Communications() {
       ],
     },
   ]
+
   // Company chat - single chat with studio name
   const companyChatList = [
     {
@@ -858,8 +852,6 @@ export default function Communications() {
     },
   ]
 
-
-
   const handleArchiveChat = (chatId, e) => {
     e.stopPropagation()
     const chatToArchive = chatList.find((chat) => chat.id === chatId)
@@ -879,6 +871,8 @@ export default function Communications() {
     if (chatToRestore) {
       setChatList((prev) => [...prev, { ...chatToRestore, isArchived: false }])
       setArchivedChats((prev) => prev.filter((chat) => chat.id !== chatId))
+      // Automatically open the chat after restoring
+      handleChatSelect(chatToRestore)
     }
   }
 
@@ -914,7 +908,6 @@ export default function Communications() {
 
   const handleViewMember = (chatId, e) => {
     if (e) e.stopPropagation() // Stop propagation if event object exists
-
     let member = members.find((m) => m.id === chatId)
     if (!member) {
       // If it's a chat, try to find the corresponding member
@@ -923,7 +916,6 @@ export default function Communications() {
         member = members.find((m) => m.name === chat.name) // Assuming name matches for simplicity
       }
     }
-
     if (member) {
       setSelectedMember(member)
       setIsMemberOverviewModalOpen(true) // Open the overview modal
@@ -1624,7 +1616,7 @@ export default function Communications() {
                         className="rounded-full cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation()
-                          {chatType !== 'company' && handleViewMember(chat.id, e)}
+                          chatType !== "company" && handleViewMember(chat.id, e)
                         }}
                       />
                       {chat.isBirthday && (
@@ -1793,7 +1785,6 @@ export default function Communications() {
                 >
                   <Calendar className="w-6 h-6" />
                 </button>
-               
                 <div className="relative flex items-center">
                   <button
                     className="hover:text-gray-300 z-10"
@@ -1954,7 +1945,7 @@ export default function Communications() {
                       </button>
                     </div>
                     <select
-                      value={selectedFolder?.id || ""}
+                      value={selectedFolder?.id || (broadcastFolders.length > 0 ? broadcastFolders[0].id : "")}
                       onChange={(e) =>
                         setSelectedFolder(broadcastFolders.find((f) => f.id === Number.parseInt(e.target.value)))
                       }
@@ -2589,7 +2580,7 @@ export default function Communications() {
                     <div
                       key={chat.id}
                       className="flex items-center gap-3 p-3 bg-[#222222] rounded-xl hover:bg-[#2F2F2F] cursor-pointer"
-                      onClick={() => handleViewMember(chat.id, {})} // Open member view from archive
+                      onClick={() => handleRestoreChat(chat.id)} // Changed to handleRestoreChat
                     >
                       <img
                         src={chat.logo || "/placeholder.svg?height=32&width=32"}
@@ -2608,8 +2599,6 @@ export default function Communications() {
                         onClick={(e) => {
                           e.stopPropagation()
                           handleRestoreChat(chat.id)
-                          // Automatically open chat after restoring
-                          handleChatSelect(chat)
                         }}
                         className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs"
                       >
@@ -3126,7 +3115,6 @@ export default function Communications() {
           </div>
         </div>
       )}
-
       {/* Member Overview Modal - INTEGRATED */}
       {isMemberOverviewModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] overflow-y-auto">
@@ -3221,7 +3209,6 @@ export default function Communications() {
           </div>
         </div>
       )}
-
       {/* Member Details Modal with Tabs - INTEGRATED */}
       {isMemberDetailsModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -3486,7 +3473,6 @@ export default function Communications() {
           </div>
         </div>
       )}
-
       {/* History Modal - INTEGRATED */}
       {showHistoryModal && selectedMember && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">

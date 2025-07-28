@@ -317,7 +317,7 @@ export default function ActivityMonitor() {
             </div>
           </div>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2    gap-6 mb-8">
             <div className="bg-[#161616] rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -329,7 +329,7 @@ export default function ActivityMonitor() {
                 </div>
               </div>
             </div>
-            <div className="bg-[#161616] rounded-xl p-6">
+            {/* <div className="bg-[#161616] rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">Pending Actions</p>
@@ -350,7 +350,7 @@ export default function ActivityMonitor() {
                   <XCircle size={24} className="text-white" />
                 </div>
               </div>
-            </div>
+            </div> */}
             <div className="bg-[#161616] rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>

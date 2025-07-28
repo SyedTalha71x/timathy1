@@ -59,11 +59,11 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations, o
                     <span className="px-2 py-0.5 text-xs rounded-full bg-blue-900 text-blue-300 capitalize">
                       {leadData.status || "Lead"}
                     </span>
-                    {leadData.hasTrialTraining && (
+                    {/* {leadData.hasTrialTraining && (
                       <span className="px-2 py-0.5 text-xs rounded-full bg-green-900 text-green-300">
                         Trial Training Arranged
                       </span>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>

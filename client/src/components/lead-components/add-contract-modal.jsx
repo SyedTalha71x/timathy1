@@ -66,7 +66,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     leadId: "", // Initialize leadId as empty
     rateType: "",
     signedFile: null,
-    // Additional fields for the contract form
+    // Additional fields for the contract forms
     vorname: "",
     nachname: "",
     anrede: "",
@@ -141,12 +141,10 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     if (!selectedContractType || discount.percentage <= 0) {
       return null
     }
-
     // Extract numeric value from cost string (e.g., "$29.99" -> 29.99)
     const originalPrice = Number.parseFloat(selectedContractType.cost.replace("$", ""))
     const discountAmount = (originalPrice * discount.percentage) / 100
     const finalPrice = originalPrice - discountAmount
-
     return {
       originalPrice,
       discountAmount,
@@ -169,6 +167,28 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
       setFilteredLeads(filtered)
     }
   }, [searchTerm])
+
+  // Pre-fill data if lead information is available
+  useEffect(() => {
+    if (leadData) {
+      setContractData((prevData) => ({
+        ...prevData,
+        studioName: leadData.company || "",
+        studioOwnerName: `${leadData.name}` || "", // Use leadData.name directly
+        fullName: `${leadData.name}` || "", // Use leadData.name directly
+        email: leadData.email || "",
+        phone: leadData.phone || "",
+        leadId: leadData.id || "",
+        rateType: leadData.interestedIn || "",
+        vorname: leadData.name.split(" ")[0] || "", // Extract first name
+        nachname: leadData.name.split(" ").slice(1).join(" ") || "", // Extract last name
+        emailAdresse: leadData.email || "",
+        telefonnummer: leadData.phone || "",
+      }))
+      setSearchTerm(`${leadData.name}`)
+      setShowLeadSelection(false)
+    }
+  }, [leadData])
 
   // Update selected contract type when rate type changes
   useEffect(() => {
@@ -202,13 +222,11 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
         toast.error("Please upload a PDF or image file")
         return
       }
-
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast.error("File size should be less than 10MB")
         return
       }
-
       toast.loading("Processing document...")
       // Simulate processing delay
       setTimeout(() => {

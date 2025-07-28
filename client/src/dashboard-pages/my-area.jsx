@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-"use client"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
@@ -481,6 +480,23 @@ export default function MyArea() {
       ],
       growth: "5%",
       title: "Lead Generation",
+    },
+    'Top-selling by revenue': {
+      data: [
+        [40, 160, 120, 280, 180, 250, 220, 180, 300],
+        [60, 100, 140, 80, 120, 200, 280, 100, 260],
+      ],
+      growth: "2%",
+      title: "Top-selling by revenue",
+    },
+
+    'Most frequently sold': {
+      data: [
+        [40, 160, 120, 280, 180, 250, 220, 180, 300],
+        [60, 100, 140, 80, 120, 200, 280, 100, 260],
+      ],
+      growth: "3%",
+      title: "Most frequently sold",
     },
   }
 
@@ -1353,7 +1369,7 @@ export default function MyArea() {
                                       }}
                                       className={`px-3 py-1 text-xs font-medium rounded-lg ${
                                         appointment.isCheckedIn
-                                          ? "bg-gray-500 bg-opacity-50 text-white"
+                                          ? " border border-white/50 text-white bg-transparent"
                                           : "bg-black text-white"
                                       }`}
                                     >

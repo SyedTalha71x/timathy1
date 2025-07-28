@@ -8,7 +8,7 @@ import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, P
 import Draggable from "react-draggable"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../public/avatar.png"
-import { AddContractModal } from "../components/contract-components/add-contract-modal"
+import { AddContractModal } from "../components/lead-components/add-contract-modal"
 import AddLeadModal from "../components/lead-user-panel-components/add-lead-modal"
 import EditLeadModal from "../components/lead-user-panel-components/edit-lead-modal"
 import ViewLeadDetailsModal from "../components/lead-user-panel-components/view-lead-details-modal"
