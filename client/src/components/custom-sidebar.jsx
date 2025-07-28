@@ -1,6 +1,8 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import {
   X,
@@ -14,12 +16,204 @@ import {
   Settings,
   CheckCircle,
   AlertTriangle,
-  Info,
   Edit,
   Check,
+  Save,
+  Star,
+  Eye,
+  Trash2,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import Image10 from "../../public/image10.png"
+
+// View Management Modal Component
+const ViewManagementModal = ({
+  isOpen,
+  onClose,
+  savedViews,
+  setSavedViews,
+  currentView,
+  setCurrentView,
+  sidebarWidgets,
+  setSidebarWidgets,
+}) => {
+  const [viewName, setViewName] = useState("")
+  const [isCreating, setIsCreating] = useState(false)
+
+  if (!isOpen) return null
+
+  const handleSaveCurrentView = () => {
+    if (!viewName.trim()) {
+      toast.error("Please enter a view name")
+      return
+    }
+
+    const newView = {
+      id: `view_${Date.now()}`,
+      name: viewName.trim(),
+      widgets: [...sidebarWidgets],
+      isStandard: false,
+      createdAt: new Date().toISOString(),
+    }
+
+    setSavedViews((prev) => [...prev, newView])
+    setViewName("")
+    setIsCreating(false)
+    toast.success(`View "${newView.name}" saved successfully`)
+  }
+
+  const handleLoadView = (view) => {
+    setSidebarWidgets([...view.widgets])
+    setCurrentView(view)
+    toast.success(`Loaded view: ${view.name}`)
+    onClose()
+  }
+
+  const handleSetAsStandard = (viewId) => {
+    setSavedViews((prev) =>
+      prev.map((view) => ({
+        ...view,
+        isStandard: view.id === viewId,
+      })),
+    )
+    toast.success("Standard view updated")
+  }
+
+  const handleDeleteView = (viewId) => {
+    setSavedViews((prev) => prev.filter((view) => view.id !== viewId))
+    toast.success("View deleted")
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70]">
+      <div className="bg-[#181818] rounded-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-semibold text-white">Manage Views</h3>
+            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Save Current View Section */}
+          <div className="mb-6 p-4 bg-black rounded-xl">
+            <h4 className="text-lg font-medium text-white mb-3">Save Current View</h4>
+            {!isCreating ? (
+              <button
+                onClick={() => setIsCreating(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+              >
+                <Save size={16} />
+                Save Current Layout
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={viewName}
+                  onChange={(e) => setViewName(e.target.value)}
+                  placeholder="Enter view name..."
+                  className="flex-1 p-2 bg-zinc-800 rounded-lg text-white text-sm outline-none"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSaveCurrentView}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setIsCreating(false)
+                    setViewName("")
+                  }}
+                  className="px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-lg text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Saved Views List */}
+          <div>
+            <h4 className="text-lg font-medium text-white mb-3">Saved Views</h4>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {savedViews.length === 0 ? (
+                <div className="text-center py-8 text-zinc-400">
+                  <Eye size={48} className="mx-auto mb-3 opacity-50" />
+                  <p>No saved views yet</p>
+                  <p className="text-sm">Save your current layout to get started</p>
+                </div>
+              ) : (
+                savedViews.map((view) => (
+                  <div
+                    key={view.id}
+                    className={`p-4 rounded-xl border transition-colors ${
+                      currentView?.id === view.id
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-zinc-700 hover:border-zinc-600"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h5 className="font-medium text-white">{view.name}</h5>
+                          {view.isStandard && (
+                            <span className="flex items-center gap-1 px-2 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs">
+                              <Star size={12} />
+                              Standard
+                            </span>
+                          )}
+                          {currentView?.id === view.id && (
+                            <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs">Active</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-zinc-400">
+                          {view.widgets.length} widgets • Created {new Date(view.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleLoadView(view)}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+                        >
+                          Load
+                        </button>
+                        <div className="relative">
+                          <button className="p-2 hover:bg-zinc-700 rounded text-white">
+                            <MoreVertical size={16} />
+                          </button>
+                          {/* You can add a dropdown menu here for more actions */}
+                        </div>
+                        {!view.isStandard && (
+                          <button
+                            onClick={() => handleSetAsStandard(view.id)}
+                            className="p-2 hover:bg-zinc-700 rounded text-yellow-400"
+                            title="Set as standard view"
+                          >
+                            <Star size={16} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDeleteView(view.id)}
+                          className="p-2 hover:bg-zinc-700 rounded text-red-400"
+                          title="Delete view"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const SidebarWidgetSelectionModal = ({ isOpen, onClose, onSelectWidget, canAddWidget }) => {
   if (!isOpen) return null
@@ -130,6 +324,7 @@ const WebsiteLinkModal = ({ link, onClose, customLinks, setCustomLinks }) => {
       }
       setCustomLinks((prev) => [...prev, newLink])
     }
+
     onClose()
     toast.success(link?.id ? "Link updated successfully" : "Link added successfully")
   }
@@ -202,15 +397,47 @@ export const SidebarArea = ({
   isEditing,
 }) => {
   const [activeTab, setActiveTab] = useState("widgets")
-  const [sidebarWidgets, setSidebarWidgets] = useState([
+
+  // Default widgets configuration
+  const defaultWidgets = [
     { id: "communications", type: "communications", position: 0 },
     { id: "todo", type: "todo", position: 1 },
     { id: "birthday", type: "birthday", position: 2 },
     { id: "websiteLinks", type: "websiteLinks", position: 3 },
-  ])
+  ]
+
+  const [sidebarWidgets, setSidebarWidgets] = useState(defaultWidgets)
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
   const [editingLinkLocal, setEditingLinkLocal] = useState(null)
   const [isSidebarEditing, setIsSidebarEditing] = useState(false)
+
+  // View management state
+  const [savedViews, setSavedViews] = useState([])
+  const [currentView, setCurrentView] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+
+  // Load saved views and standard view on component mount
+  useEffect(() => {
+    const savedViewsData = localStorage.getItem("sidebarViews")
+    if (savedViewsData) {
+      const views = JSON.parse(savedViewsData)
+      setSavedViews(views)
+
+      // Load standard view if exists
+      const standardView = views.find((view) => view.isStandard)
+      if (standardView) {
+        setSidebarWidgets([...standardView.widgets])
+        setCurrentView(standardView)
+      }
+    }
+  }, [])
+
+  // Save views to localStorage whenever savedViews changes
+  useEffect(() => {
+    if (savedViews.length > 0) {
+      localStorage.setItem("sidebarViews", JSON.stringify(savedViews))
+    }
+  }, [savedViews])
 
   const toggleSidebarEditing = () => {
     setIsSidebarEditing(!isSidebarEditing)
@@ -218,6 +445,7 @@ export const SidebarArea = ({
 
   const moveSidebarWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= sidebarWidgets.length) return
+
     const newWidgets = [...sidebarWidgets]
     const [movedWidget] = newWidgets.splice(fromIndex, 1)
     newWidgets.splice(toIndex, 0, movedWidget)
@@ -305,7 +533,6 @@ export const SidebarArea = ({
   return (
     <>
       {isOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />}
-
       <aside
         className={`
           fixed top-0 right-0 h-full w-full lg:w-96 bg-[#181818] border-l border-gray-700 z-50
@@ -315,24 +542,40 @@ export const SidebarArea = ({
       >
         <div className="p-4 md:p-5 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Select View</h2>
             <div className="flex items-center gap-2">
-            {activeTab === 'widgets' &&  <button
-                onClick={() => setIsWidgetModalOpen(true)}
-                className="p-2 bg-black text-white hover:bg-zinc-900 rounded-lg text-sm cursor-pointer"
-                title="Add Widget"
+              <h2 className="text-lg font-semibold text-white">Sidebar Views</h2>
+              {currentView && (
+                <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs">{currentView.name}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsViewModalOpen(true)}
+                className="p-2 bg-green-600 text-white hover:bg-green-700 rounded-lg text-sm cursor-pointer"
+                title="Manage Views"
               >
-                <Plus size={16} />
-              </button>}
-{        activeTab === 'widgets' &&      <button
-                onClick={toggleSidebarEditing}
-                className={`p-2 ${
-                  isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                } rounded-lg flex items-center gap-1`}
-                title="Toggle Edit Mode"
-              >
-                {isSidebarEditing ? <Check size={16} /> : <Edit size={16} />}
-              </button>}
+                <Eye size={16} />
+              </button>
+              {activeTab === "widgets" && (
+                <button
+                  onClick={() => setIsWidgetModalOpen(true)}
+                  className="p-2 bg-black text-white hover:bg-zinc-900 rounded-lg text-sm cursor-pointer"
+                  title="Add Widget"
+                >
+                  <Plus size={16} />
+                </button>
+              )}
+              {activeTab === "widgets" && (
+                <button
+                  onClick={toggleSidebarEditing}
+                  className={`p-2 ${
+                    isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                  } rounded-lg flex items-center gap-1`}
+                  title="Toggle Edit Mode"
+                >
+                  {isSidebarEditing ? <Check size={16} /> : <Edit size={16} />}
+                </button>
+              )}
               <button
                 onClick={onClose}
                 className="p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl md:hidden"
@@ -614,13 +857,22 @@ export const SidebarArea = ({
                   )
                 })}
               </div>
-              {/* <div className="text-center pt-4">
-                <button className="text-sm text-blue-400 hover:text-blue-300">View all notifications</button>
-              </div> */}
             </div>
           )}
         </div>
       </aside>
+
+      {/* View Management Modal */}
+      <ViewManagementModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        savedViews={savedViews}
+        setSavedViews={setSavedViews}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        sidebarWidgets={sidebarWidgets}
+        setSidebarWidgets={setSidebarWidgets}
+      />
 
       {/* Sidebar Widget Selection Modal */}
       <SidebarWidgetSelectionModal
