@@ -598,72 +598,75 @@ export default function Appointments() {
                 <div>
                   <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
                   <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
-                    {filteredAppointments.length > 0 ? (
-                      filteredAppointments.map((appointment, index) => (
-                        <div
-                          key={appointment.id}
-                          className={`${
-                            appointment.isCancelled
-                              ? "bg-gray-700 cancelled-appointment-bg" // Apply cancelled style
-                              : appointment.isPast && !appointment.isCancelled
-                                ? "bg-gray-800 opacity-50" // Apply past style
-                                : appointment.color
-                          } rounded-xl cursor-pointer p-5 relative`}
-                        >
-                          <div className="absolute p-2 top-0 left-0 z-10">
-                            {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
-                          </div>
-                          <div
-                            className="flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer"
-                            onClick={() => {
-                              setSelectedAppointment(appointment)
-                              setIsAppointmentActionModalOpen(true)
-                            }}
-                          >
-                            <div className="flex items-center gap-2 ml-5 relative w-full sm:w-auto justify-center sm:justify-start">
-                              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
-                                <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
-                              </div>
-                              <div className="text-white text-left">
-                                <p className="font-semibold">{appointment.name}</p>
-                                <p className="text-xs flex gap-1 items-center opacity-80 justify-center sm:justify-start">
-                                  <Clock size={14} />
-                                  {appointment.time} | {appointment.date?.split("|")[0]}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
-                              <div className="text-white text-center sm:text-right w-full sm:w-auto">
-                                <p className="text-xs">
-                                  {appointment.isTrial ? (
-                                    <span className="font-medium ">Trial Session</span>
-                                  ) : appointment.isCancelled ? (
-                                    <span className="font-medium text-red-400">Cancelled</span>
-                                  ) : (
-                                    appointment.type
-                                  )}
-                                </p>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleCheckIn(appointment.id)
-                                  }}
-                                  className={`mt-1 px-3 py-1 text-xs font-medium rounded-lg w-full sm:w-auto ${
-                                    appointment.isCheckedIn
-                                      ? "bg-gray-500 bg-opacity-50 text-white"
-                                      : "bg-black text-white"
-                                  }`}
-                                >
-                                  {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-white text-center">No appointments scheduled for this date.</p>
-                    )}
+                  {filteredAppointments.length > 0 ? (
+  filteredAppointments.map((appointment, index) => (
+    <div
+      key={appointment.id}
+      className={`${
+        appointment.isCancelled
+          ? "bg-gray-700 cancelled-appointment-bg"
+          : appointment.isPast && !appointment.isCancelled
+          ? "bg-gray-800 opacity-50"
+          : appointment.color
+      } rounded-xl cursor-pointer p-3 relative`}
+    >
+      <div className="absolute p-2 top-0 left-0 z-10">
+        {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
+      </div>
+
+      <div
+        className="flex flex-col items-center justify-between gap-2 cursor-pointer"
+        onClick={() => {
+          setSelectedAppointment(appointment);
+          setIsAppointmentActionModalOpen(true);
+        }}
+      >
+        <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+            <img
+              src={Avatar || "/placeholder.svg"}
+              alt=""
+              className="w-full h-full rounded-full"
+            />
+          </div>
+          <div className="text-white text-left">
+            <p className="font-semibold">{appointment.name}</p>
+            <p className="text-xs flex gap-1 items-center opacity-80">
+              <Clock size={14} />
+              {appointment.time} | {appointment.date?.split("|")[0]}
+            </p>
+            <p className="text-xs opacity-80 mt-1">
+              {appointment.isTrial ? (
+                "Trial Session"
+              ) : appointment.isCancelled ? (
+                <span className="text-red-400">Cancelled</span>
+              ) : (
+                appointment.type
+              )}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCheckIn(appointment.id);
+          }}
+          className={`px-3 py-1 text-xs font-medium rounded-lg ${
+            appointment.isCheckedIn
+              ? "border border-white/50 text-white bg-transparent"
+              : "bg-black text-white"
+          }`}
+        >
+          {appointment.isCheckedIn ? "Checked In" : "Check In"}
+        </button>
+      </div>
+    </div>
+  ))
+) : (
+  <p className="text-white text-center">No appointments scheduled for this date.</p>
+)}
+
                   </div>
                 </div>
               </div>

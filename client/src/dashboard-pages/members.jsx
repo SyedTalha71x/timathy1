@@ -449,6 +449,7 @@ export default function Members() {
       zipCode: "12345",
       city: "New York",
       image: null,
+      reason: '',
       isActive: true,
       isArchived: false,
       memberType: "full",
@@ -474,6 +475,7 @@ export default function Members() {
       city: "Los Angeles",
       image: null,
       isActive: false,
+      reason: 'Vacation Leaves',
       isArchived: false,
       memberType: "full",
       note: "",
@@ -923,9 +925,8 @@ export default function Members() {
                       <button
                         key={option.id}
                         onClick={() => handleSortSelect(option.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${
-                          option.id === sortBy ? "bg-[#000000]" : ""
-                        }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === sortBy ? "bg-[#000000]" : ""
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -978,11 +979,10 @@ export default function Members() {
                           <button
                             key={option.id}
                             onClick={() => setFilterStatus(option.id)}
-                            className={`w-full px-4 py-2 text-left text-sm rounded-xl border transition-colors ${
-                              option.id === filterStatus
+                            className={`w-full px-4 py-2 text-left text-sm rounded-xl border transition-colors ${option.id === filterStatus
                                 ? "bg-blue-600/20 border-blue-500 text-blue-300"
                                 : "bg-[#101010] border-slate-300/30 text-white hover:bg-[#2F2F2F]"
-                            }`}
+                              }`}
                           >
                             {option.label}
                           </button>
@@ -1080,21 +1080,19 @@ export default function Members() {
                   <div className="flex border-b border-gray-700 mb-6">
                     <button
                       onClick={() => setTempMemberModalTab("details")}
-                      className={`px-4 py-2 text-sm font-medium ${
-                        tempMemberModalTab === "details"
+                      className={`px-4 py-2 text-sm font-medium ${tempMemberModalTab === "details"
                           ? "text-blue-400 border-b-2 border-blue-400"
                           : "text-gray-400 hover:text-white"
-                      }`}
+                        }`}
                     >
                       Details
                     </button>
                     <button
                       onClick={() => setTempMemberModalTab("note")}
-                      className={`px-4 py-2 text-sm font-medium ${
-                        tempMemberModalTab === "note"
+                      className={`px-4 py-2 text-sm font-medium ${tempMemberModalTab === "note"
                           ? "text-blue-400 border-b-2 border-blue-400"
                           : "text-gray-400 hover:text-white"
-                      }`}
+                        }`}
                     >
                       Special Note
                     </button>
@@ -1306,31 +1304,28 @@ export default function Members() {
                   <div className="flex border-b border-gray-700 mb-6">
                     <button
                       onClick={() => setEditModalTab("details")}
-                      className={`px-4 py-2 text-sm font-medium ${
-                        editModalTab === "details"
+                      className={`px-4 py-2 text-sm font-medium ${editModalTab === "details"
                           ? "text-blue-400 border-b-2 border-blue-400"
                           : "text-gray-400 hover:text-white"
-                      }`}
+                        }`}
                     >
                       Details
                     </button>
                     <button
                       onClick={() => setEditModalTab("note")}
-                      className={`px-4 py-2 text-sm font-medium ${
-                        editModalTab === "note"
+                      className={`px-4 py-2 text-sm font-medium ${editModalTab === "note"
                           ? "text-blue-400 border-b-2 border-blue-400"
                           : "text-gray-400 hover:text-white"
-                      }`}
+                        }`}
                     >
                       Special Note
                     </button>
                     <button
                       onClick={() => setEditModalTab("relations")}
-                      className={`px-4 py-2 text-sm font-medium ${
-                        editModalTab === "relations"
+                      className={`px-4 py-2 text-sm font-medium ${editModalTab === "relations"
                           ? "text-blue-400 border-b-2 border-blue-400"
                           : "text-gray-400 hover:text-white"
-                      }`}
+                        }`}
                     >
                       Relations
                     </button>
@@ -1627,13 +1622,12 @@ export default function Members() {
                                     <span className="text-gray-400 ml-2">({relation.relation})</span>
                                     <span className="text-blue-400 ml-2 capitalize">- {category}</span>
                                     <span
-                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                        relation.type === "member"
+                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
                                           ? "bg-green-600 text-green-100"
                                           : relation.type === "lead"
                                             ? "bg-blue-600 text-blue-100"
                                             : "bg-gray-600 text-gray-100"
-                                      }`}
+                                        }`}
                                     >
                                       {relation.type}
                                     </span>
@@ -1672,11 +1666,10 @@ export default function Members() {
                             }
                             setIsEditModalOpen(false)
                           }}
-                          className={`px-4 py-2 rounded-xl text-sm ${
-                            selectedMember.isArchived
+                          className={`px-4 py-2 rounded-xl text-sm ${selectedMember.isArchived
                               ? "bg-green-600 hover:bg-green-700 text-white"
                               : "bg-gray-600 hover:bg-gray-700 text-white"
-                          }`}
+                            }`}
                         >
                           {selectedMember.isArchived ? (
                             <>
@@ -1707,9 +1700,8 @@ export default function Members() {
                       <div className="absolute p-2 top-0 left-0 z-10">
                         <div className="relative">
                           <div
-                            className={`${
-                              member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                            className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
                             onClick={(e) => {
                               e.stopPropagation()
                               setActiveNoteId(activeNoteId === member.id ? null : member.id)
@@ -1776,23 +1768,27 @@ export default function Members() {
                               {member.title} ({calculateAge(member.dateOfBirth)})
                             </h3>
                             <div className="flex items-center gap-2">
-                              {member.isArchived ? (
-                                <span className="px-2 py-0.5 text-xs rounded-full bg-red-500 text-white">Archived</span>
-                              ) : (
-                                <span
-                                  className={`px-2 py-0.5 text-xs rounded-full ${
-                                    member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
-                                  }`}
-                                >
-                                  {member.isActive ? "Active" : "Paused"}
-                                </span>
-                              )}
+                            {member.isArchived ? (
+  <span className="px-2 py-0.5 text-xs rounded-full bg-red-500 text-white">
+    Archived
+  </span>
+) : (
+  <span
+    className={`px-2 py-0.5 text-xs rounded-full ${
+      member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
+    }`}
+  >
+    {member.isActive
+      ? "Active"
+      : `Paused${member.reason ? ` (${member.reason})` : ""}`}
+  </span>
+)}
+
                               <span
-                                className={`px-2 py-0.5 text-xs rounded-full ${
-                                  member.memberType === "full"
+                                className={`px-2 py-0.5 text-xs rounded-full ${member.memberType === "full"
                                     ? "bg-blue-900 text-blue-300"
                                     : "bg-purple-900 text-purple-300"
-                                }`}
+                                  }`}
                               >
                                 {member.memberType === "full" ? "Full Member" : "Temporary Member"}
                               </span>
@@ -1909,29 +1905,26 @@ export default function Members() {
               <div className="flex border-b border-gray-700 mb-6">
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeTab === "details"
+                  className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   Details
                 </button>
                 <button
                   onClick={() => setActiveTab("note")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium ${activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   Special Note
                 </button>
                 <button
                   onClick={() => setActiveTab("relations")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeTab === "relations"
+                  className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   Relations
                 </button>
@@ -1951,11 +1944,10 @@ export default function Members() {
                       </h3>
                       <div className="flex items-center gap-2 mt-2">
                         <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${
-                            selectedMember.memberType === "full"
+                          className={`px-2 py-0.5 text-xs rounded-full ${selectedMember.memberType === "full"
                               ? "bg-blue-900 text-blue-300"
                               : "bg-purple-900 text-purple-300"
-                          }`}
+                            }`}
                         >
                           {selectedMember.memberType === "full"
                             ? "Full Member (with contract)"
@@ -2093,8 +2085,7 @@ export default function Members() {
                               <div className="w-0.5 h-8 bg-gray-600"></div>
                               {/* Category header */}
                               <div
-                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
-                                  category === "family"
+                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
                                     ? "bg-yellow-600 text-yellow-100"
                                     : category === "friendship"
                                       ? "bg-green-600 text-green-100"
@@ -2103,7 +2094,7 @@ export default function Members() {
                                         : category === "work"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                }`}
+                                  }`}
                               >
                                 {category}
                               </div>
@@ -2112,11 +2103,10 @@ export default function Members() {
                                 {relations.map((relation) => (
                                   <div
                                     key={relation.id}
-                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${
-                                      relation.type === "member" || relation.type === "lead"
+                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${relation.type === "member" || relation.type === "lead"
                                         ? "border border-blue-500/30"
                                         : ""
-                                    }`}
+                                      }`}
                                     onClick={() => {
                                       if (relation.type === "member" || relation.type === "lead") {
                                         // Handle click for member/lead relations
@@ -2127,13 +2117,12 @@ export default function Members() {
                                     <div className="text-white text-sm font-medium">{relation.name}</div>
                                     <div className="text-gray-400 text-xs">({relation.relation})</div>
                                     <div
-                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${
-                                        relation.type === "member"
+                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${relation.type === "member"
                                           ? "bg-green-600 text-green-100"
                                           : relation.type === "lead"
                                             ? "bg-blue-600 text-blue-100"
                                             : "bg-gray-600 text-gray-100"
-                                      }`}
+                                        }`}
                                     >
                                       {relation.type}
                                     </div>
@@ -2161,11 +2150,10 @@ export default function Members() {
                               relations.map((relation) => (
                                 <div
                                   key={relation.id}
-                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${
-                                    relation.type === "member" || relation.type === "lead"
+                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
                                       ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
                                       : ""
-                                  }`}
+                                    }`}
                                   onClick={() => {
                                     if (relation.type === "member" || relation.type === "lead") {
                                       toast.info(`Clicked on ${relation.name} (${relation.type})`)
@@ -2176,13 +2164,12 @@ export default function Members() {
                                     <span className="text-white font-medium">{relation.name}</span>
                                     <span className="text-gray-400 ml-2">- {relation.relation}</span>
                                     <span
-                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                        relation.type === "member"
+                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
                                           ? "bg-green-600 text-green-100"
                                           : relation.type === "lead"
                                             ? "bg-blue-600 text-blue-100"
                                             : "bg-gray-600 text-gray-100"
-                                      }`}
+                                        }`}
                                     >
                                       {relation.type}
                                     </span>
@@ -2375,11 +2362,10 @@ export default function Members() {
                       <button
                         key={period.id}
                         onClick={() => handleBillingPeriodChange(period.id)}
-                        className={`w-full text-left p-3 rounded-xl border transition-colors ${
-                          selectedBillingPeriod === period.id
+                        className={`w-full text-left p-3 rounded-xl border transition-colors ${selectedBillingPeriod === period.id
                             ? "bg-blue-600/20 border-blue-500 text-blue-300"
                             : "bg-[#222222] border-gray-600 text-gray-300 hover:bg-[#2A2A2A]"
-                        }`}
+                          }`}
                       >
                         <div className="flex justify-between items-center">
                           <span className="font-medium">{period.label}</span>
@@ -2436,11 +2422,10 @@ export default function Members() {
                           setTempContingent({ ...tempContingent, total: Number.parseInt(e.target.value) })
                         }
                         disabled={selectedBillingPeriod === "current"}
-                        className={`w-full rounded-xl px-4 py-2 text-sm ${
-                          selectedBillingPeriod === "current"
+                        className={`w-full rounded-xl px-4 py-2 text-sm ${selectedBillingPeriod === "current"
                             ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                             : "bg-[#333333] text-white"
-                        }`}
+                          }`}
                       />
                     </div>
                   </div>
@@ -2555,41 +2540,36 @@ export default function Members() {
             <div className="flex space-x-1 mb-6 bg-[#141414] rounded-lg p-1">
               <button
                 onClick={() => setHistoryTab("general")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  historyTab === "general" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-                }`}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${historyTab === "general" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                  }`}
               >
                 General Changes
               </button>
               <button
                 onClick={() => setHistoryTab("checkins")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  historyTab === "checkins" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-                }`}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${historyTab === "checkins" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                  }`}
               >
                 Check-ins & Check-outs
               </button>
               <button
                 onClick={() => setHistoryTab("appointments")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  historyTab === "appointments" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-                }`}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${historyTab === "appointments" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                  }`}
               >
                 Past Appointments
               </button>
               <button
                 onClick={() => setHistoryTab("finance")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  historyTab === "finance" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-                }`}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${historyTab === "finance" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                  }`}
               >
                 Finance Transactions
               </button>
               <button
                 onClick={() => setHistoryTab("contracts")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  historyTab === "contracts" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-                }`}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${historyTab === "contracts" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                  }`}
               >
                 Contract Changes
               </button>
@@ -2627,9 +2607,8 @@ export default function Members() {
                           <div>
                             <p className="font-medium text-white flex items-center gap-2">
                               <span
-                                className={`w-2 h-2 rounded-full ${
-                                  activity.type === "Check-in" ? "bg-green-500" : "bg-red-500"
-                                }`}
+                                className={`w-2 h-2 rounded-full ${activity.type === "Check-in" ? "bg-green-500" : "bg-red-500"
+                                  }`}
                               ></span>
                               {activity.type}
                             </p>
@@ -2660,11 +2639,10 @@ export default function Members() {
                             </p>
                           </div>
                           <span
-                            className={`px-2 py-1 rounded text-xs ${
-                              appointment.status === "completed"
+                            className={`px-2 py-1 rounded text-xs ${appointment.status === "completed"
                                 ? "bg-green-600 text-white"
                                 : "bg-orange-600 text-white"
-                            }`}
+                              }`}
                           >
                             {appointment.status}
                           </span>
@@ -2688,11 +2666,10 @@ export default function Members() {
                             <p className="text-sm text-gray-400">{transaction.date}</p>
                           </div>
                           <span
-                            className={`px-2 py-1 rounded text-xs ${
-                              transaction.status === "completed"
+                            className={`px-2 py-1 rounded text-xs ${transaction.status === "completed"
                                 ? "bg-green-600 text-white"
                                 : "bg-orange-600 text-white"
-                            }`}
+                              }`}
                           >
                             {transaction.status}
                           </span>

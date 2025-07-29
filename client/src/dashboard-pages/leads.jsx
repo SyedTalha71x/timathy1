@@ -448,7 +448,7 @@ export default function LeadManagement() {
       trialPeriod: "Trial Period",
       hasTrialTraining: true,
       avatar: Avatar,
-      source: "hardcoded",
+      source: "Social Media Ads",
       status: "active",
       about: "Software Engineer",
       createdAt: "2025-01-15T10:30:00Z",
@@ -463,6 +463,9 @@ export default function LeadManagement() {
       interestedIn: "Premium", // Added for contract pre-selection
       birthday: "1990-05-20", // Added for ViewLeadDetailsModal
       address: "123 Main St, Anytown, USA", // Added for ViewLeadDetailsModal
+      country: 'USA',
+      leadId: "LEAD-001",
+
     },
     {
       id: "h2",
@@ -473,7 +476,7 @@ export default function LeadManagement() {
       trialPeriod: "Trial Period",
       hasTrialTraining: false,
       avatar: Avatar,
-      source: "hardcoded",
+      source: "Google Ads",
       status: "passive",
       createdAt: "2025-01-20T14:45:00Z",
       specialNote: {
@@ -487,6 +490,9 @@ export default function LeadManagement() {
       interestedIn: "Basic", // Added for contract pre-selection
       birthday: "1988-11-10", // Added for ViewLeadDetailsModal
       address: "456 Oak Ave, Otherville, USA", // Added for ViewLeadDetailsModal
+      country: 'USA',
+      leadId: "LEAD-002",
+
     },
     {
       id: "h3",
@@ -497,7 +503,7 @@ export default function LeadManagement() {
       trialPeriod: "Trial Period",
       hasTrialTraining: true,
       avatar: Avatar,
-      source: "hardcoded",
+      source: "Email Campaign",
       status: "trial",
       createdAt: "2025-01-25T09:15:00Z",
       specialNote: {
@@ -511,6 +517,9 @@ export default function LeadManagement() {
       interestedIn: "Bronze", // Added for contract pre-selection
       birthday: "1995-03-01", // Added for ViewLeadDetailsModal
       address: "789 Pine Ln, Anycity, USA", // Added for ViewLeadDetailsModal
+      country: 'USA',
+      leadId: "LEAD-003",
+
     },
     {
       id: "h4",
@@ -521,7 +530,7 @@ export default function LeadManagement() {
       trialPeriod: "Trial Period",
       hasTrialTraining: false,
       avatar: Avatar,
-      source: "hardcoded",
+      source: "Website",
       status: "uninterested",
       createdAt: "2025-02-01T11:20:00Z",
       specialNote: {
@@ -535,6 +544,8 @@ export default function LeadManagement() {
       interestedIn: "Basic", // Added for contract pre-selection
       birthday: "1992-07-18", // Added for ViewLeadDetailsModal
       address: "101 Elm St, Smalltown, USA", // Added for ViewLeadDetailsModal
+      country: 'USA',
+      leadId: "LEAD-004",
     },
   ]
   useEffect(() => {

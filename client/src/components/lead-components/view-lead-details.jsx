@@ -16,6 +16,8 @@ export function ViewLeadDetailsModal({ isVisible, onClose, leadData }) {
     })
   }
 
+ 
+
   // Format birthday to be more readable (without time)
   const formatBirthday = (dateString) => {
     if (!dateString) return "Not provided"

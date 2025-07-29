@@ -1,3 +1,4 @@
+"use client"
 
 /* eslint-disable react/prop-types */
 import { useState } from "react"
@@ -7,22 +8,22 @@ import { Toaster, toast } from "react-hot-toast"
 const assignees = ["Jack", "Jane", "John", "Jessica"]
 const roles = ["Trainer", "Manager", "Developer", "Designer"]
 
-export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }) {
+export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], initialTask = {} }) {
   const [newTask, setNewTask] = useState({
-    title: "",
-    description: "",
-    assignees: [], // Changed to array for multiple selections
-    roles: [], // Changed to array for multiple selections
-    tags: [],
-    dueDate: "",
-    dueTime: "",
+    title: initialTask.title || "",
+    description: initialTask.description || "",
+    assignees: initialTask.assignees || [], // Changed to array for multiple selections
+    roles: initialTask.roles || [], // Changed to array for multiple selections
+    tags: initialTask.tags || [],
+    dueDate: initialTask.dueDate || "",
+    dueTime: initialTask.dueTime || "",
   })
-
-  const [assignmentType, setAssignmentType] = useState("assignee")
+  const [assignmentType, setAssignmentType] = useState(
+    initialTask.assignees?.length > 0 ? "assignee" : initialTask.roles?.length > 0 ? "role" : "assignee",
+  )
 
   const handleSubmit = (e) => {
     e.preventDefault()
-
     const taskToAdd = {
       ...newTask,
       id: Date.now(),
@@ -31,10 +32,8 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
       assignees: assignmentType === "assignee" ? newTask.assignees : [],
       roles: assignmentType === "role" ? newTask.roles : [],
     }
-
     onAddTask(taskToAdd)
     toast.success("Task has been added successfully!")
-
     setTimeout(() => {
       onClose()
     }, 2000)
@@ -62,7 +61,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
   const handleAssigneeChange = (e) => {
     const value = e.target.value
     if (value === "") return // Skip empty selections
-
     setNewTask((prev) => ({
       ...prev,
       assignees: prev.assignees.includes(value)
@@ -74,7 +72,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
   const handleRoleChange = (e) => {
     const value = e.target.value
     if (value === "") return // Skip empty selections
-
     setNewTask((prev) => ({
       ...prev,
       roles: prev.roles.includes(value)
@@ -103,7 +100,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
               <X size={20} />
             </button>
           </div>
-
           <form
             onSubmit={handleSubmit}
             className="space-y-4 custom-scrollbar max-h-[calc(100vh-180px)] overflow-y-auto"
@@ -119,7 +115,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                 required
               />
             </div>
-
             <div>
               <label className="text-sm text-gray-200">Task Description</label>
               <textarea
@@ -130,32 +125,25 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                 rows={3}
               />
             </div>
-
-
             <div>
               <label className="text-sm text-gray-200">Assignment Type</label>
               <div className="flex gap-4 mt-1">
                 <button
                   type="button"
                   onClick={() => handleAssignmentTypeChange("assignee")}
-                  className={`px-4 py-2 rounded-xl text-sm ${
-                    assignmentType === "assignee" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm ${assignmentType === "assignee" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"}`}
                 >
                   Assign to People
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAssignmentTypeChange("role")}
-                  className={`px-4 py-2 rounded-xl text-sm ${
-                    assignmentType === "role" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm ${assignmentType === "role" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"}`}
                 >
                   Assign to Roles
                 </button>
               </div>
             </div>
-
             {assignmentType === "assignee" && (
               <div>
                 <label className="text-sm text-gray-200">Assignees</label>
@@ -202,7 +190,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                 )}
               </div>
             )}
-
             {assignmentType === "role" && (
               <div>
                 <label className="text-sm text-gray-200">Roles</label>
@@ -245,7 +232,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                 )}
               </div>
             )}
-
             <div>
               <label className="text-sm text-gray-200">Tags</label>
               <div className="relative">
@@ -287,7 +273,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                 )}
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-200">Due Date (Optional)</label>
@@ -308,7 +293,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
                 />
               </div>
             </div>
-
             <div className="flex justify-end gap-3">
               <button
                 type="button"
@@ -330,4 +314,3 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [] }
     </>
   )
 }
-

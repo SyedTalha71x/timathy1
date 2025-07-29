@@ -1,12 +1,11 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState, useRef } from "react"
-import { Plus, Calendar, Tag, ChevronDown, Filter } from "lucide-react"
+import { Plus, Calendar, Tag, ChevronDown, Filter } from "lucide-react" // Import Repeat and Copy icons
 import AddTaskModal from "../components/task-components/add-task-modal"
 import EditTaskModal from "../components/task-components/edit-task-modal" // Import EditTaskModal
 import TaskItem from "../components/task-components/task-item"
+import RepeatTaskModal from "../components/task-components/repeat-task-modal"
 import { IoIosMenu } from "react-icons/io"
 import { SidebarArea } from "../components/custom-sidebar"
 import Draggable from "react-draggable"
@@ -22,10 +21,18 @@ export default function TodoApp() {
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
 
+  const [openDropdownTaskId, setOpenDropdownTaskId] = useState(null)
+
+
   // State for modals that were previously in TaskItem
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState(null) // To hold the task being edited/deleted
+
+  // New states for input bar and repeat modal
+  const [newTaskInput, setNewTaskInput] = useState("")
+  const [isRepeatModalOpen, setIsRepeatModalOpen] = useState(false)
+  const [selectedTaskForRepeat, setSelectedTaskForRepeat] = useState(null)
 
   const [tasks, setTasks] = useState([
     {
@@ -114,12 +121,22 @@ export default function TodoApp() {
     },
   ])
 
+  const [configuredTags, setConfiguredTags] = useState([
+    "Important",
+    "Urgent",
+    "Meeting",
+    "Client",
+    "Onboarding",
+    "Personal",
+    "Work",
+    "Study",
+  ])
+
   const [columns, setColumns] = useState([
     { id: "ongoing", title: "Ongoing", color: "#3b82f6" }, // Blue
     { id: "completed", title: "Completed", color: "#10b981" }, // Green
     { id: "canceled", title: "Canceled", color: "#ef4444" }, // Red
   ])
-
   const columnRefs = useRef({})
   useEffect(() => {
     columns.forEach((column) => {
@@ -172,6 +189,23 @@ export default function TodoApp() {
     toast.success("Task added successfully!")
   }
 
+  const handleAddTaskFromInput = () => {
+    if (newTaskInput.trim() !== "") {
+      // Set selectedTask to pre-fill the AddTaskModal
+      setSelectedTask({
+        title: newTaskInput,
+        description: "",
+        assignees: [],
+        roles: [],
+        tags: [],
+        dueDate: "",
+        dueTime: "",
+      })
+      setIsModalOpen(true) // Open the AddTaskModal
+      setNewTaskInput("") // Clear the input field
+    }
+  }
+
   const handleTaskPinToggle = (taskId) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) => (task.id === taskId ? { ...task, isPinned: !task.isPinned, dragVersion: 0 } : task)),
@@ -199,12 +233,97 @@ export default function TodoApp() {
     }
   }
 
+  const handleDuplicateTask = (taskToDuplicate) => {
+    const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
+    setTasks((prevTasks) => [
+      ...prevTasks,
+      {
+        ...taskToDuplicate,
+        id: newId,
+        title: `${taskToDuplicate.title} (Copy)`,
+        isPinned: false,
+        dragVersion: 0,
+        status: "ongoing", // Duplicated tasks start as ongoing
+      },
+    ])
+    toast.success("Task duplicated successfully!")
+  }
+
+  const handleRepeatRequest = (task) => {
+    setSelectedTaskForRepeat(task)
+    setIsRepeatModalOpen(true)
+  }
+
+  const generateRepeatedTasks = (originalTask, repeatOptions) => {
+    const generated = []
+    const currentIterationDate = new Date(originalTask.dueDate)
+    let count = 0
+
+    while (true) {
+      if (repeatOptions.endDate && currentIterationDate > new Date(repeatOptions.endDate)) {
+        break
+      }
+      if (repeatOptions.occurrences && count >= repeatOptions.occurrences) {
+        break
+      }
+
+      let shouldAdd = false
+      if (repeatOptions.frequency === "daily") {
+        shouldAdd = true
+      } else if (repeatOptions.frequency === "weekly") {
+        if (repeatOptions.repeatDays.includes(currentIterationDate.getDay())) {
+          shouldAdd = true
+        }
+      }
+      // Add more frequencies here if needed (monthly, yearly)
+
+      if (shouldAdd) {
+        // Ensure new task ID is unique
+        const newId =
+          tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 + generated.length : 1 + generated.length
+        generated.push({
+          ...originalTask,
+          id: newId,
+          dueDate: currentIterationDate.toISOString().split("T")[0], // YYYY-MM-DD format
+          isPinned: false,
+          dragVersion: 0,
+          status: "ongoing", // Repeated tasks start as ongoing
+        })
+        count++
+      }
+
+      // Advance date for next iteration
+      if (repeatOptions.frequency === "daily") {
+        currentIterationDate.setDate(currentIterationDate.getDate() + 1)
+      } else if (repeatOptions.frequency === "weekly") {
+        currentIterationDate.setDate(currentIterationDate.getDate() + 1)
+      } else if (repeatOptions.frequency === "monthly") {
+        currentIterationDate.setMonth(currentIterationDate.getMonth() + 1)
+      } else {
+        // Fallback to daily increment if frequency is not handled
+        currentIterationDate.setDate(currentIterationDate.getDate() + 1)
+      }
+    }
+    return generated
+  }
+
+  const handleRepeatTask = (taskToRepeat, repeatOptions) => {
+    const generatedTasks = generateRepeatedTasks(taskToRepeat, repeatOptions)
+    if (generatedTasks.length > 0) {
+      setTasks((prevTasks) => [...prevTasks, ...generatedTasks])
+      toast.success(`${generatedTasks.length} new tasks generated based on repeat settings!`)
+    } else {
+      toast.error("No tasks generated. Check repeat settings.")
+    }
+    setIsRepeatModalOpen(false)
+    setSelectedTaskForRepeat(null)
+  }
+
   const handleDragStop = (e, data, task, sourceColumnId) => {
     const draggedElem = e.target
     const draggedRect = draggedElem.getBoundingClientRect()
     const draggedCenterX = draggedRect.left + draggedRect.width / 2
     const draggedCenterY = draggedRect.top + draggedRect.height / 2
-
     let targetColumnId = null
     for (const [columnId, columnRef] of Object.entries(columnRefs.current)) {
       if (columnRef.current) {
@@ -220,7 +339,6 @@ export default function TodoApp() {
         }
       }
     }
-
     setTasks((prevTasks) => {
       const updatedTasks = prevTasks.map((t) => {
         if (t.id === task.id) {
@@ -246,7 +364,6 @@ export default function TodoApp() {
       // Pinned tasks first
       if (a.isPinned && !b.isPinned) return -1
       if (!a.isPinned && b.isPinned) return 1
-
       // Then by existing sort option
       const [criteria, direction] = sortOption.split("-")
       if (criteria === "dueDate") {
@@ -276,10 +393,11 @@ export default function TodoApp() {
     columnRef,
     onEditRequest,
     onDeleteRequest,
+    onDuplicateRequest, // New prop
+    onRepeatRequest, // New prop
   }) => {
     const taskItemRefs = useRef({}) // Use useRef for task item refs
     const [draggingTaskId, setDraggingTaskId] = useState(null) // State to track which task is being dragged
-  
     return (
       <div
         ref={columnRef}
@@ -288,7 +406,7 @@ export default function TodoApp() {
         data-column-id={id}
         style={{
           // Ensure columns don't interfere with dragging
-          zIndex: draggingTaskId ? 1 : 'auto'
+          zIndex: draggingTaskId ? 1 : "auto",
         }}
       >
         <div className="p-3 flex justify-between items-center" style={{ backgroundColor: `${color}20` }}>
@@ -317,13 +435,13 @@ export default function TodoApp() {
                   // Remove bounds to allow free dragging across the entire screen
                   defaultPosition={{ x: 0, y: 0 }}
                 >
-                  <div 
-                    ref={taskItemRefs.current[task.id]} 
-                    className={`cursor-grab mb-3 ${draggingTaskId === task.id ? 'z-[9999] relative' : ''}`}
+                  <div
+                    ref={taskItemRefs.current[task.id]}
+                    className={`cursor-grab mb-3 ${draggingTaskId === task.id ? "z-[9999] relative" : ""}`}
                     style={{
                       // Ensure dragged item is above everything
-                      zIndex: draggingTaskId === task.id ? 9999 : 'auto',
-                      position: draggingTaskId === task.id ? 'relative' : 'static'
+                      zIndex: draggingTaskId === task.id ? 9999 : "auto",
+                      position: draggingTaskId === task.id ? "relative" : "static",
                     }}
                   >
                     <TaskItem
@@ -334,7 +452,12 @@ export default function TodoApp() {
                       onRemove={onTaskRemove}
                       onEditRequest={onEditRequest} // Pass the new prop
                       onDeleteRequest={onDeleteRequest} // Pass the new prop
+                      onDuplicateRequest={onDuplicateRequest} // Pass new prop
+                      onRepeatRequest={onRepeatRequest} // Pass new prop
                       isDragging={draggingTaskId === task.id} // Pass isDragging prop
+                      openDropdownTaskId={openDropdownTaskId}
+                      setOpenDropdownTaskId={setOpenDropdownTaskId}
+
                     />
                   </div>
                 </Draggable>
@@ -364,7 +487,6 @@ export default function TodoApp() {
       avatar: Rectangle1, // Original import used
     },
   ])
-
   const [todos, setTodos] = useState([
     {
       id: 1,
@@ -379,7 +501,6 @@ export default function TodoApp() {
       assignee: "Sarah",
     },
   ])
-
   const [birthdays, setBirthdays] = useState([
     {
       id: 1,
@@ -394,7 +515,6 @@ export default function TodoApp() {
       avatar: Avatar, // Original import used
     },
   ])
-
   const [customLinks, setCustomLinks] = useState([
     {
       id: 1,
@@ -407,26 +527,20 @@ export default function TodoApp() {
       url: "https://github.com",
     },
   ])
-
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
   const [editingLink, setEditingLink] = useState(null)
-
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
   }
-
   const closeSidebar = () => {
     setIsRightSidebarOpen(false)
   }
-
   const redirectToCommunication = () => {
     console.log("Redirecting to communication page")
   }
-
   const redirectToTodos = () => {
     console.log("Redirecting to todos page")
   }
-
   const toggleDropdown = (index) => {
     setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   }
@@ -446,16 +560,32 @@ export default function TodoApp() {
       <div className="flex-1 p-4 sm:p-6">
         <div className="pb-16 sm:pb-24 lg:pb-36">
           <div className="flex flex-col gap-4 mb-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
               <h1 className="text-2xl font-bold text-white">To-Do</h1>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="bg-[#FF843E] cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
-                >
-                  <Plus size={18} />
-                  <span className="open_sans_font">Add task</span>
-                </button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex items-center flex-grow bg-[#101010] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none">
+                  <Plus size={18} className="text-gray-400 mr-2" />
+                  <input
+                    type="text"
+                    placeholder="Add task"
+                    value={newTaskInput}
+                    onChange={(e) => setNewTaskInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleAddTaskFromInput()
+                      }
+                    }}
+                    className="flex-grow bg-transparent text-sm outline-none placeholder-gray-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTaskFromInput}
+                    className="text-gray-400 hover:text-white ml-2 no-drag"
+                    title="Add task details"
+                  >
+                    <Calendar size={18} />
+                  </button>
+                </div>
                 <div className="">
                   <IoIosMenu
                     onClick={toggleRightSidebar}
@@ -569,12 +699,21 @@ export default function TodoApp() {
                 columnRef={columnRefs.current[column.id]}
                 onEditRequest={handleEditRequest} // Pass down the new prop
                 onDeleteRequest={handleDeleteRequest} // Pass down the new prop
+                onDuplicateRequest={handleDuplicateTask} // Pass new prop
+                onRepeatRequest={handleRepeatRequest} // Pass new prop
               />
             ))}
           </div>
         </div>
       </div>
-      {isModalOpen && <AddTaskModal onClose={() => setIsModalOpen(false)} onAddTask={handleAddTask} />}
+      {isModalOpen && (
+        <AddTaskModal
+          onClose={() => setIsModalOpen(false)}
+          onAddTask={handleAddTask}
+          configuredTags={configuredTags}
+          initialTask={selectedTask}
+        />
+      )}
       {/* Edit Task Modal (now controlled by TodoApp) */}
       {isEditModalOpen && selectedTask && (
         <EditTaskModal
@@ -584,6 +723,7 @@ export default function TodoApp() {
             setSelectedTask(null)
           }}
           onUpdateTask={handleTaskUpdate}
+          configuredTags={configuredTags}
         />
       )}
       {/* Delete Confirmation Modal (now controlled by TodoApp) */}
@@ -613,6 +753,17 @@ export default function TodoApp() {
             </div>
           </div>
         </div>
+      )}
+      {/* Repeat Task Modal (newly added) */}
+      {isRepeatModalOpen && selectedTaskForRepeat && (
+        <RepeatTaskModal
+          task={selectedTaskForRepeat}
+          onClose={() => {
+            setIsRepeatModalOpen(false)
+            setSelectedTaskForRepeat(null)
+          }}
+          onRepeatTask={handleRepeatTask}
+        />
       )}
     </div>
   )

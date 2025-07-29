@@ -15,6 +15,20 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations, o
       onClose()
       onEditLead(leadData)
     }
+    const getSourceColor = (source) => {
+      const sourceColors = {
+        Website: "bg-blue-900 text-blue-300",
+        "Google Ads": "bg-green-900 text-green-300",
+        "Social Media Ads": "bg-purple-900 text-purple-300",
+        "Email Campaign": "bg-orange-900 text-orange-300",
+        "Cold Call (Outbound)": "bg-red-900 text-red-300",
+        "Inbound Call": "bg-emerald-900 text-emerald-300",
+        Event: "bg-yellow-900 text-yellow-300",
+        "Offline Advertising": "bg-pink-900 text-pink-300",
+        Other: "bg-gray-900 text-gray-300",
+      }
+      return sourceColors[source] || "bg-gray-900 text-gray-300"
+    }
   
     return (
       <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
@@ -68,14 +82,42 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations, o
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
+              <div>
                   <p className="text-sm text-gray-400">Email</p>
                   <p>{leadData.email}</p>
                 </div>
                 <div>
+                  <p>Lead Source</p>
+                <p className={`px-2 py-1 text-xs w-38 text-center mt-1 rounded-full ${getSourceColor(leadData.source)}`}>
+                {leadData.source || "N/A"}
+              </p>
+                </div>
+               
+                <div>
                   <p className="text-sm text-gray-400">Phone</p>
                   <p>{leadData.phoneNumber}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-gray-400">Street & ZIP Code</p>
+                  <p>{leadData.address}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Country</p>
+                  <p>{leadData.country}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Lead ID</p>
+                  <p>{leadData.leadId}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Category</p>
+                  <p>{leadData.status}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">About</p>
+                  <p>{leadData.about}</p>
+                </div>
+              
               </div>
               <div>
                 <p className="text-sm text-gray-400">Created Date</p>
