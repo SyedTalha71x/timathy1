@@ -1,8 +1,9 @@
-"use client"
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
+import Avatar from "../../public/avatar.png"
+import Rectangle1 from "../../public/Rectangle 1.png"
 import {
   Menu,
   X,
@@ -35,11 +36,12 @@ import {
   Cake,
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
+
 import CommuncationBg from "../../public/communication-bg.svg"
 import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
 import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 import DefaultAvatar from "../../public/default-avatar.avif" // Assuming this path is correct
-
+import { SidebarArea } from "../components/custom-sidebar"
 const img1 = "/Rectangle 1.png"
 const img2 = "/avatar3.png"
 
@@ -97,6 +99,24 @@ const emailList = {
   archive: [],
   error: [],
 }
+
+// Dummy data for SidebarArea widgets
+const mockTodos = [
+  { id: 1, title: "Prepare Q3 Report", description: "Finalize sales figures and market analysis.", assignee: "Admin" },
+  { id: 2, title: "Schedule Team Meeting", description: "Find a suitable time for weekly sync.", assignee: "John" },
+  {
+    id: 3,
+    title: "Review Marketing Plan",
+    description: "Check campaign performance and adjust strategy.",
+    assignee: "Sarah",
+  },
+]
+
+const mockBirthdays = [
+  { id: 1, name: "Alice Smith", date: "August 10", avatar: "/placeholder.svg?height=32&width=32" },
+  { id: 2, name: "Bob Johnson", date: "September 5", avatar: "/placeholder.svg?height=32&width=32" },
+  { id: 3, name: "Charlie Brown", date: "October 1", avatar: "/placeholder.svg?height=32&width=32" },
+]
 
 export default function Communications() {
   const [isMessagesOpen, setIsMessagesOpen] = useState(true)
@@ -216,6 +236,66 @@ export default function Communications() {
       memberId: 2,
     },
   ])
+
+    const [communications, setCommunications] = useState([
+      {
+        id: 1,
+        name: "John Doe",
+        message: "Hey, how's the project going?",
+        time: "2 min ago",
+        avatar: Rectangle1,
+      },
+      {
+        id: 2,
+        name: "Jane Smith",
+        message: "Meeting scheduled for tomorrow",
+        time: "10 min ago",
+        avatar: Rectangle1,
+      },
+    ])
+  
+    const [todos, setTodos] = useState([
+      {
+        id: 1,
+        title: "Review project proposal",
+        description: "Check the latest updates",
+        assignee: "Mike",
+      },
+      {
+        id: 2,
+        title: "Update documentation",
+        description: "Add new features info",
+        assignee: "Sarah",
+      },
+    ])
+  
+    const [birthdays, setBirthdays] = useState([
+      {
+        id: 1,
+        name: "Alice Johnson",
+        date: "Dec 15, 2024",
+        avatar: Avatar,
+      },
+      {
+        id: 2,
+        name: "Bob Wilson",
+        date: "Dec 20, 2024",
+        avatar: Avatar,
+      },
+    ])
+  
+    const [newcustomLinks, setNewCustomLinks] = useState([
+      {
+        id: 1,
+        title: "Google Drive",
+        url: "https://drive.google.com",
+      },
+      {
+        id: 2,
+        title: "GitHub",
+        url: "https://github.com",
+      },
+    ])
   const [editingAppointment, setEditingAppointment] = useState(null)
   const [newAppointment, setNewAppointment] = useState({
     title: "",
@@ -269,18 +349,9 @@ export default function Communications() {
         "06.14.25 - 06.18.2025": { used: 0, total: 8 },
       },
     },
-    3: {
-      current: { used: 0, total: 5 },
-      future: {},
-    },
-    4: {
-      current: { used: 3, total: 10 },
-      future: {},
-    },
-    5: {
-      current: { used: 0, total: 6 },
-      future: {},
-    },
+    3: { current: { used: 0, total: 5 }, future: {} },
+    4: { current: { used: 3, total: 10 }, future: {} },
+    5: { current: { used: 0, total: 6 }, future: {} },
     100: {
       current: { used: 0, total: 0 }, // Company chat has no contingent
       future: {},
@@ -314,6 +385,14 @@ export default function Communications() {
   const chatMenuRef = useRef(null)
   const emailSearchInputRef = useRef(null)
   const notePopoverRef = useRef(null)
+
+  // State for the new right sidebar
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [customLinks, setCustomLinks] = useState([
+    { id: "link1", title: "Vercel Dashboard", url: "https://vercel.com/dashboard" },
+    { id: "link2", title: "Google Analytics", url: "https://analytics.google.com" },
+    { id: "link3", title: "Stripe Dashboard", url: "https://dashboard.stripe.com" },
+  ])
 
   // Dummy Member Data (from Members.jsx context)
   const [members, setMembers] = useState([
@@ -599,7 +678,6 @@ export default function Communications() {
     work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
     other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
   }
-
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -632,7 +710,6 @@ export default function Communications() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
-
   useEffect(() => {
     if (chatType === "staff") {
       setChatList(staffChatList)
@@ -642,13 +719,11 @@ export default function Communications() {
       setChatList(companyChatList)
     }
   }, [chatType])
-
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
   }, [messages])
-
   useEffect(() => {
     // Calculate unread counts for tabs
     const memberUnread = memberChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
@@ -660,23 +735,19 @@ export default function Communications() {
       email: emailUnread,
     })
   }, [chatList, archivedChats, emailList]) // Depend on lists that might change unread status
-
   const handleSearchClick = () => {
     setIsSearchOpen(!isSearchOpen)
   }
-
   const handleNewChat = () => {
     setShowChatDropdown(true)
     setShowGroupDropdown(false)
     setActiveDropdownId(null)
   }
-
   const handleNewGroup = () => {
     setShowGroupDropdown(true)
     setShowChatDropdown(false)
     setActiveDropdownId(null)
   }
-
   // Staff chat list (renamed from employee)
   const staffChatList = [
     {
@@ -739,7 +810,6 @@ export default function Communications() {
       ],
     },
   ]
-
   const memberChatList = [
     {
       id: 3,
@@ -827,7 +897,6 @@ export default function Communications() {
       ],
     },
   ]
-
   // Company chat - single chat with studio name
   const companyChatList = [
     {
@@ -851,7 +920,6 @@ export default function Communications() {
       ],
     },
   ]
-
   const handleArchiveChat = (chatId, e) => {
     e.stopPropagation()
     const chatToArchive = chatList.find((chat) => chat.id === chatId)
@@ -865,7 +933,6 @@ export default function Communications() {
     }
     setShowChatMenu(null)
   }
-
   const handleRestoreChat = (chatId) => {
     const chatToRestore = archivedChats.find((chat) => chat.id === chatId)
     if (chatToRestore) {
@@ -875,7 +942,6 @@ export default function Communications() {
       handleChatSelect(chatToRestore)
     }
   }
-
   const handlePinChat = (chatId, e) => {
     e.stopPropagation()
     setPinnedChats((prev) => {
@@ -889,7 +955,6 @@ export default function Communications() {
     })
     setShowChatMenu(null)
   }
-
   const handleMarkChatAsRead = (chatId, e) => {
     e.stopPropagation()
     setChatList((prevList) =>
@@ -897,7 +962,6 @@ export default function Communications() {
     )
     setShowChatMenu(null)
   }
-
   const handleMarkChatAsUnread = (chatId, e) => {
     e.stopPropagation()
     setChatList((prevList) =>
@@ -905,7 +969,6 @@ export default function Communications() {
     ) // Set unread count to 1 for simplicity
     setShowChatMenu(null)
   }
-
   const handleViewMember = (chatId, e) => {
     if (e) e.stopPropagation() // Stop propagation if event object exists
     let member = members.find((m) => m.id === chatId)
@@ -925,7 +988,6 @@ export default function Communications() {
     }
     setShowChatMenu(null) // Close chat menu if opened from there
   }
-
   const handleSendMessage = () => {
     if (!messageText.trim() || !selectedChat) return
     const newMessage = {
@@ -967,7 +1029,6 @@ export default function Communications() {
       setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "read" } : msg)))
     }, 3000)
   }
-
   const handleReaction = (messageId, reaction) => {
     setMessageReactions((prev) => ({
       ...prev,
@@ -978,13 +1039,11 @@ export default function Communications() {
     }))
     setShowReactionPicker(null)
   }
-
   const handleEmailClick = () => {
     setActiveScreen("email-frontend")
     setShowEmailFrontend(true)
     setIsMessagesOpen(false) // Close sidebar on mobile
   }
-
   const handleSendEmail = () => {
     if (!emailData.to || !emailData.subject || !emailData.body) {
       alert("Please fill in all email fields")
@@ -1009,7 +1068,6 @@ export default function Communications() {
       isRead: true,
     })
   }
-
   const handleAppointmentChange = (changes) => {
     if (selectedAppointmentData) {
       setSelectedAppointmentData({
@@ -1018,7 +1076,6 @@ export default function Communications() {
       })
     }
   }
-
   const handleDeleteAppointment = (id) => {
     setAppointments(appointments.filter((app) => app.id !== id))
     setSelectedAppointmentData(null)
@@ -1026,7 +1083,6 @@ export default function Communications() {
     setIsNotifyMemberOpen(true)
     setNotifyAction("delete")
   }
-
   const handleAddAppointmentSubmit = (data) => {
     const newAppointment = {
       id: Math.max(0, ...appointments.map((a) => a.id)) + 1,
@@ -1036,7 +1092,6 @@ export default function Communications() {
     setAppointments([...appointments, newAppointment])
     setShowAddAppointmentModal(false)
   }
-
   const handleCalendarClick = () => {
     // When clicking calendar icon in chat header, open appointment modal for selected chat member
     if (selectedChat) {
@@ -1044,7 +1099,6 @@ export default function Communications() {
       setShowAppointmentModal(true)
     }
   }
-
   const handleEditAppointment = (appointment) => {
     const fullAppointment = {
       ...appointment,
@@ -1060,16 +1114,13 @@ export default function Communications() {
     setShowSelectedAppointmentModal(true)
     setShowAppointmentModal(false)
   }
-
   const handleCreateNewAppointment = () => {
     setShowAddAppointmentModal(true)
     setShowAppointmentModal(false)
   }
-
   const handleMemberSelect = (member) => {
     setSelectedRecipients((prev) => (prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]))
   }
-
   const handleSelectAll = () => {
     const newSelectAll = !selectAll
     setSelectAll(newSelectAll)
@@ -1082,12 +1133,10 @@ export default function Communications() {
       setSelectedRecipients([])
     }
   }
-
   const handleEmojiSelect = (emoji) => {
     setMessageText((prevText) => prevText + emoji.native)
     setShowEmojiPicker(false)
   }
-
   const handleFileUpload = (event) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -1095,7 +1144,6 @@ export default function Communications() {
       setShowMediaUpload(false)
     }
   }
-
   const handleBroadcast = () => {
     if (!selectedMessage) {
       alert("Please select a message to broadcast")
@@ -1130,7 +1178,6 @@ export default function Communications() {
     setSelectedRecipients([])
     setActiveScreen("chat")
   }
-
   const handleCreateMessage = () => {
     setShowCreateMessageModal(true)
     // Pre-select the first folder when opening "Create New Template"
@@ -1138,7 +1185,6 @@ export default function Communications() {
       setNewMessage((prev) => ({ ...prev, folderId: broadcastFolders[0].id }))
     }
   }
-
   const handleSaveNewMessage = () => {
     if (!newMessage.title.trim() || !newMessage.message.trim()) {
       alert("Please enter both title and message")
@@ -1156,7 +1202,6 @@ export default function Communications() {
     setShowCreateMessageModal(false)
     setNewMessage({ title: "", message: "", folderId: 1 })
   }
-
   const handleChatSelect = (chat) => {
     setSelectedChat(chat)
     setMessages(chat.messages || [])
@@ -1165,13 +1210,11 @@ export default function Communications() {
     // Mark chat as read when opened
     setChatList((prevList) => prevList.map((c) => (c.id === chat.id ? { ...c, isRead: true, unreadCount: 0 } : c)))
   }
-
   const handleCancelAppointment = (id) => {
     setSelectedAppointmentData(appointments.find((app) => app.id === id))
     setIsNotifyMemberOpen(true)
     setNotifyAction("delete")
   }
-
   const handleSaveAppointment = () => {
     if (editingAppointment) {
       setAppointments(
@@ -1184,7 +1227,6 @@ export default function Communications() {
     }
     setNewAppointment({ title: "", date: "", status: "upcoming" })
   }
-
   const handleManageContingent = () => {
     // Use selectedChat.id to get the correct contingent data
     const memberId = selectedChat?.id
@@ -1197,7 +1239,6 @@ export default function Communications() {
     }
     setShowContingentModal(true)
   }
-
   const handleSaveContingent = () => {
     const memberId = selectedChat?.id
     if (memberId && memberContingentData[memberId]) {
@@ -1215,13 +1256,11 @@ export default function Communications() {
     }
     setShowContingentModal(false)
   }
-
   const handleSaveSettings = () => {
     // Save settings logic here
     setShowSettings(false)
     alert("Settings saved successfully!")
   }
-
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) {
       alert("Please enter a folder name")
@@ -1232,7 +1271,6 @@ export default function Communications() {
     setNewFolderName("")
     setShowFolderModal(false)
   }
-
   const getMessageStatusIcon = (status) => {
     switch (status) {
       case "sent":
@@ -1245,7 +1283,6 @@ export default function Communications() {
         return null
     }
   }
-
   const reactions = [
     { emoji: "❤️", name: "heart" },
     { emoji: "😂", name: "laugh" },
@@ -1253,7 +1290,6 @@ export default function Communications() {
     { emoji: "😢", name: "sad" },
     { emoji: "😡", name: "angry" },
   ]
-
   // Filter and sort chats (pinned first, then by time)
   const sortedChatList = [...chatList].sort((a, b) => {
     const aPinned = pinnedChats.has(a.id)
@@ -1262,12 +1298,10 @@ export default function Communications() {
     if (!aPinned && bPinned) return 1
     return 0
   })
-
   // Combined search for both active and archived chats
   const searchResults = searchMember
     ? [...chatList, ...archivedChats].filter((chat) => chat.name.toLowerCase().includes(searchMember.toLowerCase()))
     : []
-
   // Contingent management functions (from Members.jsx reference)
   const getBillingPeriods = (memberId) => {
     const memberData = memberContingentData[memberId]
@@ -1284,7 +1318,6 @@ export default function Communications() {
     }
     return periods
   }
-
   const handleBillingPeriodChange = (periodId) => {
     setSelectedBillingPeriod(periodId)
     const memberId = selectedChat?.id
@@ -1295,7 +1328,6 @@ export default function Communications() {
       setTempContingent(memberData.future[periodId] || { used: 0, total: 0 })
     }
   }
-
   const handleAddBillingPeriod = () => {
     if (newBillingPeriod.trim() && selectedChat) {
       const updatedContingent = { ...memberContingentData }
@@ -1309,12 +1341,10 @@ export default function Communications() {
       alert("New billing period added successfully")
     }
   }
-
   const handleEmailTabClick = (tab) => {
     setEmailTab(tab)
     setSelectedEmail(null) // Close email view when changing tabs
   }
-
   const handleEmailItemClick = (email) => {
     setSelectedEmail(email)
     // Mark email as read
@@ -1333,7 +1363,6 @@ export default function Communications() {
       }))
     }
   }
-
   const handleSearchMemberForEmail = (query) => {
     // This would typically fetch members from a backend
     // For now, filter from existing chat lists
@@ -1342,12 +1371,10 @@ export default function Communications() {
     )
     return allMembers
   }
-
   const handleSelectEmailRecipient = (member) => {
     setEmailData((prev) => ({ ...prev, to: member.email || member.name }))
     setShowRecipientDropdown(false) // Close dropdown after selection
   }
-
   // Member Details/Overview Functions (from Members.jsx context)
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return ""
@@ -1360,7 +1387,6 @@ export default function Communications() {
     }
     return age
   }
-
   const isContractExpiringSoon = (contractEnd) => {
     if (!contractEnd) return false
     const today = new Date()
@@ -1369,30 +1395,25 @@ export default function Communications() {
     oneMonthFromNow.setMonth(today.getMonth() + 1)
     return endDate <= oneMonthFromNow && endDate >= today
   }
-
   const redirectToContract = () => {
     alert("Redirecting to contract page (placeholder)")
     // window.location.href = "/dashboard/contract"
   }
-
   const handleViewDetailedInfo = () => {
     setIsMemberOverviewModalOpen(false)
     setActiveMemberDetailsTab("details")
     setIsMemberDetailsModalOpen(true)
   }
-
   const handleCalendarFromOverview = () => {
     setIsMemberOverviewModalOpen(false)
     // Set the selected member for appointments and open the appointment modal
     setSelectedMember(selectedMember) // Ensure selectedMember is passed to the appointment modal context
     setShowAppointmentModal(true)
   }
-
   const handleHistoryFromOverview = () => {
     setIsMemberOverviewModalOpen(false)
     setShowHistoryModal(true)
   }
-
   const handleCommunicationFromOverview = () => {
     setIsMemberOverviewModalOpen(false)
     // If the member has a chat, select it and go to chat view
@@ -1403,12 +1424,10 @@ export default function Communications() {
       alert("No direct chat found for this member.")
     }
   }
-
   const handleEditFromOverview = () => {
     setIsMemberOverviewModalOpen(false)
     alert("Edit functionality would be implemented here.")
   }
-
   const handleAddRelation = () => {
     if (!newRelation.name || !newRelation.relation) {
       alert("Please fill in all fields")
@@ -1435,7 +1454,6 @@ export default function Communications() {
     setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
     alert("Relation added successfully")
   }
-
   const handleDeleteRelation = (category, relationId) => {
     const updatedRelations = { ...memberRelations }
     updatedRelations[selectedMember.id][category] = updatedRelations[selectedMember.id][category].filter(
@@ -1444,9 +1462,25 @@ export default function Communications() {
     setMemberRelations(updatedRelations)
     alert("Relation deleted successfully")
   }
-
   const getMemberAppointments = (memberId) => {
     return appointments.filter((app) => app.memberId === memberId)
+  }
+
+  // Functions for SidebarArea to interact with Communications data
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen((prev) => !prev)
+  }
+
+  const redirectToCommunication = () => {
+    setIsRightSidebarOpen(false) // Close sidebar when navigating within communications
+    // In a real app, this would be router.push('/dashboard/communication');
+    alert("Navigating to Communications overview!")
+  }
+
+  const redirectToTodos = () => {
+    setIsRightSidebarOpen(false) // Close sidebar
+    // In a real app, this would be router.push('/dashboard/to-do');
+    alert("Navigating to TO-DO list!")
   }
 
   return (
@@ -1475,7 +1509,14 @@ export default function Communications() {
               >
                 <Settings className="w-5 h-5" />
               </button>
-              {/* Removed X button from sidebar header */}
+              {/* New button for right sidebar */}
+              <button
+                onClick={toggleRightSidebar}
+                className="p-2 hover:bg-gray-800 rounded-full"
+                aria-label="Manage Widgets"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
             </div>
           </div>
           <div className="flex gap-2 items-center justify-between mb-4">
@@ -1609,7 +1650,7 @@ export default function Communications() {
                   >
                     <div className="relative">
                       <img
-                        src={chat.logo || "/placeholder.svg?height=40&width=40"}
+                        src={chat.logo || "/placeholder.svg"}
                         alt={`${chat.name}'s avatar`}
                         width={40}
                         height={40}
@@ -3637,6 +3678,29 @@ export default function Communications() {
           </div>
         </div>
       )}
+
+<>
+  {/* Overlay */}
+  {isRightSidebarOpen && (
+    <div
+      className="fixed inset-0 bg-black/50 bg-opacity-50 z-40"
+      onClick={() => setIsRightSidebarOpen(false)} // Optional: clicking overlay closes sidebar
+    ></div>
+  )}
+
+  {/* Right Sidebar */}
+  <SidebarArea
+    isOpen={isRightSidebarOpen}
+    onClose={() => setIsRightSidebarOpen(false)}
+    communications={communications}
+    todos={todos}
+    birthdays={birthdays}
+    customLinks={newcustomLinks}
+    setCustomLinks={setNewCustomLinks}
+    redirectToCommunication={redirectToCommunication}
+    redirectToTodos={redirectToTodos}
+  />
+</>
     </div>
   )
 }

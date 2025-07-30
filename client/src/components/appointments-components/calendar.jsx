@@ -1,7 +1,4 @@
-/* eslint-disable react/no-unknown-property */
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
-/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react/no-unknown-property */ /* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */ /* eslint-disable react/no-unescaped-entities */
 import FullCalendar from "@fullcalendar/react"
 import { Edit, User, X, FileText, CalendarIcon, History, MessageCircle, Eye, Info, Edit3, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -13,6 +10,7 @@ import DefaultAvatar from "../../../public/default-avatar.avif"
 import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialPlanningModal from "../lead-components/add-trial"
+import SelectedAppointmentModal from "./selected-appointment-modal" // New import
 import { membersData } from "../../utils/states"
 
 export default function Calendar({
@@ -29,14 +27,12 @@ export default function Calendar({
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [freeAppointments, setFreeAppointments] = useState([])
   const [viewMode, setViewMode] = useState("all") // "all" or "free"
-  const [activeTab, setActiveTab] = useState("details")
-
-  // Enhanced states for member functionality
+  const [activeTab, setActiveTab] = useState("details") // Enhanced states for member functionality
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
   const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
   const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
-  const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
-  const [selectedAppointmentData, setSelectedAppointmentData] = useState(null)
+  const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false) // State for new modal
+  const [selectedAppointmentData, setSelectedAppointmentData] = useState(null) // State for new modal data
   const [showContingentModal, setShowContingentModal] = useState(false)
   const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
   const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
@@ -97,6 +93,8 @@ export default function Calendar({
       status: "upcoming",
       type: "Consultation",
       memberId: 1,
+      startTime: "10:00",
+      endTime: "10:30",
       specialNote: {
         text: "First time client, needs introduction to equipment",
         isImportant: true,
@@ -111,6 +109,8 @@ export default function Calendar({
       status: "upcoming",
       type: "Follow-up",
       memberId: 1,
+      startTime: "14:30",
+      endTime: "15:15",
     },
     {
       id: 3,
@@ -119,6 +119,8 @@ export default function Calendar({
       status: "upcoming",
       type: "Annual Review",
       memberId: 2,
+      startTime: "11:00",
+      endTime: "12:00",
     },
     {
       id: 4,
@@ -127,6 +129,8 @@ export default function Calendar({
       status: "upcoming",
       type: "Strength Training",
       memberId: 3,
+      startTime: "09:00",
+      endTime: "10:00",
     },
     {
       id: 5,
@@ -135,6 +139,8 @@ export default function Calendar({
       status: "upcoming",
       type: "Yoga",
       memberId: 4,
+      startTime: "16:00",
+      endTime: "17:30",
     },
     // Add some past appointments for demonstration
     {
@@ -144,6 +150,8 @@ export default function Calendar({
       status: "completed",
       type: "Strength Training",
       memberId: 1,
+      startTime: "10:00",
+      endTime: "11:00",
     },
     {
       id: 7,
@@ -152,6 +160,8 @@ export default function Calendar({
       status: "completed",
       type: "Consultation",
       memberId: 2,
+      startTime: "14:00",
+      endTime: "14:30",
     },
   ])
 
@@ -233,13 +243,7 @@ export default function Calendar({
         },
       ],
       contracts: [
-        {
-          id: 1,
-          date: "2021-11-15",
-          action: "Contract signed",
-          details: "Initial membership contract",
-          user: "Admin",
-        },
+        { id: 1, date: "2021-11-15", action: "Contract signed", details: "Initial membership contract", user: "Admin" },
       ],
     },
     // Add default empty history for other members
@@ -387,9 +391,9 @@ export default function Calendar({
       isTrial: false,
       isCancelled: false, // Default for new appointments
       isPast: false, // Default for new appointments
-      date: `${new Date(appointmentData.date).toLocaleString("en-US", {
-        weekday: "short",
-      })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
+      date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(
+        new Date(appointmentData.date),
+      )}`,
     }
     setAppointments([...appointments, newAppointment])
     toast.success("Appointment booked successfully")
@@ -416,9 +420,9 @@ export default function Calendar({
       isTrial: true,
       isCancelled: false, // Default for new trials
       isPast: false, // Default for new trials
-      date: `${new Date(trialData.date).toLocaleString("en-US", {
-        weekday: "short",
-      })} | ${formatDateForDisplay(new Date(trialData.date))}`,
+      date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(
+        new Date(trialData.date),
+      )}`,
     }
     setAppointments([...appointments, newTrial])
     toast.success("Trial training booked successfully")
@@ -439,12 +443,10 @@ export default function Calendar({
       const weekStart = new Date(startOfWeek)
       weekStart.setDate(weekStart.getDate() + week * 7)
       const slotsPerWeek = 5 + Math.floor(Math.random() * 3) // More slots for better visibility
-
       for (let i = 0; i < slotsPerWeek; i++) {
         const randomDay = Math.floor(Math.random() * 7)
         const randomHour = 8 + Math.floor(Math.random() * 10)
         const randomMinute = Math.floor(Math.random() * 4) * 15
-
         const freeDate = new Date(weekStart)
         freeDate.setDate(freeDate.getDate() + randomDay)
         freeDate.setHours(randomHour, randomMinute, 0)
@@ -453,7 +455,6 @@ export default function Calendar({
 
         const formattedDate = formatDate(freeDate)
         const formattedTime = freeDate.toTimeString().split(" ")[0].substring(0, 5)
-
         freeDates.add(freeDate.toLocaleDateString("en-US", { month: "long", day: "numeric" }))
         slots.push({
           id: `free-${week}-${i}`,
@@ -462,7 +463,6 @@ export default function Calendar({
         })
       }
     }
-
     setFreeAppointments(slots)
 
     if (newViewMode === "free") {
@@ -491,7 +491,6 @@ export default function Calendar({
       toast.error("Cannot move past appointments")
       return
     }
-
     setPendingEventInfo(info) // Store the info object
     setNotifyAction("change")
     setIsNotifyMemberOpen(true)
@@ -529,9 +528,7 @@ export default function Calendar({
               ...appointment,
               startTime: event.start.toTimeString().split(" ")[0],
               endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0],
-              date: `${event.start.toLocaleString("en-US", {
-                weekday: "short",
-              })} | ${formatDate(event.start)}`,
+              date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
             }
           }
           return appointment
@@ -567,7 +564,6 @@ export default function Calendar({
       handleFreeSlotClick(clickInfo)
       return
     }
-
     // Allow all appointments (including past ones) to open the action modal
     const appointmentId = Number.parseInt(clickInfo.event.id)
     const appointment = appointments?.find((app) => app.id === appointmentId)
@@ -579,12 +575,30 @@ export default function Calendar({
       onEventClick(clickInfo)
     }
   }
-
   const handleEditAppointment = () => {
     setIsAppointmentActionModalOpen(false)
-    setIsEditAppointmentModalOpen(true)
+    
+    // Convert the selected appointment to the format expected by SelectedAppointmentModal
+    const appointmentForModal = {
+      id: selectedAppointment.id,
+      name: selectedAppointment.name,
+      type: selectedAppointment.type,
+      date: selectedAppointment.date ? selectedAppointment.date.split("|")[1]?.trim().split("-").reverse().join("-") : "",
+      time: selectedAppointment.startTime,
+      startTime: selectedAppointment.startTime,
+      endTime: selectedAppointment.endTime,
+      specialNote: selectedAppointment.specialNote || {
+        text: "",
+        isImportant: false,
+        startDate: "",
+        endDate: ""
+      }
+    }
+    
+    setSelectedAppointmentData(appointmentForModal)
+    setShowSelectedAppointmentModal(true)
   }
-
+  
   // Modified handleCancelAppointment to update status instead of setting eventInfo for deletion
   const handleCancelAppointment = () => {
     setIsAppointmentActionModalOpen(false)
@@ -662,16 +676,24 @@ export default function Calendar({
     const fullAppointment = {
       ...appointment,
       name: selectedMemberForAppointments?.title || "Member",
-      specialNote: appointment.specialNote || {
-        text: "",
-        isImportant: false,
-        startDate: "",
-        endDate: "",
-      },
+      specialNote: appointment.specialNote || { text: "", isImportant: false, startDate: "", endDate: "" },
     }
     setSelectedAppointmentData(fullAppointment)
-    setShowSelectedAppointmentModal(true)
+    setShowSelectedAppointmentModal(true) // Open the new modal
     setShowAppointmentModal(false)
+  }
+
+  // New function to handle saving edited appointment from SelectedAppointmentModal
+  const handleSaveEditedAppointment = (updatedAppointment) => {
+    setMemberAppointments((prevAppointments) =>
+      prevAppointments.map((app) => (app.id === updatedAppointment.id ? updatedAppointment : app)),
+    )
+    setShowSelectedAppointmentModal(false)
+    toast.success("Appointment updated successfully!")
+    // Optionally, prompt to notify member
+    setNotifyAction("change")
+    // Reconstruct a minimal eventInfo for notification if needed, or just trigger notification directly
+    setIsNotifyMemberOpen(true)
   }
 
   const handleCreateNewAppointment = () => {
@@ -699,14 +721,12 @@ export default function Calendar({
     toast.success("Appointment deleted successfully")
   }
 
-  const handleAppointmentChange = (changes) => {
-    if (selectedAppointmentData) {
-      setSelectedAppointmentData({
-        ...selectedAppointmentData,
-        ...changes,
-      })
-    }
-  }
+  // This function is now handled internally by SelectedAppointmentModal
+  // const handleAppointmentChange = (changes) => {
+  //   if (selectedAppointmentData) {
+  //     setSelectedAppointmentData({ ...selectedAppointmentData, ...changes, })
+  //   }
+  // }
 
   const handleManageContingent = (memberId) => {
     const contingent = memberContingent[memberId] || { used: 0, total: 0 }
@@ -771,7 +791,6 @@ export default function Calendar({
       // Past appointments will be shown but with reduced opacity
       typeMatch = true
     }
-
     return nameMatch && dateMatch && typeMatch
   })
 
@@ -861,7 +880,6 @@ export default function Calendar({
 
   const handleEventResize = (info) => {
     const { event } = info
-
     // Check if it's a past event and prevent resize
     const isPastEvent = isEventInPast(event.start)
     if (isPastEvent) {
@@ -869,7 +887,6 @@ export default function Calendar({
       toast.error("Cannot resize past appointments")
       return
     }
-
     if (!appointments || !setAppointments) return
     const updatedAppointments = appointments.map((appointment) => {
       if (appointment.id === Number(event.id)) {
@@ -943,7 +960,7 @@ export default function Calendar({
                 <div
                   className={`p-1 h-full overflow-hidden transition-all duration-200 ${
                     eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
-                  } ${eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content" : ""} ${
+                  } ${eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""} ${
                     eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                       ? "opacity-20"
                       : ""
@@ -1008,7 +1025,6 @@ export default function Calendar({
           </div>
         </div>
       </div>
-
       <style jsx>{`
         :global(.past-event) {
           cursor: pointer !important; /* Allow clicking on past events */
@@ -1032,9 +1048,10 @@ export default function Calendar({
           border-color: #777777 !important;
           cursor: pointer !important; /* Allow clicking on cancelled events */
         }
-        :global(.cancelled-event-content) {
-          color: #bbbbbb !important;
-        }
+:global(.cancelled-event-content) {
+  color: #bbbbbb !important;
+  background-color: #ffffff !important;
+}
         :global(.free-slot-event) {
           cursor: pointer !important;
           border-left: 3px solid #15803d !important;
@@ -1048,7 +1065,8 @@ export default function Calendar({
           animation: pulse-green 2s infinite;
         }
         @keyframes pulse-green {
-          0%, 100% {
+          0%,
+          100% {
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
           }
           50% {
@@ -1134,7 +1152,6 @@ export default function Calendar({
           margin: 1px 2px !important;
         }
       `}</style>
-
       {/* Member Overview Modal - ENHANCED */}
       {isMemberOverviewModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] overflow-y-auto">
@@ -1153,21 +1170,25 @@ export default function Calendar({
                   <div>
                     <div className="flex items-center gap-3">
                       <h2 className="text-white text-xl font-semibold">
-                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
+                        {" "}
+                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)}){" "}
                       </h2>
                       <span
                         className={`px-3 py-1 text-xs rounded-full font-medium ${
                           selectedMember.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
                         }`}
                       >
-                        {selectedMember.isActive ? "Active" : "Inactive"}
+                        {" "}
+                        {selectedMember.isActive ? "Active" : "Inactive"}{" "}
                       </span>
                     </div>
                     <p className="text-gray-400 text-sm mt-1">
-                      Contract: {selectedMember.contractStart} -
+                      {" "}
+                      Contract: {selectedMember.contractStart} -{" "}
                       <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                        {selectedMember.contractEnd}
-                      </span>
+                        {" "}
+                        {selectedMember.contractEnd}{" "}
+                      </span>{" "}
                     </p>
                   </div>
                 </div>
@@ -1202,15 +1223,16 @@ export default function Calendar({
                     onClick={handleViewDetailedInfo}
                     className="flex items-center gap-2 px-4 py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-gray-200 hover:text-white"
                   >
-                    <Eye size={16} />
-                    View Details
+                    {" "}
+                    <Eye size={16} /> View Details{" "}
                   </button>
                   {/* Edit Button */}
                   <button
                     onClick={handleEditFromOverview}
                     className="px-4 py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-gray-200 hover:text-white"
                   >
-                    Edit
+                    {" "}
+                    Edit{" "}
                   </button>
                   {/* Close Button */}
                   <button
@@ -1220,7 +1242,8 @@ export default function Calendar({
                     }}
                     className="p-3 text-gray-400 hover:text-white"
                   >
-                    <X size={20} />
+                    {" "}
+                    <X size={20} />{" "}
                   </button>
                 </div>
               </div>
@@ -1228,7 +1251,6 @@ export default function Calendar({
           </div>
         </div>
       )}
-
       {/* Member Details Modal with Tabs - EXISTING */}
       {isMemberDetailsModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -1243,7 +1265,8 @@ export default function Calendar({
                   }}
                   className="text-gray-400 hover:text-white"
                 >
-                  <X size={20} className="cursor-pointer" />
+                  {" "}
+                  <X size={20} className="cursor-pointer" />{" "}
                 </button>
               </div>
               {/* Tab Navigation */}
@@ -1256,7 +1279,8 @@ export default function Calendar({
                       : "text-gray-400 hover:text-white"
                   }`}
                 >
-                  Details
+                  {" "}
+                  Details{" "}
                 </button>
                 <button
                   onClick={() => setActiveTab("relations")}
@@ -1266,7 +1290,8 @@ export default function Calendar({
                       : "text-gray-400 hover:text-white"
                   }`}
                 >
-                  Relations
+                  {" "}
+                  Relations{" "}
                 </button>
               </div>
               {/* Tab Content */}
@@ -1280,13 +1305,16 @@ export default function Calendar({
                     />
                     <div>
                       <h3 className="text-xl font-semibold">
-                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
+                        {" "}
+                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)}){" "}
                       </h3>
                       <p className="text-gray-400">
-                        Contract: {selectedMember.contractStart} -
+                        {" "}
+                        Contract: {selectedMember.contractStart} -{" "}
                         <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                          {selectedMember.contractEnd}
-                        </span>
+                          {" "}
+                          {selectedMember.contractEnd}{" "}
+                        </span>{" "}
                       </p>
                     </div>
                   </div>
@@ -1308,7 +1336,8 @@ export default function Calendar({
                     <div>
                       <p className="text-sm text-gray-400">Date of Birth</p>
                       <p>
-                        {selectedMember.dateOfBirth} (Age: {calculateAge(selectedMember.dateOfBirth)})
+                        {" "}
+                        {selectedMember.dateOfBirth} (Age: {calculateAge(selectedMember.dateOfBirth)}){" "}
                       </p>
                     </div>
                     <div>
@@ -1325,7 +1354,8 @@ export default function Calendar({
                       <p className="text-sm text-gray-400">Special Note</p>
                       <p>{selectedMember.note}</p>
                       <p className="text-sm text-gray-400 mt-2">
-                        Note Period: {selectedMember.noteStartDate} to {selectedMember.noteEndDate}
+                        {" "}
+                        Note Period: {selectedMember.noteStartDate} to {selectedMember.noteEndDate}{" "}
                       </p>
                       <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
                     </div>
@@ -1335,8 +1365,8 @@ export default function Calendar({
                       onClick={redirectToContract}
                       className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
                     >
-                      <FileText size={16} />
-                      View Contract
+                      {" "}
+                      <FileText size={16} /> View Contract{" "}
                     </button>
                   </div>
                 </div>
@@ -1349,7 +1379,8 @@ export default function Calendar({
                     <div className="flex flex-col items-center space-y-8">
                       {/* Central Member */}
                       <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
-                        {selectedMember.title}
+                        {" "}
+                        {selectedMember.title}{" "}
                       </div>
                       {/* Connection Lines and Categories */}
                       <div className="relative w-full">
@@ -1375,7 +1406,8 @@ export default function Calendar({
                                           : "bg-gray-600 text-gray-100"
                                 }`}
                               >
-                                {category}
+                                {" "}
+                                {category}{" "}
                               </div>
                               {/* Relations in this category */}
                               <div className="space-y-2">
@@ -1398,41 +1430,12 @@ export default function Calendar({
                       </div>
                     </div>
                   </div>
-                  {/* Relations List */}
-                  <div className="bg-[#161616] rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
-                    <div className="space-y-4">
-                      {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
-                        <div key={category}>
-                          <h4 className="text-md font-medium text-gray-300 capitalize mb-2">{category}</h4>
-                          <div className="space-y-2 ml-4">
-                            {relations.length > 0 ? (
-                              relations.map((relation) => (
-                                <div
-                                  key={relation.id}
-                                  className="flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3"
-                                >
-                                  <div>
-                                    <span className="text-white font-medium">{relation.name}</span>
-                                    <span className="text-gray-400 ml-2">- {relation.relation}</span>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-gray-500 text-sm">No {category} relations</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
           </div>
         </div>
       )}
-
       {/* Enhanced Appointment Modal from Members Component */}
       {showAppointmentModal && selectedMemberForAppointments && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -1447,7 +1450,8 @@ export default function Calendar({
                   }}
                   className="p-2 hover:bg-zinc-700 text-white rounded-lg"
                 >
-                  <X size={16} />
+                  {" "}
+                  <X size={16} />{" "}
                 </button>
               </div>
               <div className="space-y-3 mb-4">
@@ -1467,13 +1471,15 @@ export default function Calendar({
                             <p className="font-medium text-sm text-white">{appointment.title}</p>
                             <div>
                               <p className="text-sm text-white/70">
+                                {" "}
                                 {new Date(appointment.date).toLocaleString([], {
                                   year: "numeric",
                                   month: "short",
                                   day: "numeric",
-                                })}
+                                })}{" "}
                               </p>
                               <p className="text-xs text-white/70">
+                                {" "}
                                 {new Date(appointment.date).toLocaleTimeString([], {
                                   hour: "2-digit",
                                   minute: "2-digit",
@@ -1481,10 +1487,7 @@ export default function Calendar({
                                 -{" "}
                                 {new Date(
                                   new Date(appointment.date).getTime() + (appointmentType?.duration || 30) * 60000,
-                                ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
+                                ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{" "}
                               </p>
                             </div>
                           </div>
@@ -1496,7 +1499,8 @@ export default function Calendar({
                               }}
                               className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
                             >
-                              <Edit3 size={14} />
+                              {" "}
+                              <Edit3 size={14} />{" "}
                             </button>
                             <button
                               onClick={(e) => {
@@ -1505,7 +1509,8 @@ export default function Calendar({
                               }}
                               className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
                             >
-                              <Trash2 size={14} />
+                              {" "}
+                              <Trash2 size={14} />{" "}
                             </button>
                           </div>
                         </div>
@@ -1514,34 +1519,36 @@ export default function Calendar({
                   })
                 ) : (
                   <div className="text-center py-4 text-gray-400 bg-[#222222] rounded-xl">
-                    No appointments scheduled
+                    {" "}
+                    No appointments scheduled{" "}
                   </div>
                 )}
               </div>
               <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
                 <div className="text-sm text-gray-300">
+                  {" "}
                   Contingent ({currentBillingPeriod}): {memberContingent[selectedMemberForAppointments.id]?.used || 0} /{" "}
-                  {memberContingent[selectedMemberForAppointments.id]?.total || 0}
+                  {memberContingent[selectedMemberForAppointments.id]?.total || 0}{" "}
                 </div>
                 <button
                   onClick={() => handleManageContingent(selectedMemberForAppointments.id)}
                   className="flex items-center gap-1 bg-gray-700 text-white hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
                 >
-                  <Edit3 size={16} />
-                  Manage
+                  {" "}
+                  <Edit3 size={16} /> Manage{" "}
                 </button>
               </div>
               <button
                 onClick={handleCreateNewAppointment}
                 className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
               >
-                Create New Appointment
+                {" "}
+                Create New Appointment{" "}
               </button>
             </div>
           </div>
         </div>
       )}
-
       {/* Contingent Management Modal */}
       {showContingentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -1553,13 +1560,15 @@ export default function Calendar({
                   onClick={() => setShowContingentModal(false)}
                   className="p-2 hover:bg-zinc-700 text-white rounded-lg"
                 >
-                  <X size={16} />
+                  {" "}
+                  <X size={16} />{" "}
                 </button>
               </div>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Billing Period: {currentBillingPeriod}
+                    {" "}
+                    Billing Period: {currentBillingPeriod}{" "}
                   </label>
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
@@ -1589,12 +1598,14 @@ export default function Calendar({
                     </div>
                   </div>
                   <p className="text-xs text-gray-400 mt-2">
-                    Remaining: {tempContingent.total - tempContingent.used} appointments
+                    {" "}
+                    Remaining: {tempContingent.total - tempContingent.used} appointments{" "}
                   </p>
                   <div className="mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
                     <p className="text-blue-200 text-sm">
-                      <Info className="inline mr-1" size={14} />
-                      You can edit the contingent for future billing periods here.
+                      {" "}
+                      <Info className="inline mr-1" size={14} /> You can edit the contingent for future billing periods
+                      here.{" "}
                     </p>
                   </div>
                 </div>
@@ -1603,13 +1614,15 @@ export default function Calendar({
                     onClick={() => setShowContingentModal(false)}
                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm"
                   >
-                    Cancel
+                    {" "}
+                    Cancel{" "}
                   </button>
                   <button
                     onClick={handleSaveContingent}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
                   >
-                    Save Changes
+                    {" "}
+                    Save Changes{" "}
                   </button>
                 </div>
               </div>
@@ -1617,7 +1630,6 @@ export default function Calendar({
           </div>
         </div>
       )}
-
       {/* History Modal */}
       {showHistoryModal && selectedMember && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -1626,7 +1638,8 @@ export default function Calendar({
               <div className="flex text-white justify-between items-center mb-6">
                 <h2 className="text-lg font-medium">{selectedMember.title} - History & Changelog</h2>
                 <button onClick={() => setShowHistoryModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
-                  <X size={16} />
+                  {" "}
+                  <X size={16} />{" "}
                 </button>
               </div>
               {/* History Tab Navigation */}
@@ -1647,7 +1660,8 @@ export default function Calendar({
                         : "text-gray-400 hover:text-white"
                     }`}
                   >
-                    {tab.label}
+                    {" "}
+                    {tab.label}{" "}
                   </button>
                 ))}
               </div>
@@ -1692,7 +1706,10 @@ export default function Calendar({
                             </div>
                             <div className="text-right">
                               <p className="text-gray-400 text-sm">
-                                {new Date(item.date).toLocaleDateString()} at {new Date(item.date).toLocaleTimeString()}
+                                {" "}
+                                {new Date(item.date).toLocaleDateString()} at {new Date(
+                                  item.date,
+                                ).toLocaleTimeString()}{" "}
                               </p>
                             </div>
                           </div>
@@ -1718,12 +1735,16 @@ export default function Calendar({
                                     : "bg-yellow-900 text-yellow-300"
                                 }`}
                               >
-                                {item.status}
+                                {" "}
+                                {item.status}{" "}
                               </span>
                             </div>
                             <div className="text-right">
                               <p className="text-gray-400 text-sm">
-                                {new Date(item.date).toLocaleDateString()} at {new Date(item.date).toLocaleTimeString()}
+                                {" "}
+                                {new Date(item.date).toLocaleDateString()} at {new Date(
+                                  item.date,
+                                ).toLocaleTimeString()}{" "}
                               </p>
                             </div>
                           </div>
@@ -1749,7 +1770,8 @@ export default function Calendar({
                                     : "bg-yellow-900 text-yellow-300"
                                 }`}
                               >
-                                {item.status}
+                                {" "}
+                                {item.status}{" "}
                               </span>
                             </div>
                             <div className="text-right">
@@ -1788,7 +1810,6 @@ export default function Calendar({
           </div>
         </div>
       )}
-
       {/* Add Appointment Modal */}
       {showAddAppointmentModal && (
         <AddAppointmentModal
@@ -1801,7 +1822,6 @@ export default function Calendar({
           freeAppointments={freeAppointments}
         />
       )}
-
       {isAppointmentModalOpen && (
         <AddAppointmentModal
           isOpen={isAppointmentModalOpen}
@@ -1812,14 +1832,12 @@ export default function Calendar({
           setNotifyAction={setNotifyAction}
         />
       )}
-
       <TrialPlanningModal
         isOpen={isTrialModalOpen}
         onClose={() => setIsTrialModalOpen(false)}
         freeAppointments={freeAppointments}
         onSubmit={handleTrialSubmit}
       />
-
       <BlockAppointmentModal
         isOpen={isBlockModalOpen}
         onClose={() => setIsBlockModalOpen(false)}
@@ -1830,9 +1848,9 @@ export default function Calendar({
             id: appointments.length + 1,
             name: "BLOCKED",
             time: `${blockData.startTime} - ${blockData.endTime}`,
-            date: `${new Date(blockData.date).toLocaleString("en-US", {
-              weekday: "short",
-            })} | ${formatDateForDisplay(new Date(blockData.date))}`,
+            date: `${new Date(blockData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(
+              new Date(blockData.date),
+            )}`,
             color: "bg-[#FF4D4F]",
             startTime: blockData.startTime,
             endTime: blockData.endTime,
@@ -1853,7 +1871,6 @@ export default function Calendar({
           setIsBlockModalOpen(false)
         }}
       />
-
       {isTypeSelectionOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -1869,7 +1886,8 @@ export default function Calendar({
                 onClick={() => setIsTypeSelectionOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
               >
-                <X size={20} />
+                {" "}
+                <X size={20} />{" "}
               </button>
             </div>
             <div className="p-6 space-y-4">
@@ -1877,25 +1895,27 @@ export default function Calendar({
                 onClick={() => handleTypeSelection("trial")}
                 className="w-full px-5 py-3 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer transition-colors"
               >
-                Trial Planning
+                {" "}
+                Trial Planning{" "}
               </button>
               <button
                 onClick={() => handleTypeSelection("appointment")}
                 className="w-full px-5 py-3 bg-[#FF843E] text-sm font-medium text-white rounded-xl hover:bg-orange-700 cursor-pointer transition-colors"
               >
-                Appointment
+                {" "}
+                Appointment{" "}
               </button>
               <button
                 onClick={() => handleTypeSelection("block")}
                 className="w-full px-5 py-3 bg-[#FF4D4F] text-sm font-medium text-white rounded-xl hover:bg-red-700 cursor-pointer transition-colors"
               >
-                Block Time
+                {" "}
+                Block Time{" "}
               </button>
             </div>
           </div>
         </div>
       )}
-
       {isAppointmentActionModalOpen && selectedAppointment && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -1911,7 +1931,8 @@ export default function Calendar({
                 onClick={() => setIsAppointmentActionModalOpen(false)}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
               >
-                <X size={20} />
+                {" "}
+                <X size={20} />{" "}
               </button>
             </div>
             <div className="p-6 space-y-2">
@@ -1919,42 +1940,42 @@ export default function Calendar({
                 <h3 className="text-white font-medium">{selectedAppointment.name}</h3>
                 <p className="text-gray-400 text-sm">{selectedAppointment.type}</p>
                 <p className="text-gray-400 text-sm">
+                  {" "}
                   {selectedAppointment.date && selectedAppointment.date.split("|")[1]} •{selectedAppointment.startTime}{" "}
-                  - {selectedAppointment.endTime}
+                  - {selectedAppointment.endTime}{" "}
                 </p>
                 {selectedAppointment.date &&
                   isEventInPast(
-                    `${selectedAppointment.date
-                      .split("|")[1]
-                      ?.trim()
-                      ?.split("-")
-                      ?.reverse()
-                      ?.join("-")}T${selectedAppointment.startTime}`,
+                    `${selectedAppointment.date?.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${
+                      selectedAppointment.startTime
+                    }`,
                   ) && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
               </div>
               <button
                 onClick={handleEditAppointment}
                 className="w-full px-5 py-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 cursor-pointer text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center"
               >
-                <Edit className="mr-2" size={16} /> Edit Appointment
+                {" "}
+                <Edit className="mr-2" size={16} /> Edit Appointment{" "}
               </button>
               <button
                 onClick={handleCancelAppointment}
                 className="w-full px-5 py-3 bg-red-600 hover:bg-red-700 cursor-pointer text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center"
               >
-                <X className="mr-2" size={16} /> Cancel Appointment
+                {" "}
+                <X className="mr-2" size={16} /> Cancel Appointment{" "}
               </button>
               <button
                 onClick={handleViewMemberDetails}
                 className="w-full px-5 py-3 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 cursor-pointer transition-colors flex items-center justify-center"
               >
-                <User className="mr-2" size={16} /> View Member
+                {" "}
+                <User className="mr-2" size={16} /> View Member{" "}
               </button>
             </div>
           </div>
         </div>
       )}
-
       {isNotifyMemberOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -1982,11 +2003,13 @@ export default function Calendar({
                 }}
                 className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
               >
-                <X size={20} />
+                {" "}
+                <X size={20} />{" "}
               </button>
             </div>
             <div className="p-6">
               <p className="text-white text-sm">
+                {" "}
                 Do you want to notify the member about this{" "}
                 {notifyAction === "change"
                   ? "change"
@@ -1994,8 +2017,8 @@ export default function Calendar({
                     ? "cancellation"
                     : notifyAction === "delete"
                       ? "deletion"
-                      : "booking"}
-                ?
+                      : "booking"}{" "}
+                ?{" "}
               </p>
             </div>
             <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
@@ -2010,7 +2033,8 @@ export default function Calendar({
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
               >
-                Yes, Notify Member
+                {" "}
+                Yes, Notify Member{" "}
               </button>
               <button
                 onClick={() => {
@@ -2023,14 +2047,48 @@ export default function Calendar({
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
               >
-                No, Don't Notify
+                {" "}
+                No, Don't Notify{" "}
               </button>
             </div>
           </div>
         </div>
       )}
-
+      {/* New Selected Appointment Modal */}
+      {showSelectedAppointmentModal && selectedAppointmentData && (
+  <SelectedAppointmentModal
+    selectedAppointment={selectedAppointmentData}
+    setSelectedAppointment={setSelectedAppointmentData}
+    appointmentTypes={appointmentTypes}
+    freeAppointments={freeAppointments}
+    handleAppointmentChange={(changes) => {
+      setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })
+    }}
+    appointments={appointments}
+    setAppointments={setAppointments}
+    setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+    setNotifyAction={setNotifyAction}
+    onDelete={handleDeleteAppointment}
+  />
+)}
       <Toaster position="top-right" />
+
+      <style jsx>{`
+        .cancelled-appointment-bg {
+          background-image: linear-gradient(
+            -45deg,
+            rgba(255, 255, 255, 0.1) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.1) 75%,
+            transparent 75%,
+            transparent
+          );
+          background-size: 10px 10px;
+        }
+      `}</style>
     </>
   )
 }
+

@@ -892,5 +892,5 @@ export const SidebarArea = ({
         />
       )}
     </>
-  )
+  ) 
 }

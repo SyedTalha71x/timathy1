@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 "use client"
 
 /* eslint-disable react/no-unescaped-entities */
@@ -29,8 +30,7 @@ export default function Appointments() {
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
   const [checkedInMembers, setCheckedInMembers] = useState([])
   const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
-  const [appointmentToRemove, setAppointmentToRemove] = useState(null)
+  // Removed isConfirmCancelOpen and appointmentToRemove from Appointments.jsx
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedMember, setSelectedMember] = useState(null)
@@ -47,8 +47,8 @@ export default function Appointments() {
     Yoga: true,
     "Trial Training": true,
     "Blocked Time Slots": true,
-    "Cancelled Appointments": true, // New filter
-    "Past Appointments": true, // New filter
+    "Cancelled Appointments": true, // New filter, true by default
+    "Past Appointments": true, // New filter, true by default
   })
 
   const [freeAppointments, setFreeAppointments] = useState([
@@ -56,11 +56,13 @@ export default function Appointments() {
     { id: "free2", date: "2025-01-03", time: "11:00" },
     { id: "free3", date: "2025-01-03", time: "14:00" },
   ])
+
   const [appointmentTypes, setAppointmentTypes] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
     { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
     { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
   ])
+
   const [filteredAppointments, setFilteredAppointments] = useState(appointments)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
@@ -86,6 +88,7 @@ export default function Appointments() {
       avatar: Rectangle1,
     },
   ])
+
   const [todos, setTodos] = useState([
     {
       id: 1,
@@ -100,6 +103,7 @@ export default function Appointments() {
       assignee: "Sarah",
     },
   ])
+
   const [birthdays, setBirthdays] = useState([
     {
       id: 1,
@@ -114,6 +118,7 @@ export default function Appointments() {
       avatar: Avatar,
     },
   ])
+
   const [customLinks, setCustomLinks] = useState([
     {
       id: 1,
@@ -126,27 +131,35 @@ export default function Appointments() {
       url: "https://github.com",
     },
   ])
+
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
   const [editingLink, setEditingLink] = useState(null)
+
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
   }
+
   const closeSidebar = () => {
     setIsRightSidebarOpen(false)
   }
+
   const redirectToCommunication = () => {
     navigate("/dashboard/communication")
   }
+
   const redirectToTodos = () => {
     console.log("Redirecting to todos page")
     navigate("/dashboard/to-do")
   }
+
   const toggleDropdown = (index) => {
     setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   }
+
   const toggleEditing = () => {
     setIsEditing(!isEditing)
   }
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
@@ -220,18 +233,21 @@ export default function Appointments() {
   const handleDateSelect = (date) => {
     setSelectedDate(date)
   }
+
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, "0")
     const month = String(date.getMonth() + 1).padStart(2, "0")
     const year = date.getFullYear()
     return `${day}-${month}-${year}`
   }
+
   const formatDateForDisplay = (date) => {
     const day = String(date.getDate()).padStart(2, "0")
     const month = String(date.getMonth() + 1).padStart(2, "0")
     const year = date.getFullYear()
     return `${day}/${month}/${year}`
   }
+
   useEffect(() => {
     const handleClickOutside = () => {
       setActiveDropdownId(null)
@@ -300,24 +316,8 @@ export default function Appointments() {
     })
   }
 
-  // Modified confirmRemoveAppointment to change status instead of delete
-  const confirmRemoveAppointment = () => {
-    setIsConfirmCancelOpen(false)
-    if (appointmentToRemove) {
-      const updatedAppointments = appointments.map((app) =>
-        app.id === appointmentToRemove.id ? { ...app, status: "cancelled", isCancelled: true } : app,
-      )
-      setAppointments(updatedAppointments)
-      toast.success("Appointment cancelled successfully")
-      setIsNotifyMemberOpen(true)
-      setNotifyAction("cancel")
-      setAppointmentToRemove(null)
-    }
-  }
-
+  // This function is now primarily for the notification modal after an action
   const handleNotifyMember = (shouldNotify) => {
-    // This function is now primarily for the notification modal after an action
-    // The actual state update for cancellation happens in confirmRemoveAppointment or Calendar.jsx's actuallyHandleCancelAppointment
     setIsNotifyMemberOpen(false)
     if (shouldNotify) {
       toast.success("Member notified successfully")
@@ -340,6 +340,18 @@ export default function Appointments() {
     setAppointments((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
     setSelectedAppointment(null)
     toast.success("Appointment deleted successfully")
+  }
+
+  const handleCancelAppointment = (appointmentId) => {
+    // New function to handle cancellation (status change)
+    const updatedAppointments = appointments.map((app) =>
+      app.id === appointmentId ? { ...app, status: "cancelled", isCancelled: true } : app,
+    )
+    setAppointments(updatedAppointments)
+    toast.success("Appointment cancelled successfully")
+    setSelectedAppointment(null) // Close the modal
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("cancel")
   }
 
   const toggleSidebar = () => {
@@ -473,7 +485,7 @@ export default function Appointments() {
                   stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 9h12M6 13h12M6 17h6" />
-                </svg>
+                </svg>{" "}
                 Block time slot
               </button>
               <div className="md:block hidden">
@@ -598,75 +610,68 @@ export default function Appointments() {
                 <div>
                   <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
                   <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
-                  {filteredAppointments.length > 0 ? (
-  filteredAppointments.map((appointment, index) => (
-    <div
-      key={appointment.id}
-      className={`${
-        appointment.isCancelled
-          ? "bg-gray-700 cancelled-appointment-bg"
-          : appointment.isPast && !appointment.isCancelled
-          ? "bg-gray-800 opacity-50"
-          : appointment.color
-      } rounded-xl cursor-pointer p-3 relative`}
-    >
-      <div className="absolute p-2 top-0 left-0 z-10">
-        {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
-      </div>
-
-      <div
-        className="flex flex-col items-center justify-between gap-2 cursor-pointer"
-        onClick={() => {
-          setSelectedAppointment(appointment);
-          setIsAppointmentActionModalOpen(true);
-        }}
-      >
-        <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
-            <img
-              src={Avatar || "/placeholder.svg"}
-              alt=""
-              className="w-full h-full rounded-full"
-            />
-          </div>
-          <div className="text-white text-left">
-            <p className="font-semibold">{appointment.name}</p>
-            <p className="text-xs flex gap-1 items-center opacity-80">
-              <Clock size={14} />
-              {appointment.time} | {appointment.date?.split("|")[0]}
-            </p>
-            <p className="text-xs opacity-80 mt-1">
-              {appointment.isTrial ? (
-                "Trial Session"
-              ) : appointment.isCancelled ? (
-                <span className="text-red-400">Cancelled</span>
-              ) : (
-                appointment.type
-              )}
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleCheckIn(appointment.id);
-          }}
-          className={`px-3 py-1 text-xs font-medium rounded-lg ${
-            appointment.isCheckedIn
-              ? "border border-white/50 text-white bg-transparent"
-              : "bg-black text-white"
-          }`}
-        >
-          {appointment.isCheckedIn ? "Checked In" : "Check In"}
-        </button>
-      </div>
-    </div>
-  ))
-) : (
-  <p className="text-white text-center">No appointments scheduled for this date.</p>
-)}
-
+                    {filteredAppointments.length > 0 ? (
+                      filteredAppointments.map((appointment, index) => (
+                        <div
+                          key={appointment.id}
+                          className={`${
+                            appointment.isCancelled
+                              ? "bg-gray-700 cancelled-appointment-bg"
+                              : appointment.isPast && !appointment.isCancelled
+                                ? "bg-gray-800 opacity-50"
+                                : appointment.color
+                          } rounded-xl cursor-pointer p-3 relative`}
+                        >
+                          <div className="absolute p-2 top-0 left-0 z-10">
+                            {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                          </div>
+                          <div
+                            className="flex flex-col items-center justify-between gap-2 cursor-pointer"
+                            onClick={() => {
+                              setSelectedAppointment(appointment)
+                              setIsAppointmentActionModalOpen(true)
+                            }}
+                          >
+                            <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
+                              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+                                <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
+                              </div>
+                              <div className="text-white text-left">
+                                <p className="font-semibold">{appointment.name}</p>
+                                <p className="text-xs flex gap-1 items-center opacity-80">
+                                  <Clock size={14} />
+                                  {appointment.time} | {appointment.date?.split("|")[0]}
+                                </p>
+                                <p className="text-xs opacity-80 mt-1">
+                                  {appointment.isTrial ? (
+                                    "Trial Session"
+                                  ) : appointment.isCancelled ? (
+                                    <span className="text-red-400">Cancelled</span>
+                                  ) : (
+                                    appointment.type
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleCheckIn(appointment.id)
+                              }}
+                              className={`px-3 py-1 text-xs font-medium rounded-lg ${
+                                appointment.isCheckedIn
+                                  ? "border border-white/50 text-white bg-transparent"
+                                  : "bg-black text-white"
+                              }`}
+                            >
+                              {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-white text-center">No appointments scheduled for this date.</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -683,6 +688,8 @@ export default function Appointments() {
                 selectedDate={selectedDate}
                 setAppointments={setAppointments}
                 appointmentFilters={appointmentFilters}
+                setSelectedAppointment={setSelectedAppointment} // Pass setter for selectedAppointment
+                onOpenSelectedAppointmentModal={setIsAppointmentActionModalOpen} // Pass setter for modal visibility
               />
             </div>
           </div>
@@ -706,66 +713,16 @@ export default function Appointments() {
         selectedAppointment={selectedAppointment}
         setSelectedAppointment={setSelectedAppointment}
         appointmentTypes={appointmentTypes}
-        freeAppointments={freeAppointments}
-        handleAppointmentChange={handleAppointmentChange}
+        // freeAppointments={freeAppointments} // Not needed in this modal
+        // handleAppointmentChange={handleAppointmentChange} // Handled internally now
         appointments={appointments}
         setAppointments={setAppointments}
         setIsNotifyMemberOpen={setIsNotifyMemberOpen}
         setNotifyAction={setNotifyAction}
         onDelete={handleDeleteAppointment} // Keep for actual deletion
-        onCancelAppointment={(appointmentId) => {
-          // New prop for cancellation (status change)
-          const updatedAppointments = appointments.map((app) =>
-            app.id === appointmentId ? { ...app, status: "cancelled", isCancelled: true } : app,
-          )
-          setAppointments(updatedAppointments)
-          toast.success("Appointment cancelled successfully")
-          setSelectedAppointment(null)
-          setIsNotifyMemberOpen(true)
-          setNotifyAction("cancel")
-        }}
+        onCancelAppointment={handleCancelAppointment} // Pass the new cancellation handler
       />
-      {isConfirmCancelOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsConfirmCancelOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Confirm Cancellation</h2>
-              <button
-                onClick={() => setIsConfirmCancelOpen(false)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="p-6">
-              <p className="text-white text-sm">
-                Are you sure you want to cancel this appointment with {appointmentToRemove?.name} on{" "}
-                {appointmentToRemove?.date} at {appointmentToRemove?.time}?
-              </p>
-            </div>
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                onClick={confirmRemoveAppointment}
-                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors"
-              >
-                Yes, Cancel Appointment
-              </button>
-              <button
-                onClick={() => setIsConfirmCancelOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
-              >
-                No, Keep Appointment
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Removed isConfirmCancelOpen modal from here */}
       {isNotifyMemberOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -862,7 +819,23 @@ export default function Appointments() {
           },
         }}
       />
+      <style jsx>{`
+        .cancelled-appointment-bg {
+          background-image: linear-gradient(
+            -45deg,
+            rgba(255, 255, 255, 0.1) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.1) 75%,
+            transparent 75%,
+            transparent
+          );
+          background-size: 10px 10px;
+        }
+      `}</style>
     </div>
   )
 }
+
 
