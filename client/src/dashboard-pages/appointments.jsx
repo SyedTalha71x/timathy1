@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unknown-property */
 "use client"
-
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { X, Clock, Info, Search, AlertTriangle, CalendarIcon, ChevronRight, ChevronLeft } from "lucide-react"
@@ -39,7 +38,6 @@ export default function Appointments() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-
   // Filter state - Added Cancelled Appointments and Past Appointments
   const [appointmentFilters, setAppointmentFilters] = useState({
     "Strength Training": true,
@@ -50,19 +48,16 @@ export default function Appointments() {
     "Cancelled Appointments": true, // New filter, true by default
     "Past Appointments": true, // New filter, true by default
   })
-
   const [freeAppointments, setFreeAppointments] = useState([
     { id: "free1", date: "2025-01-03", time: "10:00" },
     { id: "free2", date: "2025-01-03", time: "11:00" },
     { id: "free3", date: "2025-01-03", time: "14:00" },
   ])
-
   const [appointmentTypes, setAppointmentTypes] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
     { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
     { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
   ])
-
   const [filteredAppointments, setFilteredAppointments] = useState(appointments)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
@@ -88,7 +83,6 @@ export default function Appointments() {
       avatar: Rectangle1,
     },
   ])
-
   const [todos, setTodos] = useState([
     {
       id: 1,
@@ -103,7 +97,6 @@ export default function Appointments() {
       assignee: "Sarah",
     },
   ])
-
   const [birthdays, setBirthdays] = useState([
     {
       id: 1,
@@ -118,7 +111,6 @@ export default function Appointments() {
       avatar: Avatar,
     },
   ])
-
   const [customLinks, setCustomLinks] = useState([
     {
       id: 1,
@@ -131,7 +123,6 @@ export default function Appointments() {
       url: "https://github.com",
     },
   ])
-
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
   const [editingLink, setEditingLink] = useState(null)
 
@@ -187,7 +178,6 @@ export default function Appointments() {
     if (searchQuery) {
       filtered = filtered.filter((appointment) => appointment.name?.toLowerCase().includes(searchQuery.toLowerCase()))
     }
-
     // Apply appointment type filters
     filtered = filtered.filter((appointment) => {
       if (appointment.isTrial) {
@@ -365,10 +355,12 @@ export default function Appointments() {
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
+
       const handleNoteClick = (e) => {
         e.stopPropagation()
         setActiveNoteId(activeNoteId === memberId ? null : memberId)
       }
+
       return (
         <div className="relative">
           <div
@@ -713,8 +705,8 @@ export default function Appointments() {
         selectedAppointment={selectedAppointment}
         setSelectedAppointment={setSelectedAppointment}
         appointmentTypes={appointmentTypes}
-        // freeAppointments={freeAppointments} // Not needed in this modal
-        // handleAppointmentChange={handleAppointmentChange} // Handled internally now
+        freeAppointments={freeAppointments} // Uncommented this line
+        handleAppointmentChange={handleAppointmentChange} // Uncommented this line
         appointments={appointments}
         setAppointments={setAppointments}
         setIsNotifyMemberOpen={setIsNotifyMemberOpen}
@@ -750,7 +742,7 @@ export default function Appointments() {
                     ? "cancellation"
                     : notifyAction === "delete"
                       ? "deletion"
-                      : "booking"}
+                      : "booking"}{" "}
                 ?
               </p>
             </div>
@@ -837,5 +829,3 @@ export default function Appointments() {
     </div>
   )
 }
-
-
