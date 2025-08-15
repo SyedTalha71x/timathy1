@@ -2,25 +2,37 @@
 "use client"
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-import { X, Clock, Info, Search, AlertTriangle, CalendarIcon, ChevronRight, ChevronLeft } from "lucide-react"
+import {
+  X,
+  Clock,
+  Info,
+  Search,
+  AlertTriangle,
+  CalendarIcon,
+  ChevronRight,
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { IoIosMenu } from "react-icons/io"
-import TrialPlanningModal from "../components/lead-components/add-trial"
+import TrialTrainingModal from "../components/appointments-components/add-trial-training"
 import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
-import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
+import EditAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 import MiniCalendar from "../components/appointments-components/mini-calender"
 import BlockAppointmentModal from "../components/appointments-components/block-appointment-modal"
-import { appointmentsData as initialAppointmentsData } from "../utils/states" // Renamed to avoid conflict
+import { appointmentsData as initialAppointmentsData } from "../utils/states"
 import Calendar from "../components/appointments-components/calendar"
 import { useNavigate } from "react-router-dom"
 import { SidebarArea } from "../components/custom-sidebar"
 import Avatar from "../../public/avatar.png"
 import Rectangle1 from "../../public/Rectangle 1.png"
+import AppointmentActionModal from "../components/appointments-components/appointment-action-modal"
 
 export default function Appointments() {
   const navigate = useNavigate()
-  const [appointments, setAppointments] = useState(initialAppointmentsData) // Use initial data
+  const [appointments, setAppointments] = useState(initialAppointmentsData)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
@@ -29,7 +41,6 @@ export default function Appointments() {
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
   const [checkedInMembers, setCheckedInMembers] = useState([])
   const [selectedAppointment, setSelectedAppointment] = useState(null)
-  // Removed isConfirmCancelOpen and appointmentToRemove from Appointments.jsx
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedMember, setSelectedMember] = useState(null)
@@ -38,6 +49,15 @@ export default function Appointments() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+
+  const [showAppointmentOptionsModal, setshowAppointmentOptionsModal] = useState(false)
+  const [isEditAppointmentModalOpen, setisEditAppointmentModalOpen] = useState(false)
+
+
+  // FIXED: Added collapsible states for filters and upcoming appointments
+  const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false)
+  const [isUpcomingCollapsed, setIsUpcomingCollapsed] = useState(false)
+
   // Filter state - Added Cancelled Appointments and Past Appointments
   const [appointmentFilters, setAppointmentFilters] = useState({
     "Strength Training": true,
@@ -45,19 +65,22 @@ export default function Appointments() {
     Yoga: true,
     "Trial Training": true,
     "Blocked Time Slots": true,
-    "Cancelled Appointments": true, // New filter, true by default
-    "Past Appointments": true, // New filter, true by default
+    "Cancelled Appointments": true,
+    "Past Appointments": true,
   })
+
   const [freeAppointments, setFreeAppointments] = useState([
     { id: "free1", date: "2025-01-03", time: "10:00" },
     { id: "free2", date: "2025-01-03", time: "11:00" },
     { id: "free3", date: "2025-01-03", time: "14:00" },
   ])
+
   const [appointmentTypes, setAppointmentTypes] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
     { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
     { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
   ])
+
   const [filteredAppointments, setFilteredAppointments] = useState(appointments)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
@@ -248,6 +271,17 @@ export default function Appointments() {
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
 
+
+  const isEventInPast = (eventStart) => {
+    const now = new Date()
+    const eventDate = new Date(eventStart)
+    return eventDate < now
+  }
+
+  const handleViewMembersDetail = () =>{
+    toast.success("Member view modal functionality will be later implemented by backend")
+  }
+
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
       id: appointments.length + 1,
@@ -348,6 +382,13 @@ export default function Appointments() {
     setIsSidebarCollapsed(!isSidebarCollapsed)
   }
 
+
+  const handleAppointmentOptionsModal = (appointment) => {
+    setSelectedAppointment(appointment);
+    setshowAppointmentOptionsModal(true);
+    setisEditAppointmentModalOpen(false); // Ensure edit modal is closed
+  };
+
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
       if (!specialNote?.text) return null
@@ -428,7 +469,14 @@ export default function Appointments() {
   )
 
   return (
-    <div className="flex rounded-3xl bg-[#1C1C1C] p-6">
+    <div className={`
+      min-h-screen rounded-3xl bg-[#1C1C1C] p-6
+      transition-all duration-300 ease-in-out flex-1
+      ${isRightSidebarOpen 
+        ? 'lg:mr-96 md:mr-96 sm:mr-96' // Adjust right margin when sidebar is open on larger screens
+        : 'mr-0' // No margin when closed
+      }
+    `}>
       <main className="flex-1 min-w-0">
         <div className="">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
@@ -455,7 +503,7 @@ export default function Appointments() {
             <div className="flex items-center md:flex-row flex-col gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="w-full sm:w-auto bg-[#FF843E] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 flex items-center justify-center gap-1"
+                className="w-full sm:w-auto bg-orange-500 text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 flex items-center justify-center gap-1"
               >
                 <span>+</span> Add appointment
               </button>
@@ -490,20 +538,27 @@ export default function Appointments() {
             </div>
           </div>
           <SidebarArea
-            isOpen={isRightSidebarOpen}
-            onClose={closeSidebar}
-            communications={communications}
-            todos={todos}
-            birthdays={birthdays}
-            customLinks={customLinks}
-            setCustomLinks={setCustomLinks}
-            redirectToCommunication={redirectToCommunication}
-            redirectToTodos={redirectToTodos}
-            toggleDropdown={toggleDropdown}
-            openDropdownIndex={openDropdownIndex}
-            setEditingLink={setEditingLink}
-          />
-          {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>}
+        isOpen={isRightSidebarOpen}
+        onClose={closeSidebar}
+        communications={communications}
+        todos={todos}
+        birthdays={birthdays}
+        customLinks={customLinks}
+        setCustomLinks={setCustomLinks}
+        redirectToCommunication={redirectToCommunication}
+        redirectToTodos={redirectToTodos}
+        toggleDropdown={toggleDropdown}
+        openDropdownIndex={openDropdownIndex}
+        setEditingLink={setEditingLink}
+      />
+
+      {/* Overlay for mobile screens only */}
+      {isRightSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          onClick={closeSidebar}
+        />
+      )}
           <div className="flex lg:flex-row flex-col gap-6 relative">
             <div
               className={`transition-all duration-500 ease-in-out ${
@@ -516,77 +571,7 @@ export default function Appointments() {
                 <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
               </div>
               <div className="w-full flex flex-col gap-4">
-                {/* Filter Section */}
-                <div className="bg-[#000000] rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-white font-semibold text-sm">Appointment Filters</h3>
-                    <button
-                      onClick={toggleAllFilters}
-                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {/* Appointment Types */}
-                    {appointmentTypes.map((type) => (
-                      <label key={type.name} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={appointmentFilters[type.name]}
-                          onChange={() => handleFilterChange(type.name)}
-                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-                        />
-                        <div className={`w-3 h-3 rounded-full ${type.color}`}></div>
-                        <span className="text-white text-sm">{type.name}</span>
-                      </label>
-                    ))}
-                    {/* Trial Training */}
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={appointmentFilters["Trial Training"]}
-                        onChange={() => handleFilterChange("Trial Training")}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-                      />
-                      <div className="w-3 h-3 rounded-full bg-[#3F74FF]"></div>
-                      <span className="text-white text-sm">Trial Training</span>
-                    </label>
-                    {/* Blocked Time Slots - No circle */}
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={appointmentFilters["Blocked Time Slots"]}
-                        onChange={() => handleFilterChange("Blocked Time Slots")}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-                      />
-                      {/* Removed the color circle div */}
-                      <span className="text-white text-sm">Blocked Time Slots</span>
-                    </label>
-                    {/* Cancelled Appointments - No circle */}
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={appointmentFilters["Cancelled Appointments"]}
-                        onChange={() => handleFilterChange("Cancelled Appointments")}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-                      />
-                      {/* Removed the color circle div */}
-                      <span className="text-white text-sm">Cancelled Appointments</span>
-                    </label>
-                    {/* Past Appointments - No circle */}
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={appointmentFilters["Past Appointments"]}
-                        onChange={() => handleFilterChange("Past Appointments")}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-                      />
-                      {/* Removed the color circle div */}
-                      <span className="text-white text-sm">Past Appointments</span>
-                    </label>
-                  </div>
-                </div>
+                {/* FIXED: Search and Upcoming Appointments moved above filters */}
                 <div className="flex items-center gap-4">
                   <div className="relative w-full">
                     <input
@@ -599,72 +584,175 @@ export default function Appointments() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                   </div>
                 </div>
+
+                {/* FIXED: Upcoming Appointments with collapsible functionality */}
                 <div>
-                  <h2 className="text-white font-bold mb-4">Upcoming Appointments</h2>
-                  <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
-                    {filteredAppointments.length > 0 ? (
-                      filteredAppointments.map((appointment, index) => (
-                        <div
-                          key={appointment.id}
-                          className={`${
-                            appointment.isCancelled
-                              ? "bg-gray-700 cancelled-appointment-bg"
-                              : appointment.isPast && !appointment.isCancelled
-                                ? "bg-gray-800 opacity-50"
-                                : appointment.color
-                          } rounded-xl cursor-pointer p-3 relative`}
-                        >
-                          <div className="absolute p-2 top-0 left-0 z-10">
-                            {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
-                          </div>
-                          <div
-                            className="flex flex-col items-center justify-between gap-2 cursor-pointer"
-                            onClick={() => {
-                              setSelectedAppointment(appointment)
-                              setIsAppointmentActionModalOpen(true)
-                            }}
-                          >
-                            <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
-                              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
-                                <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
-                              </div>
-                              <div className="text-white text-left">
-                                <p className="font-semibold">{appointment.name}</p>
-                                <p className="text-xs flex gap-1 items-center opacity-80">
-                                  <Clock size={14} />
-                                  {appointment.time} | {appointment.date?.split("|")[0]}
-                                </p>
-                                <p className="text-xs opacity-80 mt-1">
-                                  {appointment.isTrial ? (
-                                    "Trial Session"
-                                  ) : appointment.isCancelled ? (
-                                    <span className="text-red-400">Cancelled</span>
-                                  ) : (
-                                    appointment.type
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleCheckIn(appointment.id)
-                              }}
-                              className={`px-3 py-1 text-xs font-medium rounded-lg ${
-                                appointment.isCheckedIn
-                                  ? "border border-white/50 text-white bg-transparent"
-                                  : "bg-black text-white"
-                              }`}
-                            >
-                              {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-white text-center">No appointments scheduled for this date.</p>
-                    )}
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-white font-bold">Upcoming Appointments</h2>
+                    <button
+                      onClick={() => setIsUpcomingCollapsed(!isUpcomingCollapsed)}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      {isUpcomingCollapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+                    </button>
                   </div>
+                  {!isUpcomingCollapsed && (
+                    <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
+                      {filteredAppointments.length > 0 ? (
+                        filteredAppointments.map((appointment, index) => (
+                          <div
+                            key={appointment.id}
+                            className={`${
+                              appointment.isCancelled
+                                ? "bg-gray-700 cancelled-appointment-bg"
+                                : appointment.isPast && !appointment.isCancelled
+                                  ? "bg-gray-800 opacity-50"
+                                  : appointment.color
+                            } rounded-xl cursor-pointer p-3 relative`}
+                            onClick={()=>{handleAppointmentOptionsModal(appointment)}}
+                          >
+                            <div className="absolute p-2 top-0 left-0 z-10">
+                              {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                            </div>
+                            <div className="flex flex-col items-center justify-between gap-2 cursor-pointer">
+                              <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
+                                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+                                  <img
+                                    src={Avatar || "/placeholder.svg"}
+                                    alt=""
+                                    className="w-full h-full rounded-full"
+                                  />
+                                </div>
+                                <div className="text-white text-left">
+                                  <p className="font-semibold">{appointment.name}</p>
+                                  <p className="text-xs flex gap-1 items-center opacity-80">
+                                    <Clock size={14} />
+                                    {appointment.time} | {appointment.date?.split("|")[0]}
+                                  </p>
+                                  <p className="text-xs opacity-80 mt-1">
+                                    {appointment.isTrial ? (
+                                      "Trial Session"
+                                    ) : appointment.isCancelled ? (
+                                      <span className="text-red-400">Cancelled</span>
+                                    ) : (
+                                      appointment.type
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleCheckIn(appointment.id)
+                                }}
+                                className={`px-3 py-1 text-xs font-medium rounded-lg ${
+                                  appointment.isCheckedIn
+                                    ? "border border-white/50 text-white bg-transparent"
+                                    : "bg-black text-white"
+                                }`}
+                              >
+                                {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-white text-center">No appointments scheduled for this date.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* FIXED: Filter Section with collapsible functionality and lines between categories */}
+                <div className="bg-[#000000] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-white font-semibold text-sm">Appointment Filters</h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={toggleAllFilters}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
+                      </button>
+                      <button
+                        onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        {isFiltersCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                  {!isFiltersCollapsed && (
+                    <div className="space-y-2">
+                      {/* Appointment Types */}
+                      {appointmentTypes.map((type) => (
+                        <label key={type.name} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={appointmentFilters[type.name]}
+                            onChange={() => handleFilterChange(type.name)}
+                            className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                          />
+                          <div className={`w-3 h-3 rounded-full ${type.color}`}></div>
+                          <span className="text-white text-sm">{type.name}</span>
+                        </label>
+                      ))}
+                      {/* Trial Training */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={appointmentFilters["Trial Training"]}
+                          onChange={() => handleFilterChange("Trial Training")}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <div className="w-3 h-3 rounded-full bg-[#3F74FF]"></div>
+                        <span className="text-white text-sm">Trial Training</span>
+                      </label>
+
+                      {/* FIXED: Added line separator */}
+                      <div className="border-t border-gray-600 my-3"></div>
+
+                      {/* FIXED: Blocked Time Slots should be red */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={appointmentFilters["Blocked Time Slots"]}
+                          onChange={() => handleFilterChange("Blocked Time Slots")}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <span className="text-white text-sm">Blocked Time Slots</span>
+                      </label>
+
+                      {/* FIXED: Added line separator */}
+                      <div className="border-t border-gray-600 my-3"></div>
+
+                      {/* Cancelled Appointments */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={appointmentFilters["Cancelled Appointments"]}
+                          onChange={() => handleFilterChange("Cancelled Appointments")}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <span className="text-white text-sm">Cancelled Appointments</span>
+                      </label>
+
+                      {/* FIXED: Added line separator */}
+                      <div className="border-t border-gray-600 my-3"></div>
+
+                      {/* Past Appointments */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={appointmentFilters["Past Appointments"]}
+                          onChange={() => handleFilterChange("Past Appointments")}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <span className="text-white text-sm">Past Appointments</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -680,8 +768,8 @@ export default function Appointments() {
                 selectedDate={selectedDate}
                 setAppointments={setAppointments}
                 appointmentFilters={appointmentFilters}
-                setSelectedAppointment={setSelectedAppointment} // Pass setter for selectedAppointment
-                onOpenSelectedAppointmentModal={setIsAppointmentActionModalOpen} // Pass setter for modal visibility
+                setSelectedAppointment={setSelectedAppointment}
+                onOpenSelectedAppointmentModal={setIsAppointmentActionModalOpen}
               />
             </div>
           </div>
@@ -695,26 +783,50 @@ export default function Appointments() {
         setIsNotifyMemberOpen={setIsNotifyMemberOpen}
         setNotifyAction={setNotifyAction}
       />
-      <TrialPlanningModal
+      <TrialTrainingModal
         isOpen={isTrialModalOpen}
         onClose={() => setIsTrialModalOpen(false)}
         freeAppointments={freeAppointments}
         onSubmit={handleTrialSubmit}
       />
-      <SelectedAppointmentModal
-        selectedAppointment={selectedAppointment}
-        setSelectedAppointment={setSelectedAppointment}
-        appointmentTypes={appointmentTypes}
-        freeAppointments={freeAppointments} // Uncommented this line
-        handleAppointmentChange={handleAppointmentChange} // Uncommented this line
-        appointments={appointments}
-        setAppointments={setAppointments}
-        setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-        setNotifyAction={setNotifyAction}
-        onDelete={handleDeleteAppointment} // Keep for actual deletion
-        onCancelAppointment={handleCancelAppointment} // Pass the new cancellation handler
+
+       <AppointmentActionModal
+        isOpen={showAppointmentOptionsModal}
+        onClose={() => {
+          setshowAppointmentOptionsModal(false);
+          setSelectedAppointment(null); // Reset the selected appointment when closing
+        }}
+        appointment={selectedAppointment}
+        isEventInPast={isEventInPast}
+        onEdit={() => {
+          setshowAppointmentOptionsModal(false); // Close the options modal
+          setisEditAppointmentModalOpen(true); // Open the edit modal
+        }}
+        onCancel={handleCancelAppointment}
+        onViewMember={handleViewMembersDetail}
       />
-      {/* Removed isConfirmCancelOpen modal from here */}
+    
+    {isEditAppointmentModalOpen && selectedAppointment && (
+  <EditAppointmentModal
+    selectedAppointment={selectedAppointment}
+    setSelectedAppointment={setSelectedAppointment} // This was missing the setter function
+    appointmentTypes={appointmentTypes}
+    freeAppointments={freeAppointments}
+    handleAppointmentChange={(changes) => {
+      setSelectedAppointment(prev => ({ ...prev, ...changes }));
+    }}
+    appointments={appointments}
+    setAppointments={setAppointments}
+    setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+    setNotifyAction={setNotifyAction}
+    onDelete={handleDeleteAppointment}
+    onClose={() => {
+      setisEditAppointmentModalOpen(false);
+      setSelectedAppointment(null); // Reset the selected appointment
+    }}
+  />
+)}
+
       {isNotifyMemberOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
@@ -723,7 +835,7 @@ export default function Appointments() {
           <div
             className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
-          >
+          > 
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
               <h2 className="text-lg font-semibold text-white">Notify Member</h2>
               <button
@@ -749,7 +861,6 @@ export default function Appointments() {
             <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
               <button
                 onClick={() => {
-                  // This part handles the notification, the actual state change for cancel is done before this modal
                   handleNotifyMember(true)
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"

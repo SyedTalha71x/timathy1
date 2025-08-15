@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
-import { ChevronLeft, ChevronRight, Download } from "lucide-react"
+
+import { ChevronLeft, ChevronRight, Download, X } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
 
-function AttendanceOverviewModal({ staffMembers, onClose }) {
+function ShiftsOverviewModal({ staffMembers, onClose }) {
   const [selectedPeriod, setSelectedPeriod] = useState("month")
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedStaffId, setSelectedStaffId] = useState("all")
@@ -11,12 +12,32 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  const dummyAttendanceData = staffMembers.map((staff) => ({
+  // Dummy shifts data
+  const dummyShiftsData = staffMembers.map((staff) => ({
     ...staff,
-    checkIn: "09:00",
-    checkOut: "17:00",
-    hoursWorked: 8,
-    checkInDate: "2024-01-15", // Added check-in date
+    shifts: [
+      {
+        date: "2024-01-15",
+        startTime: "09:00",
+        endTime: "17:00",
+        hoursWorked: 8,
+        status: "completed",
+      },
+      {
+        date: "2024-01-16",
+        startTime: "10:00",
+        endTime: "18:00",
+        hoursWorked: 8,
+        status: "completed",
+      },
+      {
+        date: "2024-01-17",
+        startTime: "08:00",
+        endTime: "16:00",
+        hoursWorked: 8,
+        status: "scheduled",
+      },
+    ],
   }))
 
   const handlePeriodChange = (period) => {
@@ -79,29 +100,30 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
     )
   }
 
-  const calculateTotalHours = (staff) => {
-    const daysInPeriod = selectedPeriod === "month" ? 30 : selectedPeriod === "week" ? 7 : 1
-    return staff.hoursWorked * daysInPeriod
+  const calculateTotalHours = (shifts) => {
+    return shifts.reduce((total, shift) => total + shift.hoursWorked, 0)
   }
 
   const filteredStaff =
     selectedStaffId === "all"
-      ? dummyAttendanceData
-      : dummyAttendanceData.filter((staff) => staff.id === Number.parseInt(selectedStaffId))
+      ? dummyShiftsData
+      : dummyShiftsData.filter((staff) => staff.id === Number.parseInt(selectedStaffId))
 
   const exportToCSV = () => {
-    const headers = ["Name", "Check In Date", "Check In", "Check Out", "Hours Worked", "Total Hours (Period)"]
+    const headers = ["Staff Name", "Date", "Start Time", "End Time", "Hours Worked", "Status"]
     const csvContent = [
       headers.join(","),
-      ...filteredStaff.map((staff) =>
-        [
-          `"${staff.firstName} ${staff.lastName}"`,
-          staff.checkInDate,
-          staff.checkIn,
-          staff.checkOut,
-          staff.hoursWorked,
-          calculateTotalHours(staff),
-        ].join(","),
+      ...filteredStaff.flatMap((staff) =>
+        staff.shifts.map((shift) =>
+          [
+            `"${staff.firstName} ${staff.lastName}"`,
+            shift.date,
+            shift.startTime,
+            shift.endTime,
+            shift.hoursWorked,
+            shift.status,
+          ].join(","),
+        ),
       ),
     ].join("\n")
 
@@ -109,7 +131,7 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
     const link = document.createElement("a")
     const url = URL.createObjectURL(blob)
     link.setAttribute("href", url)
-    link.setAttribute("download", `attendance_overview_${selectedPeriod}_${new Date().toISOString().split("T")[0]}.csv`)
+    link.setAttribute("download", `shifts_overview_${selectedPeriod}_${new Date().toISOString().split("T")[0]}.csv`)
     link.style.visibility = "hidden"
     document.body.appendChild(link)
     link.click()
@@ -166,17 +188,23 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl">
+      <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Attendance Overview</h2>
-          <button
-            onClick={exportToCSV}
-            className="bg-gray-700 cursor-pointer hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Export CSV
-          </button>
+          <h2 className="text-xl font-bold">Shifts Overview</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={exportToCSV}
+              className="bg-gray-700 cursor-pointer hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export CSV
+            </button>
+            <button onClick={onClose} className="text-gray-300 hover:text-white">
+              <X size={20} />
+            </button>
+          </div>
         </div>
+
         <div className="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 items-start sm:items-center">
           <select
             value={selectedStaffId}
@@ -210,43 +238,74 @@ function AttendanceOverviewModal({ staffMembers, onClose }) {
             <option value={2026}>2026</option>
           </select>
         </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px]">
+          <table className="w-full min-w-[700px]">
             <thead>
-              <tr className="text-sm md:text-base">
-                <th className="text-left py-2">Name</th>
-                <th className="text-left py-2">Check In Date</th>
-                <th className="text-left py-2">Check In</th>
-                <th className="text-left py-2">Check Out</th>
-                <th className="text-left py-2">Hours Worked</th>
-                <th className="text-left py-2">Total Hours (Period)</th>
+              <tr className="text-sm md:text-base border-b border-gray-700">
+                <th className="text-left py-3">Staff Name</th>
+                <th className="text-left py-3">Date</th>
+                <th className="text-left py-3">Start Time</th>
+                <th className="text-left py-3">End Time</th>
+                <th className="text-left py-3">Hours</th>
+                <th className="text-left py-3">Status</th>
               </tr>
             </thead>
             <tbody>
-              {filteredStaff.map((staff) => (
-                <tr key={staff.id} className="text-sm md:text-base">
-                  <td className="py-2">
-                    {staff.firstName} {staff.lastName}
-                  </td>
-                  <td className="py-2">{new Date(staff.checkInDate).toLocaleDateString()}</td>
-                  <td className="py-2">{staff.checkIn}</td>
-                  <td className="py-2">{staff.checkOut}</td>
-                  <td className="py-2">{staff.hoursWorked}</td>
-                  <td className="py-2">{calculateTotalHours(staff)}</td>
-                </tr>
-              ))}
+              {filteredStaff.map((staff) =>
+                staff.shifts.map((shift, index) => (
+                  <tr key={`${staff.id}-${index}`} className="text-sm md:text-base border-b border-gray-800">
+                    <td className="py-3">
+                      {staff.firstName} {staff.lastName}
+                    </td>
+                    <td className="py-3">{new Date(shift.date).toLocaleDateString()}</td>
+                    <td className="py-3">{shift.startTime}</td>
+                    <td className="py-3">{shift.endTime}</td>
+                    <td className="py-3">{shift.hoursWorked}h</td>
+                    <td className="py-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${
+                          shift.status === "completed"
+                            ? "bg-green-600 text-white"
+                            : shift.status === "scheduled"
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-600 text-white"
+                        }`}
+                      >
+                        {shift.status}
+                      </span>
+                    </td>
+                  </tr>
+                )),
+              )}
             </tbody>
           </table>
         </div>
-        <button
-          onClick={onClose}
-          className="mt-6 bg-gray-500 cursor-pointer text-white px-8 py-2 rounded-xl text-sm w-full sm:w-auto"
-        >
-          Close
-        </button>
+
+        <div className="mt-6 bg-[#141414] rounded-lg p-4">
+          <h3 className="text-lg font-semibold mb-2">Summary</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <p className="text-gray-300">Total Staff:</p>
+              <p className="font-bold text-white">{filteredStaff.length}</p>
+            </div>
+            <div>
+              <p className="text-gray-300">Total Shifts:</p>
+              <p className="font-bold text-white">
+                {filteredStaff.reduce((total, staff) => total + staff.shifts.length, 0)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-300">Total Hours:</p>
+              <p className="font-bold text-white">
+                {filteredStaff.reduce((total, staff) => total + calculateTotalHours(staff.shifts), 0)}h
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-export default AttendanceOverviewModal
+export default ShiftsOverviewModal

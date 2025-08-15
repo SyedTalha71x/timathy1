@@ -19,16 +19,13 @@ import {
   History,
 } from "lucide-react"
 import ProductImage from "../../public/1_55ce827a-2b63-4b1d-aa55-2c2b6dc6c96e.webp"
-import MenJordanShows from "../../public/jd_product_list.webp"
-import { FaProductHunt } from "react-icons/fa6"
 import { RiServiceFill } from "react-icons/ri"
 import SidebarAreaSelling from "../components/selling-components/custom-sidebar-selling"
 import Avatar from "../../public/avatar.png"
 import Rectangle1 from "../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
 import HistoryModal from "../components/selling-components/history-modal"
-import { MdOutlineProductionQuantityLimits } from "react-icons/md";
-
+import { MdOutlineProductionQuantityLimits } from "react-icons/md"
 
 function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -111,11 +108,11 @@ function App() {
   const [products, setProducts] = useState([
     {
       id: 1,
-      name: "Snickers Off-White 2024",
-      brandName: "NIKE",
-      price: 38.0,
-      image: ProductImage,
-      articalNo: "123",
+      name: "Premium Orange Sneakers",
+      brandName: "ORANGEWEAR",
+      price: 129.99,
+      image: "https://placehold.co/600x400/orange/white?text=Premium+Sneakers",
+      articalNo: "ORG-001",
       paymentOption: "Card",
       type: "product",
       position: 0,
@@ -123,23 +120,24 @@ function App() {
     },
     {
       id: 2,
-      name: "Mens Jordan Trainer",
-      brandName: "JORDAN",
-      price: 48.0,
-      image: MenJordanShows,
-      articalNo: "456",
+      name: "Orange Athletic Shoes",
+      brandName: "ORANGEFIT",
+      price: 189.5,
+      image: "https://placehold.co/600x400/orange/white?text=Athletic+Shoes",
+      articalNo: "ORG-002",
       paymentOption: "Card",
       type: "product",
       position: 1,
       link: "",
     },
   ])
+  
   const [services, setServices] = useState([
     {
       id: 101,
       name: "Personal Training Session",
       price: 75.0,
-      image: "https://dummyimage.com/300x200/3f74ff/ffffff.png?text=Service",
+      image: "https://placehold.co/600x400/orange/white?text=Personal+Training",
       paymentOption: "Card",
       type: "service",
       position: 0,
@@ -149,7 +147,7 @@ function App() {
       id: 102,
       name: "Nutrition Consultation",
       price: 50.0,
-      image: "https://dummyimage.com/300x200/3f74ff/ffffff.png?text=Service",
+      image: "https://placehold.co/600x400/orange/white?text=Nutrition+Advice",
       paymentOption: "Cash",
       type: "service",
       position: 1,
@@ -158,8 +156,57 @@ function App() {
   ])
 
   // New state for sales history
-  const [salesHistory, setSalesHistory] = useState([])
-  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [salesHistory, setSalesHistory] = useState([
+    {
+      id: 1,
+      date: "2024-01-15 14:30:22",
+      items: [
+        { name: "Premium Orange Sneakers", quantity: 2, price: 129.99 },
+        { name: "Personal Training Session", quantity: 1, price: 75.0 },
+      ],
+      totalAmount: 334.98,
+      paymentMethod: "Credit Card",
+      soldBy: "John Smith",
+    },
+    {
+      id: 2,
+      date: "2024-01-14 09:15:45",
+      items: [{ name: "Orange Athletic Shoes", quantity: 1, price: 189.5 }],
+      totalAmount: 189.5,
+      paymentMethod: "Cash",
+      soldBy: "Sarah Johnson",
+    },
+    {
+      id: 3,
+      date: "2024-01-13 16:45:12",
+      items: [
+        { name: "Nutrition Consultation", quantity: 3, price: 50.0 },
+        { name: "Premium Orange Sneakers", quantity: 1, price: 129.99 },
+      ],
+      totalAmount: 279.99,
+      paymentMethod: "Debit Card",
+      soldBy: "Mike Davis",
+    },
+    {
+      id: 4,
+      date: "2024-01-12 11:20:33",
+      items: [{ name: "Personal Training Session", quantity: 2, price: 75.0 }],
+      totalAmount: 150.0,
+      paymentMethod: "PayPal",
+      soldBy: "Emma Wilson",
+    },
+    {
+      id: 5,
+      date: "2024-01-11 13:55:18",
+      items: [
+        { name: "Orange Athletic Shoes", quantity: 1, price: 189.5 },
+        { name: "Nutrition Consultation", quantity: 1, price: 50.0 },
+      ],
+      totalAmount: 239.5,
+      paymentMethod: "Credit Card",
+      soldBy: "Alex Brown",
+    },
+  ])
 
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
@@ -439,6 +486,7 @@ function App() {
   const [sortBy, setSortBy] = useState("name")
   const [sortDirection, setSortDirection] = useState("asc")
   const [isEditModeActive, setIsEditModeActive] = useState(false)
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
   const sortItems = (items, sortBy, sortDirection) => {
     const sortedItems = [...items].sort((a, b) => {
       let comparison
@@ -965,7 +1013,7 @@ function App() {
               {/* History Icon */}
               <button
                 onClick={() => setShowHistoryModal(true)}
-                className="cursor-pointer rounded-md text-sm hover:bg-white hover:text-black transition-colors flex items-center gap-2 p-2"
+                className="text-white md:w-12 w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                 title="View Sales History"
               >
                 <History size={25} />
@@ -998,14 +1046,14 @@ function App() {
               }}
               className="bg-[#101010] text-sm rounded-xl px-3 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
             >
-              <option value="name-asc">Name (Ascending)</option>
-              <option value="name-desc">Name (Descending)</option>
-              <option value="price-asc">Price (Ascending)</option>
-              <option value="price-desc">Price (Descending)</option>
+              <option value="name-asc">Name ↑</option>
+              <option value="name-desc">Name ↓</option>
+              <option value="price-asc">Price ↑</option>
+              <option value="price-desc">Price ↓</option>
               {activeTab === "products" && (
                 <>
-                  <option value="articalNo-asc">Article No. (Ascending)</option>
-                  <option value="articalNo-desc">Article No. (Descending)</option>
+                  <option value="articalNo-asc">Article No. ↑</option>
+                  <option value="articalNo-desc">Article No. ↓</option>
                 </>
               )}
             </select>
@@ -1022,7 +1070,7 @@ function App() {
             </div>
             <button
               onClick={openAddModal}
-              className="flex items-center justify-center gap-2 bg-[#FF843E] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 whitespace-nowrap"
             >
               <Plus size={16} />
               <span className="hidden sm:inline">Add {activeTab === "services" ? "Service" : "Product"}</span>
@@ -1045,14 +1093,14 @@ function App() {
                 }}
                 className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
               >
-                <option value="name-asc">Name (Ascending)</option>
-                <option value="name-desc">Name (Descending)</option>
-                <option value="price-asc">Price (Ascending)</option>
-                <option value="price-desc">Price (Descending)</option>
+                <option value="name-asc">Name ↑</option>
+                <option value="name-desc">Name ↓</option>
+                <option value="price-asc">Price ↑</option>
+                <option value="price-desc">Price ↓</option>
                 {activeTab === "products" && (
                   <>
-                    <option value="articalNo-asc">Article No. (Ascending)</option>
-                    <option value="articalNo-desc">Article No. (Descending)</option>
+                    <option value="articalNo-asc">Article No. ↑</option>
+                    <option value="articalNo-desc">Article No. ↓</option>
                   </>
                 )}
               </select>
@@ -1126,6 +1174,7 @@ function App() {
                     {activeTab === "products" && item.articalNo && (
                       <p className="text-xs text-slate-400 mb-1 open_sans_font">Art. No: {item.articalNo}</p>
                     )}
+                    <p className="text-lg font-bold text-[#FF843E] mb-2">${item.price.toFixed(2)}</p>
                   </div>
                   {isEditModeActive && (
                     <div className="mt-2">

@@ -1,29 +1,24 @@
-"use client"
 
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
-import {
-  BarChart3,
-  Calendar,
-  Users,
-  Link,
-  TrendingUp,
-  Award,
-  MessageSquare,
-  CheckSquare,
-  Gift,
-  ExternalLink,
-} from "lucide-react"
+import { BarChart3, Calendar, Users, Link, MessageSquare, CheckSquare, Gift } from "lucide-react"
 
-export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus }) {
+export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus, widgetArea = "dashboard" }) {
   if (!isOpen) return null
 
-  const widgetTypes = [
+  // Define widgets for dashboard
+  const dashboardWidgets = [
     {
       id: "chart",
       name: "Analytics Chart",
       description: "Display member statistics and analytics",
       icon: BarChart3,
+    },
+    {
+      id: "expiringContracts",
+      name: "Expiring Contracts",
+      description: "Track contracts nearing expiration",
+      icon: Calendar,
     },
     {
       id: "appointments",
@@ -43,24 +38,10 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       description: "Quick access to important websites",
       icon: Link,
     },
-    {
-      id: "topSelling",
-      name: "Top Selling",
-      description: "Display top-selling products and services",
-      icon: TrendingUp,
-    },
-    {
-      id: "mostFrequent",
-      name: "Most Frequent",
-      description: "Show most frequently sold items",
-      icon: Award,
-    },
-    {
-      id: "expiringContracts",
-      name: "Expiring Contracts",
-      description: "Track contracts nearing expiration",
-      icon: Calendar,
-    },
+  ]
+
+  // Define widgets for sidebar
+  const sidebarWidgets = [
     {
       id: "communications",
       name: "Communications",
@@ -81,18 +62,23 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
     },
     {
       id: "websiteLinks",
-      name: "Website Links (Sidebar)",
-      description: "Website links for sidebar",
-      icon: ExternalLink,
+      name: "Website Links",
+      description: "Quick access to important websites",
+      icon: Link,
     },
   ]
+
+  // Select widgets based on the area
+  const widgetTypes = widgetArea === "dashboard" ? dashboardWidgets : sidebarWidgets
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-[#181818] rounded-xl custom-scrollbar w-full max-w-md mx-4 max-h-[70vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Add Widget</h2>
+            <h2 className="text-lg font-semibold">
+              Add Widget to {widgetArea === "dashboard" ? "Dashboard" : "Sidebar"}
+            </h2>
             <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
               <X size={16} />
             </button>
@@ -126,9 +112,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
                     <span>{widget.name}</span>
                   </div>
                   <span className="text-xs text-zinc-400">{widget.description}</span>
-                  {isAlreadyAdded && (
-                    <span className="text-xs text-yellow-500 mt-1">{message}</span>
-                  )}
+                  {isAlreadyAdded && <span className="text-xs text-yellow-500 mt-1">{message}</span>}
                 </button>
               )
             })}

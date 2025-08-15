@@ -1,15 +1,42 @@
+/* eslint-disable react/no-unescaped-entities */
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
-import { MoreVertical, X, Clock, ChevronDown, Edit, Check, Plus, AlertTriangle, Info, CalendarIcon, Menu, Users, Minus, ExternalLink } from 'lucide-react'
+import {
+  MoreVertical,
+  X,
+  Clock,
+  ChevronDown,
+  Edit,
+  Check,
+  Plus,
+  AlertTriangle,
+  Info,
+  CalendarIcon,
+  Menu,
+  Users,
+  Minus,
+  ExternalLink,
+  Eye,
+  Save,
+  Globe,
+  Lock,
+  User,
+  Pin,
+  PinOff,
+  Trash2,
+} from "lucide-react"
 import Rectangle1 from "../../public/Rectangle 1.png"
-import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 import Image10 from "../../public/image10.png"
 import { Toaster, toast } from "react-hot-toast"
-import { WidgetSelectionModal } from "../components/widget-selection-modal"
 import Avatar from "../../public/avatar.png"
+import {WidgetSelectionModal} from '../components/widget-selection-modal'
+import AppointmentActionModal from "../components/appointments-components/appointment-action-modal"
+import EditAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 
 const loggedInStaff = {
   id: 1,
@@ -343,6 +370,264 @@ const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEdit
   )
 }
 
+const ViewManagementModal = ({
+  isOpen,
+  onClose,
+  savedViews,
+  setSavedViews,
+  currentView,
+  setCurrentView,
+  widgets,
+  setWidgets,
+}) => {
+  const [viewName, setViewName] = useState("")
+  const [isGlobalVisible, setIsGlobalVisible] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [editingView, setEditingView] = useState(null)
+
+  const currentUser = { id: "user123", name: "John Doe" }
+
+  if (!isOpen) return null
+
+  const handleSaveCurrentView = () => {
+    if (!viewName.trim()) {
+      toast.error("Please enter a view name")
+      return
+    }
+
+    const newView = {
+      id: `view_${Date.now()}`,
+      name: viewName.trim(),
+      widgets: [...widgets],
+      isStandard: false,
+      isGlobal: isGlobalVisible,
+      createdBy: currentUser,
+      createdAt: new Date().toISOString(),
+    }
+
+    setSavedViews((prev) => [...prev, newView])
+    setViewName("")
+    setIsGlobalVisible(false)
+    setIsCreating(false)
+    toast.success(`View "${newView.name}" saved successfully`)
+  }
+
+  const handleLoadView = (view) => {
+    setWidgets([...view.widgets])
+    setCurrentView(view)
+    toast.success(`Loaded view: ${view.name}`)
+    onClose()
+  }
+
+  const handleTogglePin = (viewId) => {
+    setSavedViews((prev) =>
+      prev.map((view) => ({
+        ...view,
+        isStandard: view.id === viewId ? !view.isStandard : false,
+      })),
+    )
+    const view = savedViews.find((v) => v.id === viewId)
+    toast.success(view?.isStandard ? "View unpinned" : "View pinned as standard")
+  }
+
+  const handleDeleteView = (viewId) => {
+    setSavedViews((prev) => prev.filter((view) => view.id !== viewId))
+    toast.success("View deleted")
+  }
+
+  const handleEditView = (view) => {
+    setEditingView(view)
+    setViewName(view.name)
+    setIsGlobalVisible(view.isGlobal || false)
+  }
+
+  const handleUpdateView = () => {
+    if (!viewName.trim()) {
+      toast.error("Please enter a view name")
+      return
+    }
+
+    setSavedViews((prev) =>
+      prev.map((view) =>
+        view.id === editingView.id ? { ...view, name: viewName.trim(), isGlobal: isGlobalVisible } : view,
+      ),
+    )
+
+    setEditingView(null)
+    setViewName("")
+    setIsGlobalVisible(false)
+    toast.success("View updated successfully")
+  }
+
+  const cancelEdit = () => {
+    setEditingView(null)
+    setViewName("")
+    setIsGlobalVisible(false)
+    setIsCreating(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+      <div className="bg-[#181818] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="p-4 sm:p-6">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h3 className="text-lg sm:text-xl font-semibold text-white">Manage Dashboard Views</h3>
+            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Save Current View Section */}
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-black rounded-xl">
+            <h4 className="text-base sm:text-lg font-medium text-white mb-3">
+              {editingView ? "Edit View" : "Save Current View"}
+            </h4>
+            {!isCreating && !editingView ? (
+              <button
+                onClick={() => setIsCreating(true)}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm sm:text-base"
+              >
+                <Save size={16} />
+                Save Current Layout
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={viewName}
+                  onChange={(e) => setViewName(e.target.value)}
+                  placeholder="Enter view name..."
+                  className="w-full p-2 sm:p-3 bg-zinc-800 rounded-lg text-white text-sm outline-none"
+                  autoFocus
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="globalVisible"
+                    checked={isGlobalVisible}
+                    onChange={(e) => setIsGlobalVisible(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-zinc-800 border-zinc-600 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="globalVisible" className="text-sm text-white flex items-center gap-1">
+                    <Globe size={14} />
+                    Make globally visible to all users
+                  </label>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={editingView ? handleUpdateView : handleSaveCurrentView}
+                    className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
+                  >
+                    {editingView ? "Update" : "Save"}
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    className="px-3 sm:px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-lg text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Saved Views List */}
+          <div>
+            <h4 className="text-base sm:text-lg font-medium text-white mb-3">Saved Views</h4>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              {savedViews.length === 0 ? (
+                <div className="text-center py-6 sm:py-8 text-zinc-400">
+                  <Eye size={40} className="mx-auto mb-3 opacity-50" />
+                  <p className="text-sm sm:text-base">No saved views yet</p>
+                  <p className="text-xs sm:text-sm">Save your current layout to get started</p>
+                </div>
+              ) : (
+                savedViews.map((view) => (
+                  <div
+                    key={view.id}
+                    className={`p-3 sm:p-4 rounded-xl border transition-colors ${
+                      currentView?.id === view.id
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-zinc-700 hover:border-zinc-600"
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h5 className="font-medium text-white text-sm sm:text-base truncate">{view.name}</h5>
+                          {view.isStandard && (
+                            <span className="flex items-center gap-1 px-2 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs whitespace-nowrap">
+                              <Pin size={12} />
+                              Pinned
+                            </span>
+                          )}
+                          <span
+                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs whitespace-nowrap ${
+                              view.isGlobal ? "bg-green-600/20 text-green-400" : "bg-gray-600/20 text-gray-400"
+                            }`}
+                          >
+                            {view.isGlobal ? <Globe size={12} /> : <Lock size={12} />}
+                            {view.isGlobal ? "Global" : "Private"}
+                          </span>
+                          {currentView?.id === view.id && (
+                            <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-zinc-400">
+                            {view.widgets.length} widgets • Created {new Date(view.createdAt).toLocaleDateString()}
+                          </p>
+                          <p className="text-xs text-zinc-500 flex items-center gap-1">
+                            <User size={12} />
+                            Created by {view.createdBy?.name || "Unknown"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                        <button
+                          onClick={() => handleLoadView(view)}
+                          className="px-2 sm:px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs sm:text-sm whitespace-nowrap"
+                        >
+                          Load
+                        </button>
+                        <button
+                          onClick={() => handleEditView(view)}
+                          className="p-1.5 sm:p-2 hover:bg-zinc-700 rounded text-blue-400"
+                          title="Edit view"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleTogglePin(view.id)}
+                          className={`p-1.5 sm:p-2 hover:bg-zinc-700 rounded ${
+                            view.isStandard ? "text-yellow-400" : "text-zinc-400"
+                          }`}
+                          title={view.isStandard ? "Unpin view" : "Pin as standard view"}
+                        >
+                          {view.isStandard ? <Pin size={14} /> : <PinOff size={14} />}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteView(view.id)}
+                          className="p-1.5 sm:p-2 hover:bg-zinc-700 rounded text-red-400"
+                          title="Delete view"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function MyArea() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -356,6 +641,10 @@ export default function MyArea() {
   const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [isSidebarEditing, setIsSidebarEditing] = useState(false) // Separate edit state for sidebar
+
+  const [showAppointmentOptionsModal, setshowAppointmentOptionsModal] = useState(false)
+    const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [notifyAction, setNotifyAction] = useState("change")
 
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 }, // Always full width
@@ -481,7 +770,7 @@ export default function MyArea() {
       growth: "5%",
       title: "Lead Generation",
     },
-    'Top-selling by revenue': {
+    "Top-selling by revenue": {
       data: [
         [40, 160, 120, 280, 180, 250, 220, 180, 300],
         [60, 100, 140, 80, 120, 200, 280, 100, 260],
@@ -490,7 +779,7 @@ export default function MyArea() {
       title: "Top-selling by revenue",
     },
 
-    'Most frequently sold': {
+    "Most frequently sold": {
       data: [
         [40, 160, 120, 280, 180, 250, 220, 180, 300],
         [60, 100, 140, 80, 120, 200, 280, 100, 260],
@@ -575,6 +864,10 @@ export default function MyArea() {
     },
   ])
 
+  const [savedViews, setSavedViews] = useState([])
+  const [currentView, setCurrentView] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
   const [freeAppointments, setFreeAppointments] = useState([])
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
@@ -584,12 +877,11 @@ export default function MyArea() {
   const toggleEditing = () => setIsEditing(!isEditing)
   const toggleSidebarEditing = () => setIsSidebarEditing(!isSidebarEditing) // Toggle sidebar edit mode
   const [activeNoteId, setActiveNoteId] = useState(null)
-  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
-  const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
-  const [notifyAction, setNotifyAction] = useState("change")
   const [editingNoteId, setEditingNoteId] = useState(null)
   const [editingNoteText, setEditingNoteText] = useState("")
+
+  const [selectedAppointment, setselectedAppointment] = useState()
+  const [isEditAppointmentModalOpen, setisEditAppointmentModalOpen] = useState(false)
 
   // Helper function to determine widget placement status
   const getWidgetPlacementStatus = useCallback(
@@ -724,12 +1016,6 @@ export default function MyArea() {
     })
   }
 
-  const handleDeleteAppointment = (appointmentId) => {
-    setAppointments((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
-    setSelectedAppointment(null)
-    toast.success("Appointment deleted successfully")
-  }
-
   const handleEditNote = (appointmentId, currentNote) => {
     setEditingNoteId(appointmentId)
     setEditingNoteText(currentNote)
@@ -745,6 +1031,27 @@ export default function MyArea() {
     setEditingNoteText("")
     toast.success("Special note updated successfully")
   }
+
+  useEffect(() => {
+    const savedViewsData = localStorage.getItem("dashboardViews")
+    if (savedViewsData) {
+      const views = JSON.parse(savedViewsData)
+      setSavedViews(views)
+
+      // Load standard view if exists
+      const standardView = views.find((view) => view.isStandard)
+      if (standardView) {
+        setWidgets([...standardView.widgets])
+        setCurrentView(standardView)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (savedViews.length > 0) {
+      localStorage.setItem("dashboardViews", JSON.stringify(savedViews))
+    }
+  }, [savedViews])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -844,19 +1151,6 @@ export default function MyArea() {
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
   ]
 
-  const handleAppointmentChange = (changes) => {
-    setSelectedAppointment((prev) => {
-      const updatedAppointment = { ...prev, ...changes }
-      if (changes.specialNote) {
-        updatedAppointment.specialNote = {
-          ...prev.specialNote,
-          ...changes.specialNote,
-        }
-      }
-      return updatedAppointment
-    })
-  }
-
   const WebsiteLinkModal = ({ link, onClose }) => {
     const [title, setTitle] = useState(link?.title?.trim() || "")
     const [url, setUrl] = useState(link?.url?.trim() || "")
@@ -876,6 +1170,8 @@ export default function MyArea() {
       }
       onClose()
     }
+
+    
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -1128,6 +1424,9 @@ export default function MyArea() {
       }
     }
 
+
+    
+
     const handleDragEnd = (e) => {
       e.currentTarget.classList.remove("dragging")
       const allWidgets = document.querySelectorAll(".right-sidebar-widget")
@@ -1161,6 +1460,64 @@ export default function MyArea() {
         {children}
       </div>
     )
+  }
+
+  const handleViewMemberDetails = () =>{
+     toast.success('View member functionality will be implemented here later from backend')
+     setshowAppointmentOptionsModal(false)
+  }
+
+
+  const isEventInPast = (eventStart) => {
+    const now = new Date()
+    const eventDate = new Date(eventStart)
+    return eventDate < now
+  }
+
+  const handleAppointmentOptionsModal = (appointment) => {
+    setselectedAppointment(appointment);
+    setshowAppointmentOptionsModal(true);
+    setisEditAppointmentModalOpen(false); // Ensure edit modal is closed
+  };
+
+  const handleCancelAppointment = () => {
+    setshowAppointmentOptionsModal(false)
+    setNotifyAction("cancel")
+    if (selectedAppointment) {
+      // Update the selected appointment's status locally for the modal
+      const updatedApp = { ...selectedAppointment, status: "cancelled", isCancelled: true }
+      setselectedAppointment(updatedApp)
+      setIsNotifyMemberOpen(true) // Show notification modal
+    }
+  }
+
+  const actuallyHandleCancelAppointment = (shouldNotify) => {
+    if (!appointments || !setAppointments || !selectedAppointment) return
+    const updatedAppointments = appointments.map((app) =>
+      app.id === selectedAppointment.id ? { ...app, status: "cancelled", isCancelled: true } : app,
+    )
+    setAppointments(updatedAppointments)
+    toast.success("Appointment cancelled successfully")
+    if (shouldNotify) {
+      console.log("Notifying member about cancellation")
+    }
+    setselectedAppointment(null) // Clear selected appointment after action
+  }
+
+
+  const handleDeleteAppointment = (id) => {
+    // setMemberAppointments(memberAppointments.filter((app) => app.id !== id))
+    setselectedAppointment(null)
+    setisEditAppointmentModalOpen(false)
+    setIsNotifyMemberOpen(true)
+    setNotifyAction("delete")
+    toast.success("Appointment deleted successfully")
+  }
+
+  const handleNotifyMember = (shouldNotify) => {
+    setIsNotifyMemberOpen(false)
+        toast.success("Member notified successfully!")
+
   }
 
   return (
@@ -1205,17 +1562,33 @@ export default function MyArea() {
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-3 md:p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
+              <div className="flex items-center gap-3">
                 <h1 className="text-xl font-bold">My Area</h1>
+                {currentView && (
+                  <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
+                    {currentView.name}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setIsWidgetModalOpen(true)}
-                  className="py-2 px-4 bg-black text-white  rounded-xl text-sm cursor-pointer flex items-center gap-1"
+                  onClick={() => setIsViewModalOpen(true)}
+                  className="py-2 px-4 bg-zinc-700 text-white rounded-xl text-sm cursor-pointer flex items-center gap-1 hover:bg-zinc-600"
+                  title="Manage Views"
                 >
-                  <Plus size={20} />
-                  <span className="hidden sm:inline">Add Widget</span>
+                  <Eye size={18} />
+                  <span className="hidden sm:inline">Manage Views</span>
                 </button>
+                {/* Only show Add Widget button when editing is active */}
+                {isEditing && (
+                  <button
+                    onClick={() => setIsWidgetModalOpen(true)}
+                    className="py-2 px-4 bg-black text-white rounded-xl text-sm cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus size={20} />
+                    <span className="hidden sm:inline">Add Widget</span>
+                  </button>
+                )}
                 <button
                   onClick={toggleEditing}
                   className={`px-6 py-2 text-sm cursor-pointer ${
@@ -1338,10 +1711,7 @@ export default function MyArea() {
                                   </div>
                                   <div
                                     className="flex flex-col items-center justify-between gap-2 cursor-pointer"
-                                    onClick={() => {
-                                      setSelectedAppointment(appointment)
-                                      setIsAppointmentActionModalOpen(true)
-                                    }}
+                                    onClick={()=>{handleAppointmentOptionsModal(appointment)}}
                                   >
                                     <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
                                       <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
@@ -1477,20 +1847,23 @@ export default function MyArea() {
         >
           <div className="p-4 md:p-5 h-full overflow-y-auto">
             {/* Header with close button and add widget button */}
-            <h2 className="text-lg font-semibold">Sidebar</h2>
-            <div className="flex items-center md:justify-between justify-end mt-2 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Sidebar</h2>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsRightWidgetModalOpen(true)}
-                  className="py-2 px-4 bg-black text-white  rounded-xl text-sm cursor-pointer flex items-center gap-1"
-                  title="Add Widget"
-                >
-                  <Plus size={16} />
-                  <span className="hidden sm:inline">Add Widget</span>
-                </button>
+                {/* Only show Add Widget button when sidebar editing is active */}
+                {isSidebarEditing && (
+                  <button
+                    onClick={() => setIsRightWidgetModalOpen(true)}
+                    className="py-2 px-4 bg-black text-white rounded-xl text-sm cursor-pointer flex items-center gap-1"
+                    title="Add Widget"
+                  >
+                    <Plus size={16} />
+                    <span className="hidden sm:inline">Add Widget</span>
+                  </button>
+                )}
                 <button
                   onClick={toggleSidebarEditing}
-                  className={`px-3 text-sm py-2 ${
+                  className={`px-6 py-2 text-sm ${
                     isSidebarEditing ? "bg-blue-600 text-white " : "bg-zinc-700 text-zinc-200 "
                   } rounded-xl flex items-center gap-2 transition-colors`}
                   title="Edit Sidebar"
@@ -1693,31 +2066,140 @@ export default function MyArea() {
               ))}
           </div>
         </aside>
+
+        <AppointmentActionModal
+  isOpen={showAppointmentOptionsModal}
+  onClose={() => {
+    setshowAppointmentOptionsModal(false);
+    setselectedAppointment(null); // Reset the selected appointment when closing
+  }}
+  appointment={selectedAppointment}
+  isEventInPast={isEventInPast}
+  onEdit={() => {
+    setshowAppointmentOptionsModal(false); // Close the options modal
+    setisEditAppointmentModalOpen(true); // Open the edit modal
+  }}
+  onCancel={handleCancelAppointment}
+  onViewMember={handleViewMemberDetails}
+/>
+
+{isNotifyMemberOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+          onClick={() => setIsNotifyMemberOpen(false)}
+        >
+          <div
+            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+              <button
+                onClick={() => {
+                  setIsNotifyMemberOpen(false)
+                }}
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+              >
+                {" "}
+                <X size={20} />{" "}
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-white text-sm">
+                {" "}
+                Do you want to notify the member about this{" "}
+                {notifyAction === "change"
+                  ? "change"
+                  : notifyAction === "cancel"
+                    ? "cancellation"
+                    : notifyAction === "delete"
+                      ? "deletion"
+                      : "booking"}{" "}
+                ?{" "}
+              </p>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
+              <button
+                onClick={() => {
+                  if (notifyAction === "cancel") {
+                    actuallyHandleCancelAppointment(true) // Confirm cancellation and notify
+                  } else {
+                    handleNotifyMember(true) // Confirm other changes and notify
+                  }
+                  setIsNotifyMemberOpen(false)
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+              >
+                
+                {" "}
+                Yes, Notify Member{" "}
+              </button>
+              <button
+                onClick={() => {
+                  if (notifyAction === "cancel") {
+                    actuallyHandleCancelAppointment(false) // Confirm cancellation without notifying
+                  } else {
+                    handleNotifyMember(false) // Cancel other changes and don't notify (triggers revert)
+                  }
+                  setIsNotifyMemberOpen(false)
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+              >
+                {" "}
+                No, Don't Notify{" "}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+        <ViewManagementModal
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+          savedViews={savedViews}
+          setSavedViews={setSavedViews}
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          widgets={widgets}
+          setWidgets={setWidgets}
+        />
+
         {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
         <WidgetSelectionModal
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
           onSelectWidget={handleAddWidget}
           getWidgetStatus={getWidgetPlacementStatus}
+          widgetArea="dashboard"
         />
         <WidgetSelectionModal
           isOpen={isRightWidgetModalOpen}
           onClose={() => setIsRightWidgetModalOpen(false)}
           onSelectWidget={handleAddRightSidebarWidget}
           getWidgetStatus={getWidgetPlacementStatus}
+          widgetArea="sidebar"
         />
-        <SelectedAppointmentModal
-          selectedAppointment={selectedAppointment}
-          setSelectedAppointment={setSelectedAppointment}
-          appointmentTypes={appointmentTypes}
-          freeAppointments={freeAppointments}
-          handleAppointmentChange={handleAppointmentChange}
-          appointments={appointments}
-          setAppointments={setAppointments}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
-          onDelete={handleDeleteAppointment}
-        />
+
+{isEditAppointmentModalOpen && selectedAppointment && (
+  <EditAppointmentModal
+    selectedAppointment={selectedAppointment}
+    setSelectedAppointment={setselectedAppointment}
+    appointmentTypes={appointmentTypes}
+    freeAppointments={freeAppointments}
+    handleAppointmentChange={(changes) => {
+      setselectedAppointment({ ...selectedAppointment, ...changes });
+    }}
+    appointments={appointments}
+    setAppointments={setAppointments}
+    setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+    setNotifyAction={setNotifyAction}
+    onDelete={handleDeleteAppointment}
+    onClose={() => {
+      setisEditAppointmentModalOpen(false);
+      setselectedAppointment(null); // Reset the selected appointment
+    }}
+  />
+)}
       </div>
     </>
   )

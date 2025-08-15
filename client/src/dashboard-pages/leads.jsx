@@ -1,10 +1,8 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Plus, Users } from "lucide-react"
+import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Plus, Users, Lock } from "lucide-react"
 import Draggable from "react-draggable"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../public/avatar.png"
@@ -94,17 +92,15 @@ const LeadCard = ({
     >
       <div
         ref={nodeRef}
-        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${
-          isDragging ? "opacity-70 z-50 shadow-lg absolute" : "opacity-100" // Changed 'fixed' to 'absolute' for better mobile drag behavior
-        }`}
+        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${isDragging ? "opacity-70 z-50 shadow-lg absolute" : "opacity-100" // Changed 'fixed' to 'absolute' for better mobile drag behavior
+          }`}
         data-lead-id={lead.id}
       >
-        <div className="flex items-center mb-3 relative">
+        <div className="flex  items-center mb-3 relative">
           {hasValidNote && (
             <div
-              className={`absolute -top-2 -left-2 ${
-                lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
-              }  rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
+              className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
+                }  rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
@@ -262,6 +258,8 @@ const Column = ({
   columnRef,
   memberRelations,
 }) => {
+  const isTrialColumn = id === "trial"
+
   return (
     <div
       ref={columnRef}
@@ -270,10 +268,18 @@ const Column = ({
       data-column-id={id}
     >
       <div className="p-3 flex justify-between items-center" style={{ backgroundColor: `${color}20` }}>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
-          <h3 className="font-medium text-white text-sm">{title}</h3>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center">
+            <div
+              className="w-3 h-3 rounded-full mr-2"
+              style={{ backgroundColor: color }}
+            ></div>
+            <h3 className="font-medium text-white text-sm">{title}</h3>
+          </div>
+
+          {isTrialColumn && <Lock size={14} className="text-gray-400" />}
         </div>
+
         {isEditable && (
           <button
             onClick={() => onEditColumn(id, title, color)}
@@ -463,9 +469,8 @@ export default function LeadManagement() {
       interestedIn: "Premium", // Added for contract pre-selection
       birthday: "1990-05-20", // Added for ViewLeadDetailsModal
       address: "123 Main St, Anytown, USA", // Added for ViewLeadDetailsModal
-      country: 'USA',
+      country: "USA",
       leadId: "LEAD-001",
-
     },
     {
       id: "h2",
@@ -490,9 +495,8 @@ export default function LeadManagement() {
       interestedIn: "Basic", // Added for contract pre-selection
       birthday: "1988-11-10", // Added for ViewLeadDetailsModal
       address: "456 Oak Ave, Otherville, USA", // Added for ViewLeadDetailsModal
-      country: 'USA',
+      country: "USA",
       leadId: "LEAD-002",
-
     },
     {
       id: "h3",
@@ -517,9 +521,8 @@ export default function LeadManagement() {
       interestedIn: "Bronze", // Added for contract pre-selection
       birthday: "1995-03-01", // Added for ViewLeadDetailsModal
       address: "789 Pine Ln, Anycity, USA", // Added for ViewLeadDetailsModal
-      country: 'USA',
+      country: "USA",
       leadId: "LEAD-003",
-
     },
     {
       id: "h4",
@@ -544,7 +547,7 @@ export default function LeadManagement() {
       interestedIn: "Basic", // Added for contract pre-selection
       birthday: "1992-07-18", // Added for ViewLeadDetailsModal
       address: "101 Elm St, Smalltown, USA", // Added for ViewLeadDetailsModal
-      country: 'USA',
+      country: "USA",
       leadId: "LEAD-004",
     },
   ]
@@ -639,27 +642,27 @@ export default function LeadManagement() {
     const updatedLeads = leads.map((lead) =>
       lead.id === data.id
         ? {
-            ...lead,
-            firstName: data.firstName,
-            surname: data.surname,
-            email: data.email,
-            phoneNumber: data.phoneNumber,
-            trialPeriod: data.trialPeriod,
-            hasTrialTraining: data.hasTrialTraining,
-            avatar: data.avatar,
-            status: data.status || lead.status,
-            columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
-            specialNote: {
-              text: data.specialNote?.text || "",
-              isImportant: data.specialNote?.isImportant || false,
-              startDate: data.specialNote?.startDate || null,
-              endDate: data.specialNote?.endDate || null,
-            },
-            company: data.company || lead.company, // Added
-            interestedIn: data.interestedIn || lead.interestedIn, // Added
-            birthday: data.birthday || lead.birthday, // Added
-            address: data.address || lead.address, // Added
-          }
+          ...lead,
+          firstName: data.firstName,
+          surname: data.surname,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+          trialPeriod: data.trialPeriod,
+          hasTrialTraining: data.hasTrialTraining,
+          avatar: data.avatar,
+          status: data.status || lead.status,
+          columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+          specialNote: {
+            text: data.specialNote?.text || "",
+            isImportant: data.specialNote?.isImportant || false,
+            startDate: data.specialNote?.startDate || null,
+            endDate: data.specialNote?.endDate || null,
+          },
+          company: data.company || lead.company, // Added
+          interestedIn: data.interestedIn || lead.interestedIn, // Added
+          birthday: data.birthday || lead.birthday, // Added
+          address: data.address || lead.address, // Added
+        }
         : lead,
     )
     setLeads(updatedLeads)
@@ -857,7 +860,14 @@ export default function LeadManagement() {
   }
 
   return (
-    <div className="container mx-auto md:p-4 p-1">
+    <div className={`
+      min-h-screen rounded-3xl p-6 bg-[#1C1C1C]
+      transition-all duration-300 ease-in-out flex-1
+      ${isRightSidebarOpen 
+        ? 'lg:mr-96 md:mr-96 sm:mr-96' // Adjust right margin when sidebar is open on larger screens
+        : 'mr-0' // No margin when closed
+      }
+    `}>
       <Toaster
         position="top-right"
         toastOptions={{
@@ -883,7 +893,7 @@ export default function LeadManagement() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#FF5733] hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl flex items-center gap-2"
+            className="bg-orange-500 hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl flex items-center gap-2"
           >
             <Plus size={16} /> Create Lead
           </button>
@@ -906,7 +916,7 @@ export default function LeadManagement() {
           className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
         />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4 min-h-[600px]">
         {columns.map((column) => (
           <Column
             key={column.id}
@@ -942,7 +952,14 @@ export default function LeadManagement() {
         openDropdownIndex={openDropdownIndex}
         setEditingLink={setEditingLink}
       />
-      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>}
+
+      {/* Overlay for mobile screens only */}
+      {isRightSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          onClick={closeSidebar}
+        />
+      )}
       <EditLeadModal
         isVisible={isEditModalOpen}
         onClose={() => {
@@ -1007,13 +1024,13 @@ export default function LeadManagement() {
           leadData={
             selectedLead
               ? {
-                  id: selectedLead.id,
-                  name: `${selectedLead.firstName} ${selectedLead.surname}`,
-                  email: selectedLead.email,
-                  phone: selectedLead.phoneNumber,
-                  company: selectedLead.company, // Ensure company is passed
-                  interestedIn: selectedLead.interestedIn, // Ensure interestedIn is passed
-                }
+                id: selectedLead.id,
+                name: `${selectedLead.firstName} ${selectedLead.surname}`,
+                email: selectedLead.email,
+                phone: selectedLead.phoneNumber,
+                company: selectedLead.company, // Ensure company is passed
+                interestedIn: selectedLead.interestedIn, // Ensure interestedIn is passed
+              }
               : null
           }
         />

@@ -1,26 +1,23 @@
-"use client"
-
 /* eslint-disable react/prop-types */
+
 import { X } from "lucide-react"
 import { useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
 
 const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => {
-  // Initialize the task data, converting single assignee/role to arrays if needed
   const [editedTask, setEditedTask] = useState({
     ...task,
-    // Convert single values to arrays if coming from old format
     assignees: task.assignees || (task.assignee ? [task.assignee] : []),
     roles: task.roles || (task.role ? [task.role] : []),
     dueTime: task.dueTime || "",
   })
 
-  // Determine assignment type based on which array has items
   const [assignmentType, setAssignmentType] = useState(
     task.assignees?.length > 0 || task.assignee ? "assignee" : "role",
   )
-  const assignees = ["John Doe", "Jane Smith", "Peter Jones"] // Example assignees
-  const roles = ["Developer", "Designer", "Manager"] // Example roles
+
+  const assignees = ["John Doe", "Jane Smith", "Peter Jones"]
+  const roles = ["Developer", "Designer", "Manager"]
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -31,10 +28,8 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
     if (onUpdateTask) {
       const updatedTask = {
         ...editedTask,
-        // Clear the array that's not being used
         assignees: assignmentType === "assignee" ? editedTask.assignees : [],
         roles: assignmentType === "role" ? editedTask.roles : [],
-        // Include these for backward compatibility
         assignee: assignmentType === "assignee" ? editedTask.assignees[0] || "" : "",
         role: assignmentType === "role" ? editedTask.roles[0] || "" : "",
       }
@@ -73,8 +68,8 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
     setEditedTask((prev) => ({
       ...prev,
       assignees: prev.assignees.includes(value)
-        ? prev.assignees.filter((assignee) => assignee !== value) // Remove if already selected
-        : [...prev.assignees, value], // Add if not selected
+        ? prev.assignees.filter((assignee) => assignee !== value)
+        : [...prev.assignees, value],
     }))
   }
 
@@ -83,9 +78,7 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
     if (value === "") return
     setEditedTask((prev) => ({
       ...prev,
-      roles: prev.roles.includes(value)
-        ? prev.roles.filter((role) => role !== value) // Remove if already selected
-        : [...prev.roles, value], // Add if not selected
+      roles: prev.roles.includes(value) ? prev.roles.filter((role) => role !== value) : [...prev.roles, value],
     }))
   }
 
@@ -123,36 +116,31 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
                 required
               />
             </div>
-            <div>
-              <label className="text-sm text-gray-200">Task Description</label>
-              <textarea
-                value={editedTask.description}
-                onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
-                className="w-full bg-[#101010] resize-none mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                rows={3}
-              />
-            </div>
+
             <div>
               <label className="text-sm text-gray-200 mb-2"> Assignment Type</label>
               <div className="flex gap-4 mt-1">
                 <button
                   type="button"
                   onClick={() => handleAssignmentTypeChange("assignee")}
-                  className={`px-4 py-2 rounded-xl text-sm ${assignmentType === "assignee" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"}`}
+                  className={`px-4 py-2 rounded-xl text-sm ${
+                    assignmentType === "assignee" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
+                  }`}
                 >
-                  {" "}
                   Assign to People
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAssignmentTypeChange("role")}
-                  className={`px-4 py-2 rounded-xl text-sm ${assignmentType === "role" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"}`}
+                  className={`px-4 py-2 rounded-xl text-sm ${
+                    assignmentType === "role" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
+                  }`}
                 >
-                  {" "}
                   Assign to Roles
                 </button>
               </div>
             </div>
+
             {assignmentType === "assignee" && (
               <div>
                 <label className="text-sm text-gray-200">Assignees</label>
@@ -191,7 +179,6 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
                           }
                           className="hover:text-gray-200"
                         >
-                          {" "}
                           ×
                         </button>
                       </span>
@@ -200,6 +187,7 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
                 )}
               </div>
             )}
+
             {assignmentType === "role" && (
               <div>
                 <label className="text-sm text-gray-200">Roles</label>
@@ -231,7 +219,6 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
                           }
                           className="hover:text-gray-200"
                         >
-                          {" "}
                           ×
                         </button>
                       </span>
@@ -240,6 +227,7 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
                 )}
               </div>
             )}
+
             <div>
               <label className="text-sm text-gray-200">Tags</label>
               <div className="relative">
@@ -250,8 +238,12 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
                 >
                   <option value="">Select Tags</option>
                   {configuredTags.map((tag) => (
-                    <option key={tag} value={tag} className={editedTask.tags.includes(tag) ? "bg-[#3F74FF]" : ""}>
-                      {tag} {editedTask.tags.includes(tag) ? "✓" : ""}
+                    <option
+                      key={tag.id}
+                      value={tag.name}
+                      className={editedTask.tags.includes(tag.name) ? "bg-[#3F74FF]" : ""}
+                    >
+                      {tag.name} {editedTask.tags.includes(tag.name) ? "✓" : ""}
                     </option>
                   ))}
                 </select>
@@ -270,7 +262,6 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
                           }
                           className="hover:text-gray-200"
                         >
-                          {" "}
                           ×
                         </button>
                       </span>
@@ -279,6 +270,7 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
                 )}
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-200">Due Date</label>
@@ -300,20 +292,19 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
                 />
               </div>
             </div>
+
             <div className="flex justify-end gap-2 mt-6">
               <button
                 type="button"
                 onClick={onClose}
                 className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90 cursor-pointer"
               >
-                {" "}
                 Cancel
               </button>
               <button
                 type="submit"
                 className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer"
               >
-                {" "}
                 Save Changes
               </button>
             </div>
@@ -323,4 +314,5 @@ const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => 
     </>
   )
 }
+
 export default EditTaskModal

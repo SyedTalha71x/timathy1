@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 
 import { useState, useEffect } from "react"
-import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X } from "lucide-react"
+import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X, FileText, Eye, Trash2 } from "lucide-react"
 import CheckFundsModal from "../components/finance-components/check-funds-modal"
 import SepaXmlModal from "../components/finance-components/sepa-xml-modal"
 import { financialData } from "../utils/states"
@@ -12,6 +12,108 @@ import Avatar from "../../public/avatar.png"
 import Rectangle1 from "../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
 import { SidebarArea } from "../components/custom-sidebar"
+import ExportConfirmationModal from "../components/finance-components/export-confirmation-modal"
+
+// Documents Modal Component
+const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDocument }) => {
+  if (!isOpen) return null
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes"
+    const k = 1024
+    const sizes = ["Bytes", "KB", "MB", "GB"]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+  }
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <FileText className="w-5 h-5 text-blue-400" />
+            <h2 className="text-white text-lg font-medium">SEPA XML Documents</h2>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-4 overflow-y-auto flex-grow">
+          {documents.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400">No SEPA XML documents generated yet</p>
+              <p className="text-gray-500 text-sm mt-2">Generated XML files will appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {documents.map((doc) => (
+                <div key={doc.id} className="bg-[#141414] p-4 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-900/30 p-2 rounded-lg">
+                      <FileText className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-medium">{doc.filename}</h3>
+                      <div className="flex items-center gap-4 text-sm text-gray-400 mt-1">
+                        <span>Generated: {formatDate(doc.createdAt)}</span>
+                        <span>Size: {formatFileSize(doc.size)}</span>
+                        <span>Transactions: {doc.transactionCount}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onViewDocument(doc)}
+                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                      title="View Document"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const element = document.createElement("a")
+                        const file = new Blob([doc.content], { type: "application/xml" })
+                        element.href = URL.createObjectURL(file)
+                        element.download = doc.filename
+                        document.body.appendChild(element)
+                        element.click()
+                        document.body.removeChild(element)
+                      }}
+                      className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded-lg transition-colors"
+                      title="Download"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => onDeleteDocument(doc.id)}
+                      className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const ServicesModal = ({ isOpen, onClose, services, memberName }) => {
   if (!isOpen) return null
@@ -127,7 +229,7 @@ export default function FinancesPage() {
   const [selectedStatus, setSelectedStatus] = useState("All")
   const [filteredTransactions, setFilteredTransactions] = useState(
     financialData[selectedPeriod]?.transactions || []
-  )  
+  )
   const [currentPage, setCurrentPage] = useState(1)
   const [sepaModalOpen, setSepaModalOpen] = useState(false)
   const [financialState, setFinancialState] = useState(financialData)
@@ -137,6 +239,10 @@ export default function FinancesPage() {
   const [selectedMemberName, setSelectedMemberName] = useState("")
   const [customDateModalOpen, setCustomDateModalOpen] = useState(false)
   const [customDateRange, setCustomDateRange] = useState(null)
+  const [documentsModalOpen, setDocumentsModalOpen] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState(null)
+  const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
+  const [exportConfirmationOpen, setExportConfirmationOpen] = useState(false)
 
 
   const transactionsPerPage = 5
@@ -207,6 +313,18 @@ export default function FinancesPage() {
     setSelectedPeriod(`Custom (${startDate} to ${endDate})`)
   }
 
+  const handleDeleteDocument = (documentId) => {
+    if (confirm("Are you sure you want to delete this document?")) {
+      setSepaDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
+    }
+  }
+
+  const handleViewDocument = (document) => {
+    setSelectedDocument(document)
+    setDocumentViewerOpen(true)
+  }
+
+
   // CSV Export Function
   const exportToCSV = () => {
     const headers = ["Member Name", "Date", "Type", "Amount", "Status", "Services"]
@@ -219,9 +337,7 @@ export default function FinancesPage() {
       transaction.services.map((service) => `${service.name}: $${service.cost}`).join("; "),
     ])
 
-    const csvContent = [headers.join(","), ...csvData.map((row) => row.map((field) => `"${field}"`).join(","))].join(
-      "\n",
-    )
+    const csvContent = [headers.join(","), ...csvData.map((row) => row.map((field) => `"${field}"`).join(","))].join("\n")
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
     const link = document.createElement("a")
@@ -236,6 +352,61 @@ export default function FinancesPage() {
     link.click()
     document.body.removeChild(link)
   }
+  const [sepaDocuments, setSepaDocuments] = useState([
+    // Sample documents for demonstration
+    {
+      id: "doc-001",
+      filename: "SEPA_Payment_2023-05-15.xml",
+      createdAt: "2023-05-15T10:30:00Z",
+      size: 2048,
+      transactionCount: 3,
+      content: `<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>MSG-001-20230515</MsgId>
+      <CreDtTm>2023-05-15T10:30:00</CreDtTm>
+      <NbOfTxs>3</NbOfTxs>
+      <CtrlSum>500.00</CtrlSum>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>PMT-001</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <ReqdExctnDt>2023-05-16</ReqdExctnDt>
+      <Dbtr>
+        <Nm>Studio Management Company</Nm>
+      </Dbtr>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>`,
+    },
+    {
+      id: "doc-002",
+      filename: "SEPA_Payment_2023-05-10.xml",
+      createdAt: "2023-05-10T14:15:00Z",
+      size: 1536,
+      transactionCount: 2,
+      content: `<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>MSG-002-20230510</MsgId>
+      <CreDtTm>2023-05-10T14:15:00</CreDtTm>
+      <NbOfTxs>2</NbOfTxs>
+      <CtrlSum>350.00</CtrlSum>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>PMT-002</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <ReqdExctnDt>2023-05-11</ReqdExctnDt>
+      <Dbtr>
+        <Nm>Studio Management Company</Nm>
+      </Dbtr>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>`,
+    },
+  ])
 
   const handleGenerateXml = (selectedTransactions) => {
     // In a real application, this would generate and download the XML file
@@ -454,11 +625,33 @@ export default function FinancesPage() {
   const currentPeriodData = getCurrentPeriodData()
 
   return (
-    <div className="bg-[#1C1C1C] p-4 md:p-6 rounded-3xl w-full">
+    <div className={`
+      min-h-screen rounded-3xl p-6 bg-[#1C1C1C]
+      transition-all duration-300 ease-in-out flex-1
+      ${isRightSidebarOpen 
+        ? 'lg:mr-96 md:mr-96 sm:mr-96' // Adjust right margin when sidebar is open on larger screens
+        : 'mr-0' // No margin when closed
+      }
+    `}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div className="flex w-full md:w-auto justify-between items-center gap-3">
 
-          <h1 className="text-white oxanium_font text-xl md:text-2xl">Finances</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-white oxanium_font text-xl md:text-2xl">Finances</h1>
+            {/* Documents Icon */}
+            <button
+              onClick={() => setDocumentsModalOpen(true)}
+              className="bg-[#2F2F2F] text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
+              title="View SEPA XML Documents"
+            >
+              <FileText className="w-5 h-5" />
+              {sepaDocuments.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#3F74FF] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {sepaDocuments.length}
+                </span>
+              )}
+            </button>
+          </div>
           <div> </div>
           <div className="md:hidden block">
             <IoIosMenu
@@ -506,8 +699,8 @@ export default function FinancesPage() {
           </div>
           <div className="flex gap-2 items-center w-full sm:w-auto">
             <button
-              onClick={exportToCSV}
-              className="bg-gray-600 cursor-pointer text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm  transition-colors w-full sm:w-auto"
+              onClick={() => setExportConfirmationOpen(true)}
+              className="bg-gray-600 cursor-pointer text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors w-full sm:w-auto"
             >
               <Download className="w-4 h-4" />
               <span>Export CSV</span>
@@ -651,12 +844,12 @@ export default function FinancesPage() {
                 <td className="px-4 py-3">
                   <span
                     className={`px-2 py-1 rounded-lg text-xs font-medium ${transaction.status === "Successful"
-                        ? "bg-green-900/30 text-green-500"
-                        : transaction.status === "Pending"
-                          ? "bg-yellow-900/30 text-yellow-500"
-                          : transaction.status === "Check incoming funds"
-                            ? "bg-blue-900/30 text-blue-500"
-                            : "bg-red-900/30 text-red-500"
+                      ? "bg-green-900/30 text-green-500"
+                      : transaction.status === "Pending"
+                        ? "bg-yellow-900/30 text-yellow-500"
+                        : transaction.status === "Check incoming funds"
+                          ? "bg-blue-900/30 text-blue-500"
+                          : "bg-red-900/30 text-red-500"
                       }`}
                   >
                     {transaction.status}
@@ -691,8 +884,8 @@ export default function FinancesPage() {
                 key={page}
                 onClick={() => handlePageChange(page)}
                 className={`px-3 py-1.5 rounded-xl transition-colors border ${currentPage === page
-                    ? "bg-[#3F74FF] text-white border-transparent"
-                    : "bg-black text-white border-gray-800 hover:bg-gray-900"
+                  ? "bg-[#3F74FF] text-white border-transparent"
+                  : "bg-black text-white border-gray-800 hover:bg-gray-900"
                   }`}
               >
                 {page}
@@ -725,9 +918,18 @@ export default function FinancesPage() {
         setEditingLink={setEditingLink}
       />
 
-      {isRightSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>
+{isRightSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          onClick={closeSidebar}
+        />
       )}
+
+      <ExportConfirmationModal
+        isOpen={exportConfirmationOpen}
+        onClose={() => setExportConfirmationOpen(false)}
+        onConfirm={exportToCSV}
+      />
 
       <SepaXmlModal
         isOpen={sepaModalOpen}
@@ -736,6 +938,15 @@ export default function FinancesPage() {
         transactions={currentPeriodData.transactions}
         onGenerateXml={handleGenerateXml}
       />
+
+      <DocumentsModal
+        isOpen={documentsModalOpen}
+        onClose={() => setDocumentsModalOpen(false)}
+        documents={sepaDocuments}
+        onDeleteDocument={handleDeleteDocument}
+        onViewDocument={handleViewDocument}
+      />
+
       <CheckFundsModal
         isOpen={checkFundsModalOpen}
         onClose={() => setCheckFundsModalOpen(false)}

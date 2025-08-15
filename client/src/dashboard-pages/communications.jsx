@@ -34,6 +34,11 @@ import {
   Lock,
   Plus,
   Cake,
+  Home,
+  CheckSquare,
+  Users,
+  ShoppingCart,
+  BadgeDollarSign,
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
 
@@ -42,81 +47,17 @@ import AddAppointmentModal from "../components/appointments-components/add-appoi
 import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
 import DefaultAvatar from "../../public/default-avatar.avif" // Assuming this path is correct
 import { SidebarArea } from "../components/custom-sidebar"
+import { Link } from "react-router-dom"
+import { CiMonitor } from "react-icons/ci"
+import { FaCartPlus, FaPeopleLine, FaUsers } from "react-icons/fa6"
+import { RiContractLine } from "react-icons/ri"
+import { CgGym } from "react-icons/cg"
+import { TbBrandGoogleAnalytics } from "react-icons/tb"
+import { MdOutlineHelpCenter } from "react-icons/md"
 const img1 = "/Rectangle 1.png"
 const img2 = "/avatar3.png"
+import EmailManagement from "../components/communication-components/email-management"
 
-const emailList = {
-  inbox: [
-    {
-      id: 1,
-      sender: "support@example.com",
-      subject: "Your recent inquiry",
-      body: "Dear user, thank you for contacting us. We have received your inquiry and will get back to you within 24 hours. Best regards, Support Team",
-      time: "2025-07-18T10:00:00Z",
-      isRead: false,
-    },
-    {
-      id: 2,
-      sender: "marketing@example.com",
-      subject: "New product launch!",
-      body: "Exciting news! Our new product is now available. Check it out here: [link]",
-      time: "2025-07-17T15:30:00Z",
-      isRead: true,
-    },
-  ],
-  sent: [
-    {
-      id: 3,
-      recipient: "jennifer@example.com",
-      subject: "Meeting Reminder",
-      body: "Hi Jennifer, just a friendly reminder about our meeting tomorrow at 10 AM. Please be prepared to discuss the project milestones. Thanks!",
-      status: "Delivered",
-      time: "2025-07-16T09:00:00Z",
-      isRead: true,
-    },
-    {
-      id: 4,
-      recipient: "jerry@example.com",
-      subject: "Event Announcement",
-      body: "Hi Jerry, We're excited to announce our upcoming event! It will be held on August 1st at the community center. More details to follow soon.",
-      status: "Read",
-      time: "2025-07-15T14:30:00Z",
-      isRead: true,
-    },
-  ],
-  draft: [
-    {
-      id: 5,
-      recipient: "draft@example.com",
-      subject: "Draft Email Subject",
-      body: "This is a draft email. I'll finish it later.",
-      status: "Draft",
-      time: "2025-07-19T11:00:00Z",
-      isRead: true,
-    },
-  ],
-  outbox: [],
-  archive: [],
-  error: [],
-}
-
-// Dummy data for SidebarArea widgets
-const mockTodos = [
-  { id: 1, title: "Prepare Q3 Report", description: "Finalize sales figures and market analysis.", assignee: "Admin" },
-  { id: 2, title: "Schedule Team Meeting", description: "Find a suitable time for weekly sync.", assignee: "John" },
-  {
-    id: 3,
-    title: "Review Marketing Plan",
-    description: "Check campaign performance and adjust strategy.",
-    assignee: "Sarah",
-  },
-]
-
-const mockBirthdays = [
-  { id: 1, name: "Alice Smith", date: "August 10", avatar: "/placeholder.svg?height=32&width=32" },
-  { id: 2, name: "Bob Johnson", date: "September 5", avatar: "/placeholder.svg?height=32&width=32" },
-  { id: 3, name: "Charlie Brown", date: "October 1", avatar: "/placeholder.svg?height=32&width=32" },
-]
 
 export default function Communications() {
   const [isMessagesOpen, setIsMessagesOpen] = useState(true)
@@ -140,6 +81,71 @@ export default function Communications() {
   const [searchMember, setSearchMember] = useState("")
   const [showReactionPicker, setShowReactionPicker] = useState(null)
   const [messageReactions, setMessageReactions] = useState({})
+  const [emailList, setEmailList] = useState({
+    inbox: [
+      {
+        id: 1,
+        sender: "support@example.com",
+        subject: "Your recent inquiry",
+        body: "Dear user, thank you for contacting us. We have received your inquiry and will get back to you within 24 hours. Best regards, Support Team",
+        time: "2025-07-18T10:00:00Z",
+        isRead: false,
+        isPinned: false,
+        isArchived: false,
+      },
+      {
+        id: 2,
+        sender: "marketing@example.com",
+        subject: "New product launch!",
+        body: "Exciting news! Our new product is now available. Check it out here: [link]",
+        time: "2025-07-17T15:30:00Z",
+        isRead: true,
+        isPinned: false,
+        isArchived: false,
+      },
+    ],
+    sent: [
+      {
+        id: 3,
+        recipient: "jennifer@example.com",
+        subject: "Meeting Reminder",
+        body: "Hi Jennifer, just a friendly reminder about our meeting tomorrow at 10 AM. Please be prepared to discuss the project milestones. Thanks!",
+        status: "Delivered",
+        time: "2025-07-16T09:00:00Z",
+        isRead: true,
+        isPinned: false,
+        isArchived: false,
+      },
+      {
+        id: 4,
+        recipient: "jerry@example.com",
+        subject: "Event Announcement",
+        body: "Hi Jerry, We're excited to announce our upcoming event! It will be held on August 1st at the community center. More details to follow soon.",
+        status: "Read",
+        time: "2025-07-15T14:30:00Z",
+        isRead: true,
+        isPinned: false,
+        isArchived: false,
+      },
+    ],
+    draft: [
+      {
+        id: 5,
+        recipient: "draft@example.com",
+        subject: "Draft Email Subject",
+        body: "This is a draft email. I'll finish it later.",
+        status: "Draft",
+        time: "2025-07-19T11:00:00Z",
+        isRead: true,
+        isPinned: false,
+        isArchived: false,
+      },
+    ],
+    outbox: [],
+    archive: [],
+    error: [],
+  });
+  
   const [unreadMessagesCount, setUnreadMessagesCount] = useState({
     member: 0,
     company: 0,
@@ -312,6 +318,8 @@ export default function Communications() {
     { name: "Follow-up", duration: 45, color: "bg-green-700" },
     { name: "Annual Review", duration: 60, color: "bg-purple-600" },
   ])
+
+
   const [freeAppointments, setFreeAppointments] = useState([
     { id: 1, date: "2025-03-15", time: "9:00 AM" },
     { id: 2, date: "2025-03-15", time: "11:00 AM" },
@@ -380,19 +388,44 @@ export default function Communications() {
   const groupDropdownRef = useRef(null)
   const buttonRef = useRef(null)
   const recipientDropdownRef = useRef(null)
-  const fileInputRef = useRef(null)
   const messagesEndRef = useRef(null)
   const chatMenuRef = useRef(null)
-  const emailSearchInputRef = useRef(null)
   const notePopoverRef = useRef(null)
 
-  // State for the new right sidebar
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
-  const [customLinks, setCustomLinks] = useState([
-    { id: "link1", title: "Vercel Dashboard", url: "https://vercel.com/dashboard" },
-    { id: "link2", title: "Google Analytics", url: "https://analytics.google.com" },
-    { id: "link3", title: "Stripe Dashboard", url: "https://dashboard.stripe.com" },
-  ])
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const menuItems = [
+    { icon: Home, label: "My Area", to: "/dashboard/my-area" },
+    { icon: CiMonitor, label: "Activity Monitor", to: "/dashboard/activity-monitor" },
+    { icon: Calendar, label: "Appointments", to: "/dashboard/appointments" },
+    { icon: MessageCircle, label: "Communication", to: "/dashboard/communication" },
+    { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
+    { icon: Users, label: "Members", to: "/dashboard/members" },
+    { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
+    { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
+    { icon: RiContractLine, label: "Contracts", to: "/dashboard/contract" },
+    { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
+    { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
+    { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
+    { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
+    { icon: CgGym, label: "Training", to: "/dashboard/training" },
+    { icon: TbBrandGoogleAnalytics, label: "Analytics", to: "/dashboard/analytics" },
+    { icon: MdOutlineHelpCenter, label: "Help Center", to: "/dashboard/help-center" },
+    { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
+  ];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
 
   // Dummy Member Data (from Members.jsx context)
   const [members, setMembers] = useState([
@@ -657,27 +690,7 @@ export default function Communications() {
     5: { general: [], checkins: [], appointments: [], finance: [], contracts: [] }, // Mary Freund
     100: { general: [], checkins: [], appointments: [], finance: [], contracts: [] }, // Fit Chain GmbH
   })
-  // Dummy Available Members/Leads for Relations (from Members.jsx context)
-  const availableMembersLeads = [
-    { id: 1, name: "Jennifer Markus", type: "member" },
-    { id: 2, name: "Jerry Haffer", type: "member" },
-    { id: 4, name: "David Eison", type: "member" },
-    { id: 5, name: "Mary Freund", type: "member" },
-    { id: 101, name: "Anna Doe", type: "member" },
-    { id: 102, name: "Peter Doe", type: "lead" },
-    { id: 103, name: "Lisa Doe", type: "member" },
-    { id: 201, name: "Max Miller", type: "member" },
-    { id: 301, name: "Marie Smith", type: "member" },
-    { id: 401, name: "Tom Wilson", type: "lead" },
-  ]
-  // Relation options by category (from Members.jsx context)
-  const relationOptions = {
-    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
-    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
-    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
-    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
-    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
-  }
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -726,15 +739,17 @@ export default function Communications() {
   }, [messages])
   useEffect(() => {
     // Calculate unread counts for tabs
-    const memberUnread = memberChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
-    const companyUnread = companyChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
-    const emailUnread = emailList.inbox.filter((email) => !email.isRead).length
+    const memberUnread = memberChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length;
+    const companyUnread = companyChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length;
+    const emailUnread = emailList.inbox.filter((email) => !email.isRead && !email.isArchived).length;
+    
     setUnreadMessagesCount({
       member: memberUnread,
       company: companyUnread,
       email: emailUnread,
-    })
-  }, [chatList, archivedChats, emailList]) // Depend on lists that might change unread status
+    });
+  }, [chatList, archivedChats, emailList]); // Add emailList to dependencies
+  
   const handleSearchClick = () => {
     setIsSearchOpen(!isSearchOpen)
   }
@@ -1274,11 +1289,11 @@ export default function Communications() {
   const getMessageStatusIcon = (status) => {
     switch (status) {
       case "sent":
-        return <Check className="w-10 h-10 text-gray-400" /> // Larger checkmark
+        return <Check className="w-8 h-8 text-gray-400" /> // Larger checkmark
       case "delivered":
-        return <CheckCheck className="w-10 h-10 text-gray-400" /> // Larger checkmark
+        return <CheckCheck className="w-8 h-8 text-gray-400" /> // Larger checkmark
       case "read":
-        return <CheckCheck className="w-10 h-10 text-blue-500" /> // Larger checkmark
+        return <CheckCheck className="w-8 h-8 text-blue-500" /> // Larger checkmark
       default:
         return null
     }
@@ -1466,22 +1481,6 @@ export default function Communications() {
     return appointments.filter((app) => app.memberId === memberId)
   }
 
-  // Functions for SidebarArea to interact with Communications data
-  const toggleRightSidebar = () => {
-    setIsRightSidebarOpen((prev) => !prev)
-  }
-
-  const redirectToCommunication = () => {
-    setIsRightSidebarOpen(false) // Close sidebar when navigating within communications
-    // In a real app, this would be router.push('/dashboard/communication');
-    alert("Navigating to Communications overview!")
-  }
-
-  const redirectToTodos = () => {
-    setIsRightSidebarOpen(false) // Close sidebar
-    // In a real app, this would be router.push('/dashboard/to-do');
-    alert("Navigating to TO-DO list!")
-  }
 
   return (
     <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
@@ -1509,14 +1508,31 @@ export default function Communications() {
               >
                 <Settings className="w-5 h-5" />
               </button>
-              {/* New button for right sidebar */}
               <button
-                onClick={toggleRightSidebar}
+                onClick={() => setOpen((prev) => !prev)}
                 className="p-2 hover:bg-gray-800 rounded-full"
                 aria-label="Manage Widgets"
               >
                 <Menu className="w-5 h-5" />
               </button>
+      {open && (
+        <div className="absolute right-7 mt-2 top-9 w-56 bg-[#1C1C1C] rounded-xl shadow-lg z-50 overflow-hidden">
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={index}
+                to={item.to}
+                className="flex items-center gap-3  px-4 py-2 text-gray-300 text-sm hover:bg-gray-700 transition"
+                onClick={() => setOpen(false)}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
             </div>
           </div>
           <div className="flex gap-2 items-center justify-between mb-4">
@@ -1550,17 +1566,17 @@ export default function Communications() {
                 )}
               </button>
               <button
-                className="px-4 py-2 flex items-center rounded-lg text-sm text-gray-400 hover:text-white transition-colors relative"
-                onClick={handleEmailClick}
-              >
-                <Mail size={16} className="inline mr-2" />
-                Email
-                {unreadMessagesCount.email > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadMessagesCount.email}
-                  </span>
-                )}
-              </button>
+  className="px-4 py-2 flex items-center rounded-lg text-sm text-gray-400 hover:text-white transition-colors relative"
+  onClick={handleEmailClick}
+>
+  <Mail size={16} className="inline mr-2" />
+  Email
+  {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length > 0 && (
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+      {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length}
+    </span>
+  )}
+</button>
             </div>
             {/* Removed MoreVertical dropdown (New Chat, New Group) */}
           </div>
@@ -2164,141 +2180,13 @@ export default function Communications() {
           </div>
         )}
       </div>
-      {/* Email Frontend Modal (Full Screen) */}
-      {showEmailFrontend && (
-        <div className="fixed inset-0 bg-black/80 flex flex-col z-50">
-          <div className="bg-[#181818] flex-1 flex flex-col rounded-xl m-4">
-            <div className="p-4 flex-shrink-0">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium flex items-center gap-2">
-                  <Mail className="w-5 h-5" />
-                  Email Management
-                </h2>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowEmailModal(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm flex items-center gap-2"
-                  >
-                    <Send className="w-4 h-4" />
-                    Send Email
-                  </button>
-                  <button onClick={() => setShowSettings(true)} className="p-2 hover:bg-zinc-700 rounded-lg">
-                    <Settings className="w-5 h-5" />
-                  </button>
-                  <button onClick={() => setShowEmailFrontend(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
-                    <X size={16} />
-                  </button>
-                </div>
-              </div>
-              {/* Email Tabs */}
-              <div className="flex gap-2 mb-4 border-b border-gray-700">
-                <button
-                  onClick={() => handleEmailTabClick("inbox")}
-                  className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
-                    emailTab === "inbox" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <Inbox size={16} />
-                  Inbox
-                  {emailList.inbox.filter((e) => !e.isRead).length > 0 && (
-                    <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {emailList.inbox.filter((e) => !e.isRead).length}
-                    </span>
-                  )}
-                </button>
-                <button
-                  onClick={() => handleEmailTabClick("sent")}
-                  className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
-                    emailTab === "sent" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <Send size={16} />
-                  Sent
-                </button>
-                <button
-                  onClick={() => handleEmailTabClick("draft")}
-                  className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
-                    emailTab === "draft" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <FileText size={16} />
-                  Draft
-                </button>
-                {/* Other tabs can be added here if needed */}
-              </div>
-            </div>
-            {/* Email List / Email View */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {selectedEmail ? (
-                // Full Email Content View
-                <div className="bg-[#222222] rounded-xl p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-medium">{selectedEmail.subject}</h3>
-                    <button onClick={() => setSelectedEmail(null)} className="p-2 hover:bg-zinc-700 rounded-lg">
-                      <X size={16} />
-                    </button>
-                  </div>
-                  <div className="text-sm text-gray-400 mb-4">
-                    <p>
-                      From: {selectedEmail.sender || "You"}
-                      {selectedEmail.recipient && ` To: ${selectedEmail.recipient}`}
-                    </p>
-                    <p>Date: {new Date(selectedEmail.time).toLocaleString()}</p>
-                  </div>
-                  <div className="prose prose-invert text-white text-sm leading-relaxed">
-                    <p>{selectedEmail.body}</p>
-                  </div>
-                </div>
-              ) : (
-                // Email List
-                <div className="space-y-2">
-                  {emailList[emailTab].length === 0 ? (
-                    <div className="text-center py-8 text-gray-400">No emails in this folder.</div>
-                  ) : (
-                    emailList[emailTab].map((email) => (
-                      <div
-                        key={email.id}
-                        className={`flex items-center justify-between p-3 bg-[#222222] rounded-xl hover:bg-[#2F2F2F] cursor-pointer ${
-                          !email.isRead ? "border-l-4 border-blue-500" : ""
-                        }`}
-                        onClick={() => handleEmailItemClick(email)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input type="checkbox" className="rounded border-gray-600 bg-transparent" />
-                          <div>
-                            <p className="font-medium text-sm">
-                              {email.sender || email.recipient}
-                              {!email.isRead && <span className="ml-2 text-blue-400"> (Unread)</span>}
-                            </p>
-                            <p className="text-xs text-gray-400">{email.subject}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span
-                            className={`text-xs px-2 py-1 rounded ${
-                              email.status === "Read"
-                                ? "bg-blue-600"
-                                : email.status === "Delivered"
-                                  ? "bg-green-600"
-                                  : "bg-gray-600"
-                            }`}
-                          >
-                            {email.status}
-                          </span>
-                          <span className="text-xs text-gray-400">{new Date(email.time).toLocaleDateString()}</span>
-                          <button className="p-1 hover:bg-gray-600 rounded">
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <EmailManagement
+  isOpen={showEmailFrontend}
+  onClose={() => setShowEmailFrontend(false)}
+  onOpenSendEmail={() => setShowEmailModal(true)}
+  onOpenSettings={() => setShowSettings(true)}
+  initialEmailList={emailList}
+/>
       {/* Settings Modal */}
       {showSettings && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -2598,61 +2486,66 @@ export default function Communications() {
       )}
       {/* Archive Modal */}
       {showArchive && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium flex items-center gap-2">
-                  <Archive className="w-5 h-5" />
-                  Archived Chats
-                </h2>
-                <button onClick={() => setShowArchive(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="space-y-2">
-                {archivedChats.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
-                    <Archive className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>No archived chats</p>
-                  </div>
-                ) : (
-                  archivedChats.map((chat) => (
-                    <div
-                      key={chat.id}
-                      className="flex items-center gap-3 p-3 bg-[#222222] rounded-xl hover:bg-[#2F2F2F] cursor-pointer"
-                      onClick={() => handleRestoreChat(chat.id)} // Changed to handleRestoreChat
-                    >
-                      <img
-                        src={chat.logo || "/placeholder.svg?height=32&width=32"}
-                        alt={`${chat.name}'s avatar`}
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{chat.name}</p>
-                        <p className="text-xs text-gray-400 truncate">
-                          {chat.message.length > 50 ? chat.message.substring(0, 50) + "..." : chat.message}
-                        </p>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleRestoreChat(chat.id)
-                        }}
-                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs"
-                      >
-                        Restore
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4">
+    <div className="bg-[#181818] rounded-xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-lg">
+      <div className="sticky top-0 bg-[#181818] z-10 p-4 border-b border-zinc-800 flex justify-between items-center">
+        <h2 className="text-base sm:text-lg font-medium flex items-center gap-2">
+          <Archive className="w-5 h-5" />
+          Archived Chats
+        </h2>
+        <button
+          onClick={() => setShowArchive(false)}
+          className="p-2 hover:bg-zinc-700 rounded-lg"
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      <div className="p-4 space-y-2">
+        {archivedChats.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <Archive className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <p>No archived chats</p>
           </div>
-        </div>
-      )}
+        ) : (
+          archivedChats.map((chat) => (
+            <div
+              key={chat.id}
+              className="flex items-center gap-3 p-3 bg-[#222222] rounded-xl hover:bg-[#2F2F2F] cursor-pointer transition-colors"
+              onClick={() => handleRestoreChat(chat.id)}
+            >
+              <img
+                src={chat.logo || "/placeholder.svg?height=32&width=32"}
+                alt={`${chat.name}'s avatar`}
+                width={40}
+                height={40}
+                className="rounded-full flex-shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">{chat.name}</p>
+                <p className="text-xs text-gray-400 truncate">
+                  {chat.message.length > 50
+                    ? chat.message.substring(0, 50) + "..."
+                    : chat.message}
+                </p>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleRestoreChat(chat.id)
+                }}
+                className="px-2 sm:px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs"
+              >
+                Restore
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
       {/* Folder Creation Modal */}
       {showFolderModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -3162,90 +3055,96 @@ export default function Communications() {
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-6xl mx-4 my-8 relative">
             <div className="p-6">
               {/* Header matching the image design */}
-              <div className="flex items-center justify-between bg-[#161616] rounded-xl p-6 mb-6">
-                <div className="flex items-center gap-4">
-                  {/* Profile Picture */}
-                  <img
-                    src={selectedMember.image || DefaultAvatar}
-                    alt="Profile"
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                  {/* Member Info */}
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-white text-xl font-semibold">
-                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
-                      </h2>
-                      <span
-                        className={`px-3 py-1 text-xs rounded-full font-medium ${
-                          selectedMember.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                        }`}
-                      >
-                        {selectedMember.isActive ? "Active" : "Inactive"}
-                      </span>
-                      {selectedMember.isBirthday && <Cake size={16} className="text-yellow-500" />}
-                    </div>
-                    <p className="text-gray-400 text-sm mt-1">
-                      Contract: {selectedMember.contractStart} -
-                      <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                        {selectedMember.contractEnd}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-                {/* Action Buttons */}
-                <div className="flex items-center gap-3">
-                  {/* Calendar Button */}
-                  <button
-                    onClick={handleCalendarFromOverview}
-                    className="p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-blue-500 hover:text-blue-400"
-                    title="View Calendar"
-                  >
-                    <CalendarIcon size={20} />
-                  </button>
-                  {/* History Button */}
-                  <button
-                    onClick={handleHistoryFromOverview}
-                    className="p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-purple-500 hover:text-purple-400"
-                    title="View History"
-                  >
-                    <History size={20} />
-                  </button>
-                  {/* Communication Button */}
-                  <button
-                    onClick={handleCommunicationFromOverview}
-                    className="p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-green-500 hover:text-green-400"
-                    title="Communication"
-                  >
-                    <MessageCircle size={20} />
-                  </button>
-                  {/* View Details Button */}
-                  <button
-                    onClick={handleViewDetailedInfo}
-                    className="flex items-center gap-2 px-4 py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-gray-200 hover:text-white"
-                  >
-                    <Eye size={16} />
-                    View Details
-                  </button>
-                  {/* Edit Button */}
-                  <button
-                    onClick={handleEditFromOverview}
-                    className="px-4 py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-gray-200 hover:text-white"
-                  >
-                    Edit
-                  </button>
-                  {/* Close Button */}
-                  <button
-                    onClick={() => {
-                      setIsMemberOverviewModalOpen(false)
-                      setSelectedMember(null)
-                    }}
-                    className="p-3 text-gray-400 hover:text-white"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-              </div>
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-[#161616] rounded-xl p-4 md:p-6 mb-6">
+  {/* Profile Section */}
+  <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
+    {/* Profile Picture */}
+    <img
+      src={selectedMember.image || DefaultAvatar}
+      alt="Profile"
+      className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover"
+    />
+    {/* Member Info */}
+    <div>
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-white text-lg md:text-xl font-semibold">
+          {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
+        </h2>
+        <span
+          className={`px-3 py-1 text-xs rounded-full font-medium ${
+            selectedMember.isActive
+              ? "bg-green-900 text-green-300"
+              : "bg-red-900 text-red-300"
+          }`}
+        >
+          {selectedMember.isActive ? "Active" : "Inactive"}
+        </span>
+        {selectedMember.isBirthday && (
+          <Cake size={16} className="text-yellow-500" />
+        )}
+      </div>
+      <p className="text-gray-400 text-sm mt-1">
+        Contract: {selectedMember.contractStart} -{" "}
+        <span
+          className={
+            isContractExpiringSoon(selectedMember.contractEnd)
+              ? "text-red-500"
+              : ""
+          }
+        >
+          {selectedMember.contractEnd}
+        </span>
+      </p>
+    </div>
+  </div>
+
+  {/* Action Buttons */}
+  <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
+    <button
+      onClick={handleCalendarFromOverview}
+      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-blue-500 hover:text-blue-400"
+      title="View Calendar"
+    >
+      <CalendarIcon size={18} />
+    </button>
+    <button
+      onClick={handleHistoryFromOverview}
+      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-purple-500 hover:text-purple-400"
+      title="View History"
+    >
+      <History size={18} />
+    </button>
+    <button
+      onClick={handleCommunicationFromOverview}
+      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-green-500 hover:text-green-400"
+      title="Communication"
+    >
+      <MessageCircle size={18} />
+    </button>
+    <button
+      onClick={handleViewDetailedInfo}
+      className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
+    >
+      <Eye size={14} /> View Details
+    </button>
+    <button
+      onClick={handleEditFromOverview}
+      className="px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
+    >
+      Edit
+    </button>
+    <button
+      onClick={() => {
+        setIsMemberOverviewModalOpen(false)
+        setSelectedMember(null)
+      }}
+      className="p-2 md:p-3 text-gray-400 hover:text-white"
+    >
+      <X size={18} />
+    </button>
+  </div>
+</div>
+
             </div>
           </div>
         </div>
@@ -3678,29 +3577,6 @@ export default function Communications() {
           </div>
         </div>
       )}
-
-<>
-  {/* Overlay */}
-  {isRightSidebarOpen && (
-    <div
-      className="fixed inset-0 bg-black/50 bg-opacity-50 z-40"
-      onClick={() => setIsRightSidebarOpen(false)} // Optional: clicking overlay closes sidebar
-    ></div>
-  )}
-
-  {/* Right Sidebar */}
-  <SidebarArea
-    isOpen={isRightSidebarOpen}
-    onClose={() => setIsRightSidebarOpen(false)}
-    communications={communications}
-    todos={todos}
-    birthdays={birthdays}
-    customLinks={newcustomLinks}
-    setCustomLinks={setNewCustomLinks}
-    redirectToCommunication={redirectToCommunication}
-    redirectToTodos={redirectToTodos}
-  />
-</>
     </div>
   )
 }

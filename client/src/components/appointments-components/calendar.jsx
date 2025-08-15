@@ -9,9 +9,11 @@ import interactionPlugin from "@fullcalendar/interaction"
 import DefaultAvatar from "../../../public/default-avatar.avif"
 import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
-import TrialPlanningModal from "../lead-components/add-trial"
+
+import TrialTrainingModal from "./add-trial-training"
 import SelectedAppointmentModal from "./selected-appointment-modal" // New import
 import { membersData } from "../../utils/states"
+import EditAppointmentModal from "./selected-appointment-modal"
 
 export default function Calendar({
   appointments = [],
@@ -264,25 +266,6 @@ export default function Calendar({
     17: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
     18: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
   })
-
-  // Available members/leads for relations
-  const availableMembersLeads = [
-    { id: 101, name: "Anna Martinez", type: "member" },
-    { id: 102, name: "Peter Martinez", type: "lead" },
-    { id: 103, name: "Lisa Martinez", type: "member" },
-    { id: 201, name: "Max Miller", type: "member" },
-    { id: 301, name: "Marie Smith", type: "member" },
-    { id: 401, name: "Tom Wilson", type: "lead" },
-  ]
-
-  // Relation options by category
-  const relationOptions = {
-    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
-    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
-    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
-    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
-    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
-  }
 
   // Sample member data - in real app, this would come from props or API
   const [members] = useState(membersData)
@@ -683,18 +666,7 @@ export default function Calendar({
     setShowAppointmentModal(false)
   }
 
-  // New function to handle saving edited appointment from SelectedAppointmentModal
-  const handleSaveEditedAppointment = (updatedAppointment) => {
-    setMemberAppointments((prevAppointments) =>
-      prevAppointments.map((app) => (app.id === updatedAppointment.id ? updatedAppointment : app)),
-    )
-    setShowSelectedAppointmentModal(false)
-    toast.success("Appointment updated successfully!")
-    // Optionally, prompt to notify member
-    setNotifyAction("change")
-    // Reconstruct a minimal eventInfo for notification if needed, or just trigger notification directly
-    setIsNotifyMemberOpen(true)
-  }
+
 
   const handleCreateNewAppointment = () => {
     setShowAddAppointmentModal(true)
@@ -1158,95 +1130,93 @@ export default function Calendar({
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-6xl mx-4 my-8 relative">
             <div className="p-6">
               {/* Header matching the image design */}
-              <div className="flex items-center justify-between bg-[#161616] rounded-xl p-6 mb-6">
-                <div className="flex items-center gap-4">
-                  {/* Profile Picture */}
-                  <img
-                    src={selectedMember.image || DefaultAvatar}
-                    alt="Profile"
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                  {/* Member Info */}
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-white text-xl font-semibold">
-                        {" "}
-                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)}){" "}
-                      </h2>
-                      <span
-                        className={`px-3 py-1 text-xs rounded-full font-medium ${
-                          selectedMember.isActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-                        }`}
-                      >
-                        {" "}
-                        {selectedMember.isActive ? "Active" : "Inactive"}{" "}
-                      </span>
-                    </div>
-                    <p className="text-gray-400 text-sm mt-1">
-                      {" "}
-                      Contract: {selectedMember.contractStart} -{" "}
-                      <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                        {" "}
-                        {selectedMember.contractEnd}{" "}
-                      </span>{" "}
-                    </p>
-                  </div>
-                </div>
-                {/* Action Buttons */}
-                <div className="flex items-center gap-3">
-                  {/* Calendar Button */}
-                  <button
-                    onClick={handleCalendarFromOverview}
-                    className="p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-blue-500 hover:text-blue-400"
-                    title="View Calendar"
-                  >
-                    <CalendarIcon size={20} />
-                  </button>
-                  {/* History Button */}
-                  <button
-                    onClick={handleHistoryFromOverview}
-                    className="p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-purple-500 hover:text-purple-400"
-                    title="View History"
-                  >
-                    <History size={20} />
-                  </button>
-                  {/* Communication Button */}
-                  <button
-                    onClick={handleCommunicationFromOverview}
-                    className="p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-green-500 hover:text-green-400"
-                    title="Communication"
-                  >
-                    <MessageCircle size={20} />
-                  </button>
-                  {/* View Details Button */}
-                  <button
-                    onClick={handleViewDetailedInfo}
-                    className="flex items-center gap-2 px-4 py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-gray-200 hover:text-white"
-                  >
-                    {" "}
-                    <Eye size={16} /> View Details{" "}
-                  </button>
-                  {/* Edit Button */}
-                  <button
-                    onClick={handleEditFromOverview}
-                    className="px-4 py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors text-gray-200 hover:text-white"
-                  >
-                    {" "}
-                    Edit{" "}
-                  </button>
-                  {/* Close Button */}
-                  <button
-                    onClick={() => {
-                      setIsMemberOverviewModalOpen(false)
-                      setSelectedMember(null)
-                    }}
-                    className="p-3 text-gray-400 hover:text-white"
-                  >
-                    {" "}
-                    <X size={20} />{" "}
-                  </button>
-                </div>
-              </div>
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-[#161616] rounded-xl p-4 md:p-6 mb-6">
+  {/* Profile Section */}
+  <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
+    {/* Profile Picture */}
+    <img
+      src={selectedMember.image || DefaultAvatar}
+      alt="Profile"
+      className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover"
+    />
+    {/* Member Info */}
+    <div>
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-white text-lg md:text-xl font-semibold">
+          {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
+        </h2>
+        <span
+          className={`px-3 py-1 text-xs rounded-full font-medium ${
+            selectedMember.isActive
+              ? "bg-green-900 text-green-300"
+              : "bg-red-900 text-red-300"
+          }`}
+        >
+          {selectedMember.isActive ? "Active" : "Inactive"}
+        </span>
+      </div>
+      <p className="text-gray-400 text-sm mt-1">
+        Contract: {selectedMember.contractStart} -{" "}
+        <span
+          className={
+            isContractExpiringSoon(selectedMember.contractEnd)
+              ? "text-red-500"
+              : ""
+          }
+        >
+          {selectedMember.contractEnd}
+        </span>
+      </p>
+    </div>
+  </div>
+
+  {/* Action Buttons */}
+  <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
+    <button
+      onClick={handleCalendarFromOverview}
+      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-blue-500 hover:text-blue-400"
+      title="View Calendar"
+    >
+      <CalendarIcon size={18} />
+    </button>
+    <button
+      onClick={handleHistoryFromOverview}
+      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-purple-500 hover:text-purple-400"
+      title="View History"
+    >
+      <History size={18} />
+    </button>
+    <button
+      onClick={handleCommunicationFromOverview}
+      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-green-500 hover:text-green-400"
+      title="Communication"
+    >
+      <MessageCircle size={18} />
+    </button>
+    <button
+      onClick={handleViewDetailedInfo}
+      className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
+    >
+      <Eye size={14} /> View Details
+    </button>
+    <button
+      onClick={handleEditFromOverview}
+      className="px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
+    >
+      Edit
+    </button>
+    <button
+      onClick={() => {
+        setIsMemberOverviewModalOpen(false)
+        setSelectedMember(null)
+      }}
+      className="p-2 md:p-3 text-gray-400 hover:text-white"
+    >
+      <X size={18} />
+    </button>
+  </div>
+</div>
+
             </div>
           </div>
         </div>
@@ -1832,7 +1802,7 @@ export default function Calendar({
           setNotifyAction={setNotifyAction}
         />
       )}
-      <TrialPlanningModal
+      <TrialTrainingModal
         isOpen={isTrialModalOpen}
         onClose={() => setIsTrialModalOpen(false)}
         freeAppointments={freeAppointments}
@@ -2056,7 +2026,7 @@ export default function Calendar({
       )}
       {/* New Selected Appointment Modal */}
       {showSelectedAppointmentModal && selectedAppointmentData && (
-  <SelectedAppointmentModal
+  <EditAppointmentModal
     selectedAppointment={selectedAppointmentData}
     setSelectedAppointment={setSelectedAppointmentData}
     appointmentTypes={appointmentTypes}

@@ -1,5 +1,4 @@
-""
-
+// admin panel finance code
 /* eslint-disable react/prop-types */
 
 import { useState, useEffect } from "react"

@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MdOutlineHelpCenter } from "react-icons/md";
+import { FaPeopleLine } from "react-icons/fa6";
+import { FaCartPlus } from "react-icons/fa";
+
 
 import {
   Calendar,
@@ -111,10 +114,12 @@ const Sidebar = () => {
     { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
     { icon: Users, label: "Members", to: "/dashboard/members" },
     { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
-    { icon: RiContractLine, label: "Contract", to: "/dashboard/contract" },
+    { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
+    { icon: RiContractLine, label: "Contracts", to: "/dashboard/contract" },
     { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
-    { icon: IoIosPeople, label: "Leads", to: "/dashboard/leads" },
     { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
+    { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
+
     { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
     {
       icon: CgGym
@@ -239,49 +244,79 @@ const Sidebar = () => {
   <div className="flex flex-col gap-0.5 text-center">
     <p className="text-md  open_sans_font_700 text-white">{studioName}</p>
     <h2 className="font-bold text-white flex items-center justify-center gap-1">
-      {fullName}
-      <span className="font-bold text-white">•</span>
-      {role}
-    </h2>
+  {fullName}
+  <span className="font-bold text-zinc-400">•</span>
+  <span className="text-zinc-400">{role}</span>
+</h2>
   </div>
 )}
             </div>
           </div>
 
           {/* Navigation Menu */}
-          <nav className="flex-1 overflow-y-auto custom-scrollbar">
-            <ul className="space-y-2 p-4">
-              {menuItems.map((item) => (
-                <li key={item.label}>
-                  <button
-                    onClick={() => handleNavigation(item.to)}
-                    className={`
-                      flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
-                      ${isCollapsed ? "justify-center" : "text-left"}
-                      group transition-all duration-500 
-                      ${location.pathname === item.to
-                        ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
-                        : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`}
-                    `}
-                  >
-                    <div className="relative">
-                      <item.icon
-                        size={24}
-                        className={`cursor-pointer ${location.pathname === item.to ? "text-white" : "text-zinc-400 group-hover:text-white"
-                          }`}
-                      />
-                      {item.label === "Communication" && unreadMessages > 0 && (
-                        <span className="absolute -top-1 -right-2 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
-                          {unreadMessages}
-                        </span>
-                      )}
-                    </div>
-                    {!isCollapsed && <span>{item.label}</span>}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {/* Navigation Menu */}
+<nav className="flex-1 overflow-y-auto custom-scrollbar">
+  <ul className="space-y-2 p-4">
+    {menuItems.slice(0, menuItems.findIndex(item => item.label === "Analytics") + 1).map((item) => (
+      <li key={item.label}>
+        <button
+          onClick={() => handleNavigation(item.to)}
+          className={`
+            flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
+            ${isCollapsed ? "justify-center" : "text-left"}
+            group transition-all duration-500 
+            ${location.pathname === item.to
+              ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
+              : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`}
+          `}
+        >
+          <div className="relative">
+            <item.icon
+              size={24}
+              className={`cursor-pointer ${location.pathname === item.to ? "text-white" : "text-zinc-400 group-hover:text-white"}`}
+            />
+            {item.label === "Communication" && unreadMessages > 0 && (
+              <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                {unreadMessages}
+              </span>
+            )}
+          </div>
+          {!isCollapsed && <span>{item.label}</span>}
+        </button>
+      </li>
+    ))}
+
+    {/* Divider */}
+    <li>
+      <hr className="border-t border-zinc-700 my-3" />
+    </li>
+
+    {menuItems.slice(menuItems.findIndex(item => item.label === "Help Center")).map((item) => (
+      <li key={item.label}>
+        <button
+          onClick={() => handleNavigation(item.to)}
+          className={`
+            flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
+            ${isCollapsed ? "justify-center" : "text-left"}
+            group transition-all duration-500 
+            ${location.pathname === item.to
+              ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
+              : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`}
+          `}
+        >
+          <div className="relative">
+            <item.icon
+              size={24}
+              className={`cursor-pointer ${location.pathname === item.to ? "text-white" : "text-zinc-400 group-hover:text-white"}`}
+            />
+          </div>
+          {!isCollapsed && <span>{item.label}</span>}
+        </button>
+      </li>
+    ))}
+  </ul>
+</nav>
+
 
           {/* Logout Button */}
           <div className="p-4 mt-auto">

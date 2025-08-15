@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-const SelectedAppointmentModal = ({
+const EditAppointmentModal = ({
   selectedAppointment,
   setSelectedAppointment,
   appointmentTypes,
@@ -629,4 +629,4 @@ const SelectedAppointmentModal = ({
   );
 };
 
-export default SelectedAppointmentModal;
+export default EditAppointmentModal;

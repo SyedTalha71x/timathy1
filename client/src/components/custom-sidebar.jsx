@@ -1,7 +1,7 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
+"use client"
+
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import {
@@ -11,7 +11,6 @@ import {
   ArrowDown,
   Clock,
   ExternalLink,
-  MoreVertical,
   Bell,
   Settings,
   CheckCircle,
@@ -19,9 +18,13 @@ import {
   Edit,
   Check,
   Save,
-  Star,
   Eye,
   Trash2,
+  Pin,
+  PinOff,
+  Globe,
+  Lock,
+  User,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import Image10 from "../../public/image10.png"
@@ -38,7 +41,11 @@ const ViewManagementModal = ({
   setSidebarWidgets,
 }) => {
   const [viewName, setViewName] = useState("")
+  const [isGlobalVisible, setIsGlobalVisible] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [editingView, setEditingView] = useState(null)
+
+  const currentUser = { id: "user123", name: "John Doe" }
 
   if (!isOpen) return null
 
@@ -53,11 +60,14 @@ const ViewManagementModal = ({
       name: viewName.trim(),
       widgets: [...sidebarWidgets],
       isStandard: false,
+      isGlobal: isGlobalVisible,
+      createdBy: currentUser,
       createdAt: new Date().toISOString(),
     }
 
     setSavedViews((prev) => [...prev, newView])
     setViewName("")
+    setIsGlobalVisible(false)
     setIsCreating(false)
     toast.success(`View "${newView.name}" saved successfully`)
   }
@@ -69,14 +79,15 @@ const ViewManagementModal = ({
     onClose()
   }
 
-  const handleSetAsStandard = (viewId) => {
+  const handleTogglePin = (viewId) => {
     setSavedViews((prev) =>
       prev.map((view) => ({
         ...view,
-        isStandard: view.id === viewId,
+        isStandard: view.id === viewId ? !view.isStandard : false,
       })),
     )
-    toast.success("Standard view updated")
+    const view = savedViews.find((v) => v.id === viewId)
+    toast.success(view?.isStandard ? "View unpinned" : "View pinned as standard")
   }
 
   const handleDeleteView = (viewId) => {
@@ -84,123 +95,185 @@ const ViewManagementModal = ({
     toast.success("View deleted")
   }
 
+  const handleEditView = (view) => {
+    setEditingView(view)
+    setViewName(view.name)
+    setIsGlobalVisible(view.isGlobal || false)
+  }
+
+  const handleUpdateView = () => {
+    if (!viewName.trim()) {
+      toast.error("Please enter a view name")
+      return
+    }
+
+    setSavedViews((prev) =>
+      prev.map((view) =>
+        view.id === editingView.id ? { ...view, name: viewName.trim(), isGlobal: isGlobalVisible } : view,
+      ),
+    )
+
+    setEditingView(null)
+    setViewName("")
+    setIsGlobalVisible(false)
+    toast.success("View updated successfully")
+  }
+
+  const cancelEdit = () => {
+    setEditingView(null)
+    setViewName("")
+    setIsGlobalVisible(false)
+    setIsCreating(false)
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70]">
-      <div className="bg-[#181818] rounded-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-white">Manage Views</h3>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+      <div className="bg-[#181818] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="p-4 sm:p-6">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h3 className="text-lg sm:text-xl font-semibold text-white">Manage Views</h3>
             <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
               <X size={20} />
             </button>
           </div>
 
           {/* Save Current View Section */}
-          <div className="mb-6 p-4 bg-black rounded-xl">
-            <h4 className="text-lg font-medium text-white mb-3">Save Current View</h4>
-            {!isCreating ? (
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-black rounded-xl">
+            <h4 className="text-base sm:text-lg font-medium text-white mb-3">
+              {editingView ? "Edit View" : "Save Current View"}
+            </h4>
+            {!isCreating && !editingView ? (
               <button
                 onClick={() => setIsCreating(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm sm:text-base"
               >
                 <Save size={16} />
                 Save Current Layout
               </button>
             ) : (
-              <div className="flex gap-2">
+              <div className="space-y-3">
                 <input
                   type="text"
                   value={viewName}
                   onChange={(e) => setViewName(e.target.value)}
                   placeholder="Enter view name..."
-                  className="flex-1 p-2 bg-zinc-800 rounded-lg text-white text-sm outline-none"
+                  className="w-full p-2 sm:p-3 bg-zinc-800 rounded-lg text-white text-sm outline-none"
                   autoFocus
                 />
-                <button
-                  onClick={handleSaveCurrentView}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => {
-                    setIsCreating(false)
-                    setViewName("")
-                  }}
-                  className="px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-lg text-sm"
-                >
-                  Cancel
-                </button>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="globalVisible"
+                    checked={isGlobalVisible}
+                    onChange={(e) => setIsGlobalVisible(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-zinc-800 border-zinc-600 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="globalVisible" className="text-sm text-white flex items-center gap-1">
+                    <Globe size={14} />
+                    Make globally visible to all users
+                  </label>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={editingView ? handleUpdateView : handleSaveCurrentView}
+                    className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
+                  >
+                    {editingView ? "Update" : "Save"}
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    className="px-3 sm:px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-lg text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
           {/* Saved Views List */}
           <div>
-            <h4 className="text-lg font-medium text-white mb-3">Saved Views</h4>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <h4 className="text-base sm:text-lg font-medium text-white mb-3">Saved Views</h4>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
               {savedViews.length === 0 ? (
-                <div className="text-center py-8 text-zinc-400">
-                  <Eye size={48} className="mx-auto mb-3 opacity-50" />
-                  <p>No saved views yet</p>
-                  <p className="text-sm">Save your current layout to get started</p>
+                <div className="text-center py-6 sm:py-8 text-zinc-400">
+                  <Eye size={40} className="mx-auto mb-3 opacity-50" />
+                  <p className="text-sm sm:text-base">No saved views yet</p>
+                  <p className="text-xs sm:text-sm">Save your current layout to get started</p>
                 </div>
               ) : (
                 savedViews.map((view) => (
                   <div
                     key={view.id}
-                    className={`p-4 rounded-xl border transition-colors ${
+                    className={`p-3 sm:p-4 rounded-xl border transition-colors ${
                       currentView?.id === view.id
                         ? "border-blue-500 bg-blue-500/10"
                         : "border-zinc-700 hover:border-zinc-600"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h5 className="font-medium text-white">{view.name}</h5>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h5 className="font-medium text-white text-sm sm:text-base truncate">{view.name}</h5>
                           {view.isStandard && (
-                            <span className="flex items-center gap-1 px-2 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs">
-                              <Star size={12} />
-                              Standard
+                            <span className="flex items-center gap-1 px-2 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs whitespace-nowrap">
+                              <Pin size={12} />
+                              Pinned
                             </span>
                           )}
+                          <span
+                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs whitespace-nowrap ${
+                              view.isGlobal ? "bg-green-600/20 text-green-400" : "bg-gray-600/20 text-gray-400"
+                            }`}
+                          >
+                            {view.isGlobal ? <Globe size={12} /> : <Lock size={12} />}
+                            {view.isGlobal ? "Global" : "Private"}
+                          </span>
                           {currentView?.id === view.id && (
-                            <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs">Active</span>
+                            <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
+                              Active
+                            </span>
                           )}
                         </div>
-                        <p className="text-xs text-zinc-400">
-                          {view.widgets.length} widgets • Created {new Date(view.createdAt).toLocaleDateString()}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="text-xs text-zinc-400">
+                            {view.widgets.length} widgets • Created {new Date(view.createdAt).toLocaleDateString()}
+                          </p>
+                          <p className="text-xs text-zinc-500 flex items-center gap-1">
+                            <User size={12} />
+                            Created by {view.createdBy?.name || "Unknown"}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                         <button
                           onClick={() => handleLoadView(view)}
-                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+                          className="px-2 sm:px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs sm:text-sm whitespace-nowrap"
                         >
                           Load
                         </button>
-                        <div className="relative">
-                          <button className="p-2 hover:bg-zinc-700 rounded text-white">
-                            <MoreVertical size={16} />
-                          </button>
-                          {/* You can add a dropdown menu here for more actions */}
-                        </div>
-                        {!view.isStandard && (
-                          <button
-                            onClick={() => handleSetAsStandard(view.id)}
-                            className="p-2 hover:bg-zinc-700 rounded text-yellow-400"
-                            title="Set as standard view"
-                          >
-                            <Star size={16} />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleEditView(view)}
+                          className="p-1.5 sm:p-2 hover:bg-zinc-700 rounded text-blue-400"
+                          title="Edit view"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleTogglePin(view.id)}
+                          className={`p-1.5 sm:p-2 hover:bg-zinc-700 rounded ${
+                            view.isStandard ? "text-yellow-400" : "text-zinc-400"
+                          }`}
+                          title={view.isStandard ? "Unpin view" : "Pin as standard view"}
+                        >
+                          {view.isStandard ? <Pin size={14} /> : <PinOff size={14} />}
+                        </button>
                         <button
                           onClick={() => handleDeleteView(view.id)}
-                          className="p-2 hover:bg-zinc-700 rounded text-red-400"
+                          className="p-1.5 sm:p-2 hover:bg-zinc-700 rounded text-red-400"
                           title="Delete view"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
@@ -246,19 +319,19 @@ const SidebarWidgetSelectionModal = ({ isOpen, onClose, onSelectWidget, canAddWi
   ]
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-      <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 p-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+      <div className="bg-[#181818] rounded-xl w-full max-w-md p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-white">Add Sidebar Widget</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-white">Add Sidebar Widget</h3>
           <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
             <X size={16} />
           </button>
         </div>
-        <div className="space-y-3 max-h-96 overflow-y-auto">
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto">
           {availableWidgets.map((widget) => (
             <div
               key={widget.id}
-              className={`p-4 rounded-xl border cursor-pointer transition-colors ${
+              className={`p-3 sm:p-4 rounded-xl border cursor-pointer transition-colors ${
                 canAddWidget(widget.id)
                   ? "border-zinc-700 hover:border-blue-500 hover:bg-blue-500/10"
                   : "border-zinc-800 bg-zinc-900/50 cursor-not-allowed opacity-50"
@@ -266,8 +339,8 @@ const SidebarWidgetSelectionModal = ({ isOpen, onClose, onSelectWidget, canAddWi
               onClick={() => canAddWidget(widget.id) && onSelectWidget(widget.id)}
             >
               <div className="flex items-start gap-3">
-                <div className="text-2xl">{widget.icon}</div>
-                <div className="flex-1">
+                <div className="text-xl sm:text-2xl">{widget.icon}</div>
+                <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-sm text-white">{widget.name}</h4>
                   <p className="text-xs text-zinc-400 mt-1">{widget.description}</p>
                   {!canAddWidget(widget.id) && <p className="text-xs text-red-400 mt-1">Already added</p>}
@@ -330,11 +403,11 @@ const WebsiteLinkModal = ({ link, onClose, customLinks, setCustomLinks }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70]">
-      <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-        <div className="p-6 space-y-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+      <div className="bg-[#181818] rounded-xl w-full max-w-md">
+        <div className="p-4 sm:p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-white">Website Link</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-white">Website Link</h2>
             <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
               <X size={16} />
             </button>
@@ -346,7 +419,7 @@ const WebsiteLinkModal = ({ link, onClose, customLinks, setCustomLinks }) => {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full p-3 bg-black rounded-xl text-sm outline-none text-white"
+                className="w-full p-2 sm:p-3 bg-black rounded-xl text-sm outline-none text-white"
                 placeholder="Enter title"
               />
             </div>
@@ -356,19 +429,19 @@ const WebsiteLinkModal = ({ link, onClose, customLinks, setCustomLinks }) => {
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                className="w-full p-3 bg-black rounded-xl text-sm outline-none text-white"
+                className="w-full p-2 sm:p-3 bg-black rounded-xl text-sm outline-none text-white"
                 placeholder="https://example.com"
               />
             </div>
           </div>
           <div className="flex gap-2 justify-end mt-6">
-            <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700 text-white">
+            <button onClick={onClose} className="px-3 sm:px-4 py-2 text-sm rounded-xl hover:bg-zinc-700 text-white">
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={!title.trim() || !url.trim()}
-              className={`px-4 py-2 text-sm rounded-xl ${
+              className={`px-3 sm:px-4 py-2 text-sm rounded-xl ${
                 !title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
               } text-white`}
             >
@@ -497,12 +570,12 @@ export const SidebarArea = ({
   // Sidebar Widget Component with full edit functionality
   const SidebarWidget = ({ id, children, index, isEditing }) => {
     return (
-      <div className="relative mb-6">
+      <div className="relative mb-4 sm:mb-6">
         {isEditing && (
-          <div className="absolute top-2 right-2 z-10 flex gap-2">
+          <div className="absolute top-2 right-2 z-10 flex gap-1">
             <button
               onClick={() => moveSidebarWidget(index, index - 1)}
-              className="p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-white"
+              className="p-1 sm:p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-white"
               disabled={index === 0}
               title="Move Up"
             >
@@ -510,7 +583,7 @@ export const SidebarArea = ({
             </button>
             <button
               onClick={() => moveSidebarWidget(index, index + 1)}
-              className="p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-white"
+              className="p-1 sm:p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-white"
               disabled={index === sidebarWidgets.length - 1}
               title="Move Down"
             >
@@ -518,7 +591,7 @@ export const SidebarArea = ({
             </button>
             <button
               onClick={() => removeSidebarWidget(id)}
-              className="p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-white"
+              className="p-1 sm:p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-white"
               title="Remove Widget"
             >
               <X size={12} />
@@ -532,78 +605,79 @@ export const SidebarArea = ({
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />}
       <aside
         className={`
-          fixed top-0 right-0 h-full w-full lg:w-96 bg-[#181818] border-l border-gray-700 z-50
-          transform transition-transform duration-500 ease-in-out
+          fixed top-0 right-0 h-full w-full sm:w-96 lg:w-96 bg-[#181818] border-l border-gray-700 z-50
+          transform transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        <div className="p-4 md:p-5 h-full overflow-y-auto">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-white">Sidebar Views</h2>
+        <div className="p-3 sm:p-4 lg:p-5 h-full overflow-y-auto">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="flex items-center gap-2 min-w-0">
+              <h2 className="text-base sm:text-lg font-semibold text-white truncate">Sidebar</h2>
               {currentView && (
-                <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs">{currentView.name}</span>
+                <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
+                  {currentView.name}
+                </span>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={() => setIsViewModalOpen(true)}
-                className="p-2 bg-green-600 text-white hover:bg-green-700 rounded-lg text-sm cursor-pointer"
+                className="p-1.5 sm:p-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
                 title="Manage Views"
               >
-                <Eye size={16} />
+                <Eye size={14} />
               </button>
               {activeTab === "widgets" && (
                 <button
                   onClick={() => setIsWidgetModalOpen(true)}
-                  className="p-2 bg-black text-white hover:bg-zinc-900 rounded-lg text-sm cursor-pointer"
+                  className="p-1.5 sm:p-2 bg-black text-white hover:bg-zinc-900 rounded-lg cursor-pointer"
                   title="Add Widget"
                 >
-                  <Plus size={16} />
+                  <Plus size={14} />
                 </button>
               )}
               {activeTab === "widgets" && (
                 <button
                   onClick={toggleSidebarEditing}
-                  className={`p-2 ${
+                  className={`p-1.5 sm:p-2 ${
                     isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
                   } rounded-lg flex items-center gap-1`}
                   title="Toggle Edit Mode"
                 >
-                  {isSidebarEditing ? <Check size={16} /> : <Edit size={16} />}
+                  {isSidebarEditing ? <Check size={14} /> : <Edit size={14} />}
                 </button>
               )}
               <button
                 onClick={onClose}
-                className="p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl md:hidden"
+                className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl"
                 aria-label="Close sidebar"
               >
-                <X size={20} />
+                <X size={16} />
               </button>
             </div>
           </div>
 
-          <div className="flex mb-4 bg-black rounded-xl p-1">
+          <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
             <button
               onClick={() => setActiveTab("widgets")}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                 activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Settings size={16} className="inline mr-2" />
-              Widgets
+              <Settings size={14} className="inline mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Widgets</span>
             </button>
             <button
               onClick={() => setActiveTab("notifications")}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                 activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Bell size={16} className="inline mr-2" />
-              Notifications
+              <Bell size={14} className="inline mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Notifications</span>
             </button>
           </div>
 
@@ -614,32 +688,34 @@ export const SidebarArea = ({
                 .map((widget, index) => (
                   <SidebarWidget key={widget.id} id={widget.id} index={index} isEditing={isSidebarEditing}>
                     {widget.type === "communications" && (
-                      <div className="mb-6">
+                      <div className="mb-4 sm:mb-6">
                         <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl font-bold cursor-pointer text-white">Communications</h2>
+                          <h2 className="text-base sm:text-lg lg:text-xl font-bold cursor-pointer text-white">
+                            Communications
+                          </h2>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           <div className="space-y-2">
                             {communications.slice(0, 2).map((comm) => (
                               <div
                                 onClick={redirectToCommunication}
                                 key={comm.id}
-                                className="p-2 cursor-pointer bg-black rounded-xl"
+                                className="p-2 sm:p-3 cursor-pointer bg-black rounded-xl"
                               >
                                 <div className="flex items-center gap-2 mb-1">
                                   <img
                                     src={comm.avatar || "/placeholder.svg"}
                                     alt="User"
-                                    className="rounded-full h-8 w-8"
+                                    className="rounded-full h-6 w-6 sm:h-8 sm:w-8"
                                   />
                                   <div>
-                                    <h3 className="text-sm text-white">{comm.name}</h3>
+                                    <h3 className="text-xs sm:text-sm text-white">{comm.name}</h3>
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs text-zinc-400">{comm.message}</p>
+                                  <p className="text-xs text-zinc-400 line-clamp-2">{comm.message}</p>
                                   <p className="text-xs mt-1 flex gap-1 items-center text-zinc-400">
-                                    <Clock size={12} />
+                                    <Clock size={10} />
                                     {comm.time}
                                   </p>
                                 </div>
@@ -647,7 +723,7 @@ export const SidebarArea = ({
                             ))}
                             <Link
                               to={"/dashboard/communication"}
-                              className="text-sm text-white flex justify-center items-center text-center hover:underline"
+                              className="text-xs sm:text-sm text-white flex justify-center items-center text-center hover:underline"
                             >
                               See all
                             </Link>
@@ -657,30 +733,30 @@ export const SidebarArea = ({
                     )}
 
                     {widget.type === "todo" && (
-                      <div className="mb-6">
+                      <div className="mb-4 sm:mb-6">
                         <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl font-bold cursor-pointer text-white">TO-DO</h2>
+                          <h2 className="text-base sm:text-lg lg:text-xl font-bold cursor-pointer text-white">TO-DO</h2>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           {todos.slice(0, 2).map((todo) => (
                             <div
                               onClick={redirectToTodos}
                               key={todo.id}
-                              className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
+                              className="p-2 sm:p-3 cursor-pointer bg-black rounded-xl flex items-center justify-between gap-2"
                             >
-                              <div>
-                                <h3 className="font-semibold text-sm text-white">{todo.title}</h3>
-                                <p className="text-xs text-zinc-400">{todo.description}</p>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="font-semibold text-xs sm:text-sm text-white truncate">{todo.title}</h3>
+                                <p className="text-xs text-zinc-400 line-clamp-1">{todo.description}</p>
                               </div>
-                              <button className="px-3 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
-                                <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
-                                {todo.assignee}
+                              <button className="px-2 sm:px-3 py-1 sm:py-1.5 flex justify-center items-center gap-1 sm:gap-2 bg-blue-600 text-white rounded-xl text-xs whitespace-nowrap">
+                                <img src={Image10 || "/placeholder.svg"} alt="" className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span className="hidden sm:inline">{todo.assignee}</span>
                               </button>
                             </div>
                           ))}
                           <Link
                             to={"/dashboard/to-do"}
-                            className="text-sm text-white flex justify-center items-center text-center hover:underline"
+                            className="text-xs sm:text-sm text-white flex justify-center items-center text-center hover:underline"
                           >
                             See all
                           </Link>
@@ -689,25 +765,29 @@ export const SidebarArea = ({
                     )}
 
                     {widget.type === "birthday" && (
-                      <div className="mb-6">
+                      <div className="mb-4 sm:mb-6">
                         <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl font-bold cursor-pointer text-white">Upcoming Birthday</h2>
+                          <h2 className="text-base sm:text-lg lg:text-xl font-bold cursor-pointer text-white">
+                            Upcoming Birthday
+                          </h2>
                         </div>
                         <div className="space-y-2">
                           {birthdays.slice(0, 2).map((birthday) => (
                             <div
                               key={birthday.id}
-                              className="p-2 cursor-pointer bg-black rounded-xl flex items-center gap-2"
+                              className="p-2 sm:p-3 cursor-pointer bg-black rounded-xl flex items-center gap-2"
                             >
                               <div>
                                 <img
                                   src={birthday.avatar || "/placeholder.svg"}
-                                  className="h-8 w-8 rounded-full"
+                                  className="h-6 w-6 sm:h-8 sm:w-8 rounded-full"
                                   alt=""
                                 />
                               </div>
-                              <div>
-                                <h3 className="font-semibold text-sm text-white">{birthday.name}</h3>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="font-semibold text-xs sm:text-sm text-white truncate">
+                                  {birthday.name}
+                                </h3>
                                 <p className="text-xs text-zinc-400">{birthday.date}</p>
                               </div>
                             </div>
@@ -717,19 +797,23 @@ export const SidebarArea = ({
                     )}
 
                     {widget.type === "websiteLinks" && (
-                      <div className="mb-6">
-                        <div className="space-y-3">
+                      <div className="mb-4 sm:mb-6">
+                        <div className="space-y-2 sm:space-y-3">
                           <div className="flex justify-between items-center mb-2">
-                            <h2 className="text-lg md:text-xl font-bold cursor-pointer text-white">Website Links</h2>
+                            <h2 className="text-base sm:text-lg lg:text-xl font-bold cursor-pointer text-white">
+                              Website Links
+                            </h2>
                           </div>
-                          <div className="max-h-[250px] overflow-y-auto custom-scrollbar">
-                            <div className="space-y-3">
+                          <div className="max-h-[200px] sm:max-h-[250px] overflow-y-auto custom-scrollbar">
+                            <div className="space-y-2 sm:space-y-3">
                               {customLinks.map((link, linkIndex) => (
-                                <div key={link.id} className="p-1.5 bg-black rounded-xl relative">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                      <h3 className="text-sm font-medium text-white">{link.title}</h3>
-                                      <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
+                                <div key={link.id} className="p-1.5 sm:p-2 bg-black rounded-xl relative">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <h3 className="text-xs sm:text-sm font-medium text-white truncate">
+                                        {link.title}
+                                      </h3>
+                                      <p className="text-xs mt-1 text-zinc-400 truncate">{link.url}</p>
                                     </div>
                                     <div className="flex items-center gap-1">
                                       <button
@@ -739,58 +823,29 @@ export const SidebarArea = ({
                                             "_blank",
                                           )
                                         }
-                                        className="p-2 hover:bg-zinc-700 rounded-lg text-white"
+                                        className="p-1.5 sm:p-2 hover:bg-zinc-700 rounded-lg text-white"
                                       >
-                                        <ExternalLink size={16} />
+                                        <ExternalLink size={14} />
                                       </button>
                                       {!isSidebarEditing && (
-                                        <div className="relative">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              toggleDropdown(`sidebar-link-${link.id}`)
-                                            }}
-                                            className="p-2 hover:bg-zinc-700 rounded-lg text-white"
-                                          >
-                                            <MoreVertical size={16} />
-                                          </button>
-                                          {openDropdownIndex === `sidebar-link-${link.id}` && (
-                                            <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  setEditingLinkLocal(link)
-                                                  toggleDropdown(null)
-                                                }}
-                                                className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-white"
-                                              >
-                                                Edit
-                                              </button>
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  removeCustomLink(link.id)
-                                                  toggleDropdown(null)
-                                                }}
-                                                className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                                              >
-                                                Remove
-                                              </button>
-                                            </div>
-                                          )}
-                                        </div>
+                                        <button
+                                          onClick={() => setEditingLinkLocal(link)}
+                                          className="p-1.5 sm:p-2 hover:bg-zinc-700 rounded-lg text-blue-400"
+                                        >
+                                          <Edit size={14} />
+                                        </button>
                                       )}
                                     </div>
                                   </div>
                                   {isSidebarEditing && (
-                                    <div className="absolute top-2 right-2 z-10 flex gap-2">
+                                    <div className="absolute top-1 right-1 z-10 flex gap-1">
                                       <button
                                         onClick={() => moveCustomLink(link.id, "up")}
                                         className="p-1 bg-gray-800 rounded hover:bg-gray-700 text-white"
                                         disabled={linkIndex === 0}
                                         title="Move Up"
                                       >
-                                        <ArrowUp size={12} />
+                                        <ArrowUp size={10} />
                                       </button>
                                       <button
                                         onClick={() => moveCustomLink(link.id, "down")}
@@ -798,14 +853,14 @@ export const SidebarArea = ({
                                         disabled={linkIndex === customLinks.length - 1}
                                         title="Move Down"
                                       >
-                                        <ArrowDown size={16} />
+                                        <ArrowDown size={10} />
                                       </button>
                                       <button
                                         onClick={() => removeCustomLink(link.id)}
                                         className="p-1 bg-gray-800 rounded hover:bg-gray-700 text-white"
                                         title="Remove Link"
                                       >
-                                        <X size={12} />
+                                        <X size={10} />
                                       </button>
                                     </div>
                                   )}
@@ -815,7 +870,7 @@ export const SidebarArea = ({
                           </div>
                           <button
                             onClick={addCustomLink}
-                            className="w-full p-2 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
+                            className="w-full p-2 bg-black rounded-xl text-xs sm:text-sm text-zinc-400 text-left hover:bg-zinc-900"
                           >
                             Add website link...
                           </button>
@@ -828,27 +883,27 @@ export const SidebarArea = ({
           )}
 
           {activeTab === "notifications" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Recent Notifications</h3>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-white">Recent Notifications</h3>
                 <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
                   {mockNotifications.length}
                 </span>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {mockNotifications.map((notification) => {
                   const IconComponent = notification.icon
                   return (
-                    <div key={notification.id} className="p-3 bg-black rounded-xl">
-                      <div className="flex items-start gap-3">
+                    <div key={notification.id} className="p-2 sm:p-3 bg-black rounded-xl">
+                      <div className="flex items-start gap-2 sm:gap-3">
                         <div className={`${notification.color} mt-1`}>
-                          <IconComponent size={18} />
+                          <IconComponent size={16} />
                         </div>
-                        <div className="flex-1">
-                          <h4 className="text-sm font-medium text-white">{notification.title}</h4>
-                          <p className="text-xs text-zinc-400 mt-1">{notification.message}</p>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs sm:text-sm font-medium text-white">{notification.title}</h4>
+                          <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{notification.message}</p>
                           <p className="text-xs text-zinc-500 mt-2 flex items-center gap-1">
-                            <Clock size={12} />
+                            <Clock size={10} />
                             {notification.time}
                           </p>
                         </div>
@@ -892,5 +947,5 @@ export const SidebarArea = ({
         />
       )}
     </>
-  ) 
+  )
 }

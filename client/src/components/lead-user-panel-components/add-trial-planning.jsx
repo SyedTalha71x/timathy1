@@ -198,7 +198,7 @@ const TrialTrainingModal = ({
                 </div>
               )}
 
-              {(!searchQuery || filteredLeads.length === 0) && (
+              {/* {(!searchQuery || filteredLeads.length === 0) && (
                 <button
                   type="button"
                   onClick={() => setIsAddLeadModalOpen(true)}
@@ -206,7 +206,7 @@ const TrialTrainingModal = ({
                 >
                   Create New Lead
                 </button>
-              )}
+              )} */}
             </div>
 
             <div className="space-y-1.5">
@@ -337,7 +337,7 @@ const TrialTrainingModal = ({
             type="submit"
             onClick={handleSubmit}
             disabled={!selectedLead || !trialData.date || !trialData.timeSlot || !trialData.trialType}
-            className="w-full sm:w-auto px-5 py-2.5 bg-[#FF5733] text-sm font-medium text-white rounded-xl hover:bg-[#E64D2E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-5 py-2.5 bg-blue-500 text-sm font-medium text-white rounded-xl hover:bg-blue-600 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Book Trial
           </button>

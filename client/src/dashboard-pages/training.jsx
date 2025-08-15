@@ -1,5 +1,5 @@
 import { useState, useRef } from "react"
-import { Play, Pause, Volume2, VolumeX, Maximize, Filter, Search, Plus, Eye, Trash2, X, Clock, Target, Calendar, ChevronDown, Save, Copy, Share2, BookOpen, Dumbbell, User, Edit, Users } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Maximize, Filter, Search, Plus, Eye, Trash2, X, Clock, Target, Calendar, ChevronDown, Save, BookOpen, Dumbbell, User, Edit, Users } from 'lucide-react'
 import toast, { Toaster } from "react-hot-toast"
 
 export default function Training() {
@@ -478,7 +478,7 @@ export default function Training() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div>
-              <h1 className="text-xl font-bold text-white mb-2">Training</h1>
+              <h1 className="text-white oxanium_font text-xl md:text-2xl">Training</h1>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
               <div className="flex items-center gap-2 bg-[#161616] rounded-xl px-3 sm:px-4 py-2">
@@ -524,7 +524,7 @@ export default function Training() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="text"
-                    placeholder="Search videos, instructors..."
+                    placeholder="Search training videos"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-[#161616] pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700 outline-none"
@@ -1093,7 +1093,6 @@ export default function Training() {
                           />
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-white text-sm truncate">{video.title}</h4>
-                            <p className="text-gray-400 text-xs truncate">{video.instructor}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <span className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}>
                                 {video.difficulty}
@@ -1136,43 +1135,15 @@ export default function Training() {
                               />
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-white mb-1 text-sm truncate">{video?.title}</h4>
+                                
                                 <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video?.instructor}</p>
-                                <div className="grid grid-cols-3 gap-1 sm:gap-2">
-                                  <input
-                                    type="number"
-                                    value={exercise.sets}
-                                    onChange={(e) => {
-                                      const updated = [...selectedExercises]
-                                      updated[index].sets = parseInt(e.target.value)
-                                      setSelectedExercises(updated)
-                                    }}
-                                    className="bg-[#2F2F2F] rounded px-2 py-1 text-white text-xs sm:text-sm"
-                                    placeholder="Sets"
-                                    min="1"
-                                  />
-                                  <input
-                                    type="text"
-                                    value={exercise.reps}
-                                    onChange={(e) => {
-                                      const updated = [...selectedExercises]
-                                      updated[index].reps = e.target.value
-                                      setSelectedExercises(updated)
-                                    }}
-                                    className="bg-[#2F2F2F] rounded px-2 py-1 text-white text-xs sm:text-sm"
-                                    placeholder="Reps"
-                                  />
-                                  <input
-                                    type="text"
-                                    value={exercise.rest}
-                                    onChange={(e) => {
-                                      const updated = [...selectedExercises]
-                                      updated[index].rest = e.target.value
-                                      setSelectedExercises(updated)
-                                    }}
-                                    className="bg-[#2F2F2F] rounded px-2 py-1 text-white text-xs sm:text-sm"
-                                    placeholder="Rest"
-                                  />
-                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                              <span className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}>
+                                {video.difficulty}
+                              </span>
+                              <span className="text-gray-500 text-xs">{video.duration}</span>
+                            </div>
+                                
                               </div>
                               <button
                                 onClick={() => handleRemoveExercise(index)}
@@ -1338,7 +1309,6 @@ export default function Training() {
                           />
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-white text-sm truncate">{video.title}</h4>
-                            <p className="text-gray-400 text-xs truncate">{video.instructor}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <span className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}>
                                 {video.difficulty}
@@ -1382,42 +1352,13 @@ export default function Training() {
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-white mb-1 text-sm truncate">{video?.title}</h4>
                                 <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video?.instructor}</p>
-                                <div className="grid grid-cols-3 gap-1 sm:gap-2">
-                                  <input
-                                    type="number"
-                                    value={exercise.sets}
-                                    onChange={(e) => {
-                                      const updated = [...selectedExercises]
-                                      updated[index].sets = parseInt(e.target.value)
-                                      setSelectedExercises(updated)
-                                    }}
-                                    className="bg-[#2F2F2F] rounded px-2 py-1 text-white text-xs sm:text-sm"
-                                    placeholder="Sets"
-                                    min="1"
-                                  />
-                                  <input
-                                    type="text"
-                                    value={exercise.reps}
-                                    onChange={(e) => {
-                                      const updated = [...selectedExercises]
-                                      updated[index].reps = e.target.value
-                                      setSelectedExercises(updated)
-                                    }}
-                                    className="bg-[#2F2F2F] rounded px-2 py-1 text-white text-xs sm:text-sm"
-                                    placeholder="Reps"
-                                  />
-                                  <input
-                                    type="text"
-                                    value={exercise.rest}
-                                    onChange={(e) => {
-                                      const updated = [...selectedExercises]
-                                      updated[index].rest = e.target.value
-                                      setSelectedExercises(updated)
-                                    }}
-                                    className="bg-[#2F2F2F] rounded px-2 py-1 text-white text-xs sm:text-sm"
-                                    placeholder="Rest"
-                                  />
-                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                              <span className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}>
+                                {video.difficulty}
+                              </span>
+                              <span className="text-gray-500 text-xs">{video.duration}</span>
+                            </div>
+                               
                               </div>
                               <button
                                 onClick={() => handleRemoveExercise(index)}
@@ -1511,22 +1452,6 @@ export default function Training() {
                         <span className="text-white text-sm truncate ml-2">{selectedPlan.category}</span>
                       </div>
                     </div>
-
-                    <div className="flex flex-col sm:flex-row gap-2 mt-6">
-                      <button
-                        onClick={() => toast.success("Plan copied to your library!")}
-                        className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-white text-sm transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Copy size={14} />
-                        Copy Plan
-                      </button>
-                      <button
-                        onClick={() => toast.success("Plan shared successfully!")}
-                        className="px-3 sm:px-4 py-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-white transition-colors flex items-center justify-center"
-                      >
-                        <Share2 size={14} />
-                      </button>
-                    </div>
                   </div>
                 </div>
 
@@ -1550,17 +1475,6 @@ export default function Training() {
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-white mb-1 text-sm sm:text-base truncate">{video?.title}</h4>
                               <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video?.instructor}</p>
-                              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-                                <span className="text-gray-400">
-                                  <strong className="text-white">{exercise.sets}</strong> sets
-                                </span>
-                                <span className="text-gray-400">
-                                  <strong className="text-white">{exercise.reps}</strong> reps
-                                </span>
-                                <span className="text-gray-400">
-                                  <strong className="text-white">{exercise.rest}</strong> rest
-                                </span>
-                              </div>
                               <div className="flex flex-wrap gap-1 mt-2">
                                 {video?.targetMuscles.map((muscle, muscleIndex) => (
                                   <span

@@ -1,6 +1,5 @@
-"use client"
-
 /* eslint-disable react/prop-types */
+
 import { useState } from "react"
 import { X } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
@@ -11,13 +10,13 @@ const roles = ["Trainer", "Manager", "Developer", "Designer"]
 export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], initialTask = {} }) {
   const [newTask, setNewTask] = useState({
     title: initialTask.title || "",
-    description: initialTask.description || "",
-    assignees: initialTask.assignees || [], // Changed to array for multiple selections
-    roles: initialTask.roles || [], // Changed to array for multiple selections
+    assignees: initialTask.assignees || [],
+    roles: initialTask.roles || [],
     tags: initialTask.tags || [],
     dueDate: initialTask.dueDate || "",
     dueTime: initialTask.dueTime || "",
   })
+
   const [assignmentType, setAssignmentType] = useState(
     initialTask.assignees?.length > 0 ? "assignee" : initialTask.roles?.length > 0 ? "role" : "assignee",
   )
@@ -28,7 +27,6 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
       ...newTask,
       id: Date.now(),
       status: "ongoing",
-      // Keep the arrays but clear the one not being used
       assignees: assignmentType === "assignee" ? newTask.assignees : [],
       roles: assignmentType === "role" ? newTask.roles : [],
     }
@@ -52,31 +50,27 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
     const value = e.target.value
     setNewTask((prev) => ({
       ...prev,
-      tags: prev.tags.includes(value)
-        ? prev.tags.filter((tag) => tag !== value) // Remove if already selected
-        : [...prev.tags, value], // Add if not selected
+      tags: prev.tags.includes(value) ? prev.tags.filter((tag) => tag !== value) : [...prev.tags, value],
     }))
   }
 
   const handleAssigneeChange = (e) => {
     const value = e.target.value
-    if (value === "") return // Skip empty selections
+    if (value === "") return
     setNewTask((prev) => ({
       ...prev,
       assignees: prev.assignees.includes(value)
-        ? prev.assignees.filter((assignee) => assignee !== value) // Remove if already selected
-        : [...prev.assignees, value], // Add if not selected
+        ? prev.assignees.filter((assignee) => assignee !== value)
+        : [...prev.assignees, value],
     }))
   }
 
   const handleRoleChange = (e) => {
     const value = e.target.value
-    if (value === "") return // Skip empty selections
+    if (value === "") return
     setNewTask((prev) => ({
       ...prev,
-      roles: prev.roles.includes(value)
-        ? prev.roles.filter((role) => role !== value) // Remove if already selected
-        : [...prev.roles, value], // Add if not selected
+      roles: prev.roles.includes(value) ? prev.roles.filter((role) => role !== value) : [...prev.roles, value],
     }))
   }
 
@@ -115,35 +109,31 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
                 required
               />
             </div>
-            <div>
-              <label className="text-sm text-gray-200">Task Description</label>
-              <textarea
-                value={newTask.description}
-                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                placeholder="Task description"
-                className="w-full bg-[#101010] resize-none mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                rows={3}
-              />
-            </div>
+
             <div>
               <label className="text-sm text-gray-200">Assignment Type</label>
               <div className="flex gap-4 mt-1">
                 <button
                   type="button"
                   onClick={() => handleAssignmentTypeChange("assignee")}
-                  className={`px-4 py-2 rounded-xl text-sm ${assignmentType === "assignee" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"}`}
+                  className={`px-4 py-2 rounded-xl text-sm ${
+                    assignmentType === "assignee" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
+                  }`}
                 >
                   Assign to People
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAssignmentTypeChange("role")}
-                  className={`px-4 py-2 rounded-xl text-sm ${assignmentType === "role" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"}`}
+                  className={`px-4 py-2 rounded-xl text-sm ${
+                    assignmentType === "role" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
+                  }`}
                 >
                   Assign to Roles
                 </button>
               </div>
             </div>
+
             {assignmentType === "assignee" && (
               <div>
                 <label className="text-sm text-gray-200">Assignees</label>
@@ -190,6 +180,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
                 )}
               </div>
             )}
+
             {assignmentType === "role" && (
               <div>
                 <label className="text-sm text-gray-200">Roles</label>
@@ -232,6 +223,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
                 )}
               </div>
             )}
+
             <div>
               <label className="text-sm text-gray-200">Tags</label>
               <div className="relative">
@@ -242,8 +234,12 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
                 >
                   <option value="">Select Tags</option>
                   {configuredTags.map((tag) => (
-                    <option key={tag} value={tag} className={newTask.tags.includes(tag) ? "bg-[#3F74FF]" : ""}>
-                      {tag} {newTask.tags.includes(tag) ? "✓" : ""}
+                    <option
+                      key={tag.id}
+                      value={tag.name}
+                      className={newTask.tags.includes(tag.name) ? "bg-[#3F74FF]" : ""}
+                    >
+                      {tag.name} {newTask.tags.includes(tag.name) ? "✓" : ""}
                     </option>
                   ))}
                 </select>
@@ -273,6 +269,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
                 )}
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-200">Due Date (Optional)</label>
@@ -293,6 +290,7 @@ export default function AddTaskModal({ onClose, onAddTask, configuredTags = [], 
                 />
               </div>
             </div>
+
             <div className="flex justify-end gap-3">
               <button
                 type="button"

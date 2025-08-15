@@ -4,8 +4,8 @@ import { X } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
 const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
-  const [frequency, setFrequency] = useState("daily") // daily, weekly, monthly, custom
-  const [repeatDays, setRepeatDays] = useState([]) // For weekly: [0, 1, 2, 3, 4, 5, 6] for Sun-Sat
+  const [frequency, setFrequency] = useState("daily")
+  const [repeatDays, setRepeatDays] = useState([])
   const [endDate, setEndDate] = useState("")
   const [occurrences, setOccurrences] = useState("")
 
@@ -27,7 +27,6 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-
     if (frequency === "weekly" && repeatDays.length === 0) {
       toast.error("Please select at least one day for weekly repeats.")
       return
@@ -78,10 +77,8 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
-                {/* <option value="custom">Custom (e.g., every X days)</option> */}
               </select>
             </div>
-
             {frequency === "weekly" && (
               <div>
                 <label className="text-sm text-gray-200">Repeat on days</label>
@@ -101,7 +98,6 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
                 </div>
               </div>
             )}
-
             <div>
               <label className="text-sm text-gray-200">Ends</label>
               <div className="flex flex-col gap-2 mt-1">
@@ -157,7 +153,6 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
                 </label>
               </div>
             </div>
-
             <div className="flex justify-end gap-3">
               <button
                 type="button"
