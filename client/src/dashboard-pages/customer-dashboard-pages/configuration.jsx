@@ -1,4 +1,5 @@
-""
+/* eslint-disable react/no-unknown-property */
+"use client"
 
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
@@ -28,9 +29,11 @@ import {
   UploadOutlined,
   InfoCircleOutlined,
   BgColorsOutlined,
-  SettingOutlined,
   EyeInvisibleOutlined,
   EyeTwoTone,
+  BellOutlined,
+  MailOutlined,
+  PhoneOutlined,
 } from "@ant-design/icons"
 
 const { Option } = Select
@@ -51,41 +54,24 @@ const inputStyle = {
 const selectStyle = {
   backgroundColor: "#101010",
   border: "none",
-  color: "#000",
+  color: "#fff",
 }
 
 const buttonStyle = {
-  backgroundColor: "#101010",
-  border: "1px solid #303030",
+  backgroundColor: "#303030",
+  borderColor: "#303030",
   color: "#fff",
 }
 
 const saveButtonStyle = {
   backgroundColor: "#FF843E",
-  border: "1px solid #303030",
+  borderColor: "#FF843E",
   color: "#fff",
-  padding: "6px 10px",
-  borderRadius: "12px",
-  cursor: "pointer",
-  transition: "all 0.3s",
-  outline: "none",
-  fontSize: "14px",
-}
-
-const sectionHeaderStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "12px 16px",
-  backgroundColor: "#202020",
-  borderRadius: "8px",
-  marginBottom: "16px",
-  cursor: "default",
 }
 
 const tooltipStyle = {
+  color: "#888",
   marginLeft: "8px",
-  color: "rgba(255, 255, 255, 0.5)",
 }
 
 const ConfigurationPage = () => {
@@ -116,7 +102,6 @@ const ConfigurationPage = () => {
     allowUserThemeToggle: true,
   })
 
-  // General settings
   const [generalSettings, setGeneralSettings] = useState({
     imprint: "",
     privacyPolicy: "",
@@ -135,6 +120,25 @@ const ConfigurationPage = () => {
     },
   })
 
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailNotifications: true,
+    smsNotifications: false,
+    pushNotifications: true,
+    appointmentReminders: {
+      enabled: true,
+      reminderTimes: [24, 2], // hours before appointment
+      emailReminders: true,
+      smsReminders: false,
+      customMessage: "Don't forget about your upcoming appointment!",
+    },
+    systemNotifications: {
+      newBookings: true,
+      cancellations: true,
+      payments: true,
+      systemUpdates: false,
+    },
+  })
+
   // Lead sources
   const [leadSources, setLeadSources] = useState([
     { id: 1, name: "Website", description: "Leads from company website", isActive: true },
@@ -148,40 +152,6 @@ const ConfigurationPage = () => {
 
   const handleRemoveContractPauseReason = (index) => {
     setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
-  }
-
-  const validateClosingDays = () => {
-    // Check for duplicate dates
-    const dates = closingDays.map((day) => day.date?.format("YYYY-MM-DD")).filter(Boolean)
-    const uniqueDates = new Set(dates)
-
-    if (dates.length !== uniqueDates.size) {
-      notification.warning({
-        message: "Duplicate Dates",
-        description: "You have duplicate dates in your closing days. Please remove duplicates.",
-      })
-      return false
-    }
-
-    // Check for missing descriptions
-    const missingDescriptions = closingDays.some((day) => day.date && !day.description)
-    if (missingDescriptions) {
-      notification.warning({
-        message: "Missing Descriptions",
-        description: "Please provide descriptions for all closing days.",
-      })
-      return false
-    }
-
-    return true
-  }
-
-  const handleSaveConfiguration = () => {
-    if (!validateClosingDays()) {
-      return
-    }
-
-    notification.success({ message: "Configuration saved successfully!" })
   }
 
   const handleAddContractType = () => {
@@ -203,81 +173,97 @@ const ConfigurationPage = () => {
       {
         title: "",
         content: "",
-        editable: true,
+        editable: false,
         requiresAgreement: true,
       },
     ])
   }
 
-  const handleViewBlankContract = () => {
-    console.log("check handle view blank contract")
-  }
-
-  // General settings handlers
   const handleUpdateGeneralSettings = (field, value) => {
-    setGeneralSettings({ ...generalSettings, [field]: value })
+    setGeneralSettings((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
   }
 
   const handleUpdateContactData = (field, value) => {
-    setGeneralSettings({
-      ...generalSettings,
-      contactData: { ...generalSettings.contactData, [field]: value },
-    })
+    setGeneralSettings((prev) => ({
+      ...prev,
+      contactData: {
+        ...prev.contactData,
+        [field]: value,
+      },
+    }))
   }
 
   const handleUpdateAccountLogin = (field, value) => {
-    setGeneralSettings({
-      ...generalSettings,
-      accountLogin: { ...generalSettings.accountLogin, [field]: value },
-    })
-  }
-
-  const handleChangePassword = () => {
-    const { currentPassword, newPassword, confirmPassword } = generalSettings.accountLogin
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      notification.error({
-        message: "Missing Fields",
-        description: "Please fill in all password fields.",
-      })
-      return
-    }
-
-    if (newPassword !== confirmPassword) {
-      notification.error({
-        message: "Password Mismatch",
-        description: "New password and confirm password do not match.",
-      })
-      return
-    }
-
-    if (newPassword.length < 8) {
-      notification.error({
-        message: "Weak Password",
-        description: "Password must be at least 8 characters long.",
-      })
-      return
-    }
-
-    // Here you would typically make an API call to change the password
-    notification.success({
-      message: "Password Changed",
-      description: "Your password has been successfully updated.",
-    })
-
-    // Clear password fields
-    setGeneralSettings({
-      ...generalSettings,
+    setGeneralSettings((prev) => ({
+      ...prev,
       accountLogin: {
-        ...generalSettings.accountLogin,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+        ...prev.accountLogin,
+        [field]: value,
       },
-    })
+    }))
   }
 
-  // Lead sources handlers
+  const handleUpdateNotificationSettings = (field, value) => {
+    setNotificationSettings((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleUpdateAppointmentReminders = (field, value) => {
+    setNotificationSettings((prev) => ({
+      ...prev,
+      appointmentReminders: {
+        ...prev.appointmentReminders,
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleUpdateSystemNotifications = (field, value) => {
+    setNotificationSettings((prev) => ({
+      ...prev,
+      systemNotifications: {
+        ...prev.systemNotifications,
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleAddReminderTime = () => {
+    const newTime = 1 // Default 1 hour
+    setNotificationSettings((prev) => ({
+      ...prev,
+      appointmentReminders: {
+        ...prev.appointmentReminders,
+        reminderTimes: [...prev.appointmentReminders.reminderTimes, newTime],
+      },
+    }))
+  }
+
+  const handleRemoveReminderTime = (index) => {
+    setNotificationSettings((prev) => ({
+      ...prev,
+      appointmentReminders: {
+        ...prev.appointmentReminders,
+        reminderTimes: prev.appointmentReminders.reminderTimes.filter((_, i) => i !== index),
+      },
+    }))
+  }
+
+  const handleUpdateReminderTime = (index, value) => {
+    setNotificationSettings((prev) => ({
+      ...prev,
+      appointmentReminders: {
+        ...prev.appointmentReminders,
+        reminderTimes: prev.appointmentReminders.reminderTimes.map((time, i) => (i === index ? value : time)),
+      },
+    }))
+  }
+
   const handleAddLeadSource = () => {
     const newId = Math.max(...leadSources.map((s) => s.id), 0) + 1
     setLeadSources([
@@ -285,20 +271,31 @@ const ConfigurationPage = () => {
       {
         id: newId,
         name: "",
+        description: "",
         isActive: true,
       },
     ])
   }
 
   const handleUpdateLeadSource = (id, field, value) => {
-    setLeadSources(leadSources.map((source) => (source.id === id ? { ...source, [field]: value } : source)))
+    setLeadSources((prev) => prev.map((source) => (source.id === id ? { ...source, [field]: value } : source)))
   }
 
   const handleRemoveLeadSource = (id) => {
-    setLeadSources(leadSources.filter((source) => source.id !== id))
+    setLeadSources((prev) => prev.filter((source) => source.id !== id))
+  }
+
+  const handleViewBlankContract = () => {
+    notification.info({
+      message: "Contract Preview",
+      description: "Opening blank contract template...",
+    })
+  }
+
+  const handleSaveConfiguration = () => {
     notification.success({
-      message: "Lead Source Removed",
-      description: "Lead source has been successfully removed.",
+      message: "Configuration Saved",
+      description: "All settings have been saved successfully!",
     })
   }
 
@@ -309,34 +306,10 @@ const ConfigurationPage = () => {
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="General" key="1">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-            <Panel header="Legal Information" key="1" className="bg-[#202020]">
+            <Panel header="Account Settings" key="1" className="bg-[#202020]">
               <div className="space-y-4">
                 <Form layout="vertical">
-                  <Form.Item label={<span className="text-white">Imprint</span>}>
-                    <TextArea
-                      value={generalSettings.imprint}
-                      onChange={(e) => handleUpdateGeneralSettings("imprint", e.target.value)}
-                      rows={6}
-                      style={inputStyle}
-                      placeholder="Enter your company's imprint information..."
-                    />
-                  </Form.Item>
-                  <Form.Item label={<span className="text-white">Privacy Policy</span>}>
-                    <TextArea
-                      value={generalSettings.privacyPolicy}
-                      onChange={(e) => handleUpdateGeneralSettings("privacyPolicy", e.target.value)}
-                      rows={8}
-                      style={inputStyle}
-                      placeholder="Enter your privacy policy..."
-                    />
-                  </Form.Item>
-                </Form>
-              </div>
-            </Panel>
-
-            <Panel header="Contact Information" key="2" className="bg-[#202020]">
-              <div className="space-y-4">
-                <Form layout="vertical">
+                  <h4 className="text-white font-medium mb-4">Contact Details</h4>
                   <Form.Item label={<span className="text-white">Company Name</span>}>
                     <Input
                       value={generalSettings.contactData.companyName}
@@ -360,6 +333,7 @@ const ConfigurationPage = () => {
                       onChange={(e) => handleUpdateContactData("phone", e.target.value)}
                       style={inputStyle}
                       placeholder="+1 (555) 123-4567"
+                      prefix={<PhoneOutlined style={{ color: "#888" }} />}
                     />
                   </Form.Item>
                   <Form.Item label={<span className="text-white">Email</span>}>
@@ -368,6 +342,7 @@ const ConfigurationPage = () => {
                       onChange={(e) => handleUpdateContactData("email", e.target.value)}
                       style={inputStyle}
                       placeholder="contact@company.com"
+                      prefix={<MailOutlined style={{ color: "#888" }} />}
                     />
                   </Form.Item>
                   <Form.Item label={<span className="text-white">Website</span>}>
@@ -378,23 +353,23 @@ const ConfigurationPage = () => {
                       placeholder="https://www.company.com"
                     />
                   </Form.Item>
-                </Form>
-              </div>
-            </Panel>
 
-            <Panel header="Account Management" key="3" className="bg-[#202020]">
-              <div className="space-y-4">
-                <Form layout="vertical">
+                  <Divider style={{ borderColor: "#303030" }} />
+
+                  <h4 className="text-white font-medium mb-4">Change Email Address</h4>
                   <Form.Item label={<span className="text-white">Account Email</span>}>
                     <Input
                       value={generalSettings.accountLogin.email}
                       onChange={(e) => handleUpdateAccountLogin("email", e.target.value)}
                       style={inputStyle}
                       placeholder="admin@company.com"
+                      prefix={<MailOutlined style={{ color: "#888" }} />}
                     />
                   </Form.Item>
+
                   <Divider style={{ borderColor: "#303030" }} />
-                  <h4 className="text-white font-medium">Change Password</h4>
+
+                  <h4 className="text-white font-medium mb-4">Change Password</h4>
                   <Form.Item label={<span className="text-white">Current Password</span>}>
                     <Password
                       value={generalSettings.accountLogin.currentPassword}
@@ -410,6 +385,7 @@ const ConfigurationPage = () => {
                       onChange={(e) => handleUpdateAccountLogin("newPassword", e.target.value)}
                       style={inputStyle}
                       placeholder="Enter new password"
+                      className="white-text"
                       iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
                     />
                   </Form.Item>
@@ -420,30 +396,170 @@ const ConfigurationPage = () => {
                       style={inputStyle}
                       placeholder="Confirm new password"
                       iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                      className="white-text"
                     />
                   </Form.Item>
-                  <Button onClick={handleChangePassword} style={saveButtonStyle}>
-                    Change Password
-                  </Button>
                 </Form>
               </div>
             </Panel>
 
-            <Panel header="Language Settings" key="4" className="bg-[#202020]">
+            <Panel header="Appointment Reminders & Notifications" key="2" className="bg-[#202020]">
+              <div className="space-y-6">
+                <Form layout="vertical">
+                  <h4 className="text-white font-medium mb-4 flex items-center">
+                    <BellOutlined className="mr-2" />
+                    Appointment Reminders
+                  </h4>
+
+                  <Form.Item label={<span className="text-white">Enable Appointment Reminders</span>}>
+                    <Switch
+                      checked={notificationSettings.appointmentReminders.enabled}
+                      onChange={(checked) => handleUpdateAppointmentReminders("enabled", checked)}
+                    />
+                  </Form.Item>
+
+                  {notificationSettings.appointmentReminders.enabled && (
+                    <>
+                      <Form.Item label={<span className="text-white">Reminder Times (hours before appointment)</span>}>
+                        <div className="space-y-2">
+                          {notificationSettings.appointmentReminders.reminderTimes.map((time, index) => (
+                            <div key={index} className="flex white-text items-center gap-2">
+                              <InputNumber
+                                value={time}
+                                onChange={(value) => handleUpdateReminderTime(index, value)}
+                                style={inputStyle}
+                                min={0.25}
+                                step={0.25}
+                                placeholder="Hours"
+                              />
+                              <span className="text-white">hours before</span>
+                              <Button
+                                danger
+                                size="small"
+                                icon={<DeleteOutlined />}
+                                onClick={() => handleRemoveReminderTime(index)}
+                                style={buttonStyle}
+                                className="white-text"
+                              />
+                            </div>
+                          ))}
+                          <Button
+                            type="dashed"
+                            onClick={handleAddReminderTime}
+                            icon={<PlusOutlined />}
+                            style={buttonStyle}
+                          >
+                            Add Reminder Time
+                          </Button>
+                        </div>
+                      </Form.Item>
+
+                      <Form.Item label={<span className="text-white">Email Reminders</span>}>
+                        <Switch
+                          checked={notificationSettings.appointmentReminders.emailReminders}
+                          onChange={(checked) => handleUpdateAppointmentReminders("emailReminders", checked)}
+                        />
+                      </Form.Item>
+
+                      <Form.Item label={<span className="text-white">SMS Reminders</span>}>
+                        <Switch
+                          checked={notificationSettings.appointmentReminders.smsReminders}
+                          onChange={(checked) => handleUpdateAppointmentReminders("smsReminders", checked)}
+                        />
+                      </Form.Item>
+
+                      <Form.Item label={<span className="text-white">Custom Reminder Message</span>}>
+                        <TextArea
+                          value={notificationSettings.appointmentReminders.customMessage}
+                          onChange={(e) => handleUpdateAppointmentReminders("customMessage", e.target.value)}
+                          rows={3}
+                          style={inputStyle}
+                          placeholder="Enter custom message for appointment reminders..."
+                        />
+                      </Form.Item>
+                    </>
+                  )}
+
+                  <Divider style={{ borderColor: "#303030" }} />
+
+                  <h4 className="text-white font-medium mb-4">General Notification Settings</h4>
+
+                  <Form.Item label={<span className="text-white">Email Notifications</span>}>
+                    <Switch
+                      checked={notificationSettings.emailNotifications}
+                      onChange={(checked) => handleUpdateNotificationSettings("emailNotifications", checked)}
+                    />
+                  </Form.Item>
+
+                  <Form.Item label={<span className="text-white">SMS Notifications</span>}>
+                    <Switch
+                      checked={notificationSettings.smsNotifications}
+                      onChange={(checked) => handleUpdateNotificationSettings("smsNotifications", checked)}
+                    />
+                  </Form.Item>
+
+                  <Form.Item label={<span className="text-white">Push Notifications</span>}>
+                    <Switch
+                      checked={notificationSettings.pushNotifications}
+                      onChange={(checked) => handleUpdateNotificationSettings("pushNotifications", checked)}
+                    />
+                  </Form.Item>
+
+                  <Divider style={{ borderColor: "#303030" }} />
+
+                  <h4 className="text-white font-medium mb-4">System Notifications</h4>
+
+                  <Form.Item label={<span className="text-white">New Bookings</span>}>
+                    <Switch
+                      checked={notificationSettings.systemNotifications.newBookings}
+                      onChange={(checked) => handleUpdateSystemNotifications("newBookings", checked)}
+                    />
+                  </Form.Item>
+
+                  <Form.Item label={<span className="text-white">Cancellations</span>}>
+                    <Switch
+                      checked={notificationSettings.systemNotifications.cancellations}
+                      onChange={(checked) => handleUpdateSystemNotifications("cancellations", checked)}
+                    />
+                  </Form.Item>
+
+                  <Form.Item label={<span className="text-white">Payment Notifications</span>}>
+                    <Switch
+                      checked={notificationSettings.systemNotifications.payments}
+                      onChange={(checked) => handleUpdateSystemNotifications("payments", checked)}
+                    />
+                  </Form.Item>
+
+                  <Form.Item label={<span className="text-white">System Updates</span>}>
+                    <Switch
+                      checked={notificationSettings.systemNotifications.systemUpdates}
+                      onChange={(checked) => handleUpdateSystemNotifications("systemUpdates", checked)}
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+
+            <Panel header="Legal Information (Imprint & Privacy Policy)" key="3" className="bg-[#202020]">
               <div className="space-y-4">
                 <Form layout="vertical">
-                  <Form.Item label={<span className="text-white">Interface Language</span>}>
-                    <Select defaultValue="en" style={selectStyle} onChange={(value) => setLanguage(value)}>
-                      <Option value="en">English</Option>
-                      <Option value="de">Deutsch</Option>
-                      <Option value="fr">Français</Option>
-                      <Option value="es">Español</Option>
-                      <Option value="it">Italiano</Option>
-                      <Option value="pt">Português</Option>
-                      <Option value="nl">Nederlands</Option>
-                      <Option value="pl">Polski</Option>
-                      <Option value="ru">Русский</Option>
-                    </Select>
+                  <Form.Item label={<span className="text-white">Imprint</span>}>
+                    <TextArea
+                      value={generalSettings.imprint}
+                      onChange={(e) => handleUpdateGeneralSettings("imprint", e.target.value)}
+                      rows={6}
+                      style={inputStyle}
+                      placeholder="Enter your company's imprint information..."
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Privacy Policy</span>}>
+                    <TextArea
+                      value={generalSettings.privacyPolicy}
+                      onChange={(e) => handleUpdateGeneralSettings("privacyPolicy", e.target.value)}
+                      rows={8}
+                      style={inputStyle}
+                      placeholder="Enter your privacy policy..."
+                    />
                   </Form.Item>
                 </Form>
               </div>
@@ -601,53 +717,11 @@ const ConfigurationPage = () => {
                         className="h-10 w-20 rounded-md flex items-center justify-center text-white"
                         style={{ backgroundColor: appearance.secondaryColor }}
                       >
-                        <SettingOutlined />
+                        <BgColorsOutlined />
                       </div>
                     </div>
                   </Form.Item>
                 </Form>
-              </div>
-            </Panel>
-
-            <Panel header="Preview" key="2" className="bg-[#202020]">
-              <div className="space-y-6">
-                <h3 className="text-lg font-medium text-white">Theme Preview</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-4 rounded-lg border border-[#303030] bg-white">
-                    <h4 className="text-black font-medium mb-3">Light Mode</h4>
-                    <div className="flex flex-wrap gap-2">
-                      <Button style={{ backgroundColor: appearance.primaryColor, color: "white", border: "none" }}>
-                        Primary Button
-                      </Button>
-                      <Button style={{ backgroundColor: appearance.secondaryColor, color: "white", border: "none" }}>
-                        Secondary Button
-                      </Button>
-                    </div>
-                    <div className="mt-3">
-                      <p className="text-black">Sample text in light mode</p>
-                      <p style={{ color: appearance.primaryColor }}>Colored text using primary color</p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-lg border border-[#303030] bg-[#101010]">
-                    <h4 className="text-white font-medium mb-3">Dark Mode</h4>
-                    <div className="flex flex-wrap gap-2">
-                      <Button style={{ backgroundColor: appearance.primaryColor, color: "white", border: "none" }}>
-                        Primary Button
-                      </Button>
-                      <Button style={{ backgroundColor: appearance.secondaryColor, color: "white", border: "none" }}>
-                        Secondary Button
-                      </Button>
-                    </div>
-                    <div className="mt-3">
-                      <p className="text-white">Sample text in dark mode</p>
-                      <p className="text-white" style={{ color: appearance.primaryColor }}>
-                        Colored text using primary color
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </Panel>
           </Collapse>
@@ -696,7 +770,6 @@ const ConfigurationPage = () => {
                               }}
                               style={inputStyle}
                               precision={2}
-                              // addonAfter={currency}
                             />
                           </div>
                         </Form.Item>
@@ -719,9 +792,6 @@ const ConfigurationPage = () => {
                           label={
                             <div className="flex items-center">
                               <span className="text-white white-text">Maximum Member Capacity</span>
-                              {/* <Tooltip title="Maximum number of appointments a member can book per billing period">
-                                <InfoCircleOutlined style={tooltipStyle} />
-                              </Tooltip> */}
                             </div>
                           }
                         >
@@ -737,10 +807,6 @@ const ConfigurationPage = () => {
                               min={0}
                             />
                           </div>
-                          {/* <div className="text-xs text-gray-400 mt-1">
-                            Based on the {type.billingPeriod} billing period. For example, if set to 4 with weekly
-                            billing, members can book 4 appointments per week.
-                          </div> */}
                         </Form.Item>
                       </Form>
                       <Button
@@ -858,7 +924,6 @@ const ConfigurationPage = () => {
                   type="dashed"
                   onClick={handleAddContractPauseReason}
                   icon={<PlusOutlined />}
-                  className="w-full sm:w-auto"
                   style={buttonStyle}
                 >
                   Add Pause Reason
@@ -866,7 +931,7 @@ const ConfigurationPage = () => {
               </div>
             </Panel>
 
-            <Panel header="Additional Documents" key="4" className="bg-[#202020]">
+            <Panel header="Additional Documents" key="5" className="bg-[#202020]">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg text-white font-medium">Additional Documents</h3>
@@ -945,6 +1010,11 @@ const ConfigurationPage = () => {
           Save Configuration
         </Button>
       </div>
+
+      <style jsx>{`
+        ${additionalStyles}
+        ${styleOverrides}
+      `}</style>
     </div>
   )
 }
@@ -1198,49 +1268,6 @@ const styleOverrides = `
     background-color: #181818 !important;
     border-color: #303030 !important;
   }
-
-  .ant-collapse-header {
-    color: white !important;
-  }
-
-  .ant-collapse-content {
-    background-color: #181818 !important;
-    border-color: #303030 !important;
-  }
-
-  /* Alert Styles */
-  .ant-alert {
-    background-color: #202020 !important;
-    border-color: #303030 !important;
-  }
-
-  .ant-alert-message {
-    color: white !important;
-  }
-
-  .ant-alert-description {
-    color: rgba(255, 255, 255, 0.7) !important;
-  }
-
-  /* Password Input Styles */
-  .ant-input-password {
-    background-color: #101010 !important;
-    border: none !important;
-    color: white !important;
-  }
-
-  .ant-input-password .ant-input {
-    background-color: #101010 !important;
-    color: white !important;
-  }
-
-  .ant-input-password .ant-input-suffix {
-    color: rgba(255, 255, 255, 0.5) !important;
-  }
 `
-
-const styleElement = document.createElement("style")
-styleElement.innerHTML = styleOverrides + additionalStyles
-document.head.appendChild(styleElement)
 
 export default ConfigurationPage

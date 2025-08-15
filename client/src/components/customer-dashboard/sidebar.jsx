@@ -15,9 +15,12 @@ import {
   Bell,
   ChevronLeft,
   ChevronRight,
+  MenuIcon,
 } from "lucide-react";
 import { RiContractLine, RiStockFill } from "react-icons/ri";
 import { MdOutlineLeaderboard } from "react-icons/md";
+import { SiYoutubestudio } from "react-icons/si";
+
 
 const CustomerSidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -138,6 +141,18 @@ const CustomerSidebar = () => {
       icon: RiStockFill,
       label: "Finances",
       to: "/customer-dashboard/finances",
+    },
+    { icon: MessageCircle, label: "Communication", to: "/customer-dashboard/communication" },
+
+    {
+      icon: SiYoutubestudio,
+      label: "Studio Menu",
+      to: "/customer-dashboard/studio-menu",
+    },
+    {
+      icon: Calendar,
+      label: "Appointments",
+      to: "/customer-dashboard/appointment",
     },
     {
       icon: Settings,

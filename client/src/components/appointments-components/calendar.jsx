@@ -9,11 +9,9 @@ import interactionPlugin from "@fullcalendar/interaction"
 import DefaultAvatar from "../../../public/default-avatar.avif"
 import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
-
 import TrialTrainingModal from "./add-trial-training"
 import SelectedAppointmentModal from "./selected-appointment-modal" // New import
 import { membersData } from "../../utils/states"
-import EditAppointmentModal from "./selected-appointment-modal"
 
 export default function Calendar({
   appointments = [],
@@ -26,7 +24,6 @@ export default function Calendar({
 }) {
   const [calendarSize, setCalendarSize] = useState(100)
   const [calendarHeight, setCalendarHeight] = useState("auto")
-  const [activeNoteId, setActiveNoteId] = useState(null)
   const [freeAppointments, setFreeAppointments] = useState([])
   const [viewMode, setViewMode] = useState("all") // "all" or "free"
   const [activeTab, setActiveTab] = useState("details") // Enhanced states for member functionality
@@ -40,17 +37,7 @@ export default function Calendar({
   const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [historyTab, setHistoryTab] = useState("general")
-  const [showRelationsModal, setShowRelationsModal] = useState(false)
-  const [showRelationsTile, setShowRelationsTile] = useState(false)
-  const [selectedRelationMember, setSelectedRelationMember] = useState(null)
-  const [editingRelations, setEditingRelations] = useState(false)
-  const [newRelation, setNewRelation] = useState({
-    name: "",
-    relation: "",
-    category: "family",
-    type: "manual",
-    selectedMemberId: null,
-  })
+
 
   // Member contingent data
   const [memberContingent, setMemberContingent] = useState({
@@ -465,20 +452,22 @@ export default function Calendar({
     }
   }
 
-  // Modified handleEventDrop to store info for potential rollback
   const handleEventDrop = (info) => {
-    // Check if it's a past event and prevent drag/drop
-    const isPastEvent = isEventInPast(info.event.start)
-    if (isPastEvent) {
+    // Check if it's a past or cancelled event and prevent drag/drop
+    const appointmentId = Number.parseInt(info.event.id)
+    const appointment = appointments?.find((app) => app.id === appointmentId)
+    
+    if (appointment && (appointment.isPast || appointment.isCancelled)) {
       info.revert()
-      toast.error("Cannot move past appointments")
+      const reason = appointment.isPast ? "past" : "cancelled"
+      toast.error(`Cannot move ${reason} appointments`)
       return
     }
-    setPendingEventInfo(info) // Store the info object
+    
+    setPendingEventInfo(info)
     setNotifyAction("change")
     setIsNotifyMemberOpen(true)
   }
-
   const handleDateSelect = (selectInfo) => {
     setSelectedSlotInfo(selectInfo)
     setIsTypeSelectionOpen(true)
@@ -560,7 +549,7 @@ export default function Calendar({
   }
   const handleEditAppointment = () => {
     setIsAppointmentActionModalOpen(false)
-    
+
     // Convert the selected appointment to the format expected by SelectedAppointmentModal
     const appointmentForModal = {
       id: selectedAppointment.id,
@@ -577,11 +566,11 @@ export default function Calendar({
         endDate: ""
       }
     }
-    
+
     setSelectedAppointmentData(appointmentForModal)
     setShowSelectedAppointmentModal(true)
   }
-  
+
   // Modified handleCancelAppointment to update status instead of setting eventInfo for deletion
   const handleCancelAppointment = () => {
     setIsAppointmentActionModalOpen(false)
@@ -666,7 +655,18 @@ export default function Calendar({
     setShowAppointmentModal(false)
   }
 
-
+  // New function to handle saving edited appointment from SelectedAppointmentModal
+  const handleSaveEditedAppointment = (updatedAppointment) => {
+    setMemberAppointments((prevAppointments) =>
+      prevAppointments.map((app) => (app.id === updatedAppointment.id ? updatedAppointment : app)),
+    )
+    setShowSelectedAppointmentModal(false)
+    toast.success("Appointment updated successfully!")
+    // Optionally, prompt to notify member
+    setNotifyAction("change")
+    // Reconstruct a minimal eventInfo for notification if needed, or just trigger notification directly
+    setIsNotifyMemberOpen(true)
+  }
 
   const handleCreateNewAppointment = () => {
     setShowAddAppointmentModal(true)
@@ -779,8 +779,9 @@ export default function Calendar({
         const startDateTimeStr = `${dateStr}T${appointment.startTime || "00:00"}`
         const endDateTimeStr = `${dateStr}T${appointment.endTime || "01:00"}`
 
-        const isPastEvent = isEventInPast(startDateTimeStr)
-        const isCancelledEvent = appointment.isCancelled
+        // Use data flags instead of calculating from date
+        const isPastEvent = appointment.isPast || false
+        const isCancelledEvent = appointment.isCancelled || false
 
         let backgroundColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
         let borderColor = backgroundColor
@@ -806,7 +807,6 @@ export default function Calendar({
           textColor = "#777777"
           opacity = 0.2
         }
-
         return {
           id: appointment.id,
           title: appointment.name,
@@ -882,9 +882,8 @@ export default function Calendar({
         <div className="flex items-center justify-end mb-2 gap-2">
           <button
             onClick={generateFreeDates}
-            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${
-              viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-            }`}
+            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+              }`}
             aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
           >
             {viewMode === "all" ? "Free Slots" : "All Slots"}
@@ -930,21 +929,17 @@ export default function Calendar({
               eventMaxStack={10}
               eventContent={(eventInfo) => (
                 <div
-                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${
-                    eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
-                  } ${eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""} ${
-                    eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
+                    } ${eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""} ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                       ? "opacity-20"
                       : ""
-                  } ${
-                    eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                    } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                       ? "ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
                       : ""
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`font-semibold text-xs sm:text-sm truncate ${
-                      eventInfo.event.extendedProps.isPast
+                    className={`font-semibold text-xs sm:text-sm truncate ${eventInfo.event.extendedProps.isPast
                         ? "text-gray-500"
                         : eventInfo.event.extendedProps.isCancelled
                           ? "text-gray-300"
@@ -953,7 +948,7 @@ export default function Calendar({
                             : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                               ? "text-white font-bold"
                               : ""
-                    }`}
+                      }`}
                   >
                     {eventInfo.event.extendedProps.isCancelled
                       ? `${eventInfo.event.title}`
@@ -962,15 +957,14 @@ export default function Calendar({
                         : eventInfo.event.title}
                   </div>
                   <div
-                    className={`text-xs opacity-90 truncate ${
-                      eventInfo.event.extendedProps.isPast
+                    className={`text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast
                         ? "text-gray-600"
                         : eventInfo.event.extendedProps.isCancelled
                           ? "text-gray-400"
                           : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                             ? "text-gray-600"
                             : ""
-                    }`}
+                      }`}
                   >
                     {eventInfo.event.extendedProps.type || "Available"}
                   </div>
@@ -1131,91 +1125,90 @@ export default function Calendar({
             <div className="p-6">
               {/* Header matching the image design */}
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-[#161616] rounded-xl p-4 md:p-6 mb-6">
-  {/* Profile Section */}
-  <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
-    {/* Profile Picture */}
-    <img
-      src={selectedMember.image || DefaultAvatar}
-      alt="Profile"
-      className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover"
-    />
-    {/* Member Info */}
-    <div>
-      <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-white text-lg md:text-xl font-semibold">
-          {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
-        </h2>
-        <span
-          className={`px-3 py-1 text-xs rounded-full font-medium ${
-            selectedMember.isActive
-              ? "bg-green-900 text-green-300"
-              : "bg-red-900 text-red-300"
-          }`}
-        >
-          {selectedMember.isActive ? "Active" : "Inactive"}
-        </span>
-      </div>
-      <p className="text-gray-400 text-sm mt-1">
-        Contract: {selectedMember.contractStart} -{" "}
-        <span
-          className={
-            isContractExpiringSoon(selectedMember.contractEnd)
-              ? "text-red-500"
-              : ""
-          }
-        >
-          {selectedMember.contractEnd}
-        </span>
-      </p>
-    </div>
-  </div>
+                {/* Profile Section */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
+                  {/* Profile Picture */}
+                  <img
+                    src={selectedMember.image || DefaultAvatar}
+                    alt="Profile"
+                    className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover"
+                  />
+                  {/* Member Info */}
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-white text-lg md:text-xl font-semibold">
+                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
+                      </h2>
+                      <span
+                        className={`px-3 py-1 text-xs rounded-full font-medium ${selectedMember.isActive
+                            ? "bg-green-900 text-green-300"
+                            : "bg-red-900 text-red-300"
+                          }`}
+                      >
+                        {selectedMember.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Contract: {selectedMember.contractStart} -{" "}
+                      <span
+                        className={
+                          isContractExpiringSoon(selectedMember.contractEnd)
+                            ? "text-red-500"
+                            : ""
+                        }
+                      >
+                        {selectedMember.contractEnd}
+                      </span>
+                    </p>
+                  </div>
+                </div>
 
-  {/* Action Buttons */}
-  <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
-    <button
-      onClick={handleCalendarFromOverview}
-      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-blue-500 hover:text-blue-400"
-      title="View Calendar"
-    >
-      <CalendarIcon size={18} />
-    </button>
-    <button
-      onClick={handleHistoryFromOverview}
-      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-purple-500 hover:text-purple-400"
-      title="View History"
-    >
-      <History size={18} />
-    </button>
-    <button
-      onClick={handleCommunicationFromOverview}
-      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-green-500 hover:text-green-400"
-      title="Communication"
-    >
-      <MessageCircle size={18} />
-    </button>
-    <button
-      onClick={handleViewDetailedInfo}
-      className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
-    >
-      <Eye size={14} /> View Details
-    </button>
-    <button
-      onClick={handleEditFromOverview}
-      className="px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
-    >
-      Edit
-    </button>
-    <button
-      onClick={() => {
-        setIsMemberOverviewModalOpen(false)
-        setSelectedMember(null)
-      }}
-      className="p-2 md:p-3 text-gray-400 hover:text-white"
-    >
-      <X size={18} />
-    </button>
-  </div>
-</div>
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
+                  <button
+                    onClick={handleCalendarFromOverview}
+                    className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-blue-500 hover:text-blue-400"
+                    title="View Calendar"
+                  >
+                    <CalendarIcon size={18} />
+                  </button>
+                  <button
+                    onClick={handleHistoryFromOverview}
+                    className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-purple-500 hover:text-purple-400"
+                    title="View History"
+                  >
+                    <History size={18} />
+                  </button>
+                  <button
+                    onClick={handleCommunicationFromOverview}
+                    className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-green-500 hover:text-green-400"
+                    title="Communication"
+                  >
+                    <MessageCircle size={18} />
+                  </button>
+                  <button
+                    onClick={handleViewDetailedInfo}
+                    className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
+                  >
+                    <Eye size={14} /> View Details
+                  </button>
+                  <button
+                    onClick={handleEditFromOverview}
+                    className="px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMemberOverviewModalOpen(false)
+                      setSelectedMember(null)
+                    }}
+                    className="p-2 md:p-3 text-gray-400 hover:text-white"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
 
             </div>
           </div>
@@ -1243,22 +1236,20 @@ export default function Calendar({
               <div className="flex border-b border-gray-700 mb-6">
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeTab === "details"
+                  className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   {" "}
                   Details{" "}
                 </button>
                 <button
                   onClick={() => setActiveTab("relations")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeTab === "relations"
+                  className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
                       ? "text-blue-400 border-b-2 border-blue-400"
                       : "text-gray-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   {" "}
                   Relations{" "}
@@ -1364,8 +1355,7 @@ export default function Calendar({
                               <div className="w-0.5 h-8 bg-gray-600"></div>
                               {/* Category header */}
                               <div
-                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
-                                  category === "family"
+                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
                                     ? "bg-yellow-600 text-yellow-100"
                                     : category === "friendship"
                                       ? "bg-green-600 text-green-100"
@@ -1374,7 +1364,7 @@ export default function Calendar({
                                         : category === "work"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                }`}
+                                  }`}
                               >
                                 {" "}
                                 {category}{" "}
@@ -1624,11 +1614,10 @@ export default function Calendar({
                   <button
                     key={tab.id}
                     onClick={() => setHistoryTab(tab.id)}
-                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${
-                      historyTab === tab.id
+                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${historyTab === tab.id
                         ? "text-blue-400 border-b-2 border-blue-400"
                         : "text-gray-400 hover:text-white"
-                    }`}
+                      }`}
                   >
                     {" "}
                     {tab.label}{" "}
@@ -1699,11 +1688,10 @@ export default function Calendar({
                               <p className="text-white font-medium">{item.title}</p>
                               <p className="text-gray-400 text-sm">with {item.trainer}</p>
                               <span
-                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
-                                  item.status === "completed"
+                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
                                     ? "bg-green-900 text-green-300"
                                     : "bg-yellow-900 text-yellow-300"
-                                }`}
+                                  }`}
                               >
                                 {" "}
                                 {item.status}{" "}
@@ -1734,11 +1722,10 @@ export default function Calendar({
                               <p className="text-white font-medium">{item.type}</p>
                               <p className="text-gray-400 text-sm">{item.description}</p>
                               <span
-                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
-                                  item.status === "completed"
+                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
                                     ? "bg-green-900 text-green-300"
                                     : "bg-yellow-900 text-yellow-300"
-                                }`}
+                                  }`}
                               >
                                 {" "}
                                 {item.status}{" "}
@@ -1914,12 +1901,10 @@ export default function Calendar({
                   {selectedAppointment.date && selectedAppointment.date.split("|")[1]} •{selectedAppointment.startTime}{" "}
                   - {selectedAppointment.endTime}{" "}
                 </p>
-                {selectedAppointment.date &&
-                  isEventInPast(
-                    `${selectedAppointment.date?.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${
-                      selectedAppointment.startTime
-                    }`,
-                  ) && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
+                {selectedAppointment.isPast && 
+  <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
+{selectedAppointment.isCancelled && 
+  <p className="text-red-500 text-sm mt-2">This appointment is cancelled</p>}
               </div>
               <button
                 onClick={handleEditAppointment}
@@ -2026,21 +2011,21 @@ export default function Calendar({
       )}
       {/* New Selected Appointment Modal */}
       {showSelectedAppointmentModal && selectedAppointmentData && (
-  <EditAppointmentModal
-    selectedAppointment={selectedAppointmentData}
-    setSelectedAppointment={setSelectedAppointmentData}
-    appointmentTypes={appointmentTypes}
-    freeAppointments={freeAppointments}
-    handleAppointmentChange={(changes) => {
-      setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })
-    }}
-    appointments={appointments}
-    setAppointments={setAppointments}
-    setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-    setNotifyAction={setNotifyAction}
-    onDelete={handleDeleteAppointment}
-  />
-)}
+        <SelectedAppointmentModal
+          selectedAppointment={selectedAppointmentData}
+          setSelectedAppointment={setSelectedAppointmentData}
+          appointmentTypes={appointmentTypes}
+          freeAppointments={freeAppointments}
+          handleAppointmentChange={(changes) => {
+            setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })
+          }}
+          appointments={appointments}
+          setAppointments={setAppointments}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          onDelete={handleDeleteAppointment}
+        />
+      )}
       <Toaster position="top-right" />
 
       <style jsx>{`

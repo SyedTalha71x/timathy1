@@ -38,6 +38,9 @@ import CustomerTodo from './dashboard-pages/customer-dashboard-pages/todo'
 import CustomerConfiguration from './dashboard-pages/customer-dashboard-pages/configuration'
 import CustomerFinance from './dashboard-pages/customer-dashboard-pages/finance'
 import CustomerContracts from './dashboard-pages/customer-dashboard-pages/contract'
+import CustomerStudioMenu from './dashboard-pages/customer-dashboard-pages/studio-menu'
+import CustomerAppointment from './dashboard-pages/customer-dashboard-pages/appointment'
+import CustomerCommuncation from './dashboard-pages/customer-dashboard-pages/communication'
 
 function App() {
   const location = useLocation();
@@ -88,6 +91,9 @@ function App() {
           <Route path="leads" element={<CustomerLeads />} />
           <Route path="finances" element={<CustomerFinance />} />
           <Route path="studios" element={<Studios />} />  
+          <Route path="studio-menu" element={<CustomerStudioMenu />} />
+          <Route path="appointment" element={<CustomerAppointment />} />
+          <Route path="communication" element={<CustomerCommuncation />} />
         </Route>
       </Routes>
       {!isAuthOrDashboardPage && <Footer />}

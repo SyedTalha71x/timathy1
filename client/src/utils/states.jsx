@@ -570,7 +570,7 @@ export const appointmentsData = [
     status: "pending",
     isTrial: false,
     isCancelled: false,
-    isPast: false,
+    isPast: true,
   },
   {
     id: 2,
