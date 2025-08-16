@@ -1289,11 +1289,11 @@ export default function Communications() {
   const getMessageStatusIcon = (status) => {
     switch (status) {
       case "sent":
-        return <Check className="w-4 h-4 text-gray-400" /> // Smaller checkmark
+        return <Check className="w-5  h-5  text-gray-400" /> // Smaller checkmark
       case "delivered":
-        return <CheckCheck className="w-4 h-4 text-gray-400" /> // Smaller checkmark
+        return <CheckCheck className="w-5 h-5 text-gray-400" /> // Smaller checkmark
       case "read":
-        return <CheckCheck className="w-4 h-4 text-blue-500" /> // Smaller checkmark
+        return <CheckCheck className="w-5 h-5 text-blue-500" /> // Smaller checkmark
       default:
         return null
     }
@@ -1493,7 +1493,7 @@ export default function Communications() {
       )}
       {/* Sidebar */}
       <div
-        className={`fixed md:relative inset-y-0 left-0 md:w-[380px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${
+        className={`fixed md:relative inset-y-0 left-0 md:w-[450px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${
           isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } bg-black z-40`}
       >
@@ -1644,14 +1644,26 @@ export default function Communications() {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <div className="text-sm text-gray-400">
                         <p className="truncate">{chat.message}</p>
-                        {getMessageStatusIcon(chat.messageStatus)}
                       </div>
                       <div className="flex mt-1 text-gray-400 items-center gap-1">
                         <Clock size={15} />
                         <span className="text-sm text-gray-400">{chat.time}</span>
                       </div>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <button
+                        className="p-1 hover:bg-gray-600 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setShowChatMenu(showChatMenu === chat.id ? null : chat.id)
+                        }}
+                        aria-label="Chat options"
+                      >
+                        <MoreVertical className="w-5 h-5 text-gray-300" />
+                      </button>
+                      {getMessageStatusIcon(chat.messageStatus)}
                     </div>
                   </div>
                 ))
@@ -1694,17 +1706,16 @@ export default function Communications() {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <div className="text-sm text-gray-400">
                         <p className="truncate">{chat.message}</p>
-                        {getMessageStatusIcon(chat.messageStatus)}
                       </div>
                       <div className="flex mt-1 text-gray-400 items-center gap-1">
                         <Clock size={15} />
                         <span className="text-sm text-gray-400">{chat.time}</span>
                       </div>
                     </div>
-                    {chatType !== "company" && (
-                      <div className="relative">
+                    <div className="flex flex-col items-center gap-1">
+                      {chatType !== "company" && (
                         <button
                           className="opacity-100 p-1 hover:bg-gray-600 rounded-full"
                           onClick={(e) => {
@@ -1715,45 +1726,46 @@ export default function Communications() {
                         >
                           <MoreVertical className="w-5 h-5 text-gray-300" />
                         </button>
-                        {showChatMenu === chat.id && (
-                          <div
-                            ref={chatMenuRef}
-                            className="absolute right-0 top-8 w-48 bg-[#2F2F2F] rounded-xl border border-gray-800 shadow-lg overflow-hidden z-20"
+                      )}
+                      {getMessageStatusIcon(chat.messageStatus)}
+                      {showChatMenu === chat.id && chatType !== "company" && (
+                        <div
+                          ref={chatMenuRef}
+                          className="absolute right-0 top-8 w-48 bg-[#2F2F2F] rounded-xl border border-gray-800 shadow-lg overflow-hidden z-20"
+                        >
+                          <button
+                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                            onClick={(e) =>
+                              chat.isRead ? handleMarkChatAsUnread(chat.id, e) : handleMarkChatAsRead(chat.id, e)
+                            }
                           >
-                            <button
-                              className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                              onClick={(e) =>
-                                chat.isRead ? handleMarkChatAsUnread(chat.id, e) : handleMarkChatAsRead(chat.id, e)
-                              }
-                            >
-                              {chat.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                              Mark as {chat.isRead ? "unread" : "read"}
-                            </button>
-                            <button
-                              className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                              onClick={(e) => handlePinChat(chat.id, e)}
-                            >
-                              <Pin className="w-4 h-4" />
-                              {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
-                            </button>
-                            <button
-                              className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                              onClick={(e) => handleArchiveChat(chat.id, e)}
-                            >
-                              <Archive className="w-4 h-4" />
-                              Archive chat
-                            </button>
-                            <button
-                              className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                              onClick={(e) => handleViewMember(chat.id, e)}
-                            >
-                              <User className="w-4 h-4" />
-                              View Member {/* Renamed */}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                            {chat.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            Mark as {chat.isRead ? "unread" : "read"}
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                            onClick={(e) => handlePinChat(chat.id, e)}
+                          >
+                            <Pin className="w-4 h-4" />
+                            {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                            onClick={(e) => handleArchiveChat(chat.id, e)}
+                          >
+                            <Archive className="w-4 h-4" />
+                            Archive chat
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                            onClick={(e) => handleViewMember(chat.id, e)}
+                          >
+                            <User className="w-4 h-4" />
+                            View Member
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
             {sortedChatList.length === 0 && !searchMember && (

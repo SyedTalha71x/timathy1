@@ -2210,14 +2210,14 @@ const filteredAndSortedMembers = () => {
                           </button>
                           <button
                             onClick={() => handleViewDetails(member)}
-                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
+                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-1.5 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
                           >
                             <Eye size={16} />
                             View Details
                           </button>
                           <button
                             onClick={() => handleEditMember(member)}
-                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto"
+                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-1.5 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto"
                           >
                             Edit
                           </button>

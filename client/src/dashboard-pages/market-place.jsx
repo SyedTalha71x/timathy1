@@ -57,7 +57,7 @@ export default function MarketplacePage() {
     <div className="min-h-screen bg-[#1a1a1a] text-white">
       <div className="p-6">
         {/* Header */}
-        <h1 className="text-xl font-bold  mb-8">Marketplace</h1>
+        <h1 className="text-white oxanium_font text-xl mb-5 md:text-2xl">Marketplace</h1>
 
         {/* Search and Sort Controls */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">

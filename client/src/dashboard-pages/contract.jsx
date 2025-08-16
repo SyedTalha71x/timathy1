@@ -2,7 +2,7 @@
 
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText, History, Search, Grid3X3, List } from "lucide-react"
+import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText, History, Search, Grid3X3, List, Eye } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
 import AddContractModal from '../components/contract-components/add-contract-modal'
@@ -688,8 +688,9 @@ export default function ContractList() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleViewDetails(contract)}
-                    className="text-white md:w-auto w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                    className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-1.5 px-6 hover:text-white hover:border-slate-400 transition-colors text-sm w-full sm:w-auto flex items-center justify-center gap-2"
                   >
+                    <Eye size={16}/>
                     View Details
                   </button>
                   <button
@@ -697,14 +698,14 @@ export default function ContractList() {
                     className="text-white md:w-auto w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                     title="Manage Documents"
                   >
-                    <FileText className="w-5 h-5" />
+                    <FileText size={16} />
                   </button>
                   <button
                     onClick={() => handleViewHistory(contract.id)}
                     className="text-white md:w-auto w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                     title="View Contract History"
                   >
-                    <History className="w-5 h-5" />
+                    <History size={16} />
                   </button>
                   <div className="relative">
                     <button
@@ -832,6 +833,7 @@ export default function ContractList() {
                     onClick={() => handleViewDetails(contract)}
                     className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors"
                   >
+                     <Eye size={16} />
                     View Details
                   </button>
                   <button
