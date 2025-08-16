@@ -1114,111 +1114,112 @@ function App() {
               </div>
             </div>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
-              <div key={item.id} className="w-full bg-[#181818] rounded-2xl overflow-hidden relative">
-                {isEditModeActive && (
-                  <div className="absolute top-2 left-2 z-10 bg-black/70 rounded-lg p-1 flex flex-col gap-1">
-                    <button
-                      onClick={() => moveItem(index, "left", activeTab === "services")}
-                      className="p-1.5 rounded-md hover:bg-[#333333] text-white"
-                      title="Move Left"
-                    >
-                      <ArrowLeft size={16} />
-                    </button>
-                    <button
-                      onClick={() => moveItem(index, "right", activeTab === "services")}
-                      className="p-1.5 rounded-md hover:bg-[#333333] text-white"
-                      title="Move Right"
-                    >
-                      <ArrowRight size={16} />
-                    </button>
-                  </div>
-                )}
-                {isEditModeActive && (
-                  <div className="absolute top-2 right-2 z-10 bg-[#3F74FF] text-white rounded-full p-1.5">
-                    <Move size={16} />
-                  </div>
-                )}
-                <div className="relative w-full h-48 overflow-hidden">
-                  <img
-                    src={item.image || ProductImage}
-                    alt={item.name}
-                    className="object-cover w-full h-full rounded-t-2xl"
-                  />
-                  {!isEditModeActive && (
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="absolute bottom-3 right-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
-                      aria-label="Add to cart"
-                    >
-                      <ShoppingBasket size={16} />
-                    </button>
-                  )}
-                  {item.link && !isEditModeActive && (
-                    <button
-                      onClick={() => window.open(item.link, "_blank")}
-                      className="absolute bottom-3 left-3 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
-                      aria-label="Open link"
-                    >
-                      <ExternalLink size={16} />
-                    </button>
-                  )}
+
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+  {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
+    <div key={item.id} className="w-full bg-[#181818] rounded-2xl overflow-visible relative">
+      {isEditModeActive && (
+        <div className="absolute top-2 left-2 z-10 bg-black/70 rounded-lg p-1 flex flex-col gap-1">
+          <button
+            onClick={() => moveItem(index, "left", activeTab === "services")}
+            className="p-1.5 rounded-md hover:bg-[#333333] text-white"
+            title="Move Left"
+          >
+            <ArrowLeft size={16} />
+          </button>
+          <button
+            onClick={() => moveItem(index, "right", activeTab === "services")}
+            className="p-1.5 rounded-md hover:bg-[#333333] text-white"
+            title="Move Right"
+          >
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      )}
+      {isEditModeActive && (
+        <div className="absolute top-2 right-2 z-10 bg-[#3F74FF] text-white rounded-full p-1.5">
+          <Move size={16} />
+        </div>
+      )}
+      <div className="relative w-full h-48 overflow-hidden rounded-t-2xl">
+        <img
+          src={item.image || ProductImage}
+          alt={item.name}
+          className="object-cover w-full h-full"
+        />
+        {!isEditModeActive && (
+          <button
+            onClick={() => addToCart(item)}
+            className="absolute bottom-3 right-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
+            aria-label="Add to cart"
+          >
+            <ShoppingBasket size={16} />
+          </button>
+        )}
+        {item.link && !isEditModeActive && (
+          <button
+            onClick={() => window.open(item.link, "_blank")}
+            className="absolute bottom-3 left-3 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+            aria-label="Open link"
+          >
+            <ExternalLink size={16} />
+          </button>
+        )}
+      </div>
+      <div className="p-3">
+        <div className="">
+          <h3 className="text-base font-medium mb-1 oxanium_font truncate">{item.name}</h3>
+          {activeTab === "products" && item.brandName && (
+            <p className="text-xs text-slate-200 mb-1 open_sans_font">{item.brandName}</p>
+          )}
+          {activeTab === "products" && item.articalNo && (
+            <p className="text-xs text-slate-400 mb-1 open_sans_font">Art. No: {item.articalNo}</p>
+          )}
+          <p className="text-lg font-bold text-[#FF843E] mb-2">${item.price.toFixed(2)}</p>
+        </div>
+        {isEditModeActive && (
+          <div className="mt-2 relative"> {/* Added relative positioning here */}
+            <div className="flex justify-end items-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setOpenDropdownId(openDropdownId === item.id ? null : item.id)
+                }}
+                className="bg-black text-white rounded-xl py-1.5 px-3 border border-slate-600 text-sm cursor-pointer"
+              >
+                <MoreVertical size={16} />
+              </button>
+              {openDropdownId === item.id && (
+                <div className="absolute top-full right-0 mt-1 w-36 bg-[#101010] rounded-xl shadow-lg z-[60] border border-[#333333] dropdown-container">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      openEditModal(item)
+                      setOpenDropdownId(null)
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-[#181818] transition-colors rounded-t-xl"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      openDeleteModal(item)
+                      setOpenDropdownId(null)
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#181818] transition-colors rounded-b-xl"
+                  >
+                    Remove
+                  </button>
                 </div>
-                <div className="p-3">
-                  <div className="">
-                    <h3 className="text-base font-medium mb-1 oxanium_font truncate">{item.name}</h3>
-                    {activeTab === "products" && item.brandName && (
-                      <p className="text-xs text-slate-200 mb-1 open_sans_font">{item.brandName}</p>
-                    )}
-                    {activeTab === "products" && item.articalNo && (
-                      <p className="text-xs text-slate-400 mb-1 open_sans_font">Art. No: {item.articalNo}</p>
-                    )}
-                    <p className="text-lg font-bold text-[#FF843E] mb-2">${item.price.toFixed(2)}</p>
-                  </div>
-                  {isEditModeActive && (
-                    <div className="mt-2">
-                      <div className="flex justify-end items-center">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setOpenDropdownId(openDropdownId === item.id ? null : item.id)
-                          }}
-                          className="bg-black text-white rounded-xl py-1.5 px-3 border border-slate-600 text-sm cursor-pointer"
-                        >
-                          <MoreVertical size={16} />
-                        </button>
-                        {openDropdownId === item.id && (
-                          <div className="absolute top-41 right-12 w-36 bg-[#101010] rounded-xl shadow-lg z-50 border border-[#333333] overflow-visible dropdown-container">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                openEditModal(item)
-                                setOpenDropdownId(null)
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-[#181818] transition-colors"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                openDeleteModal(item)
-                                setOpenDropdownId(null)
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#181818] transition-colors"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
         </div>
       </main>
       {/* Sidebar Component */}
