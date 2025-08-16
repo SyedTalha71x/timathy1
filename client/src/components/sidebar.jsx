@@ -34,6 +34,7 @@ import { BadgeDollarSign } from 'lucide-react';
 import { CgGym } from "react-icons/cg";
 
 import { MdOutlineLeaderboard } from "react-icons/md";
+import { SiYoutubestudio } from "react-icons/si";
 
 const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -113,6 +114,11 @@ const Sidebar = () => {
     { icon: MessageCircle, label: "Communication", to: "/dashboard/communication" },
     { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
     { icon: Users, label: "Members", to: "/dashboard/members" },
+    {
+      icon: SiYoutubestudio,
+      label: "Studio Menu",
+      to: "/dashboard/studio-menu",
+    },
     { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
     { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
     { icon: RiContractLine, label: "Contracts", to: "/dashboard/contract" },

@@ -27,6 +27,7 @@ import ActivityMonitor from "./dashboard-pages/activity-monitor";
 import Analytics from './dashboard-pages/analytics'
 import HelpCenter from "./dashboard-pages/help-center";
 import MarketPlace from './dashboard-pages/market-place'
+import StudioMenu from './dashboard-pages/studio-menu'
 
 
 // Customer Dashboard
@@ -77,6 +78,7 @@ function App() {
           <Route path="analytics" element={<Analytics />} />
                     <Route path="help-center" element={<HelpCenter />} />
           <Route path="market-place" element={<MarketPlace />} />
+          <Route path="studio-menu" element={<StudioMenu />} />
 
 
 

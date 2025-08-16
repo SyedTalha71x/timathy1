@@ -144,11 +144,11 @@ const CustomerSidebar = () => {
     },
     { icon: MessageCircle, label: "Communication", to: "/customer-dashboard/communication" },
 
-    {
-      icon: SiYoutubestudio,
-      label: "Studio Menu",
-      to: "/customer-dashboard/studio-menu",
-    },
+    // {
+    //   icon: SiYoutubestudio,
+    //   label: "Studio Menu",
+    //   to: "/customer-dashboard/studio-menu",
+    // },
     {
       icon: Calendar,
       label: "Appointments",
