@@ -10,7 +10,7 @@ const marketplaceProducts = [
     brand: "JORDAN",
     articleNo: "456",
     price: "5,00 €",
-    image: "https://placehold.co/600x400/orange/white?text=Premium+Sneakers",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV1xUYD-Gqa5d08aoyqp4g1i6vs4lySrH4cA&s",
     link: "https://example.com/product/1",
   },
   {
@@ -19,7 +19,7 @@ const marketplaceProducts = [
     brand: "NIKE",
     articleNo: "123",
     price: "5,00 €",
-    image: "https://placehold.co/600x400/orange/white?text=Premium+Sneakers",
+    image: "https://image.goat.com/transform/v1/attachments/product_template_additional_pictures/images/105/365/563/original/1507255_01.jpg.jpeg?action=crop&width=750",
     link: "https://example.com/product/2",
   },
 ]
@@ -76,7 +76,7 @@ export default function MarketplacePage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-[#181818] text-white rounded-xl px-4 py-2 text-sm outline-none border border-[#3a3a3a] focus:border-[#555] transition-colors min-w-[140px]"
+            className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
           >
             <option value="name">Sort by Name</option>
             <option value="price">Sort by Price</option>

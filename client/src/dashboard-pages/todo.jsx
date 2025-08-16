@@ -888,7 +888,7 @@ export default function TodoApp() {
                 <div className="relative sort-dropdown">
                   <button
                     onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-[#2F2F2F] rounded-xl text-sm whitespace-nowrap"
+                    className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
                   >
                     <Filter size={16} />
                     <span>

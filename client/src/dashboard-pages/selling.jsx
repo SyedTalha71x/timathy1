@@ -1044,7 +1044,7 @@ function App() {
                 setSortBy(field)
                 setSortDirection(direction)
               }}
-              className="bg-[#101010] text-sm rounded-xl px-3 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] "
             >
               <option value="name-asc">Name ↑</option>
               <option value="name-desc">Name ↓</option>

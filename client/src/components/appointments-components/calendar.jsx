@@ -399,47 +399,41 @@ export default function Calendar({
   }
 
   const generateFreeDates = () => {
-    const now = new Date()
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()))
-    const freeDates = new Set()
-    const slots = []
-
     // Toggle view mode
     const newViewMode = viewMode === "all" ? "free" : "all"
     setViewMode(newViewMode)
-
-    // Generate free slots for the next 3 weeks
-    for (let week = 0; week < 3; week++) {
-      const weekStart = new Date(startOfWeek)
-      weekStart.setDate(weekStart.getDate() + week * 7)
-      const slotsPerWeek = 5 + Math.floor(Math.random() * 3) // More slots for better visibility
-      for (let i = 0; i < slotsPerWeek; i++) {
-        const randomDay = Math.floor(Math.random() * 7)
-        const randomHour = 8 + Math.floor(Math.random() * 10)
-        const randomMinute = Math.floor(Math.random() * 4) * 15
+  
+    if (newViewMode === "free") {
+      // Generate free slots specifically for Feb 3-9, 2025 (the default view week)
+      const slots = []
+      const weekStart = new Date("2025-02-03") // Monday, Feb 3, 2025
+      
+      // Generate 12-15 free slots throughout the week for better visibility
+      const totalSlots = 12 + Math.floor(Math.random() * 4) // 12-15 slots
+      
+      for (let i = 0; i < totalSlots; i++) {
+        const randomDay = Math.floor(Math.random() * 7) // 0-6 (Mon-Sun)
+        const randomHour = 8 + Math.floor(Math.random() * 10) // 8 AM to 5 PM
+        const randomMinute = Math.floor(Math.random() * 4) * 15 // 0, 15, 30, 45
+        
         const freeDate = new Date(weekStart)
         freeDate.setDate(freeDate.getDate() + randomDay)
         freeDate.setHours(randomHour, randomMinute, 0)
-
-        if (freeDate < new Date()) continue
-
+        
         const formattedDate = formatDate(freeDate)
         const formattedTime = freeDate.toTimeString().split(" ")[0].substring(0, 5)
-        freeDates.add(freeDate.toLocaleDateString("en-US", { month: "long", day: "numeric" }))
+        
         slots.push({
-          id: `free-${week}-${i}`,
+          id: `free-${i}`,
           date: formattedDate,
           time: formattedTime,
         })
       }
-    }
-    setFreeAppointments(slots)
-
-    if (newViewMode === "free") {
-      toast.success(
-        `Free slots mode activated! Available slots are now highlighted and all appointments are grayed out.`,
-      )
+      
+      setFreeAppointments(slots)
+      toast.success("Free slots mode activated! Available slots are now highlighted and all appointments are grayed out.")
     } else {
+      setFreeAppointments([])
       toast.success("Showing all appointments in normal view.")
     }
   }
@@ -778,16 +772,16 @@ export default function Calendar({
         const dateStr = `${year}-${month}-${day}`
         const startDateTimeStr = `${dateStr}T${appointment.startTime || "00:00"}`
         const endDateTimeStr = `${dateStr}T${appointment.endTime || "01:00"}`
-
+  
         // Use data flags instead of calculating from date
         const isPastEvent = appointment.isPast || false
         const isCancelledEvent = appointment.isCancelled || false
-
+  
         let backgroundColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
         let borderColor = backgroundColor
         let textColor = "#FFFFFF"
         let opacity = 1
-
+  
         if (isCancelledEvent) {
           // Specific styling for cancelled appointments (diagonal stripes)
           backgroundColor = "#4a4a4a"
@@ -802,10 +796,10 @@ export default function Calendar({
           opacity = 0.25 // Much more transparent
         } else if (viewMode === "free") {
           // When showing free slots, other appointments are heavily grayed out
-          backgroundColor = "#333333"
+          backgroundColor = "#2a2a2a"
           borderColor = "#333333"
-          textColor = "#777777"
-          opacity = 0.2
+          textColor = "#666666"
+          opacity = 0.15 // Even more transparent when in free mode
         }
         return {
           id: appointment.id,
@@ -838,10 +832,10 @@ export default function Calendar({
         title: "Available Slot",
         start: startDateTimeStr,
         end: new Date(new Date(startDateTimeStr).getTime() + 60 * 60 * 1000).toISOString(),
-        backgroundColor: viewMode === "free" ? "#22c55e" : "#444444",
-        borderColor: viewMode === "free" ? "#16a34a" : "#555555",
-        textColor: "#FFFFFF",
-        opacity: viewMode === "free" ? 1 : 0.6,
+        backgroundColor: viewMode === "free" ? "#e5e7eb" : "#4a4a4a", // gray-200
+        borderColor: viewMode === "free" ? "#d1d5db" : "#555555", // gray-300
+        textColor: viewMode === "free" ? "#1f2937" : "#888888", // dark gray text
+        opacity: viewMode === "free" ? 1 : 0.4,
         extendedProps: {
           isFree: true,
           viewMode: viewMode,
@@ -849,7 +843,6 @@ export default function Calendar({
       }
     }),
   ]
-
   const handleEventResize = (info) => {
     const { event } = info
     // Check if it's a past event and prevent resize
@@ -929,48 +922,68 @@ export default function Calendar({
               eventMaxStack={10}
               eventContent={(eventInfo) => (
                 <div
-                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
-                    } ${eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""} ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${
+                    eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
+                  } ${
+                    eventInfo.event.extendedProps.isCancelled 
+                      ? "cancelled-event-content cancelled-appointment-bg" 
+                      : ""
+                  } ${
+                    eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                      ? "blocked-event-content blocked-appointment-bg"
+                      : ""
+                  } ${
+                    eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                       ? "opacity-20"
                       : ""
-                    } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                  } ${
+                    eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                       ? "ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
                       : ""
-                    }`}
+                  }`}
                 >
                   <div
-                    className={`font-semibold text-xs sm:text-sm truncate ${eventInfo.event.extendedProps.isPast
+                    className={`font-semibold text-xs sm:text-sm truncate ${
+                      eventInfo.event.extendedProps.isPast
                         ? "text-gray-500"
                         : eventInfo.event.extendedProps.isCancelled
-                          ? "text-gray-300"
-                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                            ? "text-gray-600"
-                            : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
-                              ? "text-white font-bold"
-                              : ""
-                      }`}
+                        ? "text-gray-300"
+                        : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                        ? "text-red-200"
+                        : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                        ? "text-gray-600"
+                        : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                        ? "text-white font-bold"
+                        : ""
+                    }`}
                   >
                     {eventInfo.event.extendedProps.isCancelled
                       ? `${eventInfo.event.title}`
+                      : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                      ? `🚫 ${eventInfo.event.title}`
                       : eventInfo.event.extendedProps.isPast
-                        ? `${eventInfo.event.title}`
-                        : eventInfo.event.title}
+                      ? `${eventInfo.event.title}`
+                      : eventInfo.event.title}
                   </div>
                   <div
-                    className={`text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast
+                    className={`text-xs opacity-90 truncate ${
+                      eventInfo.event.extendedProps.isPast
                         ? "text-gray-600"
                         : eventInfo.event.extendedProps.isCancelled
-                          ? "text-gray-400"
-                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                            ? "text-gray-600"
-                            : ""
-                      }`}
+                        ? "text-gray-400"
+                        : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                        ? "text-red-300"
+                        : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                        ? "text-gray-600"
+                        : ""
+                    }`}
                   >
                     {eventInfo.event.extendedProps.type || "Available"}
                   </div>
                   <div className="text-xs mt-1">{eventInfo.timeText}</div>
                 </div>
               )}
+              
               eventClassNames={(eventInfo) => {
                 const classes = []
                 if (eventInfo.event.extendedProps.isPast) {
@@ -978,6 +991,9 @@ export default function Calendar({
                 }
                 if (eventInfo.event.extendedProps.isCancelled) {
                   classes.push("cancelled-event")
+                }
+                if (eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked) {
+                  classes.push("blocked-event")
                 }
                 if (eventInfo.event.extendedProps.isFree) {
                   classes.push("free-slot-event cursor-pointer")

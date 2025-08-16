@@ -15,12 +15,14 @@ import {
   Pin, 
   PinOff 
 } from 'lucide-react';
+import { IoIosMegaphone } from "react-icons/io";
 
 const EmailManagement = ({ 
   isOpen, 
   onClose, 
   onOpenSendEmail, 
   onOpenSettings,
+  onOpenBroadcast, // Add this prop
   initialEmailList = {
     inbox: [],
     sent: [],
@@ -121,7 +123,7 @@ const EmailManagement = ({
     <>
       {/* Email Frontend Modal (Full Screen) */}
       <div className="fixed inset-0 bg-black/80 flex flex-col z-50">
-        <div className="bg-[#181818] flex-1 flex flex-col rounded-xl m-4">
+        <div className="bg-[#181818] flex-1 flex flex-col rounded-xl m-4 relative">
           <div className="p-4 flex-shrink-0">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-medium flex items-center gap-2">
@@ -152,64 +154,62 @@ const EmailManagement = ({
             </div>
             
             {/* Email Tabs */}
-          {/* Email Tabs */}
-<div className="flex gap-2 mb-4 border-b border-gray-700">
-  <button
-    onClick={() => handleEmailTabClick("inbox")}
-    className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
-      emailTab === "inbox" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-    }`}
-  >
-    <Inbox size={16} />
-    Inbox
-    {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length > 0 && (
-      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-        {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length}
-      </span>
-    )}
-  </button>
-  <button
-    onClick={() => handleEmailTabClick("sent")}
-    className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
-      emailTab === "sent" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-    }`}
-  >
-    <Send size={16} />
-    Sent
-  </button>
-  <button
-    onClick={() => handleEmailTabClick("draft")}
-    className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
-      emailTab === "draft" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-    }`}
-  >
-    <FileText size={16} />
-    Draft
-  </button>
-  <button
-    onClick={() => handleEmailTabClick("archive")}
-    className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
-      emailTab === "archive" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-    }`}
-  >
-    <Archive size={16} />
-    Archive
-  </button>
-  <button
-    onClick={() => handleEmailTabClick("error")}
-    className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
-      emailTab === "error" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-    }`}
-  >
-     Error
-    {emailList.error.length > 0 && (
-      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-        {emailList.error.length}
-      </span>
-    )}
-  </button>
-</div>
-
+            <div className="flex gap-2 mb-4 border-b border-gray-700">
+              <button
+                onClick={() => handleEmailTabClick("inbox")}
+                className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
+                  emailTab === "inbox" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+                }`}
+              >
+                <Inbox size={16} />
+                Inbox
+                {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleEmailTabClick("sent")}
+                className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
+                  emailTab === "sent" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+                }`}
+              >
+                <Send size={16} />
+                Sent
+              </button>
+              <button
+                onClick={() => handleEmailTabClick("draft")}
+                className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
+                  emailTab === "draft" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+                }`}
+              >
+                <FileText size={16} />
+                Draft
+              </button>
+              <button
+                onClick={() => handleEmailTabClick("archive")}
+                className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
+                  emailTab === "archive" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+                }`}
+              >
+                <Archive size={16} />
+                Archive
+              </button>
+              <button
+                onClick={() => handleEmailTabClick("error")}
+                className={`px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 ${
+                  emailTab === "error" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+                }`}
+              >
+                 Error
+                {emailList.error.length > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {emailList.error.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
           
           {/* Email List / Email View */}
@@ -325,6 +325,17 @@ const EmailManagement = ({
               </div>
             )}
           </div>
+
+          {/* Broadcast Button - Floating Action Button */}
+          {onOpenBroadcast && (
+            <button
+              onClick={onOpenBroadcast}
+              className="absolute bottom-6 right-6 p-3 bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg z-10"
+              title="Create Broadcast"
+            >
+              <IoIosMegaphone className="w-6 h-6 text-white" />
+            </button>
+          )}
         </div>
       </div>
       

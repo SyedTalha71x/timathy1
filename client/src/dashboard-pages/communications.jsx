@@ -1289,11 +1289,11 @@ export default function Communications() {
   const getMessageStatusIcon = (status) => {
     switch (status) {
       case "sent":
-        return <Check className="w-8 h-8 text-gray-400" /> // Larger checkmark
+        return <Check className="w-4 h-4 text-gray-400" /> // Smaller checkmark
       case "delivered":
-        return <CheckCheck className="w-8 h-8 text-gray-400" /> // Larger checkmark
+        return <CheckCheck className="w-4 h-4 text-gray-400" /> // Smaller checkmark
       case "read":
-        return <CheckCheck className="w-8 h-8 text-blue-500" /> // Larger checkmark
+        return <CheckCheck className="w-4 h-4 text-blue-500" /> // Smaller checkmark
       default:
         return null
     }
@@ -1979,7 +1979,7 @@ export default function Communications() {
           </>
         )}
         {activeScreen === "send-message" && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[999999] overflow-y-auto">
             <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
               <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
@@ -2180,11 +2180,13 @@ export default function Communications() {
           </div>
         )}
       </div>
+
       <EmailManagement
   isOpen={showEmailFrontend}
   onClose={() => setShowEmailFrontend(false)}
   onOpenSendEmail={() => setShowEmailModal(true)}
   onOpenSettings={() => setShowSettings(true)}
+  onOpenBroadcast={() => setActiveScreen("send-message")} // Add this line
   initialEmailList={emailList}
 />
       {/* Settings Modal */}

@@ -5,7 +5,7 @@
 import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText, History, Search, Grid3X3, List } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
-import { AddContractModal } from "../components/contract-components/add-contract-modal"
+import AddContractModal from '../components/contract-components/add-contract-modal'
 import { ContractDetailsModal } from "../components/contract-components/contract-details-modal"
 import { PauseContractModal } from "../components/contract-components/pause-contract-modal"
 import { CancelContractModal } from "../components/contract-components/cancel-contract-modal"

@@ -533,7 +533,7 @@ export default function Training() {
                 <div className="relative">
                   <button
                     onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                    className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 text-sm bg-[#161616] rounded-xl border border-gray-700 hover:border-gray-600 transition-colors w-full sm:w-auto justify-between sm:justify-start"
+                    className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
                   >
                     <Filter size={16} />
                     <span className="truncate">{categories.find((cat) => cat.id === selectedCategory)?.name || "All Exercises"}</span>

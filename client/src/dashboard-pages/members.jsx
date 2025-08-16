@@ -1004,7 +1004,7 @@ const filteredAndSortedMembers = () => {
               {/* Combined Filter Button */}
               <button
                 onClick={() => setShowFilterModal(true)}
-                className="md:w-auto w-full flex justify-center items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
+                className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
               >
                 <Filter size={16} />
                 Filter

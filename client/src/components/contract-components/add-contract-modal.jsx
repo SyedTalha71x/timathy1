@@ -1,11 +1,8 @@
-/* eslint-disable no-unused-vars */
-"use client"
-/* eslint-disable no-constant-binary-expression */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
 import { X, FileText, Eye, ArrowLeft } from "lucide-react"
 import { useState, useEffect } from "react"
-import toast from "react-hot-toast"
 
 const contractTypes = [
   {
@@ -51,7 +48,7 @@ const printStyles = `
     }
   }`
 
-export function AddContractModal({ onClose, onSave, leadData = null }) {
+export default function AddContractModal({ onClose, onSave, leadData = null }) {
   const [currentPage, setCurrentPage] = useState(0)
   const [showLeadSelection, setShowLeadSelection] = useState(true)
   const [contractData, setContractData] = useState({
@@ -199,23 +196,19 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
       const fileType = file.type
       const validTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
       if (!validTypes.includes(fileType)) {
-        toast.error("Please upload a PDF or image file")
+        alert("Please upload a PDF or image file")
         return
       }
 
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size should be less than 10MB")
+        alert("File size should be less than 10MB")
         return
       }
 
-      toast.loading("Processing document...")
-      // Simulate processing delay
-      setTimeout(() => {
-        setContractData({ ...contractData, signedFile: file })
-        toast.dismiss()
-        toast.success("Signed contract uploaded successfully")
-      }, 1000)
+      // Simulate processing
+      setContractData({ ...contractData, signedFile: file })
+      alert("Signed contract uploaded successfully")
     }
   }
 
@@ -258,7 +251,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     setShowSignatureOptions(false)
     if (withSignature) {
       // Generate with signature
-      toast.success("Contract generated with digital signature")
+      alert("Contract generated with digital signature")
       onSave({
         ...contractData,
         isDigital: true,
@@ -313,7 +306,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
   const priceCalculation = calculateFinalPrice()
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex open_sans_font items-center justify-center z-[1000]">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] font-sans">
       <style>{printStyles}</style>
       {showSignatureOptions && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
@@ -369,7 +362,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
       <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl">
         <div className="px-4 py-3 border-b border-gray-800 custom-scrollbar max-h-[10vh] sm:max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center">
-            <h2 className="text-base open_sans_font_700 text-white">Add Contract</h2>
+            <h2 className="text-base font-bold text-white">Add Contract</h2>
             <div className="flex items-center gap-2">
               {!showLeadSelection && !showFormView && (
                 <button
@@ -398,7 +391,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
             </div>
           </div>
         </div>
-        <div className="px-4 py-3 open_sans_font max-h-[75vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
+        <div className="px-4 py-3 max-h-[75vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
           {showLeadSelection ? (
             <div className="space-y-6">
               <div className="text-center mb-6">
@@ -584,7 +577,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
               </button>
             </div>
           ) : (
-            <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="max-h-[70vh] overflow-y-auto">
               {currentPage === 0 ? (
                 <div className="bg-white rounded-lg p-6 relative font-sans">
                   <div className="flex justify-between items-start mb-6">
@@ -1049,20 +1042,19 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                     >
                       Back
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleGenerateContract}
+                      className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl text-sm"
+                    >
+                      Generate Contract
+                    </button>
                   </div>
                 </div>
               )}
             </div>
           )}
-          <div className="pt-4 border-t border-gray-800 mt-4">
-            <button
-              type="button"
-              onClick={handleGenerateContract}
-              className="w-full px-4 py-2 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              <FileText size={16} /> Generate Contract
-            </button>
-          </div>
+          {/* Removed the Generate Contract button from the footer */}
         </div>
       </div>
     </div>
