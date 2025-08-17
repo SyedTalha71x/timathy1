@@ -871,148 +871,158 @@ export default function Calendar({
 
   return (
     <>
-      <div className="h-full w-full">
+ <div className="h-full w-full">
         <div className="flex items-center justify-end mb-2 gap-2">
           <button
             onClick={generateFreeDates}
-            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-              }`}
+            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${
+              viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+            }`}
             aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
           >
             {viewMode === "all" ? "Free Slots" : "All Slots"}
           </button>
         </div>
-        <div className="max-w-full overflow-x-auto bg-black" style={{ WebkitOverflowScrolling: "touch" }}>
-          <div
-            className="min-w-[1200px] transition-all duration-300 ease-in-out"
-            style={{
-              transform: `scale(${calendarSize / 100})`,
-              transformOrigin: "top left",
-              width: `${12000 / calendarSize}%`,
+        <div className="w-full bg-black">
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            initialDate={selectedDate || "2025-02-03"}
+            headerToolbar={{
+              left: "prev,next dayGridMonth,timeGridWeek,timeGridDay",
+              center: "title",
+              right: "",
+              end: "today",
             }}
-          >
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="timeGridWeek"
-              initialDate={selectedDate || "2025-02-03"}
-              headerToolbar={{
-                left: "prev,next dayGridMonth,timeGridWeek,timeGridDay",
-                center: "title",
-                right: "",
-                end: "today",
-              }}
-              events={calendarEvents}
-              height={calendarHeight}
-              selectable={true}
-              editable={true}
-              eventDrop={handleEventDrop}
-              slotMinTime="08:00:00"
-              slotMaxTime="19:00:00"
-              allDaySlot={false}
-              nowIndicator={true}
-              slotDuration="00:30:00"
-              firstDay={1}
-              eventClick={handleEventClick}
-              eventResize={handleEventResize}
-              select={handleDateSelect}
-              viewDidMount={handleViewChange}
-              datesSet={handleViewChange}
-              dayMaxEvents={false}
-              eventMaxStack={10}
-              eventContent={(eventInfo) => (
+            events={calendarEvents}
+            height="700px" // INCREASED HEIGHT for 18:00 visibility
+            selectable={true}
+            editable={true}
+            eventDrop={handleEventDrop}
+            slotMinTime="08:00:00"
+            slotMaxTime="19:00:00" // EXTENDED to 19:00 for 18:00 visibility
+            allDaySlot={false}
+            nowIndicator={true}
+            slotDuration="00:30:00"
+            firstDay={1}
+            eventClick={handleEventClick}
+            eventResize={handleEventResize}
+            select={handleDateSelect}
+            viewDidMount={handleViewChange}
+            datesSet={handleViewChange}
+            dayMaxEvents={false}
+            eventMaxStack={10}
+            
+            // CUSTOM DAY HEADER FORMAT for full weekday names
+            dayHeaderFormat={{ weekday: 'long' }}
+            
+            // CUSTOM STYLING for current day highlight
+            dayCellClassNames={(date) => {
+              const today = new Date();
+              const cellDate = new Date(date.date);
+              
+              // Compare dates properly (ignoring time)
+              if (cellDate.toDateString() === today.toDateString()) {
+                return ['fc-day-today-custom'];
+              }
+              return [];
+            }}
+            
+            eventContent={(eventInfo) => (
+              <div
+                className={`p-1 h-full overflow-hidden transition-all duration-200 ${
+                  eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
+                } ${
+                  eventInfo.event.extendedProps.isCancelled 
+                    ? "cancelled-event-content cancelled-appointment-bg" 
+                    : ""
+                } ${
+                  eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                    ? "blocked-event-content blocked-appointment-bg"
+                    : ""
+                } ${
+                  eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                    ? "opacity-20"
+                    : ""
+                } ${
+                  eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                    ? "ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
+                    : ""
+                }`}
+              >
                 <div
-                  className={`p-1 h-full overflow-hidden transition-all duration-200 ${
-                    eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
-                  } ${
-                    eventInfo.event.extendedProps.isCancelled 
-                      ? "cancelled-event-content cancelled-appointment-bg" 
-                      : ""
-                  } ${
-                    eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
-                      ? "blocked-event-content blocked-appointment-bg"
-                      : ""
-                  } ${
-                    eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                      ? "opacity-20"
-                      : ""
-                  } ${
-                    eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
-                      ? "ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
+                  className={`font-semibold text-xs sm:text-sm truncate ${
+                    eventInfo.event.extendedProps.isPast
+                      ? "text-gray-500"
+                      : eventInfo.event.extendedProps.isCancelled
+                      ? "text-gray-300"
+                      : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                      ? "text-red-200"
+                      : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                      ? "text-gray-600"
+                      : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                      ? "text-white font-bold"
                       : ""
                   }`}
                 >
-                  <div
-                    className={`font-semibold text-xs sm:text-sm truncate ${
-                      eventInfo.event.extendedProps.isPast
-                        ? "text-gray-500"
-                        : eventInfo.event.extendedProps.isCancelled
-                        ? "text-gray-300"
-                        : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
-                        ? "text-red-200"
-                        : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                        ? "text-gray-600"
-                        : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
-                        ? "text-white font-bold"
-                        : ""
-                    }`}
-                  >
-                    {eventInfo.event.extendedProps.isCancelled
-                      ? `${eventInfo.event.title}`
-                      : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
-                      ? `🚫 ${eventInfo.event.title}`
-                      : eventInfo.event.extendedProps.isPast
-                      ? `${eventInfo.event.title}`
-                      : eventInfo.event.title}
-                  </div>
-                  <div
-                    className={`text-xs opacity-90 truncate ${
-                      eventInfo.event.extendedProps.isPast
-                        ? "text-gray-600"
-                        : eventInfo.event.extendedProps.isCancelled
-                        ? "text-gray-400"
-                        : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
-                        ? "text-red-300"
-                        : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                        ? "text-gray-600"
-                        : ""
-                    }`}
-                  >
-                    {eventInfo.event.extendedProps.type || "Available"}
-                  </div>
-                  <div className="text-xs mt-1">{eventInfo.timeText}</div>
+                  {eventInfo.event.extendedProps.isCancelled
+                    ? `${eventInfo.event.title}`
+                    : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                    ? `🚫 ${eventInfo.event.title}`
+                    : eventInfo.event.extendedProps.isPast
+                    ? `${eventInfo.event.title}`
+                    : eventInfo.event.title}
                 </div>
-              )}
-              
-              eventClassNames={(eventInfo) => {
-                const classes = []
-                if (eventInfo.event.extendedProps.isPast) {
-                  classes.push("past-event")
+                <div
+                  className={`text-xs opacity-90 truncate ${
+                    eventInfo.event.extendedProps.isPast
+                      ? "text-gray-600"
+                      : eventInfo.event.extendedProps.isCancelled
+                      ? "text-gray-400"
+                      : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                      ? "text-red-300"
+                      : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                      ? "text-gray-600"
+                      : ""
+                  }`}
+                >
+                  {eventInfo.event.extendedProps.type || "Available"}
+                </div>
+                <div className="text-xs mt-1">{eventInfo.timeText}</div>
+              </div>
+            )}
+            
+            eventClassNames={(eventInfo) => {
+              const classes = []
+              if (eventInfo.event.extendedProps.isPast) {
+                classes.push("past-event")
+              }
+              if (eventInfo.event.extendedProps.isCancelled) {
+                classes.push("cancelled-event")
+              }
+              if (eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked) {
+                classes.push("blocked-event")
+              }
+              if (eventInfo.event.extendedProps.isFree) {
+                classes.push("free-slot-event cursor-pointer")
+                if (eventInfo.event.extendedProps.viewMode === "free") {
+                  classes.push("prominent-free-slot")
                 }
-                if (eventInfo.event.extendedProps.isCancelled) {
-                  classes.push("cancelled-event")
-                }
-                if (eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked) {
-                  classes.push("blocked-event")
-                }
-                if (eventInfo.event.extendedProps.isFree) {
-                  classes.push("free-slot-event cursor-pointer")
-                  if (eventInfo.event.extendedProps.viewMode === "free") {
-                    classes.push("prominent-free-slot")
-                  }
-                }
-                return classes.join(" ")
-              }}
-            />
-          </div>
+              }
+              return classes.join(" ")
+            }}
+          />
         </div>
       </div>
+
       <style jsx>{`
         :global(.past-event) {
-          cursor: pointer !important; /* Allow clicking on past events */
+          cursor: pointer !important;
           opacity: 0.25 !important;
           filter: grayscale(0.8) brightness(0.6);
         }
+        
         :global(.cancelled-event) {
           background-image: linear-gradient(
             -45deg,
@@ -1028,17 +1038,36 @@ export default function Calendar({
           opacity: 0.6 !important;
           filter: grayscale(0.5);
           border-color: #777777 !important;
-          cursor: pointer !important; /* Allow clicking on cancelled events */
+          cursor: pointer !important;
         }
-:global(.cancelled-event-content) {
-  color: #bbbbbb !important;
-  background-color: #ffffff !important;
-}
+        
+        /* CURRENT DAY HIGHLIGHT - Orange bar only at top of column header */
+        :global(.fc-col-header-cell.fc-current-day-highlight) {
+          position: relative !important;
+        }
+        
+        :global(.fc-col-header-cell.fc-current-day-highlight::before) {
+          content: '' !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          height: 4px !important;
+          background-color: #FF843E !important; /* Orange bar */
+          z-index: 10 !important;
+        }
+        
+        :global(.cancelled-event-content) {
+          color: #bbbbbb !important;
+          background-color: #ffffff !important;
+        }
+        
         :global(.free-slot-event) {
           cursor: pointer !important;
           border-left: 3px solid #15803d !important;
           transition: all 0.3s ease;
         }
+        
         :global(.prominent-free-slot) {
           box-shadow: 0 0 20px rgba(34, 197, 94, 0.7) !important;
           border: 3px solid #22c55e !important;
@@ -1046,90 +1075,114 @@ export default function Calendar({
           z-index: 10;
           animation: pulse-green 2s infinite;
         }
+        
         @keyframes pulse-green {
-          0%,
-          100% {
+          0%, 100% {
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
           }
           50% {
             box-shadow: 0 0 30px rgba(34, 197, 94, 0.9);
           }
         }
+        
         :global(.fc-event-main) {
           transition: all 0.3s ease;
         }
+        
         :global(.fc-theme-standard) {
           background-color: #000000;
           color: #ffffff;
         }
+        
         :global(.fc-theme-standard .fc-scrollgrid) {
           border-color: #333333;
         }
+        
         :global(.fc-theme-standard td, .fc-theme-standard th) {
           border-color: #333333;
         }
+        
+        /* FULL DAY NAMES IN HEADERS */
         :global(.fc-col-header-cell) {
           background-color: #1a1a1a;
           color: #ffffff;
-          min-width: 180px !important;
-          width: 180px !important;
+          min-width: auto !important; /* Remove fixed width */
+          width: auto !important; /* Allow flexible width */
+          text-align: center;
+          font-weight: 600;
+          font-size: 14px;
         }
+        
+        /* FULL WIDTH COLUMNS */
         :global(.fc-timegrid-col) {
-          min-width: 180px !important;
-          width: 180px !important;
+          min-width: auto !important; /* Remove fixed width */
+          width: auto !important; /* Allow flexible width */
         }
+        
         :global(.fc-timegrid-slot) {
           background-color: #000000;
           border-color: #333333;
         }
+        
         :global(.fc-timegrid-slot-lane) {
           background-color: #000000;
         }
+        
         :global(.fc-timegrid-slot-minor) {
           border-color: #222222;
         }
+        
         :global(.fc-toolbar-title) {
           color: #ffffff;
         }
+        
         :global(.fc-button) {
           background-color: #333333 !important;
           border-color: #444444 !important;
           color: #ffffff !important;
         }
+        
         :global(.fc-button-active) {
           background-color: #555555 !important;
         }
+        
         :global(.fc-toolbar) {
           margin-bottom: 0 !important;
           padding: 0 !important;
           align-items: center !important;
           height: 40px !important;
         }
+        
         :global(.fc-toolbar-chunk) {
           display: flex !important;
           align-items: center !important;
           height: 40px !important;
         }
+        
         :global(.fc-button-group) {
           height: 36px !important;
           display: flex !important;
           align-items: center !important;
         }
+        
         :global(.fc-button) {
           height: 36px !important;
           padding: 8px 12px !important;
           font-size: 14px !important;
           line-height: 1 !important;
         }
+        
         :global(.fc-toolbar-title) {
           color: #ffffff;
           margin: 0 !important;
           line-height: 40px !important;
         }
+        
         :global(.fc-event) {
           margin: 1px !important;
           border-radius: 4px !important;
         }
+        
         :global(.fc-timegrid-event) {
           margin: 1px 2px !important;
         }

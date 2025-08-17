@@ -473,8 +473,8 @@ export default function Appointments() {
       min-h-screen rounded-3xl bg-[#1C1C1C] p-6
       transition-all duration-300 ease-in-out flex-1
       ${isRightSidebarOpen 
-        ? 'lg:mr-96 md:mr-96 sm:mr-96' // Adjust right margin when sidebar is open on larger screens
-        : 'mr-0' // No margin when closed
+        ? 'lg:mr-96 md:mr-96 sm:mr-96'
+        : 'mr-0'
       }
     `}>
       <main className="flex-1 min-w-0">
@@ -537,41 +537,46 @@ export default function Appointments() {
               </div>
             </div>
           </div>
+          
           <SidebarArea
-        isOpen={isRightSidebarOpen}
-        onClose={closeSidebar}
-        communications={communications}
-        todos={todos}
-        birthdays={birthdays}
-        customLinks={customLinks}
-        setCustomLinks={setCustomLinks}
-        redirectToCommunication={redirectToCommunication}
-        redirectToTodos={redirectToTodos}
-        toggleDropdown={toggleDropdown}
-        openDropdownIndex={openDropdownIndex}
-        setEditingLink={setEditingLink}
-      />
+            isOpen={isRightSidebarOpen}
+            onClose={closeSidebar}
+            communications={communications}
+            todos={todos}
+            birthdays={birthdays}
+            customLinks={customLinks}
+            setCustomLinks={setCustomLinks}
+            redirectToCommunication={redirectToCommunication}
+            redirectToTodos={redirectToTodos}
+            toggleDropdown={toggleDropdown}
+            openDropdownIndex={openDropdownIndex}
+            setEditingLink={setEditingLink}
+          />
 
-      {/* Overlay for mobile screens only */}
-      {isRightSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-          onClick={closeSidebar}
-        />
-      )}
+          {/* Overlay for mobile screens only */}
+          {isRightSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+              onClick={closeSidebar}
+            />
+          )}
+          
           <div className="flex lg:flex-row flex-col gap-6 relative">
+            {/* NARROWER SIDEBAR - Reduced width from lg:w-[40%] to lg:w-[25%] */}
             <div
               className={`transition-all duration-500 ease-in-out ${
                 isSidebarCollapsed
                   ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0"
-                  : "lg:w-[40%] lg:opacity-100"
+                  : "lg:w-[25%] lg:opacity-100" // REDUCED WIDTH HERE
               } w-full flex flex-col gap-6`}
             >
+              {/* NARROWER MINI CALENDAR */}
               <div className="">
                 <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
               </div>
+              
               <div className="w-full flex flex-col gap-4">
-                {/* FIXED: Search and Upcoming Appointments moved above filters */}
+                {/* NARROWER SEARCH */}
                 <div className="flex items-center gap-4">
                   <div className="relative w-full">
                     <input
@@ -585,19 +590,19 @@ export default function Appointments() {
                   </div>
                 </div>
 
-                {/* FIXED: Upcoming Appointments with collapsible functionality */}
+                {/* NARROWER UPCOMING APPOINTMENTS */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-white font-bold">Upcoming Appointments</h2>
+                    <h2 className="text-white font-bold text-sm">Upcoming Appointments</h2> {/* Reduced font size */}
                     <button
                       onClick={() => setIsUpcomingCollapsed(!isUpcomingCollapsed)}
                       className="text-gray-400 hover:text-white transition-colors"
                     >
-                      {isUpcomingCollapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+                      {isUpcomingCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />} {/* Reduced icon size */}
                     </button>
                   </div>
                   {!isUpcomingCollapsed && (
-                    <div className="space-y-3 custom-scrollbar overflow-y-auto max-h-[200px]">
+                    <div className="space-y-2 custom-scrollbar overflow-y-auto max-h-[180px]"> {/* Reduced spacing and height */}
                       {filteredAppointments.length > 0 ? (
                         filteredAppointments.map((appointment, index) => (
                           <div
@@ -608,15 +613,15 @@ export default function Appointments() {
                                 : appointment.isPast && !appointment.isCancelled
                                   ? "bg-gray-800 opacity-50"
                                   : appointment.color
-                            } rounded-xl cursor-pointer p-3 relative`}
+                            } rounded-xl cursor-pointer p-2 relative`} /* Reduced padding */
                             onClick={()=>{handleAppointmentOptionsModal(appointment)}}
                           >
-                            <div className="absolute p-2 top-0 left-0 z-10">
+                            <div className="absolute p-1 top-0 left-0 z-10"> {/* Reduced padding */}
                               {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                             </div>
                             <div className="flex flex-col items-center justify-between gap-2 cursor-pointer">
-                              <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
-                                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+                              <div className="flex items-center gap-2 ml-4 relative w-full justify-center"> {/* Reduced margin */}
+                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative"> {/* Reduced size */}
                                   <img
                                     src={Avatar || "/placeholder.svg"}
                                     alt=""
@@ -624,9 +629,9 @@ export default function Appointments() {
                                   />
                                 </div>
                                 <div className="text-white text-left">
-                                  <p className="font-semibold">{appointment.name}</p>
+                                  <p className="font-semibold text-sm">{appointment.name}</p> {/* Reduced font size */}
                                   <p className="text-xs flex gap-1 items-center opacity-80">
-                                    <Clock size={14} />
+                                    <Clock size={12} /> {/* Reduced icon size */}
                                     {appointment.time} | {appointment.date?.split("|")[0]}
                                   </p>
                                   <p className="text-xs opacity-80 mt-1">
@@ -645,7 +650,7 @@ export default function Appointments() {
                                   e.stopPropagation()
                                   handleCheckIn(appointment.id)
                                 }}
-                                className={`px-3 py-1 text-xs font-medium rounded-lg ${
+                                className={`px-2 py-1 text-xs font-medium rounded-lg ${
                                   appointment.isCheckedIn
                                     ? "border border-white/50 text-white bg-transparent"
                                     : "bg-black text-white"
@@ -657,14 +662,14 @@ export default function Appointments() {
                           </div>
                         ))
                       ) : (
-                        <p className="text-white text-center">No appointments scheduled for this date.</p>
+                        <p className="text-white text-center text-sm">No appointments scheduled for this date.</p>
                       )}
                     </div>
                   )}
                 </div>
 
-                {/* FIXED: Filter Section with collapsible functionality and lines between categories */}
-                <div className="bg-[#000000] rounded-xl p-4">
+                {/* NARROWER FILTER SECTION */}
+                <div className="bg-[#000000] rounded-xl p-3"> {/* Reduced padding */}
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-white font-semibold text-sm">Appointment Filters</h3>
                     <div className="flex items-center gap-2">
@@ -678,12 +683,12 @@ export default function Appointments() {
                         onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}
                         className="text-gray-400 hover:text-white transition-colors"
                       >
-                        {isFiltersCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                        {isFiltersCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />} {/* Reduced icon size */}
                       </button>
                     </div>
                   </div>
                   {!isFiltersCollapsed && (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5"> {/* Reduced spacing */}
                       {/* Appointment Types */}
                       {appointmentTypes.map((type) => (
                         <label key={type.name} className="flex items-center gap-2 cursor-pointer">
@@ -691,10 +696,10 @@ export default function Appointments() {
                             type="checkbox"
                             checked={appointmentFilters[type.name]}
                             onChange={() => handleFilterChange(type.name)}
-                            className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" /* Reduced size */
                           />
-                          <div className={`w-3 h-3 rounded-full ${type.color}`}></div>
-                          <span className="text-white text-sm">{type.name}</span>
+                          <div className={`w-2.5 h-2.5 rounded-full ${type.color}`}></div> {/* Reduced size */}
+                          <span className="text-white text-xs">{type.name}</span> {/* Reduced font size */}
                         </label>
                       ))}
                       {/* Trial Training */}
@@ -703,53 +708,47 @@ export default function Appointments() {
                           type="checkbox"
                           checked={appointmentFilters["Trial Training"]}
                           onChange={() => handleFilterChange("Trial Training")}
-                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                          className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                         />
-                        <div className="w-3 h-3 rounded-full bg-[#3F74FF]"></div>
-                        <span className="text-white text-sm">Trial Training</span>
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#3F74FF]"></div>
+                        <span className="text-white text-xs">Trial Training</span>
                       </label>
 
-                      {/* FIXED: Added line separator */}
-                      <div className="border-t border-gray-600 my-3"></div>
+                      <div className="border-t border-gray-600 my-2"></div> {/* Reduced margin */}
 
-                      {/* FIXED: Blocked Time Slots should be red */}
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={appointmentFilters["Blocked Time Slots"]}
                           onChange={() => handleFilterChange("Blocked Time Slots")}
-                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                          className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                         />
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span className="text-white text-sm">Blocked Time Slots</span>
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                        <span className="text-white text-xs">Blocked Time Slots</span>
                       </label>
 
-                      {/* FIXED: Added line separator */}
-                      <div className="border-t border-gray-600 my-3"></div>
+                      <div className="border-t border-gray-600 my-2"></div>
 
-                      {/* Cancelled Appointments */}
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={appointmentFilters["Cancelled Appointments"]}
                           onChange={() => handleFilterChange("Cancelled Appointments")}
-                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                          className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                         />
-                        <span className="text-white text-sm">Cancelled Appointments</span>
+                        <span className="text-white text-xs">Cancelled Appointments</span>
                       </label>
 
-                      {/* FIXED: Added line separator */}
-                      <div className="border-t border-gray-600 my-3"></div>
+                      <div className="border-t border-gray-600 my-2"></div>
 
-                      {/* Past Appointments */}
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={appointmentFilters["Past Appointments"]}
                           onChange={() => handleFilterChange("Past Appointments")}
-                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                          className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                         />
-                        <span className="text-white text-sm">Past Appointments</span>
+                        <span className="text-white text-xs">Past Appointments</span>
                       </label>
                     </div>
                   )}
@@ -757,8 +756,8 @@ export default function Appointments() {
               </div>
             </div>
             <div
-              className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${
-                isSidebarCollapsed ? "lg:w-full" : ""
+              className={`w-full bg-[#000000] rounded-xl  p-4 overflow-hidden transition-all duration-500 ${
+                isSidebarCollapsed ? "lg:w-full" : "lg:w-[75%]" // INCREASED WIDTH HERE
               }`}
             >
               <Calendar
