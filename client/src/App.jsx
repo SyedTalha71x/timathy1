@@ -39,13 +39,19 @@ import AdminTodo from './dashboard-pages/customer-dashboard-pages/todo'
 import AdminConfiguration from './dashboard-pages/customer-dashboard-pages/configuration'
 import AdminFinance from './dashboard-pages/customer-dashboard-pages/finance'
 import AdminContracts from './dashboard-pages/customer-dashboard-pages/contract'
-import AdminStudioMenu from './dashboard-pages/customer-dashboard-pages/studio-menu'
-import AdminAppointment from './dashboard-pages/customer-dashboard-pages/appointment'
-import AdminCommuncation from './dashboard-pages/customer-dashboard-pages/communication'
+
+
+// Member View  
+import MemberAppointments from './dashboard-pages/member-view/appointment'
+import MemberCommuncation from './dashboard-pages/member-view/communication'
+import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
+import MemberSettings from './dashboard-pages/member-view/configuration'
+import MemberViewLayout from "./layouts/member-view-layout";
+import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 
 function App() {
   const location = useLocation();
-  const isAuthOrDashboardPage = ["/login", "/register", "/profile"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard");
+  const isAuthOrDashboardPage = ["/login", "/register", "/profile"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
 
   return (
     <>
@@ -93,9 +99,15 @@ function App() {
           <Route path="leads" element={<AdminLeads />} />
           <Route path="finances" element={<AdminFinance />} />
           <Route path="studios" element={<Studios />} />
-          <Route path="studio-menu" element={<AdminStudioMenu />} />
-          <Route path="appointment" element={<AdminAppointment />} />
-          <Route path="communication" element={<AdminCommuncation />} />
+        </Route>
+
+        <Route path="/member-view" element={<MemberViewLayout />}>
+          <Route path="appointment" element={<MemberAppointments />} />
+          <Route path="communication" element={<MemberCommuncation />} />
+          <Route path="studio-menu" element={<MemberStudioMenu />} />
+          <Route path="settings" element={<MemberSettings />} />
+          <Route path="edit-profile" element={<MemberViewProfile />} />
+         
         </Route>
       </Routes>
       {!isAuthOrDashboardPage && <Footer />}

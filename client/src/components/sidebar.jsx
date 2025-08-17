@@ -114,11 +114,6 @@ const Sidebar = () => {
     { icon: MessageCircle, label: "Communication", to: "/dashboard/communication" },
     { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
     { icon: Users, label: "Members", to: "/dashboard/members" },
-    {
-      icon: SiYoutubestudio,
-      label: "Studio Menu",
-      to: "/dashboard/studio-menu",
-    },
     { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
     { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
     { icon: RiContractLine, label: "Contracts", to: "/dashboard/contract" },

@@ -23,6 +23,15 @@ export default function SignInPage() {
     password: "",
   })
 
+  const [memberFormData, setMemberFormData] = useState({
+    email: "",
+    password: "",
+  })
+  
+  const redirectMember = () => {
+    window.location.href = "/member-view/studio-menu"
+  }
+
   const handleUserSubmit = (e) => {
     e.preventDefault()
     // Handle user login logic
@@ -43,36 +52,46 @@ export default function SignInPage() {
 
   const switchTab = (type) => {
     if (type === loginType) return;
-
+  
     const formContainer = formContainerRef.current;
-        gsap.to(formContainer, {
+    gsap.to(formContainer, {
       opacity: 0,
       y: 10,
       duration: 0.3,
       onComplete: () => {
         setLoginType(type);
-        
+  
         if (type === "user") {
           gsap.to(tabAnimationRef.current, {
-            left: 0,
+            left: "0%",
             backgroundColor: "#3F74FF",
             duration: 0.4,
             ease: "power2.inOut"
           });
-          gsap.to(userTabRef.current, { color: "white", duration: 0.3 });
-          gsap.to(adminTabRef.current, { color: "#9CA3AF", duration: 0.3 });
-        } else {
+          gsap.to(userTabRef.current, { color: "white" });
+          gsap.to(adminTabRef.current, { color: "#9CA3AF" });
+        } 
+        else if (type === "admin") {
           gsap.to(tabAnimationRef.current, {
-            left: "50%",
+            left: "33.33%",
             backgroundColor: "#FF3F3F",
             duration: 0.4,
             ease: "power2.inOut"
           });
-          gsap.to(adminTabRef.current, { color: "white", duration: 0.3 });
-          gsap.to(userTabRef.current, { color: "#9CA3AF", duration: 0.3 });
+          gsap.to(adminTabRef.current, { color: "white" });
+          gsap.to(userTabRef.current, { color: "#9CA3AF" });
+        } 
+        else if (type === "member") {
+          gsap.to(tabAnimationRef.current, {
+            left: "66.66%",
+            backgroundColor: "#22C55E", // green
+            duration: 0.4,
+            ease: "power2.inOut"
+          });
+          gsap.to(userTabRef.current, { color: "#9CA3AF" });
+          gsap.to(adminTabRef.current, { color: "#9CA3AF" });
         }
-        
-        // Fade in new form
+  
         gsap.fromTo(
           formContainer,
           { opacity: 0, y: -10 },
@@ -81,25 +100,25 @@ export default function SignInPage() {
       }
     });
   };
+  
 
   // Initialize the animation indicator on mount
   useEffect(() => {
-    const userTab = userTabRef.current;
-    const initialLeft = loginType === "user" ? 0 : "50%";
-    const initialColor = loginType === "user" ? "#3F74FF" : "#FF3F3F";
-    
+    const initialLeft = 
+      loginType === "user" ? "0%" : 
+      loginType === "admin" ? "33.33%" : "66.66%";
+  
+    const initialColor = 
+      loginType === "user" ? "#3F74FF" : 
+      loginType === "admin" ? "#FF3F3F" : "#22C55E";
+  
     gsap.set(tabAnimationRef.current, {
       left: initialLeft,
-      backgroundColor: initialColor
+      backgroundColor: initialColor,
+      width: "33.33%"
     });
-
-    gsap.fromTo(
-      formContainerRef.current,
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.2, ease: "power2.out" }
-    );
   }, []);
-
+  
   return (
     <div className="h-screen bg-[#0E0E0E] overflow-hidden flex justify-center items-center p-8">
       <div className="flex h-full w-full lg:p-10 md:p-8 sm:p-0 p-0 flex-col lg:flex-row items-center justify-center">
@@ -115,29 +134,38 @@ export default function SignInPage() {
             </p>
 
             {/* Login Type Toggle with Animation */}
-            <div className="relative mb-6 rounded-xl overflow-hidden bg-[#181818]">
-              {/* Animated tab indicator */}
-              <div 
-                ref={tabAnimationRef}
-                className="absolute top-0 bottom-0 w-1/2 z-0 transition-all rounded-xl"
-              ></div>
-              
-              {/* Tab buttons */}
-              <button
-                ref={userTabRef}
-                className="relative z-10 text-sm flex-1 w-1/2 py-2 text-white"
-                onClick={() => switchTab("user")}
-              >
-                User/Customer Login
-              </button>
-              <button
-                ref={adminTabRef}
-                className="relative z-10 text-sm flex-1 w-1/2 py-2 text-gray-400"
-                onClick={() => switchTab("admin")}
-              >
-                Admin Login
-              </button>
-            </div>
+            <div className="relative mb-6 rounded-xl overflow-hidden bg-[#181818] flex">
+  {/* Animated tab indicator */}
+  <div 
+    ref={tabAnimationRef}
+    className="absolute top-0 bottom-0 w-1/3 z-0 transition-all rounded-xl"
+  ></div>
+
+  <button
+    ref={userTabRef}
+    className="relative z-10 text-sm flex-1 py-2 text-white"
+    onClick={() => switchTab("user")}
+  >
+    User/Customer Login
+  </button>
+
+  <button
+    ref={adminTabRef}
+    className="relative z-10 text-sm flex-1 py-2 text-gray-400"
+    onClick={() => switchTab("admin")}
+  >
+    Admin Login
+  </button>
+
+  <button
+    className="relative z-10 text-sm flex-1 py-2 text-gray-500"
+    onClick={() => switchTab("member")}
+  >
+    Member Login
+  </button>
+</div>
+
+
 
             {/* Form Container with Animation */}
             <div ref={formContainerRef}>
@@ -223,6 +251,42 @@ export default function SignInPage() {
                   </button>
                 </form>
               )}
+
+{loginType === "member" && (
+  <form onSubmit={(e) => { e.preventDefault(); redirectMember(); }} className="space-y-4">
+    <div>
+      <input
+        type="email"
+        placeholder="Member Email"
+        className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
+        value={memberFormData.email}
+        onChange={(e) => setMemberFormData({ ...memberFormData, email: e.target.value })}
+      />
+    </div>
+    <div>
+      <input
+        type="password"
+        placeholder="Password"
+        className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none"
+        value={memberFormData.password}
+        onChange={(e) => setMemberFormData({ ...memberFormData, password: e.target.value })}
+      />
+    </div>
+    <div className="text-right">
+      <a href="#" className="text-sm text-gray-400 hover:text-white">
+        Forgot Password?
+      </a>
+    </div>
+
+    <button
+      type="submit"
+      className="w-full rounded-xl login_btn cursor-pointer bg-green-600 px-4 py-3 text-white hover:bg-green-700 transition-all duration-500 ease-in-out"
+    >
+      Member Sign In
+    </button>
+  </form>
+)}
+
             </div>
           </div>
         </div>
