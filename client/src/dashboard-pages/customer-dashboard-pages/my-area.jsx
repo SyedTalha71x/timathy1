@@ -168,7 +168,7 @@ export default function MyArea() {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
   const [freeAppointments, setFreeAppointments] = useState([])
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
-  const redirectToTodos = () => navigate("/customer-dashboard/to-do")
+  const redirectToTodos = () => navigate("/admin-dashboard/to-do")
   const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   const toggleEditing = () => setIsEditing(!isEditing)
   const [activeNoteId, setActiveNoteId] = useState(null)
@@ -744,7 +744,7 @@ export default function MyArea() {
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
                           <div className="grid grid-cols-1 gap-3">
                             {expiringContracts.map((contract) => (
-                              <Link to={"/customer-dashboard/contract"} key={contract.id}>
+                              <Link to={"/admin-dashboard/contract"} key={contract.id}>
                                 <div className="p-4 bg-black rounded-xl">
                                   <div className="flex justify-between items-start">
                                     <div>
@@ -858,7 +858,7 @@ export default function MyArea() {
                     ))}
 
                     <Link
-                      to={"/customer-dashboard/to-do"}
+                      to={"/admin-dashboard/to-do"}
                       className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
                     >
                       See all

@@ -38,7 +38,7 @@ export default function SignInPage() {
   }
 
   const redirectAdmin = () => {
-    window.location.href = "/customer-dashboard/my-area"
+    window.location.href = "/admin-dashboard/my-area"
   }
 
   const switchTab = (type) => {

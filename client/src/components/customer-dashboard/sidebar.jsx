@@ -94,7 +94,7 @@ const CustomerSidebar = () => {
 
   const handleEditProfile = () => {
     setIsDropdownOpen(false);
-    window.location.href = "/customer-dashboard/edit-profile";
+    window.location.href = "/admin-dashboard/edit-profile";
   };
 
   const handleLogout = () => {
@@ -103,7 +103,7 @@ const CustomerSidebar = () => {
   };
 
   const menuItems = [
-    { icon: Home, label: "My Area", to: "/customer-dashboard/my-area" },
+    { icon: Home, label: "My Area", to: "/admin-dashboard/my-area" },
     // {
     //   icon: Calendar,
     //   label: "Appointments",
@@ -114,13 +114,13 @@ const CustomerSidebar = () => {
     //   label: "Communication",
     //   to: "/dashboard/communication",
     // },
-    { icon: CheckSquare, label: "To-Do", to: "/customer-dashboard/to-do" },
-    { icon: Users, label: "Studios", to: "/customer-dashboard/studios" },
+    { icon: CheckSquare, label: "To-Do", to: "/admin-dashboard/to-do" },
+    { icon: Users, label: "Studios", to: "/admin-dashboard/studios" },
     // { icon: Users, label: "Staff", to: "/dashboard/staff" },
     {
       icon: RiContractLine,
       label: "Contract",
-      to: "/customer-dashboard/contract",
+      to: "/admin-dashboard/contract",
     },
     // {
     //   icon: CheckSquare,
@@ -130,7 +130,7 @@ const CustomerSidebar = () => {
     {
       icon: MdOutlineLeaderboard,
       label: "Leads",
-      to: "/customer-dashboard/leads",
+      to: "/admin-dashboard/leads",
     },
     // {
     //   icon: ShoppingCart,
@@ -140,24 +140,24 @@ const CustomerSidebar = () => {
     {
       icon: RiStockFill,
       label: "Finances",
-      to: "/customer-dashboard/finances",
+      to: "/admin-dashboard/finances",
     },
-    // { icon: MessageCircle, label: "Communication", to: "/customer-dashboard/communication" },
+    // { icon: MessageCircle, label: "Communication", to: "/admin-dashboard/communication" },
 
     // {
     //   icon: SiYoutubestudio,
     //   label: "Studio Menu",
-    //   to: "/customer-dashboard/studio-menu",
+    //   to: "/admin-dashboard/studio-menu",
     // },
     // {
     //   icon: Calendar,
     //   label: "Appointments",
-    //   to: "/customer-dashboard/appointment",
+    //   to: "/admin-dashboard/appointment",
     // },
     {
       icon: Settings,
       label: "Configuration",
-      to: "/customer-dashboard/configuration",
+      to: "/admin-dashboard/configuration",
     },
   ];
 

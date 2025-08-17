@@ -2,7 +2,9 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from '../components/customer-dashboard/sidebar'
-const CustomerDashboardlayout = () => {
+
+
+const AdminDashboardLayout = () => {
   return (
     <div className="bg-[#111111] min-h-screen">
       <div className="flex flex-col md:flex-row h-full">
@@ -15,4 +17,4 @@ const CustomerDashboardlayout = () => {
   );
 };
 
-export default CustomerDashboardlayout;
+export default AdminDashboardLayout;

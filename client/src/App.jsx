@@ -30,22 +30,22 @@ import MarketPlace from './dashboard-pages/market-place'
 import StudioMenu from './dashboard-pages/studio-menu'
 
 
-// Customer Dashboard
-import CustomerDashboardlayout from "./layouts/customer-dashboard-layout";
-import CustomerMyArea from './dashboard-pages/customer-dashboard-pages/my-area'
+// Admin Dashboard
+import AdminDashboardLayout from './layouts/admin-dashboard-layout'
+import AdminMyArea from './dashboard-pages/customer-dashboard-pages/my-area'
 import Studios from "./dashboard-pages/customer-dashboard-pages/studios";
-import CustomerLeads from './dashboard-pages/customer-dashboard-pages/leads'
-import CustomerTodo from './dashboard-pages/customer-dashboard-pages/todo'
-import CustomerConfiguration from './dashboard-pages/customer-dashboard-pages/configuration'
-import CustomerFinance from './dashboard-pages/customer-dashboard-pages/finance'
-import CustomerContracts from './dashboard-pages/customer-dashboard-pages/contract'
-import CustomerStudioMenu from './dashboard-pages/customer-dashboard-pages/studio-menu'
-import CustomerAppointment from './dashboard-pages/customer-dashboard-pages/appointment'
-import CustomerCommuncation from './dashboard-pages/customer-dashboard-pages/communication'
+import AdminLeads from './dashboard-pages/customer-dashboard-pages/leads'
+import AdminTodo from './dashboard-pages/customer-dashboard-pages/todo'
+import AdminConfiguration from './dashboard-pages/customer-dashboard-pages/configuration'
+import AdminFinance from './dashboard-pages/customer-dashboard-pages/finance'
+import AdminContracts from './dashboard-pages/customer-dashboard-pages/contract'
+import AdminStudioMenu from './dashboard-pages/customer-dashboard-pages/studio-menu'
+import AdminAppointment from './dashboard-pages/customer-dashboard-pages/appointment'
+import AdminCommuncation from './dashboard-pages/customer-dashboard-pages/communication'
 
 function App() {
   const location = useLocation();
-  const isAuthOrDashboardPage = ["/login", "/register", "/profile"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/customer-dashboard");
+  const isAuthOrDashboardPage = ["/login", "/register", "/profile"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard");
 
   return (
     <>
@@ -76,7 +76,7 @@ function App() {
           <Route path="training" element={<Training />} />
           <Route path="activity-monitor" element={<ActivityMonitor />} />
           <Route path="analytics" element={<Analytics />} />
-                    <Route path="help-center" element={<HelpCenter />} />
+          <Route path="help-center" element={<HelpCenter />} />
           <Route path="market-place" element={<MarketPlace />} />
           <Route path="studio-menu" element={<StudioMenu />} />
 
@@ -84,18 +84,18 @@ function App() {
 
         </Route>
 
-        <Route path="/customer-dashboard" element={<CustomerDashboardlayout />}>
-          <Route path="my-area" element={<CustomerMyArea />} />
+        <Route path="/admin-dashboard" element={<AdminDashboardLayout />}>
+          <Route path="my-area" element={<AdminMyArea />} />
           <Route path="edit-profile" element={<ProfileDashboard />} />
-          <Route path="to-do" element={<CustomerTodo />} />
-          <Route path="contract" element={<CustomerContracts />} />
-          <Route path="configuration" element={<CustomerConfiguration />} />
-          <Route path="leads" element={<CustomerLeads />} />
-          <Route path="finances" element={<CustomerFinance />} />
-          <Route path="studios" element={<Studios />} />  
-          <Route path="studio-menu" element={<CustomerStudioMenu />} />
-          <Route path="appointment" element={<CustomerAppointment />} />
-          <Route path="communication" element={<CustomerCommuncation />} />
+          <Route path="to-do" element={<AdminTodo />} />
+          <Route path="contract" element={<AdminContracts />} />
+          <Route path="configuration" element={<AdminConfiguration />} />
+          <Route path="leads" element={<AdminLeads />} />
+          <Route path="finances" element={<AdminFinance />} />
+          <Route path="studios" element={<Studios />} />
+          <Route path="studio-menu" element={<AdminStudioMenu />} />
+          <Route path="appointment" element={<AdminAppointment />} />
+          <Route path="communication" element={<AdminCommuncation />} />
         </Route>
       </Routes>
       {!isAuthOrDashboardPage && <Footer />}
