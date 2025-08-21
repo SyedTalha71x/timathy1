@@ -106,7 +106,7 @@ const MemberViewSidebar = () => {
   const menuItems = [
     {
       icon: SiYoutubestudio,
-      label: "Studio Menu",
+      label: "Studio",
       to: "/member-view/studio-menu",
     },
     { icon: MessageCircle, label: "Communication", to: "/member-view/communication" },
