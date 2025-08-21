@@ -466,47 +466,63 @@ const Appointments = () => {
               </div>
 
               <div className="mb-8">
-                <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700">
-                  <div className="relative">
-                    <img
-                      src={selectedService?.image || "/placeholder.svg"}
-                      alt={selectedService?.name}
-                      className="w-full h-32 md:h-48 object-cover"
-                      onError={(e) => {
-                        e.target.src = `https://via.placeholder.com/400x200/4f46e5/ffffff?text=${encodeURIComponent(selectedService?.name || "Service")}`
-                      }}
-                    />
-                    <div className="absolute top-3 right-3 group/tooltip relative">
-                      <div className="bg-orange-500/90 backdrop-blur-sm text-white p-2 rounded-full">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V19H19V9Z" />
-                        </svg>
-                      </div>
-                      <div className="absolute z-[9999] top-full right-0 mt-2 bg-gray-900 text-white text-sm rounded-lg p-3 opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none w-64 border border-gray-700 shadow-xl">
-                        {selectedService?.description}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 md:p-6">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                      <div className="flex-1">
-                        <h2 className="text-xl md:text-2xl font-bold text-white mb-2">{selectedService?.name}</h2>
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <div className="flex items-center gap-2 text-gray-300">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z" />
-                            </svg>
-                            <span>{selectedService?.duration}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-gray-400">{selectedService?.category}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+  <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700">
+    <div className="relative">
+      <img
+        src={selectedService?.image || "/placeholder.svg"}
+        alt={selectedService?.name}
+        className="w-full h-32 md:h-48 object-cover"
+        onError={(e) => {
+          e.target.src = `https://via.placeholder.com/400x200/4f46e5/ffffff?text=${encodeURIComponent(
+            selectedService?.name || "Service"
+          )}`;
+        }}
+      />
+
+      {/* Comment Icon Top Right */}
+      <div className="absolute top-3 right-3 group/tooltip">
+        <div className="bg-orange-500/90 backdrop-blur-sm text-white p-2 rounded-full shadow-md">
+          <svg
+            className="w-5 h-5"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V19H19V9Z" />
+          </svg>
+        </div>
+
+        {/* Tooltip */}
+        <div className="absolute z-[9999] top-full right-0 mt-2 bg-gray-900 text-white text-sm rounded-lg p-3 opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 w-64 border border-gray-700 shadow-xl">
+          {selectedService?.description || "No description available"}
+        </div>
+      </div>
+    </div>
+
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+        <div className="flex-1">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
+            {selectedService?.name}
+          </h2>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex items-center gap-2 text-gray-300">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z" />
+              </svg>
+              <span>{selectedService?.duration}</span>
+            </div>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-sm text-gray-400">
+            {selectedService?.category}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
               <div className="mb-6">
                 <div className="flex items-center gap-3 text-lg font-medium text-white bg-gray-800 px-4 py-3 rounded-lg border border-gray-600">
