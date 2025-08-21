@@ -20,6 +20,7 @@ import {
 import { RiContractLine, RiStockFill } from "react-icons/ri";
 import { MdOutlineLeaderboard } from "react-icons/md";
 import { SiYoutubestudio } from "react-icons/si";
+import { CgGym } from "react-icons/cg";
 
 
 const MemberViewSidebar = () => {
@@ -103,18 +104,23 @@ const MemberViewSidebar = () => {
   };
 
   const menuItems = [
-    { icon: MessageCircle, label: "Communication", to: "/member-view/communication" },
-
     {
       icon: SiYoutubestudio,
       label: "Studio Menu",
       to: "/member-view/studio-menu",
     },
+    { icon: MessageCircle, label: "Communication", to: "/member-view/communication" },
+
+   
     {
       icon: Calendar,
       label: "Appointments",
       to: "/member-view/appointment",
     },
+     {
+          icon: CgGym
+          , label: "Training", to: "/member-view/training"
+        },
     {
       icon: Settings,
       label: "Settings",
@@ -142,49 +148,7 @@ const MemberViewSidebar = () => {
           </button>
           <span className="text-white font-semibold"></span>
         </div>
-        <div className="flex gap-2 items-center">
-          <div className="mr-1">
-            <Bell
-              onClick={toggleRightSidebar}
-              className="text-white cursor-pointer"
-            />
-          </div>
-          <div
-            onClick={toggleDropdown}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <img
-              src="/girl.png"
-              alt="Profile"
-              className="w-8 h-8 rounded-full"
-            />
-          </div>
-          {isDropdownOpen && (
-            <div className="absolute right-5 top-8 w-36 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
-              <div
-                className="py-2"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="options-menu"
-              >
-                <button
-                  onClick={handleEditProfile}
-                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                  role="menuitem"
-                >
-                  Edit Profile
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                  role="menuitem"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+      
       </div>
 
       {/* Sidebar */}
@@ -218,57 +182,10 @@ const MemberViewSidebar = () => {
 
         {/* Profile Section */}
         <div className="flex flex-col h-full overflow-y-auto mt-5">
-          <div className="p-4 hidden md:block">
-            <div className={`flex ${isCollapsed ? "justify-center" : "flex-col text-center"} justify-center items-center gap-3`}>
-              <div className="relative cursor-pointer">
-                <img
-                  onClick={isCollapsed ? null : toggleDropdown}
-                  src="/girl.png"
-                  alt="Profile"
-                  className={`rounded-2xl ${isCollapsed ? "w-10 h-10" : "h-full w-full"}`}
-                />
-                <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 border-2 border-zinc-800 rounded-full"></span>
-              </div>
-
-              {isDropdownOpen && !isCollapsed && (
-                <div className="absolute right-14 top-34 w-36 bg-[#222222]/40 backdrop-blur-3xl rounded-lg shadow-lg z-50">
-                  <div
-                    className="py-2"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="options-menu"
-                  >
-                    <button
-                      onClick={handleEditProfile}
-                      className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                      role="menuitem"
-                    >
-                      Edit Profile
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                      role="menuitem"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {!isCollapsed && (
-                <div className="flex flex-col gap-0.5">
-                  <h2 className="open_sans_font_700 text-white">Samantha</h2>
-                  <p className="text-sm open_sans_font text-zinc-400">
-                    Administrator
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+        
 
           {/* Navigation Menu */}
-          <nav className="flex-1 overflow-y-auto custom-scrollbar">
+          <nav className="flex-1 overflow-y-auto mt-20 custom-scrollbar">
             <ul className="space-y-2 p-4">
               {menuItems.map((item) => (
                 <li key={item.label}>
@@ -296,11 +213,6 @@ const MemberViewSidebar = () => {
                           }
                         `}
                       />
-                      {isCollapsed && (
-                        <span className="absolute left-full ml-2 whitespace-nowrap bg-[#222222] text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 pointer-events-none">
-                          {item.label}
-                        </span>
-                      )}
                     </div>
                     {!isCollapsed && <span className="text-md">{item.label}</span>}
                   </button>

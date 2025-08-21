@@ -48,6 +48,7 @@ import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
 import MemberSettings from './dashboard-pages/member-view/configuration'
 import MemberViewLayout from "./layouts/member-view-layout";
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
+import MemberTraining from './dashboard-pages/member-view/training'
 
 function App() {
   const location = useLocation();
@@ -107,6 +108,7 @@ function App() {
           <Route path="studio-menu" element={<MemberStudioMenu />} />
           <Route path="settings" element={<MemberSettings />} />
           <Route path="edit-profile" element={<MemberViewProfile />} />
+          <Route path="training" element={<MemberTraining />} />
          
         </Route>
       </Routes>

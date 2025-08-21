@@ -1,22 +1,9 @@
+"use client"
+
 /* eslint-disable react/no-unknown-property */
 import { useState } from "react"
-import {
-  Input,
-  Button,
-  notification,
-  Switch,
-  Tabs,
-  Collapse,
-  Divider,
-  InputNumber,
-} from "antd"
-import {
-  SaveOutlined,
-  EyeInvisibleOutlined,
-  EyeTwoTone,
-  MessageOutlined,
-  ClockCircleOutlined,
-} from "@ant-design/icons"
+import { Input, Button, notification, Tabs, Collapse, InputNumber, Switch } from "antd"
+import { SaveOutlined, EyeInvisibleOutlined, EyeTwoTone, ClockCircleOutlined } from "@ant-design/icons"
 
 const { TabPane } = Tabs
 const { TextArea } = Input
@@ -31,8 +18,8 @@ const inputStyle = {
   outline: "none",
 }
 
-const saveButtonStyle = {
-  backgroundColor: "#FF843E",
+const requestButtonStyle = {
+  backgroundColor: "#E67E22", // darker orange
   border: "1px solid #303030",
   color: "#fff",
   padding: "8px 16px",
@@ -42,27 +29,17 @@ const saveButtonStyle = {
   outline: "none",
   fontSize: "14px",
   fontWeight: "500",
+  marginLeft: "10px",
 }
 
 const SettingsPage = () => {
-  // Account settings
   const [accountSettings, setAccountSettings] = useState({
-    contactData: {
-      companyName: "My Studio",
-      address: "123 Main Street, City, State 12345",
-      phone: "+1 (555) 123-4567",
-      email: "contact@mystudio.com",
-      website: "https://www.mystudio.com",
-    },
-    accountLogin: {
-      email: "admin@mystudio.com",
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    },
+    newEmail: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   })
 
-  // Notification settings
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: {
       newBookings: true,
@@ -93,7 +70,6 @@ const SettingsPage = () => {
     },
   })
 
-  // General settings
   const [generalSettings, setGeneralSettings] = useState({
     imprint: `Company Name: My Studio
 Address: 123 Main Street, City, State 12345
@@ -128,22 +104,45 @@ If you have any questions about this privacy policy, please contact us at privac
 Last updated: January 2025`,
   })
 
-  const handleUpdateContactData = (field, value) => {
-    setAccountSettings({
-      ...accountSettings,
-      contactData: { ...accountSettings.contactData, [field]: value },
-    })
-  }
-
   const handleUpdateAccountLogin = (field, value) => {
     setAccountSettings({
       ...accountSettings,
-      accountLogin: { ...accountSettings.accountLogin, [field]: value },
+      [field]: value,
     })
   }
 
-  const handleChangePassword = () => {
-    const { currentPassword, newPassword, confirmPassword } = accountSettings.accountLogin
+  const handleRequestEmailChange = () => {
+    if (!accountSettings.newEmail) {
+      notification.error({
+        message: "Missing Email",
+        description: "Please enter a new email address.",
+      })
+      return
+    }
+
+    if (!accountSettings.currentPassword) {
+      notification.error({
+        message: "Password Required",
+        description: "Please enter your current password to confirm the change.",
+      })
+      return
+    }
+
+    notification.success({
+      message: "Email Change Requested",
+      description:
+        "A confirmation email has been sent to your new email address. Please check your inbox and follow the instructions to complete the change.",
+    })
+
+    setAccountSettings({
+      ...accountSettings,
+      newEmail: "",
+      currentPassword: "",
+    })
+  }
+
+  const handleRequestPasswordChange = () => {
+    const { currentPassword, newPassword, confirmPassword } = accountSettings
 
     if (!currentPassword || !newPassword || !confirmPassword) {
       notification.error({
@@ -170,25 +169,27 @@ Last updated: January 2025`,
     }
 
     notification.success({
-      message: "Password Changed",
-      description: "Your password has been successfully updated.",
+      message: "Password Change Requested",
+      description:
+        "A confirmation email has been sent to your email address. Please check your inbox and follow the instructions to complete the password change.",
     })
 
     setAccountSettings({
       ...accountSettings,
-      accountLogin: {
-        ...accountSettings.accountLogin,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      },
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
     })
   }
 
-  const handleUpdateNotificationSettings = (category, field, value) => {
-    setNotificationSettings({
-      ...notificationSettings,
-      [category]: { ...notificationSettings[category], [field]: value },
+  const handleUpdateGeneralSettings = (field, value) => {
+    setGeneralSettings({ ...generalSettings, [field]: value })
+  }
+
+  const handleSaveSettings = () => {
+    notification.success({
+      message: "Settings Saved",
+      description: "Your settings have been successfully updated.",
     })
   }
 
@@ -205,148 +206,100 @@ Last updated: January 2025`,
     })
   }
 
-  const handleUpdateGeneralSettings = (field, value) => {
-    setGeneralSettings({ ...generalSettings, [field]: value })
-  }
-
-  const handleSaveSettings = () => {
-    notification.success({ 
-      message: "Settings Saved", 
-      description: "Your settings have been successfully updated." 
-    })
-  }
-
   return (
     <div className="w-full mx-auto lg:p-10 p-5 rounded-3xl space-y-8 bg-[#181818] min-h-screen text-white">
-      <h1 className="lg:text-3xl text-2xl font-bold">Settings</h1>
+      <h1 className="text-white oxanium_font text-xl md:text-2xl">Settings</h1>
 
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>
-        {/* Account Settings Tab */}
-        <TabPane tab={
-          <span className="flex items-center gap-2">
-            Account
-          </span>
-        } key="1">
+        <TabPane tab={<span className="flex items-center gap-2">Account</span>} key="1">
           <Collapse defaultActiveKey={["1", "2"]} className="bg-[#181818] border-[#303030]">
-            <Panel header="Contact Details" key="1" className="bg-[#202020]">
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-white mb-2">Company Name</label>
-                    <Input
-                      value={accountSettings.contactData.companyName}
-                      onChange={(e) => handleUpdateContactData("companyName", e.target.value)}
-                      style={inputStyle}
-                      placeholder="Your Company Name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white mb-2">Address</label>
-                    <TextArea
-                      value={accountSettings.contactData.address}
-                      onChange={(e) => handleUpdateContactData("address", e.target.value)}
-                      rows={3}
-                      style={inputStyle}
-                      placeholder="Company Address"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white mb-2">Phone</label>
-                    <Input
-                      value={accountSettings.contactData.phone}
-                      onChange={(e) => handleUpdateContactData("phone", e.target.value)}
-                      style={inputStyle}
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white mb-2">Email</label>
-                    <Input
-                      value={accountSettings.contactData.email}
-                      onChange={(e) => handleUpdateContactData("email", e.target.value)}
-                      style={inputStyle}
-                      placeholder="contact@company.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white mb-2">Website</label>
-                    <Input
-                      value={accountSettings.contactData.website}
-                      onChange={(e) => handleUpdateContactData("website", e.target.value)}
-                      style={inputStyle}
-                      placeholder="https://www.company.com"
-                    />
-                  </div>
-                </div>
-              </div>
-            </Panel>
-
-            <Panel header="Account Management" key="2" className="bg-[#202020]">
+            <Panel header="Change Email Address" key="1" className="bg-[#202020]">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-white mb-2">Account Email</label>
+                  <label className="block text-white mb-2">New Email Address</label>
                   <Input
-                    value={accountSettings.accountLogin.email}
-                    onChange={(e) => handleUpdateAccountLogin("email", e.target.value)}
+                    value={accountSettings.newEmail}
+                    onChange={(e) => handleUpdateAccountLogin("newEmail", e.target.value)}
                     style={inputStyle}
-                    placeholder="admin@company.com"
+                    placeholder="Enter new email address"
+                    type="email"
                   />
                 </div>
-                <Divider style={{ borderColor: "#303030" }} />
-                <h4 className="text-white font-medium mb-4">Change Password</h4>
                 <div>
-                  <label className="block text-white mb-2">Current Password</label>
+                  <label className="block text-white mb-2">Current Password (for confirmation)</label>
                   <Password
-                    value={accountSettings.accountLogin.currentPassword}
+                    value={accountSettings.currentPassword}
                     onChange={(e) => handleUpdateAccountLogin("currentPassword", e.target.value)}
                     style={inputStyle}
                     placeholder="Enter current password"
                     iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    className="white-text"        
                   />
+                </div>
+                <Button onClick={handleRequestEmailChange} style={requestButtonStyle}>
+                  Request Email Change
+                </Button>
+                <p className="text-gray-400 text-sm">
+                  A confirmation email will be sent to your new email address to complete the change.
+                </p>
+              </div>
+            </Panel>
+
+            <Panel header="Change Password" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-white mb-2">Current Password</label>
+                  <Password
+                    value={accountSettings.currentPassword}
+                    onChange={(e) => handleUpdateAccountLogin("currentPassword", e.target.value)}
+                    style={inputStyle}
+                    placeholder="Enter current password"
+                    iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    className="white-text"                  />
                 </div>
                 <div>
                   <label className="block text-white mb-2">New Password</label>
                   <Password
-                    value={accountSettings.accountLogin.newPassword}
+                    value={accountSettings.newPassword}
                     onChange={(e) => handleUpdateAccountLogin("newPassword", e.target.value)}
                     style={inputStyle}
                     placeholder="Enter new password"
                     iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    className="white-text"        
                   />
                 </div>
                 <div>
                   <label className="block text-white mb-2">Confirm New Password</label>
                   <Password
-                    value={accountSettings.accountLogin.confirmPassword}
+                    value={accountSettings.confirmPassword}
                     onChange={(e) => handleUpdateAccountLogin("confirmPassword", e.target.value)}
                     style={inputStyle}
                     placeholder="Confirm new password"
                     iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    className="white-text"        
                   />
                 </div>
-                <Button onClick={handleChangePassword} style={saveButtonStyle}>
-                  Change Password
+                <Button onClick={handleRequestPasswordChange} style={requestButtonStyle}>
+                  Request Password Change
                 </Button>
+                <p className="text-gray-400 text-sm">
+                  A confirmation email will be sent to complete the password change.
+                </p>
               </div>
             </Panel>
           </Collapse>
         </TabPane>
 
-        {/* Notifications Tab */}
-        <TabPane tab={
-          <span className="flex items-center gap-2">
-            Notifications
-          </span>
-        } key="2">
+        <TabPane tab={<span className="flex items-center gap-2">Notifications</span>} key="2">
           <Collapse defaultActiveKey={["1", "2"]} className="bg-[#181818] border-[#303030]">
-            <Panel 
+            <Panel
               header={
                 <span className="flex items-center gap-2">
                   <ClockCircleOutlined />
                   Appointment Reminders
                 </span>
-              } 
-              key="1" 
+              }
+              key="1"
               className="bg-[#202020]"
             >
               <div className="space-y-6">
@@ -373,16 +326,12 @@ Last updated: January 2025`,
                       <div className="flex items-center gap-4 flex-wrap">
                         <Switch
                           checked={notificationSettings.appointmentReminders.emailReminder.enabled}
-                          onChange={(checked) =>
-                            handleUpdateReminderSettings("emailReminder", "enabled", checked)
-                          }
+                          onChange={(checked) => handleUpdateReminderSettings("emailReminder", "enabled", checked)}
                         />
                         <span className="text-white">Send email reminder</span>
                         <InputNumber
                           value={notificationSettings.appointmentReminders.emailReminder.timeBeforeHours}
-                          onChange={(value) =>
-                            handleUpdateReminderSettings("emailReminder", "timeBeforeHours", value)
-                          }
+                          onChange={(value) => handleUpdateReminderSettings("emailReminder", "timeBeforeHours", value)}
                           style={inputStyle}
                           min={1}
                           max={168}
@@ -393,52 +342,20 @@ Last updated: January 2025`,
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <h4 className="text-white font-medium">SMS Reminders</h4>
-                      <div className="flex items-center gap-4 flex-wrap">
-                        <Switch
-                          checked={notificationSettings.appointmentReminders.smsReminder.enabled}
-                          onChange={(checked) =>
-                            handleUpdateReminderSettings("smsReminder", "enabled", checked)
-                            
-                          }
-                          className="white-text"
 
-                        />
-                        <span className="text-white">Send SMS reminder</span>
-                        <InputNumber
-                                                  className="white-text"
-
-                          value={notificationSettings.appointmentReminders.smsReminder.timeBeforeHours}
-                          onChange={(value) =>
-                            handleUpdateReminderSettings("smsReminder", "timeBeforeHours", value)
-                          }
-                          style={inputStyle}
-                          min={1}
-                          max={48}
-                          disabled={!notificationSettings.appointmentReminders.smsReminder.enabled}
-                        />
-                        <span className="text-gray-400">hours before</span>
-                      </div>
-                    </div>
 
                     <div className="space-y-3">
                       <h4 className="text-white font-medium">Push Notifications</h4>
                       <div className="flex items-center gap-4 flex-wrap">
                         <Switch
                           checked={notificationSettings.appointmentReminders.pushReminder.enabled}
-                          onChange={(checked) =>
-                            handleUpdateReminderSettings("pushReminder", "enabled", checked)
-                          }
+                          onChange={(checked) => handleUpdateReminderSettings("pushReminder", "enabled", checked)}
                         />
                         <span className="text-white">Send push notification</span>
                         <InputNumber
                           value={notificationSettings.appointmentReminders.pushReminder.timeBeforeMinutes}
-                          onChange={(value) =>
-                            handleUpdateReminderSettings("pushReminder", "timeBeforeMinutes", value)
-                          }
+                          onChange={(value) => handleUpdateReminderSettings("pushReminder", "timeBeforeMinutes", value)}
                           className="white-text"
-
                           style={inputStyle}
                           min={5}
                           max={1440}
@@ -451,59 +368,9 @@ Last updated: January 2025`,
                 )}
               </div>
             </Panel>
-
-            <Panel 
-              header={
-                <span className="flex items-center gap-2">
-                  <MessageOutlined />
-                  Notification Preferences
-                </span>
-              } 
-              key="2" 
-              className="bg-[#202020]"
-            >
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-white font-medium mb-4">Email Notifications</h4>
-                  <div className="space-y-3">
-                    {Object.entries(notificationSettings.emailNotifications).map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between">
-                        <span className="text-white capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                        <Switch
-                          checked={value}
-                          onChange={(checked) =>
-                            handleUpdateNotificationSettings("emailNotifications", key, checked)
-                          }
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Divider style={{ borderColor: "#303030" }} />
-
-                <div>
-                  <h4 className="text-white font-medium mb-4">SMS Notifications</h4>
-                  <div className="space-y-3">
-                    {Object.entries(notificationSettings.smsNotifications).map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between">
-                        <span className="text-white capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                        <Switch
-                          checked={value}
-                          onChange={(checked) =>
-                            handleUpdateNotificationSettings("smsNotifications", key, checked)
-                          }
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </Panel>
           </Collapse>
         </TabPane>
 
-        {/* General Tab */}
         <TabPane tab="General" key="3">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
             <Panel header="Legal Information" key="1" className="bg-[#202020]">
@@ -517,11 +384,8 @@ Last updated: January 2025`,
                     style={inputStyle}
                     placeholder="Enter your company's imprint information..."
                   />
-                  <div className="text-xs text-gray-400 mt-2">
-                    Include your company details, registration information, and legal contact data.
-                  </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-white mb-2">Privacy Policy</label>
                   <TextArea
@@ -531,9 +395,6 @@ Last updated: January 2025`,
                     style={inputStyle}
                     placeholder="Enter your privacy policy..."
                   />
-                  <div className="text-xs text-gray-400 mt-2">
-                    Outline how you collect, use, and protect customer data.
-                  </div>
                 </div>
               </div>
             </Panel>
@@ -547,7 +408,7 @@ Last updated: January 2025`,
           icon={<SaveOutlined />}
           onClick={handleSaveSettings}
           size="large"
-          style={saveButtonStyle}
+          style={requestButtonStyle}
         >
           Save Settings
         </Button>
