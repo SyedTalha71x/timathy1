@@ -31,7 +31,9 @@ export default function StudioChat() {
   }
 
   useEffect(() => {
-    scrollToBottom()
+    if (messages.length > initialMessages.length) {
+      scrollToBottom()
+    }
   }, [messages])
 
   const handleSendMessage = () => {
