@@ -1,6 +1,29 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useState, useRef } from "react"
-import { Play, Pause, Volume2, VolumeX, Maximize, Filter, Search, Plus, Eye, Trash2, X, Clock, Target, Calendar, ChevronDown, Save, BookOpen, Dumbbell, User, Edit, Users } from 'lucide-react'
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  Filter,
+  Search,
+  Plus,
+  Eye,
+  Trash2,
+  X,
+  Clock,
+  Target,
+  Calendar,
+  ChevronDown,
+  Save,
+  BookOpen,
+  Dumbbell,
+  User,
+  Edit,
+} from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 
 export default function Training() {
@@ -52,7 +75,8 @@ export default function Training() {
       category: "chest",
       duration: "8:45",
       difficulty: "Beginner",
-      thumbnail: "https://cdn.prod.website-files.com/674732398a7cbc934e4c2f56/67f2538f3b071e2e85b1752b_11%20Push%20ups%20Variations%20to%20try%20out%20.jpg",
+      thumbnail:
+        "https://cdn.prod.website-files.com/674732398a7cbc934e4c2f56/67f2538f3b071e2e85b1752b_11%20Push%20ups%20Variations%20to%20try%20out%20.jpg",
       videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
       instructor: "Mike Johnson",
       views: 1250,
@@ -66,7 +90,8 @@ export default function Training() {
       category: "back",
       duration: "12:30",
       difficulty: "Intermediate",
-      thumbnail: "https://www.gymshark.com/_next/image?url=https%3A%2F%2Fimages.ctfassets.net%2F8urtyqugdt2l%2F5ZN0GgcR2fSncFwnKuL1RP%2Fe603ba111e193d35510142c7eff9aae4%2Fdesktop-deadlift.jpg&w=3840&q=85",
+      thumbnail:
+        "https://www.gymshark.com/_next/image?url=https%3A%2F%2Fimages.ctfassets.net%2F8urtyqugdt2l%2F5ZN0GgcR2fSncFwnKuL1RP%2Fe603ba111e193d35510142c7eff9aae4%2Fdesktop-deadlift.jpg&w=3840&q=85",
       videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4",
       instructor: "Sarah Wilson",
       views: 2100,
@@ -80,7 +105,8 @@ export default function Training() {
       category: "shoulders",
       duration: "15:20",
       difficulty: "Beginner",
-      thumbnail: "https://i.ytimg.com/vi/TNU6umd0sNA/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCpPN4NdKLe5ssqBHti4bbHb0LsqQ",
+      thumbnail:
+        "https://i.ytimg.com/vi/TNU6umd0sNA/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCpPN4NdKLe5ssqBHti4bbHb0LsqQ",
       videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
       instructor: "Lisa Davis",
       views: 890,
@@ -150,7 +176,8 @@ export default function Training() {
       category: "flexibility",
       duration: "25:15",
       difficulty: "Beginner",
-      thumbnail: "https://i0.wp.com/skill-yoga.blog/wp-content/uploads/2021/05/skill-yoga-ultimate-guide-1.jpg?resize=1160%2C653&ssl=1",
+      thumbnail:
+        "https://i0.wp.com/skill-yoga.blog/wp-content/uploads/2021/05/skill-yoga-ultimate-guide-1.jpg?resize=1160%2C653&ssl=1",
       videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4",
       instructor: "Maya Patel",
       views: 1890,
@@ -164,7 +191,8 @@ export default function Training() {
       category: "chest",
       duration: "11:20",
       difficulty: "Intermediate",
-      thumbnail: "https://cdn.prod.website-files.com/611abd833ca7af7702667729/641df9609f209750c235ed87_Screenshot%202023-03-24%20at%202.15.08%20PM.png",
+      thumbnail:
+        "https://cdn.prod.website-files.com/611abd833ca7af7702667729/641df9609f209750c235ed87_Screenshot%202023-03-24%20at%202.15.08%20PM.png",
       videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
       instructor: "David Kim",
       views: 2800,
@@ -293,6 +321,10 @@ export default function Training() {
     return matchesCategory && matchesSearch
   })
 
+  const availableVideos = filteredVideos.filter((video) => {
+    return !selectedExercises.some((exercise) => exercise.videoId === video.id)
+  })
+
   // Filter plans based on selected staff member
   const filteredPlans = trainingPlans.filter((plan) => {
     if (selectedStaffMember === "own") {
@@ -300,7 +332,7 @@ export default function Training() {
     } else if (selectedStaffMember === "all") {
       return true
     } else {
-      const staffMember = staffMembers.find(s => s.id === selectedStaffMember)
+      const staffMember = staffMembers.find((s) => s.id === selectedStaffMember)
       return plan.createdBy === staffMember?.name
     }
   })
@@ -365,8 +397,15 @@ export default function Training() {
   }
 
   const handleEditPlan = () => {
-    const updatedPlans = trainingPlans.map(plan => 
-      plan.id === editingPlan.id ? { ...planForm, id: editingPlan.id } : plan
+    const updatedPlans = trainingPlans.map((plan) =>
+      plan.id === editingPlan.id
+        ? {
+            ...editingPlan, // Keep the original plan structure
+            ...planForm, // Override with form data
+            id: editingPlan.id, // Ensure ID is preserved
+            exercises: selectedExercises, // Use selectedExercises instead of planForm.exercises
+          }
+        : plan,
     )
     setTrainingPlans(updatedPlans)
     setIsEditPlanModalOpen(false)
@@ -391,20 +430,18 @@ export default function Training() {
 
   const handleAddToExistingPlan = (planId) => {
     if (!videoToAdd) return
-    
+
     const exercise = {
       videoId: videoToAdd.id,
       sets: 3,
       reps: "10-12",
       rest: "60s",
     }
-    
-    const updatedPlans = trainingPlans.map(plan => 
-      plan.id === planId 
-        ? { ...plan, exercises: [...plan.exercises, exercise] }
-        : plan
+
+    const updatedPlans = trainingPlans.map((plan) =>
+      plan.id === planId ? { ...plan, exercises: [...plan.exercises, exercise] } : plan,
     )
-    
+
     setTrainingPlans(updatedPlans)
     setIsAddToPlanModalOpen(false)
     setVideoToAdd(null)
@@ -419,34 +456,34 @@ export default function Training() {
       rest: "60s",
     }
     setSelectedExercises([...selectedExercises, exercise])
-    setPlanForm({
-      ...planForm,
-      exercises: [...planForm.exercises, exercise],
-    })
+    setPlanForm((prevForm) => ({
+      ...prevForm,
+      exercises: [...prevForm.exercises, exercise],
+    }))
   }
 
   const handleRemoveExercise = (index) => {
     const updatedExercises = selectedExercises.filter((_, i) => i !== index)
     setSelectedExercises(updatedExercises)
-    setPlanForm({
-      ...planForm,
+    setPlanForm((prevForm) => ({
+      ...prevForm,
       exercises: updatedExercises,
-    })
+    }))
   }
 
   const openEditPlan = (plan) => {
     setEditingPlan(plan)
     setPlanForm({
-      name: plan.name,
-      description: plan.description,
-      duration: plan.duration,
-      difficulty: plan.difficulty,
-      category: plan.category,
+      name: plan.name || "",
+      description: plan.description || "",
+      difficulty: plan.difficulty || "Beginner",
+      duration: plan.duration || "",
+      category: plan.category || "Full Body",
       workoutsPerWeek: plan.workoutsPerWeek || "",
-      exercises: plan.exercises,
-      isPublic: plan.isPublic,
+      exercises: plan.exercises || [],
+      isPublic: plan.isPublic !== undefined ? plan.isPublic : true,
     })
-    setSelectedExercises(plan.exercises)
+    setSelectedExercises(plan.exercises || [])
     setIsEditPlanModalOpen(true)
   }
 
@@ -537,7 +574,9 @@ export default function Training() {
                     className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
                   >
                     <Filter size={16} />
-                    <span className="truncate">{categories.find((cat) => cat.id === selectedCategory)?.name || "All Exercises"}</span>
+                    <span className="truncate">
+                      {categories.find((cat) => cat.id === selectedCategory)?.name || "All Exercises"}
+                    </span>
                     <ChevronDown
                       size={16}
                       className={`transform transition-transform ${isFilterDropdownOpen ? "rotate-180" : ""}`}
@@ -626,7 +665,7 @@ export default function Training() {
                       </div>
                       <div
                         className={`absolute top-2 left-2 px-2 py-1 rounded text-xs text-white ${getDifficultyColor(
-                          video.difficulty
+                          video.difficulty,
                         )}`}
                       >
                         {video.difficulty}
@@ -680,7 +719,10 @@ export default function Training() {
               {/* Plans Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredPlans.map((plan) => (
-                  <div key={plan.id} className="bg-[#161616] rounded-xl p-4 sm:p-6 hover:bg-[#1F1F1F] transition-colors">
+                  <div
+                    key={plan.id}
+                    className="bg-[#161616] rounded-xl p-4 sm:p-6 hover:bg-[#1F1F1F] transition-colors"
+                  >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-white mb-2 truncate">{plan.name}</h3>
@@ -824,7 +866,7 @@ export default function Training() {
                       <span className="text-gray-500 text-sm">Difficulty:</span>
                       <span
                         className={`px-2 py-1 rounded text-xs text-white ${getDifficultyColor(
-                          selectedVideo.difficulty
+                          selectedVideo.difficulty,
                         )}`}
                       >
                         {selectedVideo.difficulty}
@@ -839,7 +881,10 @@ export default function Training() {
                       <h4 className="text-sm font-medium text-gray-400 mb-2">Target Muscles</h4>
                       <div className="flex flex-wrap gap-2">
                         {selectedVideo.targetMuscles.map((muscle, index) => (
-                          <span key={index} className="bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+                          <span
+                            key={index}
+                            className="bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm"
+                          >
                             {muscle}
                           </span>
                         ))}
@@ -849,7 +894,10 @@ export default function Training() {
                       <h4 className="text-sm font-medium text-gray-400 mb-2">Equipment Needed</h4>
                       <div className="flex flex-wrap gap-2">
                         {selectedVideo.equipment.map((item, index) => (
-                          <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+                          <span
+                            key={index}
+                            className="bg-[#2F2F2F] text-gray-300 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm"
+                          >
                             {item}
                           </span>
                         ))}
@@ -895,7 +943,7 @@ export default function Training() {
                 <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Select Existing Plan</h3>
                 <div className="space-y-3 max-h-48 sm:max-h-60 overflow-y-auto">
                   {trainingPlans
-                    .filter(plan => plan.createdBy === "Current User")
+                    .filter((plan) => plan.createdBy === "Current User")
                     .map((plan) => (
                       <div
                         key={plan.id}
@@ -949,6 +997,7 @@ export default function Training() {
                   onClick={() => {
                     setIsCreatePlanModalOpen(false)
                     resetPlanForm()
+                    setSelectedExercises([]) // Clear selected exercises when closing
                   }}
                   className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors"
                 >
@@ -993,7 +1042,12 @@ export default function Training() {
                     <label className="block text-sm font-medium text-gray-400 mb-2">Workouts/Week (optional)</label>
                     <select
                       value={planForm.workoutsPerWeek}
-                      onChange={(e) => setPlanForm({ ...planForm, workoutsPerWeek: e.target.value ? parseInt(e.target.value) : "" })}
+                      onChange={(e) =>
+                        setPlanForm({
+                          ...planForm,
+                          workoutsPerWeek: e.target.value ? Number.parseInt(e.target.value) : "",
+                        })
+                      }
                       className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none text-sm sm:text-base"
                     >
                       <option value="">Select workouts per week</option>
@@ -1035,25 +1089,13 @@ export default function Training() {
                       </select>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="isPublic"
-                      checked={planForm.isPublic}
-                      onChange={(e) => setPlanForm({ ...planForm, isPublic: e.target.checked })}
-                      className="w-4 h-4 accent-blue-600"
-                    />
-                    <label htmlFor="isPublic" className="text-sm text-gray-400">
-                      Make this plan public (visible to all staff members)
-                    </label>
-                  </div>
                 </div>
 
                 {/* Exercise Library */}
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Exercise Library</h3>
                   <div className="space-y-3 max-h-64 sm:max-h-96 overflow-y-auto">
-                    {trainingVideos.map((video) => (
+                    {availableVideos.map((video) => (
                       <div key={video.id} className="bg-[#161616] rounded-xl p-3">
                         <div className="flex items-start gap-3">
                           <img
@@ -1064,7 +1106,9 @@ export default function Training() {
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-white text-sm truncate">{video.title}</h4>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}>
+                              <span
+                                className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}
+                              >
                                 {video.difficulty}
                               </span>
                               <span className="text-gray-500 text-xs">{video.duration}</span>
@@ -1079,12 +1123,20 @@ export default function Training() {
                         </div>
                       </div>
                     ))}
+                    {availableVideos.length === 0 && (
+                      <div className="text-center py-8 text-gray-400">
+                        <p>No exercises available</p>
+                        <p className="text-sm">All exercises are already selected</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Selected Exercises */}
                 <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Selected Exercises ({selectedExercises.length})</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
+                    Selected Exercises ({selectedExercises.length})
+                  </h3>
                   {selectedExercises.length === 0 ? (
                     <div className="text-center py-8 text-gray-400">
                       <Target size={48} className="mx-auto mb-4" />
@@ -1105,15 +1157,16 @@ export default function Training() {
                               />
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-white mb-1 text-sm truncate">{video?.title}</h4>
-                                
+
                                 <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video?.instructor}</p>
                                 <div className="flex items-center gap-2 mt-1">
-                              <span className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}>
-                                {video.difficulty}
-                              </span>
-                              <span className="text-gray-500 text-xs">{video.duration}</span>
-                            </div>
-                                
+                                  <span
+                                    className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}
+                                  >
+                                    {video.difficulty}
+                                  </span>
+                                  <span className="text-gray-500 text-xs">{video.duration}</span>
+                                </div>
                               </div>
                               <button
                                 onClick={() => handleRemoveExercise(index)}
@@ -1127,11 +1180,13 @@ export default function Training() {
                       })}
                     </div>
                   )}
+
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
                     <button
                       onClick={() => {
                         setIsCreatePlanModalOpen(false)
                         resetPlanForm()
+                        setSelectedExercises([]) // Clear selected exercises when canceling
                       }}
                       className="flex-1 px-4 py-3 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-white transition-colors"
                     >
@@ -1165,6 +1220,7 @@ export default function Training() {
                     setIsEditPlanModalOpen(false)
                     setEditingPlan(null)
                     resetPlanForm()
+                    setSelectedExercises([]) // Clear selected exercises when closing
                   }}
                   className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors"
                 >
@@ -1173,7 +1229,7 @@ export default function Training() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
-                {/* Plan Details */}
+                {/* Plan Details - Same as create but with all fields populated */}
                 <div className="space-y-4 sm:space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Plan Name</label>
@@ -1209,7 +1265,12 @@ export default function Training() {
                     <label className="block text-sm font-medium text-gray-400 mb-2">Workouts/Week (optional)</label>
                     <select
                       value={planForm.workoutsPerWeek}
-                      onChange={(e) => setPlanForm({ ...planForm, workoutsPerWeek: e.target.value ? parseInt(e.target.value) : "" })}
+                      onChange={(e) =>
+                        setPlanForm({
+                          ...planForm,
+                          workoutsPerWeek: e.target.value ? Number.parseInt(e.target.value) : "",
+                        })
+                      }
                       className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none text-sm sm:text-base"
                     >
                       <option value="">Select workouts per week</option>
@@ -1269,7 +1330,7 @@ export default function Training() {
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Exercise Library</h3>
                   <div className="space-y-3 max-h-64 sm:max-h-96 overflow-y-auto">
-                    {trainingVideos.map((video) => (
+                    {availableVideos.map((video) => (
                       <div key={video.id} className="bg-[#161616] rounded-xl p-3">
                         <div className="flex items-start gap-3">
                           <img
@@ -1280,7 +1341,9 @@ export default function Training() {
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-white text-sm truncate">{video.title}</h4>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}>
+                              <span
+                                className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}
+                              >
                                 {video.difficulty}
                               </span>
                               <span className="text-gray-500 text-xs">{video.duration}</span>
@@ -1295,12 +1358,20 @@ export default function Training() {
                         </div>
                       </div>
                     ))}
+                    {availableVideos.length === 0 && (
+                      <div className="text-center py-8 text-gray-400">
+                        <p>No exercises available</p>
+                        <p className="text-sm">All exercises are already selected</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Selected Exercises */}
                 <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Selected Exercises ({selectedExercises.length})</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
+                    Selected Exercises ({selectedExercises.length})
+                  </h3>
                   {selectedExercises.length === 0 ? (
                     <div className="text-center py-8 text-gray-400">
                       <Target size={48} className="mx-auto mb-4" />
@@ -1323,12 +1394,13 @@ export default function Training() {
                                 <h4 className="font-medium text-white mb-1 text-sm truncate">{video?.title}</h4>
                                 <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video?.instructor}</p>
                                 <div className="flex items-center gap-2 mt-1">
-                              <span className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}>
-                                {video.difficulty}
-                              </span>
-                              <span className="text-gray-500 text-xs">{video.duration}</span>
-                            </div>
-                               
+                                  <span
+                                    className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}
+                                  >
+                                    {video.difficulty}
+                                  </span>
+                                  <span className="text-gray-500 text-xs">{video.duration}</span>
+                                </div>
                               </div>
                               <button
                                 onClick={() => handleRemoveExercise(index)}
@@ -1342,12 +1414,14 @@ export default function Training() {
                       })}
                     </div>
                   )}
+
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
                     <button
                       onClick={() => {
                         setIsEditPlanModalOpen(false)
                         setEditingPlan(null)
                         resetPlanForm()
+                        setSelectedExercises([]) // Clear selected exercises when canceling
                       }}
                       className="flex-1 px-4 py-3 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-white transition-colors"
                     >
@@ -1427,7 +1501,9 @@ export default function Training() {
 
                 {/* Exercises */}
                 <div className="lg:col-span-2">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Exercises ({selectedPlan.exercises.length})</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
+                    Exercises ({selectedPlan.exercises.length})
+                  </h3>
                   <div className="space-y-4">
                     {selectedPlan.exercises.map((exercise, index) => {
                       const video = getVideoById(exercise.videoId)
@@ -1443,7 +1519,9 @@ export default function Training() {
                               className="w-16 sm:w-20 h-12 sm:h-15 object-cover rounded flex-shrink-0"
                             />
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-white mb-1 text-sm sm:text-base truncate">{video?.title}</h4>
+                              <h4 className="font-medium text-white mb-1 text-sm sm:text-base truncate">
+                                {video?.title}
+                              </h4>
                               <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video?.instructor}</p>
                               <div className="flex flex-wrap gap-1 mt-2">
                                 {video?.targetMuscles.map((muscle, muscleIndex) => (
