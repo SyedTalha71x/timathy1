@@ -1,4 +1,3 @@
-"use client"
 
 import { useState } from "react"
 
@@ -11,6 +10,60 @@ const StudioMenu = () => {
   const [showCancelMembershipPopup, setShowCancelMembershipPopup] = useState(false)
   const [showIdlePeriodForm, setShowIdlePeriodForm] = useState(false)
   const [expandedMemberSection, setExpandedMemberSection] = useState("")
+
+  const [isEditingPersonal, setIsEditingPersonal] = useState(false)
+  const [isEditingAddress, setIsEditingAddress] = useState(false)
+  const [isEditingContact, setIsEditingContact] = useState(false)
+
+  const [personalData, setPersonalData] = useState({
+    firstName: "John",
+    lastName: "Doe",
+    dateOfBirth: "01/01/1990",
+    gender: "Male",
+  })
+
+  const [addressData, setAddressData] = useState({
+    street: "Musterstraße",
+    houseNumber: "123",
+    zipCode: "10117",
+    city: "Berlin",
+    country: "Germany",
+  })
+
+  const [contactData, setContactData] = useState({
+    email: "john.doe@email.com",
+    phone: "+49 30 1234 5678",
+  })
+
+  const handlePersonalDataChange = (field, value) => {
+    setPersonalData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleAddressDataChange = (field, value) => {
+    setAddressData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleContactDataChange = (field, value) => {
+    setContactData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handlePersonalDataSubmit = () => {
+    console.log("Requesting personal data change:", personalData)
+    alert("Personal data change request submitted successfully!")
+    setIsEditingPersonal(false)
+  }
+
+  const handleAddressDataSubmit = () => {
+    console.log("Requesting address change:", addressData)
+    alert("Address change request submitted successfully!")
+    setIsEditingAddress(false)
+  }
+
+  const handleContactDataSubmit = () => {
+    console.log("Requesting contact data change:", contactData)
+    alert("Contact data change request submitted successfully!")
+    setIsEditingContact(false)
+  }
 
   return (
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] p-6">
@@ -359,18 +412,91 @@ const StudioMenu = () => {
                 </button>
 
                 {expandedMemberSection === "personal" && (
-                  <div className="bg-gray-700/30 rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Name:</span>
-                      <span className="text-white">John Doe</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Date of Birth:</span>
-                      <span className="text-white">01/01/1990</span>
-                    </div>
-                    <button className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition-colors">
-                      Request Change
-                    </button>
+                  <div className="bg-gray-700/30 rounded-lg p-4 space-y-3">
+                    {!isEditingPersonal ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">First Name:</span>
+                          <span className="text-white">{personalData.firstName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Last Name:</span>
+                          <span className="text-white">{personalData.lastName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Date of Birth:</span>
+                          <span className="text-white">{personalData.dateOfBirth}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Gender:</span>
+                          <span className="text-white">{personalData.gender}</span>
+                        </div>
+                        <button
+                          onClick={() => setIsEditingPersonal(true)}
+                          className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition-colors"
+                        >
+                          Edit Personal Data
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">First Name</label>
+                            <input
+                              type="text"
+                              value={personalData.firstName}
+                              onChange={(e) => handlePersonalDataChange("firstName", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">Last Name</label>
+                            <input
+                              type="text"
+                              value={personalData.lastName}
+                              onChange={(e) => handlePersonalDataChange("lastName", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">Date of Birth</label>
+                            <input
+                              type="text"
+                              value={personalData.dateOfBirth}
+                              onChange={(e) => handlePersonalDataChange("dateOfBirth", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">Gender</label>
+                            <select
+                              value={personalData.gender}
+                              onChange={(e) => handlePersonalDataChange("gender", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            >
+                              <option value="Male">Male</option>
+                              <option value="Female">Female</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={handlePersonalDataSubmit}
+                              className="flex-1 bg-orange-500 hover:bg-orange-700 cursor-pointer text-white py-2 px-4 rounded-lg transition-colors"
+                            >
+                              Request Change
+                            </button>
+                            <button
+                              onClick={() => setIsEditingPersonal(false)}
+                              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -390,18 +516,101 @@ const StudioMenu = () => {
                 </button>
 
                 {expandedMemberSection === "address" && (
-                  <div className="bg-gray-700/30 rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Street:</span>
-                      <span className="text-white">Musterstraße 123</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">City:</span>
-                      <span className="text-white">10117 Berlin</span>
-                    </div>
-                    <button className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition-colors">
-                      Request Change
-                    </button>
+                  <div className="bg-gray-700/30 rounded-lg p-4 space-y-3">
+                    {!isEditingAddress ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Street:</span>
+                          <span className="text-white">{addressData.street}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">House Number:</span>
+                          <span className="text-white">{addressData.houseNumber}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Zip Code:</span>
+                          <span className="text-white">{addressData.zipCode}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">City:</span>
+                          <span className="text-white">{addressData.city}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Country:</span>
+                          <span className="text-white">{addressData.country}</span>
+                        </div>
+                        <button
+                          onClick={() => setIsEditingAddress(true)}
+                          className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition-colors"
+                        >
+                          Edit Address
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">Street</label>
+                            <input
+                              type="text"
+                              value={addressData.street}
+                              onChange={(e) => handleAddressDataChange("street", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">House Number</label>
+                            <input
+                              type="text"
+                              value={addressData.houseNumber}
+                              onChange={(e) => handleAddressDataChange("houseNumber", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">Zip Code</label>
+                            <input
+                              type="text"
+                              value={addressData.zipCode}
+                              onChange={(e) => handleAddressDataChange("zipCode", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">City</label>
+                            <input
+                              type="text"
+                              value={addressData.city}
+                              onChange={(e) => handleAddressDataChange("city", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">Country</label>
+                            <input
+                              type="text"
+                              value={addressData.country}
+                              onChange={(e) => handleAddressDataChange("country", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={handleAddressDataSubmit}
+                              className="flex-1 bg-orange-500 hover:bg-orange-700 cursor-pointer text-white py-2 px-4 rounded-lg transition-colors"
+                            >
+                              Request Change
+                            </button>
+                            <button
+                              onClick={() => setIsEditingAddress(false)}
+                              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -421,18 +630,62 @@ const StudioMenu = () => {
                 </button>
 
                 {expandedMemberSection === "contact" && (
-                  <div className="bg-gray-700/30 rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Email:</span>
-                      <span className="text-white">john.doe@email.com</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Phone:</span>
-                      <span className="text-white">+49 30 1234 5678</span>
-                    </div>
-                    <button className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition-colors">
-                      Request Change
-                    </button>
+                  <div className="bg-gray-700/30 rounded-lg p-4 space-y-3">
+                    {!isEditingContact ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Email:</span>
+                          <span className="text-white">{contactData.email}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Phone:</span>
+                          <span className="text-white">{contactData.phone}</span>
+                        </div>
+                        <button
+                          onClick={() => setIsEditingContact(true)}
+                          className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition-colors"
+                        >
+                          Edit Contact Details
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">Email</label>
+                            <input
+                              type="email"
+                              value={contactData.email}
+                              onChange={(e) => handleContactDataChange("email", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">Phone</label>
+                            <input
+                              type="tel"
+                              value={contactData.phone}
+                              onChange={(e) => handleContactDataChange("phone", e.target.value)}
+                              className="w-full bg-gray-600 text-white rounded-lg p-2"
+                            />
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={handleContactDataSubmit}
+                              className="flex-1 bg-orange-500 hover:bg-orange-700 cursor-pointer text-white py-2 px-4 rounded-lg transition-colors"
+                            >
+                              Request Change
+                            </button>
+                            <button
+                              onClick={() => setIsEditingContact(false)}
+                              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -568,7 +821,7 @@ const StudioMenu = () => {
                   DE02FZS00000123456. I also instruct my credit institute to honour these direct debits for account.
                 </p>
               </div>
-              <button className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors">
+              <button className="w-full bg-orange-500 hover:bg-orange-700 cursor-pointer text-white py-3 px-4 rounded-lg transition-colors">
                 Request change
               </button>
             </div>
@@ -623,100 +876,79 @@ const StudioMenu = () => {
 
       {/* Idle Period Form Popup */}
       {showIdlePeriodForm && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-    <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full overflow-visible">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-white">Apply for Idle Period</h3>
-        <button
-          onClick={() => setShowIdlePeriodForm(false)}
-          className="text-gray-400 hover:text-white"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-      </div>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full overflow-visible">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Apply for Idle Period</h3>
+              <button onClick={() => setShowIdlePeriodForm(false)} className="text-gray-400 hover:text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-      <div className="space-y-4">
-        {/* Reason dropdown */}
-        <div className="relative ">
-          <label className="block text-gray-400 text-sm mb-1">
-            Reason for idle period*
-          </label>
-          <select className="w-full bg-gray-700  text-white rounded-lg p-3">
-            <option>Select reason...</option>
-            <option>Vacation</option>
-            <option>Medical</option>
-            <option>Business Travel</option>
-            <option>Personal</option>
-          </select>
-        </div>
+            <div className="space-y-4">
+              {/* Reason dropdown */}
+              <div className="relative ">
+                <label className="block text-gray-400 text-sm mb-1">Reason for idle period*</label>
+                <select className="w-full bg-gray-700  text-white rounded-lg p-3">
+                  <option>Select reason...</option>
+                  <option>Vacation</option>
+                  <option>Medical</option>
+                  <option>Business Travel</option>
+                  <option>Personal</option>
+                </select>
+              </div>
 
-        {/* Start Date */}
-        <div>
-          <label className="block text-gray-400 text-sm mb-1">Start Date*</label>
-          <input
-            type="date"
-            className="w-full bg-gray-700 text-white rounded-lg p-3"
-          />
-        </div>
+              {/* Start Date */}
+              <div>
+                <label className="block text-gray-400 text-sm mb-1">Start Date*</label>
+                <input type="date" className="w-full bg-gray-700 text-white rounded-lg p-3" />
+              </div>
 
-        {/* Duration dropdown */}
-        <div className="relative">
-          <label className="block text-gray-400 text-sm mb-1">Duration*</label>
-          <select className="w-full bg-gray-700 text-white rounded-lg p-3">
-            <option>Select duration...</option>
-            <option>1 week</option>
-            <option>2 weeks</option>
-            <option>1 month</option>
-            <option>2 months</option>
-            <option>3 months</option>
-          </select>
-        </div>
+              {/* Duration dropdown */}
+              <div className="relative">
+                <label className="block text-gray-400 text-sm mb-1">Duration*</label>
+                <select className="w-full bg-gray-700 text-white rounded-lg p-3">
+                  <option>Select duration...</option>
+                  <option>1 week</option>
+                  <option>2 weeks</option>
+                  <option>1 month</option>
+                  <option>2 months</option>
+                  <option>3 months</option>
+                </select>
+              </div>
 
-        {/* Document upload */}
-        <div>
-          <label className="block text-gray-400 text-sm mb-1">Document</label>
-          <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
-            <svg
-              className="w-8 h-8 text-gray-400 mx-auto mb-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
-            <p className="text-gray-400 text-sm">
-              Click to upload or drag and drop
-            </p>
-            <p className="text-gray-500 text-xs">PDF, JPG, PNG up to 10MB</p>
+              {/* Document upload */}
+              <div>
+                <label className="block text-gray-400 text-sm mb-1">Document</label>
+                <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
+                  <svg
+                    className="w-8 h-8 text-gray-400 mx-auto mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  <p className="text-gray-400 text-sm">Click to upload or drag and drop</p>
+                  <p className="text-gray-500 text-xs">PDF, JPG, PNG up to 10MB</p>
+                </div>
+              </div>
+
+              {/* Submit button */}
+              <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg transition-colors">
+                Apply for Idle Period
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* Submit button */}
-        <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg transition-colors">
-          Apply for Idle Period
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+      )}
     </div>
   )
 }

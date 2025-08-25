@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { IoIosInformationCircle } from "react-icons/io";
+
 
 const Appointments = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().getDate())
@@ -325,11 +327,7 @@ const Appointments = () => {
                       </div>
 
                       <div className="absolute top-3 right-3 group/tooltip ">
-                        <div className="bg-orange-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V19H19V9Z" />
-                          </svg>
-                        </div>
+                         <IoIosInformationCircle size={30} className="text-orange-400"/>
                         <div className="absolute z-[9999] top-full right-0 mt-2 bg-gray-900 text-white text-xs rounded-lg p-2 opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap border border-gray-700 shadow-xl">
                           <div className="w-64 whitespace-normal">
                             {service.description}
@@ -481,15 +479,7 @@ const Appointments = () => {
 
       {/* Comment Icon Top Right */}
       <div className="absolute top-3 right-3 group/tooltip">
-        <div className="bg-orange-500/90 backdrop-blur-sm text-white p-2 rounded-full shadow-md">
-          <svg
-            className="w-5 h-5"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V19H19V9Z" />
-          </svg>
-        </div>
+      <IoIosInformationCircle size={30} className="text-orange-400"/>
 
         {/* Tooltip */}
         <div className="absolute z-[9999] top-full right-0 mt-2 bg-gray-900 text-white text-sm rounded-lg p-3 opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 w-64 border border-gray-700 shadow-xl">

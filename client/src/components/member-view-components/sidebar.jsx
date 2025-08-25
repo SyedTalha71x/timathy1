@@ -111,16 +111,16 @@ const MemberViewSidebar = () => {
     },
     { icon: MessageCircle, label: "Communication", to: "/member-view/communication" },
 
-   
+
     {
       icon: Calendar,
       label: "Appointments",
       to: "/member-view/appointment",
     },
-     {
-          icon: CgGym
-          , label: "Training", to: "/member-view/training"
-        },
+    {
+      icon: CgGym
+      , label: "Training", to: "/member-view/training"
+    },
     {
       icon: Settings,
       label: "Settings",
@@ -148,7 +148,7 @@ const MemberViewSidebar = () => {
           </button>
           <span className="text-white font-semibold"></span>
         </div>
-      
+
       </div>
 
       {/* Sidebar */}
@@ -182,36 +182,39 @@ const MemberViewSidebar = () => {
 
         {/* Profile Section */}
         <div className="flex flex-col h-full overflow-y-auto mt-5">
-        
+
 
           {/* Navigation Menu */}
-          <nav className="flex-1 overflow-y-auto mt-20 custom-scrollbar">
+          <nav className="flex-1 overflow-y-auto mt-10 custom-scrollbar">  {/* moved from mt-20 → mt-10 */}
             <ul className="space-y-2 p-4">
-              {menuItems.map((item) => (
+              {menuItems.map((item, index) => (
                 <li key={item.label}>
+                  {/* Add divider before Settings */}
+                  {item.label === "Settings" && (
+                    <hr className="border-zinc-700 my-2" />
+                  )}
+
                   <button
                     onClick={() => handleNavigation(item.to)}
                     className={`
-                      flex items-center gap-3 cursor-pointer text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
-                      ${isCollapsed ? "justify-center" : "text-left"}
-                      group transition-all duration-500 
-                      ${
-                        location.pathname === item.to
-                          ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
-                          : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
+            flex items-center gap-3 cursor-pointer text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
+            ${isCollapsed ? "justify-center" : "text-left"}
+            group transition-all duration-500 
+            ${location.pathname === item.to
+                        ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
+                        : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
                       }
-                    `}
+          `}
                   >
                     <div className="relative">
                       <item.icon
                         size={20}
                         className={`
-                          ${
-                            location.pathname === item.to
-                              ? "text-white"
-                              : "text-zinc-400 group-hover:text-white"
+                ${location.pathname === item.to
+                            ? "text-white"
+                            : "text-zinc-400 group-hover:text-white"
                           }
-                        `}
+              `}
                       />
                     </div>
                     {!isCollapsed && <span className="text-md">{item.label}</span>}
@@ -220,22 +223,21 @@ const MemberViewSidebar = () => {
               ))}
             </ul>
           </nav>
-
           {/* Logout Button */}
-          <div className="p-4 mt-auto">
+          <div className="p-4 mb-64">   {/* changed from mt-auto → mb-6 so logout also moves up */}
             <button
               onClick={redirectToHome}
               className={`
-                flex items-center cursor-pointer mb-10 gap-3 open_sans_font px-4 py-2 text-zinc-400 hover:text-white
-                ${isCollapsed ? "justify-center" : "text-left"}
-                ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"} 
-                transition-all duration-300 w-full
-              `}
+      flex items-center cursor-pointer gap-3 open_sans_font px-4 py-2 text-zinc-400 hover:text-white
+      ${isCollapsed ? "justify-center" : "text-left"}
+      ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"} 
+      transition-all duration-300 w-full
+    `}
             >
               <div className="relative">
                 <LogOut size={20} />
                 {isCollapsed && (
-                  <span className="absolute left-full ml-2  whitespace-nowrap bg-[#222222] text-white px-2 py-1 rounded text-xs opacity-0 hover:opacity-100 pointer-events-none">
+                  <span className="absolute left-full ml-2 whitespace-nowrap bg-[#222222] text-white px-2 py-1 rounded text-xs opacity-0 hover:opacity-100 pointer-events-none">
                     Logout
                   </span>
                 )}
@@ -258,10 +260,9 @@ const MemberViewSidebar = () => {
         className={`
           fixed top-0 right-0 bottom-0 w-[320px] bg-[#181818] p-6 z-50 
           lg:static lg:w-80 lg:hidden block lg:rounded-3xl
-          transform ${
-            isRightSidebarOpen
-              ? "translate-x-0"
-              : "translate-x-full lg:translate-x-0"
+          transform ${isRightSidebarOpen
+            ? "translate-x-0"
+            : "translate-x-full lg:translate-x-0"
           }
           transition-all duration-500 ease-in-out
           overflow-y-auto

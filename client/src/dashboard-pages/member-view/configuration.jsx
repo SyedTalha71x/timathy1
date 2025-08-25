@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 "use client"
 
 /* eslint-disable react/no-unknown-property */
@@ -16,6 +17,15 @@ const inputStyle = {
   color: "#fff",
   padding: "10px 12px",
   outline: "none",
+}
+
+const readOnlyStyle = {
+  backgroundColor: "#0a0a0a",
+  border: "1px solid #303030",
+  color: "#ccc",
+  padding: "10px 12px",
+  outline: "none",
+  cursor: "not-allowed",
 }
 
 const requestButtonStyle = {
@@ -182,10 +192,6 @@ Last updated: January 2025`,
     })
   }
 
-  const handleUpdateGeneralSettings = (field, value) => {
-    setGeneralSettings({ ...generalSettings, [field]: value })
-  }
-
   const handleSaveSettings = () => {
     notification.success({
       message: "Settings Saved",
@@ -342,8 +348,6 @@ Last updated: January 2025`,
                       </div>
                     </div>
 
-
-
                     <div className="space-y-3">
                       <h4 className="text-white font-medium">Push Notifications</h4>
                       <div className="flex items-center gap-4 flex-wrap">
@@ -376,24 +380,28 @@ Last updated: January 2025`,
             <Panel header="Legal Information" key="1" className="bg-[#202020]">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-white mb-2">Imprint</label>
+                  <label className="block text-white mb-2">
+                    Imprint
+                  </label>
                   <TextArea
                     value={generalSettings.imprint}
-                    onChange={(e) => handleUpdateGeneralSettings("imprint", e.target.value)}
                     rows={10}
-                    style={inputStyle}
-                    placeholder="Enter your company's imprint information..."
+                    style={readOnlyStyle}
+                    readOnly
+                    placeholder="Imprint information is read-only"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-white mb-2">Privacy Policy</label>
+                  <label className="block text-white mb-2">
+                    Privacy Policy
+                  </label>
                   <TextArea
                     value={generalSettings.privacyPolicy}
-                    onChange={(e) => handleUpdateGeneralSettings("privacyPolicy", e.target.value)}
                     rows={12}
-                    style={inputStyle}
-                    placeholder="Enter your privacy policy..."
+                    style={readOnlyStyle}
+                    readOnly
+                    placeholder="Privacy policy is read-only"
                   />
                 </div>
               </div>

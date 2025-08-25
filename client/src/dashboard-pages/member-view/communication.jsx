@@ -80,7 +80,7 @@ export default function StudioChat() {
   }
 
   return (
-    <div className="flex flex-col relative  h-screen bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
+    <div className="flex flex-col relative  md:h-[92vh] h-auto  bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-700/50 bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-3 md:gap-4">
@@ -124,13 +124,13 @@ export default function StudioChat() {
                 <div
                   className={`px-4 py-3 md:px-5 md:py-4 rounded-2xl shadow-lg backdrop-blur-sm border ${
                     message.sender === "me" 
-                      ? "bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 text-white rounded-br-md border-blue-400/20" 
-                      : "bg-gray-800/80 text-white border-gray-600/30 rounded-bl-md"
+                      ? "bg-blue-600 text-white rounded-br-md border-blue-400/20" 
+                      : "bg-orange-500 text-white border-gray-600/30 rounded-bl-md"
                   }`}
                 >
                   <p className="text-sm md:text-base leading-relaxed">{message.text}</p>
                   <p className={`text-xs mt-2 ${
-                    message.sender === "me" ? "text-blue-100/80" : "text-gray-400"
+                    message.sender === "me" ? "text-white" : "text-white"
                   }`}>
                     {message.timestamp}
                   </p>
@@ -162,18 +162,12 @@ export default function StudioChat() {
           <button
             onClick={handleSendMessage}
             disabled={!messageText.trim()}
-            className="p-3 bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 hover:from-blue-500 hover:via-blue-400 hover:to-purple-500 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed rounded-xl transition-all duration-300 flex-shrink-0 hover:scale-110 disabled:hover:scale-100 shadow-lg"
+            className="p-3 bg-blue-500 hover:from-blue-500 hover:via-blue-400 hover:to-purple-500 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed rounded-xl transition-all duration-300 flex-shrink-0 hover:scale-110 disabled:hover:scale-100 shadow-lg"
           >
             <Send className="w-5 h-5 text-white" />
           </button>
         </div>
         
-        {/* Studio Info Footer */}
-        <div className="text-center mt-4">
-          <p className="text-xs text-gray-500">
-            🏋️‍♀️ Connected to FitZone Studio • Your fitness journey starts here
-          </p>
-        </div>
       </div>
     </div>
   )
