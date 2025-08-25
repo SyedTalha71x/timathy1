@@ -31,9 +31,8 @@ export default function StudioChat() {
   }
 
   useEffect(() => {
-    if (messages.length > initialMessages.length) {
       scrollToBottom()
-    }
+    
   }, [messages])
 
   const handleSendMessage = () => {
@@ -80,7 +79,10 @@ export default function StudioChat() {
   }
 
   return (
-    <div className="flex flex-col relative  md:h-[92vh] h-auto  bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
+    <div className="">
+
+  
+    <div className="flex flex-col relative md:h-[92vh] h-auto overflow-hidden bg-[#1C1C1C] text-gray-200 rounded-3xl">
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-700/50 bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-3 md:gap-4">
@@ -169,6 +171,5 @@ export default function StudioChat() {
         </div>
         
       </div>
-    </div>
-  )
+    </div>  </div>  )
 }

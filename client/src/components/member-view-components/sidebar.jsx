@@ -185,66 +185,69 @@ const MemberViewSidebar = () => {
 
 
           {/* Navigation Menu */}
-          <nav className="flex-1 overflow-y-auto mt-7  custom-scrollbar">  {/* moved from mt-20 → mt-10 */}
-            <ul className="space-y-2 p-4">
-              {menuItems.map((item, index) => (
-                <li key={item.label}>
-                  {/* Add divider before Settings */}
-                  {item.label === "Settings" && (
-                    <hr className="border-zinc-700 my-2" />
-                  )}
+        {/* Navigation Menu */}
+<nav className="flex-1 overflow-y-auto mt-7 custom-scrollbar">
+  <ul className="space-y-2 p-4">
+    {menuItems.map((item, index) => (
+      <li key={item.label}>
+        {/* Add divider before Settings */}
+        {item.label === "Settings" && (
+          <hr className="border-zinc-700 my-2" />
+        )}
 
-                  <button
-                    onClick={() => handleNavigation(item.to)}
-                    className={`
+        <button
+          onClick={() => handleNavigation(item.to)}
+          className={`
             flex items-center gap-3 cursor-pointer text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
             ${isCollapsed ? "justify-center" : "text-left"}
             group transition-all duration-500 
             ${location.pathname === item.to
-                        ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
-                        : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
-                      }
+              ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
+              : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
+            }
           `}
-                  >
-                    <div className="relative">
-                      <item.icon
-                        size={20}
-                        className={`
-                ${location.pathname === item.to
-                            ? "text-white"
-                            : "text-zinc-400 group-hover:text-white"
-                          }
-              `}
-                      />
-                    </div>
-                    {!isCollapsed && <span className="text-md">{item.label}</span>}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          {/* Logout Button */}
-          <div className="p-4 mb-64">   {/* changed from mt-auto → mb-6 so logout also moves up */}
-            <button
-              onClick={redirectToHome}
+        >
+          <div className="relative">
+            <item.icon
+              size={20}
               className={`
-      flex items-center cursor-pointer gap-3 open_sans_font px-4 py-2 text-zinc-400 hover:text-white
-      ${isCollapsed ? "justify-center" : "text-left"}
-      ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"} 
-      transition-all duration-300 w-full
-    `}
-            >
-              <div className="relative">
-                <LogOut size={20} />
-                {isCollapsed && (
-                  <span className="absolute left-full ml-2 whitespace-nowrap bg-[#222222] text-white px-2 py-1 rounded text-xs opacity-0 hover:opacity-100 pointer-events-none">
-                    Logout
-                  </span>
-                )}
-              </div>
-              {!isCollapsed && <span>Logout</span>}
-            </button>
+                ${location.pathname === item.to
+                  ? "text-white"
+                  : "text-zinc-400 group-hover:text-white"
+                }
+              `}
+            />
           </div>
+          {!isCollapsed && <span className="text-md">{item.label}</span>}
+        </button>
+      </li>
+    ))}
+
+    {/* Logout Button (moved here, just below menus) */}
+    <li className="mt-6"> {/* thoda neeche rakha */}
+      <button
+        onClick={redirectToHome}
+        className={`
+          flex items-center cursor-pointer gap-3 open_sans_font px-4 py-2 text-zinc-400 hover:text-white
+          ${isCollapsed ? "justify-center" : "text-left"}
+          ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"} 
+          transition-all duration-300 w-full
+        `}
+      >
+        <div className="relative">
+          <LogOut size={20} />
+          {isCollapsed && (
+            <span className="absolute left-full ml-2 whitespace-nowrap bg-[#222222] text-white px-2 py-1 rounded text-xs opacity-0 hover:opacity-100 pointer-events-none">
+              Logout
+            </span>
+          )}
+        </div>
+        {!isCollapsed && <span>Logout</span>}
+      </button>
+    </li>
+  </ul>
+</nav>
+
         </div>
       </aside>
 
