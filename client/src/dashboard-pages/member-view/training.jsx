@@ -1312,18 +1312,7 @@ export default function Training() {
                       </select>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="isPublicEdit"
-                      checked={planForm.isPublic}
-                      onChange={(e) => setPlanForm({ ...planForm, isPublic: e.target.checked })}
-                      className="w-4 h-4 accent-blue-600"
-                    />
-                    <label htmlFor="isPublicEdit" className="text-sm text-gray-400">
-                      Make this plan public (visible to all staff members)
-                    </label>
-                  </div>
+                 
                 </div>
 
                 {/* Exercise Library */}
