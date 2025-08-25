@@ -170,11 +170,11 @@ const MemberViewSidebar = () => {
           </button>
         </div>
 
-        <div className="hidden md:block absolute right-0 top-20 bg-[#222222] rounded-full p-2 cursor-pointer z-50"
+        <div className="hidden md:block absolute right-0 top-10 bg-[#222222] rounded-full p-2 cursor-pointer z-50"
           onClick={toggleCollapse}
         >
           {isCollapsed ? (
-            <ChevronRight size={20} className="text-white" />
+            <ChevronRight size={20} className="text-white " />
           ) : (
             <ChevronLeft size={20} className="text-white" />
           )}
@@ -185,7 +185,7 @@ const MemberViewSidebar = () => {
 
 
           {/* Navigation Menu */}
-          <nav className="flex-1 overflow-y-auto mt-10 custom-scrollbar">  {/* moved from mt-20 → mt-10 */}
+          <nav className="flex-1 overflow-y-auto mt-7  custom-scrollbar">  {/* moved from mt-20 → mt-10 */}
             <ul className="space-y-2 p-4">
               {menuItems.map((item, index) => (
                 <li key={item.label}>
