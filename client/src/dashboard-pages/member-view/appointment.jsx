@@ -1,4 +1,3 @@
-"use client"
 
 import { useState } from "react"
 import { IoIosInformation } from "react-icons/io"
@@ -15,10 +14,12 @@ const Appointments = () => {
   const [selectedCategory, setSelectedCategory] = useState("All courses")
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [appointmentToCancel, setAppointmentToCancel] = useState(null)
-  const [appointmentView, setAppointmentView] = useState("current")
+  const [appointmentView, setAppointmentView] = useState("upcoming")
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [infoModalData, setInfoModalData] = useState(null)
   const [showBookingModal, setShowBookingModal] = useState(false)
+  const [availabilityFilter, setAvailabilityFilter] = useState("all")
+  const [showRequestModal, setShowRequestModal] = useState(false)
 
   const currentMonth = new Date().getMonth()
   const currentYear = new Date().getFullYear()
@@ -116,13 +117,24 @@ const Appointments = () => {
       date: "June 25, 2025",
       time: "10:00 AM - 10:30 AM",
       trainer: "Dr. Sarah Mueller",
+      status: "confirmed",
+    },
+  ]
+
+  const pendingAppointments = [
+    {
+      id: 3,
+      service: "Nutrition Consultation",
+      date: "June 28, 2025",
+      time: "2:00 PM - 3:00 PM",
+      trainer: "Lisa Wagner",
       status: "pending",
     },
   ]
 
   const pastAppointments = [
     {
-      id: 3,
+      id: 4,
       service: "Nutrition Consultation",
       date: "May 15, 2025",
       time: "2:00 PM - 3:00 PM",
@@ -155,6 +167,18 @@ const Appointments = () => {
   const groupedTimeSlots = timeSlots.reduce((acc, slot) => {
     if (!acc[slot.period]) acc[slot.period] = []
     acc[slot.period].push(slot)
+    return acc
+  }, {})
+
+  const filteredTimeSlots = Object.entries(groupedTimeSlots).reduce((acc, [period, slots]) => {
+    const filtered = slots.filter((slot) => {
+      if (availabilityFilter === "available") return slot.available
+      if (availabilityFilter === "not-available") return !slot.available
+      return true
+    })
+    if (filtered.length > 0) {
+      acc[period] = filtered
+    }
     return acc
   }, {})
 
@@ -195,6 +219,11 @@ const Appointments = () => {
     setAppointmentToCancel(null)
   }
 
+  const handleCancelRequest = (appointment) => {
+    setAppointmentToCancel(appointment)
+    setShowCancelModal(true)
+  }
+
   const goToNextMonth = () => {
     if (selectedMonth === 11) {
       setSelectedMonth(0)
@@ -226,9 +255,14 @@ const Appointments = () => {
   }
 
   const handleTimeSlotClick = (slotId) => {
-    if (!timeSlots.find((slot) => slot.id === slotId)?.available) return
+    const slot = timeSlots.find((slot) => slot.id === slotId)
     setSelectedTimeSlot(slotId)
-    setShowBookingModal(true)
+
+    if (slot?.available) {
+      setShowBookingModal(true)
+    } else {
+      setShowRequestModal(true)
+    }
   }
 
   const confirmBooking = () => {
@@ -236,6 +270,13 @@ const Appointments = () => {
     setSelectedTimeSlot(null)
     // Here you would typically make an API call to book the appointment
     alert("Appointment booked successfully!")
+  }
+
+  const confirmRequest = () => {
+    setShowRequestModal(false)
+    setSelectedTimeSlot(null)
+    // Here you would typically make an API call to request the appointment
+    alert("Appointment request sent successfully!")
   }
 
   const isPastDate = (day) => {
@@ -270,14 +311,7 @@ const Appointments = () => {
                   <span className="text-gray-400">Category:</span>
                   <span className="text-white">{infoModalData?.category}</span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400">Trainer:</span>
-                  <span className="text-white">{infoModalData?.trainer}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400">Price:</span>
-                  <span className="text-white font-bold">{infoModalData?.price}</span>
-                </div>
+                
               </div>
             </div>
           </div>
@@ -327,11 +361,53 @@ const Appointments = () => {
           </div>
         )}
 
+        {showRequestModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
+              <h3 className="text-xl font-bold text-white mb-4">Request Appointment</h3>
+              <div className="space-y-4 mb-6">
+                <div className="bg-gray-700 rounded-lg p-4">
+                  <p className="text-white font-medium">{selectedService?.name}</p>
+                  <p className="text-gray-400 text-sm">
+                    {months[selectedMonth]} {selectedDate}, {selectedYear} at{" "}
+                    {timeSlots.find((slot) => slot.id === selectedTimeSlot)?.time}
+                  </p>
+                </div>
+                <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4">
+                  <h4 className="text-yellow-400 font-medium mb-2">Request Information</h4>
+                  <p className="text-gray-300 text-sm">
+                    This time slot is currently unavailable. Your request will be sent to the trainer for approval.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowRequestModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmRequest}
+                  className="flex-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg text-white transition-colors"
+                >
+                  Send Request
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showCancelModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
-              <h3 className="text-xl font-bold text-white mb-4">Cancel Booking</h3>
-              <p className="text-gray-300 mb-4">Are you sure you want to cancel this booking?</p>
+              <h3 className="text-xl font-bold text-white mb-4">
+                {appointmentToCancel?.status === "pending" ? "Cancel Request" : "Cancel Booking"}
+              </h3>
+              <p className="text-gray-300 mb-4">
+                Are you sure you want to cancel this {appointmentToCancel?.status === "pending" ? "request" : "booking"}
+                ?
+              </p>
               <div className="bg-gray-700 rounded-lg p-4 mb-6">
                 <p className="text-white font-medium">{appointmentToCancel?.service}</p>
                 <p className="text-gray-400 text-sm">
@@ -343,13 +419,13 @@ const Appointments = () => {
                   onClick={() => setShowCancelModal(false)}
                   className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-white transition-colors"
                 >
-                  Keep Booking
+                  Keep {appointmentToCancel?.status === "pending" ? "Request" : "Booking"}
                 </button>
                 <button
                   onClick={confirmCancelBooking}
                   className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white transition-colors"
                 >
-                  Cancel Booking
+                  Cancel {appointmentToCancel?.status === "pending" ? "Request" : "Booking"}
                 </button>
               </div>
             </div>
@@ -381,7 +457,7 @@ const Appointments = () => {
                   <h3 className="text-xl font-bold text-white">Show my appointments</h3>
                 </div>
                 <div className="bg-blue-500 text-white text-sm font-bold px-3 py-2 rounded-full min-w-[2rem] h-8 flex items-center justify-center">
-                  {currentAppointments.length}
+                  {currentAppointments.length + pendingAppointments.length}
                 </div>
               </button>
             </div>
@@ -503,14 +579,24 @@ const Appointments = () => {
 
               <div className="flex gap-4 mb-6">
                 <button
-                  onClick={() => setAppointmentView("current")}
+                  onClick={() => setAppointmentView("upcoming")}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    appointmentView === "current"
+                    appointmentView === "upcoming"
                       ? "bg-orange-600 text-white"
                       : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                   }`}
                 >
-                  Current Appointments
+                  Upcoming Appointments
+                </button>
+                <button
+                  onClick={() => setAppointmentView("pending")}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    appointmentView === "pending"
+                      ? "bg-orange-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  Pending Appointments
                 </button>
                 <button
                   onClick={() => setAppointmentView("past")}
@@ -525,13 +611,17 @@ const Appointments = () => {
               </div>
 
               <div className="space-y-4">
-                {(appointmentView === "current" ? currentAppointments : pastAppointments).map((appointment) => (
+                {(appointmentView === "upcoming"
+                  ? currentAppointments
+                  : appointmentView === "pending"
+                    ? pendingAppointments
+                    : pastAppointments
+                ).map((appointment) => (
                   <div key={appointment.id} className="bg-gray-800 rounded-xl p-4 md:p-6 border border-gray-700">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
                           <h3 className="text-lg font-bold text-white mb-1">{appointment.service}</h3>
-                         
                         </div>
                         <div className="flex flex-col md:flex-row gap-2 md:gap-4 text-sm text-gray-400">
                           <div className="flex items-center gap-2">
@@ -560,13 +650,17 @@ const Appointments = () => {
                         >
                           {appointment.status}
                         </span>
-                        {appointmentView === "current" && (
+                        {(appointmentView === "upcoming" || appointmentView === "pending") && (
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleCancelBooking(appointment)}
+                              onClick={() =>
+                                appointmentView === "pending"
+                                  ? handleCancelRequest(appointment)
+                                  : handleCancelBooking(appointment)
+                              }
                               className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors text-sm font-medium"
                             >
-                              Cancel booking
+                              Cancel {appointmentView === "pending" ? "request" : "booking"}
                             </button>
                           </div>
                         )}
@@ -702,8 +796,46 @@ const Appointments = () => {
                 </div>
               </div>
 
+              <div className="mb-6">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-lg font-semibold text-white">Filter by Availability:</h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setAvailabilityFilter("all")}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        availabilityFilter === "all"
+                          ? "bg-orange-600 text-white"
+                          : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      }`}
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={() => setAvailabilityFilter("available")}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        availabilityFilter === "available"
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      }`}
+                    >
+                      Available
+                    </button>
+                    <button
+                      onClick={() => setAvailabilityFilter("not-available")}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        availabilityFilter === "not-available"
+                          ? "bg-red-600 text-white"
+                          : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      }`}
+                    >
+                      Not Available
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-6 mb-8">
-                {Object.entries(groupedTimeSlots).map(([period, slots]) => (
+                {Object.entries(filteredTimeSlots).map(([period, slots]) => (
                   <div key={period}>
                     <h3 className="text-lg font-semibold text-white mb-3 capitalize flex items-center gap-2">
                       <div
@@ -722,17 +854,22 @@ const Appointments = () => {
                         <button
                           key={slot.id}
                           onClick={() => handleTimeSlotClick(slot.id)}
-                          disabled={!slot.available}
                           className={`p-4 rounded-lg font-medium transition-all duration-200 text-left ${
                             !slot.available
-                              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                              ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-red-500/30"
                               : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-600"
                           }`}
                         >
                           <div className="flex justify-between items-center">
                             <span>{slot.time}</span>
-                            {!slot.available && (
-                              <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">Booked</span>
+                            {!slot.available ? (
+                              <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">
+                                Request Available
+                              </span>
+                            ) : (
+                              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                                Available
+                              </span>
                             )}
                           </div>
                         </button>

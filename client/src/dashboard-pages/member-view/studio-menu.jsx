@@ -1,5 +1,5 @@
-
-import { useState } from "react"
+/* eslint-disable no-unused-vars */
+import { useState, useRef, useEffect } from "react"
 
 const StudioMenu = () => {
   const [activeSection, setActiveSection] = useState("info")
@@ -10,6 +10,19 @@ const StudioMenu = () => {
   const [showCancelMembershipPopup, setShowCancelMembershipPopup] = useState(false)
   const [showIdlePeriodForm, setShowIdlePeriodForm] = useState(false)
   const [expandedMemberSection, setExpandedMemberSection] = useState("")
+
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanResult, setScanResult] = useState(null)
+  const [cameraError, setCameraError] = useState(null)
+  const [checkInHistory, setCheckInHistory] = useState([
+    { date: "2025-01-26", time: "09:15", status: "success" },
+    { date: "2025-01-25", time: "18:30", status: "success" },
+    { date: "2025-01-24", time: "07:45", status: "success" },
+  ])
+
+  const videoRef = useRef(null)
+  const canvasRef = useRef(null)
+  const scannerRef = useRef(null)
 
   const [isEditingPersonal, setIsEditingPersonal] = useState(false)
   const [isEditingAddress, setIsEditingAddress] = useState(false)
@@ -34,6 +47,87 @@ const StudioMenu = () => {
     email: "john.doe@email.com",
     phone: "+49 30 1234 5678",
   })
+
+  const startScanning = async () => {
+    try {
+      setCameraError(null)
+      setIsScanning(true)
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      })
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.play()
+
+        // Start QR code detection
+        scanForQRCode()
+      }
+    } catch (error) {
+      setCameraError("Camera access denied or not available")
+      setIsScanning(false)
+    }
+  }
+
+  const stopScanning = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks()
+      tracks.forEach((track) => track.stop())
+      videoRef.current.srcObject = null
+    }
+    setIsScanning(false)
+    if (scannerRef.current) {
+      clearInterval(scannerRef.current)
+    }
+  }
+
+  const scanForQRCode = () => {
+    scannerRef.current = setInterval(() => {
+      if (videoRef.current && canvasRef.current) {
+        const canvas = canvasRef.current
+        const video = videoRef.current
+        const context = canvas.getContext("2d")
+
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        context.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+
+        // Simple QR code detection simulation (in real app, use a proper QR library)
+        // For demo purposes, we'll simulate a successful scan after 3 seconds
+        setTimeout(() => {
+          if (isScanning) {
+            handleSuccessfulScan("FITZONE_CHECKIN_" + Date.now())
+          }
+        }, 3000)
+      }
+    }, 100)
+  }
+
+  const handleSuccessfulScan = (qrData) => {
+    setScanResult(qrData)
+    stopScanning()
+
+    // Add to check-in history
+    const now = new Date()
+    const newCheckIn = {
+      date: now.toISOString().split("T")[0],
+      time: now.toTimeString().slice(0, 5),
+      status: "success",
+    }
+    setCheckInHistory((prev) => [newCheckIn, ...prev])
+
+    // Show success message
+    alert("Check-in successful! Welcome to FitZone Studio!")
+  }
+
+  useEffect(() => {
+    return () => {
+      stopScanning()
+    }
+  }, [])
 
   const handlePersonalDataChange = (field, value) => {
     setPersonalData((prev) => ({ ...prev, [field]: value }))
@@ -84,6 +178,16 @@ const StudioMenu = () => {
       {/* Tab Navigation */}
       <div className="flex border-b border-gray-700 bg-gray-800/50 rounded-lg mt-6 overflow-hidden">
         <button
+          onClick={() => setActiveSection("checkin")}
+          className={`flex-1 py-3 px-2 md:px-4 text-center font-medium text-sm md:text-base transition-all duration-300 ${
+            activeSection === "checkin"
+              ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+          }`}
+        >
+          Check-in
+        </button>
+        <button
           onClick={() => setActiveSection("info")}
           className={`flex-1 py-3 px-2 md:px-4 text-center font-medium text-sm md:text-base transition-all duration-300 ${
             activeSection === "info"
@@ -107,6 +211,140 @@ const StudioMenu = () => {
 
       {/* Content */}
       <div className="p-2 md:p-4 mt-4">
+        {activeSection === "checkin" && (
+          <div className="space-y-6">
+            {/* QR Code Scanner */}
+            <div className="bg-gray-800 rounded-xl p-4 md:p-6 shadow-lg">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                  />
+                </svg>
+                QR Code Check-in
+              </h2>
+
+              {!isScanning ? (
+                <div className="text-center">
+                  <div className="mb-4">
+                    <svg
+                      className="w-16 h-16 text-gray-400 mx-auto mb-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                      />
+                    </svg>
+                    <p className="text-gray-300 mb-2">Scan the QR code at the studio entrance to check in</p>
+                    <p className="text-gray-400 text-sm">Make sure to allow camera access when prompted</p>
+                  </div>
+
+                  {cameraError && (
+                    <div className="bg-red-900/20 border border-red-800/30 rounded-lg p-3 mb-4">
+                      <p className="text-red-400 text-sm">{cameraError}</p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={startScanning}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center mx-auto"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    Start QR Scanner
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="relative bg-black rounded-lg overflow-hidden mb-4">
+                    <video ref={videoRef} className="w-full h-64 object-cover" playsInline muted />
+                    <canvas ref={canvasRef} className="hidden" />
+
+                    {/* Scanner overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-48 h-48 border-2 border-orange-500 rounded-lg relative">
+                        <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-orange-500"></div>
+                        <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-orange-500"></div>
+                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-orange-500"></div>
+                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-orange-500"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-300 mb-4">Position the QR code within the frame</p>
+
+                  <button
+                    onClick={stopScanning}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+                  >
+                    Cancel Scan
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* <div className="bg-gray-800 rounded-xl p-4 md:p-6 shadow-lg">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Recent Check-ins
+              </h3>
+
+              <div className="space-y-3">
+                {checkInHistory.map((checkIn, index) => (
+                  <div key={index} className="flex justify-between items-center bg-gray-700/50 rounded-lg p-3">
+                    <div>
+                      <span className="text-white font-medium">{checkIn.date}</span>
+                      <p className="text-gray-400 text-sm">{checkIn.time}</p>
+                    </div>
+                    <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs flex items-center">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Success
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-gray-800 rounded-xl p-4 md:p-6 shadow-lg">
+                <h4 className="text-lg font-bold text-white mb-2">This Month</h4>
+                <div className="text-3xl font-bold text-orange-400 mb-1">12</div>
+                <p className="text-gray-400 text-sm">Check-ins</p>
+              </div>
+
+              <div className="bg-gray-800 rounded-xl p-4 md:p-6 shadow-lg">
+                <h4 className="text-lg font-bold text-white mb-2">Current Streak</h4>
+                <div className="text-3xl font-bold text-green-400 mb-1">5</div>
+                <p className="text-gray-400 text-sm">Days in a row</p>
+              </div>
+            </div> */}
+          </div>
+        )}
+
         {activeSection === "info" && (
           <div className="space-y-6">
             {/* Google Maps Integration */}

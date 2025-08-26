@@ -321,9 +321,7 @@ export default function Training() {
     return matchesCategory && matchesSearch
   })
 
-  const availableVideos = filteredVideos.filter((video) => {
-    return !selectedExercises.some((exercise) => exercise.videoId === video.id)
-  })
+  const availableVideos = filteredVideos
 
   // Filter plans based on selected staff member
   const filteredPlans = trainingPlans.filter((plan) => {
@@ -1312,7 +1310,6 @@ export default function Training() {
                       </select>
                     </div>
                   </div>
-                 
                 </div>
 
                 {/* Exercise Library */}
