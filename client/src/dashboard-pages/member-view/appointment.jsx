@@ -849,32 +849,37 @@ const Appointments = () => {
                       ></div>
                       {period}
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {slots.map((slot) => (
-                        <button
-                          key={slot.id}
-                          onClick={() => handleTimeSlotClick(slot.id)}
-                          className={`p-4 rounded-lg font-medium transition-all duration-200 text-left ${
-                            !slot.available
-                              ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-red-500/30"
-                              : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-600"
-                          }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span>{slot.time}</span>
-                            {!slot.available ? (
-                              <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">
-                                Request Available
-                              </span>
-                            ) : (
-                              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
-                                Available
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                    <div
+  className={`grid gap-3 ${
+    slots.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
+  }`}
+>
+  {slots.map((slot) => (
+    <button
+      key={slot.id}
+      onClick={() => handleTimeSlotClick(slot.id)}
+      className={`p-4 rounded-lg font-medium transition-all duration-200 text-left ${
+        !slot.available
+          ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-red-500/30"
+          : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-600"
+      }`}
+    >
+      <div className="flex justify-between items-center">
+        <span>{slot.time}</span>
+        {!slot.available ? (
+          <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">
+            Request Available
+          </span>
+        ) : (
+          <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
+            Available
+          </span>
+        )}
+      </div>
+    </button>
+  ))}
+</div>
+
                   </div>
                 ))}
               </div>
