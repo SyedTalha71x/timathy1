@@ -1,6 +1,4 @@
 /* eslint-disable react/no-unescaped-entities */
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useCallback, useEffect } from "react"
@@ -29,14 +27,17 @@ import {
   Pin,
   PinOff,
   Trash2,
+  Settings,
+  MessageCircle,
 } from "lucide-react"
-import Rectangle1 from "../../public/Rectangle 1.png"
-import Image10 from "../../public/image10.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
+import Image10 from "../../../public/image10.png"
 import { Toaster, toast } from "react-hot-toast"
-import Avatar from "../../public/avatar.png"
-import {WidgetSelectionModal} from '../components/widget-selection-modal'
-import AppointmentActionModal from "../components/appointments-components/appointment-action-modal"
-import EditAppointmentModal from "../components/appointments-components/selected-appointment-modal"
+import Avatar from "../../../public/avatar.png"
+import {WidgetSelectionModal} from '../../components/widget-selection-modal'
+import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
+import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import EditTaskModal from "../../components/task-components/edit-task-modal"
 
 const loggedInStaff = {
   id: 1,
@@ -643,8 +644,24 @@ export default function MyArea() {
   const [isSidebarEditing, setIsSidebarEditing] = useState(false) // Separate edit state for sidebar
 
   const [showAppointmentOptionsModal, setshowAppointmentOptionsModal] = useState(false)
-    const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("change")
+
+  const [todoFilter, setTodoFilter] = useState("all")
+  const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState(null)
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState(null)
+  const [taskToCancel, setTaskToCancel] = useState(null)
+  const [isBirthdayMessageModalOpen, setIsBirthdayMessageModalOpen] = useState(false)
+  const [selectedBirthdayPerson, setSelectedBirthdayPerson] = useState(null)
+  const [birthdayMessage, setBirthdayMessage] = useState("")
+
+  const [savedViews, setSavedViews] = useState([])
+  const [currentView, setCurrentView] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [freeAppointments, setFreeAppointments] = useState([])
+  const today = new Date().toISOString().split("T")[0]
 
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 }, // Always full width
@@ -652,6 +669,9 @@ export default function MyArea() {
     { id: "appointments", type: "appointments", position: 2 },
     { id: "staffCheckIn", type: "staffCheckIn", position: 3 },
     { id: "websiteLink", type: "websiteLink", position: 4 },
+    { id: "communications", type: "communications", position: 5 },
+    { id: "todo", type: "todo", position: 6 },
+    { id: "birthday", type: "birthday", position: 7 },
     // Removed topSelling and mostFrequent
   ])
 
@@ -693,101 +713,57 @@ export default function MyArea() {
   const [todos, setTodos] = useState([
     {
       id: 1,
-      title: "Review Design",
-      description: "Review the new dashboard design",
-      assignee: "Jack",
+      title: "Task 1",
+      assignees: ["Jack"],
+      roles: "Trainer",
+      tags: ["Important", "Urgent"],
+      status: "ongoing",
+      category: "member",
+      dueDate: "2025-01-15",
+      isPinned: false,
+      dueTime: "10:00 AM",
+      completed: false,
     },
     {
       id: 2,
-      title: "Team Meeting",
-      description: "Weekly team sync",
-      assignee: "Jack",
-    },
-  ])
-
-  const [birthdays, setBirthdays] = useState([
-    {
-      id: 1,
-      name: "Yolando",
-      date: "Mon | 02 01 2025",
-      avatar: Avatar,
+      title: "Review membership applications",
+      assignees: ["Sarah"],
+      roles: "Manager",
+      tags: ["Review"],
+      status: "pending",
+      category: "staff",
+      dueDate: "2025-01-20",
+      isPinned: false,
+      dueTime: "2:00 PM",
+      completed: false,
     },
     {
-      id: 2,
-      name: "Alexandra",
-      date: "Tue | 02 02 2025",
-      avatar: Avatar,
+      id: 3,
+      title: "Update equipment maintenance",
+      assignees: ["Mike"],
+      roles: "Technician",
+      tags: ["Maintenance"],
+      status: "completed",
+      category: "equipment",
+      dueDate: "2025-01-10",
+      isPinned: false,
+      dueTime: "9:00 AM",
+      completed: true,
+    },
+    {
+      id: 4,
+      title: "Prepare monthly report",
+      assignees: ["Admin"],
+      roles: "Admin",
+      tags: ["Report", "Monthly"],
+      status: "ongoing",
+      category: "admin",
+      dueDate: "2025-01-25",
+      isPinned: false,
+      dueTime: "11:00 AM",
+      completed: false,
     },
   ])
-
-  // Updated member types with new statistics
-  const memberTypes = {
-    "All members": {
-      data: [
-        [50, 280, 200, 450, 250, 400, 300, 200, 450],
-        [100, 150, 200, 100, 150, 300, 400, 100, 400],
-      ],
-      growth: "4%",
-      title: "Members",
-    },
-    "Checked in": {
-      data: [
-        [30, 180, 150, 350, 200, 300, 250, 150, 350],
-        [80, 120, 150, 80, 120, 250, 300, 80, 300],
-      ],
-      growth: "2%",
-      title: "Checked In Members",
-    },
-    "Cancelled appointment": {
-      data: [
-        [20, 100, 50, 100, 50, 100, 50, 50, 100],
-        [20, 30, 50, 20, 30, 50, 100, 20, 100],
-      ],
-      growth: "-1%",
-      title: "Cancelled Appointments",
-    },
-    Finances: {
-      data: [
-        [150, 320, 280, 500, 350, 450, 380, 300, 520],
-        [200, 250, 300, 200, 280, 400, 500, 200, 480],
-      ],
-      growth: "8%",
-      title: "Financial Overview",
-    },
-    Selling: {
-      data: [
-        [80, 220, 180, 380, 280, 350, 320, 250, 400],
-        [120, 180, 220, 120, 200, 320, 420, 150, 380],
-      ],
-      growth: "6%",
-      title: "Sales Performance",
-    },
-    Leads: {
-      data: [
-        [40, 160, 120, 280, 180, 250, 220, 180, 300],
-        [60, 100, 140, 80, 120, 200, 280, 100, 260],
-      ],
-      growth: "5%",
-      title: "Lead Generation",
-    },
-    "Top-selling by revenue": {
-      data: [
-        [40, 160, 120, 280, 180, 250, 220, 180, 300],
-        [60, 100, 140, 80, 120, 200, 280, 100, 260],
-      ],
-      growth: "2%",
-      title: "Top-selling by revenue",
-    },
-
-    "Most frequently sold": {
-      data: [
-        [40, 160, 120, 280, 180, 250, 220, 180, 300],
-        [60, 100, 140, 80, 120, 200, 280, 100, 260],
-      ],
-      growth: "3%",
-      title: "Most frequently sold",
-    },
-  }
 
   const [appointments, setAppointments] = useState([
     {
@@ -864,12 +840,94 @@ export default function MyArea() {
     },
   ])
 
-  const [savedViews, setSavedViews] = useState([])
-  const [currentView, setCurrentView] = useState(null)
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "John Smith",
+      date: today, // Today's birthday for testing
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Sarah Johnson",
+      date: "2025-01-20",
+      avatar: Rectangle1,
+    },
+    {
+      id: 3,
+      name: "Mike Wilson",
+      date: "2025-01-25",
+      avatar: Rectangle1,
+    },
+  ])
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
-  const [freeAppointments, setFreeAppointments] = useState([])
+  const memberTypes = {
+    "All members": {
+      data: [
+        [50, 280, 200, 450, 250, 400, 300, 200, 450],
+        [100, 150, 200, 100, 150, 300, 400, 100, 400],
+      ],
+      growth: "4%",
+      title: "Members",
+    },
+    "Checked in": {
+      data: [
+        [30, 180, 150, 350, 200, 300, 250, 150, 350],
+        [80, 120, 150, 80, 120, 250, 300, 80, 300],
+      ],
+      growth: "2%",
+      title: "Checked In Members",
+    },
+    "Cancelled appointment": {
+      data: [
+        [20, 100, 50, 100, 50, 100, 50, 50, 100],
+        [20, 30, 50, 20, 30, 50, 100, 20, 100],
+      ],
+      growth: "-1%",
+      title: "Cancelled Appointments",
+    },
+    Finances: {
+      data: [
+        [150, 320, 280, 500, 350, 450, 380, 300, 520],
+        [200, 250, 300, 200, 280, 400, 500, 200, 480],
+      ],
+      growth: "8%",
+      title: "Financial Overview",
+    },
+    Selling: {
+      data: [
+        [80, 220, 180, 380, 280, 350, 320, 250, 400],
+        [120, 180, 220, 120, 200, 320, 420, 150, 380],
+      ],
+      growth: "6%",
+      title: "Sales Performance",
+    },
+    Leads: {
+      data: [
+        [40, 160, 120, 280, 180, 250, 220, 180, 300],
+        [60, 100, 140, 80, 120, 200, 280, 100, 260],
+      ],
+      growth: "5%",
+      title: "Lead Generation",
+    },
+    "Top-selling by revenue": {
+      data: [
+        [40, 160, 120, 280, 180, 250, 220, 180, 300],
+        [60, 100, 140, 80, 120, 200, 280, 100, 260],
+      ],
+      growth: "2%",
+      title: "Top-selling by revenue",
+    },
+    "Most frequently sold": {
+      data: [
+        [40, 160, 120, 280, 180, 250, 220, 180, 300],
+        [60, 100, 140, 80, 120, 200, 280, 100, 260],
+      ],
+      growth: "3%",
+      title: "Most frequently sold",
+    },
+  }
+
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
   const redirectToTodos = () => navigate("/dashboard/to-do")
   const redirectToCommunication = () => navigate("/dashboard/communication")
@@ -879,20 +937,27 @@ export default function MyArea() {
   const [activeNoteId, setActiveNoteId] = useState(null)
   const [editingNoteId, setEditingNoteId] = useState(null)
   const [editingNoteText, setEditingNoteText] = useState("")
+  const todoFilterDropdownRef = useRef(null)
 
   const [selectedAppointment, setselectedAppointment] = useState()
   const [isEditAppointmentModalOpen, setisEditAppointmentModalOpen] = useState(false)
 
-  // Helper function to determine widget placement status
   const getWidgetPlacementStatus = useCallback(
-    (widgetType) => {
-      const existsInMain = widgets.some((widget) => widget.type === widgetType)
-      const existsInSidebar = rightSidebarWidgets.some((widget) => widget.type === widgetType)
-      if (existsInMain) {
-        return { canAdd: false, location: "dashboard" }
-      }
-      if (existsInSidebar) {
-        return { canAdd: false, location: "sidebar" }
+    (widgetType, widgetArea = "dashboard") => {
+      if (widgetArea === "dashboard") {
+        // Only check main dashboard widgets for dashboard area
+        const existsInMain = widgets.some((widget) => widget.type === widgetType)
+        if (existsInMain) {
+          return { canAdd: false, location: "dashboard" }
+        }
+        return { canAdd: true, location: null }
+      } else if (widgetArea === "sidebar") {
+        // Only check sidebar widgets for sidebar area
+        const existsInSidebar = rightSidebarWidgets.some((widget) => widget.type === widgetType)
+        if (existsInSidebar) {
+          return { canAdd: false, location: "sidebar" }
+        }
+        return { canAdd: true, location: null }
       }
       return { canAdd: true, location: null }
     },
@@ -1032,6 +1097,57 @@ export default function MyArea() {
     toast.success("Special note updated successfully")
   }
 
+  const isBirthdayToday = (date) => {
+    return date === today
+  }
+
+  const truncateUrl = (url, maxLength = 40) => {
+    if (url.length <= maxLength) return url
+    return url.substring(0, maxLength - 3) + "..."
+  }
+
+  const getFilteredTodos = () => {
+    switch (todoFilter) {
+      case "ongoing":
+        return todos.filter((todo) => todo.status === "ongoing")
+      case "pending":
+        return todos.filter((todo) => todo.status === "pending")
+      case "completed":
+        return todos.filter((todo) => todo.status === "completed")
+      default:
+        return todos
+    }
+  }
+
+  const handleTaskComplete = (taskId) => {
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === taskId
+          ? { ...todo, completed: !todo.completed, status: todo.completed ? "ongoing" : "completed" }
+          : todo,
+      ),
+    )
+  }
+
+  const handleEditTask = (task) => {
+    setEditingTask(task)
+    setIsEditTaskModalOpen(true)
+  }
+
+  const handleUpdateTask = (updatedTask) => {
+    setTodos((prev) => prev.map((todo) => (todo.id === updatedTask.id ? updatedTask : todo)))
+  }
+
+  const handleDeleteTask = (taskId) => {
+    setTodos((prev) => prev.filter((todo) => todo.id !== taskId))
+    setTaskToDelete(null)
+  }
+
+  const handleCancelTask = (taskId) => {
+    setTodos((prev) => prev.map((todo) => (todo.id === taskId ? { ...todo, status: "cancelled" } : todo)))
+    setTaskToCancel(null)
+  }
+
   useEffect(() => {
     const savedViewsData = localStorage.getItem("dashboardViews")
     if (savedViewsData) {
@@ -1060,6 +1176,9 @@ export default function MyArea() {
       }
       if (chartDropdownRef.current && !chartDropdownRef.current.contains(event.target)) {
         setIsChartDropdownOpen(false)
+      }
+      if (todoFilterDropdownRef.current && !todoFilterDropdownRef.current.contains(event.target)) {
+        setIsTodoFilterDropdownOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -1171,8 +1290,6 @@ export default function MyArea() {
       onClose()
     }
 
-    
-
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
@@ -1225,9 +1342,8 @@ export default function MyArea() {
     )
   }
 
-  // Fixed handleAddWidget function
   const handleAddWidget = (widgetType) => {
-    const { canAdd, location } = getWidgetPlacementStatus(widgetType)
+    const { canAdd, location } = getWidgetPlacementStatus(widgetType, "dashboard")
     if (!canAdd) {
       toast.error(`This widget is already added to your ${location}.`)
       return
@@ -1242,9 +1358,8 @@ export default function MyArea() {
     toast.success(`${widgetType} widget has been added successfully`)
   }
 
-  // Fixed handleAddRightSidebarWidget function
   const handleAddRightSidebarWidget = (widgetType) => {
-    const { canAdd, location } = getWidgetPlacementStatus(widgetType)
+    const { canAdd, location } = getWidgetPlacementStatus(widgetType, "sidebar")
     if (!canAdd) {
       toast.error(`This widget is already added to your ${location}.`)
       return
@@ -1424,9 +1539,6 @@ export default function MyArea() {
       }
     }
 
-
-    
-
     const handleDragEnd = (e) => {
       e.currentTarget.classList.remove("dragging")
       const allWidgets = document.querySelectorAll(".right-sidebar-widget")
@@ -1462,11 +1574,10 @@ export default function MyArea() {
     )
   }
 
-  const handleViewMemberDetails = () =>{
-     toast.success('View member functionality will be implemented here later from backend')
-     setshowAppointmentOptionsModal(false)
+  const handleViewMemberDetails = () => {
+    toast.success("View member functionality will be implemented here later from backend")
+    setshowAppointmentOptionsModal(false)
   }
-
 
   const isEventInPast = (eventStart) => {
     const now = new Date()
@@ -1475,10 +1586,10 @@ export default function MyArea() {
   }
 
   const handleAppointmentOptionsModal = (appointment) => {
-    setselectedAppointment(appointment);
-    setshowAppointmentOptionsModal(true);
-    setisEditAppointmentModalOpen(false); // Ensure edit modal is closed
-  };
+    setselectedAppointment(appointment)
+    setshowAppointmentOptionsModal(true)
+    setisEditAppointmentModalOpen(false) // Ensure edit modal is closed
+  }
 
   const handleCancelAppointment = () => {
     setshowAppointmentOptionsModal(false)
@@ -1504,7 +1615,6 @@ export default function MyArea() {
     setselectedAppointment(null) // Clear selected appointment after action
   }
 
-
   const handleDeleteAppointment = (id) => {
     // setMemberAppointments(memberAppointments.filter((app) => app.id !== id))
     setselectedAppointment(null)
@@ -1516,9 +1626,33 @@ export default function MyArea() {
 
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
-        toast.success("Member notified successfully!")
-
+    toast.success("Member notified successfully!")
   }
+
+  const handleSendBirthdayMessage = (person) => {
+    setSelectedBirthdayPerson(person)
+    setBirthdayMessage(`Happy Birthday ${person.name}! 🎉 Wishing you a wonderful day filled with joy and celebration!`)
+    setIsBirthdayMessageModalOpen(true)
+  }
+
+  const handleSendCustomBirthdayMessage = () => {
+    if (birthdayMessage.trim()) {
+      toast.success(`Birthday message sent to ${selectedBirthdayPerson.name}!`)
+      setIsBirthdayMessageModalOpen(false)
+      setBirthdayMessage("")
+      setSelectedBirthdayPerson(null)
+    }
+
+    setBirthdayMessage("")
+    setSelectedBirthdayPerson(null)
+  }
+
+  const todoFilterOptions = [
+    { value: "all", label: "All" },
+    { value: "ongoing", label: "Ongoing" },
+    { value: "pending", label: "Pending" },
+    { value: "completed", label: "Completed" },
+  ]
 
   return (
     <>
@@ -1573,12 +1707,20 @@ export default function MyArea() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsViewModalOpen(true)}
-                  className="py-2 px-4 bg-zinc-700 text-white rounded-xl text-sm cursor-pointer flex items-center gap-1 hover:bg-zinc-600"
-                  title="Manage Views"
+                  className="px-4 py-2 bg-zinc-700 text-zinc-200 rounded-xl text-sm  cursor-pointer flex items-center gap-2"
                 >
-                  <Eye size={18} />
-                  <span className="hidden sm:inline">Manage Views</span>
+                  <Settings size={16} />
+                  {currentView ? currentView.name : "Standard View"}
                 </button>
+                {!isEditing && (
+                  <button
+                    onClick={() => setIsViewModalOpen(true)}
+                    className="px-4 py-2 bg-zinc-700 text-zinc-200 rounded-xl text-sm cursor-pointer flex items-center gap-2"
+                  >
+                    <Settings size={16} />
+                    Manage Views
+                  </button>
+                )}
                 {/* Only show Add Widget button when editing is active */}
                 {isEditing && (
                   <button
@@ -1711,7 +1853,9 @@ export default function MyArea() {
                                   </div>
                                   <div
                                     className="flex flex-col items-center justify-between gap-2 cursor-pointer"
-                                    onClick={()=>{handleAppointmentOptionsModal(appointment)}}
+                                    onClick={() => {
+                                      handleAppointmentOptionsModal(appointment)
+                                    }}
                                   >
                                     <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
                                       <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
@@ -1772,9 +1916,11 @@ export default function MyArea() {
                                   key={link.id}
                                   className="p-5 bg-black rounded-xl flex items-center justify-between"
                                 >
-                                  <div>
-                                    <h3 className="text-sm font-medium">{link.title}</h3>
-                                    <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium truncate">{link.title}</h3>
+                                    <p className="text-xs mt-1 text-zinc-400 truncate max-w-[200px]">
+                                      {truncateUrl(link.url)}
+                                    </p>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <button
@@ -1829,6 +1975,207 @@ export default function MyArea() {
                           >
                             Add website link...
                           </button>
+                        </div>
+                      )}
+                      {widget.type === "communications" && (
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">Communications</h2>
+                          </div>
+                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <div className="space-y-2">
+                              {communications.slice(0, 3).map((comm) => (
+                                <div
+                                  onClick={redirectToCommunication}
+                                  key={comm.id}
+                                  className="p-3 cursor-pointer bg-black rounded-xl"
+                                >
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <img
+                                      src={comm.avatar || "/placeholder.svg"}
+                                      alt="User"
+                                      className="rounded-full h-10 w-10"
+                                    />
+                                    <div>
+                                      <h3 className="text-sm font-medium">{comm.name}</h3>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-zinc-400 mb-1">{comm.message}</p>
+                                    <p className="text-xs flex gap-1 items-center text-zinc-400">
+                                      <Clock size={12} />
+                                      {comm.time}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex justify-center">
+                            <Link to={"/dashboard/communication"} className="text-sm text-white hover:underline">
+                              See all
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                      {widget.type === "todo" && (
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">TO-DO</h2>
+                          </div>
+                          <div className="relative mb-3" ref={todoFilterDropdownRef}>
+                            <button
+                              onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
+                            >
+                              {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                            {isTodoFilterDropdownOpen && (
+                              <div className="absolute z-10 mt-2 w-32 bg-[#2F2F2F] rounded-xl shadow-lg">
+                                {todoFilterOptions.map((option) => (
+                                  <button
+                                    key={option.value}
+                                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
+                                    onClick={() => {
+                                      setTodoFilter(option.value)
+                                      setIsTodoFilterDropdownOpen(false)
+                                    }}
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <div className="space-y-2">
+                              {getFilteredTodos()
+                                .slice(0, 3)
+                                .map((todo) => (
+                                  <div
+                                    key={todo.id}
+                                    className="p-3 bg-black rounded-xl flex items-center justify-between"
+                                  >
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <input
+                                        type="checkbox"
+                                        checked={todo.completed}
+                                        onChange={() => handleTaskComplete(todo.id)}
+                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                      />
+                                      <div className="flex-1">
+                                        <h3
+                                          className={`font-semibold text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                        >
+                                          {todo.title}
+                                        </h3>
+                                        <p className="text-xs text-zinc-400">
+                                          Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="relative">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          toggleDropdown(`main-todo-${todo.id}`)
+                                        }}
+                                        className="p-1 hover:bg-zinc-700 rounded"
+                                      >
+                                        <MoreVertical size={16} />
+                                      </button>
+                                      {openDropdownIndex === `main-todo-${todo.id}` && (
+                                        <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                          <button
+                                            onClick={() => {
+                                              handleEditTask(todo)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                          >
+                                            Edit Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToCancel(todo.id)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                          >
+                                            Cancel Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToDelete(todo.id)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                          >
+                                            Delete Task
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                          <div className="flex justify-center">
+                            <Link to={"/dashboard/to-do"} className="text-sm text-white hover:underline">
+                              See all
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                      {widget.type === "birthday" && (
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">Upcoming Birthday</h2>
+                          </div>
+                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <div className="space-y-2">
+                              {birthdays.slice(0, 3).map((birthday) => (
+                                <div
+                                  key={birthday.id}
+                                  className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${
+                                    isBirthdayToday(birthday.date)
+                                      ? "bg-yellow-900/30 border border-yellow-600"
+                                      : "bg-black"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div>
+                                      <img
+                                        src={birthday.avatar || "/placeholder.svg"}
+                                        className="h-10 w-10 rounded-full"
+                                        alt=""
+                                      />
+                                    </div>
+                                    <div>
+                                      <h3 className="font-semibold text-sm flex items-center gap-1">
+                                        {birthday.name}
+                                        {isBirthdayToday(birthday.date) && <span className="text-yellow-500">🎂</span>}
+                                      </h3>
+                                      <p className="text-xs text-zinc-400">{birthday.date}</p>
+                                    </div>
+                                  </div>
+                                  {isBirthdayToday(birthday.date) && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleSendBirthdayMessage(birthday)
+                                      }}
+                                      className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                                      title="Send Birthday Message"
+                                    >
+                                      <MessageCircle size={16} />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       )}
                     </DraggableWidget>
@@ -1932,23 +2279,98 @@ export default function MyArea() {
                       <div className="flex items-center justify-between mb-2">
                         <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">TO-DO</h2>
                       </div>
-                      <div className="space-y-3 open_sans_font">
-                        {todos.slice(0, 2).map((todo) => (
-                          <div
-                            onClick={redirectToTodos}
-                            key={todo.id}
-                            className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
-                          >
-                            <div>
-                              <h3 className="font-semibold open_sans_font text-sm">{todo.title}</h3>
-                              <p className="text-xs open_sans_font text-zinc-400">{todo.description}</p>
-                            </div>
-                            <button className="px-3 py-1.5 flex justify-center items-center gap-2 bg-blue-600 text-white rounded-xl text-xs">
-                              <img src={Image10 || "/placeholder.svg"} alt="" className="w-4 h-4" />
-                              {todo.assignee}
-                            </button>
+                      <div className="relative mb-3" ref={todoFilterDropdownRef}>
+                        <button
+                          onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
+                        >
+                          {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                        {isTodoFilterDropdownOpen && (
+                          <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+                            {todoFilterOptions.map((option) => (
+                              <button
+                                key={option.value}
+                                className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                onClick={() => {
+                                  setTodoFilter(option.value)
+                                  setIsTodoFilterDropdownOpen(false)
+                                }}
+                              >
+                                {option.label}
+                              </button>
+                            ))}
                           </div>
-                        ))}
+                        )}
+                      </div>
+                      <div className="space-y-3 open_sans_font">
+                        {getFilteredTodos()
+                          .slice(0, 3)
+                          .map((todo) => (
+                            <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="checkbox"
+                                  checked={todo.completed}
+                                  onChange={() => handleTaskComplete(todo.id)}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <div className="flex-1">
+                                  <h3
+                                    className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                  >
+                                    {todo.title}
+                                  </h3>
+                                  <p className="text-xs open_sans_font text-zinc-400">
+                                    Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="relative">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    toggleDropdown(`todo-${todo.id}`)
+                                  }}
+                                  className="p-1 hover:bg-zinc-700 rounded"
+                                >
+                                  <MoreVertical size={16} />
+                                </button>
+                                {openDropdownIndex === `todo-${todo.id}` && (
+                                  <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                    <button
+                                      onClick={() => {
+                                        handleEditTask(todo)
+                                        setOpenDropdownIndex(null)
+                                      }}
+                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                    >
+                                      Edit Task
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setTaskToCancel(todo.id)
+                                        setOpenDropdownIndex(null)
+                                      }}
+                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                    >
+                                      Cancel Task
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setTaskToDelete(todo.id)
+                                        setOpenDropdownIndex(null)
+                                      }}
+                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                    >
+                                      Delete Task
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                         <Link
                           to={"/dashboard/to-do"}
                           className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
@@ -1964,18 +2386,41 @@ export default function MyArea() {
                         <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Upcoming Birthday</h2>
                       </div>
                       <div className="space-y-2 open_sans_font">
-                        {birthdays.slice(0, 2).map((birthday) => (
+                        {birthdays.slice(0, 3).map((birthday) => (
                           <div
                             key={birthday.id}
-                            className="p-2 cursor-pointer bg-black rounded-xl flex items-center gap-2"
+                            className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${
+                              isBirthdayToday(birthday.date) ? "bg-yellow-900/30 border border-yellow-600" : "bg-black"
+                            }`}
                           >
-                            <div>
-                              <img src={birthday.avatar || "/placeholder.svg"} className="h-8 w-8" alt="" />
+                            <div className="flex items-center gap-2">
+                              <div>
+                                <img
+                                  src={birthday.avatar || "/placeholder.svg"}
+                                  className="h-8 w-8 rounded-full"
+                                  alt=""
+                                />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold open_sans_font text-sm flex items-center gap-1">
+                                  {birthday.name}
+                                  {isBirthdayToday(birthday.date) && <span className="text-yellow-500">🎂</span>}
+                                </h3>
+                                <p className="text-xs open_sans_font text-zinc-400">{birthday.date}</p>
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="font-semibold open_sans_font text-sm">{birthday.name}</h3>
-                              <p className="text-xs open_sans_font text-zinc-400">{birthday.date}</p>
-                            </div>
+                            {isBirthdayToday(birthday.date) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleSendBirthdayMessage(birthday)
+                                }}
+                                className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                                title="Send Birthday Message"
+                              >
+                                <MessageCircle size={16} />
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1983,82 +2428,29 @@ export default function MyArea() {
                   )}
                   {widget.type === "websiteLinks" && (
                     <div className="mb-6">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center mb-2">
-                          <h2 className="text-lg open_sans_font md:text-xl open_sans_font_700 cursor-pointer">
-                            Website Links
-                          </h2>
-                        </div>
-                        <div className="max-h-[250px] overflow-y-auto custom-scrollbar">
-                          <div className="space-y-3">
-                            {customLinks.map((link, linkIndex) => (
-                              <div key={link.id} className="p-1.5 bg-black rounded-xl relative">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex-1">
-                                    <h3 className="text-sm font-medium">{link.title}</h3>
-                                    <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <button
-                                      onClick={() =>
-                                        window.open(
-                                          link.url.startsWith("http") ? link.url : `https://${link.url}`,
-                                          "_blank",
-                                        )
-                                      }
-                                      className="p-2 hover:bg-zinc-700 rounded-lg"
-                                    >
-                                      <ExternalLink size={16} />
-                                    </button>
-                                    {!isSidebarEditing && (
-                                      <div className="relative">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            toggleDropdown(`sidebar-link-${link.id}`)
-                                          }}
-                                          className="p-2 hover:bg-zinc-700 rounded-lg"
-                                        >
-                                          <MoreVertical size={16} />
-                                        </button>
-                                        {openDropdownIndex === `sidebar-link-${link.id}` && (
-                                          <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                            <button
-                                              onClick={(e) => {
-                                                e.stopPropagation()
-                                                setEditingLink(link)
-                                                setOpenDropdownIndex(null)
-                                              }}
-                                              className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
-                                            >
-                                              Edit
-                                            </button>
-                                            <button
-                                              onClick={(e) => {
-                                                e.stopPropagation()
-                                                removeCustomLink(link.id)
-                                                setOpenDropdownIndex(null)
-                                              }}
-                                              className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                                            >
-                                              Remove
-                                            </button>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
+                      </div>
+                      <div className="space-y-2 open_sans_font">
+                        {customLinks.map((link) => (
+                          <div
+                            key={link.id}
+                            className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold open_sans_font text-sm truncate">{link.title}</h3>
+                              <p className="text-xs open_sans_font text-zinc-400 truncate max-w-[150px]">
+                                {truncateUrl(link.url, 30)}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => window.open(link.url, "_blank")}
+                              className="p-2 hover:bg-zinc-700 rounded-lg"
+                            >
+                              <ExternalLink size={16} />
+                            </button>
                           </div>
-                        </div>
-                        <button
-                          onClick={addCustomLink}
-                          className="w-full p-2 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
-                        >
-                          Add website link...
-                        </button>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -2067,91 +2459,213 @@ export default function MyArea() {
           </div>
         </aside>
 
-        <AppointmentActionModal
-  isOpen={showAppointmentOptionsModal}
-  onClose={() => {
-    setshowAppointmentOptionsModal(false);
-    setselectedAppointment(null); // Reset the selected appointment when closing
-  }}
-  appointment={selectedAppointment}
-  isEventInPast={isEventInPast}
-  onEdit={() => {
-    setshowAppointmentOptionsModal(false); // Close the options modal
-    setisEditAppointmentModalOpen(true); // Open the edit modal
-  }}
-  onCancel={handleCancelAppointment}
-  onViewMember={handleViewMemberDetails}
-/>
+        {isEditTaskModalOpen && editingTask && (
+          <EditTaskModal
+            task={editingTask}
+            onClose={() => {
+              setIsEditTaskModalOpen(false)
+              setEditingTask(null)
+            }}
+            onUpdateTask={handleUpdateTask}
+          />
+        )}
 
-{isNotifyMemberOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsNotifyMemberOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
-              <button
-                onClick={() => {
-                  setIsNotifyMemberOpen(false)
-                }}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                {" "}
-                <X size={20} />{" "}
-              </button>
-            </div>
-            <div className="p-6">
-              <p className="text-white text-sm">
-                {" "}
-                Do you want to notify the member about this{" "}
-                {notifyAction === "change"
-                  ? "change"
-                  : notifyAction === "cancel"
-                    ? "cancellation"
-                    : notifyAction === "delete"
-                      ? "deletion"
-                      : "booking"}{" "}
-                ?{" "}
+        {taskToDelete && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete this task? This action cannot be undone.
               </p>
-            </div>
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                onClick={() => {
-                  if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(true) // Confirm cancellation and notify
-                  } else {
-                    handleNotifyMember(true) // Confirm other changes and notify
-                  }
-                  setIsNotifyMemberOpen(false)
-                }}
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-              >
-                
-                {" "}
-                Yes, Notify Member{" "}
-              </button>
-              <button
-                onClick={() => {
-                  if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(false) // Confirm cancellation without notifying
-                  } else {
-                    handleNotifyMember(false) // Cancel other changes and don't notify (triggers revert)
-                  }
-                  setIsNotifyMemberOpen(false)
-                }}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
-              >
-                {" "}
-                No, Don't Notify{" "}
-              </button>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToDelete(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteTask(taskToDelete)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {taskToCancel && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToCancel(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => handleCancelTask(taskToCancel)}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+                >
+                  Cancel Task
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <AppointmentActionModal
+          isOpen={showAppointmentOptionsModal}
+          onClose={() => {
+            setshowAppointmentOptionsModal(false)
+            setselectedAppointment(null) // Reset the selected appointment when closing
+          }}
+          appointment={selectedAppointment}
+          isEventInPast={isEventInPast}
+          onEdit={() => {
+            setshowAppointmentOptionsModal(false) // Close the options modal
+            setisEditAppointmentModalOpen(true) // Open the edit modal
+          }}
+          onCancel={handleCancelAppointment}
+          onViewMember={handleViewMemberDetails}
+        />
+
+        {isNotifyMemberOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+            onClick={() => setIsNotifyMemberOpen(false)}
+          >
+            <div
+              className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+                <button
+                  onClick={() => {
+                    setIsNotifyMemberOpen(false)
+                  }}
+                  className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+                >
+                  {" "}
+                  <X size={20} />{" "}
+                </button>
+              </div>
+              <div className="p-6">
+                <p className="text-white text-sm">
+                  {" "}
+                  Do you want to notify the member about this{" "}
+                  {notifyAction === "change"
+                    ? "change"
+                    : notifyAction === "cancel"
+                      ? "cancellation"
+                      : notifyAction === "delete"
+                        ? "deletion"
+                        : "booking"}{" "}
+                  ?{" "}
+                </p>
+              </div>
+              <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
+                <button
+                  onClick={() => {
+                    if (notifyAction === "cancel") {
+                      actuallyHandleCancelAppointment(true) // Confirm cancellation and notify
+                    } else {
+                      handleNotifyMember(true) // Confirm other changes and notify
+                    }
+                    setIsNotifyMemberOpen(false)
+                  }}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+                >
+                  {" "}
+                  Yes, Notify Member{" "}
+                </button>
+                <button
+                  onClick={() => {
+                    if (notifyAction === "cancel") {
+                      actuallyHandleCancelAppointment(false) // Confirm cancellation without notifying
+                    } else {
+                      handleNotifyMember(false) // Cancel other changes and don't notify (triggers revert)
+                    }
+                    setIsNotifyMemberOpen(false)
+                  }}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+                >
+                  {" "}
+                  No, Don't Notify{" "}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isBirthdayMessageModalOpen && selectedBirthdayPerson && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+              <div className="p-6 space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-semibold">Send Birthday Message</h2>
+                  <button
+                    onClick={() => {
+                      setIsBirthdayMessageModalOpen(false)
+                      setBirthdayMessage("")
+                      setSelectedBirthdayPerson(null)
+                    }}
+                    className="p-2 hover:bg-zinc-700 rounded-lg"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-black rounded-xl">
+                  <img
+                    src={selectedBirthdayPerson.avatar || "/placeholder.svg"}
+                    className="h-10 w-10 rounded-full"
+                    alt=""
+                  />
+                  <div>
+                    <h3 className="font-semibold text-sm">{selectedBirthdayPerson.name}</h3>
+                    <p className="text-xs text-zinc-400">Birthday: {selectedBirthdayPerson.date}</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm text-zinc-400">Your Message</label>
+                  <textarea
+                    value={birthdayMessage}
+                    onChange={(e) => setBirthdayMessage(e.target.value)}
+                    className="w-full p-3 bg-black rounded-xl text-sm outline-none resize-none"
+                    rows={4}
+                    placeholder="Write your birthday message..."
+                  />
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => {
+                      setIsBirthdayMessageModalOpen(false)
+                      setBirthdayMessage("")
+                      setSelectedBirthdayPerson(null)
+                    }}
+                    className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSendCustomBirthdayMessage}
+                    disabled={!birthdayMessage.trim()}
+                    className={`px-4 py-2 text-sm rounded-xl ${
+                      !birthdayMessage.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                  >
+                    Send Message
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <ViewManagementModal
           isOpen={isViewModalOpen}
@@ -2169,37 +2683,37 @@ export default function MyArea() {
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
           onSelectWidget={handleAddWidget}
-          getWidgetStatus={getWidgetPlacementStatus}
+          getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "dashboard")}
           widgetArea="dashboard"
         />
         <WidgetSelectionModal
           isOpen={isRightWidgetModalOpen}
           onClose={() => setIsRightWidgetModalOpen(false)}
           onSelectWidget={handleAddRightSidebarWidget}
-          getWidgetStatus={getWidgetPlacementStatus}
+          getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
           widgetArea="sidebar"
         />
 
-{isEditAppointmentModalOpen && selectedAppointment && (
-  <EditAppointmentModal
-    selectedAppointment={selectedAppointment}
-    setSelectedAppointment={setselectedAppointment}
-    appointmentTypes={appointmentTypes}
-    freeAppointments={freeAppointments}
-    handleAppointmentChange={(changes) => {
-      setselectedAppointment({ ...selectedAppointment, ...changes });
-    }}
-    appointments={appointments}
-    setAppointments={setAppointments}
-    setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-    setNotifyAction={setNotifyAction}
-    onDelete={handleDeleteAppointment}
-    onClose={() => {
-      setisEditAppointmentModalOpen(false);
-      setselectedAppointment(null); // Reset the selected appointment
-    }}
-  />
-)}
+        {isEditAppointmentModalOpen && selectedAppointment && (
+          <EditAppointmentModal
+            selectedAppointment={selectedAppointment}
+            setSelectedAppointment={setselectedAppointment}
+            appointmentTypes={appointmentTypes}
+            freeAppointments={freeAppointments}
+            handleAppointmentChange={(changes) => {
+              setselectedAppointment({ ...selectedAppointment, ...changes })
+            }}
+            appointments={appointments}
+            setAppointments={setAppointments}
+            setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+            setNotifyAction={setNotifyAction}
+            onDelete={handleDeleteAppointment}
+            onClose={() => {
+              setisEditAppointmentModalOpen(false)
+              setselectedAppointment(null) // Reset the selected appointment
+            }}
+          />
+        )}
       </div>
     </>
   )

@@ -2,8 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from "react"
-import { Tag, Calendar, X, Pin, PinOff, MoreHorizontal, Copy, Repeat, Edit, Check } from "lucide-react"
-import Avatar from "../../../public/image10.png"
+import { Tag, Calendar, X, Pin, PinOff, MoreHorizontal, Copy, Repeat, Edit, Check, Users } from "lucide-react"
 
 export default function TaskItem({
   task,
@@ -22,7 +21,13 @@ export default function TaskItem({
 }) {
   const [isAnimatingCompletion, setIsAnimatingCompletion] = useState(false)
   const [isCheckboxAnimating, setIsCheckboxAnimating] = useState(false)
+  const [showTagMenu, setShowTagMenu] = useState(false)
+  const [showAssigneeMenu, setShowAssigneeMenu] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
   const dropdownRef = useRef(null)
+  const tagMenuRef = useRef(null)
+  const assigneeMenuRef = useRef(null)
+  const calendarRef = useRef(null)
   const isDropdownOpen = openDropdownTaskId === task.id
 
   const toggleDropdown = (e) => {
@@ -83,6 +88,24 @@ export default function TaskItem({
     setOpenDropdownTaskId(null)
   }
 
+  const handleTagClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setShowTagMenu(!showTagMenu)
+  }
+
+  const handleAssigneeClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setShowAssigneeMenu(!showAssigneeMenu)
+  }
+
+  const handleTimestampClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setShowCalendar(!showCalendar)
+  }
+
   const formatDateTime = () => {
     let display = ""
     if (task.dueDate) {
@@ -107,14 +130,23 @@ export default function TaskItem({
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setOpenDropdownTaskId(null)
       }
+      if (tagMenuRef.current && !tagMenuRef.current.contains(event.target)) {
+        setShowTagMenu(false)
+      }
+      if (assigneeMenuRef.current && !assigneeMenuRef.current.contains(event.target)) {
+        setShowAssigneeMenu(false)
+      }
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setShowCalendar(false)
+      }
     }
-    if (isDropdownOpen) {
+    if (isDropdownOpen || showTagMenu || showAssigneeMenu || showCalendar) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
         document.removeEventListener("mousedown", handleClickOutside)
       }
     }
-  }, [isDropdownOpen, setOpenDropdownTaskId])
+  }, [isDropdownOpen, showTagMenu, showAssigneeMenu, showCalendar, setOpenDropdownTaskId])
 
   return (
     <div
@@ -129,11 +161,11 @@ export default function TaskItem({
       } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
       style={{
         position: isDragging ? "relative" : "static",
-        zIndex: isDragging ? 9999 : isDropdownOpen ? 50 : "auto",
+        zIndex: isDragging ? 9999 : isDropdownOpen || showTagMenu || showAssigneeMenu || showCalendar ? 50 : "auto",
         pointerEvents: isDragging ? "none" : "auto",
       }}
     >
-      <div className="flex flex-col gap-3 min-h-[200px]">
+      <div className="flex flex-col gap-3">
         {/* Top: checkbox/cancel + title + dropdown */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1">
@@ -157,11 +189,11 @@ export default function TaskItem({
                 />
                 {isCheckboxAnimating && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Check 
-                      size={14} 
+                    <Check
+                      size={14}
                       className="text-[#FF843E] animate-tick"
                       style={{
-                        animation: 'tick 0.3s ease-out forwards',
+                        animation: "tick 0.3s ease-out forwards",
                         strokeDasharray: 18,
                         strokeDashoffset: isCheckboxAnimating ? 0 : 18,
                       }}
@@ -171,7 +203,7 @@ export default function TaskItem({
               </div>
             )}
             <div className="flex-grow">
-              <h3 className="font-medium text-sm">
+              <h3 className="font-medium text-sm break-words whitespace-normal">
                 {task.title}
                 {task.isPinned && (
                   <Pin
@@ -186,20 +218,20 @@ export default function TaskItem({
           {/* Dropdown */}
           <div
             className="relative flex items-center gap-1"
-            style={{ zIndex: isDropdownOpen ? 100 : 10 }}
+            style={{ zIndex: isDropdownOpen ? 1000 : 10 }}
             ref={dropdownRef}
           >
             <button
               onClick={toggleDropdown}
               className="hover:text-white p-1 no-drag relative"
-              style={{ zIndex: isDropdownOpen ? 101 : 11 }}
+              style={{ zIndex: isDropdownOpen ? 1001 : 11 }}
             >
               <MoreHorizontal size={18} className="cursor-pointer" />
             </button>
             {isDropdownOpen && !isDragging && (
               <div
                 className="absolute right-0 top-8 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 no-drag"
-                style={{ zIndex: 102, position: "absolute" }}
+                style={{ zIndex: 1002, position: "absolute" }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
@@ -264,46 +296,126 @@ export default function TaskItem({
         </div>
 
         {/* Tags */}
-        <div className="flex flex-wrap ml-7 gap-1.5">
-          {task.tags?.map(
-            (tag, index) =>
-              tag && (
-                <span
-                  key={index}
-                  className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 ${
-                    isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "bg-[#2F2F2F]"
-                  }`}
-                  style={{
-                    color: isCompleted || isCanceled ? "#9CA3AF" : getTagColor(tag),
-                    backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : `${getTagColor(tag)}20`,
-                  }}
-                >
-                  <Tag size={10} />
-                  {tag}
-                </span>
-              ),
-          )}
-        </div>
+        {task.tags && task.tags.length > 0 && (
+          <div className="relative ml-7">
+            <div className="flex flex-wrap gap-1.5">
+              {task.tags?.map(
+                (tag, index) =>
+                  tag && (
+                    <span
+                      key={index}
+                      onClick={handleTagClick}
+                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer hover:opacity-80 ${
+                        isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "bg-[#2F2F2F]"
+                      }`}
+                      style={{
+                        color: isCompleted || isCanceled ? "#9CA3AF" : getTagColor(tag),
+                        backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : `${getTagColor(tag)}20`,
+                      }}
+                    >
+                      <Tag size={10} />
+                      {tag}
+                    </span>
+                  ),
+              )}
+            </div>
+            {showTagMenu && (
+              <div
+                ref={tagMenuRef}
+                className="absolute top-full left-0 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-[1000] p-3"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h4 className="text-white text-sm font-medium mb-2">Manage Tags</h4>
+                <div className="space-y-2">
+                  <button className="w-full px-3 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left rounded">
+                    Remove Tag
+                  </button>
+                  <button className="w-full px-3 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left rounded">
+                    Reassign Tag
+                  </button>
+                  <button className="w-full px-3 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left rounded">
+                    Create New Tag
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Assignees and Date */}
         <div className="flex flex-col items-center justify-center gap-2 mt-2 lg:flex-row lg:justify-center">
           {(task.assignees?.length > 0 || task.roles?.length > 0) && (
-            <div
-              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 ${
-                isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#FF843E] text-white"
-              }`}
-            >
-              <img src={Avatar || "/placeholder.svg"} alt="avatar" className="w-4 h-4 rounded-full" />
-              <span className="truncate">{task.assignees?.join(", ") || task.roles?.join(", ")}</span>
+            <div className="relative">
+              <div
+                onClick={handleAssigneeClick}
+                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer hover:opacity-80 ${
+                  isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
+                }`}
+              >
+                <Users size={12} />
+                <span className="truncate max-w-[120px]">{task.assignees?.join(", ") || task.roles?.join(", ")}</span>
+              </div>
+              {showAssigneeMenu && (
+                <div
+                  ref={assigneeMenuRef}
+                  className="absolute top-full left-0 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-[1000] p-3"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h4 className="text-white text-sm font-medium mb-2">Manage Assignments</h4>
+                  <div className="space-y-2">
+                    <button className="w-full px-3 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left rounded">
+                      Remove Assignment
+                    </button>
+                    <button className="w-full px-3 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left rounded">
+                      Assign to Others
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-          <div
-            className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 ${
-              isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
-            }`}
-          >
-            <Calendar size={12} />
-            <span>{formatDateTime()}</span>
+          <div className="relative">
+            <div
+              onClick={handleTimestampClick}
+              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer hover:opacity-80 ${
+                isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
+              }`}
+            >
+              <Calendar size={12} />
+              <span className="whitespace-nowrap">{formatDateTime()}</span>
+            </div>
+            {showCalendar && (
+              <div
+                ref={calendarRef}
+                className="absolute top-full left-0 mt-2 w-64 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-[1000] p-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h4 className="text-white text-sm font-medium mb-3">Select Date & Time</h4>
+                <div className="space-y-3">
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 bg-[#1a1a1a] text-white rounded-lg border border-gray-600 text-sm"
+                    defaultValue={task.dueDate}
+                  />
+                  <input
+                    type="time"
+                    className="w-full px-3 py-2 bg-[#1a1a1a] text-white rounded-lg border border-gray-600 text-sm"
+                    defaultValue={task.dueTime}
+                  />
+                  <div className="flex gap-2">
+                    <button className="flex-1 px-3 py-2 bg-[#FF843E] text-white rounded-lg text-xs hover:bg-[#e6752f]">
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setShowCalendar(false)}
+                      className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

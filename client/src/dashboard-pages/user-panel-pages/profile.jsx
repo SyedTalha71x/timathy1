@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { X, Bell } from "lucide-react";
-import Profile from "../../public/Rectangle 27.png";
+import Profile from "../../../public/Rectangle 27.png";
 
 function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);

@@ -3,16 +3,16 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState, useRef } from "react"
 import { Plus, Calendar, Tag, ChevronDown, Filter, X, Users } from "lucide-react"
-import AddTaskModal from "../components/task-components/add-task-modal"
-import EditTaskModal from "../components/task-components/edit-task-modal"
-import TaskItem from "../components/task-components/task-item"
-import RepeatTaskModal from "../components/task-components/repeat-task-modal"
+import AddTaskModal from "../../components/task-components/add-task-modal"
+import EditTaskModal from "../../components/task-components/edit-task-modal"
+import TaskItem from "../../components/task-components/task-item"
+import RepeatTaskModal from "../../components/task-components/repeat-task-modal"
 import { IoIosMenu } from "react-icons/io"
-import { SidebarArea } from "../components/custom-sidebar"
+import { SidebarArea } from "../../components/custom-sidebar"
 import Draggable from "react-draggable"
 import toast, { Toaster } from "react-hot-toast"
-import Avatar from "../../public/avatar.png"
-import Rectangle1 from "../../public/Rectangle 1.png"
+import Avatar from "../../../public/avatar.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
 
 
 export default function TodoApp() {
@@ -139,7 +139,7 @@ export default function TodoApp() {
   const [availableRoles] = useState(["Trainer", "Manager", "Developer", "Designer", "Admin", "Support"])
 
   const [columns, setColumns] = useState([
-    { id: "ongoing", title: "Ongoing", color: "#FF843E" },
+    { id: "ongoing", title: "Ongoing", color: "#f59e0b" },
     { id: "completed", title: "Completed", color: "#10b981" },
     { id: "canceled", title: "Canceled", color: "#ef4444" },
   ])
@@ -568,13 +568,13 @@ export default function TodoApp() {
       <div
         ref={columnRef}
         id={`column-${id}`}
-        className="bg-[#141414]  overflow-visible h-full flex flex-col relative"
+        className="bg-[#141414] rounded-2xl overflow-visible h-full flex flex-col relative"
         data-column-id={id}
         style={{
           zIndex: draggingTaskId ? 1 : "auto",
         }}
       >
-        <div className="p-3 flex justify-between items-center" style={{ backgroundColor: `${color}20` }}>
+        <div className="p-3 flex justify-between items-center rounded-t-2xl" style={{ backgroundColor: `${color}20` }}>
           <div className="flex items-center">
             <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
             <h3 className="font-medium text-white text-sm">{title}</h3>
@@ -715,10 +715,13 @@ export default function TodoApp() {
   }
 
   return (
-    <div className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden  ${isRightSidebarOpen 
-            ? 'lg:mr-96 md:mr-96 sm:mr-96' // Adjust right margin when sidebar is open on larger screens
-            : 'mr-0' // No margin when closed
-          }`}>
+    <div
+      className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden  ${
+        isRightSidebarOpen
+          ? "lg:mr-96 md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
+          : "mr-0" // No margin when closed
+      }`}
+    >
       <Toaster
         position="top-right"
         toastOptions={{
@@ -744,27 +747,22 @@ export default function TodoApp() {
             </div>
 
             <SidebarArea
-        isOpen={isRightSidebarOpen}
-        onClose={closeSidebar}
-        communications={communications}
-        todos={todos}
-        birthdays={birthdays}
-        customLinks={customLinks}
-        setCustomLinks={setCustomLinks}
-        redirectToCommunication={redirectToCommunication}
-        redirectToTodos={redirectToTodos}
-        toggleDropdown={toggleDropdown}
-        openDropdownIndex={openDropdownIndex}
-        setEditingLink={setEditingLink}
-      />
+              isOpen={isRightSidebarOpen}
+              onClose={closeSidebar}
+              communications={communications}
+              todos={todos}
+              birthdays={birthdays}
+              customLinks={customLinks}
+              setCustomLinks={setCustomLinks}
+              redirectToCommunication={redirectToCommunication}
+              redirectToTodos={redirectToTodos}
+              toggleDropdown={toggleDropdown}
+              openDropdownIndex={openDropdownIndex}
+              setEditingLink={setEditingLink}
+            />
 
-      {/* Overlay for mobile screens only */}
-      {isRightSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-          onClick={closeSidebar}
-        />
-      )}
+            {/* Overlay for mobile screens only */}
+            {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
 
             <div className="flex flex-col md:flex-row gap-4 items-stretch">
               <div className="relative flex items-center flex-grow bg-[#101010] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none">
@@ -795,14 +793,14 @@ export default function TodoApp() {
                 </div>
 
                 <div className="relative tag-dropdown">
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
                     className="text-gray-400 hover:text-white ml-2 no-drag p-1"
                     title="Add tags"
                   >
                     <Tag size={18} />
-                  </button>
+                  </button> */}
                   {isTagDropdownOpen && (
                     <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-48">
                       <h4 className="text-white text-sm font-medium mb-2">Add Tags</h4>

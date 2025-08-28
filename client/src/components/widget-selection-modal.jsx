@@ -1,3 +1,4 @@
+"use client"
 
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
@@ -6,7 +7,6 @@ import { BarChart3, Calendar, Users, Link, MessageSquare, CheckSquare, Gift } fr
 export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus, widgetArea = "dashboard" }) {
   if (!isOpen) return null
 
-  // Define widgets for dashboard
   const dashboardWidgets = [
     {
       id: "chart",
@@ -22,7 +22,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
     },
     {
       id: "appointments",
-      name: "Appointments",
+      name: "Upcoming Appointments",
       description: "Show upcoming appointments",
       icon: Calendar,
     },
@@ -38,10 +38,6 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       description: "Quick access to important websites",
       icon: Link,
     },
-  ]
-
-  // Define widgets for sidebar
-  const sidebarWidgets = [
     {
       id: "communications",
       name: "Communications",
@@ -50,13 +46,28 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
     },
     {
       id: "todo",
-      name: "TO-DO",
+      name: "To-Do",
       description: "Task management and to-do items",
       icon: CheckSquare,
     },
     {
       id: "birthday",
-      name: "Birthdays",
+      name: "Upcoming Birthdays",
+      description: "Upcoming member birthdays",
+      icon: Gift,
+    },
+  ]
+
+  const sidebarWidgets = [
+    {
+      id: "todo",
+      name: "To-Do",
+      description: "Task management and to-do items",
+      icon: CheckSquare,
+    },
+    {
+      id: "birthday",
+      name: "Upcoming Birthdays",
       description: "Upcoming member birthdays",
       icon: Gift,
     },
@@ -65,6 +76,12 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       name: "Website Links",
       description: "Quick access to important websites",
       icon: Link,
+    },
+    {
+      id: "communications",
+      name: "Communications",
+      description: "Recent messages and communications",
+      icon: MessageSquare,
     },
   ]
 
@@ -77,7 +94,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">
-              Add Widget to {widgetArea === "dashboard" ? "Dashboard" : "Sidebar"}
+              Add Widget to {widgetArea === "dashboard" ? "My Area" : "Sidebar"}
             </h2>
             <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
               <X size={16} />
@@ -90,7 +107,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
               let message = ""
               if (isAlreadyAdded) {
                 if (location === "dashboard") {
-                  message = "Already added to your dashboard"
+                  message = "Already added to your My Area"
                 } else if (location === "sidebar") {
                   message = "Already added to your sidebar"
                 }

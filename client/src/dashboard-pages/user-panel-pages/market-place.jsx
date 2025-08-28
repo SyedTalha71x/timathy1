@@ -2,7 +2,6 @@
 import { useState } from "react"
 import { ExternalLink } from "lucide-react"
 
-// Sample marketplace data - matching the sneakers from the image
 const marketplaceProducts = [
   {
     id: 1,
@@ -28,7 +27,6 @@ export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState("name")
 
-  // Filter products based on search query
   const getFilteredProducts = () => {
     return marketplaceProducts.filter(
       (product) =>
@@ -38,7 +36,6 @@ export default function MarketplacePage() {
     )
   }
 
-  // Sort products
   const sortProducts = (products, field) => {
     return [...products].sort((a, b) => {
       let aValue = a[field]
@@ -56,12 +53,9 @@ export default function MarketplacePage() {
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-white">
       <div className="p-6">
-        {/* Header */}
         <h1 className="text-white oxanium_font text-xl mb-5 md:text-2xl">Marketplace</h1>
 
-        {/* Search and Sort Controls */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          {/* Search Bar */}
           <div className="relative flex-1">
             <input
               type="search"
@@ -72,7 +66,6 @@ export default function MarketplacePage() {
             />
           </div>
 
-          {/* Sort Dropdown */}
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -85,18 +78,15 @@ export default function MarketplacePage() {
           </select>
         </div>
 
-        {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {sortProducts(getFilteredProducts(), sortBy).map((product) => (
             <div key={product.id} className="bg-[#f5f5f5] rounded-2xl overflow-hidden relative">
-              {/* Product Image */}
               <div className="relative w-full h-48 bg-white">
                 <img
                   src={product.image || "/placeholder.svg"}
                   alt={product.name}
                   className="object-cover w-full h-full"
                 />
-                {/* Link Icon */}
                 <button
                   onClick={() => window.open(product.link, "_blank")}
                   className="absolute bottom-3 right-3 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
@@ -106,7 +96,6 @@ export default function MarketplacePage() {
                 </button>
               </div>
 
-              {/* Product Info */}
               <div className="p-4 bg-[#2a2a2a] text-white">
                 <h3 className="text-base font-medium mb-1">{product.name}</h3>
                 <p className="text-sm text-gray-300 mb-1">{product.brand}</p>
@@ -117,7 +106,6 @@ export default function MarketplacePage() {
           ))}
         </div>
 
-        {/* No Results Message */}
         {getFilteredProducts().length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg">No products found matching your search.</p>

@@ -2,8 +2,8 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
-import Avatar from "../../public/avatar.png"
-import Rectangle1 from "../../public/Rectangle 1.png"
+import Avatar from "../../../public/avatar.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
 import {
   Menu,
   X,
@@ -41,12 +41,10 @@ import {
   BadgeDollarSign,
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
-
-import CommuncationBg from "../../public/communication-bg.svg"
-import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
-import SelectedAppointmentModal from "../components/appointments-components/selected-appointment-modal"
-import DefaultAvatar from "../../public/default-avatar.avif" // Assuming this path is correct
-import { SidebarArea } from "../components/custom-sidebar"
+import CommuncationBg from "../../../public/communication-bg.svg"
+import AddAppointmentModal from "../../components/appointments-components/add-appointment-modal"
+import SelectedAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import DefaultAvatar from "../../../public/default-avatar.avif" // Assuming this path is correct
 import { Link } from "react-router-dom"
 import { CiMonitor } from "react-icons/ci"
 import { FaCartPlus, FaPeopleLine, FaUsers } from "react-icons/fa6"
@@ -56,7 +54,12 @@ import { TbBrandGoogleAnalytics } from "react-icons/tb"
 import { MdOutlineHelpCenter } from "react-icons/md"
 const img1 = "/Rectangle 1.png"
 const img2 = "/avatar3.png"
-import EmailManagement from "../components/communication-components/email-management"
+import EmailManagement from "../../components/communication-components/email-management"
+import ContingentModal from "../../components/communication-components/ContingentModal"
+import CreateMessageModal from "../../components/communication-components/create-message-modal"
+import AddBillingPeriodModal from "../../components/communication-components/AddBillingPeriodModal"
+import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal"
+import NotifyMemberModal from "../../components/communication-components/NotifyMemberModal"
 
 
 export default function Communications() {
@@ -145,7 +148,31 @@ export default function Communications() {
     archive: [],
     error: [],
   });
-  
+  const [emailTemplates, setEmailTemplates] = useState([
+    {
+      id: 1,
+      name: "Welcome Email",
+      subject: "Welcome to our fitness community!",
+      body: "Dear {name},\n\nWelcome to our fitness community! We're excited to have you on board.\n\nBest regards,\nThe Team"
+    },
+    {
+      id: 2,
+      name: "Appointment Reminder",
+      subject: "Appointment Reminder",
+      body: "Dear {name},\n\nThis is a reminder about your upcoming appointment on {date} at {time}.\n\nSee you soon!"
+    },
+    {
+      id: 3,
+      name: "Class Cancellation",
+      subject: "Class Cancellation Notice",
+      body: "Dear {name},\n\nWe regret to inform you that the class scheduled for {date} has been cancelled.\n\nWe apologize for any inconvenience."
+    }
+  ])
+  const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null)
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
+  const [showDraftModal, setShowDraftModal] = useState(false)
+  const [originalEmailData, setOriginalEmailData] = useState({ to: "", subject: "", body: "" })
+
   const [unreadMessagesCount, setUnreadMessagesCount] = useState({
     member: 0,
     company: 0,
@@ -243,65 +270,74 @@ export default function Communications() {
     },
   ])
 
-    const [communications, setCommunications] = useState([
-      {
-        id: 1,
-        name: "John Doe",
-        message: "Hey, how's the project going?",
-        time: "2 min ago",
-        avatar: Rectangle1,
-      },
-      {
-        id: 2,
-        name: "Jane Smith",
-        message: "Meeting scheduled for tomorrow",
-        time: "10 min ago",
-        avatar: Rectangle1,
-      },
-    ])
-  
-    const [todos, setTodos] = useState([
-      {
-        id: 1,
-        title: "Review project proposal",
-        description: "Check the latest updates",
-        assignee: "Mike",
-      },
-      {
-        id: 2,
-        title: "Update documentation",
-        description: "Add new features info",
-        assignee: "Sarah",
-      },
-    ])
-  
-    const [birthdays, setBirthdays] = useState([
-      {
-        id: 1,
-        name: "Alice Johnson",
-        date: "Dec 15, 2024",
-        avatar: Avatar,
-      },
-      {
-        id: 2,
-        name: "Bob Wilson",
-        date: "Dec 20, 2024",
-        avatar: Avatar,
-      },
-    ])
-  
-    const [newcustomLinks, setNewCustomLinks] = useState([
-      {
-        id: 1,
-        title: "Google Drive",
-        url: "https://drive.google.com",
-      },
-      {
-        id: 2,
-        title: "GitHub",
-        url: "https://github.com",
-      },
-    ])
+
+  const handleOpenEmailModal = () => {
+    setOriginalEmailData({ to: "", subject: "", body: "" })
+    setEmailData({ to: "", subject: "", body: "" })
+    setShowEmailModal(true)
+  }
+
+  const handleTemplateSelect = (template) => {
+    setSelectedEmailTemplate(template)
+    setEmailData({
+      ...emailData,
+      subject: template.subject,
+      body: template.body
+    })
+    setShowTemplateDropdown(false)
+  }
+
+  const hasUnsavedChanges = () => {
+    return (
+      emailData.to !== originalEmailData.to ||
+      emailData.subject !== originalEmailData.subject ||
+      emailData.body !== originalEmailData.body
+    ) && (emailData.to.trim() || emailData.subject.trim() || emailData.body.trim())
+  }
+
+  const handleCloseEmailModal = () => {
+    if (hasUnsavedChanges()) {
+      setShowDraftModal(true)
+    } else {
+      setShowEmailModal(false)
+      setEmailData({ to: "", subject: "", body: "" })
+      setSelectedEmailTemplate(null)
+    }
+  }
+
+  const handleSaveDraft = () => {
+    const newDraft = {
+      id: Date.now(),
+      recipient: emailData.to || "draft@example.com",
+      subject: emailData.subject || "Draft Email Subject",
+      body: emailData.body || "This is a draft email.",
+      status: "Draft",
+      time: new Date().toISOString(),
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+    }
+
+    setEmailList(prev => ({
+      ...prev,
+      draft: [newDraft, ...prev.draft]
+    }))
+
+    setShowDraftModal(false)
+    setShowEmailModal(false)
+    setEmailData({ to: "", subject: "", body: "" })
+    setSelectedEmailTemplate(null)
+    alert("Draft saved successfully!")
+  }
+
+  const handleDiscardDraft = () => {
+    setShowDraftModal(false)
+    setShowEmailModal(false)
+    setEmailData({ to: "", subject: "", body: "" })
+    setSelectedEmailTemplate(null)
+  }
+
+
   const [editingAppointment, setEditingAppointment] = useState(null)
   const [newAppointment, setNewAppointment] = useState({
     title: "",
@@ -732,24 +768,24 @@ export default function Communications() {
       setChatList(companyChatList)
     }
   }, [chatType])
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
-    }
-  }, [messages])
+  // useEffect(() => {
+  //   if (messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+  //   }
+  // }, [messages])
   useEffect(() => {
     // Calculate unread counts for tabs
     const memberUnread = memberChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length;
     const companyUnread = companyChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length;
     const emailUnread = emailList.inbox.filter((email) => !email.isRead && !email.isArchived).length;
-    
+
     setUnreadMessagesCount({
       member: memberUnread,
       company: companyUnread,
       email: emailUnread,
     });
   }, [chatList, archivedChats, emailList]); // Add emailList to dependencies
-  
+
   const handleSearchClick = () => {
     setIsSearchOpen(!isSearchOpen)
   }
@@ -956,6 +992,7 @@ export default function Communications() {
       // Automatically open the chat after restoring
       handleChatSelect(chatToRestore)
     }
+    setShowArchive(false)
   }
   const handlePinChat = (chatId, e) => {
     e.stopPropagation()
@@ -1021,13 +1058,13 @@ export default function Communications() {
       prevList.map((chat) =>
         chat.id === selectedChat.id
           ? {
-              ...chat,
-              messages: [...(chat.messages || []), newMessage],
-              message: messageText,
-              messageStatus: "sent",
-              isRead: true, // Mark as read when sending a message
-              unreadCount: 0,
-            }
+            ...chat,
+            messages: [...(chat.messages || []), newMessage],
+            message: messageText,
+            messageStatus: "sent",
+            isRead: true, // Mark as read when sending a message
+            unreadCount: 0,
+          }
           : chat,
       ),
     )
@@ -1181,12 +1218,11 @@ export default function Communications() {
     console.log("Broadcast message:", selectedMessage.message)
     console.log("Distribution methods:", { email: settings.broadcastEmail, chat: settings.broadcastChat })
     alert(
-      `Broadcast sent to ${selectedRecipients.length} recipients via ${
-        settings.broadcastEmail && settings.broadcastChat
-          ? "Email and Chat"
-          : settings.broadcastEmail
-            ? "Email"
-            : "Chat"
+      `Broadcast sent to ${selectedRecipients.length} recipients via ${settings.broadcastEmail && settings.broadcastChat
+        ? "Email and Chat"
+        : settings.broadcastEmail
+          ? "Email"
+          : "Chat"
       }`,
     )
     setSelectedMessage(null)
@@ -1483,7 +1519,7 @@ export default function Communications() {
 
 
   return (
-    <div className="relative flex h-screen bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
+    <div className="relative flex md:h-[92vh] h-auto bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
       {isMessagesOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity duration-500"
@@ -1493,13 +1529,22 @@ export default function Communications() {
       )}
       {/* Sidebar */}
       <div
-        className={`fixed md:relative inset-y-0 left-0 md:w-[450px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${
-          isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } bg-black z-40`}
+        className={`fixed md:relative inset-y-0 left-0 md:w-[450px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          } bg-black z-40`}
       >
         <div className="p-4 h-full flex flex-col relative">
+
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Communications</h1>
+            <div className="flex items-center ">
+              <button
+                onClick={() => setOpen((prev) => !prev)}
+                className="p-2 hover:bg-gray-800 rounded-full"
+                aria-label="Manage Widgets"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <h1 className="text-2xl font-bold">Communications</h1>
+            </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowSettings(true)}
@@ -1508,39 +1553,32 @@ export default function Communications() {
               >
                 <Settings className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setOpen((prev) => !prev)}
-                className="p-2 hover:bg-gray-800 rounded-full"
-                aria-label="Manage Widgets"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-      {open && (
-        <div className="absolute right-7 mt-2 top-9 w-56 bg-[#1C1C1C] rounded-xl shadow-lg z-50 overflow-hidden">
-          {menuItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={index}
-                to={item.to}
-                className="flex items-center gap-3  px-4 py-2 text-gray-300 text-sm hover:bg-gray-700 transition"
-                onClick={() => setOpen(false)}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+
+              {open && (
+                <div className="absolute right-7 mt-2 top-9 w-56 bg-[#1C1C1C] rounded-xl shadow-lg z-50 overflow-hidden">
+                  {menuItems.map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={index}
+                        to={item.to}
+                        className="flex items-center gap-3  px-4 py-2 text-gray-300 text-sm hover:bg-gray-700 transition"
+                        onClick={() => setOpen(false)}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex gap-2 items-center justify-between mb-4">
             <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
               <button
-                className={`px-4 py-2 flex items-center rounded-lg text-sm transition-colors relative ${
-                  chatType === "member" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                }`}
+                className={`px-4 py-2 flex items-center rounded-lg text-sm transition-colors relative ${chatType === "member" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
                 onClick={() => setChatType("member")}
               >
                 <User size={16} className="inline mr-2" />
@@ -1552,9 +1590,8 @@ export default function Communications() {
                 )}
               </button>
               <button
-                className={`px-4 flex items-center py-2 rounded-lg text-sm transition-colors relative ${
-                  chatType === "company" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                }`}
+                className={`px-4 flex items-center py-2 rounded-lg text-sm transition-colors relative ${chatType === "company" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
                 onClick={() => setChatType("company")}
               >
                 <Building2 size={16} className="inline mr-2" />
@@ -1566,17 +1603,17 @@ export default function Communications() {
                 )}
               </button>
               <button
-  className="px-4 py-2 flex items-center rounded-lg text-sm text-gray-400 hover:text-white transition-colors relative"
-  onClick={handleEmailClick}
->
-  <Mail size={16} className="inline mr-2" />
-  Email
-  {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length > 0 && (
-    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-      {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length}
-    </span>
-  )}
-</button>
+                className="px-4 py-2 flex items-center rounded-lg text-sm text-gray-400 hover:text-white transition-colors relative"
+                onClick={handleEmailClick}
+              >
+                <Mail size={16} className="inline mr-2" />
+                Email
+                {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length}
+                  </span>
+                )}
+              </button>
             </div>
             {/* Removed MoreVertical dropdown (New Chat, New Group) */}
           </div>
@@ -1606,55 +1643,116 @@ export default function Communications() {
             {/* Show search results if searching */}
             {searchMember && searchResults.length > 0
               ? searchResults.map((chat, index) => (
-                  <div
-                    key={`search-${chat.id}-${index}`}
-                    className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${
-                      selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
+                <div
+                  key={`search-${chat.id}-${index}`}
+                  className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
                     } cursor-pointer relative group`}
-                    onClick={() => handleChatSelect(chat)}
-                  >
-                    <div className="relative">
-                      <img
-                        src={chat.logo || "/placeholder.svg?height=40&width=40"}
-                        alt={`${chat.name}'s avatar`}
-                        width={40}
-                        height={40}
-                        className="rounded-full cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleViewMember(chat.id, e)
-                        }}
-                      />
-                      {chat.isBirthday && (
-                        <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
-                          <Gift className="w-4 h-4 text-white" />
-                        </div>
+                  onClick={() => handleChatSelect(chat)}
+                >
+                  <div className="relative">
+                    <img
+                      src={chat.logo || "/placeholder.svg?height=40&width=40"}
+                      alt={`${chat.name}'s avatar`}
+                      width={40}
+                      height={40}
+                      className="rounded-full cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleViewMember(chat.id, e)
+                      }}
+                    />
+                    {chat.isBirthday && (
+                      <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
+                        <Gift className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium truncate">{chat.name}</span>
+                        {pinnedChats.has(chat.id) && <Pin className="w-3 h-3 text-gray-400" />}
+                        {chat.isArchived && <span className="text-xs bg-gray-600 px-2 py-1 rounded">Archived</span>}
+                      </div>
+                      {chat.unreadCount > 0 && (
+                        <span className="bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {chat.unreadCount}
+                        </span>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium truncate">{chat.name}</span>
-                          {pinnedChats.has(chat.id) && <Pin className="w-3 h-3 text-gray-400" />}
-                          {chat.isArchived && <span className="text-xs bg-gray-600 px-2 py-1 rounded">Archived</span>}
-                        </div>
-                        {chat.unreadCount > 0 && (
-                          <span className="bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                            {chat.unreadCount}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        <p className="truncate">{chat.message}</p>
-                      </div>
-                      <div className="flex mt-1 text-gray-400 items-center gap-1">
-                        <Clock size={15} />
-                        <span className="text-sm text-gray-400">{chat.time}</span>
-                      </div>
+                    <div className="text-sm text-gray-400">
+                      <p className="truncate">{chat.message}</p>
                     </div>
-                    <div className="flex flex-col items-center gap-1">
+                    <div className="flex mt-1 text-gray-400 items-center gap-1">
+                      <Clock size={15} />
+                      <span className="text-sm text-gray-400">{chat.time}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <button
+                      className="p-1 hover:bg-gray-600 rounded-full"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowChatMenu(showChatMenu === chat.id ? null : chat.id)
+                      }}
+                      aria-label="Chat options"
+                    >
+                      <MoreVertical className="w-5 h-5 text-gray-300" />
+                    </button>
+                    {getMessageStatusIcon(chat.messageStatus)}
+                  </div>
+                </div>
+              ))
+              : /* Regular chat list */
+              sortedChatList.map((chat, index) => (
+                <div
+                  key={index}
+                  className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
+                    } cursor-pointer relative group`}
+                  onClick={() => handleChatSelect(chat)}
+                >
+                  <div className="relative">
+                    <img
+                      src={chat.logo || "/placeholder.svg"}
+                      alt={`${chat.name}'s avatar`}
+                      width={40}
+                      height={40}
+                      className="rounded-full cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        chatType !== "company" && handleViewMember(chat.id, e)
+                      }}
+                    />
+                    {chat.isBirthday && (
+                      <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
+                        <Gift className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium truncate">{chat.name}</span>
+                        {pinnedChats.has(chat.id) && <Pin className="w-4 h-4 text-gray-400" />}
+                      </div>
+                      {chat.unreadCount > 0 && (
+                        <span className="bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {chat.unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      <p className="truncate">{chat.message}</p>
+                    </div>
+                    <div className="flex mt-1 text-gray-400 items-center gap-1">
+                      <Clock size={15} />
+                      <span className="text-sm text-gray-400">{chat.time}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    {chatType !== "company" && (
                       <button
-                        className="p-1 hover:bg-gray-600 rounded-full"
+                        className="opacity-100 p-1 hover:bg-gray-600 rounded-full"
                         onClick={(e) => {
                           e.stopPropagation()
                           setShowChatMenu(showChatMenu === chat.id ? null : chat.id)
@@ -1663,111 +1761,48 @@ export default function Communications() {
                       >
                         <MoreVertical className="w-5 h-5 text-gray-300" />
                       </button>
-                      {getMessageStatusIcon(chat.messageStatus)}
-                    </div>
-                  </div>
-                ))
-              : /* Regular chat list */
-                sortedChatList.map((chat, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${
-                      selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
-                    } cursor-pointer relative group`}
-                    onClick={() => handleChatSelect(chat)}
-                  >
-                    <div className="relative">
-                      <img
-                        src={chat.logo || "/placeholder.svg"}
-                        alt={`${chat.name}'s avatar`}
-                        width={40}
-                        height={40}
-                        className="rounded-full cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          chatType !== "company" && handleViewMember(chat.id, e)
-                        }}
-                      />
-                      {chat.isBirthday && (
-                        <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
-                          <Gift className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium truncate">{chat.name}</span>
-                          {pinnedChats.has(chat.id) && <Pin className="w-4 h-4 text-gray-400" />}
-                        </div>
-                        {chat.unreadCount > 0 && (
-                          <span className="bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                            {chat.unreadCount}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        <p className="truncate">{chat.message}</p>
-                      </div>
-                      <div className="flex mt-1 text-gray-400 items-center gap-1">
-                        <Clock size={15} />
-                        <span className="text-sm text-gray-400">{chat.time}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center gap-1">
-                      {chatType !== "company" && (
+                    )}
+                    {getMessageStatusIcon(chat.messageStatus)}
+                    {showChatMenu === chat.id && chatType !== "company" && (
+                      <div
+                        ref={chatMenuRef}
+                        className="absolute right-0 top-8 w-48 bg-[#2F2F2F] rounded-xl border border-gray-800 shadow-lg overflow-hidden z-20"
+                      >
                         <button
-                          className="opacity-100 p-1 hover:bg-gray-600 rounded-full"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setShowChatMenu(showChatMenu === chat.id ? null : chat.id)
-                          }}
-                          aria-label="Chat options"
+                          className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                          onClick={(e) =>
+                            chat.isRead ? handleMarkChatAsUnread(chat.id, e) : handleMarkChatAsRead(chat.id, e)
+                          }
                         >
-                          <MoreVertical className="w-5 h-5 text-gray-300" />
+                          {chat.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          Mark as {chat.isRead ? "unread" : "read"}
                         </button>
-                      )}
-                      {getMessageStatusIcon(chat.messageStatus)}
-                      {showChatMenu === chat.id && chatType !== "company" && (
-                        <div
-                          ref={chatMenuRef}
-                          className="absolute right-0 top-8 w-48 bg-[#2F2F2F] rounded-xl border border-gray-800 shadow-lg overflow-hidden z-20"
+                        <button
+                          className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                          onClick={(e) => handlePinChat(chat.id, e)}
                         >
-                          <button
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                            onClick={(e) =>
-                              chat.isRead ? handleMarkChatAsUnread(chat.id, e) : handleMarkChatAsRead(chat.id, e)
-                            }
-                          >
-                            {chat.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            Mark as {chat.isRead ? "unread" : "read"}
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                            onClick={(e) => handlePinChat(chat.id, e)}
-                          >
-                            <Pin className="w-4 h-4" />
-                            {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                            onClick={(e) => handleArchiveChat(chat.id, e)}
-                          >
-                            <Archive className="w-4 h-4" />
-                            Archive chat
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                            onClick={(e) => handleViewMember(chat.id, e)}
-                          >
-                            <User className="w-4 h-4" />
-                            View Member
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                          <Pin className="w-4 h-4" />
+                          {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                          onClick={(e) => handleArchiveChat(chat.id, e)}
+                        >
+                          <Archive className="w-4 h-4" />
+                          Archive chat
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
+                          onClick={(e) => handleViewMember(chat.id, e)}
+                        >
+                          <User className="w-4 h-4" />
+                          View Member
+                        </button>
+                      </div>
+                    )}
                   </div>
-                ))}
+                </div>
+              ))}
             {sortedChatList.length === 0 && !searchMember && (
               <div className="flex flex-col items-center justify-center h-40 text-gray-400">
                 <p className="mb-2">No chats available</p>
@@ -1847,34 +1882,14 @@ export default function Communications() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <button
+                {chatType !== "company" && <button
                   className="text-blue-500 hover:text-blue-400"
                   aria-label="View appointments"
                   onClick={handleCalendarClick}
                 >
                   <Calendar className="w-6 h-6" />
-                </button>
-                <div className="relative flex items-center">
-                  <button
-                    className="hover:text-gray-300 z-10"
-                    aria-label="Search conversation"
-                    onClick={handleSearchClick}
-                  >
-                    <Search className="w-6 h-6" />
-                  </button>
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Search..."
-                    className="absolute right-0 bg-gray-800 text-white rounded-md py-1 px-2 text-sm focus:outline-none search-input-animation"
-                    style={{
-                      width: isSearchOpen ? 200 : 0,
-                      opacity: isSearchOpen ? 1 : 0,
-                      visibility: isSearchOpen ? "visible" : "hidden",
-                    }}
-                  />
-                </div>
-                {/* Removed X button from chat header */}
+                </button>}
+
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -1882,9 +1897,8 @@ export default function Communications() {
                 <div key={message.id} className={`flex gap-3 ${message.sender === "You" ? "justify-end" : ""} group`}>
                   <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""}`}>
                     <div
-                      className={`rounded-xl p-4 text-sm max-w-md relative ${
-                        message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
-                      } ${message.isUnread ? "border-2 border-yellow-500" : ""}`}
+                      className={`rounded-xl p-4 text-sm max-w-md relative ${message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
+                        } ${message.isUnread ? "border-2 border-yellow-500" : ""}`}
                     >
                       <p>{message.content}</p>
                       {/* Message actions */}
@@ -1940,36 +1954,47 @@ export default function Communications() {
             </div>
             <div className="p-4 border-t border-gray-800 flex-shrink-0">
               <div className="flex items-center gap-2 bg-black rounded-xl p-2">
+                {/* Emoji button */}
                 <button
-                  className="p-2 hover:bg-gray-700 rounded-full"
+                  className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
                   aria-label="Add emoji"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 >
-                  <Smile className="w-7 h-7 text-gray-200" />
+                  <Smile className="w-6 h-6 text-gray-200" />
                 </button>
-                <input
-                  type="text"
+
+                {/* Textarea */}
+                <textarea
                   placeholder="Type your message here..."
-                  className="flex-1 bg-transparent focus:outline-none text-sm min-w-0"
+                  className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-hidden leading-relaxed text-gray-200"
+                  rows={1}
                   value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
+                  onInput={(e) => {
+                    // auto-grow textarea
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSendMessage()
+                    if (e.key === "Enter" && !e.shiftKey && !e.altKey) {
+                      e.preventDefault();
+                      handleSendMessage();
                     }
                   }}
+                  onChange={(e) => setMessageText(e.target.value)}
                 />
+
+                {/* Send button */}
                 <div className="flex items-center gap-1">
                   <button
-                    className="p-2 hover:bg-gray-700 rounded-full"
+                    className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
                     aria-label="Send message"
                     onClick={handleSendMessage}
                   >
-                    <Send className="w-7 h-7 text-gray-200" />
+                    <Send className="w-6 h-6 text-gray-200" />
                   </button>
                 </div>
               </div>
+
               {showEmojiPicker && (
                 <div className="absolute bottom-16 right-4">
                   <div className="bg-gray-800 rounded-lg shadow-lg p-2">
@@ -2039,9 +2064,8 @@ export default function Communications() {
                           <div
                             key={msg.id}
                             onClick={() => setSelectedMessage(msg)}
-                            className={`p-3 cursor-pointer hover:bg-[#2F2F2F] ${
-                              selectedMessage?.id === msg.id ? "bg-[#2F2F2F] border-l-4 border-blue-500" : ""
-                            }`}
+                            className={`p-3 cursor-pointer hover:bg-[#2F2F2F] ${selectedMessage?.id === msg.id ? "bg-[#2F2F2F] border-l-4 border-blue-500" : ""
+                              }`}
                           >
                             <p className="font-medium text-sm">{msg.title}</p>
                             <p className="text-xs text-gray-400 truncate">{msg.message}</p>
@@ -2054,7 +2078,7 @@ export default function Communications() {
                       onClick={handleCreateMessage}
                       className="w-full py-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2"
                     >
-                      Create New Template {/* Renamed */}
+                      Create New Template
                     </button>
                   </div>
                   <div className="relative">
@@ -2171,13 +2195,12 @@ export default function Communications() {
                   </div>
                   <button
                     onClick={handleBroadcast}
-                    className={`w-full py-3 ${
-                      selectedMessage &&
+                    className={`w-full py-3 ${selectedMessage &&
                       selectedRecipients.length > 0 &&
                       (settings.broadcastEmail || settings.broadcastChat)
-                        ? "bg-[#FF843E] text-sm hover:bg-orange-600"
-                        : "bg-gray-600"
-                    } text-white text-sm rounded-xl`}
+                      ? "bg-[#FF843E] text-sm hover:bg-orange-600"
+                      : "bg-gray-600"
+                      } text-white text-sm rounded-xl`}
                     disabled={
                       !selectedMessage ||
                       selectedRecipients.length === 0 ||
@@ -2194,14 +2217,13 @@ export default function Communications() {
       </div>
 
       <EmailManagement
-  isOpen={showEmailFrontend}
-  onClose={() => setShowEmailFrontend(false)}
-  onOpenSendEmail={() => setShowEmailModal(true)}
-  onOpenSettings={() => setShowSettings(true)}
-  onOpenBroadcast={() => setActiveScreen("send-message")} // Add this line
-  initialEmailList={emailList}
-/>
-      {/* Settings Modal */}
+        isOpen={showEmailFrontend}
+        onClose={() => setShowEmailFrontend(false)}
+        onOpenSendEmail={() => setShowEmailModal(true)}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenBroadcast={() => setActiveScreen("send-message")} // Add this line
+        initialEmailList={emailList}
+      />
       {showSettings && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
           <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
@@ -2401,11 +2423,50 @@ export default function Communications() {
                   <Mail className="w-5 h-5" />
                   Send Email
                 </h2>
-                <button onClick={() => setShowEmailModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+                <button onClick={handleCloseEmailModal} className="p-2 hover:bg-zinc-700 rounded-lg">
                   <X size={16} />
                 </button>
               </div>
               <div className="space-y-4">
+                {/* Template Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Email Template</label>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                      className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm text-left flex items-center justify-between"
+                    >
+                      <span>{selectedEmailTemplate ? selectedEmailTemplate.name : "Select a template (optional)"}</span>
+                      <Search className="h-4 w-4 text-gray-400" />
+                    </button>
+                    {showTemplateDropdown && (
+                      <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-10 max-h-48 overflow-y-auto">
+                        <button
+                          onClick={() => {
+                            setSelectedEmailTemplate(null)
+                            setEmailData({ ...emailData, subject: "", body: "" })
+                            setShowTemplateDropdown(false)
+                          }}
+                          className="w-full text-left p-3 hover:bg-[#2F2F2F] text-sm text-gray-400 border-b border-gray-700"
+                        >
+                          No template (blank email)
+                        </button>
+                        {emailTemplates.map((template) => (
+                          <button
+                            key={template.id}
+                            onClick={() => handleTemplateSelect(template)}
+                            className="w-full text-left p-3 hover:bg-[#2F2F2F]"
+                          >
+                            <div className="font-medium text-sm">{template.name}</div>
+                            <div className="text-xs text-gray-400 truncate">{template.subject}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* To Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">To</label>
                   <div className="relative">
@@ -2414,7 +2475,6 @@ export default function Communications() {
                       value={emailData.to}
                       onChange={(e) => {
                         setEmailData({ ...emailData, to: e.target.value })
-                        // Show dropdown if input is not empty
                         setShowRecipientDropdown(e.target.value.length > 0)
                       }}
                       onFocus={() => setShowRecipientDropdown(emailData.to.length > 0)}
@@ -2431,7 +2491,7 @@ export default function Communications() {
                             className="w-full text-left p-2 hover:bg-[#2F2F2F] flex items-center gap-2"
                           >
                             <img
-                              src={member.image || "/placeholder.svg"}
+                              src={member.logo || "/placeholder.svg"}
                               alt={member.name}
                               className="h-8 w-8 rounded-full"
                             />
@@ -2447,6 +2507,8 @@ export default function Communications() {
                     )}
                   </div>
                 </div>
+
+                {/* Subject Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Subject</label>
                   <input
@@ -2457,6 +2519,8 @@ export default function Communications() {
                     placeholder="Email subject"
                   />
                 </div>
+
+                {/* Message Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Message</label>
                   <div className="bg-[#222222] rounded-xl">
@@ -2466,9 +2530,9 @@ export default function Communications() {
                       <button className="p-1 hover:bg-gray-600 rounded text-sm italic">I</button>
                       <button className="p-1 hover:bg-gray-600 rounded text-sm underline">U</button>
                       <div className="w-px h-4 bg-gray-600 mx-1" />
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm">📎</button>
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm">🔗</button>
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm">📊</button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Attach file">📎</button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Insert link">🔗</button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Insert table">📊</button>
                     </div>
                     <textarea
                       value={emailData.body}
@@ -2478,9 +2542,11 @@ export default function Communications() {
                     />
                   </div>
                 </div>
+
+                {/* Action Buttons */}
                 <div className="flex gap-2 justify-end">
                   <button
-                    onClick={() => setShowEmailModal(false)}
+                    onClick={handleCloseEmailModal}
                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
                   >
                     Cancel
@@ -2500,65 +2566,65 @@ export default function Communications() {
       )}
       {/* Archive Modal */}
       {showArchive && (
-  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4">
-    <div className="bg-[#181818] rounded-xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-lg">
-      <div className="sticky top-0 bg-[#181818] z-10 p-4 border-b border-zinc-800 flex justify-between items-center">
-        <h2 className="text-base sm:text-lg font-medium flex items-center gap-2">
-          <Archive className="w-5 h-5" />
-          Archived Chats
-        </h2>
-        <button
-          onClick={() => setShowArchive(false)}
-          className="p-2 hover:bg-zinc-700 rounded-lg"
-        >
-          <X size={16} />
-        </button>
-      </div>
-
-      <div className="p-4 space-y-2">
-        {archivedChats.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <Archive className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No archived chats</p>
-          </div>
-        ) : (
-          archivedChats.map((chat) => (
-            <div
-              key={chat.id}
-              className="flex items-center gap-3 p-3 bg-[#222222] rounded-xl hover:bg-[#2F2F2F] cursor-pointer transition-colors"
-              onClick={() => handleRestoreChat(chat.id)}
-            >
-              <img
-                src={chat.logo || "/placeholder.svg?height=32&width=32"}
-                alt={`${chat.name}'s avatar`}
-                width={40}
-                height={40}
-                className="rounded-full flex-shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{chat.name}</p>
-                <p className="text-xs text-gray-400 truncate">
-                  {chat.message.length > 50
-                    ? chat.message.substring(0, 50) + "..."
-                    : chat.message}
-                </p>
-              </div>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-[#181818] rounded-xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-lg">
+            <div className="sticky top-0 bg-[#181818] z-10 p-4 border-b border-zinc-800 flex justify-between items-center">
+              <h2 className="text-base sm:text-lg font-medium flex items-center gap-2">
+                <Archive className="w-5 h-5" />
+                Archived Chats
+              </h2>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleRestoreChat(chat.id)
-                }}
-                className="px-2 sm:px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs"
+                onClick={() => setShowArchive(false)}
+                className="p-2 hover:bg-zinc-700 rounded-lg"
               >
-                Restore
+                <X size={16} />
               </button>
             </div>
-          ))
-        )}
-      </div>
-    </div>
-  </div>
-)}
+
+            <div className="p-4 space-y-2">
+              {archivedChats.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <Archive className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No archived chats</p>
+                </div>
+              ) : (
+                archivedChats.map((chat) => (
+                  <div
+                    key={chat.id}
+                    className="flex items-center gap-3 p-3 bg-[#222222] rounded-xl hover:bg-[#2F2F2F] cursor-pointer transition-colors"
+                    onClick={() => handleRestoreChat(chat.id)}
+                  >
+                    <img
+                      src={chat.logo || "/placeholder.svg?height=32&width=32"}
+                      alt={`${chat.name}'s avatar`}
+                      width={40}
+                      height={40}
+                      className="rounded-full flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{chat.name}</p>
+                      <p className="text-xs text-gray-400 truncate">
+                        {chat.message.length > 50
+                          ? chat.message.substring(0, 50) + "..."
+                          : chat.message}
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleRestoreChat(chat.id)
+                      }}
+                      className="px-2 sm:px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs"
+                    >
+                      Restore
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Folder Creation Modal */}
       {showFolderModal && (
@@ -2784,385 +2850,81 @@ export default function Communications() {
           onDelete={handleDeleteAppointment}
         />
       )}
-      {showCreateMessageModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#3F74FF] rounded-xl w-full max-w-md mx-4">
-            {" "}
-            {/* Changed color to blue */}
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium">Create New Template</h2> {/* Renamed */}
-                <button onClick={() => setShowCreateMessageModal(false)} className="p-2 hover:bg-blue-700 rounded-lg">
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-100 mb-1">Folder</label>
-                  <select
-                    value={newMessage.folderId}
-                    onChange={(e) => setNewMessage({ ...newMessage, folderId: Number.parseInt(e.target.value) })}
-                    className="w-full bg-blue-700 text-white rounded-xl px-4 py-2 text-sm"
-                  >
-                    {broadcastFolders.map((folder) => (
-                      <option key={folder.id} value={folder.id}>
-                        {folder.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-100 mb-1">Title</label>
-                  <input
-                    type="text"
-                    value={newMessage.title}
-                    onChange={(e) => setNewMessage({ ...newMessage, title: e.target.value })}
-                    className="w-full bg-blue-700 text-white rounded-xl px-4 py-2 text-sm"
-                    placeholder="Enter message title"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-100 mb-1">Message</label>
-                  <textarea
-                    value={newMessage.message}
-                    onChange={(e) => setNewMessage({ ...newMessage, message: e.target.value })}
-                    className="w-full bg-blue-700 resize-none text-white rounded-xl px-4 py-2 text-sm h-32 resize-none"
-                    placeholder="Enter your message content"
-                  />
-                </div>
-                <button
-                  onClick={handleSaveNewMessage}
-                  className="w-full py-3 bg-white text-blue-600 text-sm hover:bg-gray-100 rounded-xl"
-                  disabled={!newMessage.title.trim() || !newMessage.message.trim()}
-                >
-                  Save Template {/* Renamed */}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {showContingentModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+
+      {showDraftModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium text-white">Manage Appointment Contingent</h2>
-                <button onClick={() => setShowContingentModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
-                  <X size={16} />
-                </button>
-              </div>
-              {/* Billing Period Selection */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-400 mb-3">Select Billing Period</label>
-                <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-                  {selectedMember &&
-                    getBillingPeriods(selectedMember.id).map((period) => (
-                      <button
-                        key={period.id}
-                        onClick={() => handleBillingPeriodChange(period.id)}
-                        className={`w-full text-left p-3 rounded-xl border transition-colors ${
-                          selectedBillingPeriod === period.id
-                            ? "bg-blue-600/20 border-blue-500 text-blue-300"
-                            : "bg-[#222222] border-gray-600 text-gray-300 hover:bg-[#2A2A2A]"
-                        }`}
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{period.label}</span>
-                          <span className="text-sm">
-                            {period.data.used}/{period.data.total}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                </div>
-                {/* Add New Billing Period Button */}
+              <h3 className="text-lg font-medium mb-4">Save as Draft?</h3>
+              <p className="text-gray-400 text-sm mb-6">
+                You have unsaved changes. Would you like to save this email as a draft?
+              </p>
+              <div className="flex gap-3 justify-end">
                 <button
-                  onClick={() => setShowAddBillingPeriodModal(true)}
-                  className="w-full mt-3 p-3 border-2 border-dashed border-gray-600 rounded-xl text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Plus size={16} />
-                  Add Future Billing Period
-                </button>
-              </div>
-              {/* Contingent Management */}
-              <div className="space-y-4">
-                <div className="bg-[#222222] rounded-xl p-4">
-                  <h3 className="text-white font-medium mb-3">
-                    {selectedBillingPeriod === "current"
-                      ? `Current Period (${currentBillingPeriod})`
-                      : `Future Period (${selectedBillingPeriod})`}
-                  </h3>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <label className="block text-sm text-gray-400 mb-1">Used Appointments</label>
-                      <input
-                        type="number"
-                        min={0}
-                        max={tempContingent.total}
-                        value={tempContingent.used}
-                        onChange={(e) =>
-                          setTempContingent({ ...tempContingent, used: Number.parseInt(e.target.value) })
-                        }
-                        className="w-full bg-[#333333] text-white rounded-xl px-4 py-2 text-sm"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-sm text-gray-400 mb-1 flex items-center gap-2">
-                        Total Appointments
-                        {selectedBillingPeriod === "current" && (
-                          <Lock size={14} className="text-gray-500" title="Locked for current period" />
-                        )}
-                      </label>
-                      <input
-                        type="number"
-                        min={selectedBillingPeriod === "current" ? tempContingent.used : 0}
-                        value={tempContingent.total}
-                        onChange={(e) =>
-                          setTempContingent({ ...tempContingent, total: Number.parseInt(e.target.value) })
-                        }
-                        disabled={selectedBillingPeriod === "current"}
-                        className={`w-full rounded-xl px-4 py-2 text-sm ${
-                          selectedBillingPeriod === "current"
-                            ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                            : "bg-[#333333] text-white"
-                        }`}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-3 flex justify-between items-center text-sm">
-                    <span className="text-gray-400">Remaining:</span>
-                    <span className="text-white font-medium">
-                      {tempContingent.total - tempContingent.used} appointments
-                    </span>
-                  </div>
-                </div>
-                {selectedBillingPeriod === "current" && (
-                  <div className="p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-xl">
-                    <p className="text-yellow-200 text-sm flex items-center gap-2">
-                      <Lock size={14} />
-                      Total appointments are locked for the current billing period. You can only edit used appointments.
-                    </p>
-                  </div>
-                )}
-                {selectedBillingPeriod !== "current" && (
-                  <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
-                    <p className="text-blue-200 text-sm flex items-center gap-2">
-                      <Info size={14} />
-                      You can edit both used and total appointments for future billing periods.
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-3 justify-end mt-6">
-                <button
-                  onClick={() => setShowContingentModal(false)}
+                  onClick={handleDiscardDraft}
                   className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
                 >
-                  Cancel
+                  Discard
                 </button>
                 <button
-                  onClick={handleSaveContingent}
+                  onClick={handleSaveDraft}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
                 >
-                  Save Changes
+                  Save Draft
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-      {/* Add Billing Period Modal */}
-      {showAddBillingPeriodModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-white">Add Future Billing Period</h2>
-                <button
-                  onClick={() => setShowAddBillingPeriodModal(false)}
-                  className="p-2 hover:bg-zinc-700 text-white rounded-lg"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">
-                    Billing Period (e.g., "07.14.25 - 07.18.2025")
-                  </label>
-                  <input
-                    type="text"
-                    value={newBillingPeriod}
-                    onChange={(e) => setNewBillingPeriod(e.target.value)}
-                    placeholder="MM.DD.YY - MM.DD.YYYY"
-                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
-                  />
-                </div>
-                <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
-                  <p className="text-blue-200 text-sm">
-                    <Info className="inline mr-1" size={14} />
-                    New billing periods will start with 0 used appointments and 0 total appointments. You can edit these
-                    values after creation.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2 justify-end mt-6">
-                <button
-                  onClick={() => setShowAddBillingPeriodModal(false)}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddBillingPeriod}
-                  disabled={!newBillingPeriod.trim()}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl text-sm"
-                >
-                  Add Period
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {isNotifyMemberOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-white">Notify and Delete Member</h2>
-                <button onClick={() => setIsNotifyMemberOpen(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
-                  <X size={16} />
-                </button>
-              </div>
-              <p className="text-gray-300 text-sm mb-4">
-                {notifyAction === "book" && "Would you like to notify the member about their new appointment?"}
-                {notifyAction === "change" && "Would you like to notify the member about changes to their appointment?"}
-                {notifyAction === "delete" &&
-                  "Would you like to notify the member that their appointment has been cancelled?"}
-              </p>
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => setIsNotifyMemberOpen(false)}
-                  className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded-xl"
-                >
-                  No
-                </button>
-                <button
-                  onClick={() => {
-                    alert("Member has been notified and appointment is deleted")
-                    setIsNotifyMemberOpen(false)
-                  }}
-                  className="px-4 py-1.5 bg-red-600 text-sm  text-white rounded-xl"
-                >
-                  Yes, Notify and delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Member Overview Modal - INTEGRATED */}
-      {isMemberOverviewModalOpen && selectedMember && (
-        <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-6xl mx-4 my-8 relative">
-            <div className="p-6">
-              {/* Header matching the image design */}
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-[#161616] rounded-xl p-4 md:p-6 mb-6">
-  {/* Profile Section */}
-  <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
-    {/* Profile Picture */}
-    <img
-      src={selectedMember.image || DefaultAvatar}
-      alt="Profile"
-      className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover"
-    />
-    {/* Member Info */}
-    <div>
-      <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-white text-lg md:text-xl font-semibold">
-          {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
-        </h2>
-        <span
-          className={`px-3 py-1 text-xs rounded-full font-medium ${
-            selectedMember.isActive
-              ? "bg-green-900 text-green-300"
-              : "bg-red-900 text-red-300"
-          }`}
-        >
-          {selectedMember.isActive ? "Active" : "Inactive"}
-        </span>
-        {selectedMember.isBirthday && (
-          <Cake size={16} className="text-yellow-500" />
-        )}
-      </div>
-      <p className="text-gray-400 text-sm mt-1">
-        Contract: {selectedMember.contractStart} -{" "}
-        <span
-          className={
-            isContractExpiringSoon(selectedMember.contractEnd)
-              ? "text-red-500"
-              : ""
-          }
-        >
-          {selectedMember.contractEnd}
-        </span>
-      </p>
-    </div>
-  </div>
-
-  {/* Action Buttons */}
-  <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
-    <button
-      onClick={handleCalendarFromOverview}
-      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-blue-500 hover:text-blue-400"
-      title="View Calendar"
-    >
-      <CalendarIcon size={18} />
-    </button>
-    <button
-      onClick={handleHistoryFromOverview}
-      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-purple-500 hover:text-purple-400"
-      title="View History"
-    >
-      <History size={18} />
-    </button>
-    <button
-      onClick={handleCommunicationFromOverview}
-      className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-green-500 hover:text-green-400"
-      title="Communication"
-    >
-      <MessageCircle size={18} />
-    </button>
-    <button
-      onClick={handleViewDetailedInfo}
-      className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
-    >
-      <Eye size={14} /> View Details
-    </button>
-    <button
-      onClick={handleEditFromOverview}
-      className="px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
-    >
-      Edit
-    </button>
-    <button
-      onClick={() => {
-        setIsMemberOverviewModalOpen(false)
-        setSelectedMember(null)
-      }}
-      className="p-2 md:p-3 text-gray-400 hover:text-white"
-    >
-      <X size={18} />
-    </button>
-  </div>
-</div>
-
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateMessageModal
+        show={showCreateMessageModal}
+        setShow={setShowCreateMessageModal}
+        broadcastFolders={broadcastFolders}
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        handleSaveNewMessage={handleSaveNewMessage}
+      />
+      <ContingentModal
+        show={showContingentModal}
+        setShow={setShowContingentModal}
+        selectedMember={selectedMember}
+        getBillingPeriods={getBillingPeriods}
+        selectedBillingPeriod={selectedBillingPeriod}
+        handleBillingPeriodChange={setSelectedBillingPeriod}
+        setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
+        tempContingent={tempContingent}
+        setTempContingent={setTempContingent}
+        currentBillingPeriod={currentBillingPeriod}
+        handleSaveContingent={handleSaveContingent}
+      />
+      <AddBillingPeriodModal
+        show={showAddBillingPeriodModal}
+        setShow={setShowAddBillingPeriodModal}
+        newBillingPeriod={newBillingPeriod}
+        setNewBillingPeriod={setNewBillingPeriod}
+        handleAddBillingPeriod={handleAddBillingPeriod}
+      />
+      <NotifyMemberModal
+        isOpen={isNotifyMemberOpen}
+        onClose={() => setIsNotifyMemberOpen(false)}
+        notifyAction={notifyAction}
+      />
+      <MemberOverviewModal
+        isOpen={isMemberOverviewModalOpen}
+        onClose={() => {
+          setIsMemberOverviewModalOpen(false)
+          setSelectedMember(null)
+        }}
+        selectedMember={selectedMember}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        handleCalendarFromOverview={handleCalendarFromOverview}
+        handleHistoryFromOverview={handleHistoryFromOverview}
+        handleCommunicationFromOverview={handleCommunicationFromOverview}
+        handleViewDetailedInfo={handleViewDetailedInfo}
+        handleEditFromOverview={handleEditFromOverview}
+      />
       {/* Member Details Modal with Tabs - INTEGRATED */}
       {isMemberDetailsModalOpen && selectedMember && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -3184,21 +2946,19 @@ export default function Communications() {
               <div className="flex border-b border-gray-700 mb-6">
                 <button
                   onClick={() => setActiveMemberDetailsTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeMemberDetailsTab === "details"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium ${activeMemberDetailsTab === "details"
+                    ? "text-blue-400 border-b-2 border-blue-400"
+                    : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   Details
                 </button>
                 <button
                   onClick={() => setActiveMemberDetailsTab("relations")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    activeMemberDetailsTab === "relations"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium ${activeMemberDetailsTab === "relations"
+                    ? "text-blue-400 border-b-2 border-blue-400"
+                    : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   Relations
                 </button>
@@ -3218,11 +2978,10 @@ export default function Communications() {
                       </h3>
                       <div className="flex items-center gap-2 mt-2">
                         <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${
-                            selectedMember.memberType === "full"
-                              ? "bg-blue-900 text-blue-300"
-                              : "bg-purple-900 text-purple-300"
-                          }`}
+                          className={`px-2 py-0.5 text-xs rounded-full ${selectedMember.memberType === "full"
+                            ? "bg-blue-900 text-blue-300"
+                            : "bg-purple-900 text-purple-300"
+                            }`}
                         >
                           {selectedMember.memberType === "full"
                             ? "Full Member (with contract)"
@@ -3318,17 +3077,16 @@ export default function Communications() {
                               <div className="w-0.5 h-8 bg-gray-600"></div>
                               {/* Category header */}
                               <div
-                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
-                                  category === "family"
-                                    ? "bg-yellow-600 text-yellow-100"
-                                    : category === "friendship"
-                                      ? "bg-green-600 text-green-100"
-                                      : category === "relationship"
-                                        ? "bg-red-600 text-red-100"
-                                        : category === "work"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                }`}
+                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
+                                  ? "bg-yellow-600 text-yellow-100"
+                                  : category === "friendship"
+                                    ? "bg-green-600 text-green-100"
+                                    : category === "relationship"
+                                      ? "bg-red-600 text-red-100"
+                                      : category === "work"
+                                        ? "bg-blue-600 text-blue-100"
+                                        : "bg-gray-600 text-gray-100"
+                                  }`}
                               >
                                 {category}
                               </div>
@@ -3337,11 +3095,10 @@ export default function Communications() {
                                 {relations.map((relation) => (
                                   <div
                                     key={relation.id}
-                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${
-                                      relation.type === "member" || relation.type === "lead"
-                                        ? "border border-blue-500/30"
-                                        : ""
-                                    }`}
+                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${relation.type === "member" || relation.type === "lead"
+                                      ? "border border-blue-500/30"
+                                      : ""
+                                      }`}
                                     onClick={() => {
                                       if (relation.type === "member" || relation.type === "lead") {
                                         alert(`Clicked on ${relation.name} (${relation.type})`)
@@ -3351,13 +3108,12 @@ export default function Communications() {
                                     <div className="text-white text-sm font-medium">{relation.name}</div>
                                     <div className="text-gray-400 text-xs">({relation.relation})</div>
                                     <div
-                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${
-                                        relation.type === "member"
-                                          ? "bg-green-600 text-green-100"
-                                          : relation.type === "lead"
-                                            ? "bg-blue-600 text-blue-100"
-                                            : "bg-gray-600 text-gray-100"
-                                      }`}
+                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${relation.type === "member"
+                                        ? "bg-green-600 text-green-100"
+                                        : relation.type === "lead"
+                                          ? "bg-blue-600 text-blue-100"
+                                          : "bg-gray-600 text-gray-100"
+                                        }`}
                                     >
                                       {relation.type}
                                     </div>
@@ -3385,11 +3141,10 @@ export default function Communications() {
                               relations.map((relation) => (
                                 <div
                                   key={relation.id}
-                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${
-                                    relation.type === "member" || relation.type === "lead"
-                                      ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
-                                      : ""
-                                  }`}
+                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
+                                    ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
+                                    : ""
+                                    }`}
                                   onClick={() => {
                                     if (relation.type === "member" || relation.type === "lead") {
                                       alert(`Clicked on ${relation.name} (${relation.type})`)
@@ -3400,13 +3155,12 @@ export default function Communications() {
                                     <span className="text-white font-medium">{relation.name}</span>
                                     <span className="text-gray-400 ml-2">- {relation.relation}</span>
                                     <span
-                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                        relation.type === "member"
-                                          ? "bg-green-600 text-green-100"
-                                          : relation.type === "lead"
-                                            ? "bg-blue-600 text-blue-100"
-                                            : "bg-gray-600 text-gray-100"
-                                      }`}
+                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
+                                        ? "bg-green-600 text-green-100"
+                                        : relation.type === "lead"
+                                          ? "bg-blue-600 text-blue-100"
+                                          : "bg-gray-600 text-gray-100"
+                                        }`}
                                     >
                                       {relation.type}
                                     </span>
@@ -3450,9 +3204,8 @@ export default function Communications() {
                 <button
                   key={tab.id}
                   onClick={() => setHistoryTab(tab.id)}
-                  className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                    historyTab === tab.id ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-                  }`}
+                  className={`px-4 py-2 rounded-md text-sm transition-colors ${historyTab === tab.id ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -3491,9 +3244,8 @@ export default function Communications() {
                           <div>
                             <p className="font-medium text-white flex items-center gap-2">
                               <span
-                                className={`w-2 h-2 rounded-full ${
-                                  activity.type === "Check-in" ? "bg-green-500" : "bg-red-500"
-                                }`}
+                                className={`w-2 h-2 rounded-full ${activity.type === "Check-in" ? "bg-green-500" : "bg-red-500"
+                                  }`}
                               ></span>
                               {activity.type}
                             </p>
@@ -3524,11 +3276,10 @@ export default function Communications() {
                             </p>
                           </div>
                           <span
-                            className={`px-2 py-1 rounded text-xs ${
-                              appointment.status === "completed"
-                                ? "bg-green-600 text-white"
-                                : "bg-orange-600 text-white"
-                            }`}
+                            className={`px-2 py-1 rounded text-xs ${appointment.status === "completed"
+                              ? "bg-green-600 text-white"
+                              : "bg-orange-600 text-white"
+                              }`}
                           >
                             {appointment.status}
                           </span>
@@ -3552,11 +3303,10 @@ export default function Communications() {
                             <p className="text-sm text-gray-400">{transaction.date}</p>
                           </div>
                           <span
-                            className={`px-2 py-1 rounded text-xs ${
-                              transaction.status === "completed"
-                                ? "bg-green-600 text-white"
-                                : "bg-orange-600 text-white"
-                            }`}
+                            className={`px-2 py-1 rounded text-xs ${transaction.status === "completed"
+                              ? "bg-green-600 text-white"
+                              : "bg-orange-600 text-white"
+                              }`}
                           >
                             {transaction.status}
                           </span>

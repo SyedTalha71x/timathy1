@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react"
@@ -5,18 +7,20 @@ import { useState, useEffect, useRef } from "react"
 import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Plus, Users, Lock } from "lucide-react"
 import Draggable from "react-draggable"
 import toast, { Toaster } from "react-hot-toast"
-import Avatar from "../../public/avatar.png"
-import { AddContractModal } from "../components/lead-components/add-contract-modal"
-import AddLeadModal from "../components/lead-user-panel-components/add-lead-modal"
-import EditLeadModal from "../components/lead-user-panel-components/edit-lead-modal"
-import ViewLeadDetailsModal from "../components/lead-user-panel-components/view-lead-details-modal"
-import ConfirmationModal from "../components/lead-user-panel-components/confirmation-modal"
-import EditColumnModal from "../components/lead-user-panel-components/edit-column-modal"
-import TrialTrainingModal from "../components/lead-user-panel-components/add-trial-planning"
+import Avatar from "../../../public/avatar.png"
+import { AddContractModal } from "../../components/lead-components/add-contract-modal"
+import AddLeadModal from "../../components/lead-user-panel-components/add-lead-modal"
+import EditLeadModal from "../../components/lead-user-panel-components/edit-lead-modal"
+import ViewLeadDetailsModal from "../../components/lead-user-panel-components/view-lead-details-modal"
+import ConfirmationModal from "../../components/lead-user-panel-components/confirmation-modal"
+import EditColumnModal from "../../components/lead-user-panel-components/edit-column-modal"
+import TrialTrainingModal from "../../components/lead-user-panel-components/add-trial-planning"
 import { IoIosMenu } from "react-icons/io"
-import { SidebarArea } from "../components/custom-sidebar"
+import { SidebarArea } from "../../components/custom-sidebar"
 import { useNavigate } from "react-router-dom"
-import Rectangle1 from "../../public/Rectangle 1.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
+import { MdHistory } from "react-icons/md"
+import LeadHistoryModal from "../../components/lead-user-panel-components/lead-history-modal"
 
 const LeadCard = ({
   lead,
@@ -29,9 +33,12 @@ const LeadCard = ({
   onDragStop,
   index,
   memberRelations,
+  setShowHistoryModal,
+  setSelectedLead,
 }) => {
   const [isDragging, setIsDragging] = useState(false)
   const [isNoteOpen, setIsNoteOpen] = useState(false)
+
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const noteRef = useRef(null)
   const menuRef = useRef(null)
@@ -92,15 +99,17 @@ const LeadCard = ({
     >
       <div
         ref={nodeRef}
-        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${isDragging ? "opacity-70 z-50 shadow-lg absolute" : "opacity-100" // Changed 'fixed' to 'absolute' for better mobile drag behavior
-          }`}
+        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${
+          isDragging ? "opacity-70 z-50 shadow-lg absolute" : "opacity-100" // Changed 'fixed' to 'absolute' for better mobile drag behavior
+        }`}
         data-lead-id={lead.id}
       >
         <div className="flex  items-center mb-3 relative">
           {hasValidNote && (
             <div
-              className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
-                }  rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
+              className={`absolute -top-2 -left-2 ${
+                lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
+              }  rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
@@ -209,6 +218,16 @@ const LeadCard = ({
                 </button>
                 <button
                   onClick={() => {
+                    setSelectedLead(lead) // Add this line to set the selected lead
+                    setShowHistoryModal(true)
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+                >
+                  <MdHistory size={18} /> View History
+                </button>
+                <button
+                  onClick={() => {
                     onDeleteLead(lead.id)
                     setIsMenuOpen(false)
                   }}
@@ -257,6 +276,8 @@ const Column = ({
   onEditColumn,
   columnRef,
   memberRelations,
+  setShowHistoryModal, // Add this to the props
+  setSelectedLead, // Add this to the props - THIS WAS MISSING
 }) => {
   const isTrialColumn = id === "trial"
 
@@ -270,10 +291,7 @@ const Column = ({
       <div className="p-3 flex justify-between items-center" style={{ backgroundColor: `${color}20` }}>
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
-            <div
-              className="w-3 h-3 rounded-full mr-2"
-              style={{ backgroundColor: color }}
-            ></div>
+            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
             <h3 className="font-medium text-white text-sm">{title}</h3>
           </div>
 
@@ -317,6 +335,8 @@ const Column = ({
             onDragStop={onDragStop}
             index={index}
             memberRelations={memberRelations}
+            setShowHistoryModal={setShowHistoryModal}
+            setSelectedLead={setSelectedLead} // NOW PASSING setSelectedLead TO LeadCard
           />
         ))}
       </div>
@@ -325,6 +345,8 @@ const Column = ({
 }
 
 export default function LeadManagement() {
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+
   const [columns, setColumns] = useState([
     { id: "active", title: "Active prospect", color: "#10b981" },
     { id: "passive", title: "Passive prospect", color: "#f59e0b" },
@@ -642,27 +664,27 @@ export default function LeadManagement() {
     const updatedLeads = leads.map((lead) =>
       lead.id === data.id
         ? {
-          ...lead,
-          firstName: data.firstName,
-          surname: data.surname,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-          trialPeriod: data.trialPeriod,
-          hasTrialTraining: data.hasTrialTraining,
-          avatar: data.avatar,
-          status: data.status || lead.status,
-          columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
-          specialNote: {
-            text: data.specialNote?.text || "",
-            isImportant: data.specialNote?.isImportant || false,
-            startDate: data.specialNote?.startDate || null,
-            endDate: data.specialNote?.endDate || null,
-          },
-          company: data.company || lead.company, // Added
-          interestedIn: data.interestedIn || lead.interestedIn, // Added
-          birthday: data.birthday || lead.birthday, // Added
-          address: data.address || lead.address, // Added
-        }
+            ...lead,
+            firstName: data.firstName,
+            surname: data.surname,
+            email: data.email,
+            phoneNumber: data.phoneNumber,
+            trialPeriod: data.trialPeriod,
+            hasTrialTraining: data.hasTrialTraining,
+            avatar: data.avatar,
+            status: data.status || lead.status,
+            columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+            specialNote: {
+              text: data.specialNote?.text || "",
+              isImportant: data.specialNote?.isImportant || false,
+              startDate: data.specialNote?.startDate || null,
+              endDate: data.specialNote?.endDate || null,
+            },
+            company: data.company || lead.company, // Added
+            interestedIn: data.interestedIn || lead.interestedIn, // Added
+            birthday: data.birthday || lead.birthday, // Added
+            address: data.address || lead.address, // Added
+          }
         : lead,
     )
     setLeads(updatedLeads)
@@ -671,6 +693,38 @@ export default function LeadManagement() {
     localStorage.setItem("leads", JSON.stringify(localStorageLeads))
     toast.success("Lead has been updated")
   }
+
+  const handleEditColumn = (id, title, color) => {
+    const updatedColumns = columns.map((column) => (column.id === id ? { ...column, title, color } : column))
+    setColumns(updatedColumns)
+    toast.success("Column updated successfully")
+  }
+
+  const handleSaveColumn = (data) => {
+    const updatedColumns = columns.map((column) =>
+      column.id === data.id ? { ...column, title: data.title, color: data.color } : column,
+    )
+    setColumns(updatedColumns)
+    toast.success("Column saved successfully")
+  }
+
+  const [dragConfirmation, setDragConfirmation] = useState({
+    isOpen: false,
+    type: "", // 'toTrial' or 'fromTrial'
+    lead: null,
+    sourceColumnId: "",
+    targetColumnId: "",
+    targetIndex: -1,
+    onConfirm: null,
+    onCancel: null,
+  })
+
+  const [specialNoteModal, setSpecialNoteModal] = useState({
+    isOpen: false,
+    lead: null,
+    targetColumnId: "",
+    onSave: null,
+  })
 
   const handleDragStop = (e, data, lead, sourceColumnId, index) => {
     const draggedElem = e.target
@@ -697,8 +751,8 @@ export default function LeadManagement() {
       }
     }
 
-    // If we found a target column
-    if (targetColumnId) {
+    // If we found a target column and it's different from source
+    if (targetColumnId && targetColumnId !== sourceColumnId) {
       const leadCards = targetColumnElement.querySelectorAll('[data-column-id="' + targetColumnId + '"] > div > div')
       let targetIndex = -1
       for (let i = 0; i < leadCards.length; i++) {
@@ -715,55 +769,142 @@ export default function LeadManagement() {
         targetIndex = leadCards.length
       }
 
-      // Create a copy of the leads array
-      const updatedLeads = [...leads]
-
-      // If moving to a different column
-      if (targetColumnId !== sourceColumnId) {
-        // If dropping into trial column, set hasTrialTraining to true
-        const hasTrialTraining = targetColumnId === "trial"
-
-        // Find the lead to move
-        const leadToMove = updatedLeads.find((l) => l.id === lead.id)
-
-        // Remove the lead from its current position
-        const filteredLeads = updatedLeads.filter((l) => l.id !== lead.id)
-
-        // Update the lead's properties
-        const updatedLead = {
-          ...leadToMove,
-          columnId: targetColumnId,
-          hasTrialTraining: hasTrialTraining || leadToMove.hasTrialTraining,
-          status: targetColumnId !== "trial" ? targetColumnId : leadToMove.status,
-        }
-
-        // Insert the lead at the target position
-        filteredLeads.splice(targetIndex, 0, updatedLead)
-
-        // Update the leads state
-        setLeads(filteredLeads)
-
-        // Update localStorage
-        const localStorageLeads = filteredLeads.filter((l) => l.source === "localStorage")
-        localStorage.setItem("leads", JSON.stringify(localStorageLeads))
-        toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title}`)
+      // Check if dragging TO trial column
+      if (targetColumnId === "trial") {
+        setDragConfirmation({
+          isOpen: true,
+          type: "toTrial",
+          lead,
+          sourceColumnId,
+          targetColumnId,
+          targetIndex,
+          onConfirm: () => {
+            setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+            // Open trial training modal
+            setSelectedLead(lead)
+            setIsTrialModalOpen(true)
+          },
+          onCancel: () => {
+            setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+            // Lead stays in original position - no action needed
+          },
+        })
+        return
       }
+
+      // Check if dragging FROM trial column
+      if (sourceColumnId === "trial") {
+        setDragConfirmation({
+          isOpen: true,
+          type: "fromTrial",
+          lead,
+          sourceColumnId,
+          targetColumnId,
+          targetIndex,
+          onConfirm: () => {
+            setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+            // Open special note modal
+            setSpecialNoteModal({
+              isOpen: true,
+              lead,
+              targetColumnId,
+              onSave: (specialNote) => {
+                // Move the lead with special note
+                moveLeadWithNote(lead, sourceColumnId, targetColumnId, targetIndex, specialNote)
+                setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))
+              },
+            })
+          },
+          onCancel: () => {
+            setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+            // Lead stays in original position - no action needed
+          },
+        })
+        return
+      }
+
+      // Normal drag and drop for other columns
+      moveLeadToColumn(lead, sourceColumnId, targetColumnId, targetIndex)
     }
   }
 
-  const handleEditColumn = (columnId, title, color) => {
-    setSelectedColumn({ id: columnId, title, color })
-    setIsEditColumnModalOpen(true)
+  const moveLeadToColumn = (lead, sourceColumnId, targetColumnId, targetIndex) => {
+    const updatedLeads = [...leads]
+    const hasTrialTraining = targetColumnId === "trial"
+
+    // Find the lead to move
+    const leadToMove = updatedLeads.find((l) => l.id === lead.id)
+
+    // Remove the lead from its current position
+    const filteredLeads = updatedLeads.filter((l) => l.id !== lead.id)
+
+    // Update the lead's properties
+    const updatedLead = {
+      ...leadToMove,
+      columnId: targetColumnId,
+      hasTrialTraining: hasTrialTraining || leadToMove.hasTrialTraining,
+      status: targetColumnId !== "trial" ? targetColumnId : leadToMove.status,
+    }
+
+    // Insert the lead at the target position
+    filteredLeads.splice(targetIndex, 0, updatedLead)
+
+    // Update the leads state
+    setLeads(filteredLeads)
+
+    // Update localStorage
+    const localStorageLeads = filteredLeads.filter((l) => l.source === "localStorage")
+    localStorage.setItem("leads", JSON.stringify(localStorageLeads))
+    toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title}`)
   }
 
-  const handleSaveColumn = (updatedColumn) => {
-    setColumns(
-      columns.map((col) =>
-        col.id === updatedColumn.id ? { ...col, title: updatedColumn.title, color: updatedColumn.color } : col,
-      ),
-    )
-    setIsEditColumnModalOpen(false)
-    setSelectedColumn(null)
+  const moveLeadWithNote = (lead, sourceColumnId, targetColumnId, targetIndex, specialNote) => {
+    const updatedLeads = [...leads]
+
+    // Find the lead to move
+    const leadToMove = updatedLeads.find((l) => l.id === lead.id)
+
+    // Remove the lead from its current position
+    const filteredLeads = updatedLeads.filter((l) => l.id !== lead.id)
+
+    // Update the lead's properties
+    const updatedLead = {
+      ...leadToMove,
+      columnId: targetColumnId,
+      hasTrialTraining: false, // Remove trial training when moving from trial column
+      status: targetColumnId,
+      specialNote: {
+        ...leadToMove.specialNote,
+        text: specialNote,
+        isImportant: true,
+        startDate: new Date().toISOString().split("T")[0],
+        endDate: null,
+      },
+    }
+
+    // Insert the lead at the target position
+    filteredLeads.splice(targetIndex, 0, updatedLead)
+
+    // Update the leads state
+    setLeads(filteredLeads)
+
+    // Update localStorage
+    const localStorageLeads = filteredLeads.filter((l) => l.source === "localStorage")
+    localStorage.setItem("leads", JSON.stringify(localStorageLeads))
+    toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title} with note`)
+  }
+
+  const handleTrialModalClose = () => {
+    setIsTrialModalOpen(false)
+    // If there was a pending drag operation, complete it
+    if (dragConfirmation.lead && dragConfirmation.targetColumnId === "trial") {
+      moveLeadToColumn(
+        dragConfirmation.lead,
+        dragConfirmation.sourceColumnId,
+        dragConfirmation.targetColumnId,
+        dragConfirmation.targetIndex,
+      )
+    }
   }
 
   const filteredLeads = leads.filter((lead) => {
@@ -860,14 +1001,17 @@ export default function LeadManagement() {
   }
 
   return (
-    <div className={`
+    <div
+      className={`
       min-h-screen rounded-3xl p-6 bg-[#1C1C1C]
       transition-all duration-300 ease-in-out flex-1
-      ${isRightSidebarOpen 
-        ? 'lg:mr-96 md:mr-96 sm:mr-96' // Adjust right margin when sidebar is open on larger screens
-        : 'mr-0' // No margin when closed
+      ${
+        isRightSidebarOpen
+          ? "lg:mr-96 md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
+          : "mr-0" // No margin when closed
       }
-    `}>
+    `}
+    >
       <Toaster
         position="top-right"
         toastOptions={{
@@ -916,7 +1060,7 @@ export default function LeadManagement() {
           className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
         />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4 min-h-[600px]">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 min-h-[600px]">
         {columns.map((column) => (
           <Column
             key={column.id}
@@ -934,6 +1078,8 @@ export default function LeadManagement() {
             onEditColumn={handleEditColumn}
             columnRef={columnRefs.current[column.id]}
             memberRelations={memberRelations}
+            setShowHistoryModal={setShowHistoryModal}
+            setSelectedLead={setSelectedLead} // ADD THIS LINE - this was missing!
           />
         ))}
       </div>
@@ -954,12 +1100,7 @@ export default function LeadManagement() {
       />
 
       {/* Overlay for mobile screens only */}
-      {isRightSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-          onClick={closeSidebar}
-        />
-      )}
+      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
       <EditLeadModal
         isVisible={isEditModalOpen}
         onClose={() => {
@@ -994,10 +1135,7 @@ export default function LeadManagement() {
       />
       <TrialTrainingModal
         isOpen={isTrialModalOpen}
-        onClose={() => {
-          setIsTrialModalOpen(false)
-          setSelectedLead(null)
-        }}
+        onClose={handleTrialModalClose}
         selectedLead={selectedLead}
         trialTypes={[
           { name: "Cardio", duration: 30 },
@@ -1009,7 +1147,16 @@ export default function LeadManagement() {
           { id: "slot2", date: "2023-10-01", time: "11:00" },
           { id: "slot3", date: "2023-10-02", time: "14:00" },
         ]}
+        availableMembersLeads={availableMembersLeads}
+        relationOptions={{
+          family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Spouse"],
+          friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+          relationship: ["Partner", "Boyfriend", "Girlfriend", "Ex-Partner"],
+          work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+          other: ["Neighbor", "Roommate", "Mentor", "Student", "Other"],
+        }}
       />
+
       {isCreateContractModalOpen && (
         <AddContractModal
           onClose={() => {
@@ -1024,17 +1171,20 @@ export default function LeadManagement() {
           leadData={
             selectedLead
               ? {
-                id: selectedLead.id,
-                name: `${selectedLead.firstName} ${selectedLead.surname}`,
-                email: selectedLead.email,
-                phone: selectedLead.phoneNumber,
-                company: selectedLead.company, // Ensure company is passed
-                interestedIn: selectedLead.interestedIn, // Ensure interestedIn is passed
-              }
+                  id: selectedLead.id,
+                  name: `${selectedLead.firstName} ${selectedLead.surname}`,
+                  email: selectedLead.email,
+                  phone: selectedLead.phoneNumber,
+                  company: selectedLead.company, // Ensure company is passed
+                  interestedIn: selectedLead.interestedIn, // Ensure interestedIn is passed
+                }
               : null
           }
         />
       )}
+
+      {showHistoryModal && <LeadHistoryModal lead={selectedLead} onClose={() => setShowHistoryModal(false)} />}
+
       <EditColumnModal
         isVisible={isEditColumnModalOpen}
         onClose={() => {
@@ -1050,6 +1200,75 @@ export default function LeadManagement() {
         onConfirm={confirmDeleteLead}
         message="Are you sure you want to delete this lead?"
       />
+
+      {/* Confirmation dialog for drag operations */}
+      {dragConfirmation.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
+          <div className="bg-[#1C1C1C] w-[90%] sm:w-[400px] rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              {dragConfirmation.type === "toTrial" ? "Book Trial Training?" : "Move Lead from Trial Training?"}
+            </h3>
+            <p className="text-gray-300 mb-6">
+              {dragConfirmation.type === "toTrial"
+                ? `Do you want to book a trial training for ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""}?`
+                : `Are you sure you want to move ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} from Trial Training Arranged?`}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={dragConfirmation.onCancel}
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={dragConfirmation.onConfirm}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Special note modal for moving from trial column */}
+      {specialNoteModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
+          <div className="bg-[#1C1C1C] w-[90%] sm:w-[500px] rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Add Special Note</h3>
+            <p className="text-gray-300 mb-4">
+              Please enter the reason for moving {specialNoteModal.lead?.firstName}{" "}
+              {specialNoteModal.lead?.surname || ""} from Trial Training Arranged:
+            </p>
+            <textarea
+              id="specialNoteText"
+              className="w-full bg-[#101010] text-white rounded-lg p-3 mb-4 min-h-[100px] resize-none outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter reason for moving from trial training..."
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))}
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const noteText = document.getElementById("specialNoteText").value
+                  if (noteText.trim()) {
+                    specialNoteModal.onSave(noteText.trim())
+                  } else {
+                    toast.error("Please enter a reason for moving the lead")
+                  }
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Save & Move
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,4 +1,3 @@
-"use client"
 
 import { Checkbox } from "antd"
 /* eslint-disable react/no-unescaped-entities */
@@ -38,7 +37,7 @@ import {
   ItalicOutlined,
   UnderlineOutlined,
 } from "@ant-design/icons"
-import VariablePicker from "../components/variable-picker" // Assuming VariablePicker is in components folder
+import VariablePicker from "../../components/variable-picker" // Assuming VariablePicker is in components folder
 
 const { Option } = Select
 const { TabPane } = Tabs

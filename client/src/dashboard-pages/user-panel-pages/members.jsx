@@ -1,4 +1,3 @@
-"use client"
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
@@ -27,16 +26,15 @@ import {
   Grid3X3,
   List,
 } from "lucide-react"
-import DefaultAvatar from "../../public/default-avatar.avif"
+import DefaultAvatar from "../../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
-import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
-import EditAppointmentModal from "../components/appointments-components/selected-appointment-modal"
+import AddAppointmentModal from "../../components/appointments-components/add-appointment-modal"
+import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
 import { IoIosMenu } from "react-icons/io"
-import Avatar from "../../public/default-avatar.avif"
-import Rectangle1 from "../../public/Rectangle 1.png"
+import Avatar from "../../../public/default-avatar.avif"
+import Rectangle1 from "../../../public/Rectangle 1.png"
 import { useNavigate } from "react-router-dom"
-import { SidebarArea } from "../components/custom-sidebar"
-
+import { SidebarArea } from "../../components/custom-sidebar"
 export default function Members() {
   const navigate = useNavigate()
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)

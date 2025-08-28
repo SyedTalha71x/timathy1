@@ -3,16 +3,16 @@
 
 import { useState, useEffect } from "react"
 import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X, FileText, Eye, Trash2 } from "lucide-react"
-import CheckFundsModal from "../components/finance-components/check-funds-modal"
-import SepaXmlModal from "../components/finance-components/sepa-xml-modal"
-import { financialData } from "../utils/states"
+import CheckFundsModal from "../../components/customer-dashboard/studios-modal/check-funds-modal"
+import SepaXmlModal from "../../components/finance-components/sepa-xml-modal"
+import { financialData } from "../../utils/states"
 import { useNavigate } from "react-router-dom"
 
-import Avatar from "../../public/avatar.png"
-import Rectangle1 from "../../public/Rectangle 1.png"
+import Avatar from "../../../public/avatar.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
-import { SidebarArea } from "../components/custom-sidebar"
-import ExportConfirmationModal from "../components/finance-components/export-confirmation-modal"
+import { SidebarArea } from "../../components/custom-sidebar"
+import ExportConfirmationModal from "../../components/finance-components/export-confirmation-modal"
 
 // Documents Modal Component
 const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDocument }) => {

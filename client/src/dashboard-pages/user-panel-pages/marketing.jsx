@@ -3,11 +3,11 @@ import { useState } from "react";
 import { ChevronDown, Copy } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Import styles for the date picker
-import "../custom-css/marketing-table-style.css";
+import "../../custom-css/marketing-table-style.css";
 import { useNavigate } from "react-router-dom";
-import { SidebarArea } from "../components/custom-sidebar";
-import Avatar from "../../public/avatar.png"
-import Rectangle1 from "../../public/Rectangle 1.png"
+import { SidebarArea } from "../../components/custom-sidebar";
+import Avatar from "../../../public/avatar.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io";
 
 const MarketingTable = () => {

@@ -1,4 +1,3 @@
-"use client"
 
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
@@ -18,13 +17,13 @@ import {
   Info,
   History,
 } from "lucide-react"
-import ProductImage from "../../public/1_55ce827a-2b63-4b1d-aa55-2c2b6dc6c96e.webp"
+import ProductImage from "../../../public/1_55ce827a-2b63-4b1d-aa55-2c2b6dc6c96e.webp"
 import { RiServiceFill } from "react-icons/ri"
-import SidebarAreaSelling from "../components/selling-components/custom-sidebar-selling"
-import Avatar from "../../public/avatar.png"
-import Rectangle1 from "../../public/Rectangle 1.png"
+import SidebarAreaSelling from "../../components/selling-components/custom-sidebar-selling"
+import Avatar from "../../../public/avatar.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
-import HistoryModal from "../components/selling-components/history-modal"
+import HistoryModal from "../../components/selling-components/history-modal"
 import { MdOutlineProductionQuantityLimits } from "react-icons/md"
 
 function App() {

@@ -1,20 +1,19 @@
-"use client"
 
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, createContext } from "react"
 import { X, Calendar, Users, History, MessageCircle, Grid3X3, List } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
-import Avatar from "../../public/default-avatar.avif"
-import AddStaffModal from "../components/staff-components/add-staff-modal"
-import EditStaffModal from "../components/staff-components/edit-staff-modal"
-import EmployeePlanningModal from "../components/staff-components/employee-planning-modal"
-import AttendanceOverviewModal from "../components/staff-components/attendance-overview-modal"
-import VacationRequestModal from "../components/staff-components/vacation-request-modal"
-import StaffHistoryModal from "../components/staff-components/staff-history-modal"
-import { SidebarArea } from "../components/custom-sidebar"
+import Avatar from "../../../public/default-avatar.avif"
+import AddStaffModal from "../../components/staff-components/add-staff-modal"
+import EditStaffModal from "../../components/staff-components/edit-staff-modal"
+import EmployeePlanningModal from "../../components/staff-components/employee-planning-modal"
+import AttendanceOverviewModal from "../../components/staff-components/attendance-overview-modal"
+import VacationRequestModal from "../../components/staff-components/vacation-request-modal"
+import StaffHistoryModal from "../../components/staff-components/staff-history-modal"
+import { SidebarArea } from "../../components/custom-sidebar"
 import { useNavigate } from "react-router-dom"
-import Rectangle1 from "../../public/Rectangle 1.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
 
 const StaffContext = createContext(null)

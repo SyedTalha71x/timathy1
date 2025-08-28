@@ -1,7 +1,7 @@
 import { useState } from "react";
-import B1 from "../../public/Button.png";
-import B2 from "../../public/Button (1).png";
-import B3 from "../../public/Button (2).png";
+import B1 from "../../../public/Button.png";
+import B2 from "../../../public/Button (1).png";
+import B3 from "../../../public/Button (2).png";
 
 export default function PaymentForm() {
   const [selectedCard, setSelectedCard] = useState("visa");

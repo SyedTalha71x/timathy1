@@ -1,5 +1,6 @@
-/* eslint-disable react/no-unknown-property */
 "use client"
+
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import {
@@ -17,18 +18,18 @@ import {
 import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { IoIosMenu } from "react-icons/io"
-import TrialTrainingModal from "../components/appointments-components/add-trial-training"
-import AddAppointmentModal from "../components/appointments-components/add-appointment-modal"
-import EditAppointmentModal from "../components/appointments-components/selected-appointment-modal"
-import MiniCalendar from "../components/appointments-components/mini-calender"
-import BlockAppointmentModal from "../components/appointments-components/block-appointment-modal"
-import { appointmentsData as initialAppointmentsData } from "../utils/states"
-import Calendar from "../components/appointments-components/calendar"
+import TrialTrainingModal from "../../components/appointments-components/add-trial-training"
+import AddAppointmentModal from "../../components/appointments-components/add-appointment-modal"
+import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import MiniCalendar from "../../components/appointments-components/mini-calender"
+import BlockAppointmentModal from "../../components/appointments-components/block-appointment-modal"
+import { appointmentsData as initialAppointmentsData } from "../../utils/states"
+import Calendar from "../../components/appointments-components/calendar"
 import { useNavigate } from "react-router-dom"
-import { SidebarArea } from "../components/custom-sidebar"
-import Avatar from "../../public/avatar.png"
-import Rectangle1 from "../../public/Rectangle 1.png"
-import AppointmentActionModal from "../components/appointments-components/appointment-action-modal"
+import { SidebarArea } from "../../components/custom-sidebar"
+import Avatar from "../../../public/avatar.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
+import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
 
 export default function Appointments() {
   const navigate = useNavigate()
@@ -52,7 +53,6 @@ export default function Appointments() {
 
   const [showAppointmentOptionsModal, setshowAppointmentOptionsModal] = useState(false)
   const [isEditAppointmentModalOpen, setisEditAppointmentModalOpen] = useState(false)
-
 
   // FIXED: Added collapsible states for filters and upcoming appointments
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false)
@@ -271,14 +271,13 @@ export default function Appointments() {
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
 
-
   const isEventInPast = (eventStart) => {
     const now = new Date()
     const eventDate = new Date(eventStart)
     return eventDate < now
   }
 
-  const handleViewMembersDetail = () =>{
+  const handleViewMembersDetail = () => {
     toast.success("Member view modal functionality will be later implemented by backend")
   }
 
@@ -382,12 +381,11 @@ export default function Appointments() {
     setIsSidebarCollapsed(!isSidebarCollapsed)
   }
 
-
   const handleAppointmentOptionsModal = (appointment) => {
-    setSelectedAppointment(appointment);
-    setshowAppointmentOptionsModal(true);
-    setisEditAppointmentModalOpen(false); // Ensure edit modal is closed
-  };
+    setSelectedAppointment(appointment)
+    setshowAppointmentOptionsModal(true)
+    setisEditAppointmentModalOpen(false) // Ensure edit modal is closed
+  }
 
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
@@ -469,14 +467,13 @@ export default function Appointments() {
   )
 
   return (
-    <div className={`
+    <div
+      className={`
       min-h-screen rounded-3xl bg-[#1C1C1C] p-6
       transition-all duration-300 ease-in-out flex-1
-      ${isRightSidebarOpen 
-        ? 'lg:mr-96 md:mr-96 sm:mr-96'
-        : 'mr-0'
-      }
-    `}>
+      ${isRightSidebarOpen ? "lg:mr-96 md:mr-96 sm:mr-96" : "mr-0"}
+    `}
+    >
       <main className="flex-1 min-w-0">
         <div className="">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
@@ -505,13 +502,13 @@ export default function Appointments() {
                 onClick={() => setIsModalOpen(true)}
                 className="w-full sm:w-auto bg-orange-500 text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 flex items-center justify-center gap-1"
               >
-                <span>+</span> Add appointment
+                <span>+</span> Book Appointment
               </button>
               <button
                 onClick={() => setIsTrialModalOpen(true)}
                 className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-1"
               >
-                <span>+</span> Add trial training
+                <span>+</span> Add Trial Training
               </button>
               <button
                 onClick={() => setIsBlockModalOpen(true)}
@@ -526,7 +523,7 @@ export default function Appointments() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 9h12M6 13h12M6 17h6" />
                 </svg>{" "}
-                Block time slot
+                Block Time Slot
               </button>
               <div className="md:block hidden">
                 <IoIosMenu
@@ -537,7 +534,7 @@ export default function Appointments() {
               </div>
             </div>
           </div>
-          
+
           <SidebarArea
             isOpen={isRightSidebarOpen}
             onClose={closeSidebar}
@@ -554,29 +551,24 @@ export default function Appointments() {
           />
 
           {/* Overlay for mobile screens only */}
-          {isRightSidebarOpen && (
-            <div 
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-              onClick={closeSidebar}
-            />
-          )}
-          
+          {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
+
           <div className="flex lg:flex-row flex-col gap-6 relative">
-            {/* NARROWER SIDEBAR - Reduced width from lg:w-[40%] to lg:w-[25%] */}
+            {/* FIXED WIDTH SIDEBAR - Made consistent width */}
             <div
               className={`transition-all duration-500 ease-in-out ${
                 isSidebarCollapsed
                   ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0"
-                  : "lg:w-[25%] lg:opacity-100" // REDUCED WIDTH HERE
+                  : "lg:w-[320px] lg:opacity-100" // Fixed width for consistent alignment
               } w-full flex flex-col gap-6`}
             >
-              {/* NARROWER MINI CALENDAR */}
-              <div className="">
+              {/* FIXED WIDTH MINI CALENDAR */}
+              <div className="w-full">
                 <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
               </div>
-              
+
               <div className="w-full flex flex-col gap-4">
-                {/* NARROWER SEARCH */}
+                {/* FIXED WIDTH SEARCH */}
                 <div className="flex items-center gap-4">
                   <div className="relative w-full">
                     <input
@@ -590,19 +582,21 @@ export default function Appointments() {
                   </div>
                 </div>
 
-                {/* NARROWER UPCOMING APPOINTMENTS */}
+                {/* EXPANDED UPCOMING APPOINTMENTS - More height to show more appointments */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-white font-bold text-sm">Upcoming Appointments</h2> {/* Reduced font size */}
+                    <h2 className="text-white font-bold text-sm">Upcoming Appointments</h2>
                     <button
                       onClick={() => setIsUpcomingCollapsed(!isUpcomingCollapsed)}
                       className="text-gray-400 hover:text-white transition-colors"
                     >
-                      {isUpcomingCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />} {/* Reduced icon size */}
+                      {isUpcomingCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                     </button>
                   </div>
                   {!isUpcomingCollapsed && (
-                    <div className="space-y-2 custom-scrollbar overflow-y-auto max-h-[180px]"> {/* Reduced spacing and height */}
+                    <div className="space-y-2 custom-scrollbar overflow-y-auto max-h-[300px]">
+                      {" "}
+                      {/* Increased height to show more appointments */}
                       {filteredAppointments.length > 0 ? (
                         filteredAppointments.map((appointment, index) => (
                           <div
@@ -613,15 +607,17 @@ export default function Appointments() {
                                 : appointment.isPast && !appointment.isCancelled
                                   ? "bg-gray-800 opacity-50"
                                   : appointment.color
-                            } rounded-xl cursor-pointer p-2 relative`} /* Reduced padding */
-                            onClick={()=>{handleAppointmentOptionsModal(appointment)}}
+                            } rounded-xl cursor-pointer p-2 relative`}
+                            onClick={() => {
+                              handleAppointmentOptionsModal(appointment)
+                            }}
                           >
-                            <div className="absolute p-1 top-0 left-0 z-10"> {/* Reduced padding */}
+                            <div className="absolute p-1 top-0 left-0 z-10">
                               {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                             </div>
                             <div className="flex flex-col items-center justify-between gap-2 cursor-pointer">
-                              <div className="flex items-center gap-2 ml-4 relative w-full justify-center"> {/* Reduced margin */}
-                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative"> {/* Reduced size */}
+                              <div className="flex items-center gap-2 ml-4 relative w-full justify-center">
+                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative">
                                   <img
                                     src={Avatar || "/placeholder.svg"}
                                     alt=""
@@ -629,9 +625,9 @@ export default function Appointments() {
                                   />
                                 </div>
                                 <div className="text-white text-left">
-                                  <p className="font-semibold text-sm">{appointment.name}</p> {/* Reduced font size */}
+                                  <p className="font-semibold text-sm">{appointment.name}</p>
                                   <p className="text-xs flex gap-1 items-center opacity-80">
-                                    <Clock size={12} /> {/* Reduced icon size */}
+                                    <Clock size={12} />
                                     {appointment.time} | {appointment.date?.split("|")[0]}
                                   </p>
                                   <p className="text-xs opacity-80 mt-1">
@@ -668,8 +664,10 @@ export default function Appointments() {
                   )}
                 </div>
 
-                {/* NARROWER FILTER SECTION */}
-                <div className="bg-[#000000] rounded-xl p-3"> {/* Reduced padding */}
+                {/* MOVED DOWN FILTER SECTION - Positioned lower as requested */}
+                <div className="bg-[#000000] rounded-xl p-3 mt-8">
+                  {" "}
+                  {/* Added margin-top to move filters lower */}
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-white font-semibold text-sm">Appointment Filters</h3>
                     <div className="flex items-center gap-2">
@@ -683,12 +681,12 @@ export default function Appointments() {
                         onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}
                         className="text-gray-400 hover:text-white transition-colors"
                       >
-                        {isFiltersCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />} {/* Reduced icon size */}
+                        {isFiltersCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                       </button>
                     </div>
                   </div>
                   {!isFiltersCollapsed && (
-                    <div className="space-y-1.5"> {/* Reduced spacing */}
+                    <div className="space-y-1.5">
                       {/* Appointment Types */}
                       {appointmentTypes.map((type) => (
                         <label key={type.name} className="flex items-center gap-2 cursor-pointer">
@@ -696,10 +694,10 @@ export default function Appointments() {
                             type="checkbox"
                             checked={appointmentFilters[type.name]}
                             onChange={() => handleFilterChange(type.name)}
-                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" /* Reduced size */
+                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                           />
-                          <div className={`w-2.5 h-2.5 rounded-full ${type.color}`}></div> {/* Reduced size */}
-                          <span className="text-white text-xs">{type.name}</span> {/* Reduced font size */}
+                          <div className={`w-2.5 h-2.5 rounded-full ${type.color}`}></div>
+                          <span className="text-white text-xs">{type.name}</span>
                         </label>
                       ))}
                       {/* Trial Training */}
@@ -714,7 +712,7 @@ export default function Appointments() {
                         <span className="text-white text-xs">Trial Training</span>
                       </label>
 
-                      <div className="border-t border-gray-600 my-2"></div> {/* Reduced margin */}
+                      <div className="border-t border-gray-600 my-2"></div>
 
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -755,9 +753,10 @@ export default function Appointments() {
                 </div>
               </div>
             </div>
+            {/* DYNAMIC WIDTH CALENDAR - Expands to fill available space */}
             <div
-              className={`w-full bg-[#000000] rounded-xl  p-4 overflow-hidden transition-all duration-500 ${
-                isSidebarCollapsed ? "lg:w-full" : "lg:w-[75%]" // INCREASED WIDTH HERE
+              className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${
+                isSidebarCollapsed ? "lg:w-full" : "lg:w-[calc(100%-320px-1.5rem)]" // Dynamic width calculation to prevent empty space
               }`}
             >
               <Calendar
@@ -769,6 +768,7 @@ export default function Appointments() {
                 appointmentFilters={appointmentFilters}
                 setSelectedAppointment={setSelectedAppointment}
                 onOpenSelectedAppointmentModal={setIsAppointmentActionModalOpen}
+                isSidebarCollapsed={isSidebarCollapsed} // Pass sidebar state to calendar
               />
             </div>
           </div>
@@ -789,42 +789,42 @@ export default function Appointments() {
         onSubmit={handleTrialSubmit}
       />
 
-       <AppointmentActionModal
+      <AppointmentActionModal
         isOpen={showAppointmentOptionsModal}
         onClose={() => {
-          setshowAppointmentOptionsModal(false);
-          setSelectedAppointment(null); // Reset the selected appointment when closing
+          setshowAppointmentOptionsModal(false)
+          setSelectedAppointment(null) // Reset the selected appointment when closing
         }}
         appointment={selectedAppointment}
         isEventInPast={isEventInPast}
         onEdit={() => {
-          setshowAppointmentOptionsModal(false); // Close the options modal
-          setisEditAppointmentModalOpen(true); // Open the edit modal
+          setshowAppointmentOptionsModal(false) // Close the options modal
+          setisEditAppointmentModalOpen(true) // Open the edit modal
         }}
         onCancel={handleCancelAppointment}
         onViewMember={handleViewMembersDetail}
       />
-    
-    {isEditAppointmentModalOpen && selectedAppointment && (
-  <EditAppointmentModal
-    selectedAppointment={selectedAppointment}
-    setSelectedAppointment={setSelectedAppointment} // This was missing the setter function
-    appointmentTypes={appointmentTypes}
-    freeAppointments={freeAppointments}
-    handleAppointmentChange={(changes) => {
-      setSelectedAppointment(prev => ({ ...prev, ...changes }));
-    }}
-    appointments={appointments}
-    setAppointments={setAppointments}
-    setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-    setNotifyAction={setNotifyAction}
-    onDelete={handleDeleteAppointment}
-    onClose={() => {
-      setisEditAppointmentModalOpen(false);
-      setSelectedAppointment(null); // Reset the selected appointment
-    }}
-  />
-)}
+
+      {isEditAppointmentModalOpen && selectedAppointment && (
+        <EditAppointmentModal
+          selectedAppointment={selectedAppointment}
+          setSelectedAppointment={setSelectedAppointment} // This was missing the setter function
+          appointmentTypes={appointmentTypes}
+          freeAppointments={freeAppointments}
+          handleAppointmentChange={(changes) => {
+            setSelectedAppointment((prev) => ({ ...prev, ...changes }))
+          }}
+          appointments={appointments}
+          setAppointments={setAppointments}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          onDelete={handleDeleteAppointment}
+          onClose={() => {
+            setisEditAppointmentModalOpen(false)
+            setSelectedAppointment(null) // Reset the selected appointment
+          }}
+        />
+      )}
 
       {isNotifyMemberOpen && (
         <div
@@ -834,7 +834,7 @@ export default function Appointments() {
           <div
             className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
-          > 
+          >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
               <h2 className="text-lg font-semibold text-white">Notify Member</h2>
               <button

@@ -1,6 +1,7 @@
-import { Search, X, Info, Trash2 } from "lucide-react"
+// refernce trial modal
+import { Search, X, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { AddLeadModal } from "../lead-components/add-lead-modal"
+import AddLeadModal from "../lead-user-panel-components/add-lead-modal"
 /* eslint-disable react/prop-types */
 const TrialTrainingModal = ({
   isOpen,
@@ -241,23 +242,7 @@ const TrialTrainingModal = ({
           </button>
         </div>
 
-        {/* Information Banner */}
-        <div className="px-6 pt-4">
-          <div className="bg-green-900/20 border border-green-600/30 rounded-xl p-4 mb-4">
-            <div className="flex items-start gap-3">
-              <Info className="text-green-500" size={20} />
-              <div>
-                <p className="text-green-200 text-sm font-medium mb-1">Trial Training Booking</p>
-                <p className="text-green-300/80 text-xs">
-                  Schedule trial training sessions for leads with detailed information and special notes.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="px-6">
+        <div className="px-6 py-7">
           <div className="flex border-b border-gray-700 mb-6">
             <button
               onClick={() => setActiveTab("details")}
@@ -268,15 +253,7 @@ const TrialTrainingModal = ({
             >
               Details
             </button>
-            <button
-              onClick={() => setActiveTab("relations")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
-                ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-400 hover:text-white"
-                }`}
-            >
-              Relations
-            </button>
+          
             <button
               onClick={() => setActiveTab("note")}
               className={`px-4 py-2 text-sm font-medium ${activeTab === "note"
@@ -285,6 +262,15 @@ const TrialTrainingModal = ({
                 }`}
             >
               Special Note
+            </button>
+            <button
+              onClick={() => setActiveTab("relations")}
+              className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
+                ? "text-blue-400 border-b-2 border-blue-400"
+                : "text-gray-400 hover:text-white"
+                }`}
+            >
+              Relations
             </button>
           </div>
         </div>
@@ -615,7 +601,7 @@ const TrialTrainingModal = ({
             disabled={!selectedLead || !trialData.date || !trialData.timeSlot || !trialData.trialType}
             className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Book Trial
+            Book Trial Training
           </button>
         </div>
       </div>

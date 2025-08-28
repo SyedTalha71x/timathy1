@@ -12,6 +12,8 @@ import BlockAppointmentModal from "./block-appointment-modal"
 import TrialTrainingModal from "./add-trial-training"
 import SelectedAppointmentModal from "./selected-appointment-modal" // New import
 import { membersData } from "../../utils/states"
+import { GoArrowLeft, GoArrowRight } from "react-icons/go";
+
 
 export default function Calendar({
   appointments = [],
@@ -37,6 +39,16 @@ export default function Calendar({
   const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [historyTab, setHistoryTab] = useState("general")
+
+  // Tooltip states
+  const [tooltip, setTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    content: null
+  })
+
+  const [currentDate, setCurrentDate] = useState(selectedDate || "2025-02-03")
 
 
   // Member contingent data
@@ -334,6 +346,45 @@ export default function Calendar({
     }
   }, [selectedDate])
 
+  // Function to show tooltip
+  const showTooltip = (event, mouseEvent) => {
+    // Don't show tooltip for free slots
+    if (event.extendedProps?.isFree) return
+    
+    const appointment = event.extendedProps?.appointment
+    if (!appointment) return
+
+    const rect = mouseEvent.target.getBoundingClientRect()
+    
+    // Parse date from appointment format
+    const dateParts = appointment.date?.split("|")
+    let formattedDate = "N/A"
+    if (dateParts && dateParts.length > 1) {
+      const datePart = dateParts[1].trim()
+      const [day, month, year] = datePart.split("-")
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+      formattedDate = `${day} ${monthNames[parseInt(month) - 1]} ${year}`
+    }
+
+    setTooltip({
+      show: true,
+      x: rect.right + 10,
+      y: rect.top,
+      content: {
+        name: appointment.name || event.title,
+        date: formattedDate,
+        time: `${appointment.startTime || "N/A"} - ${appointment.endTime || "N/A"}`,
+        type: appointment.type || event.extendedProps?.type || "N/A"
+      }
+    })
+  }
+
+  // Function to hide tooltip
+  const hideTooltip = () => {
+    setTooltip({ show: false, x: 0, y: 0, content: null })
+  }
+
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return ""
     const today = new Date()
@@ -447,16 +498,16 @@ export default function Calendar({
   }
 
   const handleEventDrop = (info) => {
-    // Check if it's a past or cancelled event and prevent drag/drop
-    const appointmentId = Number.parseInt(info.event.id)
-    const appointment = appointments?.find((app) => app.id === appointmentId)
+    // // Check if it's a past or cancelled event and prevent drag/drop
+    // const appointmentId = Number.parseInt(info.event.id)
+    // const appointment = appointments?.find((app) => app.id === appointmentId)
     
-    if (appointment && (appointment.isPast || appointment.isCancelled)) {
-      info.revert()
-      const reason = appointment.isPast ? "past" : "cancelled"
-      toast.error(`Cannot move ${reason} appointments`)
-      return
-    }
+    // if (appointment && (appointment.isPast || appointment.isCancelled)) {
+    //   info.revert()
+    //   const reason = appointment.isPast ? "past" : "cancelled"
+    //   toast.error(`Cannot move ${reason} appointments`)
+    //   return
+    // }
     
     setPendingEventInfo(info)
     setNotifyAction("change")
@@ -869,39 +920,131 @@ export default function Calendar({
     setIsNotifyMemberOpen(true)
   }
 
+
   return (
     <>
- <div className="h-full w-full">
-        <div className="flex items-center justify-end mb-2 gap-2">
-          <button
-            onClick={generateFreeDates}
-            className={`p-1.5 rounded-md lg:block cursor-pointer text-white px-3 py-2 font-medium text-sm transition-colors ${
-              viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-            }`}
-            aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
-          >
-            {viewMode === "all" ? "Free Slots" : "All Slots"}
-          </button>
+      {/* Tooltip */}
+      {tooltip.show && tooltip.content && (
+        <div 
+          className="fixed z-[9999] bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600 max-w-xs"
+          style={{ 
+            left: `${tooltip.x}px`, 
+            top: `${tooltip.y}px`,
+            transform: 'translateY(-50%)'
+          }}
+        >
+          <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
+          <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
+          <div className="text-xs text-gray-300 mb-1">{tooltip.content.time}</div>
+          <div className="text-xs text-blue-300">{tooltip.content.type}</div>
         </div>
+      )}
+  
+      <div className="h-full w-full">
         <div className="w-full bg-black">
+          {/* Header structure - responsive */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2 px-2" style={{ minHeight: "40px", flexShrink: 0 }}>
+            {/* Mobile: Stack vertically, Desktop: Left section */}
+            <div className="flex items-center justify-between  gap-2 flex-1">
+              {/* Navigation buttons */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <button
+                  onClick={() => {
+                    const calendarApi = calendarRef.current?.getApi()
+                    if (calendarApi) {
+                      calendarApi.prev()
+                      setCurrentDate(calendarApi.getDate().toISOString().split("T")[0])
+                    }
+                  }}
+                  className="p-1.5 sm:p-2 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors"
+                  aria-label="Previous"
+                >
+                  <GoArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    const calendarApi = calendarRef.current?.getApi()
+                    if (calendarApi) {
+                      calendarApi.next()
+                      setCurrentDate(calendarApi.getDate().toISOString().split("T")[0])
+                    }
+                  }}
+                  className="p-1.5 sm:p-2 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors"
+                  aria-label="Next"
+                >
+                  <GoArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                </button>
+                 {/* View toggle buttons */}
+              <div className="flex bg-gray-700 rounded-md overflow-hidden">
+                <button
+                  onClick={() => {
+                    const calendarApi = calendarRef.current?.getApi()
+                    if (calendarApi) {
+                      calendarApi.changeView("dayGridMonth")
+                    }
+                  }}
+                  className="px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-700 bg-gray-600 transition-colors text-xs sm:text-sm"
+                >
+                  Month
+                </button>
+                <button
+                  onClick={() => {
+                    const calendarApi = calendarRef.current?.getApi()
+                    if (calendarApi) {
+                      calendarApi.changeView("timeGridWeek")
+                    }
+                  }}
+                  className="px-2 py-1.5 sm:px-3 sm:py-2 text-white bg-gray-600 border-r border-slate-200/20 cursor-pointer hover:bg-gray-700 transition-colors text-xs sm:text-sm"
+                >
+                  Week
+                </button>
+                <button
+                  onClick={() => {
+                    const calendarApi = calendarRef.current?.getApi()
+                    if (calendarApi) {
+                      calendarApi.changeView("timeGridDay")
+                    }
+                  }}
+                  className="px-2 py-1.5 sm:px-3 sm:py-2 text-white bg-gray-600 cursor-pointer hover:bg-gray-700 transition-colors text-xs sm:text-sm"
+                >
+                  Day
+                </button>
+              </div>
+              </div>
+  
+             
+  
+              {/* Free Slots button - moved to same row on mobile */}
+              <button
+                onClick={generateFreeDates}
+                className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors ${
+                  viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+                }`}
+                aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
+              >
+                <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
+                <span className="sm:hidden">{viewMode === "all" ? "Free" : "All"}</span>
+              </button>
+            </div>
+          </div>
+          
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
             initialDate={selectedDate || "2025-02-03"}
-            headerToolbar={{
-              left: "prev,next dayGridMonth,timeGridWeek,timeGridDay",
-              center: "title",
-              right: "",
-              end: "today",
-            }}
             events={calendarEvents}
-            height="700px" // INCREASED HEIGHT for 18:00 visibility
+            height="930px" // Responsive height
             selectable={true}
+            headerToolbar={{
+              left: '',
+              center: 'title',
+              right: ''
+            }}
             editable={true}
             eventDrop={handleEventDrop}
             slotMinTime="08:00:00"
-            slotMaxTime="19:00:00" // EXTENDED to 19:00 for 18:00 visibility
+            slotMaxTime="19:00:00"
             allDaySlot={false}
             nowIndicator={true}
             slotDuration="00:30:00"
@@ -914,24 +1057,40 @@ export default function Calendar({
             dayMaxEvents={false}
             eventMaxStack={10}
             
-            // CUSTOM DAY HEADER FORMAT for full weekday names
-            dayHeaderFormat={{ weekday: 'long' }}
-            
+            // Responsive day header format
+            dayHeaderFormat={{ weekday: 'short', day: 'numeric' }}
+            dayHeaderContent={(args) => {
+              const date = new Date(args.date);
+              const isSmallScreen = window.innerWidth < 640;
+              const weekday = date.toLocaleDateString('en-US', { 
+                weekday: isSmallScreen ? 'short' : 'long' 
+              });
+              const day = date.getDate();
+              return isSmallScreen ? `${weekday.substr(0, 3)}\n${day}` : `${weekday}, ${day}`;
+            }}
+              
             // CUSTOM STYLING for current day highlight
             dayCellClassNames={(date) => {
               const today = new Date();
               const cellDate = new Date(date.date);
               
-              // Compare dates properly (ignoring time)
               if (cellDate.toDateString() === today.toDateString()) {
                 return ['fc-day-today-custom'];
               }
               return [];
             }}
             
+            // EVENT MOUSE ENTER/LEAVE for tooltip
+            eventMouseEnter={(info) => {
+              showTooltip(info.event, info.jsEvent)
+            }}
+            eventMouseLeave={() => {
+              hideTooltip()
+            }}
+            
             eventContent={(eventInfo) => (
               <div
-                className={`p-1 h-full overflow-hidden transition-all duration-200 ${
+                className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${
                   eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
                 } ${
                   eventInfo.event.extendedProps.isCancelled 
@@ -947,12 +1106,12 @@ export default function Calendar({
                     : ""
                 } ${
                   eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
-                    ? "ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
+                    ? "ring-1 sm:ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
                     : ""
                 }`}
               >
                 <div
-                  className={`font-semibold text-xs sm:text-sm truncate ${
+                  className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${
                     eventInfo.event.extendedProps.isPast
                       ? "text-gray-500"
                       : eventInfo.event.extendedProps.isCancelled
@@ -975,7 +1134,7 @@ export default function Calendar({
                     : eventInfo.event.title}
                 </div>
                 <div
-                  className={`text-xs opacity-90 truncate ${
+                  className={`text-[8px] sm:text-xs opacity-90 truncate ${
                     eventInfo.event.extendedProps.isPast
                       ? "text-gray-600"
                       : eventInfo.event.extendedProps.isCancelled
@@ -989,7 +1148,7 @@ export default function Calendar({
                 >
                   {eventInfo.event.extendedProps.type || "Available"}
                 </div>
-                <div className="text-xs mt-1">{eventInfo.timeText}</div>
+                <div className="text-[8px] sm:text-xs mt-0.5 sm:mt-1">{eventInfo.timeText}</div>
               </div>
             )}
             
@@ -1015,7 +1174,7 @@ export default function Calendar({
           />
         </div>
       </div>
-
+  
       <style jsx>{`
         :global(.past-event) {
           cursor: pointer !important;
@@ -1040,6 +1199,19 @@ export default function Calendar({
           border-color: #777777 !important;
           cursor: pointer !important;
         }
+  
+        .fc .fc-toolbar-title {
+          margin-top: -45px;
+        }
+        
+        /* Mobile responsive title positioning */
+        @media (max-width: 640px) {
+          .fc .fc-toolbar-title {
+            margin-top: -15px;
+            font-size: 16px !important;
+          }
+
+        }
         
         /* CURRENT DAY HIGHLIGHT - Orange bar only at top of column header */
         :global(.fc-col-header-cell.fc-current-day-highlight) {
@@ -1053,7 +1225,7 @@ export default function Calendar({
           left: 0 !important;
           right: 0 !important;
           height: 4px !important;
-          background-color: #FF843E !important; /* Orange bar */
+          background-color: #FF843E !important;
           z-index: 10 !important;
         }
         
@@ -1068,6 +1240,13 @@ export default function Calendar({
           transition: all 0.3s ease;
         }
         
+        /* Mobile responsive free slot styling */
+        @media (max-width: 640px) {
+          :global(.free-slot-event) {
+            border-left: 2px solid #15803d !important;
+          }
+        }
+        
         :global(.prominent-free-slot) {
           box-shadow: 0 0 20px rgba(34, 197, 94, 0.7) !important;
           border: 3px solid #22c55e !important;
@@ -1076,12 +1255,33 @@ export default function Calendar({
           animation: pulse-green 2s infinite;
         }
         
+        /* Mobile responsive prominent free slot */
+        @media (max-width: 640px) {
+          :global(.prominent-free-slot) {
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.7) !important;
+            border: 2px solid #22c55e !important;
+            transform: scale(1.02);
+          }
+        }
+        
         @keyframes pulse-green {
           0%, 100% {
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
           }
           50% {
             box-shadow: 0 0 30px rgba(34, 197, 94, 0.9);
+          }
+        }
+        
+        /* Mobile responsive pulse animation */
+        @media (max-width: 640px) {
+          @keyframes pulse-green {
+            0%, 100% {
+              box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+            }
+            50% {
+              box-shadow: 0 0 15px rgba(34, 197, 94, 0.9);
+            }
           }
         }
         
@@ -1102,21 +1302,59 @@ export default function Calendar({
           border-color: #333333;
         }
         
-        /* FULL DAY NAMES IN HEADERS */
+        /* RESPONSIVE COLUMN HEADERS */
         :global(.fc-col-header-cell) {
           background-color: #1a1a1a;
           color: #ffffff;
-          min-width: auto !important; /* Remove fixed width */
-          width: auto !important; /* Allow flexible width */
+          min-width: auto !important;
+          width: auto !important;
           text-align: center;
           font-weight: 600;
           font-size: 14px;
+          padding: 8px 4px !important;
+          white-space: pre-line; /* Allow line breaks */
         }
         
-        /* FULL WIDTH COLUMNS */
+        /* Mobile responsive column headers */
+        @media (max-width: 640px) {
+          :global(.fc-col-header-cell) {
+            font-size: 10px;
+            padding: 4px 2px !important;
+            line-height: 1.2;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          :global(.fc-col-header-cell) {
+            font-size: 9px;
+            padding: 3px 1px !important;
+          }
+        }
+        
+        /* RESPONSIVE TIME COLUMN */
+        :global(.fc-timegrid-axis-cushion) {
+          font-size: 12px !important;
+        }
+        
+        @media (max-width: 640px) {
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 9px !important;
+          }
+          
+          :global(.fc-timegrid-slot-label-cushion) {
+            padding: 2px !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 8px !important;
+          }
+        }
+        
         :global(.fc-timegrid-col) {
-          min-width: auto !important; /* Remove fixed width */
-          width: auto !important; /* Allow flexible width */
+          min-width: auto !important;
+          width: auto !important;
         }
         
         :global(.fc-timegrid-slot) {
@@ -1146,36 +1384,47 @@ export default function Calendar({
           background-color: #555555 !important;
         }
         
-        :global(.fc-toolbar) {
-          margin-bottom: 0 !important;
+        /* CUSTOM TOOLBAR POSITIONING */
+        :global(.fc-toolbar-custom) {
+          align-items: center !important;
+          height: 40px !important;
+        }
+        
+        :global(#calendar-navigation .fc-toolbar) {
+          margin-bottom: 8px !important;
           padding: 0 !important;
           align-items: center !important;
           height: 40px !important;
         }
         
-        :global(.fc-toolbar-chunk) {
+        :global(#calendar-navigation .fc-toolbar-chunk) {
           display: flex !important;
           align-items: center !important;
           height: 40px !important;
         }
         
-        :global(.fc-button-group) {
+        :global(#calendar-navigation .fc-button-group) {
           height: 36px !important;
           display: flex !important;
           align-items: center !important;
         }
         
-        :global(.fc-button) {
+        :global(#calendar-navigation .fc-button) {
           height: 36px !important;
           padding: 8px 12px !important;
           font-size: 14px !important;
           line-height: 1 !important;
         }
         
-        :global(.fc-toolbar-title) {
+        :global(#calendar-navigation .fc-toolbar-title) {
           color: #ffffff;
           margin: 0 !important;
           line-height: 40px !important;
+        }
+        
+        /* HIDE DEFAULT TOOLBAR */
+        :global(.fc-header-toolbar) {
+          display: none !important;
         }
         
         :global(.fc-event) {
@@ -1185,6 +1434,84 @@ export default function Calendar({
         
         :global(.fc-timegrid-event) {
           margin: 1px 2px !important;
+        }
+        
+        /* Mobile responsive event margins */
+        @media (max-width: 640px) {
+          :global(.fc-timegrid-event) {
+            margin: 0.5px 1px !important;
+          }
+          
+          :global(.fc-event) {
+            margin: 0.5px !important;
+            border-radius: 3px !important;
+          }
+        }
+        
+        /* Fix for extra space after Sunday */
+        :global(.fc-scrollgrid) {
+          table-layout: fixed !important;
+        }
+        
+        :global(.fc-col-header),
+        :global(.fc-scrollgrid-sync-table) {
+          width: 100% !important;
+        }
+        
+        :global(.fc-col-header-cell),
+        :global(.fc-daygrid-day),
+        :global(.fc-timegrid-col) {
+          width: calc(100% / 7) !important;
+        }
+        
+        /* Mobile responsive calendar container */
+        @media (max-width: 640px) {
+          :global(.fc) {
+            font-size: 12px;
+          }
+          
+          :global(.fc-timegrid) {
+            overflow-x: auto;
+          }
+          
+          /* Enable proper horizontal scrolling for mobile */
+          :global(.fc-scrollgrid-sync-table) {
+            min-width: 600px !important;
+          }
+          
+          :global(.fc-scroller-harness) {
+            overflow-x: auto !important;
+          }
+          
+          :global(.fc-scrollgrid) {
+            overflow-x: auto !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          :global(.fc) {
+            font-size: 11px;
+          }
+          
+          /* Ensure minimum width for proper scrolling on very small screens */
+          :global(.fc-scrollgrid-sync-table) {
+            min-width: 650px !important;
+          }
+        }
+        
+        /* Responsive scroll behavior - Enhanced for mobile */
+        @media (max-width: 640px) {
+          :global(.fc-scroller) {
+            overflow-x: auto !important;
+          }
+          
+          :global(.fc-timegrid-body) {
+            overflow-x: auto !important;
+          }
+          
+          :global(.fc-col-header) {
+            overflow-x: auto !important;
+          }
         }
       `}</style>
       {/* Member Overview Modal - ENHANCED */}

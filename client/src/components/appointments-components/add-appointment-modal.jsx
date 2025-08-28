@@ -252,23 +252,9 @@ const AddAppointmentModal = ({
           </button>
         </div>
 
-        {/* Information Banner */}
-        <div className="px-6 pt-4">
-          <div className="bg-blue-900/20 border border-blue-600/30 rounded-xl p-4 mb-4">
-            <div className="flex items-start gap-3">
-              <Info className="text-blue-500" size={20} />
-              <div>
-                <p className="text-blue-200 text-sm font-medium mb-1">Appointment Booking</p>
-                <p className="text-blue-300/80 text-xs">
-                  Create single or mass appointments with detailed member information and special notes.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
+       
         {/* Tab Navigation */}
-        <div className="px-6">
+        <div className="px-6 py-7">
           <div className="flex border-b border-gray-700 mb-6">
             <button
               onClick={() => setActiveTab("details")}
@@ -279,15 +265,7 @@ const AddAppointmentModal = ({
             >
               Details
             </button>
-            <button
-              onClick={() => setActiveTab("relations")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
-                ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-400 hover:text-white"
-                }`}
-            >
-              Relations
-            </button>
+            
             <button
               onClick={() => setActiveTab("note")}
               className={`px-4 py-2 text-sm font-medium ${activeTab === "note"
@@ -296,6 +274,15 @@ const AddAppointmentModal = ({
                 }`}
             >
               Special Note
+            </button>
+            <button
+              onClick={() => setActiveTab("relations")}
+              className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
+                ? "text-blue-400 border-b-2 border-blue-400"
+                : "text-gray-400 hover:text-white"
+                }`}
+            >
+              Relations
             </button>
           </div>
         </div>
@@ -803,10 +790,19 @@ const AddAppointmentModal = ({
         </div>
 
         {/* Footer with action buttons */}
-        <div className="px-6 py-4 border-t border-gray-800">
+        <div className="px-6 py-4 flex items-center gap-2 border-t border-gray-800">
+        <button
+            type="button"
+            onClick={onClose}
+            className="w-full sm:w-auto px-5 py-2.5 bg-gray-600 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
           <button
             type="button"
-            className="w-full bg-[#FF843E] hover:bg-[#FF843E]/90 text-sm font-medium text-white rounded-xl py-2.5 transition-colors"
+            disabled={!appointmentData.date || !appointmentData.relations || !appointmentData.specialNote || !appointmentData.timeSlot || !appointmentData.type}
+
+            className="w-auto bg-[#FF843E] hover:bg-[#FF843E]/90 text-sm font-medium text-white rounded-xl py-2.5 px-8 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={checkAvailability}
           >
             {showRecurringOptions
