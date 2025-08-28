@@ -337,6 +337,7 @@ export default function Calendar({
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
   const [isMemberOverviewModalOpen, setIsMemberOverviewModalOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState(null)
+
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
 
   useEffect(() => {
@@ -489,13 +490,16 @@ export default function Calendar({
     }
   }
 
-  const handleViewChange = (viewInfo) => {
-    if (viewInfo.view.type === "dayGridMonth") {
-      setCalendarHeight("auto")
-    } else {
-      setCalendarHeight("650px")
-    }
-  }
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleEventDrop = (info) => {
     // // Check if it's a past or cancelled event and prevent drag/drop
@@ -1034,7 +1038,7 @@ export default function Calendar({
             initialView="timeGridWeek"
             initialDate={selectedDate || "2025-02-03"}
             events={calendarEvents}
-            height="930px" // Responsive height
+            height={isMobile ? "auto" : "930px"} // Changed this line
             selectable={true}
             headerToolbar={{
               left: '',
@@ -1052,8 +1056,7 @@ export default function Calendar({
             eventClick={handleEventClick}
             eventResize={handleEventResize}
             select={handleDateSelect}
-            viewDidMount={handleViewChange}
-            datesSet={handleViewChange}
+
             dayMaxEvents={false}
             eventMaxStack={10}
             

@@ -469,7 +469,7 @@ export default function Appointments() {
   return (
     <div
       className={`
-      min-h-screen rounded-3xl bg-[#1C1C1C] p-6
+      min-h-screen rounded-3xl bg-[#1C1C1C] md:p-6 p-4
       transition-all duration-300 ease-in-out flex-1
       ${isRightSidebarOpen ? "lg:mr-96 md:mr-96 sm:mr-96" : "mr-0"}
     `}
@@ -477,8 +477,8 @@ export default function Appointments() {
       <main className="flex-1 min-w-0">
         <div className="">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
-            <div className="flex justify-between items-center gap-2">
-              <div></div>
+            <div className="flex w-full justify-between items-center gap-2">
+             
               <div className="flex items-center gap-2">
                 <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
                 <button
@@ -489,6 +489,7 @@ export default function Appointments() {
                   {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
                 </button>
               </div>
+              <div></div>
               <div className="md:hidden block">
                 <IoIosMenu
                   onClick={toggleRightSidebar}
