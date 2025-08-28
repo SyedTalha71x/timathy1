@@ -1694,60 +1694,71 @@ export default function MyArea() {
           <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={toggleRightSidebar} />
         )}
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
-          <div className="p-3 md:p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold">My Area</h1>
-                {currentView && (
-                  <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
-                    {currentView.name}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsViewModalOpen(true)}
-                  className="px-4 py-2 bg-zinc-700 text-zinc-200 rounded-xl text-sm  cursor-pointer flex items-center gap-2"
-                >
-                  <Settings size={16} />
-                  {currentView ? currentView.name : "Standard View"}
-                </button>
-                {!isEditing && (
-                  <button
-                    onClick={() => setIsViewModalOpen(true)}
-                    className="px-4 py-2 bg-zinc-700 text-zinc-200 rounded-xl text-sm cursor-pointer flex items-center gap-2"
-                  >
-                    <Settings size={16} />
-                    Manage Views
-                  </button>
-                )}
-                {/* Only show Add Widget button when editing is active */}
-                {isEditing && (
-                  <button
-                    onClick={() => setIsWidgetModalOpen(true)}
-                    className="py-2 px-4 bg-black text-white rounded-xl text-sm cursor-pointer flex items-center gap-1"
-                  >
-                    <Plus size={20} />
-                    <span className="hidden sm:inline">Add Widget</span>
-                  </button>
-                )}
-                <button
-                  onClick={toggleEditing}
-                  className={`px-6 py-2 text-sm cursor-pointer ${
-                    isEditing ? "bg-blue-600 text-white " : "bg-zinc-700 text-zinc-200 "
-                  } rounded-xl flex items-center gap-2 transition-colors`}
-                >
-                  {isEditing ? <Check size={18} /> : <Edit size={18} />}
-                  <span className="hidden sm:inline">{isEditing ? "Done" : "Edit Dashboard"}</span>
-                </button>
-                <button
-                  onClick={toggleRightSidebar}
-                  className="p-3 text-zinc-400 hover:bg-zinc-800 rounded-xl md:hidden ml-auto"
-                >
-                  <Menu size={20} />
-                </button>
-              </div>
-            </div>
+          <div className="p-1 md:p-5 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+  {/* Top Row (Title + Menu on mobile, Title only on desktop) */}
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      <h1 className="text-xl font-bold">My Area</h1>
+      {currentView && (
+        <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
+          {currentView.name}
+        </span>
+      )}
+    </div>
+
+    {/* Menu Icon → visible only on mobile */}
+    <button
+      onClick={toggleRightSidebar}
+      className="p-3 text-zinc-400 hover:bg-zinc-800 rounded-xl md:hidden"
+    >
+      <Menu size={20} />
+    </button>
+  </div>
+
+  {/* Buttons Section */}
+  <div className="flex flex-wrap justify-center md:justify-end gap-2">
+    <button
+      onClick={() => setIsViewModalOpen(true)}
+      className="px-4 py-2 bg-zinc-700 w-full md:w-auto text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
+    >
+      <Settings size={16} />
+      {currentView ? currentView.name : "Standard View"}
+    </button>
+
+    {!isEditing && (
+      <button
+        onClick={() => setIsViewModalOpen(true)}
+        className="px-4 py-2 bg-zinc-700 md:w-auto w-full text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
+      >
+        <Settings size={16} />
+        Manage Views
+      </button>
+    )}
+
+    {isEditing && (
+      <button
+        onClick={() => setIsWidgetModalOpen(true)}
+        className="py-2 px-4 bg-black md:w-auto w-full justify-center text-white rounded-xl text-sm flex items-center gap-1"
+      >
+        <Plus size={20} />
+        <span className="hidden sm:inline">Add Widget</span>
+      </button>
+    )}
+
+    <button
+      onClick={toggleEditing}
+      className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${
+        isEditing ? "bg-blue-600 text-white" : "bg-zinc-700 text-zinc-200"
+      }`}
+    >
+      {isEditing ? <Check size={18} /> : <Edit size={18} />}
+      <span className="hidden sm:inline">{isEditing ? "Done" : "Edit Dashboard"}</span>
+    </button>
+  </div>
+</div>
+
+
             {/* Widgets */}
             <div className="space-y-4">
               {/* Chart Widget - Full Width (rendered separately if it's always full width) */}
