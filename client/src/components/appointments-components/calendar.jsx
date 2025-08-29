@@ -390,6 +390,35 @@ export default function Calendar({
     })
   }
 
+  useEffect(() => {
+    let resizeObserver;
+    
+    if (calendarRef.current) {
+      const calendarElement = calendarRef.current.elRef.current;
+      
+      resizeObserver = new ResizeObserver(() => {
+        if (calendarRef.current) {
+          const calendarApi = calendarRef.current.getApi();
+          // Small delay to ensure DOM has updated
+          setTimeout(() => {
+            calendarApi.updateSize();
+          }, 100);
+        }
+      });
+      
+      // Observe the calendar container
+      if (calendarElement) {
+        resizeObserver.observe(calendarElement);
+      }
+    }
+    
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, []);
+
   // Function to hide tooltip
   const hideTooltip = () => {
     setTooltip({ show: false, x: 0, y: 0, content: null })
