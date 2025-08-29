@@ -477,7 +477,7 @@ export default function Appointments() {
       <main className="flex-1 min-w-0">
         <div className="">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
-            <div className="flex w-full justify-between items-center gap-2">
+            <div className="flex w-full md:w-auto justify-between items-center gap-2">
              
               <div className="flex items-center gap-2">
                 <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
@@ -555,7 +555,7 @@ export default function Appointments() {
           {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
 
           <div className="flex lg:flex-row flex-col gap-6 relative">
-            {/* FIXED WIDTH SIDEBAR - Made consistent width */}
+            {/* CONSISTENT WIDTH SIDEBAR - All elements now have matching widths */}
             <div
               className={`transition-all duration-500 ease-in-out ${
                 isSidebarCollapsed
@@ -563,14 +563,14 @@ export default function Appointments() {
                   : "lg:w-[320px] lg:opacity-100" // Fixed width for consistent alignment
               } w-full flex flex-col gap-6`}
             >
-              {/* FIXED WIDTH MINI CALENDAR */}
               <div className="w-full">
-                <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+                <div className="w-full max-w-[320px]"> 
+                  <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+                </div>
               </div>
 
-              <div className="w-full flex flex-col gap-4">
-                {/* FIXED WIDTH SEARCH */}
-                <div className="flex items-center gap-4">
+              <div className="w-full max-w-[320px] flex flex-col gap-4"> 
+                <div className="flex items-center gap-4 w-full">
                   <div className="relative w-full">
                     <input
                       type="text"
@@ -583,8 +583,7 @@ export default function Appointments() {
                   </div>
                 </div>
 
-                {/* EXPANDED UPCOMING APPOINTMENTS - More height to show more appointments */}
-                <div>
+                <div className="w-full">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-white font-bold text-sm">Upcoming Appointments</h2>
                     <button
@@ -595,9 +594,7 @@ export default function Appointments() {
                     </button>
                   </div>
                   {!isUpcomingCollapsed && (
-                    <div className="space-y-2 custom-scrollbar overflow-y-auto max-h-[300px]">
-                      {" "}
-                      {/* Increased height to show more appointments */}
+                    <div className="space-y-2 custom-scrollbar overflow-y-auto max-h-[300px] w-full">
                       {filteredAppointments.length > 0 ? (
                         filteredAppointments.map((appointment, index) => (
                           <div
@@ -608,7 +605,7 @@ export default function Appointments() {
                                 : appointment.isPast && !appointment.isCancelled
                                   ? "bg-gray-800 opacity-50"
                                   : appointment.color
-                            } rounded-xl cursor-pointer p-2 relative`}
+                            } rounded-xl cursor-pointer p-2 relative w-full`}
                             onClick={() => {
                               handleAppointmentOptionsModal(appointment)
                             }}
@@ -665,10 +662,7 @@ export default function Appointments() {
                   )}
                 </div>
 
-                {/* MOVED DOWN FILTER SECTION - Positioned lower as requested */}
-                <div className="bg-[#000000] rounded-xl p-3 mt-8">
-                  {" "}
-                  {/* Added margin-top to move filters lower */}
+                <div className="bg-[#000000] rounded-xl p-3 mt-4  w-full">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-white font-semibold text-sm">Appointment Filters</h3>
                     <div className="flex items-center gap-2">
@@ -687,10 +681,10 @@ export default function Appointments() {
                     </div>
                   </div>
                   {!isFiltersCollapsed && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 w-full">
                       {/* Appointment Types */}
                       {appointmentTypes.map((type) => (
-                        <label key={type.name} className="flex items-center gap-2 cursor-pointer">
+                        <label key={type.name} className="flex items-center gap-2 cursor-pointer w-full">
                           <input
                             type="checkbox"
                             checked={appointmentFilters[type.name]}
@@ -702,7 +696,7 @@ export default function Appointments() {
                         </label>
                       ))}
                       {/* Trial Training */}
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer w-full">
                         <input
                           type="checkbox"
                           checked={appointmentFilters["Trial Training"]}
@@ -715,7 +709,7 @@ export default function Appointments() {
 
                       <div className="border-t border-gray-600 my-2"></div>
 
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer w-full">
                         <input
                           type="checkbox"
                           checked={appointmentFilters["Blocked Time Slots"]}
@@ -728,7 +722,7 @@ export default function Appointments() {
 
                       <div className="border-t border-gray-600 my-2"></div>
 
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer w-full">
                         <input
                           type="checkbox"
                           checked={appointmentFilters["Cancelled Appointments"]}
@@ -740,7 +734,7 @@ export default function Appointments() {
 
                       <div className="border-t border-gray-600 my-2"></div>
 
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer w-full">
                         <input
                           type="checkbox"
                           checked={appointmentFilters["Past Appointments"]}
@@ -754,7 +748,6 @@ export default function Appointments() {
                 </div>
               </div>
             </div>
-            {/* DYNAMIC WIDTH CALENDAR - Expands to fill available space */}
             <div
               className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${
                 isSidebarCollapsed ? "lg:w-full" : "lg:w-[calc(100%-320px-1.5rem)]" // Dynamic width calculation to prevent empty space

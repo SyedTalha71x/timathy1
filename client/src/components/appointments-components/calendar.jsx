@@ -24,8 +24,8 @@ export default function Calendar({
   setAppointments,
   appointmentFilters = {},
 }) {
-  const [calendarSize, setCalendarSize] = useState(100)
-  const [calendarHeight, setCalendarHeight] = useState("auto")
+  const [isMobile, setIsMobile] = useState(false);
+const [screenSize, setScreenSize] = useState('desktop');
   const [freeAppointments, setFreeAppointments] = useState([])
   const [viewMode, setViewMode] = useState("all") // "all" or "free"
   const [activeTab, setActiveTab] = useState("details") // Enhanced states for member functionality
@@ -349,13 +349,20 @@ export default function Calendar({
 
   // Function to show tooltip
   const showTooltip = (event, mouseEvent) => {
-    // Don't show tooltip for free slots
-    if (event.extendedProps?.isFree) return
-    
     const appointment = event.extendedProps?.appointment
     if (!appointment) return
-
-    const rect = mouseEvent.target.getBoundingClientRect()
+  
+    // Get the event element's position instead of mouse position
+    const eventElement = mouseEvent.target.closest('.fc-event')
+    if (!eventElement) return
+    
+    const rect = eventElement.getBoundingClientRect()
+    const scrollX = window.scrollX || document.documentElement.scrollLeft
+    const scrollY = window.scrollY || document.documentElement.scrollTop
+    
+    // Position tooltip above the event with some offset
+    const tooltipX = rect.left + scrollX + (rect.width / 2) // Center horizontally on event
+    const tooltipY = rect.top + scrollY - 10 // Position above the event
     
     // Parse date from appointment format
     const dateParts = appointment.date?.split("|")
@@ -367,11 +374,11 @@ export default function Calendar({
                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
       formattedDate = `${day} ${monthNames[parseInt(month) - 1]} ${year}`
     }
-
+  
     setTooltip({
       show: true,
-      x: rect.right + 10,
-      y: rect.top,
+      x: tooltipX,
+      y: tooltipY,
       content: {
         name: appointment.name || event.title,
         date: formattedDate,
@@ -490,15 +497,23 @@ export default function Calendar({
     }
   }
 
-  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 640);
+      
+      if (width < 480) {
+        setScreenSize('mobile');
+      } else if (width < 640) {
+        setScreenSize('tablet');
+      } else {
+        setScreenSize('desktop');
+      }
     };
     
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
   const handleEventDrop = (info) => {
@@ -929,21 +944,21 @@ export default function Calendar({
     <>
       {/* Tooltip */}
       {tooltip.show && tooltip.content && (
-        <div 
-          className="fixed z-[9999] bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600 max-w-xs"
-          style={{ 
-            left: `${tooltip.x}px`, 
-            top: `${tooltip.y}px`,
-            transform: 'translateY(-50%)'
-          }}
-        >
-          <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
-          <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
-          <div className="text-xs text-gray-300 mb-1">{tooltip.content.time}</div>
-          <div className="text-xs text-blue-300">{tooltip.content.type}</div>
-        </div>
-      )}
-  
+  <div 
+    className="fixed z-[9999] bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600 max-w-xs pointer-events-none tooltip-container"
+    style={{ 
+      left: `${tooltip.x}px`, 
+      top: `${tooltip.y}px`,
+      transform: 'translate(-50%, -100%)',
+      marginTop: '10px' // -8px se -15px ya -20px kar do
+    }}
+  >
+    <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
+    <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
+    <div className="text-xs text-gray-300 mb-1">{tooltip.content.time}</div>
+    <div className="text-xs text-blue-300">{tooltip.content.type}</div>
+  </div>
+)}
       <div className="h-full w-full">
         <div className="w-full bg-black">
           {/* Header structure - responsive */}
@@ -1038,7 +1053,7 @@ export default function Calendar({
             initialView="timeGridWeek"
             initialDate={selectedDate || "2025-02-03"}
             events={calendarEvents}
-            height={isMobile ? "auto" : "930px"} // Changed this line
+            height={isMobile ? "calc(100vh - 200px)" : "930px"} // Dynamic height for mobile
             selectable={true}
             headerToolbar={{
               left: '',
@@ -1202,7 +1217,7 @@ export default function Calendar({
           border-color: #777777 !important;
           cursor: pointer !important;
         }
-  
+
         .fc .fc-toolbar-title {
           margin-top: -45px;
         }
@@ -1213,7 +1228,6 @@ export default function Calendar({
             margin-top: -15px;
             font-size: 16px !important;
           }
-
         }
         
         /* CURRENT DAY HIGHLIGHT - Orange bar only at top of column header */
@@ -1243,13 +1257,6 @@ export default function Calendar({
           transition: all 0.3s ease;
         }
         
-        /* Mobile responsive free slot styling */
-        @media (max-width: 640px) {
-          :global(.free-slot-event) {
-            border-left: 2px solid #15803d !important;
-          }
-        }
-        
         :global(.prominent-free-slot) {
           box-shadow: 0 0 20px rgba(34, 197, 94, 0.7) !important;
           border: 3px solid #22c55e !important;
@@ -1258,33 +1265,12 @@ export default function Calendar({
           animation: pulse-green 2s infinite;
         }
         
-        /* Mobile responsive prominent free slot */
-        @media (max-width: 640px) {
-          :global(.prominent-free-slot) {
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.7) !important;
-            border: 2px solid #22c55e !important;
-            transform: scale(1.02);
-          }
-        }
-        
         @keyframes pulse-green {
           0%, 100% {
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
           }
           50% {
             box-shadow: 0 0 30px rgba(34, 197, 94, 0.9);
-          }
-        }
-        
-        /* Mobile responsive pulse animation */
-        @media (max-width: 640px) {
-          @keyframes pulse-green {
-            0%, 100% {
-              box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
-            }
-            50% {
-              box-shadow: 0 0 15px rgba(34, 197, 94, 0.9);
-            }
           }
         }
         
@@ -1315,44 +1301,12 @@ export default function Calendar({
           font-weight: 600;
           font-size: 14px;
           padding: 8px 4px !important;
-          white-space: pre-line; /* Allow line breaks */
-        }
-        
-        /* Mobile responsive column headers */
-        @media (max-width: 640px) {
-          :global(.fc-col-header-cell) {
-            font-size: 10px;
-            padding: 4px 2px !important;
-            line-height: 1.2;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          :global(.fc-col-header-cell) {
-            font-size: 9px;
-            padding: 3px 1px !important;
-          }
+          white-space: pre-line;
         }
         
         /* RESPONSIVE TIME COLUMN */
         :global(.fc-timegrid-axis-cushion) {
           font-size: 12px !important;
-        }
-        
-        @media (max-width: 640px) {
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 9px !important;
-          }
-          
-          :global(.fc-timegrid-slot-label-cushion) {
-            padding: 2px !important;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 8px !important;
-          }
         }
         
         :global(.fc-timegrid-col) {
@@ -1439,21 +1393,10 @@ export default function Calendar({
           margin: 1px 2px !important;
         }
         
-        /* Mobile responsive event margins */
-        @media (max-width: 640px) {
-          :global(.fc-timegrid-event) {
-            margin: 0.5px 1px !important;
-          }
-          
-          :global(.fc-event) {
-            margin: 0.5px !important;
-            border-radius: 3px !important;
-          }
-        }
-        
         /* Fix for extra space after Sunday */
         :global(.fc-scrollgrid) {
           table-layout: fixed !important;
+          width: 100% !important;
         }
         
         :global(.fc-col-header),
@@ -1466,55 +1409,389 @@ export default function Calendar({
         :global(.fc-timegrid-col) {
           width: calc(100% / 7) !important;
         }
-        
-        /* Mobile responsive calendar container */
-        @media (max-width: 640px) {
+
+        /* ENHANCED MOBILE RESPONSIVENESS - NEW FIXES */
+        @media (max-width: 768px) {
           :global(.fc) {
             font-size: 12px;
+            width: 100% !important;
+            overflow: visible !important;
           }
           
-          :global(.fc-timegrid) {
-            overflow-x: auto;
-          }
-          
-          /* Enable proper horizontal scrolling for mobile */
-          :global(.fc-scrollgrid-sync-table) {
-            min-width: 600px !important;
+          :global(.fc-view-harness) {
+            overflow: visible !important;
+            width: 100% !important;
           }
           
           :global(.fc-scroller-harness) {
-            overflow-x: auto !important;
+            overflow: visible !important;
+          }
+          
+          :global(.fc-scroller) {
+            overflow: visible !important;
+          }
+        }
+        
+        @media (max-width: 640px) {
+          :global(.fc) {
+            font-size: 11px;
+          }
+          
+          :global(.fc-col-header-cell) {
+            font-size: 10px !important;
+            padding: 4px 2px !important;
+            line-height: 1.2;
+            min-width: 0 !important;
+            width: calc(100% / 7) !important;
+            flex: none !important;
+          }
+          
+          :global(.fc-timegrid-col) {
+            min-width: 0 !important;
+            width: calc(100% / 7) !important;
+            flex: none !important;
+          }
+          
+          :global(.fc-timegrid-axis) {
+            min-width: 45px !important;
+            width: 45px !important;
+            flex: none !important;
+          }
+          
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 9px !important;
+            padding: 2px !important;
+          }
+          
+          :global(.fc-timegrid-slot-label-cushion) {
+            padding: 2px !important;
           }
           
           :global(.fc-scrollgrid) {
-            overflow-x: auto !important;
+            width: 100% !important;
+            table-layout: fixed !important;
+          }
+          
+          :global(.fc-scrollgrid-sync-table) {
+            width: 100% !important;
+            table-layout: fixed !important;
+          }
+          
+          :global(.fc-timegrid-event) {
+            margin: 0.5px 1px !important;
+            font-size: 9px !important;
+          }
+          
+          :global(.fc-event) {
+            margin: 0.5px !important;
+            border-radius: 3px !important;
+            min-height: 20px !important;
+          }
+          
+          :global(.fc-event-title) {
+            font-size: 9px !important;
+            line-height: 1.1 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+          }
+          
+          :global(.fc-event-time) {
+            font-size: 8px !important;
+            line-height: 1.1 !important;
+          }
+          
+          /* Free slot mobile adjustments */
+          :global(.free-slot-event) {
+            border-left: 2px solid #15803d !important;
+          }
+          
+          :global(.prominent-free-slot) {
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.7) !important;
+            border: 2px solid #22c55e !important;
+            transform: scale(1.02);
+          }
+          
+          @keyframes pulse-green {
+            0%, 100% {
+              box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+            }
+            50% {
+              box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
+            }
           }
         }
         
         @media (max-width: 480px) {
           :global(.fc) {
-            font-size: 11px;
+            font-size: 10px;
           }
           
-          /* Ensure minimum width for proper scrolling on very small screens */
-          :global(.fc-scrollgrid-sync-table) {
-            min-width: 650px !important;
+          :global(.fc-col-header-cell) {
+            font-size: 9px !important;
+            padding: 3px 1px !important;
+            line-height: 1.1;
+          }
+          
+          :global(.fc-timegrid-axis) {
+            min-width: 40px !important;
+            width: 40px !important;
+          }
+          
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 8px !important;
+            padding: 1px !important;
+          }
+          
+          :global(.fc-event-title) {
+            font-size: 8px !important;
+            line-height: 1 !important;
+          }
+          
+          :global(.fc-event-time) {
+            font-size: 7px !important;
+            line-height: 1 !important;
+          }
+          
+          :global(.fc-timegrid-event) {
+            font-size: 8px !important;
+            min-height: 18px !important;
           }
         }
         
-        /* Responsive scroll behavior - Enhanced for mobile */
+        /* VERY SMALL SCREENS - Extra compact */
+        @media (max-width: 375px) {
+          :global(.fc-col-header-cell) {
+            font-size: 8px !important;
+            padding: 2px 0.5px !important;
+          }
+          
+          :global(.fc-timegrid-axis) {
+            min-width: 35px !important;
+            width: 35px !important;
+          }
+          
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 7px !important;
+          }
+          
+          :global(.fc-event-title) {
+            font-size: 7px !important;
+          }
+          
+          :global(.fc-event-time) {
+            font-size: 6px !important;
+          }
+        }
+        
+        /* DESKTOP SPECIFIC - Maintain original quality */
+        @media (min-width: 1024px) {
+          :global(.fc) {
+            font-size: 14px;
+          }
+          
+          :global(.fc-col-header-cell) {
+            font-size: 14px !important;
+            padding: 8px 4px !important;
+          }
+          
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 12px !important;
+          }
+          
+          :global(.fc-event-title) {
+            font-size: 13px !important;
+          }
+          
+          :global(.fc-event-time) {
+            font-size: 11px !important;
+          }
+        }
+        
+        /* TABLET SPECIFIC */
+        @media (min-width: 641px) and (max-width: 1023px) {
+          :global(.fc) {
+            font-size: 12px;
+          }
+          
+          :global(.fc-col-header-cell) {
+            font-size: 12px !important;
+            padding: 6px 3px !important;
+          }
+          
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 10px !important;
+          }
+          
+          :global(.fc-event-title) {
+            font-size: 11px !important;
+          }
+          
+          :global(.fc-event-time) {
+            font-size: 9px !important;
+          }
+        }
+        
+        /* FORCE PROPER COLUMN DISTRIBUTION ON ALL SCREENS */
+        :global(.fc-timegrid-header-table),
+        :global(.fc-timegrid-body-table) {
+          width: 100% !important;
+          table-layout: fixed !important;
+        }
+        
+        :global(.fc-timegrid-header-table th),
+        :global(.fc-timegrid-body-table td) {
+          width: calc((100% - 45px) / 7) !important;
+        }
+        
+        :global(.fc-timegrid-axis) {
+          width: 45px !important;
+          min-width: 45px !important;
+          max-width: 45px !important;
+        }
+        
+        /* MOBILE SPECIFIC COLUMN FIXES */
         @media (max-width: 640px) {
-          :global(.fc-scroller) {
-            overflow-x: auto !important;
+          :global(.fc-timegrid-header-table th),
+          :global(.fc-timegrid-body-table td) {
+            width: calc((100% - 40px) / 7) !important;
           }
           
-          :global(.fc-timegrid-body) {
-            overflow-x: auto !important;
+          :global(.fc-timegrid-axis) {
+            width: 40px !important;
+            min-width: 40px !important;
+            max-width: 40px !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          :global(.fc-timegrid-header-table th),
+          :global(.fc-timegrid-body-table td) {
+            width: calc((100% - 35px) / 7) !important;
           }
           
-          :global(.fc-col-header) {
-            overflow-x: auto !important;
+          :global(.fc-timegrid-axis) {
+            width: 35px !important;
+            min-width: 35px !important;
+            max-width: 35px !important;
           }
+        }
+        
+        /* PREVENT HORIZONTAL OVERFLOW */
+        :global(.fc-view-harness) {
+          overflow-x: hidden !important;
+          width: 100% !important;
+        }
+        
+        :global(.fc-scroller-harness) {
+          overflow-x: hidden !important;
+        }
+        
+        :global(.fc-scroller) {
+          overflow-x: hidden !important;
+        }
+        
+        /* ENSURE TEXT DOESN'T BREAK LAYOUT */
+        :global(.fc-col-header-cell-cushion) {
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          white-space: nowrap !important;
+        }
+        
+        @media (max-width: 640px) {
+          :global(.fc-col-header-cell-cushion) {
+            font-size: 9px !important;
+            line-height: 1.1 !important;
+          }
+        }
+        
+        /* EVENT CONTENT RESPONSIVENESS */
+        :global(.fc-event-main-frame) {
+          overflow: hidden !important;
+        }
+        
+        :global(.fc-event-title-container) {
+          overflow: hidden !important;
+        }
+        
+        /* MOBILE EVENT SIZING */
+        @media (max-width: 640px) {
+          :global(.fc-timegrid-event-harness) {
+            margin-left: 1px !important;
+            margin-right: 1px !important;
+          }
+          
+          :global(.fc-event-main) {
+            padding: 2px !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          :global(.fc-event-main) {
+            padding: 1px !important;
+          }
+        }
+        
+        /* TOOLTIP RESPONSIVE ADJUSTMENTS */
+        @media (max-width: 640px) {
+          :global(.tooltip-container) {
+            max-width: 200px !important;
+            font-size: 11px !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          :global(.tooltip-container) {
+            max-width: 180px !important;
+            font-size: 10px !important;
+          }
+        }
+        
+        /* ENSURE NO LAYOUT BREAKS ON VERY SMALL SCREENS */
+        @media (max-width: 320px) {
+          :global(.fc-col-header-cell) {
+            font-size: 7px !important;
+            padding: 2px 0px !important;
+          }
+          
+          :global(.fc-timegrid-axis) {
+            width: 30px !important;
+            min-width: 30px !important;
+            max-width: 30px !important;
+          }
+          
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 6px !important;
+          }
+          
+          :global(.fc-event-title) {
+            font-size: 6px !important;
+          }
+          
+          :global(.fc-timegrid-header-table th),
+          :global(.fc-timegrid-body-table td) {
+            width: calc((100% - 30px) / 7) !important;
+          }
+        }
+        
+        /* PREVENT ANY HORIZONTAL SCROLLING */
+        :global(.fc-view) {
+          overflow-x: hidden !important;
+        }
+        
+        :global(.fc-timegrid) {
+          overflow-x: hidden !important;
+        }
+        
+        /* ENSURE PROPER FLEX BEHAVIOR */
+        :global(.fc-timegrid-header),
+        :global(.fc-timegrid-body) {
+          width: 100% !important;
+        }
+        
+        /* FORCE TABLE CELLS TO RESPECT WIDTH */
+        :global(.fc-timegrid-col-frame) {
+          position: relative !important;
+          width: 100% !important;
         }
       `}</style>
       {/* Member Overview Modal - ENHANCED */}
