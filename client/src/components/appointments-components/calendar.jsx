@@ -25,8 +25,10 @@ export default function Calendar({
   appointmentFilters = {},
 }) {
   const [isMobile, setIsMobile] = useState(false);
-const [screenSize, setScreenSize] = useState('desktop');
+  const [screenSize, setScreenSize] = useState('desktop');
   const [freeAppointments, setFreeAppointments] = useState([])
+  const [currentDateDisplay, setCurrentDateDisplay] = useState("Feb 3 – 9, 2025")
+
   const [viewMode, setViewMode] = useState("all") // "all" or "free"
   const [activeTab, setActiveTab] = useState("details") // Enhanced states for member functionality
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
@@ -351,30 +353,30 @@ const [screenSize, setScreenSize] = useState('desktop');
   const showTooltip = (event, mouseEvent) => {
     const appointment = event.extendedProps?.appointment
     if (!appointment) return
-  
+
     // Get the event element's position instead of mouse position
     const eventElement = mouseEvent.target.closest('.fc-event')
     if (!eventElement) return
-    
+
     const rect = eventElement.getBoundingClientRect()
     const scrollX = window.scrollX || document.documentElement.scrollLeft
     const scrollY = window.scrollY || document.documentElement.scrollTop
-    
+
     // Position tooltip above the event with some offset
     const tooltipX = rect.left + scrollX + (rect.width / 2) // Center horizontally on event
     const tooltipY = rect.top + scrollY - 10 // Position above the event
-    
+
     // Parse date from appointment format
     const dateParts = appointment.date?.split("|")
     let formattedDate = "N/A"
     if (dateParts && dateParts.length > 1) {
       const datePart = dateParts[1].trim()
       const [day, month, year] = datePart.split("-")
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
       formattedDate = `${day} ${monthNames[parseInt(month) - 1]} ${year}`
     }
-  
+
     setTooltip({
       show: true,
       x: tooltipX,
@@ -461,34 +463,34 @@ const [screenSize, setScreenSize] = useState('desktop');
     // Toggle view mode
     const newViewMode = viewMode === "all" ? "free" : "all"
     setViewMode(newViewMode)
-  
+
     if (newViewMode === "free") {
       // Generate free slots specifically for Feb 3-9, 2025 (the default view week)
       const slots = []
       const weekStart = new Date("2025-02-03") // Monday, Feb 3, 2025
-      
+
       // Generate 12-15 free slots throughout the week for better visibility
       const totalSlots = 12 + Math.floor(Math.random() * 4) // 12-15 slots
-      
+
       for (let i = 0; i < totalSlots; i++) {
         const randomDay = Math.floor(Math.random() * 7) // 0-6 (Mon-Sun)
         const randomHour = 8 + Math.floor(Math.random() * 10) // 8 AM to 5 PM
         const randomMinute = Math.floor(Math.random() * 4) * 15 // 0, 15, 30, 45
-        
+
         const freeDate = new Date(weekStart)
         freeDate.setDate(freeDate.getDate() + randomDay)
         freeDate.setHours(randomHour, randomMinute, 0)
-        
+
         const formattedDate = formatDate(freeDate)
         const formattedTime = freeDate.toTimeString().split(" ")[0].substring(0, 5)
-        
+
         slots.push({
           id: `free-${i}`,
           date: formattedDate,
           time: formattedTime,
         })
       }
-      
+
       setFreeAppointments(slots)
       toast.success("Free slots mode activated! Available slots are now highlighted and all appointments are grayed out.")
     } else {
@@ -501,7 +503,7 @@ const [screenSize, setScreenSize] = useState('desktop');
     const checkScreenSize = () => {
       const width = window.innerWidth;
       setIsMobile(width < 640);
-      
+
       if (width < 480) {
         setScreenSize('mobile');
       } else if (width < 640) {
@@ -510,7 +512,7 @@ const [screenSize, setScreenSize] = useState('desktop');
         setScreenSize('desktop');
       }
     };
-    
+
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
@@ -520,14 +522,14 @@ const [screenSize, setScreenSize] = useState('desktop');
     // // Check if it's a past or cancelled event and prevent drag/drop
     // const appointmentId = Number.parseInt(info.event.id)
     // const appointment = appointments?.find((app) => app.id === appointmentId)
-    
+
     // if (appointment && (appointment.isPast || appointment.isCancelled)) {
     //   info.revert()
     //   const reason = appointment.isPast ? "past" : "cancelled"
     //   toast.error(`Cannot move ${reason} appointments`)
     //   return
     // }
-    
+
     setPendingEventInfo(info)
     setNotifyAction("change")
     setIsNotifyMemberOpen(true)
@@ -757,12 +759,45 @@ const [screenSize, setScreenSize] = useState('desktop');
     toast.success("Appointment deleted successfully")
   }
 
-  // This function is now handled internally by SelectedAppointmentModal
-  // const handleAppointmentChange = (changes) => {
-  //   if (selectedAppointmentData) {
-  //     setSelectedAppointmentData({ ...selectedAppointmentData, ...changes, })
-  //   }
-  // }
+  const formatDateRange = (date) => {
+    const calendarApi = calendarRef.current?.getApi()
+    if (!calendarApi) return currentDateDisplay
+
+    const view = calendarApi.view
+    const viewType = view.type
+
+    if (viewType === 'timeGridWeek') {
+      // Get start and end of week
+      const start = new Date(view.currentStart)
+      const end = new Date(view.currentEnd)
+      end.setDate(end.getDate() - 1) // Adjust end date
+
+      const startMonth = start.toLocaleDateString('en-US', { month: 'short' })
+      const endMonth = end.toLocaleDateString('en-US', { month: 'short' })
+      const year = start.getFullYear()
+
+      if (startMonth === endMonth) {
+        return `${startMonth} ${start.getDate()} – ${end.getDate()}, ${year}`
+      } else {
+        return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}, ${year}`
+      }
+    } else if (viewType === 'timeGridDay') {
+      const currentDate = new Date(view.currentStart)
+      return currentDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })
+    } else if (viewType === 'dayGridMonth') {
+      const currentDate = new Date(view.currentStart)
+      return currentDate.toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric'
+      })
+    }
+
+    return currentDateDisplay
+  }
 
   const handleManageContingent = (memberId) => {
     const contingent = memberContingent[memberId] || { used: 0, total: 0 }
@@ -842,16 +877,16 @@ const [screenSize, setScreenSize] = useState('desktop');
         const dateStr = `${year}-${month}-${day}`
         const startDateTimeStr = `${dateStr}T${appointment.startTime || "00:00"}`
         const endDateTimeStr = `${dateStr}T${appointment.endTime || "01:00"}`
-  
+
         // Use data flags instead of calculating from date
         const isPastEvent = appointment.isPast || false
         const isCancelledEvent = appointment.isCancelled || false
-  
+
         let backgroundColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
         let borderColor = backgroundColor
         let textColor = "#FFFFFF"
         let opacity = 1
-  
+
         if (isCancelledEvent) {
           // Specific styling for cancelled appointments (diagonal stripes)
           backgroundColor = "#4a4a4a"
@@ -944,35 +979,35 @@ const [screenSize, setScreenSize] = useState('desktop');
     <>
       {/* Tooltip */}
       {tooltip.show && tooltip.content && (
-  <div 
-    className="fixed z-[9999] bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600 max-w-xs pointer-events-none tooltip-container"
-    style={{ 
-      left: `${tooltip.x}px`, 
-      top: `${tooltip.y}px`,
-      transform: 'translate(-50%, -100%)',
-      marginTop: '10px' // -8px se -15px ya -20px kar do
-    }}
-  >
-    <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
-    <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
-    <div className="text-xs text-gray-300 mb-1">{tooltip.content.time}</div>
-    <div className="text-xs text-blue-300">{tooltip.content.type}</div>
-  </div>
-)}
+        <div
+          className="fixed z-[9999] bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600 max-w-xs pointer-events-none tooltip-container"
+          style={{
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y}px`,
+            transform: 'translate(-50%, -100%)',
+            marginTop: '10px' // -8px se -15px ya -20px kar do
+          }}
+        >
+          <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
+          <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
+          <div className="text-xs text-gray-300 mb-1">{tooltip.content.time}</div>
+          <div className="text-xs text-blue-300">{tooltip.content.type}</div>
+        </div>
+      )}
       <div className="h-full w-full">
         <div className="w-full bg-black">
-          {/* Header structure - responsive */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2 px-2" style={{ minHeight: "40px", flexShrink: 0 }}>
-            {/* Mobile: Stack vertically, Desktop: Left section */}
-            <div className="flex items-center justify-between  gap-2 flex-1">
-              {/* Navigation buttons */}
-              <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center justify-between md:flex-row flex-col w-full mb-2 gap-2 px-2" style={{ minHeight: "40px", flexShrink: 0 }}>
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                 <button
                   onClick={() => {
                     const calendarApi = calendarRef.current?.getApi()
                     if (calendarApi) {
                       calendarApi.prev()
                       setCurrentDate(calendarApi.getDate().toISOString().split("T")[0])
+                      setTimeout(() => {
+                        setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
+                      }, 100)
                     }
                   }}
                   className="p-1.5 sm:p-2 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors"
@@ -986,6 +1021,9 @@ const [screenSize, setScreenSize] = useState('desktop');
                     if (calendarApi) {
                       calendarApi.next()
                       setCurrentDate(calendarApi.getDate().toISOString().split("T")[0])
+                      setTimeout(() => {
+                        setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
+                      }, 100)
                     }
                   }}
                   className="p-1.5 sm:p-2 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors"
@@ -993,60 +1031,86 @@ const [screenSize, setScreenSize] = useState('desktop');
                 >
                   <GoArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
-                 {/* View toggle buttons */}
-              <div className="flex bg-gray-700 rounded-md overflow-hidden">
+                <div className="flex bg-gray-700 rounded-md overflow-hidden">
+                  <button
+                    onClick={() => {
+                      const calendarApi = calendarRef.current?.getApi()
+                      if (calendarApi) {
+                        calendarApi.changeView("dayGridMonth")
+                        setTimeout(() => {
+                          setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
+                        }, 100)
+                      }
+                    }}
+                    className="px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-700 bg-gray-600 transition-colors text-xs sm:text-sm"
+                  >
+                    Month
+                  </button>
+                  <button
+                    onClick={() => {
+                      const calendarApi = calendarRef.current?.getApi()
+                      if (calendarApi) {
+                        calendarApi.changeView("timeGridWeek")
+                        setTimeout(() => {
+                          setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
+                        }, 100)
+                      }
+                    }}
+                    className="px-2 py-1.5 sm:px-3 sm:py-2 text-white bg-gray-600 border-r border-slate-200/20 cursor-pointer hover:bg-gray-700 transition-colors text-xs sm:text-sm"
+                  >
+                    Week
+                  </button>
+                  <button
+                    onClick={() => {
+                      const calendarApi = calendarRef.current?.getApi()
+                      if (calendarApi) {
+                        calendarApi.changeView("timeGridDay")
+                        setTimeout(() => {
+                          setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
+                        }, 100)
+                      }
+                    }}
+                    className="px-2 py-1.5 sm:px-3 sm:py-2 text-white bg-gray-600 cursor-pointer hover:bg-gray-700 transition-colors text-xs sm:text-sm"
+                  >
+                    Day
+                  </button>
+                </div>
+                <div className=" items-center gap-1 md:hidden inline sm:gap-2 flex-shrink-0">
                 <button
-                  onClick={() => {
-                    const calendarApi = calendarRef.current?.getApi()
-                    if (calendarApi) {
-                      calendarApi.changeView("dayGridMonth")
-                    }
-                  }}
-                  className="px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-700 bg-gray-600 transition-colors text-xs sm:text-sm"
+                  onClick={generateFreeDates}
+                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+                    }`}
+                  aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
                 >
-                  Month
-                </button>
-                <button
-                  onClick={() => {
-                    const calendarApi = calendarRef.current?.getApi()
-                    if (calendarApi) {
-                      calendarApi.changeView("timeGridWeek")
-                    }
-                  }}
-                  className="px-2 py-1.5 sm:px-3 sm:py-2 text-white bg-gray-600 border-r border-slate-200/20 cursor-pointer hover:bg-gray-700 transition-colors text-xs sm:text-sm"
-                >
-                  Week
-                </button>
-                <button
-                  onClick={() => {
-                    const calendarApi = calendarRef.current?.getApi()
-                    if (calendarApi) {
-                      calendarApi.changeView("timeGridDay")
-                    }
-                  }}
-                  className="px-2 py-1.5 sm:px-3 sm:py-2 text-white bg-gray-600 cursor-pointer hover:bg-gray-700 transition-colors text-xs sm:text-sm"
-                >
-                  Day
+                  <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
+                  <span className="sm:hidden">{viewMode === "all" ? "Free" : "All"}</span>
                 </button>
               </div>
+
               </div>
-  
-             
-  
-              {/* Free Slots button - moved to same row on mobile */}
-              <button
-                onClick={generateFreeDates}
-                className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors ${
-                  viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-                }`}
-                aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
-              >
-                <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
-                <span className="sm:hidden">{viewMode === "all" ? "Free" : "All"}</span>
-              </button>
+
+              {/* CENTER: Custom Date Display */}
+              <div className="flex-1 text-center px-2">
+                <h2 className="text-sm sm:text-lg md:text-xl font-semibold text-white whitespace-nowrap overflow-hidden text-ellipsis">
+                  {currentDateDisplay}
+                </h2>
+              </div>
+
+              {/* RIGHT: View toggle and Free Slots */}
+              <div className=" items-center gap-1 md:inline hidden sm:gap-2 flex-shrink-0">
+                <button
+                  onClick={generateFreeDates}
+                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+                    }`}
+                  aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
+                >
+                  <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
+                  <span className="sm:hidden">{viewMode === "all" ? "Free" : "All"}</span>
+                </button>
+              </div>
             </div>
           </div>
-          
+
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -1055,11 +1119,7 @@ const [screenSize, setScreenSize] = useState('desktop');
             events={calendarEvents}
             height={isMobile ? "calc(100vh - 200px)" : "930px"} // Dynamic height for mobile
             selectable={true}
-            headerToolbar={{
-              left: '',
-              center: 'title',
-              right: ''
-            }}
+            headerToolbar={false}
             editable={true}
             eventDrop={handleEventDrop}
             slotMinTime="08:00:00"
@@ -1074,30 +1134,30 @@ const [screenSize, setScreenSize] = useState('desktop');
 
             dayMaxEvents={false}
             eventMaxStack={10}
-            
+
             // Responsive day header format
             dayHeaderFormat={{ weekday: 'short', day: 'numeric' }}
             dayHeaderContent={(args) => {
               const date = new Date(args.date);
               const isSmallScreen = window.innerWidth < 640;
-              const weekday = date.toLocaleDateString('en-US', { 
-                weekday: isSmallScreen ? 'short' : 'long' 
+              const weekday = date.toLocaleDateString('en-US', {
+                weekday: isSmallScreen ? 'short' : 'long'
               });
               const day = date.getDate();
               return isSmallScreen ? `${weekday.substr(0, 3)}\n${day}` : `${weekday}, ${day}`;
             }}
-              
+
             // CUSTOM STYLING for current day highlight
             dayCellClassNames={(date) => {
               const today = new Date();
               const cellDate = new Date(date.date);
-              
+
               if (cellDate.toDateString() === today.toDateString()) {
                 return ['fc-day-today-custom'];
               }
               return [];
             }}
-            
+
             // EVENT MOUSE ENTER/LEAVE for tooltip
             eventMouseEnter={(info) => {
               showTooltip(info.event, info.jsEvent)
@@ -1105,71 +1165,64 @@ const [screenSize, setScreenSize] = useState('desktop');
             eventMouseLeave={() => {
               hideTooltip()
             }}
-            
+
             eventContent={(eventInfo) => (
               <div
-                className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${
-                  eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
-                } ${
-                  eventInfo.event.extendedProps.isCancelled 
-                    ? "cancelled-event-content cancelled-appointment-bg" 
+                className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
+                  } ${eventInfo.event.extendedProps.isCancelled
+                    ? "cancelled-event-content cancelled-appointment-bg"
                     : ""
-                } ${
-                  eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                  } ${eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
                     ? "blocked-event-content blocked-appointment-bg"
                     : ""
-                } ${
-                  eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                  } ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                     ? "opacity-20"
                     : ""
-                } ${
-                  eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                  } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                     ? "ring-1 sm:ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
                     : ""
-                }`}
+                  }`}
               >
                 <div
-                  className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${
-                    eventInfo.event.extendedProps.isPast
+                  className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${eventInfo.event.extendedProps.isPast
                       ? "text-gray-500"
                       : eventInfo.event.extendedProps.isCancelled
-                      ? "text-gray-300"
-                      : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
-                      ? "text-red-200"
-                      : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                      ? "text-gray-600"
-                      : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
-                      ? "text-white font-bold"
-                      : ""
-                  }`}
+                        ? "text-gray-300"
+                        : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                          ? "text-red-200"
+                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                            ? "text-gray-600"
+                            : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                              ? "text-white font-bold"
+                              : ""
+                    }`}
                 >
                   {eventInfo.event.extendedProps.isCancelled
                     ? `${eventInfo.event.title}`
                     : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
-                    ? `🚫 ${eventInfo.event.title}`
-                    : eventInfo.event.extendedProps.isPast
-                    ? `${eventInfo.event.title}`
-                    : eventInfo.event.title}
+                      ? `🚫 ${eventInfo.event.title}`
+                      : eventInfo.event.extendedProps.isPast
+                        ? `${eventInfo.event.title}`
+                        : eventInfo.event.title}
                 </div>
                 <div
-                  className={`text-[8px] sm:text-xs opacity-90 truncate ${
-                    eventInfo.event.extendedProps.isPast
+                  className={`text-[8px] sm:text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast
                       ? "text-gray-600"
                       : eventInfo.event.extendedProps.isCancelled
-                      ? "text-gray-400"
-                      : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
-                      ? "text-red-300"
-                      : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                      ? "text-gray-600"
-                      : ""
-                  }`}
+                        ? "text-gray-400"
+                        : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                          ? "text-red-300"
+                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                            ? "text-gray-600"
+                            : ""
+                    }`}
                 >
                   {eventInfo.event.extendedProps.type || "Available"}
                 </div>
                 <div className="text-[8px] sm:text-xs mt-0.5 sm:mt-1">{eventInfo.timeText}</div>
               </div>
             )}
-            
+
             eventClassNames={(eventInfo) => {
               const classes = []
               if (eventInfo.event.extendedProps.isPast) {
@@ -1192,7 +1245,7 @@ const [screenSize, setScreenSize] = useState('desktop');
           />
         </div>
       </div>
-  
+
       <style jsx>{`
         :global(.past-event) {
           cursor: pointer !important;
@@ -1817,8 +1870,8 @@ const [screenSize, setScreenSize] = useState('desktop');
                       </h2>
                       <span
                         className={`px-3 py-1 text-xs rounded-full font-medium ${selectedMember.isActive
-                            ? "bg-green-900 text-green-300"
-                            : "bg-red-900 text-red-300"
+                          ? "bg-green-900 text-green-300"
+                          : "bg-red-900 text-red-300"
                           }`}
                       >
                         {selectedMember.isActive ? "Active" : "Inactive"}
@@ -1913,8 +1966,8 @@ const [screenSize, setScreenSize] = useState('desktop');
                 <button
                   onClick={() => setActiveTab("details")}
                   className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
+                    ? "text-blue-400 border-b-2 border-blue-400"
+                    : "text-gray-400 hover:text-white"
                     }`}
                 >
                   {" "}
@@ -1923,8 +1976,8 @@ const [screenSize, setScreenSize] = useState('desktop');
                 <button
                   onClick={() => setActiveTab("relations")}
                   className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
+                    ? "text-blue-400 border-b-2 border-blue-400"
+                    : "text-gray-400 hover:text-white"
                     }`}
                 >
                   {" "}
@@ -2032,14 +2085,14 @@ const [screenSize, setScreenSize] = useState('desktop');
                               {/* Category header */}
                               <div
                                 className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
-                                    ? "bg-yellow-600 text-yellow-100"
-                                    : category === "friendship"
-                                      ? "bg-green-600 text-green-100"
-                                      : category === "relationship"
-                                        ? "bg-red-600 text-red-100"
-                                        : category === "work"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
+                                  ? "bg-yellow-600 text-yellow-100"
+                                  : category === "friendship"
+                                    ? "bg-green-600 text-green-100"
+                                    : category === "relationship"
+                                      ? "bg-red-600 text-red-100"
+                                      : category === "work"
+                                        ? "bg-blue-600 text-blue-100"
+                                        : "bg-gray-600 text-gray-100"
                                   }`}
                               >
                                 {" "}
@@ -2291,8 +2344,8 @@ const [screenSize, setScreenSize] = useState('desktop');
                     key={tab.id}
                     onClick={() => setHistoryTab(tab.id)}
                     className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${historyTab === tab.id
-                        ? "text-blue-400 border-b-2 border-blue-400"
-                        : "text-gray-400 hover:text-white"
+                      ? "text-blue-400 border-b-2 border-blue-400"
+                      : "text-gray-400 hover:text-white"
                       }`}
                   >
                     {" "}
@@ -2365,8 +2418,8 @@ const [screenSize, setScreenSize] = useState('desktop');
                               <p className="text-gray-400 text-sm">with {item.trainer}</p>
                               <span
                                 className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
-                                    ? "bg-green-900 text-green-300"
-                                    : "bg-yellow-900 text-yellow-300"
+                                  ? "bg-green-900 text-green-300"
+                                  : "bg-yellow-900 text-yellow-300"
                                   }`}
                               >
                                 {" "}
@@ -2399,8 +2452,8 @@ const [screenSize, setScreenSize] = useState('desktop');
                               <p className="text-gray-400 text-sm">{item.description}</p>
                               <span
                                 className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
-                                    ? "bg-green-900 text-green-300"
-                                    : "bg-yellow-900 text-yellow-300"
+                                  ? "bg-green-900 text-green-300"
+                                  : "bg-yellow-900 text-yellow-300"
                                   }`}
                               >
                                 {" "}
@@ -2577,10 +2630,10 @@ const [screenSize, setScreenSize] = useState('desktop');
                   {selectedAppointment.date && selectedAppointment.date.split("|")[1]} •{selectedAppointment.startTime}{" "}
                   - {selectedAppointment.endTime}{" "}
                 </p>
-                {selectedAppointment.isPast && 
-  <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
-{selectedAppointment.isCancelled && 
-  <p className="text-red-500 text-sm mt-2">This appointment is cancelled</p>}
+                {selectedAppointment.isPast &&
+                  <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
+                {selectedAppointment.isCancelled &&
+                  <p className="text-red-500 text-sm mt-2">This appointment is cancelled</p>}
               </div>
               <button
                 onClick={handleEditAppointment}
