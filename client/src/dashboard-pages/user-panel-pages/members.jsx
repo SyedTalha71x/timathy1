@@ -39,6 +39,7 @@ import ViewDetailsModal from "../../components/user-panel-members-components/Vie
 import AppointmentModal from "../../components/user-panel-members-components/AppointmentModal"
 import FilterModal from "../../components/user-panel-members-components/FilterModal"
 import TrainingPlansModal from "../../components/user-panel-members-components/TrainingPlanModal"
+import { MemberDocumentModal } from "../../components/user-panel-members-components/MemberDocumentModal"
 
 export default function Members() {
   const navigate = useNavigate()
@@ -119,6 +120,16 @@ export default function Members() {
 
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [historyTab, setHistoryTab] = useState("general")
+
+  const [showDocumentModal, setShowDocumentModal] = useState(false)
+const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
+
+
+const handleDocumentClick = (member) => {
+  setSelectedMemberForDocuments(member)
+  setShowDocumentModal(true)
+}
+
 
   const [editingRelations, setEditingRelations] = useState(false)
   const [newRelation, setNewRelation] = useState({
@@ -497,6 +508,40 @@ export default function Members() {
       contractStart: "2022-03-01",
       contractEnd: "2023-03-01",
       autoArchiveDate: null,
+      documents: [
+        {
+          id: "doc-1-1",
+          name: "Medical Clearance Certificate.pdf",
+          type: "pdf",
+          size: "1.2 MB",
+          uploadDate: "2023-01-15",
+          category: "medical",
+        },
+        {
+          id: "doc-1-2",
+          name: "Emergency Contact Form.pdf",
+          type: "pdf",
+          size: "0.8 MB",
+          uploadDate: "2023-01-16",
+          category: "emergency",
+        },
+        {
+          id: "doc-1-3",
+          name: "Fitness Assessment Report.xlsx",
+          type: "xlsx",
+          size: "1.5 MB",
+          uploadDate: "2023-02-01",
+          category: "fitness",
+        },
+        {
+          id: "doc-1-4",
+          name: "Insurance Policy.pdf",
+          type: "pdf",
+          size: "2.1 MB",
+          uploadDate: "2023-01-20",
+          category: "legal",
+        }
+      ],
     },
     {
       id: 2,
@@ -525,6 +570,32 @@ export default function Members() {
       contractStart: "2021-11-15",
       contractEnd: "2024-04-15",
       autoArchiveDate: null,
+      documents: [
+        {
+          id: "doc-2-1",
+          name: "Health Declaration.pdf",
+          type: "pdf",
+          size: "0.7 MB",
+          uploadDate: "2021-11-20",
+          category: "medical",
+        },
+        {
+          id: "doc-2-2",
+          name: "Personal Training Goals.docx",
+          type: "docx",
+          size: "0.3 MB",
+          uploadDate: "2021-12-01",
+          category: "fitness",
+        },
+        {
+          id: "doc-2-3",
+          name: "Identification Copy.jpg",
+          type: "jpg",
+          size: "2.8 MB",
+          uploadDate: "2021-11-18",
+          category: "personal",
+        }
+      ],
     },
     {
       id: 3,
@@ -552,6 +623,48 @@ export default function Members() {
       contractStart: "2022-06-15",
       contractEnd: "2023-12-15",
       autoArchiveDate: null,
+      documents: [
+        {
+          id: "doc-3-1",
+          name: "Marathon Training Plan.pdf",
+          type: "pdf",
+          size: "3.2 MB",
+          uploadDate: "2022-07-01",
+          category: "fitness",
+        },
+        {
+          id: "doc-3-2",
+          name: "Injury History Report.docx",
+          type: "docx",
+          size: "0.6 MB",
+          uploadDate: "2022-06-20",
+          category: "medical",
+        },
+        {
+          id: "doc-3-3",
+          name: "Emergency Contacts.txt",
+          type: "txt",
+          size: "0.1 MB",
+          uploadDate: "2022-06-16",
+          category: "emergency",
+        },
+        {
+          id: "doc-3-4",
+          name: "Nutrition Guidelines.xlsx",
+          type: "xlsx",
+          size: "1.8 MB",
+          uploadDate: "2022-08-15",
+          category: "fitness",
+        },
+        {
+          id: "doc-3-5",
+          name: "Waiver Form.pdf",
+          type: "pdf",
+          size: "0.4 MB",
+          uploadDate: "2022-06-15",
+          category: "legal",
+        }
+      ],
     },
   ])
 
@@ -1369,9 +1482,7 @@ export default function Members() {
                 <History size={16} />
               </button>
               <button
-                onClick={() => {
-                  /* Handle document management */
-                }}
+                 onClick={() => handleDocumentClick(member)}
                 className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                 title="Document Management"
               >
@@ -1505,9 +1616,7 @@ export default function Members() {
                   <History size={16} />
                 </button>
                 <button
-                  onClick={() => {
-                    /* Handle document management */
-                  }}
+                  onClick={() => handleDocumentClick(member)}
                   className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                   title="Document Management"
                 >
@@ -1685,6 +1794,14 @@ export default function Members() {
           onDelete={handleDeleteAppointment}
         />
       )}
+      <MemberDocumentModal
+  member={selectedMemberForDocuments}
+  isOpen={showDocumentModal}
+  onClose={() => {
+    setShowDocumentModal(false)
+    setSelectedMemberForDocuments(null)
+  }}
+/>
       <ContingentModal
         showContingentModal={showContingentModal}
         setShowContingentModal={setShowContingentModal}

@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
@@ -31,10 +33,9 @@ import {
   MessageCircle,
 } from "lucide-react"
 import Rectangle1 from "../../../public/Rectangle 1.png"
-import Image10 from "../../../public/image10.png"
 import { Toaster, toast } from "react-hot-toast"
 import Avatar from "../../../public/avatar.png"
-import {WidgetSelectionModal} from '../../components/widget-selection-modal'
+import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
 import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
@@ -1691,73 +1692,72 @@ export default function MyArea() {
       />
       <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
         {isRightSidebarOpen && (
-          <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={toggleRightSidebar} />
+          <div className="fixed inset-0 bg-black/50 z-40 lg:hidden block" onClick={toggleRightSidebar} />
         )}
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-1 md:p-5 space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-  {/* Top Row (Title + Menu on mobile, Title only on desktop) */}
-  <div className="flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      <h1 className="text-xl font-bold">My Area</h1>
-      {currentView && (
-        <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
-          {currentView.name}
-        </span>
-      )}
-    </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              {/* Top Row (Title + Menu on mobile, Title only on desktop) */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-bold">My Area</h1>
+                  {currentView && (
+                    <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
+                      {currentView.name}
+                    </span>
+                  )}
+                </div>
 
-    {/* Menu Icon → visible only on mobile */}
-    <button
-      onClick={toggleRightSidebar}
-      className="p-3 text-zinc-400 hover:bg-zinc-800 rounded-xl md:hidden"
-    >
-      <Menu size={20} />
-    </button>
-  </div>
+                {/* Menu Icon → visible on mobile and medium screens */}
+                <button
+                  onClick={toggleRightSidebar}
+                  className="p-3 text-zinc-400 hover:bg-zinc-800 rounded-xl lg:hidden"
+                >
+                  <Menu size={20} />
+                </button>
+              </div>
 
-  {/* Buttons Section */}
-  <div className="flex flex-wrap justify-center md:justify-end gap-2">
-    <button
-      onClick={() => setIsViewModalOpen(true)}
-      className="px-4 py-2 bg-zinc-700 w-full md:w-auto text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
-    >
-      <Settings size={16} />
-      {currentView ? currentView.name : "Standard View"}
-    </button>
+              {/* Buttons Section */}
+              <div className="flex flex-wrap justify-center md:justify-end gap-2">
+                <button
+                  onClick={() => setIsViewModalOpen(true)}
+                  className="px-4 py-2 bg-zinc-700 w-full md:w-auto text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
+                >
+                  <Settings size={16} />
+                  {currentView ? currentView.name : "Standard View"}
+                </button>
 
-    {!isEditing && (
-      <button
-        onClick={() => setIsViewModalOpen(true)}
-        className="px-4 py-2 bg-zinc-700 md:w-auto w-full text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
-      >
-        <Settings size={16} />
-        Manage Views
-      </button>
-    )}
+                {!isEditing && (
+                  <button
+                    onClick={() => setIsViewModalOpen(true)}
+                    className="px-4 py-2 bg-zinc-700 md:w-auto w-full text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
+                  >
+                    <Settings size={16} />
+                    Manage Views
+                  </button>
+                )}
 
-    {isEditing && (
-      <button
-        onClick={() => setIsWidgetModalOpen(true)}
-        className="py-2 px-4 bg-black md:w-auto w-full justify-center text-white rounded-xl text-sm flex items-center gap-1"
-      >
-        <Plus size={20} />
-        <span className="hidden sm:inline">Add Widget</span>
-      </button>
-    )}
+                {isEditing && (
+                  <button
+                    onClick={() => setIsWidgetModalOpen(true)}
+                    className="py-2 px-4 bg-black md:w-auto w-full justify-center text-white rounded-xl text-sm flex items-center gap-1"
+                  >
+                    <Plus size={20} />
+                    <span className="hidden sm:inline">Add Widget</span>
+                  </button>
+                )}
 
-    <button
-      onClick={toggleEditing}
-      className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${
-        isEditing ? "bg-blue-600 text-white" : "bg-zinc-700 text-zinc-200"
-      }`}
-    >
-      {isEditing ? <Check size={18} /> : <Edit size={18} />}
-      <span className="hidden sm:inline">{isEditing ? "Done" : "Edit Dashboard"}</span>
-    </button>
-  </div>
-</div>
-
+                <button
+                  onClick={toggleEditing}
+                  className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${
+                    isEditing ? "bg-blue-600 text-white" : "bg-zinc-700 text-zinc-200"
+                  }`}
+                >
+                  {isEditing ? <Check size={18} /> : <Edit size={18} />}
+                  <span className="hidden sm:inline">{isEditing ? "Done" : "Edit Dashboard"}</span>
+                </button>
+              </div>
+            </div>
 
             {/* Widgets */}
             <div className="space-y-4">
@@ -1807,7 +1807,7 @@ export default function MyArea() {
                     </div>
                   </DraggableWidget>
                 ))}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {widgets
                   .filter((widget) => widget.type !== "chart") // Filter out chart, as it's handled separately
                   .sort((a, b) => a.position - b.position)
@@ -1852,7 +1852,7 @@ export default function MyArea() {
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
                           </div>
-                          <div className="space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar pr-1">
+                          <div className="space-y-2 max-h-[25vh] overflow-y-auto custom-scrollbar pr-1">
                             {appointments.length > 0 ? (
                               appointments.map((appointment, index) => (
                                 <div
@@ -2200,7 +2200,7 @@ export default function MyArea() {
           fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 lg:w-80 bg-[#181818]
           transform transition-transform duration-500 ease-in-out
           ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
-          md:relative md:translate-x-0
+          lg:relative lg:translate-x-0
         `}
         >
           <div className="p-4 md:p-5 h-full overflow-y-auto">
@@ -2231,7 +2231,7 @@ export default function MyArea() {
                 </button>
                 <button
                   onClick={toggleRightSidebar}
-                  className="p-3 text-zinc-400 hover:bg-zinc-700 rounded-xl md:hidden"
+                  className="p-3 text-zinc-400 hover:bg-zinc-700 rounded-xl lg:hidden"
                   aria-label="Close sidebar"
                 >
                   <X size={20} />
