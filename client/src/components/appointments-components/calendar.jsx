@@ -388,6 +388,7 @@ export default function Calendar({
     })
   }
 
+  
   useEffect(() => {
     let resizeObserver
 
@@ -1114,9 +1115,8 @@ export default function Calendar({
                 <div className=" items-center gap-1 md:hidden inline sm:gap-2 flex-shrink-0">
                   <button
                     onClick={generateFreeDates}
-                    className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${
-                      viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-                    }`}
+                    className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+                      }`}
                     aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
                   >
                     <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
@@ -1136,9 +1136,8 @@ export default function Calendar({
               <div className=" items-center gap-1 md:inline hidden sm:gap-2 flex-shrink-0">
                 <button
                   onClick={generateFreeDates}
-                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${
-                    viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-                  }`}
+                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+                    }`}
                   aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
                 >
                   <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
@@ -1215,39 +1214,33 @@ export default function Calendar({
             }}
             eventContent={(eventInfo) => (
               <div
-                className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${
-                  eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
-                } ${
-                  eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""
-                } ${
-                  eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
+                  } ${eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""
+                  } ${eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
                     ? "blocked-event-content blocked-appointment-bg"
                     : ""
-                } ${
-                  eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                  } ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                     ? "opacity-20"
                     : ""
-                } ${
-                  eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                  } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                     ? " shadow-lg transform scale-105"
                     : ""
-                }`}
+                  }`}
               >
                 <div
-                  className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${
-                    eventInfo.event.extendedProps.isPast
+                  className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${eventInfo.event.extendedProps.isPast
                       ? "text-gray-500"
                       : eventInfo.event.extendedProps.isCancelled
                         ? "text-gray-300"
                         : eventInfo.event.extendedProps.isBlocked ||
-                            eventInfo.event.extendedProps.appointment?.isBlocked
+                          eventInfo.event.extendedProps.appointment?.isBlocked
                           ? "text-red-200"
                           : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                             ? "text-gray-600"
                             : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                               ? "text-white font-bold"
                               : ""
-                  }`}
+                    }`}
                 >
                   {eventInfo.event.extendedProps.isCancelled
                     ? `${eventInfo.event.title}`
@@ -1258,18 +1251,17 @@ export default function Calendar({
                         : eventInfo.event.title}
                 </div>
                 <div
-                  className={`text-[8px] sm:text-xs opacity-90 truncate ${
-                    eventInfo.event.extendedProps.isPast
+                  className={`text-[8px] sm:text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast
                       ? "text-gray-600"
                       : eventInfo.event.extendedProps.isCancelled
                         ? "text-gray-400"
                         : eventInfo.event.extendedProps.isBlocked ||
-                            eventInfo.event.extendedProps.appointment?.isBlocked
+                          eventInfo.event.extendedProps.appointment?.isBlocked
                           ? "text-red-300"
                           : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                             ? "text-gray-600"
                             : ""
-                  }`}
+                    }`}
                 >
                   {eventInfo.event.extendedProps.type || "Available"}
                 </div>
@@ -1300,366 +1292,647 @@ export default function Calendar({
       </div>
 
       <style jsx global>{`
-        /* RESET AND BASE STYLES */
-        :global(.fc) {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
+       /* Replace the existing style block in your component with this updated version */
 
-        /* Desktop styles remain the same */
-        @media (min-width: 1024px) {
-          :global(.fc) {
-            font-size: 14px;
-            width: 100%;
-            overflow: visible;
-          }
-          
-          :global(.fc-view-harness) {
-            overflow: visible;
-            width: 100%;
-          }
-          
-          :global(.fc-scroller-harness) {
-            overflow: visible;
-          }
-          
-          :global(.fc-scroller) {
-            overflow: visible;
-          }
-          
-          :global(.fc-col-header-cell) {
-            font-size: 14px !important;
-            padding: 8px 4px !important;
-            text-align: center;
-            border-right: 1px solid #e5e7eb;
-            background: #f9fafb;
-            font-weight: 600;
-            color: #374151;
-          }
-          
-          :global(.fc-timegrid-axis) {
-            width: 60px !important;
-            min-width: 60px !important;
-            max-width: 60px !important;
-          }
-          
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 12px !important;
-            padding: 4px !important;
-          }
-          
-          :global(.fc-event-title) {
-            font-size: 13px !important;
-          }
-          
-          :global(.fc-event-time) {
-            font-size: 11px !important;
-          }
-          
-          :global(.fc-daygrid-day),
-          :global(.fc-timegrid-col) {
-            width: calc(100% / 7) !important;
-          }
-        }
+/* RESET AND BASE STYLES */
+:global(.fc) {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
 
-        /* Tablet and mobile styles - horizontally scrollable with stretched columns */
-        @media (max-width: 1023px) {
-          :global(.fc) {
-            font-size: 12px;
-            width: 150% !important; /* Stretch calendar wider than container */
-            min-width: 800px !important; /* Minimum width to ensure proper spacing */
-            overflow-x: auto !important;
-          }
-          
-          :global(.fc-view-harness) {
-            overflow-x: auto !important;
-            width: 100% !important;
-          }
-          
-          :global(.fc-scroller-harness) {
-            overflow-x: auto !important;
-          }
-          
-          :global(.fc-scroller) {
-            overflow-x: auto !important;
-          }
-          
-          /* Container to enable horizontal scrolling */
-          :global(.fc-view) {
-            overflow-x: auto !important;
-            width: 100% !important;
-          }
-          
-          :global(.fc-timegrid) {
-            overflow-x: auto !important;
-            min-width: 800px !important;
-          }
-          
-          /* Stretch column widths for better visibility */
-          :global(.fc-col-header-cell) {
-            font-size: 12px !important;
-            padding: 8px 6px !important;
-            text-align: center;
-            border-right: 1px solid #e5e7eb;
-            background: #f9fafb;
-            font-weight: 600;
-            color: #374151;
-            min-width: 100px !important; /* Minimum column width */
-            width: 120px !important; /* Fixed wider column width */
-          }
-          
-          :global(.fc-timegrid-col) {
-            min-width: 100px !important;
-            width: 120px !important;
-          }
-          
-          :global(.fc-timegrid-axis) {
-            width: 70px !important;
-            min-width: 70px !important;
-            max-width: 70px !important;
-          }
-          
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 11px !important;
-            padding: 4px !important;
-          }
-          
-          :global(.fc-event-title) {
-            font-size: 11px !important;
-          }
-          
-          :global(.fc-event-time) {
-            font-size: 10px !important;
-          }
-        }
+/* Desktop styles - keep all columns visible */
+@media (min-width: 1024px) {
+  :global(.fc) {
+    font-size: 14px;
+    width: 100%;
+    overflow: visible;
+  }
+  
+  :global(.fc-view-harness) {
+    overflow: visible;
+    width: 100%;
+  }
+  
+  :global(.fc-scroller-harness) {
+    overflow: visible;
+  }
+  
+  :global(.fc-scroller) {
+    overflow: visible;
+  }
+  
+  /* Dynamic column widths based on day name length */
+  :global(.fc-col-header-cell) {
+    font-size: 14px !important;
+    padding: 8px 2px !important;
+    text-align: center;
+    border-right: 1px solid #e5e7eb;
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+  
+  /* Specific width adjustments for different days */
+  :global(.fc-col-header-cell:nth-child(1)) { /* Monday */
+    width: 13% !important;
+    min-width: 90px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(2)) { /* Tuesday */
+    width: 14% !important;
+    min-width: 95px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(3)) { /* Wednesday */
+    width: 16% !important;
+    min-width: 110px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(4)) { /* Thursday */
+    width: 15% !important;
+    min-width: 100px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(5)) { /* Friday */
+    width: 13% !important;
+    min-width: 90px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(6)) { /* Saturday */
+    width: 15% !important;
+    min-width: 100px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(7)) { /* Sunday */
+    width: 14% !important;
+    min-width: 95px !important;
+  }
+  
+  /* Match body columns to header columns */
+  :global(.fc-timegrid-col:nth-child(1)) {
+    width: 13% !important;
+    min-width: 90px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(2)) {
+    width: 14% !important;
+    min-width: 95px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(3)) {
+    width: 16% !important;
+    min-width: 110px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(4)) {
+    width: 15% !important;
+    min-width: 100px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(5)) {
+    width: 13% !important;
+    min-width: 90px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(6)) {
+    width: 15% !important;
+    min-width: 100px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(7)) {
+    width: 14% !important;
+    min-width: 95px !important;
+  }
+  
+  :global(.fc-timegrid-axis) {
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+  }
+  
+  :global(.fc-timegrid-axis-cushion) {
+    font-size: 12px !important;
+    padding: 4px !important;
+  }
+  
+  :global(.fc-event-title) {
+    font-size: 13px !important;
+  }
+  
+  :global(.fc-event-time) {
+    font-size: 11px !important;
+  }
+}
 
-        /* Mobile specific adjustments */
-        @media (max-width: 640px) {
-          :global(.fc) {
-            font-size: 11px;
-            width: 200% !important; /* Even wider for mobile */
-            min-width: 900px !important;
-          }
-          
-          :global(.fc-col-header-cell) {
-            font-size: 11px !important;
-            padding: 6px 4px !important;
-            min-width: 110px !important;
-            width: 130px !important;
-          }
-          
-          :global(.fc-timegrid-col) {
-            min-width: 110px !important;
-            width: 130px !important;
-          }
-          
-          :global(.fc-timegrid-axis) {
-            width: 60px !important;
-            min-width: 60px !important;
-            max-width: 60px !important;
-          }
-          
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 10px !important;
-            padding: 3px !important;
-          }
-          
-          :global(.fc-event-title) {
-            font-size: 10px !important;
-          }
-          
-          :global(.fc-event-time) {
-            font-size: 9px !important;
-          }
-        }
+/* Tablet and mobile styles - horizontally scrollable with stretched columns */
+@media (max-width: 1023px) {
+  :global(.fc) {
+    font-size: 12px;
+    width: 150% !important;
+    min-width: 900px !important;
+    overflow-x: auto !important;
+  }
+  
+  :global(.fc-view-harness) {
+    overflow-x: auto !important;
+    width: 100% !important;
+  }
+  
+  :global(.fc-scroller-harness) {
+    overflow-x: auto !important;
+  }
+  
+  :global(.fc-scroller) {
+    overflow-x: auto !important;
+  }
+  
+  :global(.fc-view) {
+    overflow-x: auto !important;
+    width: 100% !important;
+  }
+  
+  :global(.fc-timegrid) {
+    overflow-x: auto !important;
+    min-width: 900px !important;
+  }
+  
+  /* Wider columns for better text visibility on mobile */
+  :global(.fc-col-header-cell) {
+    font-size: 12px !important;
+    padding: 8px 4px !important;
+    text-align: center;
+    border-right: 1px solid #e5e7eb;
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+  
+  /* Specific width adjustments for mobile days */
+  :global(.fc-col-header-cell:nth-child(1)) { /* Monday */
+    width: 120px !important;
+    min-width: 120px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(2)) { /* Tuesday */
+    width: 125px !important;
+    min-width: 125px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(3)) { /* Wednesday */
+    width: 140px !important;
+    min-width: 140px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(4)) { /* Thursday */
+    width: 130px !important;
+    min-width: 130px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(5)) { /* Friday */
+    width: 120px !important;
+    min-width: 120px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(6)) { /* Saturday */
+    width: 130px !important;
+    min-width: 130px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(7)) { /* Sunday */
+    width: 125px !important;
+    min-width: 125px !important;
+  }
+  
+  /* Match body columns to header columns */
+  :global(.fc-timegrid-col:nth-child(1)) {
+    width: 120px !important;
+    min-width: 120px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(2)) {
+    width: 125px !important;
+    min-width: 125px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(3)) {
+    width: 140px !important;
+    min-width: 140px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(4)) {
+    width: 130px !important;
+    min-width: 130px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(5)) {
+    width: 120px !important;
+    min-width: 120px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(6)) {
+    width: 130px !important;
+    min-width: 130px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(7)) {
+    width: 125px !important;
+    min-width: 125px !important;
+  }
+  
+  :global(.fc-timegrid-axis) {
+    width: 70px !important;
+    min-width: 70px !important;
+    max-width: 70px !important;
+  }
+  
+  :global(.fc-timegrid-axis-cushion) {
+    font-size: 11px !important;
+    padding: 4px !important;
+  }
+  
+  :global(.fc-event-title) {
+    font-size: 11px !important;
+  }
+  
+  :global(.fc-event-time) {
+    font-size: 10px !important;
+  }
+}
 
-        /* Very small mobile screens */
-        @media (max-width: 480px) {
-          :global(.fc) {
-            font-size: 10px;
-            width: 250% !important;
-            min-width: 1000px !important;
-          }
-          
-          :global(.fc-col-header-cell) {
-            font-size: 10px !important;
-            padding: 5px 3px !important;
-            min-width: 120px !important;
-            width: 140px !important;
-          }
-          
-          :global(.fc-timegrid-col) {
-            min-width: 120px !important;
-            width: 140px !important;
-          }
-          
-          :global(.fc-timegrid-axis) {
-            width: 55px !important;
-            min-width: 55px !important;
-            max-width: 55px !important;
-          }
-          
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 9px !important;
-            padding: 2px !important;
-          }
-          
-          :global(.fc-event-title) {
-            font-size: 9px !important;
-          }
-          
-          :global(.fc-event-time) {
-            font-size: 8px !important;
-          }
-        }
+/* Mobile specific adjustments */
+@media (max-width: 640px) {
+  :global(.fc) {
+    font-size: 11px;
+    width: 220% !important;
+    min-width: 1000px !important;
+  }
+  
+  :global(.fc-col-header-cell) {
+    font-size: 11px !important;
+    padding: 6px 3px !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+  }
+  
+  /* Mobile day widths - extra width for Wednesday */
+  :global(.fc-col-header-cell:nth-child(1)) { /* Monday */
+    width: 130px !important;
+    min-width: 130px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(2)) { /* Tuesday */
+    width: 135px !important;
+    min-width: 135px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(3)) { /* Wednesday */
+    width: 155px !important;
+    min-width: 155px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(4)) { /* Thursday */
+    width: 145px !important;
+    min-width: 145px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(5)) { /* Friday */
+    width: 130px !important;
+    min-width: 130px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(6)) { /* Saturday */
+    width: 140px !important;
+    min-width: 140px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(7)) { /* Sunday */
+    width: 135px !important;
+    min-width: 135px !important;
+  }
+  
+  /* Match body columns */
+  :global(.fc-timegrid-col:nth-child(1)) {
+    width: 130px !important;
+    min-width: 130px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(2)) {
+    width: 135px !important;
+    min-width: 135px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(3)) {
+    width: 155px !important;
+    min-width: 155px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(4)) {
+    width: 145px !important;
+    min-width: 145px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(5)) {
+    width: 130px !important;
+    min-width: 130px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(6)) {
+    width: 140px !important;
+    min-width: 140px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(7)) {
+    width: 135px !important;
+    min-width: 135px !important;
+  }
+  
+  :global(.fc-timegrid-axis) {
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+  }
+  
+  :global(.fc-timegrid-axis-cushion) {
+    font-size: 10px !important;
+    padding: 3px !important;
+  }
+  
+  :global(.fc-event-title) {
+    font-size: 10px !important;
+  }
+  
+  :global(.fc-event-time) {
+    font-size: 9px !important;
+  }
+}
 
-        /* Common styles for all screen sizes */
-        :global(.fc-col-header-cell-cushion) {
-          overflow: visible !important;
-          text-overflow: clip !important;
-          white-space: normal !important;
-          display: flex !important;
-          flex-direction: column !important;
-          align-items: center !important;
-          justify-content: center !important;
-        }
+/* Very small mobile screens */
+@media (max-width: 480px) {
+  :global(.fc) {
+    font-size: 10px;
+    width: 280% !important;
+    min-width: 1100px !important;
+  }
+  
+  :global(.fc-col-header-cell) {
+    font-size: 10px !important;
+    padding: 5px 2px !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+  }
+  
+  /* Very small mobile day widths */
+  :global(.fc-col-header-cell:nth-child(1)) { /* Monday */
+    width: 140px !important;
+    min-width: 140px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(2)) { /* Tuesday */
+    width: 145px !important;
+    min-width: 145px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(3)) { /* Wednesday */
+    width: 165px !important;
+    min-width: 165px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(4)) { /* Thursday */
+    width: 155px !important;
+    min-width: 155px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(5)) { /* Friday */
+    width: 140px !important;
+    min-width: 140px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(6)) { /* Saturday */
+    width: 150px !important;
+    min-width: 150px !important;
+  }
+  
+  :global(.fc-col-header-cell:nth-child(7)) { /* Sunday */
+    width: 145px !important;
+    min-width: 145px !important;
+  }
+  
+  /* Match body columns */
+  :global(.fc-timegrid-col:nth-child(1)) {
+    width: 140px !important;
+    min-width: 140px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(2)) {
+    width: 145px !important;
+    min-width: 145px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(3)) {
+    width: 165px !important;
+    min-width: 165px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(4)) {
+    width: 155px !important;
+    min-width: 155px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(5)) {
+    width: 140px !important;
+    min-width: 140px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(6)) {
+    width: 150px !important;
+    min-width: 150px !important;
+  }
+  
+  :global(.fc-timegrid-col:nth-child(7)) {
+    width: 145px !important;
+    min-width: 145px !important;
+  }
+  
+  :global(.fc-timegrid-axis) {
+    width: 55px !important;
+    min-width: 55px !important;
+    max-width: 55px !important;
+  }
+  
+  :global(.fc-timegrid-axis-cushion) {
+    font-size: 9px !important;
+    padding: 2px !important;
+  }
+  
+  :global(.fc-event-title) {
+    font-size: 9px !important;
+  }
+  
+  :global(.fc-event-time) {
+    font-size: 8px !important;
+  }
+}
 
-        /* Force proper table layout for stretched columns */
-        :global(.fc-timegrid-header-table),
-        :global(.fc-timegrid-body-table) {
-          width: 100% !important;
-          table-layout: fixed !important;
-        }
+/* Common styles for all screen sizes */
+:global(.fc-col-header-cell-cushion) {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
 
-        /* Event styling remains consistent */
-        :global(.fc-event) {
-          border: none !important;
-          border-radius: 6px !important;
-          font-weight: 500 !important;
-          margin: 1px !important;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-        }
+/* Force proper table layout */
+:global(.fc-timegrid-header-table),
+:global(.fc-timegrid-body-table) {
+  width: 100% !important;
+  table-layout: fixed !important;
+}
 
-        :global(.fc-event-title) {
-          font-weight: 600 !important;
-          line-height: 1.3 !important;
-          overflow: hidden !important;
-          text-overflow: ellipsis !important;
-        }
+/* Ensure table cells respect the width settings */
+:global(.fc-timegrid-header-table td),
+:global(.fc-timegrid-body-table td) {
+  box-sizing: border-box !important;
+  padding: 0 !important;
+}
 
-        :global(.fc-event-time) {
-          font-weight: 400 !important;
-          opacity: 0.9 !important;
-          line-height: 1.2 !important;
-        }
+/* Event styling remains consistent */
+:global(.fc-event) {
+  border: none !important;
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  margin: 1px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
 
-        /* Time axis styling */
-        :global(.fc-timegrid-axis) {
-          border-right: 2px solid #e5e7eb !important;
-          background: #f9fafb !important;
-        }
+:global(.fc-event-title) {
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
 
-        :global(.fc-timegrid-axis-cushion) {
-          color: #6b7280 !important;
-          font-weight: 500 !important;
-          text-align: center !important;
-        }
+:global(.fc-event-time) {
+  font-weight: 400 !important;
+  opacity: 0.9 !important;
+  line-height: 1.2 !important;
+}
 
-        /* Grid lines */
-        :global(.fc-timegrid-slot) {
-          border-top: 1px solid #f3f4f6 !important;
-        }
+/* Time axis styling */
+:global(.fc-timegrid-axis) {
+  border-right: 2px solid #e5e7eb !important;
+  background: #f9fafb !important;
+}
 
-        :global(.fc-timegrid-slot-minor) {
-          border-top: 1px solid #f9fafb !important;
-        }
+:global(.fc-timegrid-axis-cushion) {
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+}
 
-        /* Column separators */
-        :global(.fc-timegrid-col) {
-          border-right: 1px solid #e5e7eb !important;
-        }
+/* Grid lines */
+:global(.fc-timegrid-slot) {
+  border-top: 1px solid #f3f4f6 !important;
+}
 
-        /* Header styling */
-        :global(.fc-col-header) {
-          background: #f9fafb !important;
-          border-bottom: 2px solid #e5e7eb !important;
-        }
+:global(.fc-timegrid-slot-minor) {
+  border-top: 1px solid #f9fafb !important;
+}
 
-        /* Today highlight */
-        :global(.fc-day-today) {
-          background-color: rgba(59, 130, 246, 0.05) !important;
-        }
+/* Column separators */
+:global(.fc-timegrid-col) {
+  border-right: 1px solid #e5e7eb !important;
+}
 
-        :global(.fc-col-header-cell.fc-day-today) {
-          background-color: rgba(59, 130, 246, 0.1) !important;
-          color: #1d4ed8 !important;
-          font-weight: 700 !important;
-        }
+/* Header styling */
+:global(.fc-col-header) {
+  background: #f9fafb !important;
+  border-bottom: 2px solid #e5e7eb !important;
+}
 
-        /* Free slot styling */
-        :global(.free-slot-event) {
-          background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
-          color: #15803d !important;
-          border-left: 3px solid #15803d !important;
-          font-weight: 600 !important;
-        }
+/* Today highlight */
+:global(.fc-day-today) {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
 
-        :global(.prominent-free-slot) {
-          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
-          color: white !important;
-          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4) !important;
-          border: none !important;
-          transform: scale(1.02) !important;
-          animation: pulse-green 2s infinite !important;
-        }
+:global(.fc-col-header-cell.fc-day-today) {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: #1d4ed8 !important;
+  font-weight: 700 !important;
+}
 
-        @keyframes pulse-green {
-          0%, 100% {
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
-          }
-          50% {
-            box-shadow: 0 6px 16px rgba(34, 197, 94, 0.6);
-          }
-        }
+/* Free slot styling */
+:global(.free-slot-event) {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
+  color: #15803d !important;
+  border-left: 3px solid #15803d !important;
+  font-weight: 600 !important;
+}
 
-        /* Tooltip styling */
-        :global(.tooltip-container) {
-          background: rgba(0, 0, 0, 0.9) !important;
-          color: white !important;
-          padding: 8px 12px !important;
-          border-radius: 6px !important;
-          font-size: 12px !important;
-          line-height: 1.4 !important;
-          max-width: 250px !important;
-          word-wrap: break-word !important;
-          z-index: 1000 !important;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-        }
+:global(.prominent-free-slot) {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4) !important;
+  border: none !important;
+  transform: scale(1.02) !important;
+  animation: pulse-green 2s infinite !important;
+}
 
-        /* Scrollbar styling for horizontal scroll */
-        @media (max-width: 1023px) {
-          :global(.fc-view-harness)::-webkit-scrollbar {
-            height: 8px;
-          }
-          
-          :global(.fc-view-harness)::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-          }
-          
-          :global(.fc-view-harness)::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-          }
-          
-          :global(.fc-view-harness)::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-          }
-        }
+@keyframes pulse-green {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.6);
+  }
+}
+
+/* Tooltip styling */
+:global(.tooltip-container) {
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  max-width: 250px !important;
+  word-wrap: break-word !important;
+  z-index: 1000 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Scrollbar styling for horizontal scroll */
+@media (max-width: 1023px) {
+  :global(.fc-view-harness)::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  :global(.fc-view-harness)::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+  
+  :global(.fc-view-harness)::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+  
+  :global(.fc-view-harness)::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
       `}</style>
       {/* Member Overview Modal - ENHANCED */}
       {isMemberOverviewModalOpen && selectedMember && (

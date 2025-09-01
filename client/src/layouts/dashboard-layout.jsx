@@ -15,7 +15,7 @@ const Dashboardlayout = () => {
     md:pt-20   /* tablets ke liye 80px padding */
     sm:pt-24   /* small screens ke liye 96px padding */
     pt-28      /* extra-small (mobile) screens ke liye 112px padding */
-    pb-10 md:p-5 p-2
+    pb-10 p-2
   "
         >
           <Outlet />

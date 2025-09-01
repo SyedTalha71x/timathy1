@@ -469,8 +469,8 @@ export default function Appointments() {
   return (
     <div
       className={`
-      min-h-screen rounded-3xl bg-[#1C1C1C] md:p-6 p-4
-      transition-all duration-300 ease-in-out flex-1
+      min-h-screen rounded-3xl bg-[#1C1C1C] md:p-4 p-4
+      transition-all duration-500 ease-in-out flex-1
       ${isRightSidebarOpen ? "lg:mr-96 md:mr-96 sm:mr-96" : "mr-0"}
     `}
     >

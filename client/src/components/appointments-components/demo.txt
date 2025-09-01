@@ -1,0 +1,40 @@
+// Solution 1: Add container width detection and dynamic resizing
+
+useEffect(() => {
+  const handleSidebarToggle = () => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi()
+      
+      // Small delay to ensure sidebar animation is complete
+      setTimeout(() => {
+        calendarApi.updateSize()
+        
+        // Force recalculation of column widths
+        const calendarElement = calendarRef.current.elRef.current
+        if (calendarElement) {
+          const containerWidth = calendarElement.clientWidth
+          
+          // Adjust calendar behavior based on available width
+          if (containerWidth < 800) {
+            // Force to day view if too narrow
+            calendarApi.changeView('timeGridDay')
+          } else if (containerWidth < 1200) {
+            // Ensure week view with proper sizing
+            calendarApi.changeView('timeGridWeek')
+          }
+        }
+      }, 300) // Match your sidebar animation duration
+    }
+  }
+
+  // Listen for sidebar state changes (you'll need to implement this based on your sidebar logic)
+  window.addEventListener('sidebarToggle', handleSidebarToggle)
+  
+  // Also listen for resize events
+  window.addEventListener('resize', handleSidebarToggle)
+  
+  return () => {
+    window.removeEventListener('sidebarToggle', handleSidebarToggle)
+    window.removeEventListener('resize', handleSidebarToggle)
+  }
+}, [])
