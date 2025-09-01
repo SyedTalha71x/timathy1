@@ -1,3 +1,4 @@
+"use client"
 
 import { useState } from "react"
 import { ExternalLink } from "lucide-react"
@@ -18,7 +19,8 @@ const marketplaceProducts = [
     brand: "NIKE",
     articleNo: "123",
     price: "5,00 €",
-    image: "https://image.goat.com/transform/v1/attachments/product_template_additional_pictures/images/105/365/563/original/1507255_01.jpg.jpeg?action=crop&width=750",
+    image:
+      "https://image.goat.com/transform/v1/attachments/product_template_additional_pictures/images/105/365/563/original/1507255_01.jpg.jpeg?action=crop&width=750",
     link: "https://example.com/product/2",
   },
 ]
@@ -78,9 +80,9 @@ export default function MarketplacePage() {
           </select>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {sortProducts(getFilteredProducts(), sortBy).map((product) => (
-            <div key={product.id} className="bg-[#f5f5f5] rounded-2xl overflow-hidden relative">
+            <div key={product.id} className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative">
               <div className="relative w-full h-48 bg-white">
                 <img
                   src={product.image || "/placeholder.svg"}
@@ -100,7 +102,7 @@ export default function MarketplacePage() {
                 <h3 className="text-base font-medium mb-1">{product.name}</h3>
                 <p className="text-sm text-gray-300 mb-1">{product.brand}</p>
                 <p className="text-sm text-gray-400 mb-2">Art. No: {product.articleNo}</p>
-                <p className="text-lg font-bold text-red-500">{product.price}</p>
+                <p className="text-lg font-bold text-white">{product.price}</p>
               </div>
             </div>
           ))}

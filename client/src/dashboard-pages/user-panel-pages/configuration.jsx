@@ -1,5 +1,5 @@
 
-import { Checkbox } from "antd"
+import { Checkbox, Row } from "antd"
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
@@ -562,99 +562,118 @@ const ConfigurationPage = () => {
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="Studio Data" key="1">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-            <Panel header="Studio Information" key="1" className="bg-[#202020]">
-              <Form layout="vertical" className="space-y-4">
-                <Form.Item label={<span className="text-white">Studio Name</span>} required>
-                  <Input
-                    value={studioName}
-                    onChange={(e) => setStudioName(e.target.value)}
-                    placeholder="Enter studio name"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Studio Operator</span>}>
-                  <Input
-                    value={studioOperator}
-                    onChange={(e) => setStudioOperator(e.target.value)}
-                    placeholder="Enter studio operator name"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Phone No</span>} required>
-                  <Input
-                    value={studioPhoneNo}
-                    onChange={(e) => setStudioPhoneNo(e.target.value)}
-                    placeholder="Enter phone no"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Email</span>} required>
-                  <Input
-                    value={studioEmail}
-                    onChange={(e) => setStudioEmail(e.target.value)}
-                    placeholder="Enter email"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Street (with number)</span>} required>
-                  <Input
-                    value={studioStreet}
-                    onChange={(e) => setStudioStreet(e.target.value)}
-                    placeholder="Enter street and number"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">ZIP Code</span>} required>
-                  <Input
-                    value={studioZipCode}
-                    onChange={(e) => setStudioZipCode(e.target.value)}
-                    placeholder="Enter ZIP code"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">City</span>} required>
-                  <Input
-                    value={studioCity}
-                    onChange={(e) => setStudioCity(e.target.value)}
-                    placeholder="Enter city"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label={<span className="text-white">Country</span>}
-                  required
-                  tooltip="Selecting a country will allow you to import public holidays and set the default currency"
-                >
-                  <Select
-                    value={studioCountry}
-                    onChange={(value) => setStudioCountry(value)}
-                    placeholder="Select country"
-                    style={selectStyle}
-                  >
-                    {countries.map((country) => (
-                      <Option key={country.code} value={country.code}>
-                        {country.name} ({country.currency})
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Studio Website</span>}>
-                  <Input
-                    value={studioWebsite}
-                    onChange={(e) => setStudioWebsite(e.target.value)}
-                    placeholder="Enter studio website URL"
-                    style={inputStyle}
-                  />
-                </Form.Item>
-                <Form.Item label={<span className="text-white">Studio Logo</span>}>
-                  <Upload accept="image/*" maxCount={1} onChange={handleLogoUpload} fileList={logo}>
-                    <Button icon={<UploadOutlined />} style={buttonStyle}>
-                      Upload Logo
-                    </Button>
-                  </Upload>
-                </Form.Item>
-              </Form>
-            </Panel>
+          <Panel header="Studio Information" key="1" className="bg-[#202020]">
+  <Form layout="vertical" className="space-y-4">
+    {/* Row 1: Studio Name & Studio Operator */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Form.Item label={<span className="text-white">Studio Name</span>} required>
+        <Input
+          value={studioName}
+          onChange={(e) => setStudioName(e.target.value)}
+          placeholder="Enter studio name"
+          style={inputStyle}
+        />
+      </Form.Item>
+      <Form.Item label={<span className="text-white">Studio Operator</span>}>
+        <Input
+          value={studioOperator}
+          onChange={(e) => setStudioOperator(e.target.value)}
+          placeholder="Enter studio operator name"
+          style={inputStyle}
+        />
+      </Form.Item>
+    </div>
+
+    {/* Row 2: Phone No & Email */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Form.Item label={<span className="text-white">Phone No</span>} required>
+        <Input
+          value={studioPhoneNo}
+          onChange={(e) => setStudioPhoneNo(e.target.value)}
+          placeholder="Enter phone no"
+          style={inputStyle}
+        />
+      </Form.Item>
+      <Form.Item label={<span className="text-white">Email</span>} required>
+        <Input
+          value={studioEmail}
+          onChange={(e) => setStudioEmail(e.target.value)}
+          placeholder="Enter email"
+          style={inputStyle}
+        />
+      </Form.Item>
+    </div>
+
+    {/* Row 3: Street & ZIP Code */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Form.Item label={<span className="text-white">Street (with number)</span>} required>
+        <Input
+          value={studioStreet}
+          onChange={(e) => setStudioStreet(e.target.value)}
+          placeholder="Enter street and number"
+          style={inputStyle}
+        />
+      </Form.Item>
+      <Form.Item label={<span className="text-white">ZIP Code</span>} required>
+        <Input
+          value={studioZipCode}
+          onChange={(e) => setStudioZipCode(e.target.value)}
+          placeholder="Enter ZIP code"
+          style={inputStyle}
+        />
+      </Form.Item>
+    </div>
+
+    {/* Row 4: City & Country */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Form.Item label={<span className="text-white">City</span>} required>
+        <Input
+          value={studioCity}
+          onChange={(e) => setStudioCity(e.target.value)}
+          placeholder="Enter city"
+          style={inputStyle}
+        />
+      </Form.Item>
+      <Form.Item
+        label={<span className="text-white">Country</span>}
+        required
+        // tooltip="Selecting a country will allow you to import public holidays and set the default currency"
+      >
+        <Select
+          value={studioCountry}
+          onChange={(value) => setStudioCountry(value)}
+          placeholder="Select country"
+          style={selectStyle}
+        >
+          {countries.map((country) => (
+            <Option key={country.code} value={country.code}>
+              {country.name} ({country.currency})
+            </Option>
+          ))}
+        </Select>
+      </Form.Item>
+    </div>
+
+    {/* Row 5: Website & Logo (single row for better layout) */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Form.Item label={<span className="text-white">Studio Website</span>}>
+        <Input
+          value={studioWebsite}
+          onChange={(e) => setStudioWebsite(e.target.value)}
+          placeholder="Enter studio website URL"
+          style={inputStyle}
+        />
+      </Form.Item>
+      <Form.Item label={<span className="text-white">Studio Logo</span>}>
+        <Upload accept="image/*" maxCount={1} onChange={handleLogoUpload} fileList={logo}>
+          <Button icon={<UploadOutlined />} style={buttonStyle}>
+            Upload Logo
+          </Button>
+        </Upload>
+      </Form.Item>
+    </div>
+  </Form>
+</Panel>
             <Panel header="Opening Hours" key="2" className="bg-[#202020]">
               <div className="space-y-4">
                 {openingHours.map((hour, index) => (
@@ -685,7 +704,7 @@ const ConfigurationPage = () => {
                         updatedHours[index].startTime = time
                         setOpeningHours(updatedHours)
                       }}
-                      className="w-full sm:w-32"
+                      className="w-full sm:w-32 white-text"
                       style={inputStyle}
                     />
                     <TimePicker
@@ -697,7 +716,7 @@ const ConfigurationPage = () => {
                         updatedHours[index].endTime = time
                         setOpeningHours(updatedHours)
                       }}
-                      className="w-full sm:w-32"
+                      className="w-full sm:w-32 white-text"
                       style={inputStyle}
                     />
                     <Button
@@ -829,69 +848,74 @@ const ConfigurationPage = () => {
                   <div className="space-y-4">
                     {appointmentTypes.map((type, index) => (
                       <div key={index} className="flex flex-col gap-4 p-4 border border-[#303030] rounded-lg">
-                        <div className="flex flex-wrap gap-4 items-center">
-                          <Input
-                            placeholder="Appointment Type Name"
-                            value={type.name}
-                            onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
-                            className="w-full sm:w-64 white-text"
-                            style={inputStyle}
-                          />
-                          <div className="flex items-center">
-                            <InputNumber
-                              placeholder="Duration"
-                              value={type.duration}
-                              onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
-                              className="w-full sm:w-24 white-text"
-                              style={inputStyle}
-                            />
-                            <Tooltip title="Duration in minutes">
-                              <InfoCircleOutlined style={tooltipStyle} />
-                            </Tooltip>
-                          </div>
-                          <div className="flex items-center">
-                            <InputNumber
-                              placeholder="Capacity"
-                              value={type.capacity}
-                              onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
-                              className="w-full sm:w-24 white-text"
-                              style={inputStyle}
-                            />
-                            <Tooltip title="Maximum number of participants">
-                              <InfoCircleOutlined style={tooltipStyle} />
-                            </Tooltip>
-                          </div>
-                          <div className="flex items-center">
-                            <ColorPicker
-                              value={type.color}
-                              onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
-                            />
-                            <Tooltip title="Calendar display color">
-                              <InfoCircleOutlined style={tooltipStyle} />
-                            </Tooltip>
-                          </div>
-                          <div className="flex items-center">
-                            <InputNumber
-                              placeholder="Interval"
-                              value={type.interval}
-                              onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
-                              className="w-full sm:w-24 white-text"
-                              style={inputStyle}
-                            />
-                            <Tooltip title="Time between appointments in minutes">
-                              <InfoCircleOutlined style={tooltipStyle} />
-                            </Tooltip>
-                          </div>
-                          <Button
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))}
-                            className="w-full sm:w-auto"
-                            style={buttonStyle}
-                          >
-                            Remove
-                          </Button>
-                        </div>
+                   <div className="flex flex-wrap gap-4 items-center">
+                   <Row>
+  <Input
+    placeholder="Appointment Type Name"
+    value={type.name}
+    onChange={(e) =>
+      handleUpdateAppointmentType(index, "name", e.target.value)
+    }
+    className="!w-full md:!w-32 lg:!w-90 !py-3.5 white-text"
+    style={inputStyle}
+  />
+</Row>
+
+  <div className="flex items-center">
+    <InputNumber
+      placeholder="Duration"
+      value={type.duration}
+      onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
+      className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
+      style={inputStyle}
+    />
+    <Tooltip title="Duration in minutes">
+      <InfoCircleOutlined style={tooltipStyle} />
+    </Tooltip>
+  </div>
+  <div className="flex items-center">
+    <InputNumber
+      placeholder="Capacity"
+      value={type.capacity}
+      onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
+      className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
+      style={inputStyle}
+    />
+    <Tooltip title="Maximum number of participants">
+      <InfoCircleOutlined style={tooltipStyle} />
+    </Tooltip>
+  </div>
+  <div className="flex items-center">
+    <ColorPicker
+      value={type.color}
+      onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
+    />
+    <Tooltip title="Calendar display color">
+      <InfoCircleOutlined style={tooltipStyle} />
+    </Tooltip>
+  </div>
+  <div className="flex items-center">
+    <InputNumber
+      placeholder="Interval"
+      value={type.interval}
+      onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
+      className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
+      style={inputStyle}
+    />
+    <Tooltip title="Time between appointments in minutes">
+      <InfoCircleOutlined style={tooltipStyle} />
+    </Tooltip>
+  </div>
+  <Button
+    danger
+    icon={<DeleteOutlined />}
+    onClick={() => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))}
+    className="w-full sm:w-auto"
+    style={buttonStyle}
+  >
+    Remove
+  </Button>
+</div>
                         {/* New: Upload Pictures for Appointment Type */}
                         <Form.Item label={<span className="text-white">Upload Images</span>}>
                           <Upload
@@ -1003,7 +1027,7 @@ const ConfigurationPage = () => {
                             updatedRoles[index].name = e.target.value
                             setRoles(updatedRoles)
                           }}
-                          className="w-full sm:w-64"
+                          className="!w-full md:!w-32 lg:!w-90 !py-3.5"
                           style={inputStyle}
                         />
                         <Select
@@ -1015,7 +1039,7 @@ const ConfigurationPage = () => {
                             updatedRoles[index].permissions = value
                             setRoles(updatedRoles)
                           }}
-                          className="w-full sm:flex-1"
+                          className="!w-full !rounded-lg md:!w-32 lg:!w-90 !py-2.5 sm:flex-1"
                           style={selectStyle}
                         >
                           <Option value="read">Read</Option>
@@ -1096,7 +1120,7 @@ const ConfigurationPage = () => {
                         updatedTags[index].name = e.target.value
                         setTags(updatedTags)
                       }}
-                      className="w-full sm:w-64"
+                      className="!w-full md:!w-32 lg:!w-90 !py-3"
                       style={inputStyle}
                     />
                     <ColorPicker
@@ -1147,6 +1171,7 @@ const ConfigurationPage = () => {
                               updated[index].name = e.target.value
                               setContractTypes(updated)
                             }}
+                            className="!w-full md:!w-32 lg:!w-90 white-text"
                             style={inputStyle}
                           />
                         </Form.Item>
@@ -1187,6 +1212,7 @@ const ConfigurationPage = () => {
                               setContractTypes(updated)
                             }}
                             style={selectStyle}
+                            className="!w-full md:!w-32 lg:!w-36 white-text"
                           >
                             <Option value="weekly">Weekly</Option>
                             <Option value="monthly">Monthly</Option>
@@ -1341,7 +1367,7 @@ const ConfigurationPage = () => {
                         updated[index].name = e.target.value
                         setContractPauseReasons(updated)
                       }}
-                      className="w-full sm:w-64"
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
                       style={inputStyle}
                     />
                     <Button
@@ -1535,7 +1561,7 @@ const ConfigurationPage = () => {
                           smtpServer: e.target.value,
                         })
                       }
-                      className="white-text"
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
                       style={inputStyle}
                       placeholder="smtp.example.com"
                     />
@@ -1564,6 +1590,7 @@ const ConfigurationPage = () => {
                           smtpUser: e.target.value,
                         })
                       }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
                       style={inputStyle}
                       placeholder="studio@example.com"
                     />
@@ -1577,6 +1604,7 @@ const ConfigurationPage = () => {
                           smtpPass: e.target.value,
                         })
                       }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
                       style={inputStyle}
                     />
                   </Form.Item>
@@ -1600,6 +1628,7 @@ const ConfigurationPage = () => {
                           senderName: e.target.value,
                         })
                       }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
                       style={inputStyle}
                       placeholder="Your Studio Name"
                     />
@@ -1944,7 +1973,7 @@ const ConfigurationPage = () => {
                         updatedRates[index].name = e.target.value
                         setVatRates(updatedRates)
                       }}
-                      className="w-full sm:w-64"
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
                       style={inputStyle}
                     />
                     <InputNumber

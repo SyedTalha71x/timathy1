@@ -1,7 +1,9 @@
+"use client"
+
 /* eslint-disable no-case-declarations */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { X, Bold, Italic, List, Image } from "lucide-react"
+import { X, List, ImageIcon } from "lucide-react"
 import { useState, useRef } from "react"
 import { MdOutlineHelpCenter } from "react-icons/md"
 
@@ -89,33 +91,33 @@ const TicketView = ({ ticket, onClose }) => {
     let newText = textarea.value
 
     switch (command) {
-      case 'bold':
+      case "bold":
         if (selectedText) {
           newText = textarea.value.substring(0, start) + `**${selectedText}**` + textarea.value.substring(end)
         } else {
-          newText = textarea.value.substring(0, start) + '**bold text**' + textarea.value.substring(end)
+          newText = textarea.value.substring(0, start) + "**bold text**" + textarea.value.substring(end)
         }
         break
-      case 'italic':
+      case "italic":
         if (selectedText) {
           newText = textarea.value.substring(0, start) + `*${selectedText}*` + textarea.value.substring(end)
         } else {
-          newText = textarea.value.substring(0, start) + '*italic text*' + textarea.value.substring(end)
+          newText = textarea.value.substring(0, start) + "*italic text*" + textarea.value.substring(end)
         }
         break
-      case 'list':
-        const lines = textarea.value.split('\n')
-        const currentLineIndex = textarea.value.substring(0, start).split('\n').length - 1
-        lines[currentLineIndex] = '• ' + lines[currentLineIndex]
-        newText = lines.join('\n')
+      case "list":
+        const lines = textarea.value.split("\n")
+        const currentLineIndex = textarea.value.substring(0, start).split("\n").length - 1
+        lines[currentLineIndex] = "• " + lines[currentLineIndex]
+        newText = lines.join("\n")
         break
     }
 
     setReplyText(newText)
     setTimeout(() => {
       textarea.focus()
-      if (command === 'bold' || command === 'italic') {
-        const newCursorPos = command === 'bold' ? start + 2 : start + 1
+      if (command === "bold" || command === "italic") {
+        const newCursorPos = command === "bold" ? start + 2 : start + 1
         textarea.setSelectionRange(newCursorPos, newCursorPos)
       }
     }, 0)
@@ -147,7 +149,9 @@ const TicketView = ({ ticket, onClose }) => {
                     </span>
                     <span className="text-gray-500 text-xs sm:text-sm">{message.timestamp}</span>
                   </div>
-                  <div className="text-gray-700 text-sm sm:text-base leading-relaxed break-words">{message.content}</div>
+                  <div className="text-gray-700 text-sm sm:text-base leading-relaxed break-words">
+                    {message.content}
+                  </div>
                 </div>
               </div>
             ))}
@@ -158,29 +162,29 @@ const TicketView = ({ ticket, onClose }) => {
           <div className="mb-3 sm:mb-4">
             <div className="border border-gray-300 rounded-md sm:rounded-lg overflow-hidden">
               <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-50 border-b border-gray-300">
-                <button 
-                  onClick={() => applyFormatting('image')}
+                <button
+                  onClick={() => applyFormatting("image")}
                   className="p-1 hover:bg-gray-200 rounded text-gray-600"
                   title="Add image"
                 >
-                  <Image size={14} className="sm:w-4 sm:h-4" />
+                  <ImageIcon size={14} className="sm:w-4 sm:h-4" />
                 </button>
-                <button 
-                  onClick={() => applyFormatting('bold')}
+                <button
+                  onClick={() => applyFormatting("bold")}
                   className="px-1.5 py-1 hover:bg-gray-200 rounded font-bold text-gray-700 text-xs sm:text-sm"
                   title="Bold"
                 >
                   B
                 </button>
-                <button 
-                  onClick={() => applyFormatting('italic')}
+                <button
+                  onClick={() => applyFormatting("italic")}
                   className="px-1.5 py-1 hover:bg-gray-200 rounded italic text-gray-700 text-xs sm:text-sm"
                   title="Italic"
                 >
                   I
                 </button>
-                <button 
-                  onClick={() => applyFormatting('list')}
+                <button
+                  onClick={() => applyFormatting("list")}
                   className="p-1 hover:bg-gray-200 rounded text-gray-600"
                   title="Add list"
                 >
@@ -198,14 +202,14 @@ const TicketView = ({ ticket, onClose }) => {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
-            <button 
-              onClick={handleCloseTicket} 
+            <button
+              onClick={handleCloseTicket}
               className="text-gray-500 hover:text-gray-700 font-medium text-sm sm:text-base order-2 sm:order-1"
             >
               Close ticket
             </button>
-            <button 
-              onClick={handleAddReply} 
+            <button
+              onClick={handleAddReply}
               className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-500 text-white rounded-md sm:rounded-lg hover:bg-blue-600 font-medium text-sm sm:text-base order-1 sm:order-2"
             >
               ADD REPLY
@@ -360,9 +364,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
 
         <div className="space-y-4 sm:space-y-6">
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              Subject
-            </label>
+            <label className="block text-sm font-medium text-white mb-2">Subject</label>
             <select
               value={subject}
               onChange={handleSubjectChange}
@@ -377,9 +379,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              Reason
-            </label>
+            <label className="block text-sm font-medium text-white mb-2">Reason</label>
             <select
               value={reason}
               onChange={handleReasonChange}
@@ -399,9 +399,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              Additional description
-            </label>
+            <label className="block text-sm font-medium text-white mb-2">Additional description</label>
             <textarea
               value={additionalDescription}
               onChange={(e) => setAdditionalDescription(e.target.value)}
@@ -481,74 +479,86 @@ const HelpCenter = () => {
   }
 
   return (
-    <div className="flex flex-col justify-center items-center h-auto min-h-[600px] sm:h-[700px] rounded-3xl bg-[#1C1C1C] text-white relative p-4 sm:p-8">
-      <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white text-center mb-8 sm:mb-12 px-4">
-        Contact us for a fast Response
-      </h1>
+    <div className="flex flex-col min-h-screen rounded-3xl bg-[#1C1C1C] text-white">
+      {/* Header Section */}
+      <div className="flex-shrink-0 pt-8 sm:pt-12 lg:pt-16 pb-6 sm:pb-8 px-4 sm:px-8">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white text-center mb-8 sm:mb-12 lg:mb-16">
+          Contact us for a fast Response
+        </h1>
 
-      <div className="flex justify-center mb-8 sm:mb-16 w-full">
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center w-full max-w-xs border border-gray-200">
-          <div className="flex justify-center items-center mb-3 sm:mb-4">
-            <MdOutlineHelpCenter className="text-black" size={32} />
-          </div>
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">Help Center</h2>
-          <p className="text-gray-600 text-sm">View Help Articles</p>
-        </div>
-      </div>
-
-      <div className="w-full max-w-2xl flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-2">
-        <div className="relative flex-grow w-full">
-          <input
-            type="text"
-            placeholder="Search for ticket"
-            className="w-full pl-8 sm:pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-full text-black"
-          />
-          <div className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="sm:w-5 sm:h-5"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </div>
-        </div>
-        <button
-          onClick={handleNewTicketClick}
-          className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white text-sm rounded-full hover:bg-blue-700 transition-colors duration-200 whitespace-nowrap"
-        >
-          New ticket
-        </button>
-      </div>
-
-      <div className="w-full max-w-2xl max-h-[25vh] sm:max-h-[30vh] overflow-y-auto space-y-2 sm:space-y-3 px-2">
-        {tickets.map((ticket) => (
-          <div
-            key={ticket.id}
-            onClick={() => handleTicketClick(ticket)}
-            className="bg-white rounded-lg p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="text-gray-900 font-medium text-sm sm:text-base truncate pr-2">{ticket.subject}</h3>
-              <span className="text-xs text-gray-500 whitespace-nowrap">{ticket.date}</span>
+        {/* Help Center Card */}
+        <div className="flex justify-center mb-8 sm:mb-12 lg:mb-16">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 lg:p-8 text-center w-full max-w-xs sm:max-w-sm border border-gray-200">
+            <div className="flex justify-center items-center mb-3 sm:mb-4">
+              <MdOutlineHelpCenter className="text-black" size={32} />
             </div>
-            <div className="flex justify-between items-center">
-              <span
-                className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-1">Help Center</h2>
+            <p className="text-gray-600 text-sm sm:text-base">View Help Articles</p>
+          </div>
+        </div>
+
+        {/* Search and New Ticket Section */}
+        <div className="w-full max-w-2xl mx-auto flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-2">
+          <div className="relative flex-grow w-full">
+            <input
+              type="text"
+              placeholder="Search for ticket"
+              className="w-full pl-8 sm:pl-10 pr-4 py-2 sm:py-3 border text-sm sm:text-base border-gray-300 rounded-full text-black"
+            />
+            <div className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="sm:w-5 sm:h-5"
               >
-                {ticket.status}
-              </span>
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
             </div>
           </div>
-        ))}
+          <button
+            onClick={handleNewTicketClick}
+            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm sm:text-base rounded-full hover:bg-blue-700 transition-colors duration-200 whitespace-nowrap"
+          >
+            New ticket
+          </button>
+        </div>
+      </div>
+
+      {/* Tickets Section - Takes remaining space */}
+      <div className="flex-1 flex flex-col px-4 sm:px-8 pb-8">
+        <div className="w-full max-w-2xl mx-auto flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto space-y-2 sm:space-y-3 px-2 min-h-0">
+            {tickets.map((ticket) => (
+              <div
+                key={ticket.id}
+                onClick={() => handleTicketClick(ticket)}
+                className="bg-white rounded-lg p-3 sm:p-4 lg:p-5 cursor-pointer hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-gray-900 font-medium text-sm sm:text-base lg:text-lg truncate pr-2">
+                    {ticket.subject}
+                  </h3>
+                  <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">{ticket.date}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span
+                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(ticket.status)}`}
+                  >
+                    {ticket.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <NewTicketModal isOpen={isModalOpen} onClose={handleCloseModal} onSubmit={handleSubmitTicket} />

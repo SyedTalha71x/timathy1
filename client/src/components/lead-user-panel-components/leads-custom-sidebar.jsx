@@ -605,10 +605,15 @@ export const SidebarArea = ({
 
   return (
     <>
+
+{isOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />
+      )}
+      
       <aside
-        className={`fixed top-0 right-0 h-full w-80 bg-[#181818] shadow-lg transform transition-transform duration-300 z-[60] ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-full lg:max-w-lg bg-[#181818] border-l border-gray-700 z-50 transform transition-transform duration-500 ease-in-out ${
+            isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="p-3 sm:p-4 lg:p-5 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
@@ -764,6 +769,11 @@ export const SidebarArea = ({
 
                     {widget.type === "birthday" && (
                       <div className="mb-4 sm:mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-base sm:text-lg lg:text-xl font-bold cursor-pointer text-white">
+                            Upcoming Birthday
+                          </h2>
+                        </div>
                         <div className="space-y-2">
                           {birthdays.slice(0, 2).map((birthday) => (
                             <div
@@ -781,7 +791,7 @@ export const SidebarArea = ({
                                 <h3 className="font-semibold text-xs sm:text-sm text-white truncate">
                                   {birthday.name}
                                 </h3>
-                                <p className="text-xs mt-1 text-zinc-400">{birthday.date}</p>
+                                <p className="text-xs text-zinc-400">{birthday.date}</p>
                               </div>
                             </div>
                           ))}

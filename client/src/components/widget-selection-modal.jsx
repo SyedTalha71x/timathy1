@@ -1,4 +1,3 @@
-"use client"
 
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"

@@ -79,7 +79,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) setIsSidebarOpen(false);
+      if (window.innerWidth >= 1024) setIsSidebarOpen(false); // lg breakpoint
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -140,7 +140,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between md:hidden z-40">
+      <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between lg:hidden z-40">
         {isSidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -193,13 +193,13 @@ const Sidebar = () => {
       <aside
         className={`
           fixed top-0 left-0 z-50 h-screen bg-[#111111] transition-all duration-500 overflow-hidden 
-          md:relative md:block
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-          ${isCollapsed ? "md:w-26" : "md:w-64 w-64"}
+          lg:relative lg:block
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${isCollapsed ? "lg:w-26" : "lg:w-64 w-64"}
         `}
       >
         {/* Collapse Toggle */}
-        <div className="hidden md:block absolute right-0 top-20 bg-[#222222] rounded-full p-2 cursor-pointer z-50"
+        <div className="hidden lg:block absolute right-0 top-20 bg-[#222222] rounded-full p-2 cursor-pointer z-50"
           onClick={toggleCollapse}
         >
           {isCollapsed ? (
@@ -211,7 +211,7 @@ const Sidebar = () => {
 
         {/* Profile Section */}
         <div className="flex flex-col h-full overflow-hidden mt-5">
-          <div className="p-4 hidden md:block">
+          <div className="p-4 hidden lg:block">
             <div className={`flex ${isCollapsed ? "justify-center" : "flex-col text-center"} items-center gap-3`}>
               <div className="cursor-pointer">
                 <img
@@ -254,7 +254,6 @@ const Sidebar = () => {
             </div>
           </div>
 
-          {/* Navigation Menu */}
           {/* Navigation Menu */}
 <nav className="flex-1 overflow-y-auto custom-scrollbar">
   <ul className="space-y-2 p-4">

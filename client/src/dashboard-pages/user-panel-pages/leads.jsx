@@ -16,7 +16,7 @@ import ConfirmationModal from "../../components/lead-user-panel-components/confi
 import EditColumnModal from "../../components/lead-user-panel-components/edit-column-modal"
 import TrialTrainingModal from "../../components/lead-user-panel-components/add-trial-planning"
 import { IoIosMenu } from "react-icons/io"
-import { SidebarArea } from "../../components/custom-sidebar"
+import { SidebarArea } from "../../components/lead-user-panel-components/leads-custom-sidebar"
 import { useNavigate } from "react-router-dom"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { MdHistory } from "react-icons/md"
@@ -1005,11 +1005,7 @@ export default function LeadManagement() {
       className={`
       min-h-screen rounded-3xl p-6 bg-[#1C1C1C]
       transition-all duration-300 ease-in-out flex-1
-      ${
-        isRightSidebarOpen
-          ? "lg:mr-96 md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
-          : "mr-0" // No margin when closed
-      }
+     
     `}
     >
       <Toaster
@@ -1100,7 +1096,7 @@ export default function LeadManagement() {
       />
 
       {/* Overlay for mobile screens only */}
-      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
+      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 " onClick={closeSidebar} />}
       <EditLeadModal
         isVisible={isEditModalOpen}
         onClose={() => {
