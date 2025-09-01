@@ -1208,7 +1208,7 @@ export default function Calendar({
                     ? "opacity-20"
                     : ""
                   } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
-                    ? "ring-1 sm:ring-2 ring-green-400 ring-opacity-75 shadow-lg transform scale-105"
+                    ? " shadow-lg transform scale-105"
                     : ""
                   }`}
               >
