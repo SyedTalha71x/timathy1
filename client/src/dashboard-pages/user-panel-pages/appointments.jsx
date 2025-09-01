@@ -478,7 +478,6 @@ export default function Appointments() {
         <div className="">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
             <div className="flex w-full md:w-auto justify-between items-center gap-2">
-             
               <div className="flex items-center gap-2">
                 <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
                 <button
@@ -555,21 +554,20 @@ export default function Appointments() {
           {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
 
           <div className="flex lg:flex-row flex-col gap-6 relative">
-            {/* CONSISTENT WIDTH SIDEBAR - All elements now have matching widths */}
             <div
               className={`transition-all duration-500 ease-in-out ${
                 isSidebarCollapsed
                   ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0"
-                  : "lg:w-[320px] lg:opacity-100" // Fixed width for consistent alignment
-              } w-full flex flex-col gap-6`}
+                  : "lg:w-[320px] lg:opacity-100" // Fixed width for large screens only
+              } w-full md:w-full flex flex-col gap-6`} // Full width on tablet and mobile
             >
               <div className="w-full">
-                <div className="w-full max-w-[320px]"> 
+                <div className="w-full lg:max-w-[320px]">
                   <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
                 </div>
               </div>
 
-              <div className="w-full max-w-[320px] flex flex-col gap-4"> 
+              <div className="w-full lg:max-w-[320px] flex flex-col gap-4">
                 <div className="flex items-center gap-4 w-full">
                   <div className="relative w-full">
                     <input
@@ -662,7 +660,7 @@ export default function Appointments() {
                   )}
                 </div>
 
-                <div className="bg-[#000000] rounded-xl p-3 mt-4  w-full">
+                <div className="bg-[#000000] rounded-xl p-3 mt-4 w-full">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-white font-semibold text-sm">Appointment Filters</h3>
                     <div className="flex items-center gap-2">
@@ -750,7 +748,7 @@ export default function Appointments() {
             </div>
             <div
               className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${
-                isSidebarCollapsed ? "lg:w-full" : "lg:w-[calc(100%-320px-1.5rem)]" // Dynamic width calculation to prevent empty space
+                isSidebarCollapsed ? "lg:w-full" : "lg:w-[calc(100%-320px-1.5rem)]" // Keep large screen behavior unchanged
               }`}
             >
               <Calendar

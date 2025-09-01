@@ -99,17 +99,17 @@ const LeadCard = ({
     >
       <div
         ref={nodeRef}
-        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${
-          isDragging ? "opacity-70 z-50 shadow-lg absolute" : "opacity-100" // Changed 'fixed' to 'absolute' for better mobile drag behavior
+        className={`bg-[#1C1C1C] rounded-xl p-3 sm:p-4 mb-3 cursor-grab min-h-[120px] sm:min-h-[140px] ${
+          isDragging ? "opacity-70 z-50 shadow-lg absolute" : "opacity-100"
         }`}
         data-lead-id={lead.id}
       >
-        <div className="flex  items-center mb-3 relative">
+        <div className="flex items-center mb-2 sm:mb-3 relative">
           {hasValidNote && (
             <div
               className={`absolute -top-2 -left-2 ${
                 lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
-              }  rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
               onClick={(e) => {
                 e.stopPropagation()
                 setIsNoteOpen(!isNoteOpen)
@@ -125,9 +125,9 @@ const LeadCard = ({
           {isNoteOpen && hasValidNote && (
             <div
               ref={noteRef}
-              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[200] no-drag"
+              className="absolute left-0 top-6 w-64 sm:w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[200] no-drag"
             >
-              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+              <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                 {lead.specialNote.isImportant ? (
                   <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
                 ) : (
@@ -285,17 +285,17 @@ const Column = ({
     <div
       ref={columnRef}
       id={`column-${id}`}
-      className="bg-[#141414] rounded-xl overflow-hidden h-full flex flex-col"
+      className="bg-[#141414] rounded-xl overflow-hidden h-full flex flex-col min-h-[300px] sm:min-h-[400px]"
       data-column-id={id}
     >
-      <div className="p-3 flex justify-between items-center" style={{ backgroundColor: `${color}20` }}>
+      <div className="p-2 sm:p-3 flex justify-between items-center" style={{ backgroundColor: `${color}20` }}>
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
-            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
-            <h3 className="font-medium text-white text-sm">{title}</h3>
+            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
+            <h3 className="font-medium text-white text-xs sm:text-sm">{title}</h3>
           </div>
 
-          {isTrialColumn && <Lock size={14} className="text-gray-400" />}
+          {isTrialColumn && <Lock size={12} className="text-gray-400 sm:w-3.5 sm:h-3.5" />}
         </div>
 
         {isEditable && (
@@ -321,7 +321,7 @@ const Column = ({
           </button>
         )}
       </div>
-      <div className="p-3 flex-1 min-h-[400px]">
+      <div className="p-2 sm:p-3 flex-1 min-h-[250px] sm:min-h-[400px]">
         {leads.map((lead, index) => (
           <LeadCard
             key={lead.id}
@@ -1018,11 +1018,11 @@ export default function LeadManagement() {
           },
         }}
       />
-      <div className="flex md:flex-row flex-col gap-2 justify-between md:items-center items-start mb-6">
-        <div className="gap-2 w-full md:w-auto flex justify-between items-center ">
-          <h1 className="text-2xl text-white font-bold">Leads</h1>
+      <div className="flex md:flex-row flex-col gap-2 justify-between sm:items-center items-start mb-4 sm:mb-6">
+        <div className="gap-2 w-full sm:w-auto flex justify-between items-center">
+          <h1 className="text-xl sm:text-2xl text-white font-bold">Leads</h1>
           <div></div>
-          <div className="md:hidden block">
+          <div className="sm:hidden block">
             <IoIosMenu
               onClick={toggleRightSidebar}
               size={25}
@@ -1030,14 +1030,16 @@ export default function LeadManagement() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-orange-500 hover:bg-[#E64D2E] text-sm text-white px-4 py-2 rounded-xl flex items-center gap-2"
+            className="bg-orange-500 hover:bg-[#E64D2E] text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 flex-1 sm:flex-none justify-center"
           >
-            <Plus size={16} /> Create Lead
+            <Plus size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">Create Lead</span>
+            <span className="xs:hidden">Add</span>
           </button>
-          <div className="md:block hidden">
+          <div className="sm:block hidden">
             <IoIosMenu
               onClick={toggleRightSidebar}
               size={25}
@@ -1046,17 +1048,17 @@ export default function LeadManagement() {
           </div>
         </div>
       </div>
-      <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+      <div className="mb-4 sm:mb-6 relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
         <input
           type="text"
-          placeholder="Search leads by name, email, phone..."
+          placeholder="Search leads..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
+          className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10"
         />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 min-h-[600px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 min-h-[600px]">
         {columns.map((column) => (
           <Column
             key={column.id}
@@ -1200,25 +1202,25 @@ export default function LeadManagement() {
       {/* Confirmation dialog for drag operations */}
       {dragConfirmation.isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-          <div className="bg-[#1C1C1C] w-[90%] sm:w-[400px] rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
+          <div className="bg-[#1C1C1C] w-[95%] sm:w-[90%] md:w-[400px] max-w-md rounded-xl p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">
               {dragConfirmation.type === "toTrial" ? "Book Trial Training?" : "Move Lead from Trial Training?"}
             </h3>
-            <p className="text-gray-300 mb-6">
+            <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
               {dragConfirmation.type === "toTrial"
                 ? `Do you want to book a trial training for ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""}?`
                 : `Are you sure you want to move ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} from Trial Training Arranged?`}
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={dragConfirmation.onCancel}
-                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 bg-gray-600 text-white text-sm sm:text-base rounded-lg hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={dragConfirmation.onConfirm}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Yes
               </button>
@@ -1230,21 +1232,21 @@ export default function LeadManagement() {
       {/* Special note modal for moving from trial column */}
       {specialNoteModal.isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-          <div className="bg-[#1C1C1C] w-[90%] sm:w-[500px] rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Add Special Note</h3>
-            <p className="text-gray-300 mb-4">
+          <div className="bg-[#1C1C1C] w-[95%] sm:w-[90%] md:w-[500px] max-w-lg rounded-xl p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Add Special Note</h3>
+            <p className="text-gray-300 mb-3 sm:mb-4 text-sm sm:text-base">
               Please enter the reason for moving {specialNoteModal.lead?.firstName}{" "}
               {specialNoteModal.lead?.surname || ""} from Trial Training Arranged:
             </p>
             <textarea
               id="specialNoteText"
-              className="w-full bg-[#101010] text-white rounded-lg p-3 mb-4 min-h-[100px] resize-none outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-[#101010] text-white rounded-lg p-3 mb-3 sm:mb-4 min-h-[80px] sm:min-h-[100px] resize-none outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
               placeholder="Enter reason for moving from trial training..."
             />
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))}
-                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 bg-gray-600 text-white text-sm sm:text-base rounded-lg hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
@@ -1257,7 +1259,7 @@ export default function LeadManagement() {
                     toast.error("Please enter a reason for moving the lead")
                   }
                 }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Save & Move
               </button>

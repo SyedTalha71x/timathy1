@@ -24,8 +24,8 @@ export default function Calendar({
   setAppointments,
   appointmentFilters = {},
 }) {
-  const [isMobile, setIsMobile] = useState(false);
-  const [screenSize, setScreenSize] = useState('desktop');
+  const [isMobile, setIsMobile] = useState(false)
+  const [screenSize, setScreenSize] = useState("desktop")
   const [freeAppointments, setFreeAppointments] = useState([])
   const [currentDateDisplay, setCurrentDateDisplay] = useState("Feb 3 – 9, 2025")
 
@@ -47,11 +47,10 @@ export default function Calendar({
     show: false,
     x: 0,
     y: 0,
-    content: null
+    content: null,
   })
 
   const [currentDate, setCurrentDate] = useState(selectedDate || "2025-02-03")
-
 
   // Member contingent data
   const [memberContingent, setMemberContingent] = useState({
@@ -355,7 +354,7 @@ export default function Calendar({
     if (!appointment) return
 
     // Get the event element's position instead of mouse position
-    const eventElement = mouseEvent.target.closest('.fc-event')
+    const eventElement = mouseEvent.target.closest(".fc-event")
     if (!eventElement) return
 
     const rect = eventElement.getBoundingClientRect()
@@ -363,7 +362,7 @@ export default function Calendar({
     const scrollY = window.scrollY || document.documentElement.scrollTop
 
     // Position tooltip above the event with some offset
-    const tooltipX = rect.left + scrollX + (rect.width / 2) // Center horizontally on event
+    const tooltipX = rect.left + scrollX + rect.width / 2 // Center horizontally on event
     const tooltipY = rect.top + scrollY - 10 // Position above the event
 
     // Parse date from appointment format
@@ -372,9 +371,8 @@ export default function Calendar({
     if (dateParts && dateParts.length > 1) {
       const datePart = dateParts[1].trim()
       const [day, month, year] = datePart.split("-")
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-      formattedDate = `${day} ${monthNames[parseInt(month) - 1]} ${year}`
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+      formattedDate = `${day} ${monthNames[Number.parseInt(month) - 1]} ${year}`
     }
 
     setTooltip({
@@ -385,39 +383,39 @@ export default function Calendar({
         name: appointment.name || event.title,
         date: formattedDate,
         time: `${appointment.startTime || "N/A"} - ${appointment.endTime || "N/A"}`,
-        type: appointment.type || event.extendedProps?.type || "N/A"
-      }
+        type: appointment.type || event.extendedProps?.type || "N/A",
+      },
     })
   }
 
   useEffect(() => {
-    let resizeObserver;
-    
+    let resizeObserver
+
     if (calendarRef.current) {
-      const calendarElement = calendarRef.current.elRef.current;
-      
+      const calendarElement = calendarRef.current.elRef.current
+
       resizeObserver = new ResizeObserver(() => {
         if (calendarRef.current) {
-          const calendarApi = calendarRef.current.getApi();
+          const calendarApi = calendarRef.current.getApi()
           // Small delay to ensure DOM has updated
           setTimeout(() => {
-            calendarApi.updateSize();
-          }, 100);
+            calendarApi.updateSize()
+          }, 100)
         }
-      });
-      
+      })
+
       // Observe the calendar container
       if (calendarElement) {
-        resizeObserver.observe(calendarElement);
+        resizeObserver.observe(calendarElement)
       }
     }
-    
+
     return () => {
       if (resizeObserver) {
-        resizeObserver.disconnect();
+        resizeObserver.disconnect()
       }
-    };
-  }, []);
+    }
+  }, [])
 
   // Function to hide tooltip
   const hideTooltip = () => {
@@ -521,7 +519,9 @@ export default function Calendar({
       }
 
       setFreeAppointments(slots)
-      toast.success("Free slots mode activated! Available slots are now highlighted and all appointments are grayed out.")
+      toast.success(
+        "Free slots mode activated! Available slots are now highlighted and all appointments are grayed out.",
+      )
     } else {
       setFreeAppointments([])
       toast.success("Showing all appointments in normal view.")
@@ -530,22 +530,22 @@ export default function Calendar({
 
   useEffect(() => {
     const checkScreenSize = () => {
-      const width = window.innerWidth;
-      setIsMobile(width < 640);
+      const width = window.innerWidth
+      setIsMobile(width < 640)
 
       if (width < 480) {
-        setScreenSize('mobile');
+        setScreenSize("mobile")
       } else if (width < 640) {
-        setScreenSize('tablet');
+        setScreenSize("tablet")
       } else {
-        setScreenSize('desktop');
+        setScreenSize("desktop")
       }
-    };
+    }
 
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
+    checkScreenSize()
+    window.addEventListener("resize", checkScreenSize)
+    return () => window.removeEventListener("resize", checkScreenSize)
+  }, [])
 
   const handleEventDrop = (info) => {
     // // Check if it's a past or cancelled event and prevent drag/drop
@@ -650,7 +650,9 @@ export default function Calendar({
       id: selectedAppointment.id,
       name: selectedAppointment.name,
       type: selectedAppointment.type,
-      date: selectedAppointment.date ? selectedAppointment.date.split("|")[1]?.trim().split("-").reverse().join("-") : "",
+      date: selectedAppointment.date
+        ? selectedAppointment.date.split("|")[1]?.trim().split("-").reverse().join("-")
+        : "",
       time: selectedAppointment.startTime,
       startTime: selectedAppointment.startTime,
       endTime: selectedAppointment.endTime,
@@ -658,8 +660,8 @@ export default function Calendar({
         text: "",
         isImportant: false,
         startDate: "",
-        endDate: ""
-      }
+        endDate: "",
+      },
     }
 
     setSelectedAppointmentData(appointmentForModal)
@@ -795,14 +797,14 @@ export default function Calendar({
     const view = calendarApi.view
     const viewType = view.type
 
-    if (viewType === 'timeGridWeek') {
+    if (viewType === "timeGridWeek") {
       // Get start and end of week
       const start = new Date(view.currentStart)
       const end = new Date(view.currentEnd)
       end.setDate(end.getDate() - 1) // Adjust end date
 
-      const startMonth = start.toLocaleDateString('en-US', { month: 'short' })
-      const endMonth = end.toLocaleDateString('en-US', { month: 'short' })
+      const startMonth = start.toLocaleDateString("en-US", { month: "short" })
+      const endMonth = end.toLocaleDateString("en-US", { month: "short" })
       const year = start.getFullYear()
 
       if (startMonth === endMonth) {
@@ -810,18 +812,18 @@ export default function Calendar({
       } else {
         return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}, ${year}`
       }
-    } else if (viewType === 'timeGridDay') {
+    } else if (viewType === "timeGridDay") {
       const currentDate = new Date(view.currentStart)
-      return currentDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+      return currentDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       })
-    } else if (viewType === 'dayGridMonth') {
+    } else if (viewType === "dayGridMonth") {
       const currentDate = new Date(view.currentStart)
-      return currentDate.toLocaleDateString('en-US', {
-        month: 'long',
-        year: 'numeric'
+      return currentDate.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
       })
     }
 
@@ -1003,7 +1005,6 @@ export default function Calendar({
     setIsNotifyMemberOpen(true)
   }
 
-
   return (
     <>
       {/* Tooltip */}
@@ -1013,8 +1014,8 @@ export default function Calendar({
           style={{
             left: `${tooltip.x}px`,
             top: `${tooltip.y}px`,
-            transform: 'translate(-50%, -100%)',
-            marginTop: '10px' // -8px se -15px ya -20px kar do
+            transform: "translate(-50%, -100%)",
+            marginTop: "10px", // -8px se -15px ya -20px kar do
           }}
         >
           <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
@@ -1025,8 +1026,14 @@ export default function Calendar({
       )}
       <div className="h-full w-full">
         <div className="w-full bg-black">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2 px-2" style={{ minHeight: "40px", flexShrink: 0 }}>
-            <div className="flex items-center justify-between md:flex-row flex-col w-full mb-2 gap-2 px-2" style={{ minHeight: "40px", flexShrink: 0 }}>
+          <div
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2 px-2"
+            style={{ minHeight: "40px", flexShrink: 0 }}
+          >
+            <div
+              className="flex items-center justify-between md:flex-row flex-col w-full mb-2 gap-2 px-2"
+              style={{ minHeight: "40px", flexShrink: 0 }}
+            >
               <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                 <button
                   onClick={() => {
@@ -1105,17 +1112,17 @@ export default function Calendar({
                   </button>
                 </div>
                 <div className=" items-center gap-1 md:hidden inline sm:gap-2 flex-shrink-0">
-                <button
-                  onClick={generateFreeDates}
-                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+                  <button
+                    onClick={generateFreeDates}
+                    className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${
+                      viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
                     }`}
-                  aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
-                >
-                  <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
-                  <span className="sm:hidden">{viewMode === "all" ? "Free" : "All"}</span>
-                </button>
-              </div>
-
+                    aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
+                  >
+                    <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
+                    <span className="sm:hidden">{viewMode === "all" ? "Free" : "All"}</span>
+                  </button>
+                </div>
               </div>
 
               {/* CENTER: Custom Date Display */}
@@ -1129,8 +1136,9 @@ export default function Calendar({
               <div className=" items-center gap-1 md:inline hidden sm:gap-2 flex-shrink-0">
                 <button
                   onClick={generateFreeDates}
-                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-                    }`}
+                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${
+                    viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
+                  }`}
                   aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
                 >
                   <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
@@ -1160,33 +1168,44 @@ export default function Calendar({
             eventClick={handleEventClick}
             eventResize={handleEventResize}
             select={handleDateSelect}
-
             dayMaxEvents={false}
             eventMaxStack={10}
-
             // Responsive day header format
-            dayHeaderFormat={{ weekday: 'short', day: 'numeric' }}
             dayHeaderContent={(args) => {
-              const date = new Date(args.date);
-              const isSmallScreen = window.innerWidth < 640;
-              const weekday = date.toLocaleDateString('en-US', {
-                weekday: isSmallScreen ? 'short' : 'long'
-              });
-              const day = date.getDate();
-              return isSmallScreen ? `${weekday.substr(0, 3)}\n${day}` : `${weekday}, ${day}`;
-            }}
+              const date = new Date(args.date)
+              const isSmallScreen = window.innerWidth < 1024 // Changed to include tablets
+              const weekday = date.toLocaleDateString("en-US", {
+                weekday: isSmallScreen ? "short" : "long",
+              })
+              const day = date.getDate()
 
+              // Remove comma and show date below day name
+              if (isSmallScreen) {
+                return (
+                  <div style={{ textAlign: "center", lineHeight: "1.2" }}>
+                    <div>{weekday.substr(0, 3)}</div>
+                    <div>{day}</div>
+                  </div>
+                )
+              } else {
+                return (
+                  <div style={{ textAlign: "center", lineHeight: "1.2" }}>
+                    <div>{weekday}</div>
+                    <div>{day}</div>
+                  </div>
+                )
+              }
+            }}
             // CUSTOM STYLING for current day highlight
             dayCellClassNames={(date) => {
-              const today = new Date();
-              const cellDate = new Date(date.date);
+              const today = new Date()
+              const cellDate = new Date(date.date)
 
               if (cellDate.toDateString() === today.toDateString()) {
-                return ['fc-day-today-custom'];
+                return ["fc-day-today-custom"]
               }
-              return [];
+              return []
             }}
-
             // EVENT MOUSE ENTER/LEAVE for tooltip
             eventMouseEnter={(info) => {
               showTooltip(info.event, info.jsEvent)
@@ -1194,37 +1213,41 @@ export default function Calendar({
             eventMouseLeave={() => {
               hideTooltip()
             }}
-
             eventContent={(eventInfo) => (
               <div
-                className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
-                  } ${eventInfo.event.extendedProps.isCancelled
-                    ? "cancelled-event-content cancelled-appointment-bg"
-                    : ""
-                  } ${eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${
+                  eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
+                } ${
+                  eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""
+                } ${
+                  eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
                     ? "blocked-event-content blocked-appointment-bg"
                     : ""
-                  } ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                } ${
+                  eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                     ? "opacity-20"
                     : ""
-                  } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                } ${
+                  eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                     ? " shadow-lg transform scale-105"
                     : ""
-                  }`}
+                }`}
               >
                 <div
-                  className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${eventInfo.event.extendedProps.isPast
+                  className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${
+                    eventInfo.event.extendedProps.isPast
                       ? "text-gray-500"
                       : eventInfo.event.extendedProps.isCancelled
                         ? "text-gray-300"
-                        : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                        : eventInfo.event.extendedProps.isBlocked ||
+                            eventInfo.event.extendedProps.appointment?.isBlocked
                           ? "text-red-200"
                           : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                             ? "text-gray-600"
                             : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                               ? "text-white font-bold"
                               : ""
-                    }`}
+                  }`}
                 >
                   {eventInfo.event.extendedProps.isCancelled
                     ? `${eventInfo.event.title}`
@@ -1235,23 +1258,24 @@ export default function Calendar({
                         : eventInfo.event.title}
                 </div>
                 <div
-                  className={`text-[8px] sm:text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast
+                  className={`text-[8px] sm:text-xs opacity-90 truncate ${
+                    eventInfo.event.extendedProps.isPast
                       ? "text-gray-600"
                       : eventInfo.event.extendedProps.isCancelled
                         ? "text-gray-400"
-                        : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                        : eventInfo.event.extendedProps.isBlocked ||
+                            eventInfo.event.extendedProps.appointment?.isBlocked
                           ? "text-red-300"
                           : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                             ? "text-gray-600"
                             : ""
-                    }`}
+                  }`}
                 >
                   {eventInfo.event.extendedProps.type || "Available"}
                 </div>
                 <div className="text-[8px] sm:text-xs mt-0.5 sm:mt-1">{eventInfo.timeText}</div>
               </div>
             )}
-
             eventClassNames={(eventInfo) => {
               const classes = []
               if (eventInfo.event.extendedProps.isPast) {
@@ -1275,409 +1299,57 @@ export default function Calendar({
         </div>
       </div>
 
-      <style jsx>{`
-        :global(.past-event) {
-          cursor: pointer !important;
-          opacity: 0.25 !important;
-          filter: grayscale(0.8) brightness(0.6);
-        }
-        
-        :global(.cancelled-event) {
-          background-image: linear-gradient(
-            -45deg,
-            rgba(255, 255, 255, 0.1) 25%,
-            transparent 25%,
-            transparent 50%,
-            rgba(255, 255, 255, 0.1) 50%,
-            rgba(255, 255, 255, 0.1) 75%,
-            transparent 75%,
-            transparent
-          ) !important;
-          background-size: 10px 10px !important;
-          opacity: 0.6 !important;
-          filter: grayscale(0.5);
-          border-color: #777777 !important;
-          cursor: pointer !important;
+      <style jsx global>{`
+        /* RESET AND BASE STYLES */
+        :global(.fc) {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
         }
 
-        .fc .fc-toolbar-title {
-          margin-top: -45px;
-        }
-        
-        /* Mobile responsive title positioning */
-        @media (max-width: 640px) {
-          .fc .fc-toolbar-title {
-            margin-top: -15px;
-            font-size: 16px !important;
-          }
-        }
-        
-        /* CURRENT DAY HIGHLIGHT - Orange bar only at top of column header */
-        :global(.fc-col-header-cell.fc-current-day-highlight) {
-          position: relative !important;
-        }
-        
-        :global(.fc-col-header-cell.fc-current-day-highlight::before) {
-          content: '' !important;
-          position: absolute !important;
-          top: 0 !important;
-          left: 0 !important;
-          right: 0 !important;
-          height: 4px !important;
-          background-color: #FF843E !important;
-          z-index: 10 !important;
-        }
-        
-        :global(.cancelled-event-content) {
-          color: #bbbbbb !important;
-          background-color: #ffffff !important;
-        }
-        
-        :global(.free-slot-event) {
-          cursor: pointer !important;
-          border-left: 3px solid #15803d !important;
-          transition: all 0.3s ease;
-        }
-        
-        :global(.prominent-free-slot) {
-          box-shadow: 0 0 20px rgba(34, 197, 94, 0.7) !important;
-          border: 3px solid #22c55e !important;
-          transform: scale(1.05);
-          z-index: 10;
-          animation: pulse-green 2s infinite;
-        }
-        
-        @keyframes pulse-green {
-          0%, 100% {
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
-          }
-          50% {
-            box-shadow: 0 0 30px rgba(34, 197, 94, 0.9);
-          }
-        }
-        
-        :global(.fc-event-main) {
-          transition: all 0.3s ease;
-        }
-        
-        :global(.fc-theme-standard) {
-          background-color: #000000;
-          color: #ffffff;
-        }
-        
-        :global(.fc-theme-standard .fc-scrollgrid) {
-          border-color: #333333;
-        }
-        
-        :global(.fc-theme-standard td, .fc-theme-standard th) {
-          border-color: #333333;
-        }
-        
-        /* RESPONSIVE COLUMN HEADERS */
-        :global(.fc-col-header-cell) {
-          background-color: #1a1a1a;
-          color: #ffffff;
-          min-width: auto !important;
-          width: auto !important;
-          text-align: center;
-          font-weight: 600;
-          font-size: 14px;
-          padding: 8px 4px !important;
-          white-space: pre-line;
-        }
-        
-        /* RESPONSIVE TIME COLUMN */
-        :global(.fc-timegrid-axis-cushion) {
-          font-size: 12px !important;
-        }
-        
-        :global(.fc-timegrid-col) {
-          min-width: auto !important;
-          width: auto !important;
-        }
-        
-        :global(.fc-timegrid-slot) {
-          background-color: #000000;
-          border-color: #333333;
-        }
-        
-        :global(.fc-timegrid-slot-lane) {
-          background-color: #000000;
-        }
-        
-        :global(.fc-timegrid-slot-minor) {
-          border-color: #222222;
-        }
-        
-        :global(.fc-toolbar-title) {
-          color: #ffffff;
-        }
-        
-        :global(.fc-button) {
-          background-color: #333333 !important;
-          border-color: #444444 !important;
-          color: #ffffff !important;
-        }
-        
-        :global(.fc-button-active) {
-          background-color: #555555 !important;
-        }
-        
-        /* CUSTOM TOOLBAR POSITIONING */
-        :global(.fc-toolbar-custom) {
-          align-items: center !important;
-          height: 40px !important;
-        }
-        
-        :global(#calendar-navigation .fc-toolbar) {
-          margin-bottom: 8px !important;
-          padding: 0 !important;
-          align-items: center !important;
-          height: 40px !important;
-        }
-        
-        :global(#calendar-navigation .fc-toolbar-chunk) {
-          display: flex !important;
-          align-items: center !important;
-          height: 40px !important;
-        }
-        
-        :global(#calendar-navigation .fc-button-group) {
-          height: 36px !important;
-          display: flex !important;
-          align-items: center !important;
-        }
-        
-        :global(#calendar-navigation .fc-button) {
-          height: 36px !important;
-          padding: 8px 12px !important;
-          font-size: 14px !important;
-          line-height: 1 !important;
-        }
-        
-        :global(#calendar-navigation .fc-toolbar-title) {
-          color: #ffffff;
-          margin: 0 !important;
-          line-height: 40px !important;
-        }
-        
-        /* HIDE DEFAULT TOOLBAR */
-        :global(.fc-header-toolbar) {
-          display: none !important;
-        }
-        
-        :global(.fc-event) {
-          margin: 1px !important;
-          border-radius: 4px !important;
-        }
-        
-        :global(.fc-timegrid-event) {
-          margin: 1px 2px !important;
-        }
-        
-        /* Fix for extra space after Sunday */
-        :global(.fc-scrollgrid) {
-          table-layout: fixed !important;
-          width: 100% !important;
-        }
-        
-        :global(.fc-col-header),
-        :global(.fc-scrollgrid-sync-table) {
-          width: 100% !important;
-        }
-        
-        :global(.fc-col-header-cell),
-        :global(.fc-daygrid-day),
-        :global(.fc-timegrid-col) {
-          width: calc(100% / 7) !important;
-        }
-
-        /* ENHANCED MOBILE RESPONSIVENESS - NEW FIXES */
-        @media (max-width: 768px) {
-          :global(.fc) {
-            font-size: 12px;
-            width: 100% !important;
-            overflow: visible !important;
-          }
-          
-          :global(.fc-view-harness) {
-            overflow: visible !important;
-            width: 100% !important;
-          }
-          
-          :global(.fc-scroller-harness) {
-            overflow: visible !important;
-          }
-          
-          :global(.fc-scroller) {
-            overflow: visible !important;
-          }
-        }
-        
-        @media (max-width: 640px) {
-          :global(.fc) {
-            font-size: 11px;
-          }
-          
-          :global(.fc-col-header-cell) {
-            font-size: 10px !important;
-            padding: 4px 2px !important;
-            line-height: 1.2;
-            min-width: 0 !important;
-            width: calc(100% / 7) !important;
-            flex: none !important;
-          }
-          
-          :global(.fc-timegrid-col) {
-            min-width: 0 !important;
-            width: calc(100% / 7) !important;
-            flex: none !important;
-          }
-          
-          :global(.fc-timegrid-axis) {
-            min-width: 45px !important;
-            width: 45px !important;
-            flex: none !important;
-          }
-          
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 9px !important;
-            padding: 2px !important;
-          }
-          
-          :global(.fc-timegrid-slot-label-cushion) {
-            padding: 2px !important;
-          }
-          
-          :global(.fc-scrollgrid) {
-            width: 100% !important;
-            table-layout: fixed !important;
-          }
-          
-          :global(.fc-scrollgrid-sync-table) {
-            width: 100% !important;
-            table-layout: fixed !important;
-          }
-          
-          :global(.fc-timegrid-event) {
-            margin: 0.5px 1px !important;
-            font-size: 9px !important;
-          }
-          
-          :global(.fc-event) {
-            margin: 0.5px !important;
-            border-radius: 3px !important;
-            min-height: 20px !important;
-          }
-          
-          :global(.fc-event-title) {
-            font-size: 9px !important;
-            line-height: 1.1 !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-          }
-          
-          :global(.fc-event-time) {
-            font-size: 8px !important;
-            line-height: 1.1 !important;
-          }
-          
-          /* Free slot mobile adjustments */
-          :global(.free-slot-event) {
-            border-left: 2px solid #15803d !important;
-          }
-          
-          :global(.prominent-free-slot) {
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.7) !important;
-            border: 2px solid #22c55e !important;
-            transform: scale(1.02);
-          }
-          
-          @keyframes pulse-green {
-            0%, 100% {
-              box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
-            }
-            50% {
-              box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
-            }
-          }
-        }
-        
-        @media (max-width: 480px) {
-          :global(.fc) {
-            font-size: 10px;
-          }
-          
-          :global(.fc-col-header-cell) {
-            font-size: 9px !important;
-            padding: 3px 1px !important;
-            line-height: 1.1;
-          }
-          
-          :global(.fc-timegrid-axis) {
-            min-width: 40px !important;
-            width: 40px !important;
-          }
-          
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 8px !important;
-            padding: 1px !important;
-          }
-          
-          :global(.fc-event-title) {
-            font-size: 8px !important;
-            line-height: 1 !important;
-          }
-          
-          :global(.fc-event-time) {
-            font-size: 7px !important;
-            line-height: 1 !important;
-          }
-          
-          :global(.fc-timegrid-event) {
-            font-size: 8px !important;
-            min-height: 18px !important;
-          }
-        }
-        
-        /* VERY SMALL SCREENS - Extra compact */
-        @media (max-width: 375px) {
-          :global(.fc-col-header-cell) {
-            font-size: 8px !important;
-            padding: 2px 0.5px !important;
-          }
-          
-          :global(.fc-timegrid-axis) {
-            min-width: 35px !important;
-            width: 35px !important;
-          }
-          
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 7px !important;
-          }
-          
-          :global(.fc-event-title) {
-            font-size: 7px !important;
-          }
-          
-          :global(.fc-event-time) {
-            font-size: 6px !important;
-          }
-        }
-        
-        /* DESKTOP SPECIFIC - Maintain original quality */
+        /* Desktop styles remain the same */
         @media (min-width: 1024px) {
           :global(.fc) {
             font-size: 14px;
+            width: 100%;
+            overflow: visible;
+          }
+          
+          :global(.fc-view-harness) {
+            overflow: visible;
+            width: 100%;
+          }
+          
+          :global(.fc-scroller-harness) {
+            overflow: visible;
+          }
+          
+          :global(.fc-scroller) {
+            overflow: visible;
           }
           
           :global(.fc-col-header-cell) {
             font-size: 14px !important;
             padding: 8px 4px !important;
+            text-align: center;
+            border-right: 1px solid #e5e7eb;
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+          }
+          
+          :global(.fc-timegrid-axis) {
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
           }
           
           :global(.fc-timegrid-axis-cushion) {
             font-size: 12px !important;
+            padding: 4px !important;
           }
           
           :global(.fc-event-title) {
@@ -1687,21 +1359,73 @@ export default function Calendar({
           :global(.fc-event-time) {
             font-size: 11px !important;
           }
+          
+          :global(.fc-daygrid-day),
+          :global(.fc-timegrid-col) {
+            width: calc(100% / 7) !important;
+          }
         }
-        
-        /* TABLET SPECIFIC */
-        @media (min-width: 641px) and (max-width: 1023px) {
+
+        /* Tablet and mobile styles - horizontally scrollable with stretched columns */
+        @media (max-width: 1023px) {
           :global(.fc) {
             font-size: 12px;
+            width: 150% !important; /* Stretch calendar wider than container */
+            min-width: 800px !important; /* Minimum width to ensure proper spacing */
+            overflow-x: auto !important;
           }
           
+          :global(.fc-view-harness) {
+            overflow-x: auto !important;
+            width: 100% !important;
+          }
+          
+          :global(.fc-scroller-harness) {
+            overflow-x: auto !important;
+          }
+          
+          :global(.fc-scroller) {
+            overflow-x: auto !important;
+          }
+          
+          /* Container to enable horizontal scrolling */
+          :global(.fc-view) {
+            overflow-x: auto !important;
+            width: 100% !important;
+          }
+          
+          :global(.fc-timegrid) {
+            overflow-x: auto !important;
+            min-width: 800px !important;
+          }
+          
+          /* Stretch column widths for better visibility */
           :global(.fc-col-header-cell) {
             font-size: 12px !important;
-            padding: 6px 3px !important;
+            padding: 8px 6px !important;
+            text-align: center;
+            border-right: 1px solid #e5e7eb;
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            min-width: 100px !important; /* Minimum column width */
+            width: 120px !important; /* Fixed wider column width */
+          }
+          
+          :global(.fc-timegrid-col) {
+            min-width: 100px !important;
+            width: 120px !important;
+          }
+          
+          :global(.fc-timegrid-axis) {
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
           }
           
           :global(.fc-timegrid-axis-cushion) {
-            font-size: 10px !important;
+            font-size: 11px !important;
+            padding: 4px !important;
           }
           
           :global(.fc-event-title) {
@@ -1709,171 +1433,232 @@ export default function Calendar({
           }
           
           :global(.fc-event-time) {
+            font-size: 10px !important;
+          }
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 640px) {
+          :global(.fc) {
+            font-size: 11px;
+            width: 200% !important; /* Even wider for mobile */
+            min-width: 900px !important;
+          }
+          
+          :global(.fc-col-header-cell) {
+            font-size: 11px !important;
+            padding: 6px 4px !important;
+            min-width: 110px !important;
+            width: 130px !important;
+          }
+          
+          :global(.fc-timegrid-col) {
+            min-width: 110px !important;
+            width: 130px !important;
+          }
+          
+          :global(.fc-timegrid-axis) {
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
+          }
+          
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 10px !important;
+            padding: 3px !important;
+          }
+          
+          :global(.fc-event-title) {
+            font-size: 10px !important;
+          }
+          
+          :global(.fc-event-time) {
             font-size: 9px !important;
           }
         }
-        
-        /* FORCE PROPER COLUMN DISTRIBUTION ON ALL SCREENS */
+
+        /* Very small mobile screens */
+        @media (max-width: 480px) {
+          :global(.fc) {
+            font-size: 10px;
+            width: 250% !important;
+            min-width: 1000px !important;
+          }
+          
+          :global(.fc-col-header-cell) {
+            font-size: 10px !important;
+            padding: 5px 3px !important;
+            min-width: 120px !important;
+            width: 140px !important;
+          }
+          
+          :global(.fc-timegrid-col) {
+            min-width: 120px !important;
+            width: 140px !important;
+          }
+          
+          :global(.fc-timegrid-axis) {
+            width: 55px !important;
+            min-width: 55px !important;
+            max-width: 55px !important;
+          }
+          
+          :global(.fc-timegrid-axis-cushion) {
+            font-size: 9px !important;
+            padding: 2px !important;
+          }
+          
+          :global(.fc-event-title) {
+            font-size: 9px !important;
+          }
+          
+          :global(.fc-event-time) {
+            font-size: 8px !important;
+          }
+        }
+
+        /* Common styles for all screen sizes */
+        :global(.fc-col-header-cell-cushion) {
+          overflow: visible !important;
+          text-overflow: clip !important;
+          white-space: normal !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        /* Force proper table layout for stretched columns */
         :global(.fc-timegrid-header-table),
         :global(.fc-timegrid-body-table) {
           width: 100% !important;
           table-layout: fixed !important;
         }
-        
-        :global(.fc-timegrid-header-table th),
-        :global(.fc-timegrid-body-table td) {
-          width: calc((100% - 45px) / 7) !important;
+
+        /* Event styling remains consistent */
+        :global(.fc-event) {
+          border: none !important;
+          border-radius: 6px !important;
+          font-weight: 500 !important;
+          margin: 1px !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
         }
-        
-        :global(.fc-timegrid-axis) {
-          width: 45px !important;
-          min-width: 45px !important;
-          max-width: 45px !important;
-        }
-        
-        /* MOBILE SPECIFIC COLUMN FIXES */
-        @media (max-width: 640px) {
-          :global(.fc-timegrid-header-table th),
-          :global(.fc-timegrid-body-table td) {
-            width: calc((100% - 40px) / 7) !important;
-          }
-          
-          :global(.fc-timegrid-axis) {
-            width: 40px !important;
-            min-width: 40px !important;
-            max-width: 40px !important;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          :global(.fc-timegrid-header-table th),
-          :global(.fc-timegrid-body-table td) {
-            width: calc((100% - 35px) / 7) !important;
-          }
-          
-          :global(.fc-timegrid-axis) {
-            width: 35px !important;
-            min-width: 35px !important;
-            max-width: 35px !important;
-          }
-        }
-        
-        /* PREVENT HORIZONTAL OVERFLOW */
-        :global(.fc-view-harness) {
-          overflow-x: hidden !important;
-          width: 100% !important;
-        }
-        
-        :global(.fc-scroller-harness) {
-          overflow-x: hidden !important;
-        }
-        
-        :global(.fc-scroller) {
-          overflow-x: hidden !important;
-        }
-        
-        /* ENSURE TEXT DOESN'T BREAK LAYOUT */
-        :global(.fc-col-header-cell-cushion) {
+
+        :global(.fc-event-title) {
+          font-weight: 600 !important;
+          line-height: 1.3 !important;
           overflow: hidden !important;
           text-overflow: ellipsis !important;
-          white-space: nowrap !important;
         }
-        
-        @media (max-width: 640px) {
-          :global(.fc-col-header-cell-cushion) {
-            font-size: 9px !important;
-            line-height: 1.1 !important;
+
+        :global(.fc-event-time) {
+          font-weight: 400 !important;
+          opacity: 0.9 !important;
+          line-height: 1.2 !important;
+        }
+
+        /* Time axis styling */
+        :global(.fc-timegrid-axis) {
+          border-right: 2px solid #e5e7eb !important;
+          background: #f9fafb !important;
+        }
+
+        :global(.fc-timegrid-axis-cushion) {
+          color: #6b7280 !important;
+          font-weight: 500 !important;
+          text-align: center !important;
+        }
+
+        /* Grid lines */
+        :global(.fc-timegrid-slot) {
+          border-top: 1px solid #f3f4f6 !important;
+        }
+
+        :global(.fc-timegrid-slot-minor) {
+          border-top: 1px solid #f9fafb !important;
+        }
+
+        /* Column separators */
+        :global(.fc-timegrid-col) {
+          border-right: 1px solid #e5e7eb !important;
+        }
+
+        /* Header styling */
+        :global(.fc-col-header) {
+          background: #f9fafb !important;
+          border-bottom: 2px solid #e5e7eb !important;
+        }
+
+        /* Today highlight */
+        :global(.fc-day-today) {
+          background-color: rgba(59, 130, 246, 0.05) !important;
+        }
+
+        :global(.fc-col-header-cell.fc-day-today) {
+          background-color: rgba(59, 130, 246, 0.1) !important;
+          color: #1d4ed8 !important;
+          font-weight: 700 !important;
+        }
+
+        /* Free slot styling */
+        :global(.free-slot-event) {
+          background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
+          color: #15803d !important;
+          border-left: 3px solid #15803d !important;
+          font-weight: 600 !important;
+        }
+
+        :global(.prominent-free-slot) {
+          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+          color: white !important;
+          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4) !important;
+          border: none !important;
+          transform: scale(1.02) !important;
+          animation: pulse-green 2s infinite !important;
+        }
+
+        @keyframes pulse-green {
+          0%, 100% {
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+          }
+          50% {
+            box-shadow: 0 6px 16px rgba(34, 197, 94, 0.6);
           }
         }
-        
-        /* EVENT CONTENT RESPONSIVENESS */
-        :global(.fc-event-main-frame) {
-          overflow: hidden !important;
+
+        /* Tooltip styling */
+        :global(.tooltip-container) {
+          background: rgba(0, 0, 0, 0.9) !important;
+          color: white !important;
+          padding: 8px 12px !important;
+          border-radius: 6px !important;
+          font-size: 12px !important;
+          line-height: 1.4 !important;
+          max-width: 250px !important;
+          word-wrap: break-word !important;
+          z-index: 1000 !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
         }
-        
-        :global(.fc-event-title-container) {
-          overflow: hidden !important;
-        }
-        
-        /* MOBILE EVENT SIZING */
-        @media (max-width: 640px) {
-          :global(.fc-timegrid-event-harness) {
-            margin-left: 1px !important;
-            margin-right: 1px !important;
+
+        /* Scrollbar styling for horizontal scroll */
+        @media (max-width: 1023px) {
+          :global(.fc-view-harness)::-webkit-scrollbar {
+            height: 8px;
           }
           
-          :global(.fc-event-main) {
-            padding: 2px !important;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          :global(.fc-event-main) {
-            padding: 1px !important;
-          }
-        }
-        
-        /* TOOLTIP RESPONSIVE ADJUSTMENTS */
-        @media (max-width: 640px) {
-          :global(.tooltip-container) {
-            max-width: 200px !important;
-            font-size: 11px !important;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          :global(.tooltip-container) {
-            max-width: 180px !important;
-            font-size: 10px !important;
-          }
-        }
-        
-        /* ENSURE NO LAYOUT BREAKS ON VERY SMALL SCREENS */
-        @media (max-width: 320px) {
-          :global(.fc-col-header-cell) {
-            font-size: 7px !important;
-            padding: 2px 0px !important;
+          :global(.fc-view-harness)::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
           }
           
-          :global(.fc-timegrid-axis) {
-            width: 30px !important;
-            min-width: 30px !important;
-            max-width: 30px !important;
+          :global(.fc-view-harness)::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
           }
           
-          :global(.fc-timegrid-axis-cushion) {
-            font-size: 6px !important;
+          :global(.fc-view-harness)::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
           }
-          
-          :global(.fc-event-title) {
-            font-size: 6px !important;
-          }
-          
-          :global(.fc-timegrid-header-table th),
-          :global(.fc-timegrid-body-table td) {
-            width: calc((100% - 30px) / 7) !important;
-          }
-        }
-        
-        /* PREVENT ANY HORIZONTAL SCROLLING */
-        :global(.fc-view) {
-          overflow-x: hidden !important;
-        }
-        
-        :global(.fc-timegrid) {
-          overflow-x: hidden !important;
-        }
-        
-        /* ENSURE PROPER FLEX BEHAVIOR */
-        :global(.fc-timegrid-header),
-        :global(.fc-timegrid-body) {
-          width: 100% !important;
-        }
-        
-        /* FORCE TABLE CELLS TO RESPECT WIDTH */
-        :global(.fc-timegrid-col-frame) {
-          position: relative !important;
-          width: 100% !important;
         }
       `}</style>
       {/* Member Overview Modal - ENHANCED */}

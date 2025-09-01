@@ -261,7 +261,7 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
       <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-800">
           <h3 className="text-white text-lg sm:text-xl font-medium">
-            Document Management - {member.firstName} {member.lastName}
+            Doc Management - {member.firstName} {member.lastName}
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
             <X className="w-5 h-5 sm:w-6 sm:h-6" />
