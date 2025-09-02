@@ -322,12 +322,14 @@ export default function StaffManagement() {
   
             {/* Staff cards section */}
             <div
-              className={`open_sans_font mt-6 sm:mt-15 ${
-                viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4"
-                  : "flex flex-col gap-3"
-              }`}
-            >
+  className={`open_sans_font mt-6 sm:mt-15 ${
+    viewMode === "grid"
+      ? `grid grid-cols-1 sm:grid-cols-2 ${
+          isRightSidebarOpen ? "xl:grid-cols-2" : "xl:grid-cols-3"
+        } gap-3 sm:gap-4`
+      : "flex flex-col gap-3"
+  }`}
+>
               {staffMembers.map((staff) => (
                 <div
                   key={staff.id}

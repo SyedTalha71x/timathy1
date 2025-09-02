@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X, FileText, Eye, Trash2 } from "lucide-react"
-import CheckFundsModal from "../../components/customer-dashboard/studios-modal/check-funds-modal"
+import CheckFundsModal from "../../components/finance-components/check-funds-modal"
 import SepaXmlModal from "../../components/finance-components/sepa-xml-modal"
 import { financialData } from "../../utils/states"
 import { useNavigate } from "react-router-dom"
@@ -13,213 +13,14 @@ import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
 import { SidebarArea } from "../../components/custom-sidebar"
 import ExportConfirmationModal from "../../components/finance-components/export-confirmation-modal"
+import DocumentsModal from "../../components/finance-components/documents-modal"
+import ServicesModal from "../../components/finance-components/service-modal"
+import CustomDateModal from "../../components/finance-components/custom-date-modal"
 
-const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDocument }) => {
-  if (!isOpen) return null
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-  }
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
 
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-        <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center">
-          <div className="flex items-center gap-2 md:gap-3">
-            <FileText className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
-            <h2 className="text-white text-base md:text-lg font-medium">SEPA XML Documents</h2>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
-        </div>
 
-        <div className="p-3 md:p-4 overflow-y-auto flex-grow">
-          {documents.length === 0 ? (
-            <div className="text-center py-6 md:py-8">
-              <FileText className="w-10 h-10 md:w-12 md:h-12 text-gray-600 mx-auto mb-3 md:mb-4" />
-              <p className="text-gray-400 text-sm md:text-base">No SEPA XML documents generated yet</p>
-              <p className="text-gray-500 text-xs md:text-sm mt-2">Generated XML files will appear here</p>
-            </div>
-          ) : (
-            <div className="space-y-2 md:space-y-3">
-              {documents.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="bg-[#141414] p-3 md:p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3"
-                >
-                  <div className="flex items-center gap-2 md:gap-3">
-                    <div className="bg-blue-900/30 p-1.5 md:p-2 rounded-lg">
-                      <FileText className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-medium text-sm md:text-base">{doc.filename}</h3>
-                      <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 text-xs md:text-sm text-gray-400 mt-1">
-                        <span>Generated: {formatDate(doc.createdAt)}</span>
-                        <span>Size: {formatFileSize(doc.size)}</span>
-                        <span>Transactions: {doc.transactionCount}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 self-end md:self-auto">
-                    <button
-                      onClick={() => onViewDocument(doc)}
-                      className="p-1.5 md:p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-                      title="View Document"
-                    >
-                      <Eye className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const element = document.createElement("a")
-                        const file = new Blob([doc.content], { type: "application/xml" })
-                        element.href = URL.createObjectURL(file)
-                        element.download = doc.filename
-                        document.body.appendChild(element)
-                        element.click()
-                        document.body.removeChild(element)
-                      }}
-                      className="p-1.5 md:p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded-lg transition-colors"
-                      title="Download"
-                    >
-                      <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                    </button>
-                    <button
-                      onClick={() => onDeleteDocument(doc.id)}
-                      className="p-1.5 md:p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const ServicesModal = ({ isOpen, onClose, services, memberName }) => {
-  if (!isOpen) return null
-
-  const totalCost = services.reduce((sum, service) => sum + service.cost, 0)
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
-        <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-white text-base md:text-lg font-medium">Services Breakdown</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
-        </div>
-        <div className="p-3 md:p-4 overflow-y-auto flex-grow">
-          <div className="mb-3 md:mb-4">
-            <h3 className="text-white font-medium mb-2 text-sm md:text-base">{memberName}</h3>
-            <p className="text-gray-400 text-xs md:text-sm">Service breakdown for this member</p>
-          </div>
-          <div className="space-y-2 md:space-y-3">
-            {services.map((service, index) => (
-              <div key={index} className="bg-[#141414] p-2.5 md:p-3 rounded-lg">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-white font-medium text-sm md:text-base">{service.name}</span>
-                  <span className="text-white font-semibold text-sm md:text-base">${service.cost.toFixed(2)}</span>
-                </div>
-                <p className="text-gray-400 text-xs md:text-sm">{service.description}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-gray-800">
-            <div className="flex justify-between items-center">
-              <span className="text-white font-semibold text-sm md:text-base">Total Amount</span>
-              <span className="text-white font-bold text-base md:text-lg">${totalCost.toFixed(2)} USD</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const CustomDateModal = ({ isOpen, onClose, onApply }) => {
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-
-  if (!isOpen) return null
-
-  const handleApply = () => {
-    if (startDate && endDate) {
-      onApply(startDate, endDate)
-      onClose()
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md p-4 md:p-6">
-        <div className="flex justify-between items-center mb-3 md:mb-4">
-          <h2 className="text-white text-base md:text-lg font-medium">Custom Date Range</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
-        </div>
-        <div className="space-y-3 md:space-y-4">
-          <div>
-            <label className="block text-gray-400 text-xs md:text-sm mb-2">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="bg-black text-white px-3 md:px-4 white-calendar-icon py-2 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#3F74FF] text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-400 text-xs md:text-sm mb-2">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="bg-black text-white white-calendar-icon px-3 md:px-4 py-2 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#3F74FF] text-sm"
-            />
-          </div>
-          <div className="flex gap-2 md:gap-3 pt-3 md:pt-4">
-            <button
-              onClick={onClose}
-              className="flex-1 bg-gray-800 text-white px-3 md:px-4 py-2 rounded-xl hover:bg-gray-700 transition-colors text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleApply}
-              disabled={!startDate || !endDate}
-              className="flex-1 bg-[#3F74FF] text-white px-3 md:px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              Apply
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default function FinancesPage() {
   const navigate = useNavigate()
@@ -624,6 +425,9 @@ export default function FinancesPage() {
 
   const currentPeriodData = getCurrentPeriodData()
 
+  // Responsive classes for large screen sidebar open state
+  const isLargeSidebarOpen = isRightSidebarOpen && window.innerWidth >= 1024
+
   return (
     <div
       className={`
@@ -646,12 +450,12 @@ export default function FinancesPage() {
               {/* Documents Icon */}
               <button
                 onClick={() => setDocumentsModalOpen(true)}
-                className="bg-[#2F2F2F] text-white p-1.5 sm:p-2 md:p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
+                className="bg-black text-white p-1.5 sm:p-2 md:p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
                 title="View SEPA XML Documents"
               >
                 <FileText className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                 {sepaDocuments.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#3F74FF] text-white text-xs rounded-full w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5 flex items-center justify-center text-[10px] sm:text-[10px] md:text-xs">
+                  <span className="absolute -top-2 -right-2 bg-orange-600 text-white text-xs rounded-full w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5 flex items-center justify-center text-[10px] sm:text-[10px] md:text-xs">
                     {sepaDocuments.length}
                   </span>
                 )}
@@ -739,19 +543,19 @@ export default function FinancesPage() {
           </div>
         </div>
 
-        {/* Large screens: Single row layout */}
+        {/* Large screens: Conditional layout based on sidebar state */}
         <div className="hidden lg:flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <h1 className="text-white oxanium_font text-2xl">Finances</h1>
+            <h1 className={`text-white oxanium_font ${isRightSidebarOpen ? 'text-xl' : 'text-2xl'}`}>Finances</h1>
             {/* Documents Icon */}
             <button
               onClick={() => setDocumentsModalOpen(true)}
-              className="bg-[#2F2F2F] text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
+              className="bg-black text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
               title="View SEPA XML Documents"
             >
               <FileText className="w-5 h-5" />
               {sepaDocuments.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#3F74FF] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center text-xs">
                   {sepaDocuments.length}
                 </span>
               )}
@@ -759,11 +563,13 @@ export default function FinancesPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Period Selector */}
+            {/* Period Selector - Responsive width when sidebar is open */}
             <div className="relative">
               <button
                 onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
-                className="bg-black text-white px-4 py-2.5 rounded-xl border border-gray-800 flex items-center justify-between gap-2 min-w-[180px] text-sm"
+                className={`bg-black text-white px-4 py-2.5 rounded-xl border border-gray-800 flex items-center justify-between gap-2 text-sm ${
+                  isRightSidebarOpen ? 'min-w-[120px]' : 'min-w-[180px]'
+                }`}
               >
                 <Calendar className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm truncate">{selectedPeriod}</span>
@@ -796,29 +602,35 @@ export default function FinancesPage() {
               )}
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - More compact when sidebar is open */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setExportConfirmationOpen(true)}
-                className="bg-gray-600 cursor-pointer text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors"
+                className={`bg-gray-600 cursor-pointer text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors ${
+                  isRightSidebarOpen ? 'px-3' : 'px-4'
+                }`}
               >
                 <Download className="w-4 h-4" />
-                Export CSV
+                <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Export CSV</span>
               </button>
               <button
                 onClick={() => setSepaModalOpen(true)}
-                className="bg-[#3F74FF] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors"
+                className={`bg-[#3F74FF] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors ${
+                  isRightSidebarOpen ? 'px-3' : 'px-4'
+                }`}
               >
                 <Download className="w-4 h-4" />
-                Run Payment
+                <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Run Payment</span>
               </button>
               {hasCheckingTransactions && (
                 <button
                   onClick={() => setCheckFundsModalOpen(true)}
-                  className="bg-[#2F2F2F] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#2F2F2F]/90 transition-colors"
+                  className={`bg-[#2F2F2F] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#2F2F2F]/90 transition-colors ${
+                    isRightSidebarOpen ? 'px-3' : 'px-4'
+                  }`}
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Check Incoming Funds
+                  <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Check Incoming Funds</span>
                 </button>
               )}
               <div className="block">
@@ -833,7 +645,12 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+      {/* Stats Grid - Responsive layout for sidebar state */}
+      <div className={`grid gap-3 md:gap-4 mb-4 md:mb-6 ${
+        isRightSidebarOpen 
+          ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2' // 2 columns when sidebar open on large screens
+          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' // 4 columns when sidebar closed
+      }`}>
         <div className="bg-[#141414] p-3 md:p-4 rounded-xl">
           <h3 className="text-gray-400 text-xs md:text-sm mb-1">Total Revenue</h3>
           <p className="text-white text-lg md:text-xl font-semibold">
@@ -875,7 +692,11 @@ export default function FinancesPage() {
         <div className="relative">
           <button
             onClick={() => setStatusFilterOpen(!statusFilterOpen)}
-            className="bg-black text-white px-3 md:px-4 py-2 md:py-2.5 rounded-xl border border-gray-800 flex items-center justify-between gap-2 min-w-[140px] md:min-w-[160px] lg:min-w-[180px] w-full sm:w-auto text-sm"
+            className={`bg-black text-white px-3 md:px-4 py-2 md:py-2.5 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full sm:w-auto text-sm ${
+              isRightSidebarOpen 
+                ? 'min-w-[140px] md:min-w-[140px] lg:min-w-[140px]'
+                : 'min-w-[140px] md:min-w-[160px] lg:min-w-[180px]'
+            }`}
           >
             <Filter className="w-3 h-3 md:w-4 md:h-4" />
             <span className="text-xs md:text-sm">Status: {selectedStatus}</span>
@@ -907,8 +728,9 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="min-w-[600px]">
+      {/* Table with horizontal scroll when sidebar is open */}
+      <div className={`${isRightSidebarOpen ? 'overflow-x-auto' : 'overflow-x-auto'}`}>
+        <div className={isRightSidebarOpen ? 'min-w-[700px]' : 'min-w-[600px]'}>
           <table className="w-full text-sm text-left text-gray-300">
             <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
               <tr>

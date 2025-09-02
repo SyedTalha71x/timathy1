@@ -5,6 +5,11 @@
 import { useState, useRef, useEffect } from "react"
 import Chart from "react-apexcharts"
 import { TrendingUp, Users, Calendar, DollarSign, Clock, Target, ChevronDown, ArrowUp, ArrowDown } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import Avatar from "../../../public/avatar.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
+import { SidebarArea } from "../../components/custom-sidebar"
+import { IoIosMenu } from "react-icons/io"
 
 const analyticsData = {
   overview: {
@@ -130,6 +135,8 @@ const ChartCard = ({ title, children, className = "" }) => {
 }
 
 export default function AnalyticsDashboard() {
+  const navigate = useNavigate()
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [selectedAnalyticsFilter, setSelectedAnalyticsFilter] = useState("All members")
   const [isAnalyticsFilterOpen, setIsAnalyticsFilterOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -497,81 +504,101 @@ export default function AnalyticsDashboard() {
     },
   ]
 
-  // Membership Distribution Chart
-  const membershipChartOptions = {
-    chart: {
-      type: "donut",
-      height: 300,
-    },
-    colors: ["#3B82F6", "#10B981", "#F59E0B"],
-    labels: analyticsData.membershipTypes.map((type) => type.name),
-    legend: {
-      position: "bottom",
-      labels: { colors: "#9CA3AF" },
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: "70%",
-          labels: {
-            show: true,
-            total: {
-              show: true,
-              label: "Total Members",
-              color: "#9CA3AF",
-              formatter: () => analyticsData.overview.totalMembers.toLocaleString(),
-            },
-          },
+    const [communications, setCommunications] = useState([
+        {
+          id: 1,
+          name: "John Doe",
+          message: "Hey, how's the project going?",
+          time: "2 min ago",
+          avatar: Rectangle1,
         },
-      },
-    },
-    dataLabels: {
-      enabled: true,
-      formatter: (val) => `${val.toFixed(1)}%`,
-      style: { colors: ["#fff"] },
-    },
-    tooltip: { theme: "dark" },
-  }
+        {
+          id: 2,
+          name: "Jane Smith",
+          message: "Meeting scheduled for tomorrow",
+          time: "10 min ago",
+          avatar: Rectangle1,
+        },
+      ])
+    
+      const [todos, setTodos] = useState([
+        {
+          id: 1,
+          title: "Review project proposal",
+          description: "Check the latest updates",
+          assignee: "Mike",
+        },
+        {
+          id: 2,
+          title: "Update documentation",
+          description: "Add new features info",
+          assignee: "Sarah",
+        },
+      ])
+    
+      const [birthdays, setBirthdays] = useState([
+        {
+          id: 1,
+          name: "Alice Johnson",
+          date: "Dec 15, 2024",
+          avatar: Avatar,
+        },
+        {
+          id: 2,
+          name: "Bob Wilson",
+          date: "Dec 20, 2024",
+          avatar: Avatar,
+        },
+      ])
+    
+      const [customLinks, setCustomLinks] = useState([
+        {
+          id: 1,
+          title: "Google Drive",
+          url: "https://drive.google.com",
+        },
+        {
+          id: 2,
+          title: "GitHub",
+          url: "https://github.com",
+        },
+      ])
+    
+      const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+      const [editingLink, setEditingLink] = useState(null)
+    
+      const toggleRightSidebar = () => {
+        setIsRightSidebarOpen(!isRightSidebarOpen)
+      }
+    
+      const closeSidebar = () => {
+        setIsRightSidebarOpen(false)
+      }
+    
+      const redirectToCommunication = () => {
+        navigate("/dashboard/communication")
+      }
+    
+      const redirectToTodos = () => {
+        console.log("Redirecting to todos page")
+        navigate("/dashboard/to-do")
+      }
+    
+      const toggleDropdown = (index) => {
+        setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+      }
 
-  const membershipChartSeries = analyticsData.membershipTypes.map((type) => type.percentage)
 
-  // Peak Hours Chart
-  const peakHoursChartOptions = {
-    chart: {
-      type: "bar",
-      height: 300,
-      toolbar: { show: false },
-    },
-    colors: ["#8B5CF6"],
-    xaxis: {
-      categories: analyticsData.peakHours.map((item) => item.hour),
-      labels: { style: { colors: "#9CA3AF" } },
-    },
-    yaxis: {
-      labels: { style: { colors: "#9CA3AF" } },
-    },
-    grid: {
-      borderColor: "#374151",
-      strokeDashArray: 3,
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        columnWidth: "60%",
-      },
-    },
-    tooltip: { theme: "dark" },
-  }
-
-  const peakHoursChartSeries = [
-    {
-      name: "Appointments",
-      data: analyticsData.peakHours.map((item) => item.appointments),
-    },
-  ]
 
   return (
-    <div className="min-h-screen bg-[#1C1C1C] rounded-3xl text-white">
+    <div className={`
+      min-h-screen rounded-3xl bg-[#1C1C1C] text-white lg:p-3 md:p-3 sm:p-2 p-1
+      transition-all duration-500 ease-in-out flex-1
+      ${isRightSidebarOpen 
+        ? 'lg:mr-86 md:mr-86 sm:mr-86' // Adjust right margin when sidebar is open on larger screens
+        : 'mr-0' // No margin when closed
+      }
+    `}>
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
       )}
@@ -579,13 +606,17 @@ export default function AnalyticsDashboard() {
       <div className="bg-[#2F2F2F] border-b border-gray-700">
         <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center  gap-4">
               <div>
                 <h1 className="text-white oxanium_font text-xl md:text-2xl">Analytics</h1>
               </div>
+             
             </div>
 
             <div className="relative" ref={analyticsFilterRef}>
+             <div className="flex items-center gap-2">
+
+            
               <button
                 onClick={() => setIsAnalyticsFilterOpen(!isAnalyticsFilterOpen)}
                 className="flex items-center cursor-pointer gap-2 px-4 py-2 bg-black rounded-xl text-white text-sm hover:bg-gray-800 min-w-[160px] justify-between"
@@ -596,6 +627,14 @@ export default function AnalyticsDashboard() {
                   className={`transition-transform ${isAnalyticsFilterOpen ? "rotate-180" : ""}`}
                 />
               </button>
+              <div className=" block">
+                                      <IoIosMenu
+                                        onClick={toggleRightSidebar}
+                                        size={25}
+                                        className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                                        />
+                                    </div>
+                                    </div>
               {isAnalyticsFilterOpen && (
                 <div className="absolute right-0 top-full mt-2 w-56 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-600 z-50 py-2">
                   {analyticsFilters.map((filter) => (
@@ -618,6 +657,29 @@ export default function AnalyticsDashboard() {
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8">{renderFilteredContent()}</div>
+
+      <SidebarArea
+              isOpen={isRightSidebarOpen}
+              onClose={closeSidebar}
+              communications={communications}
+              todos={todos}
+              birthdays={birthdays}
+              customLinks={customLinks}
+              setCustomLinks={setCustomLinks}
+              redirectToCommunication={redirectToCommunication}
+              redirectToTodos={redirectToTodos}
+              toggleDropdown={toggleDropdown}
+              openDropdownIndex={openDropdownIndex}
+              setEditingLink={setEditingLink}
+            />
+      
+            {/* Overlay for mobile screens only */}
+            {isRightSidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+                onClick={closeSidebar}
+              />
+            )}
     </div>
   )
 }

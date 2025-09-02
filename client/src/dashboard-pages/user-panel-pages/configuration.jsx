@@ -89,6 +89,9 @@ const tooltipStyle = {
 }
 
 const ConfigurationPage = () => {
+  // Add near other state variables
+const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(true);
+
   // Basic studio information
   const [studioName, setStudioName] = useState("")
   const [studioOperator, setStudioOperator] = useState("")
@@ -425,6 +428,10 @@ const ConfigurationPage = () => {
         cost: 0,
         billingPeriod: "monthly",
         userCapacity: 0,
+        autoRenewal: false, // Add this
+        renewalPeriod: 1, // Add this (in months)
+        renewalPrice: 0, // Add this
+        cancellationPeriod: 30, // Add this (in days)
       },
     ])
   }
@@ -1157,6 +1164,45 @@ const ConfigurationPage = () => {
         </TabPane>
         <TabPane tab="Contracts" key="3">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+          <Panel header="Contract Settings" key="5" className="bg-[#202020]">
+  <div className="space-y-4">
+    <Form layout="vertical">
+      <Form.Item
+        label={
+          <div className="flex items-center">
+            <span className="text-white">Allow Member Self-Cancellation</span>
+            <Tooltip title="When enabled, members can cancel their contracts on their own">
+              <InfoCircleOutlined style={tooltipStyle} />
+            </Tooltip>
+          </div>
+        }
+      >
+        <Switch
+          checked={allowMemberSelfCancellation}
+          onChange={setAllowMemberSelfCancellation}
+        />
+      </Form.Item>
+      <Form.Item label={<span className="text-white">Default Notice Period (days)</span>}>
+        <InputNumber
+          min={0}
+          value={noticePeriod}
+          onChange={setNoticePeriod}
+          style={inputStyle}
+          className="white-text"
+        />
+      </Form.Item>
+      <Form.Item label={<span className="text-white">Default Extension Period (months)</span>}>
+        <InputNumber
+          min={0}
+          value={extensionPeriod}
+          onChange={setExtensionPeriod}
+          style={inputStyle}
+          className="white-text"
+        />
+      </Form.Item>
+    </Form>
+  </div>
+</Panel>
             <Panel header="Contract Types" key="1" className="bg-[#202020]">
               <div className="space-y-4">
                 {contractTypes.map((type, index) => (
@@ -1246,6 +1292,62 @@ const ConfigurationPage = () => {
                             billing, members can book 4 appointments per week.
                           </div>
                         </Form.Item>
+                        <Form.Item label={<span className="text-white">Automatic Renewal</span>}>
+  <Switch
+    checked={type.autoRenewal || false}
+    onChange={(checked) => {
+      const updated = [...contractTypes];
+      updated[index].autoRenewal = checked;
+      setContractTypes(updated);
+    }}
+  />
+</Form.Item>
+
+{type.autoRenewal && (
+  <>
+    <Form.Item label={<span className="text-white">Renewal Period (months)</span>}>
+      <InputNumber
+        min={1}
+        value={type.renewalPeriod || 1}
+        onChange={(value) => {
+          const updated = [...contractTypes];
+          updated[index].renewalPeriod = value || 1;
+          setContractTypes(updated);
+        }}
+        style={inputStyle}
+        className="white-text"
+      />
+    </Form.Item>
+    <Form.Item label={<span className="text-white">Renewal Price</span>}>
+      <InputNumber
+        value={type.renewalPrice || 0}
+        onChange={(value) => {
+          const updated = [...contractTypes];
+          updated[index].renewalPrice = value || 0;
+          setContractTypes(updated);
+        }}
+        style={inputStyle}
+        className="white-text"
+        precision={2}
+        // addonAfter={currency}
+      />
+    </Form.Item>
+  </>
+)}
+
+<Form.Item label={<span className="text-white">Cancellation Period (days)</span>}>
+  <InputNumber
+    min={0}
+    value={type.cancellationPeriod || 30}
+    onChange={(value) => {
+      const updated = [...contractTypes];
+      updated[index].cancellationPeriod = value || 30;
+      setContractTypes(updated);
+    }}
+    style={inputStyle}
+    className="white-text"
+  />
+</Form.Item>
                       </Form>
                       <Button
                         danger

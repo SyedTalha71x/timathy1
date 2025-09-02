@@ -22,6 +22,11 @@ import {
   Users,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
+import Avatar from "../../../public/avatar.png"
+import Rectangle1 from "../../../public/Rectangle 1.png"
+import { useNavigate } from "react-router-dom"
+import { SidebarArea } from "../../components/custom-sidebar"
+import { IoIosMenu } from "react-icons/io"
 
 export default function Training() {
   const [activeTab, setActiveTab] = useState("videos")
@@ -44,6 +49,9 @@ export default function Training() {
   const [isMuted, setIsMuted] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const navigate = useNavigate()
+
 
   // Staff members
   const staffMembers = [
@@ -524,16 +532,115 @@ export default function Training() {
     return plan.createdBy === "Current User"
   }
 
+   const [communications, setCommunications] = useState([
+      {
+        id: 1,
+        name: "John Doe",
+        message: "Hey, how's the project going?",
+        time: "2 min ago",
+        avatar: Rectangle1,
+      },
+      {
+        id: 2,
+        name: "Jane Smith",
+        message: "Meeting scheduled for tomorrow",
+        time: "10 min ago",
+        avatar: Rectangle1,
+      },
+    ])
+  
+    const [todos, setTodos] = useState([
+      {
+        id: 1,
+        title: "Review project proposal",
+        description: "Check the latest updates",
+        assignee: "Mike",
+      },
+      {
+        id: 2,
+        title: "Update documentation",
+        description: "Add new features info",
+        assignee: "Sarah",
+      },
+    ])
+  
+    const [birthdays, setBirthdays] = useState([
+      {
+        id: 1,
+        name: "Alice Johnson",
+        date: "Dec 15, 2024",
+        avatar: Avatar,
+      },
+      {
+        id: 2,
+        name: "Bob Wilson",
+        date: "Dec 20, 2024",
+        avatar: Avatar,
+      },
+    ])
+  
+    const [customLinks, setCustomLinks] = useState([
+      {
+        id: 1,
+        title: "Google Drive",
+        url: "https://drive.google.com",
+      },
+      {
+        id: 2,
+        title: "GitHub",
+        url: "https://github.com",
+      },
+    ])
+  
+    const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+    const [editingLink, setEditingLink] = useState(null)
+  
+    const toggleRightSidebar = () => {
+      setIsRightSidebarOpen(!isRightSidebarOpen)
+    }
+  
+    const closeSidebar = () => {
+      setIsRightSidebarOpen(false)
+    }
+  
+    const redirectToCommunication = () => {
+      navigate("/dashboard/communication")
+    }
+  
+    const redirectToTodos = () => {
+      console.log("Redirecting to todos page")
+      navigate("/dashboard/to-do")
+    }
+
+    const toggleDropdown = (index) => {
+      setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+    }
+  
+
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-4 sm:p-4 md:p-6">
+      <div    className={`
+          min-h-screen rounded-3xl bg-[#1C1C1C] lg:p-6 md:p-5 sm:p-2 p-1
+          transition-all duration-500 ease-in-out flex-1
+          ${isRightSidebarOpen 
+            ? 'lg:mr-86 md:mr-86 sm:mr-86' // Adjust right margin when sidebar is open on larger screens
+            : 'mr-0' // No margin when closed
+          }
+        `}>
         <div className="w-full mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div>
               <h1 className="text-white oxanium_font text-xl md:text-2xl">Training</h1>
             </div>
+             <div className="block">
+                            <IoIosMenu
+                              onClick={toggleRightSidebar}
+                              size={25}
+                              className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                            />
+                          </div>
           </div>
 
           {/* Tab Navigation */}
@@ -577,7 +684,7 @@ export default function Training() {
                 <div className="relative">
                   <button
                     onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                    className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+                    className="md:w-auto w-full text-white flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
                   >
                     <Filter size={16} />
                     <span className="truncate">
@@ -648,8 +755,7 @@ export default function Training() {
               </div>
 
               {/* Videos Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {filteredVideos.map((video) => (
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>                {filteredVideos.map((video) => (
                   <div
                     key={video.id}
                     className="bg-[#161616] rounded-xl overflow-hidden hover:bg-[#1F1F1F] transition-colors cursor-pointer group"
@@ -715,7 +821,7 @@ export default function Training() {
                   <div className="relative">
                     <button
                       onClick={() => setIsStaffDropdownOpen(!isStaffDropdownOpen)}
-                      className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm bg-[#161616] rounded-xl border border-gray-700 hover:border-gray-600 transition-colors w-full sm:w-auto justify-between sm:justify-start"
+                      className="flex text-white items-center gap-2 px-3 sm:px-4 py-2 text-sm bg-[#161616] rounded-xl border border-gray-700 hover:border-gray-600 transition-colors w-full sm:w-auto justify-between sm:justify-start"
                     >
                       <Users size={16} />
                       <span className="truncate">{staffMembers.find((s) => s.id === selectedStaffMember)?.name}</span>
@@ -754,7 +860,7 @@ export default function Training() {
               </div>
 
               {/* Plans Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>                
                 {filteredPlans.map((plan) => (
                   <div
                     key={plan.id}
@@ -1538,7 +1644,140 @@ export default function Training() {
             </div>
           </div>
         </div>
+
+        
       )}
+
+{isViewPlanModalOpen && selectedPlan && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <div className="flex-1 min-w-0 pr-4">
+                  <h2 className="text-lg sm:text-xl font-bold text-white mb-2 truncate">{selectedPlan.name}</h2>
+                  <p className="text-gray-400 text-sm sm:text-base">{selectedPlan.description}</p>
+                </div>
+                <button
+                  onClick={() => setIsViewPlanModalOpen(false)}
+                  className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors flex-shrink-0"
+                >
+                  <X size={20} className="text-gray-400" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
+                {/* Plan Info */}
+                <div className="lg:col-span-1">
+                  <div className="bg-[#161616] rounded-xl p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Plan Details</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400 text-sm">Created by</span>
+                        <span className="text-white text-sm truncate ml-2">{selectedPlan.createdBy}</span>
+                      </div>
+                      {selectedPlan.duration && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400 text-sm">Duration</span>
+                          <span className="text-white text-sm">{selectedPlan.duration}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400 text-sm">Difficulty</span>
+                        <span
+                          className={`px-2 py-1 rounded text-xs text-white ${getDifficultyColor(selectedPlan.difficulty)}`}
+                        >
+                          {selectedPlan.difficulty}
+                        </span>
+                      </div>
+                      {selectedPlan.workoutsPerWeek && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400 text-sm">Workouts/Week</span>
+                          <span className="text-white text-sm">{selectedPlan.workoutsPerWeek}x</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400 text-sm">Category</span>
+                        <span className="text-white text-sm truncate ml-2">{selectedPlan.category}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Exercises */}
+                <div className="lg:col-span-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
+                    Exercises ({selectedPlan.exercises.length})
+                  </h3>
+                  <div className="space-y-4">
+                    {selectedPlan.exercises.map((exercise, index) => {
+                      const video = getVideoById(exercise.videoId)
+                      return (
+                        <div key={index} className="bg-[#161616] rounded-xl p-3 sm:p-4">
+                          <div className="flex items-start gap-3 sm:gap-4">
+                            <div className="bg-blue-600 text-white rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0">
+                              {index + 1}
+                            </div>
+                            <img
+                              src={video?.thumbnail || "/placeholder.svg"}
+                              alt={video?.title}
+                              className="w-16 sm:w-20 h-12 sm:h-15 object-cover rounded flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-white mb-1 text-sm sm:text-base truncate">
+                                {video?.title}
+                              </h4>
+                              <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video?.instructor}</p>
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {video?.targetMuscles.map((muscle, muscleIndex) => (
+                                  <span
+                                    key={muscleIndex}
+                                    className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs"
+                                  >
+                                    {muscle}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleVideoClick(video)}
+                              className="p-1.5 sm:p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors flex-shrink-0"
+                            >
+                              <Play size={14} className="text-gray-400" />
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+<SidebarArea
+                isOpen={isRightSidebarOpen}
+                onClose={closeSidebar}
+                communications={communications}
+                todos={todos}
+                birthdays={birthdays}
+                customLinks={customLinks}
+                setCustomLinks={setCustomLinks}
+                redirectToCommunication={redirectToCommunication}
+                redirectToTodos={redirectToTodos}
+                toggleDropdown={toggleDropdown}
+                openDropdownIndex={openDropdownIndex}
+                setEditingLink={setEditingLink}
+              />
+        
+              {/* Overlay for mobile screens only */}
+              {isRightSidebarOpen && (
+                <div 
+                  className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+                  onClick={closeSidebar}
+                />
+              )}
     </>
   )
 }
