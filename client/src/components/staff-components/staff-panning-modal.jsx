@@ -1,10 +1,14 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { ChevronLeft, ChevronRight, X, Download } from "lucide-react"
+import { ChevronLeft, ChevronRight, X, Download, Users, Calendar } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
+import VacationCalendarModal from "./vacation-calendar-modal"
+import { exportToExcel } from "../../utils/excelExport"
 
-function EmployeePlanningModal({ staffMembers, onClose }) {
+function StaffPlanningModal({ staffMembers, onClose }) {
   const [selectedStaff, setSelectedStaff] = useState(null)
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [shifts, setShifts] = useState({})
@@ -18,6 +22,10 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
   const [rangeStartDate, setRangeStartDate] = useState(null)
   const [rangeEndDate, setRangeEndDate] = useState(null)
 
+  const [activeMenuItem, setActiveMenuItem] = useState("attendance")
+  const [showVacationCalendar, setShowVacationCalendar] = useState(false)
+  const [statusFilter, setStatusFilter] = useState("all")
+
   // Overview states
   const [selectedPeriod, setSelectedPeriod] = useState("month")
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -26,7 +34,6 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  // Dummy shifts data for overview
   const dummyShiftsData = staffMembers.map((staff) => ({
     ...staff,
     shifts: [
@@ -48,6 +55,13 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
         date: "2024-01-17",
         startTime: "08:00",
         endTime: "16:00",
+        hoursWorked: 8,
+        status: "scheduled",
+      },
+      {
+        date: "2024-01-18",
+        startTime: "09:30",
+        endTime: "17:30",
         hoursWorked: 8,
         status: "scheduled",
       },
@@ -119,37 +133,36 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
 
   const filteredStaff =
     selectedStaffId === "all"
-      ? dummyShiftsData
-      : dummyShiftsData.filter((staff) => staff.id === Number.parseInt(selectedStaffId))
+      ? dummyShiftsData.map((staff) => ({
+          ...staff,
+          shifts: statusFilter === "all" ? staff.shifts : staff.shifts.filter((shift) => shift.status === statusFilter),
+        }))
+      : dummyShiftsData
+          .filter((staff) => staff.id === Number.parseInt(selectedStaffId))
+          .map((staff) => ({
+            ...staff,
+            shifts:
+              statusFilter === "all" ? staff.shifts : staff.shifts.filter((shift) => shift.status === statusFilter),
+          }))
 
-  const exportToCSV = () => {
+  const exportToExcelFile = () => {
     const headers = ["Staff Name", "Date", "Start Time", "End Time", "Hours Worked", "Status"]
-    const csvContent = [
-      headers.join(","),
+    const data = [
+      headers,
       ...filteredStaff.flatMap((staff) =>
-        staff.shifts.map((shift) =>
-          [
-            `"${staff.firstName} ${staff.lastName}"`,
-            shift.date,
-            shift.startTime,
-            shift.endTime,
-            shift.hoursWorked,
-            shift.status,
-          ].join(","),
-        ),
+        staff.shifts.map((shift) => [
+          `${staff.firstName} ${staff.lastName}`,
+          shift.date,
+          shift.startTime,
+          shift.endTime,
+          shift.hoursWorked,
+          shift.status,
+        ]),
       ),
-    ].join("\n")
+    ]
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-    const link = document.createElement("a")
-    const url = URL.createObjectURL(blob)
-    link.setAttribute("href", url)
-    link.setAttribute("download", `shifts_overview_${selectedPeriod}_${new Date().toISOString().split("T")[0]}.csv`)
-    link.style.visibility = "hidden"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    toast.success("CSV file downloaded successfully")
+    exportToExcel(data, `shifts_overview_${selectedPeriod}_${new Date().toISOString().split("T")[0]}.xlsx`)
+    toast.success("Excel file downloaded successfully")
   }
 
   const handlePeriodChange = (period) => {
@@ -290,7 +303,7 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
 
   const handleSaveShift = () => {
     if (!startTime || !endTime) {
-      toast.error("Please enter both start and end times")
+      toast.error("Please enter both Check in and Check out time")
       return
     }
 
@@ -393,38 +406,91 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
     })
   }
 
+  const handleVacationRequest = (staffId, startDate, endDate) => {
+    console.log(`Vacation request for staff ${staffId} from ${startDate} to ${endDate}`)
+    toast.success("Vacation request submitted for approval")
+  }
+
+  const renderLeftMenu = () => (
+    <div className="w-full lg:w-1/4 mb-4 lg:mb-0">
+      <h3 className="text-lg font-semibold mb-2">Menu</h3>
+      <div className="bg-[#141414] rounded-xl p-2 space-y-1">
+        <button
+          onClick={() => {
+            setActiveMenuItem("attendance")
+            setSelectedStaff(null)
+            setShowVacationCalendar(false)
+          }}
+          className={`w-full text-left p-3 rounded-lg text-sm flex items-center gap-2 transition-colors ${
+            activeMenuItem === "attendance" ? "bg-blue-600 text-white" : "hover:bg-gray-700 text-gray-300"
+          }`}
+        >
+          <Users size={16} />
+          Attendance Overview
+        </button>
+        <button
+          onClick={() => {
+            setActiveMenuItem("vacation")
+            setSelectedStaff(null)
+            setShowVacationCalendar(true)
+          }}
+          className={`w-full text-left p-3 rounded-lg text-sm flex items-center gap-2 transition-colors ${
+            activeMenuItem === "vacation" ? "bg-blue-600 text-white" : "hover:bg-gray-700 text-gray-300"
+          }`}
+        >
+          <Calendar size={16} />
+          Vacation Calendar
+        </button>
+      </div>
+
+      {activeMenuItem === "attendance" && (
+        <div className="mt-4">
+          <h4 className="text-md font-semibold mb-2">Staff</h4>
+          <div className="bg-[#141414] rounded-xl p-2 max-h-[400px] overflow-y-auto">
+            <ul className="space-y-1">
+              {staffMembers.map((staff) => (
+                <li
+                  key={staff.id}
+                  className={`cursor-pointer p-2 rounded-lg text-sm transition-colors ${
+                    selectedStaff?.id === staff.id ? "bg-blue-600 text-white" : "hover:bg-gray-700 text-gray-300"
+                  }`}
+                  onClick={() => handleStaffSelect(staff)}
+                >
+                  {staff.firstName} {staff.lastName}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
   return (
-    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
-      <div className="bg-[#181818] text-white rounded-xl p-4 md:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-[#181818] text-white rounded-xl p-3 sm:p-4 md:p-6 w-full max-w-7xl max-h-[95vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Employee Planning</h2>
-          <button onClick={onClose} className="text-gray-300 hover:text-white">
+          <h2 className="text-lg sm:text-xl font-bold">Staff Planning</h2>
+          <button onClick={onClose} className="text-gray-300 hover:text-white p-1">
             <X size={20} />
           </button>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
-          <div className="w-full lg:w-1/4 mb-4 lg:mb-0">
-            <h3 className="text-lg font-semibold mb-2">Staff</h3>
-            <div className="bg-[#141414] rounded-xl p-2 max-h-[500px] overflow-y-auto">
-              <ul className="space-y-1">
-                {staffMembers.map((staff) => (
-                  <li
-                    key={staff.id}
-                    className={`cursor-pointer p-2 rounded-lg text-sm ${
-                      selectedStaff?.id === staff.id ? "bg-blue-600 text-white" : "hover:bg-gray-700"
-                    }`}
-                    onClick={() => handleStaffSelect(staff)}
-                  >
-                    {staff.firstName} {staff.lastName}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          {renderLeftMenu()}
 
           <div className="w-full lg:w-3/4">
-            {selectedStaff ? (
+            {showVacationCalendar ? (
+              <div className="bg-[#141414] rounded-xl p-4">
+                <VacationCalendarModal
+                  staffMember={staffMembers[0]}
+                  onClose={() => {}}
+                  onSubmit={handleVacationRequest}
+                  isEmbedded={true}
+                />
+              </div>
+            ) : selectedStaff ? (
+              // Individual Staff Schedule View
               showShiftForm ? (
                 <div className="bg-[#141414] rounded-xl p-4">
                   <div className="flex justify-between items-center mb-4">
@@ -435,7 +501,7 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                   </div>
                   <div className="space-y-4">
                     {isRangeBooking ? (
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm text-gray-300 block mb-2">Start Date</label>
                           <div className="bg-[#1C1C1C] px-4 py-2 rounded-lg">
@@ -457,9 +523,9 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                         </div>
                       </div>
                     )}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm text-gray-300 block mb-2">Start Time</label>
+                        <label className="text-sm text-gray-300 block mb-2">Check in</label>
                         <input
                           type="time"
                           value={startTime}
@@ -468,7 +534,7 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                         />
                       </div>
                       <div>
-                        <label className="text-sm text-gray-300 block mb-2">End Time</label>
+                        <label className="text-sm text-gray-300 block mb-2">Check out</label>
                         <input
                           type="time"
                           value={endTime}
@@ -479,6 +545,12 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-6">
+                    <button
+                      onClick={() => setShowShiftForm(false)}
+                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
+                    >
+                      Cancel
+                    </button>
                     <button
                       onClick={handleSaveShift}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
@@ -493,22 +565,16 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                         {isRangeBooking ? "Delete Shifts for Range" : "Delete Shift"}
                       </button>
                     )}
-                    <button
-                      onClick={() => setShowShiftForm(false)}
-                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm ml-auto"
-                    >
-                      Cancel
-                    </button>
                   </div>
                 </div>
               ) : (
                 <>
                   <div className="bg-[#141414] rounded-xl p-4">
-                    <div className="flex md:justify-between md:flex-row gap-3 justify-center flex-col items-center mb-4">
-                      <h3 className="text-lg font-semibold">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                      <h3 className="text-lg font-semibold text-center sm:text-left">
                         Schedule for {selectedStaff.firstName} {selectedStaff.lastName}
                       </h3>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-center space-x-2">
                         <button onClick={goToPreviousMonth} className="p-1 bg-[#1C1C1C] rounded-lg hover:bg-gray-700">
                           <ChevronLeft size={16} />
                         </button>
@@ -523,7 +589,7 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                     <div className="flex justify-end mb-2">
                       <button
                         onClick={toggleRangeBooking}
-                        className={`text-xs px-3 py-1 rounded-lg ${
+                        className={`text-xs px-3 py-1 rounded-lg transition-colors ${
                           isRangeBooking ? "bg-blue-600" : "bg-[#1C1C1C] hover:bg-gray-700"
                         }`}
                       >
@@ -548,7 +614,7 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                     </div>
                     <div className="grid grid-cols-7 gap-1">
                       {calendarDays.map((day, index) => {
-                        if (!day) return <div key={`empty-${index}`} className="opacity-0"></div>
+                        if (!day) return <div key={`empty-${index}`} className="opacity-0 h-10 sm:h-12"></div>
                         const dateStr = day.toISOString().split("T")[0]
                         const hasShiftBooked = shifts[dateStr] !== undefined
                         const isWeekend = day.getDay() === 0 || day.getDay() === 6
@@ -558,7 +624,7 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                           <div
                             key={dateStr}
                             className={`
-                              relative text-center p-2 rounded-md text-sm cursor-pointer
+                              relative text-center p-1 sm:p-2 rounded-md text-xs sm:text-sm cursor-pointer h-10 sm:h-12 flex flex-col items-center justify-center
                               ${hasShiftBooked ? "bg-blue-600/40" : ""}
                               ${isSelected ? "bg-green-600/40 border border-green-500" : ""}
                               ${isWeekend ? "text-gray-500" : ""}
@@ -574,21 +640,13 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                           >
                             <span>{day.getDate()}</span>
                             {hasShiftBooked && (
-                              <div className="absolute bottom-0 left-0 right-0 text-[10px] text-center pb-0.5 px-0.5 truncate">
+                              <div className="absolute bottom-0 left-0 right-0 text-[8px] sm:text-[10px] text-center pb-0.5 px-0.5 truncate">
                                 {shifts[dateStr]}
                               </div>
                             )}
                           </div>
                         )
                       })}
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                      <button
-                        onClick={handleSaveAllShifts}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
-                      >
-                        Save All Shifts
-                      </button>
                     </div>
                   </div>
                   <div className="mt-4 bg-[#141414] rounded-xl p-4">
@@ -629,24 +687,23 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                 </>
               )
             ) : (
-              // Shifts Overview when no staff is selected
               <div className="bg-[#141414] rounded-xl p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Shifts Overview</h3>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                  <h3 className="text-lg font-semibold">Attendance Overview</h3>
                   <button
-                    onClick={exportToCSV}
-                    className="bg-gray-700 cursor-pointer hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+                    onClick={exportToExcelFile}
+                    className="bg-gray-700 cursor-pointer hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 justify-center"
                   >
                     <Download className="h-4 w-4" />
-                    Export CSV
+                    Export Excel
                   </button>
                 </div>
 
-                <div className="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 items-start sm:items-center">
+                <div className="mb-4 flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-4 items-stretch lg:items-center">
                   <select
                     value={selectedStaffId}
                     onChange={(e) => setSelectedStaffId(e.target.value)}
-                    className="bg-[#1C1C1C] rounded px-3 py-2 text-sm md:text-base w-full sm:w-auto"
+                    className="bg-[#1C1C1C] rounded px-3 py-2 text-sm md:text-base w-full lg:w-auto"
                   >
                     <option value="all">All Staff Members</option>
                     {staffMembers.map((staff) => (
@@ -655,20 +712,33 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                       </option>
                     ))}
                   </select>
+
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-[#1C1C1C] rounded px-3 py-2 text-sm md:text-base w-full lg:w-auto flex items-center gap-2"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="scheduled">Scheduled</option>
+                  </select>
+
                   <select
                     value={selectedPeriod}
                     onChange={(e) => handlePeriodChange(e.target.value)}
-                    className="bg-[#1C1C1C] rounded px-3 py-2 text-sm md:text-base w-full sm:w-auto"
+                    className="bg-[#1C1C1C] rounded px-3 py-2 text-sm md:text-base w-full lg:w-auto"
                   >
                     <option value="day">Day</option>
                     <option value="week">Week</option>
                     <option value="month">Month</option>
                   </select>
-                  {renderPeriodDisplay()}
+
+                  <div className="flex-shrink-0">{renderPeriodDisplay()}</div>
+
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(Number(e.target.value))}
-                    className="bg-[#1C1C1C] rounded px-3 py-2 text-sm md:text-base w-full sm:w-auto"
+                    className="bg-[#1C1C1C] rounded px-3 py-2 text-sm md:text-base w-full lg:w-auto"
                   >
                     <option value={2024}>2024</option>
                     <option value={2025}>2025</option>
@@ -676,14 +746,14 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                   </select>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className=" overflow-y-auto custom-scrollbar max-h-[50vh]">
                   <table className="w-full min-w-[700px]">
-                    <thead>
+                    <thead >
                       <tr className="text-sm md:text-base border-b border-gray-700">
                         <th className="text-left py-3">Staff Name</th>
                         <th className="text-left py-3">Date</th>
-                        <th className="text-left py-3">Start Time</th>
-                        <th className="text-left py-3">End Time</th>
+                        <th className="text-left py-3">Check in</th>
+                        <th className="text-left py-3">Check out</th>
                         <th className="text-left py-3">Hours</th>
                         <th className="text-left py-3">Status</th>
                       </tr>
@@ -701,11 +771,11 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
                             <td className="py-3">{shift.hoursWorked}h</td>
                             <td className="py-3">
                               <span
-                                className={`px-2 py-1 rounded text-xs ${
+                                className={`px-2 py-1 rounded text-xs font-medium ${
                                   shift.status === "completed"
-                                    ? "bg-green-600 text-white"
+                                    ? "bg-blue-600 text-white"
                                     : shift.status === "scheduled"
-                                      ? "bg-blue-600 text-white"
+                                      ? "bg-orange-500 text-white"
                                       : "bg-gray-600 text-white"
                                 }`}
                               >
@@ -743,7 +813,7 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
 
                 <div className="mt-4 text-center">
                   <p className="text-gray-400 text-sm">
-                    Select a staff member from the left to manage their individual schedule.
+                    Select a staff member from the left menu to manage their individual schedule.
                   </p>
                 </div>
               </div>
@@ -755,4 +825,4 @@ function EmployeePlanningModal({ staffMembers, onClose }) {
   )
 }
 
-export default EmployeePlanningModal
+export default StaffPlanningModal

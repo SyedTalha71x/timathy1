@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
@@ -471,7 +469,7 @@ export default function Appointments() {
       className={`
       min-h-screen rounded-3xl bg-[#1C1C1C] md:p-4 p-4
       transition-all duration-500 ease-in-out flex-1
-      ${isRightSidebarOpen ? "lg:mr-96 md:mr-96 sm:mr-96" : "mr-0"}
+      ${isRightSidebarOpen ? "lg:mr-84 md:mr-96 sm:mr-96" : "mr-0"}
     `}
     >
       <main className="flex-1 min-w-0">
@@ -748,7 +746,7 @@ export default function Appointments() {
             </div>
             <div
               className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${
-                isSidebarCollapsed ? "lg:w-full" : "lg:w-[calc(100%-320px-1.5rem)]" // Keep large screen behavior unchanged
+                isSidebarCollapsed ? "lg:w-full" : "lg:w-[calc(100%-320px-0.3rem)]" // Keep large screen behavior unchanged
               }`}
             >
               <Calendar

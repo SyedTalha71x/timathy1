@@ -1,6 +1,4 @@
 /* eslint-disable no-unused-vars */
-"use client"
-
 import { useState, useRef } from "react"
 import {
   Play,

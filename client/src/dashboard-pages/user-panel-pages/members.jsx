@@ -208,7 +208,7 @@ const handleDocumentClick = (member) => {
     contractEnd: "",
   })
 
-  const [viewMode, setViewMode] = useState("grid")
+  const [viewMode, setViewMode] = useState("list")
 
   const getRelationsCount = (memberId) => {
     const relations = memberRelations[memberId]

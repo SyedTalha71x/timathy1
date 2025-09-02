@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 
@@ -22,6 +24,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     street: "",
     zipCode: "",
     city: "",
+    country: "",
     password: "",
     vacationEntitlement: 30,
     birthday: "",
@@ -150,6 +153,56 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
             </div>
           </div>
           <div>
+            <label className="text-sm text-gray-200 block mb-2">Street</label>
+            <input
+              type="text"
+              name="street"
+              value={newStaff.street}
+              onChange={handleInputChange}
+              placeholder="Enter street address"
+              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+              <input
+                type="text"
+                name="zipCode"
+                value={newStaff.zipCode}
+                onChange={handleInputChange}
+                placeholder="Enter ZIP code"
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">City</label>
+              <input
+                type="text"
+                name="city"
+                value={newStaff.city}
+                onChange={handleInputChange}
+                placeholder="Enter city"
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm text-gray-200 block mb-2">Country</label>
+            <input
+              type="text"
+              name="country"
+              value={newStaff.country}
+              onChange={handleInputChange}
+              placeholder="Enter country"
+              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              required
+            />
+          </div>
+          <div>
             <label className="text-sm text-gray-200 block mb-2">Vacation Entitlement (Days)</label>
             <input
               type="number"
@@ -222,44 +275,6 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
               </button>
             </div>
           </div>
-          <div>
-            <label className="text-sm text-gray-200 block mb-2">Street</label>
-            <input
-              type="text"
-              name="street"
-              value={newStaff.street}
-              onChange={handleInputChange}
-              placeholder="Enter street address"
-              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-              <input
-                type="text"
-                name="zipCode"
-                value={newStaff.zipCode}
-                onChange={handleInputChange}
-                placeholder="Enter ZIP code"
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-200 block mb-2">City</label>
-              <input
-                type="text"
-                name="city"
-                value={newStaff.city}
-                onChange={handleInputChange}
-                placeholder="Enter city"
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                required
-              />
-            </div>
-          </div>
         </div>
       )
     }
@@ -277,27 +292,23 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
           </div>
           {/* Tab Navigation */}
           <div className="flex border-b border-gray-700 mb-6">
-  <button
-    onClick={() => setActiveTab("details")}
-    className={`px-4 py-2 text-sm font-medium transition-colors ${
-      activeTab === "details"
-        ? "text-blue-400 border-b-2 border-blue-400"
-        : "text-gray-400 hover:text-white"
-    }`}
-  >
-    Details
-  </button>
-  <button
-    onClick={() => setActiveTab("access")}
-    className={`px-4 py-2 text-sm font-medium transition-colors ${
-      activeTab === "access"
-        ? "text-blue-400 border-b-2 border-blue-400"
-        : "text-gray-400 hover:text-white"
-    }`}
-  >
-    Access Data
-  </button>
-</div>
+            <button
+              onClick={() => setActiveTab("details")}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Details
+            </button>
+            <button
+              onClick={() => setActiveTab("access")}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "access" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Access Data
+            </button>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-3 custom-scrollbar overflow-y-auto max-h-[60vh]">
             {renderTabContent()}

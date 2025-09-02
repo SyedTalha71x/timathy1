@@ -1,10 +1,12 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Calendar, ChevronLeft, ChevronRight, X } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, X, History, Eye } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
 
-function VacationRequestModal({ staffMember, onClose, onSubmit }) {
+function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = false }) {
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [showCalendar, setShowCalendar] = useState(true)
@@ -13,13 +15,47 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
   const [vacationRequests, setVacationRequests] = useState([])
   const [showRequestForm, setShowRequestForm] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [showVacationJournal, setShowVacationJournal] = useState(false)
 
-  // Dummy vacation data
   const [bookedVacations, setBookedVacations] = useState([
-    { id: 1, staffId: 1, startDate: new Date(2024, 0, 5), endDate: new Date(2024, 0, 10), status: "approved" },
-    { id: 2, staffId: 1, startDate: new Date(2024, 1, 15), endDate: new Date(2024, 1, 20), status: "pending" },
-    { id: 3, staffId: 2, startDate: new Date(2024, 3, 1), endDate: new Date(2024, 3, 5), status: "pending" },
-    { id: 4, staffId: 2, startDate: new Date(2024, 0, 5), endDate: new Date(2024, 0, 10), status: "approved" },
+    {
+      id: 1,
+      staffId: 1,
+      startDate: new Date(2024, 0, 5),
+      endDate: new Date(2024, 0, 10),
+      status: "approved",
+      requestDate: new Date(2023, 11, 15),
+      approvedBy: "Manager",
+      reason: "Family vacation",
+    },
+    {
+      id: 2,
+      staffId: 1,
+      startDate: new Date(2024, 1, 15),
+      endDate: new Date(2024, 1, 20),
+      status: "pending",
+      requestDate: new Date(2024, 1, 1),
+      reason: "Personal time",
+    },
+    {
+      id: 3,
+      staffId: 2,
+      startDate: new Date(2024, 3, 1),
+      endDate: new Date(2024, 3, 5),
+      status: "pending",
+      requestDate: new Date(2024, 2, 15),
+      reason: "Medical appointment",
+    },
+    {
+      id: 4,
+      staffId: 2,
+      startDate: new Date(2023, 11, 20),
+      endDate: new Date(2023, 11, 25),
+      status: "approved",
+      requestDate: new Date(2023, 10, 20),
+      approvedBy: "HR Manager",
+      reason: "Holiday break",
+    },
   ])
 
   // Closing days and public holidays (example dates)
@@ -55,6 +91,8 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       status: "pending",
+      requestDate: new Date(),
+      reason: "Vacation request",
     }
     setBookedVacations([...bookedVacations, newVacation])
     onSubmit(staffMember.id, startDate, endDate)
@@ -134,9 +172,129 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
     })
   }
 
+  const getPastVacations = () => {
+    const now = new Date()
+    return bookedVacations.filter((vacation) => new Date(vacation.endDate) < now && vacation.status === "approved")
+  }
+
+  const getOngoingVacations = () => {
+    const now = new Date()
+    return bookedVacations.filter((vacation) => {
+      const start = new Date(vacation.startDate)
+      const end = new Date(vacation.endDate)
+      return start <= now && end >= now && vacation.status === "approved"
+    })
+  }
+
+  const getPendingVacations = () => {
+    return bookedVacations.filter((vacation) => vacation.status === "pending")
+  }
+
+  const renderVacationJournal = () => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">Vacation Journal</h3>
+        <button onClick={() => setShowVacationJournal(false)} className="text-gray-400 hover:text-white">
+          <Calendar size={20} />
+        </button>
+      </div>
+
+      {/* Ongoing Vacations */}
+      <div className="bg-[#1C1C1C] rounded-lg p-4">
+        <h4 className="text-md font-semibold mb-3 text-green-400 flex items-center gap-2">
+          <Eye size={16} />
+          Ongoing Vacations
+        </h4>
+        {getOngoingVacations().length > 0 ? (
+          <div className="space-y-2">
+            {getOngoingVacations().map((vacation) => (
+              <div key={vacation.id} className="bg-green-600/20 border border-green-600/30 rounded-lg p-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-green-300">
+                      {vacation.startDate.toLocaleDateString()} - {vacation.endDate.toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-gray-300">{vacation.reason}</p>
+                  </div>
+                  <span className="bg-green-600 text-white px-2 py-1 rounded text-xs">Active</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-400 text-sm">No ongoing vacations</p>
+        )}
+      </div>
+
+      {/* Pending Requests */}
+      <div className="bg-[#1C1C1C] rounded-lg p-4">
+        <h4 className="text-md font-semibold mb-3 text-orange-400 flex items-center gap-2">
+          <Calendar size={16} />
+          Pending Requests
+        </h4>
+        {getPendingVacations().length > 0 ? (
+          <div className="space-y-2">
+            {getPendingVacations().map((vacation) => (
+              <div key={vacation.id} className="bg-orange-600/20 border border-orange-600/30 rounded-lg p-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-orange-300">
+                      {vacation.startDate.toLocaleDateString()} - {vacation.endDate.toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-gray-300">{vacation.reason}</p>
+                    <p className="text-xs text-gray-400">Requested: {vacation.requestDate.toLocaleDateString()}</p>
+                  </div>
+                  <span className="bg-orange-600 text-white px-2 py-1 rounded text-xs">Pending</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-400 text-sm">No pending requests</p>
+        )}
+      </div>
+
+      {/* Past Vacations */}
+      <div className="bg-[#1C1C1C] rounded-lg p-4">
+        <h4 className="text-md font-semibold mb-3 text-blue-400 flex items-center gap-2">
+          <History size={16} />
+          Past Vacations
+        </h4>
+        {getPastVacations().length > 0 ? (
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {getPastVacations().map((vacation) => (
+              <div key={vacation.id} className="bg-blue-600/20 border border-blue-600/30 rounded-lg p-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-blue-300">
+                      {vacation.startDate.toLocaleDateString()} - {vacation.endDate.toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-gray-300">{vacation.reason}</p>
+                    <p className="text-xs text-gray-400">Approved by: {vacation.approvedBy}</p>
+                  </div>
+                  <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs">Completed</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-400 text-sm">No past vacations</p>
+        )}
+      </div>
+    </div>
+  )
+
+  const containerClass = isEmbedded
+    ? "w-full h-full"
+    : "fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto"
+
+  const modalClass = isEmbedded
+    ? "bg-transparent text-white p-0 w-full h-full overflow-y-auto"
+    : "bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className={containerClass}>
+      <div className={modalClass}>
         {showConfirmDialog ? (
           <div className="text-center">
             <h2 className="text-xl font-bold mb-4">Confirm Vacation Request</h2>
@@ -231,13 +389,26 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
               </button>
             </div>
           </>
+        ) : showVacationJournal ? (
+          renderVacationJournal()
         ) : (
           <>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Vacation Calendar</h2>
-              <button onClick={onClose} className="text-gray-300 hover:text-white">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowVacationJournal(true)}
+                  className="text-gray-300 hover:text-white p-2 bg-[#1C1C1C] rounded-lg"
+                  title="View Vacation Journal"
+                >
+                  <History size={16} />
+                </button>
+                {!isEmbedded && (
+                  <button onClick={onClose} className="text-gray-300 hover:text-white">
+                    <X size={20} />
+                  </button>
+                )}
+              </div>
             </div>
             <div className="mb-4">
               <div className="flex justify-between items-center mb-4">
@@ -260,7 +431,7 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
               </div>
               <div className="grid grid-cols-7 gap-1">
                 {calendarDays.map((day, index) => {
-                  if (!day) return <div key={index} className="opacity-0 h-12"></div>
+                  if (!day) return <div key={index} className="opacity-0 h-10 sm:h-12"></div>
 
                   const bookings = getDateBookings(day)
                   const myPendingBookings = bookings.filter(
@@ -282,7 +453,7 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
                     <div
                       key={index}
                       className={`
-                        relative text-center p-2 rounded-md text-sm h-12 flex items-center justify-center
+                        relative text-center p-1 sm:p-2 rounded-md text-xs sm:text-sm h-10 sm:h-12 flex items-center justify-center
                         ${isClosing ? "bg-gray-600 text-gray-400 cursor-not-allowed" : "cursor-pointer"}
                         ${hasMyPending && !isClosing ? "bg-orange-500/30" : ""}
                         ${hasMyApproved && !isClosing ? "bg-green-500/30" : ""}
@@ -294,9 +465,11 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
                       <span>{day.getDate()}</span>
                       {(hasMyPending || hasMyApproved || hasColleagueBookings) && !isClosing && (
                         <div className="absolute bottom-1 left-0 right-0 flex justify-center space-x-1">
-                          {hasMyPending && <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>}
-                          {hasMyApproved && <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>}
-                          {hasColleagueBookings && <div className="w-1.5 h-1.5 rounded-full bg-gray-500"></div>}
+                          {hasMyPending && <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-orange-500"></div>}
+                          {hasMyApproved && <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500"></div>}
+                          {hasColleagueBookings && (
+                            <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-gray-500"></div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -334,4 +507,4 @@ function VacationRequestModal({ staffMember, onClose, onSubmit }) {
   )
 }
 
-export default VacationRequestModal
+export default VacationCalendarModal

@@ -311,7 +311,7 @@ const Appointments = () => {
                   <span className="text-gray-400">Category:</span>
                   <span className="text-white">{infoModalData?.category}</span>
                 </div>
-                
+
               </div>
             </div>
           </div>
@@ -492,9 +492,8 @@ const Appointments = () => {
                             setSelectedCategory(category)
                             setShowFilter(false)
                           }}
-                          className={`w-full text-left px-4 py-2 hover:bg-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                            selectedCategory === category ? "bg-gray-700 text-orange-400" : "text-white"
-                          }`}
+                          className={`w-full text-left px-4 py-2 hover:bg-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg ${selectedCategory === category ? "bg-gray-700 text-orange-400" : "text-white"
+                            }`}
                         >
                           {category}
                         </button>
@@ -580,31 +579,28 @@ const Appointments = () => {
               <div className="flex gap-4 mb-6">
                 <button
                   onClick={() => setAppointmentView("upcoming")}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    appointmentView === "upcoming"
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${appointmentView === "upcoming"
                       ? "bg-orange-600 text-white"
                       : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
+                    }`}
                 >
                   Upcoming Appointments
                 </button>
                 <button
                   onClick={() => setAppointmentView("pending")}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    appointmentView === "pending"
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${appointmentView === "pending"
                       ? "bg-orange-600 text-white"
                       : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
+                    }`}
                 >
                   Pending Appointments
                 </button>
                 <button
                   onClick={() => setAppointmentView("past")}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    appointmentView === "past"
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${appointmentView === "past"
                       ? "bg-orange-600 text-white"
                       : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
+                    }`}
                 >
                   Past Appointments
                 </button>
@@ -640,13 +636,12 @@ const Appointments = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            appointment.status === "confirmed"
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${appointment.status === "confirmed"
                               ? "bg-green-500/20 text-green-400 border border-green-500/30"
                               : appointment.status === "completed"
                                 ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                                 : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                          }`}
+                            }`}
                         >
                           {appointment.status}
                         </span>
@@ -781,13 +776,12 @@ const Appointments = () => {
                         key={index}
                         onClick={() => day && !isPastDate(day) && setSelectedDate(day)}
                         disabled={!day || isPastDate(day)}
-                        className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-all duration-200 ${
-                          !day || isPastDate(day)
+                        className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-all duration-200 ${!day || isPastDate(day)
                             ? "text-gray-600 cursor-not-allowed"
                             : selectedDate === day
                               ? "bg-orange-500 text-white shadow-lg transform scale-110"
                               : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                        }`}
+                          }`}
                       >
                         {day}
                       </button>
@@ -802,31 +796,28 @@ const Appointments = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setAvailabilityFilter("all")}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        availabilityFilter === "all"
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${availabilityFilter === "all"
                           ? "bg-orange-600 text-white"
                           : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      }`}
+                        }`}
                     >
                       All
                     </button>
                     <button
                       onClick={() => setAvailabilityFilter("available")}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        availabilityFilter === "available"
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${availabilityFilter === "available"
                           ? "bg-green-600 text-white"
                           : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      }`}
+                        }`}
                     >
                       Available
                     </button>
                     <button
                       onClick={() => setAvailabilityFilter("not-available")}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        availabilityFilter === "not-available"
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${availabilityFilter === "not-available"
                           ? "bg-red-600 text-white"
                           : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      }`}
+                        }`}
                     >
                       Not Available
                     </button>
@@ -839,46 +830,43 @@ const Appointments = () => {
                   <div key={period}>
                     <h3 className="text-lg font-semibold text-white mb-3 capitalize flex items-center gap-2">
                       <div
-                        className={`w-3 h-3 rounded-full ${
-                          period === "morning"
+                        className={`w-3 h-3 rounded-full ${period === "morning"
                             ? "bg-yellow-400"
                             : period === "afternoon"
                               ? "bg-orange-400"
                               : "bg-purple-400"
-                        }`}
+                          }`}
                       ></div>
                       {period}
                     </h3>
                     <div
-  className={`grid gap-3 ${
-    slots.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
-  }`}
->
-  {slots.map((slot) => (
-    <button
-      key={slot.id}
-      onClick={() => handleTimeSlotClick(slot.id)}
-      className={`p-4 rounded-lg font-medium transition-all duration-200 text-left ${
-        !slot.available
-          ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-red-500/30"
-          : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-600"
-      }`}
-    >
-      <div className="flex justify-between items-center">
-        <span>{slot.time}</span>
-        {!slot.available ? (
-          <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">
-            Request Available
-          </span>
-        ) : (
-          <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
-            Available
-          </span>
-        )}
-      </div>
-    </button>
-  ))}
-</div>
+                      className={`grid gap-3 ${slots.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
+                        }`}
+                    >
+                      {slots.map((slot) => (
+                        <button
+                          key={slot.id}
+                          onClick={() => handleTimeSlotClick(slot.id)}
+                          className={`p-4 rounded-lg font-medium transition-all duration-200 text-left ${!slot.available
+                              ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-red-500/30"
+                              : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-600"
+                            }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span>{slot.time}</span>
+                            {!slot.available ? (
+                              <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">
+                                Request Available
+                              </span>
+                            ) : (
+                              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                                Available
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
 
                   </div>
                 ))}

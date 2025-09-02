@@ -11,12 +11,8 @@ export default function TrialTraining() {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState([]);
 
-  // Mock function to fetch available time slots for a given date
-  // In a real app, this would be an API call to your backend
   const fetchAvailableTimeSlots = (date) => {
-    // Simulating API call delay
     setTimeout(() => {
-      // Mock data - in real implementation, this would come from your backend
       const mockTimeSlots = [
         { id: 1, time: "09:00 AM" },
         { id: 2, time: "10:30 AM" },
@@ -25,13 +21,11 @@ export default function TrialTraining() {
         { id: 5, time: "05:00 PM" }
       ];
       
-      // Randomly remove some slots to simulate availability differences between days
       const availableSlots = mockTimeSlots.filter(() => Math.random() > 0.3);
       setAvailableTimeSlots(availableSlots);
     }, 300);
   };
 
-  // Fetch available time slots whenever the selected date changes
   useEffect(() => {
     setSelectedTimeSlot(null);
     fetchAvailableTimeSlots(selectedDate);
@@ -51,14 +45,13 @@ export default function TrialTraining() {
     
     setBookingSuccess(true);
     
-    // In a real app, you would send this data to your backend
-    console.log({
-      name,
-      email,
-      phone,
-      date: selectedDate,
-      timeSlot: selectedTimeSlot
-    });
+    // console.log({
+    //   name,
+    //   email,
+    //   phone,
+    //   date: selectedDate,
+    //   timeSlot: selectedTimeSlot
+    // });
   };
 
   return (

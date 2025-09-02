@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 import { useState } from "react"
@@ -136,6 +138,52 @@ function EditStaffModal({
             />
           </div>
           <div>
+            <label className="text-sm text-gray-200 block mb-2">Street</label>
+            <input
+              type="text"
+              name="street"
+              value={editedStaff.street}
+              onChange={handleInputChange}
+              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+              <input
+                type="text"
+                name="zipCode"
+                value={editedStaff.zipCode}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">City</label>
+              <input
+                type="text"
+                name="city"
+                value={editedStaff.city}
+                onChange={handleInputChange}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm text-gray-200 block mb-2">Country</label>
+            <input
+              type="text"
+              name="country"
+              value={editedStaff.country}
+              onChange={handleInputChange}
+              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              required
+            />
+          </div>
+          <div>
             <label className="text-sm text-gray-200 block mb-2">Role</label>
             <select
               name="role"
@@ -170,41 +218,6 @@ function EditStaffModal({
               className="w-full bg-[#101010] resize-none text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
               rows={3}
             />
-          </div>
-          <div>
-            <label className="text-sm text-gray-200 block mb-2">Street</label>
-            <input
-              type="text"
-              name="street"
-              value={editedStaff.street}
-              onChange={handleInputChange}
-              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-              <input
-                type="text"
-                name="zipCode"
-                value={editedStaff.zipCode}
-                onChange={handleInputChange}
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-200 block mb-2">City</label>
-              <input
-                type="text"
-                name="city"
-                value={editedStaff.city}
-                onChange={handleInputChange}
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                required
-              />
-            </div>
           </div>
         </div>
       )
@@ -282,27 +295,23 @@ function EditStaffModal({
             </button>
           </div>
           <div className="flex border-b border-gray-700 mb-6">
-  <button
-    onClick={() => setActiveTab("details")}
-    className={`px-4 py-2 text-sm font-medium transition-colors ${
-      activeTab === "details"
-        ? "text-blue-400 border-b-2 border-blue-400"
-        : "text-gray-400 hover:text-white"
-    }`}
-  >
-    Details
-  </button>
-  <button
-    onClick={() => setActiveTab("access")}
-    className={`px-4 py-2 text-sm font-medium transition-colors ${
-      activeTab === "access"
-        ? "text-blue-400 border-b-2 border-blue-400"
-        : "text-gray-400 hover:text-white"
-    }`}
-  >
-    Access Data
-  </button>
-</div>
+            <button
+              onClick={() => setActiveTab("details")}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Details
+            </button>
+            <button
+              onClick={() => setActiveTab("access")}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "access" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Access Data
+            </button>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-3 custom-scrollbar overflow-y-auto max-h-[60vh]">
             {renderTabContent()}

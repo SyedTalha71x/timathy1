@@ -1,4 +1,3 @@
-// admin panel finance code
 /* eslint-disable react/prop-types */
 
 import { useState, useEffect } from "react"
@@ -281,8 +280,6 @@ const financialData = {
     ],
   },
 }
-
-// Services Modal Component
 const ServicesModal = ({ isOpen, onClose, services, studioName }) => {
   if (!isOpen) return null
 
@@ -327,8 +324,6 @@ const ServicesModal = ({ isOpen, onClose, services, studioName }) => {
     </div>
   )
 }
-
-// Documents Modal Component
 const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDocument }) => {
   if (!isOpen) return null
 
@@ -428,8 +423,6 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
     </div>
   )
 }
-
-// Document Viewer Modal Component
 const DocumentViewerModal = ({ isOpen, onClose, document }) => {
   if (!isOpen || !document) return null
 

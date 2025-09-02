@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 
@@ -16,7 +14,6 @@ import { IoIosMenu } from "react-icons/io"
 import { SidebarArea } from "../../components/custom-sidebar"
 import ExportConfirmationModal from "../../components/finance-components/export-confirmation-modal"
 
-// Documents Modal Component
 const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDocument }) => {
   if (!isOpen) return null
 

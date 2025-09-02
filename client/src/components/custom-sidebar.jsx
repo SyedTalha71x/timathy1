@@ -607,8 +607,8 @@ export const SidebarArea = ({
     <>
       <aside
         className={`
-          fixed top-0 right-0 h-full w-full sm:w-96 lg:w-96 bg-[#181818] border-l border-gray-700 z-50
-          transform transition-transform duration-300 ease-in-out
+          fixed top-0 right-0 h-full w-full sm:w-96 lg:w-88 bg-[#181818] border-l border-gray-700 z-50
+          transform transition-transform duration-500 ease-in-out
           ${isOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >

@@ -8,9 +8,9 @@ import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/default-avatar.avif"
 import AddStaffModal from "../../components/staff-components/add-staff-modal"
 import EditStaffModal from "../../components/staff-components/edit-staff-modal"
-import EmployeePlanningModal from "../../components/staff-components/employee-planning-modal"
+import StaffPlanningModal from "../../components/staff-components/staff-panning-modal"
 import AttendanceOverviewModal from "../../components/staff-components/attendance-overview-modal"
-import VacationRequestModal from "../../components/staff-components/vacation-request-modal"
+import VacationCalendarModal from "../../components/staff-components/vacation-calendar-modal"
 import StaffHistoryModal from "../../components/staff-components/staff-history-modal"
 import { SidebarArea } from "../../components/custom-sidebar"
 import { useNavigate } from "react-router-dom"
@@ -71,6 +71,23 @@ export default function StaffManagement() {
       city: "Othertown",
       vacationEntitlement: 25,
       birthday: "1992-11-20",
+    },
+    {
+      id: 3,
+      firstName: "Micheal",
+      lastName: "John",
+      role: "System Engineer",
+      email: "johnmicheal@example.com",
+      phone: "+92131232323",
+      description: "Experienced system engineer with excellent communication skills.",
+      img: Avatar,
+      userId: "john.system-engineer",
+      username: "micheal.john",
+      street: "456 Oak Ave",
+      zipCode: "62390",
+      city: "Othertown",
+      vacationEntitlement: 15,
+      birthday: "1992-11-27",
     },
   ])
 
@@ -207,102 +224,107 @@ export default function StaffManagement() {
             },
           }}
         />
-        <div className="flex relative rounded-3xl cursor-pointer bg-[#1C1C1C] text-white">
+  
+        {/* Main container - shifts on sidebar open */}
+        <div
+          className={`flex relative rounded-3xl transition-all duration-500 cursor-pointer bg-[#1C1C1C] text-white ${
+            isRightSidebarOpen ? "lg:mr-89" : "mr-0"
+          }`}
+        >
           <div className="flex-1 min-w-0 p-4 sm:p-6">
-            <div className="flex flex-col lg:flex-row md:flex-col sm:flex-col  gap-4 mb-3">
-              {/* Title and menu button row */}
-              <div className="flex justify-between items-center w-full">
-                <div className=""></div>
-                <h1 className="text-xl sm:text-2xl lg:text-2xl oxanium_font text-white text-center">Staff</h1>
-                <div className="flex-1 flex justify-end">
-                  <button
-                    onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                    className="lg:hidden text-sm rounded-xl cursor-pointer"
-                  >
-                    <IoIosMenu size={24} />
-                  </button>
-                </div>
-              </div>
+          {/* ✅ Fixed Header Section */}
+<div
+  className={`flex flex-col ${
+    isRightSidebarOpen ? "lg:flex-row lg:items-center lg:justify-between" : "lg:flex-row lg:items-center lg:justify-between"
+  } gap-4 mb-6 transition-all duration-500`}
+>
+  {/* Left side - Title + View toggle */}
+  <div
+    className={`flex ${
+      isRightSidebarOpen
+        ? "flex items-center gap-3 mb-13 w-full lg:w-auto"
+        : "flex-col sm:flex-row sm:items-center gap-3  w-full lg:w-auto justify-between"
+    }`}
+  >
+    <h1 className="text-xl sm:text-2xl lg:text-2xl oxanium_font text-white">
+      Staff
+    </h1>
 
-              {/* Action buttons section - responsive layout */}
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 w-auto lg:justify-end">
-  {/* View toggle */}
-  <div className="flex items-center justify-end lg:justify-start gap-1 bg-black rounded-xl p-1 
-                  w-auto self-end lg:self-auto">
-    <span className="text-xs text-gray-400 px-2">View</span>
-    <button
-      onClick={toggleViewMode}
-      className={`p-2 rounded-lg transition-colors ${
-        viewMode === "grid"
-          ? "bg-[#FF843E] text-white"
-          : "text-gray-400 hover:text-white"
-      }`}
-      title="Grid View"
-    >
-      <Grid3X3 size={16} />
-    </button>
-    <button
-      onClick={toggleViewMode}
-      className={`p-2 rounded-lg transition-colors ${
-        viewMode === "list"
-          ? "bg-[#FF843E] text-white"
-          : "text-gray-400 hover:text-white"
-      }`}
-      title="List View"
-    >
-      <List size={16} />
-    </button>
+    <div className="flex items-center gap-1 bg-black rounded-xl p-1 w-fit">
+      <span className="text-xs text-gray-400 px-2">View</span>
+      <button
+        onClick={toggleViewMode}
+        className={`p-2 rounded-lg transition-colors ${
+          viewMode === "grid"
+            ? "bg-[#FF843E] text-white"
+            : "text-gray-400 hover:text-white"
+        }`}
+        title="Grid View"
+      >
+        <Grid3X3 size={16} />
+      </button>
+      <button
+        onClick={toggleViewMode}
+        className={`p-2 rounded-lg transition-colors ${
+          viewMode === "list"
+            ? "bg-[#FF843E] text-white"
+            : "text-gray-400 hover:text-white"
+        }`}
+        title="List View"
+      >
+        <List size={16} />
+      </button>
+    </div>
   </div>
 
+  {/* Right side - Action buttons */}
+  <div className="flex flex-wrap items-center justify-end gap-3 w-full lg:w-auto">
+    <button
+      onClick={() => setIsPlanningModalOpen(true)}
+      className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center gap-2"
+    >
+      <Calendar className="h-4 w-4" />
+      <span className="hidden sm:inline">Staff planning</span>
+      <span className="sm:hidden">Planning</span>
+    </button>
+    <button
+      onClick={() => setIsAttendanceModalOpen(true)}
+      className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center gap-2"
+    >
+      <Users className="h-4 w-4" />
+      <span className="hidden sm:inline">Attendance Overview</span>
+      <span className="sm:hidden">Attendance</span>
+    </button>
+    <button
+      onClick={() => setIsVacationRequestModalOpen(true)}
+      className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center gap-2"
+    >
+      <Calendar className="h-4 w-4" />
+      <span className="hidden sm:inline">Vacation Calendar</span>
+      <span className="sm:hidden">Vacation</span>
+    </button>
+    <button
+      onClick={() => setIsModalOpen(true)}
+      className="bg-orange-500 text-white px-4 lg:px-10 py-2.5 rounded-xl text-sm whitespace-nowrap"
+    >
+      + Add Staff
+    </button>
 
-                {/* Action buttons grid - 2 columns on mobile, 1 row on tablet+ */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-2 lg:gap-3 w-full lg:w-auto">
-                  <button
-                    onClick={() => setIsPlanningModalOpen(true)}
-                    className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
-                  >
-                    <Calendar className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline">Shift planning</span>
-                    <span className="sm:hidden">Planning</span>
-                  </button>
-                  <button
-                    onClick={() => setIsAttendanceModalOpen(true)}
-                    className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
-                  >
-                    <Users className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline">Attendance Overview</span>
-                    <span className="sm:hidden">Attendance</span>
-                  </button>
-                  <button
-                    onClick={() => setIsVacationRequestModalOpen(true)}
-                    className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
-                  >
-                    <Calendar className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline">Request Vacation</span>
-                    <span className="sm:hidden">Vacation</span>
-                  </button>
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="bg-orange-500 text-white open_sans_font px-4 lg:px-10 py-2.5 rounded-xl text-sm whitespace-nowrap col-span-1 sm:col-span-2 lg:col-span-1"
-                  >
-                    + Add Staff
-                  </button>
-                </div>
-
-                {/* Desktop menu button */}
-                <button
-                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className="hidden lg:block text-sm rounded-xl cursor-pointer"
-                >
-                  <IoIosMenu size={24} />
-                </button>
-              </div>
-            </div>
-
+    {/* Sidebar toggle (desktop only) */}
+    <button
+      onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+      className="hidden lg:block text-sm rounded-xl cursor-pointer"
+    >
+      <IoIosMenu size={24} />
+    </button>
+  </div>
+</div>
+  
+            {/* Staff cards section */}
             <div
-              className={`open_sans_font mt-6 sm:mt-8 lg:mt-[10%] ${
+              className={`open_sans_font mt-6 sm:mt-15 ${
                 viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-3 sm:gap-4"
+                  ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4"
                   : "flex flex-col gap-3"
               }`}
             >
@@ -316,30 +338,44 @@ export default function StaffManagement() {
                   }`}
                 >
                   <div
-                    className={`${viewMode === "grid" ? "relative w-full mb-4" : "flex-shrink-0 self-center sm:self-start"}`}
+                    className={`${
+                      viewMode === "grid"
+                        ? "relative w-full mb-4"
+                        : "flex-shrink-0 self-center sm:self-start"
+                    }`}
                   >
                     <img
                       src={staff.img || "/placeholder.svg?height=80&width=80"}
                       width={80}
                       height={80}
                       className={`rounded-full ${
-                        viewMode === "grid" ? "h-16 w-16 sm:h-20 sm:w-20 mx-auto" : "h-12 w-12 sm:h-16 sm:w-16"
+                        viewMode === "grid"
+                          ? "h-16 w-16 sm:h-20 sm:w-20 mx-auto"
+                          : "h-12 w-12 sm:h-16 sm:w-16"
                       }`}
                       alt={`${staff.firstName} ${staff.lastName}`}
                     />
                   </div>
-
-                  <div className={`${viewMode === "list" ? "flex-1 min-w-0" : "w-full"}`}>
+  
+                  <div
+                    className={`${
+                      viewMode === "list" ? "flex-1 min-w-0" : "w-full"
+                    }`}
+                  >
                     <h3
                       className={`text-white font-medium text-base sm:text-lg mb-1 ${
-                        viewMode === "list" ? "text-center sm:text-left" : "text-center"
+                        viewMode === "list"
+                          ? "text-center sm:text-left"
+                          : "text-center"
                       }`}
                     >
                       {staff.firstName} {staff.lastName}
                     </h3>
                     <p
                       className={`text-gray-400 text-xs sm:text-sm mb-2 ${
-                        viewMode === "list" ? "text-center sm:text-left" : "text-center"
+                        viewMode === "list"
+                          ? "text-center sm:text-left"
+                          : "text-center"
                       }`}
                     >
                       {staff.role}
@@ -347,12 +383,16 @@ export default function StaffManagement() {
                     <p
                       className={`text-gray-400 text-xs sm:text-sm ${
                         viewMode === "grid" ? "mb-4" : "mb-3"
-                      } ${viewMode === "list" ? "text-center sm:text-left" : "text-center"}`}
+                      } ${
+                        viewMode === "list"
+                          ? "text-center sm:text-left"
+                          : "text-center"
+                      }`}
                     >
                       {staff.description}
                     </p>
                   </div>
-
+  
                   <div
                     className={`flex gap-2 ${
                       viewMode === "grid"
@@ -386,7 +426,8 @@ export default function StaffManagement() {
             </div>
           </div>
         </div>
-
+  
+        {/* Right Sidebar */}
         <SidebarArea
           isOpen={isRightSidebarOpen}
           onClose={closeSidebar}
@@ -401,9 +442,15 @@ export default function StaffManagement() {
           openDropdownIndex={openDropdownIndex}
           setEditingLink={setEditingLink}
         />
-
-        {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={closeSidebar}></div>}
-
+  
+        {isRightSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={closeSidebar}
+          />
+        )}
+  
+        {/* ✅ Rest Modals unchanged */}
         {isModalOpen && (
           <AddStaffModal
             setIsModalOpen={setIsModalOpen}
@@ -411,7 +458,7 @@ export default function StaffManagement() {
             setStaffMembers={setStaffMembers}
           />
         )}
-
+  
         {isShowDetails && selectedStaff && (
           <EditStaffModal
             staff={selectedStaff}
@@ -422,7 +469,7 @@ export default function StaffManagement() {
             handleRemovalStaff={handleRemovalStaff}
           />
         )}
-
+  
         {isRemoveModalOpen && (
           <div
             className="fixed inset-0 open_sans_font cursor-pointer bg-black/50 flex items-center justify-center z-[1000] p-4 sm:p-6"
@@ -433,7 +480,9 @@ export default function StaffManagement() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
-                <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">Confirm Removal</h2>
+                <h2 className="text-base open_sans_font_700 sm:text-lg font-semibold text-white">
+                  Confirm Removal
+                </h2>
                 <button
                   onClick={() => setIsRemoveModalOpen(false)}
                   className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg"
@@ -442,7 +491,9 @@ export default function StaffManagement() {
                 </button>
               </div>
               <div className="px-4 sm:px-6 py-4">
-                <p className="text-white text-sm">Are you sure you want to remove this staff member?</p>
+                <p className="text-white text-sm">
+                  Are you sure you want to remove this staff member?
+                </p>
               </div>
               <div className="px-4 sm:px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
                 <button
@@ -461,27 +512,39 @@ export default function StaffManagement() {
             </div>
           </div>
         )}
-
+  
         {isPlanningModalOpen && (
-          <EmployeePlanningModal staffMembers={staffMembers} onClose={() => setIsPlanningModalOpen(false)} />
+          <StaffPlanningModal
+            staffMembers={staffMembers}
+            onClose={() => setIsPlanningModalOpen(false)}
+          />
         )}
-
+  
         {isAttendanceModalOpen && (
-          <AttendanceOverviewModal staffMembers={staffMembers} onClose={() => setIsAttendanceModalOpen(false)} />
+          <AttendanceOverviewModal
+            staffMembers={staffMembers}
+            onClose={() => setIsAttendanceModalOpen(false)}
+          />
         )}
-
+  
         {isVacationRequestModalOpen && (
-          <VacationRequestModal
+          <VacationCalendarModal
             staffMember={staffMembers[0]}
             onClose={() => setIsVacationRequestModalOpen(false)}
             onSubmit={handleVacationRequest}
           />
         )}
-
+  
         {isHistoryModalOpen && selectedStaffForHistory && (
-          <StaffHistoryModal staff={selectedStaffForHistory} onClose={() => setIsHistoryModalOpen(false)} />
+          <StaffHistoryModal
+            staff={selectedStaffForHistory}
+            onClose={() => setIsHistoryModalOpen(false)}
+          />
         )}
       </>
     </StaffContext.Provider>
-  )
+  );
+  
+  
+  
 }

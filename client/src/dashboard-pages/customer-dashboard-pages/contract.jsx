@@ -69,8 +69,6 @@ const initialStudioContracts = [
     isDigital: false,
   },
 ]
-
-// Sample lead data for pre-filling contracts
 const sampleLeads = [
   {
     id: "lead-1",
@@ -89,7 +87,6 @@ const sampleLeads = [
     interestedIn: "Basic",
   },
 ]
-
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   return (
     <div className="flex justify-center items-center gap-2 mt-6">
@@ -125,7 +122,6 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     </div>
   )
 }
-
 export default function ContractList() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isShowDetails, setIsShowDetails] = useState(false)

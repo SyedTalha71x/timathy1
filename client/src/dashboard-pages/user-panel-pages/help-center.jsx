@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable no-case-declarations */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */

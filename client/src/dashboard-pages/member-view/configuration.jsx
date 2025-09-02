@@ -1,7 +1,5 @@
-/* eslint-disable no-unused-vars */
-"use client"
-
 /* eslint-disable react/no-unknown-property */
+/* eslint-disable no-unused-vars */
 import { useState } from "react"
 import { Input, Button, notification, Tabs, Collapse, InputNumber, Switch } from "antd"
 import { SaveOutlined, EyeInvisibleOutlined, EyeTwoTone, ClockCircleOutlined } from "@ant-design/icons"
