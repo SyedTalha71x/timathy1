@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
@@ -227,7 +229,7 @@ export default function SidebarAreaSelling({
   afterDiscount = 0,
   vatAmount = 0,
   total = 0,
-  handleCheckout, // New prop for checkout function
+  handleCheckout,
 }) {
   const [activeTab, setActiveTab] = useState("shopping")
   const [sidebarWidgets, setSidebarWidgets] = useState([
@@ -324,9 +326,11 @@ export default function SidebarAreaSelling({
     <>
       {isOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />}
       <aside
-        className={`fixed top-0 right-0 h-full w-full lg:max-w-lg bg-[#181818] border-l border-gray-700 z-50 transform transition-transform duration-500 ease-in-out ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`
+          fixed top-0 right-0 h-full w-full sm:w-96 lg:w-[30%] bg-[#181818] border-l border-gray-700 z-50
+          transform transition-transform duration-500 ease-in-out
+          ${isOpen ? "translate-x-0" : "translate-x-full"}
+        `}
       >
         <div className="p-4 md:p-5 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
@@ -632,51 +636,53 @@ export default function SidebarAreaSelling({
                   Sell without selecting a member
                 </label>
               </div>
-              {/* Member selection with search */}
-              <div className="mb-4 relative member-search-container mt-3">
-                {/* <label className="text-sm text-gray-200 block mb-2">Search Member</label> */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={memberSearchQuery}
-                    onChange={(e) => {
-                      setMemberSearchQuery(e.target.value)
-                      setShowMemberResults(true)
-                      setSellWithoutMember(false)
-                    }}
-                    onFocus={() => setShowMemberResults(true)}
-                    placeholder="Search for a member..."
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    disabled={sellWithoutMember}
-                  />
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                </div>
-                {showMemberResults && !sellWithoutMember && (
-                  <div className="absolute z-10 mt-1 w-full bg-[#101010] rounded-xl shadow-lg border border-[#333333] max-h-48 overflow-y-auto">
-                    <div
-                      onClick={() => setIsTempMemberModalOpen()}
-                      className="px-4 py-2 hover:bg-[#181818] cursor-pointer text-sm border-b border-[#333333] text-[#3F74FF] flex items-center gap-2"
-                    >
-                      <UserPlus size={16} /> Create Temporary Member
-                    </div>
-                    {filteredMembers.length > 0 ? (
-                      filteredMembers.map((member) => (
-                        <div
-                          key={member.id}
-                          onClick={() => selectMember(member)}
-                          className="px-4 py-2 hover:bg-[#181818] cursor-pointer text-sm flex items-center justify-between"
-                        >
-                          <span>{member.name}</span>
-                          {member.isTemp && <span className="text-xs bg-orange-500 px-2 py-1 rounded">Temp</span>}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-4 py-2 text-gray-400 text-sm">No members found</div>
-                    )}
+              {!sellWithoutMember && (
+                <div className="mb-4 relative member-search-container mt-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={memberSearchQuery}
+                      onChange={(e) => {
+                        setMemberSearchQuery(e.target.value)
+                        setShowMemberResults(true)
+                        setSellWithoutMember(false)
+                      }}
+                      onFocus={() => setShowMemberResults(true)}
+                      placeholder="Search for a member..."
+                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                    />
+                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                   </div>
-                )}
-                {/* Sell without member option */}
-              </div>
+                  {showMemberResults && (
+                    <div className="absolute z-10 mt-1 w-full bg-[#101010] rounded-xl shadow-lg border border-[#333333] max-h-48 overflow-y-auto">
+                      <div
+                        onClick={() => setIsTempMemberModalOpen()}
+                        className="px-4 py-2 hover:bg-[#181818] cursor-pointer text-sm border-b border-[#333333] text-[#3F74FF] flex items-center gap-2"
+                      >
+                        <UserPlus size={16} /> Create Temporary Member
+                      </div>
+                      {filteredMembers.length > 0 ? (
+                        filteredMembers.map((member) => (
+                          <div
+                            key={member.id}
+                            onClick={() => selectMember(member)}
+                            className="px-4 py-2 hover:bg-[#181818] cursor-pointer text-sm flex items-center justify-between"
+                          >
+                            <span>{member.name}</span>
+                            <div className="flex gap-2">
+                              {member.isTemp && <span className="text-xs bg-orange-500 px-2 py-1 rounded">Temp</span>}
+                              <span className="text-xs bg-blue-500 px-2 py-1 rounded">{member.type}</span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-2 text-gray-400 text-sm">No members found</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Cart items */}
               <div className="space-y-4 max-h-[40vh] overflow-y-auto mb-4">
                 {cart.length === 0 ? (
@@ -698,9 +704,14 @@ export default function SidebarAreaSelling({
                             <p className="text-xs text-zinc-400 mb-1">Art. No: {item.articalNo}</p>
                           )}
                           <p className="text-sm font-bold">${item.price.toFixed(2)}</p>
-                          <span className="text-xs bg-gray-600 px-2 py-1 rounded">
-                            {item.type === "service" ? "Service" : "Product"}
-                          </span>
+                          <div className="flex gap-2 mt-1">
+                            <span className="text-xs bg-gray-600 px-2 py-1 rounded">
+                              {item.type === "service" ? "Service" : "Product"}
+                            </span>
+                            {item.vatRate && (
+                              <span className="text-xs bg-blue-600 px-2 py-1 rounded">VAT: {item.vatRate}%</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center justify-between mt-3">
@@ -730,6 +741,7 @@ export default function SidebarAreaSelling({
                   ))
                 )}
               </div>
+
               {/* Payment options */}
               {cart.length > 0 && (
                 <>
@@ -737,7 +749,15 @@ export default function SidebarAreaSelling({
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Payment Method</label>
                       <div className="grid grid-cols-3 gap-1">
-                        {["Cash", "Card", "Direct Debit"].map((method) => (
+                        {[
+                          "Cash",
+                          "Card",
+                          ...(!sellWithoutMember &&
+                          selectedMember &&
+                          members.find((m) => m.id === selectedMember)?.type !== "Temporary Member"
+                            ? ["Direct Debit"]
+                            : []),
+                        ].map((method) => (
                           <button
                             key={method}
                             onClick={() => setSelectedPaymentMethod(method)}
@@ -781,7 +801,7 @@ export default function SidebarAreaSelling({
                       </div>
                     </div>
                   </div>
-                  {/* Order summary */}
+
                   <div className="border-t border-[#333333] pt-4 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Subtotal:</span>
@@ -793,29 +813,37 @@ export default function SidebarAreaSelling({
                         <span>-${discountAmount.toFixed(2)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">VAT ({selectedVat}%):</span>
+                    <div className="flex justify-between text-sm text-zinc-500">
+                      <span className="text-gray-400">VAT ({selectedVat}%) - Info Only:</span>
                       <span>${vatAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between font-bold mt-2 pt-2 border-t border-[#333333]">
                       <span>Total:</span>
                       <span>${total.toFixed(2)}</span>
                     </div>
+                    
                   </div>
+
                   {/* Member/No member indicator */}
                   <div className="mt-4 p-3 bg-[#101010] rounded-xl">
                     <div className="text-sm text-gray-300">
                       {sellWithoutMember ? (
                         <span className="text-orange-400">Selling without member</span>
                       ) : selectedMember ? (
-                        <span className="text-green-400">
-                          Member: {members.find((m) => m.id === selectedMember)?.name}
-                        </span>
+                        <div>
+                          <span className="text-green-400">
+                            Member: {members.find((m) => m.id === selectedMember)?.name}
+                          </span>
+                          <div className="text-xs text-zinc-400 mt-1">
+                            Type: {members.find((m) => m.id === selectedMember)?.type}
+                          </div>
+                        </div>
                       ) : (
                         <span className="text-gray-400">No member selected</span>
                       )}
                     </div>
                   </div>
+
                   {/* Checkout button */}
                   <button
                     onClick={handleCheckout}

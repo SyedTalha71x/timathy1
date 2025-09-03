@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+"use client"
 
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
@@ -17,14 +19,14 @@ import {
   Info,
   History,
 } from "lucide-react"
-import ProductImage from "../../../public/1_55ce827a-2b63-4b1d-aa55-2c2b6dc6c96e.webp"
+import ProductImage from "../../../public/default-avatar.avif"
 import { RiServiceFill } from "react-icons/ri"
 import SidebarAreaSelling from "../../components/selling-components/custom-sidebar-selling"
 import Avatar from "../../../public/avatar.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
-import HistoryModal from "../../components/selling-components/history-modal"
 import { MdOutlineProductionQuantityLimits } from "react-icons/md"
+import { toast } from "react-hot-toast"
 
 function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -43,6 +45,8 @@ function App() {
     paymentOption: "",
     brandName: "",
     link: "",
+    vatRate: "19",
+    vatSelectable: false,
   })
 
   // New temporary member form state
@@ -100,9 +104,9 @@ function App() {
 
   // Members list (example)
   const [members, setMembers] = useState([
-    { id: 1, name: "John Doe" },
-    { id: 2, name: "Jane Smith" },
-    { id: 3, name: "Mike Johnson" },
+    { id: 1, name: "John Doe", type: "Full Member" },
+    { id: 2, name: "Jane Smith", type: "Full Member" },
+    { id: 3, name: "Mike Johnson", type: "Full Member" },
   ])
   const [products, setProducts] = useState([
     {
@@ -110,47 +114,55 @@ function App() {
       name: "Premium Orange Sneakers",
       brandName: "ORANGEWEAR",
       price: 129.99,
-      image: "https://placehold.co/600x400/orange/white?text=Premium+Sneakers",
+      image: "https://placehold.co/600x400/blue/white?text=Premium+Sneakers",
       articalNo: "ORG-001",
       paymentOption: "Card",
       type: "product",
       position: 0,
       link: "https://example.com/product1",
+      vatRate: "19",
+      vatSelectable: false,
     },
     {
       id: 2,
       name: "Orange Athletic Shoes",
       brandName: "ORANGEFIT",
       price: 189.5,
-      image: "https://placehold.co/600x400/orange/white?text=Athletic+Shoes",
+      image: "https://placehold.co/600x400/blue/white?text=Athletic+Shoes",
       articalNo: "ORG-002",
       paymentOption: "Card",
       type: "product",
       position: 1,
       link: "",
+      vatRate: "7",
+      vatSelectable: true,
     },
   ])
-  
+
   const [services, setServices] = useState([
     {
       id: 101,
       name: "Personal Training Session",
       price: 75.0,
-      image: "https://placehold.co/600x400/orange/white?text=Personal+Training",
+      image: "https://placehold.co/600x400/blue/white?text=Personal+Training",
       paymentOption: "Card",
       type: "service",
       position: 0,
       link: "https://example.com/training",
+      vatRate: "19",
+      vatSelectable: false,
     },
     {
       id: 102,
       name: "Nutrition Consultation",
       price: 50.0,
-      image: "https://placehold.co/600x400/orange/white?text=Nutrition+Advice",
+      image: "https://placehold.co/600x400/blue/white?text=Nutrition+Advice",
       paymentOption: "Cash",
       type: "service",
       position: 1,
       link: "",
+      vatRate: "7",
+      vatSelectable: true,
     },
   ])
 
@@ -159,53 +171,53 @@ function App() {
     {
       id: 1,
       date: "2024-01-15 14:30:22",
+      member: "John Doe",
+      memberType: "Full Member",
       items: [
-        { name: "Premium Orange Sneakers", quantity: 2, price: 129.99 },
-        { name: "Personal Training Session", quantity: 1, price: 75.0 },
+        { name: "Premium Orange Sneakers", quantity: 2, price: 129.99, type: "Product" },
+        { name: "Personal Training Session", quantity: 1, price: 75.0, type: "Service" },
       ],
       totalAmount: 334.98,
       paymentMethod: "Credit Card",
       soldBy: "John Smith",
+      invoiceNumber: "INV-2024-001",
+      canCancel: true,
     },
     {
       id: 2,
       date: "2024-01-14 09:15:45",
-      items: [{ name: "Orange Athletic Shoes", quantity: 1, price: 189.5 }],
+      member: "No Member",
+      memberType: "N/A",
+      items: [{ name: "Orange Athletic Shoes", quantity: 1, price: 189.5, type: "Product" }],
       totalAmount: 189.5,
       paymentMethod: "Cash",
       soldBy: "Sarah Johnson",
+      invoiceNumber: "INV-2024-002",
+      canCancel: false,
     },
     {
       id: 3,
       date: "2024-01-13 16:45:12",
+      member: "Jane Smith",
+      memberType: "Temporary Member",
       items: [
-        { name: "Nutrition Consultation", quantity: 3, price: 50.0 },
-        { name: "Premium Orange Sneakers", quantity: 1, price: 129.99 },
+        { name: "Nutrition Consultation", quantity: 3, price: 50.0, type: "Service" },
+        { name: "Premium Orange Sneakers", quantity: 1, price: 129.99, type: "Product" },
       ],
       totalAmount: 279.99,
       paymentMethod: "Debit Card",
       soldBy: "Mike Davis",
-    },
-    {
-      id: 4,
-      date: "2024-01-12 11:20:33",
-      items: [{ name: "Personal Training Session", quantity: 2, price: 75.0 }],
-      totalAmount: 150.0,
-      paymentMethod: "PayPal",
-      soldBy: "Emma Wilson",
-    },
-    {
-      id: 5,
-      date: "2024-01-11 13:55:18",
-      items: [
-        { name: "Orange Athletic Shoes", quantity: 1, price: 189.5 },
-        { name: "Nutrition Consultation", quantity: 1, price: 50.0 },
-      ],
-      totalAmount: 239.5,
-      paymentMethod: "Credit Card",
-      soldBy: "Alex Brown",
+      invoiceNumber: "INV-2024-003",
+      canCancel: true,
     },
   ])
+
+  const [salesFilter, setSalesFilter] = useState({
+    type: "all", // all, service, product
+    member: "",
+    dateFrom: "",
+    dateTo: "",
+  })
 
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
@@ -222,6 +234,8 @@ function App() {
       paymentOption: "",
       brandName: "",
       link: "",
+      vatRate: "19",
+      vatSelectable: false,
     })
     setSelectedImage(null)
     setCurrentProduct(null)
@@ -236,6 +250,8 @@ function App() {
       paymentOption: item.paymentOption || "",
       brandName: item.brandName || "",
       link: item.link || "",
+      vatRate: item.vatRate || "19",
+      vatSelectable: item.vatSelectable || false,
     })
     setSelectedImage(null)
     setCurrentProduct(item)
@@ -271,6 +287,7 @@ function App() {
       noteStartDate: tempMemberForm.noteStartDate,
       noteEndDate: tempMemberForm.noteEndDate,
       isTemp: true,
+      type: "Temporary Member",
     }
     setMembers([...members, newMember])
     setSelectedMember(newMember.id)
@@ -297,20 +314,11 @@ function App() {
     setShowCreateTempMemberModal(false)
   }
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    if (name === "price") {
-      if (value === "" || /^\d*\.?\d*$/.test(value)) {
-        setFormData({
-          ...formData,
-          [name]: value,
-        })
-      }
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      })
-    }
+    const { name, value, type, checked } = e.target
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    })
   }
   const handleImageUpload = (e) => {
     const file = e.target.files[0]
@@ -336,6 +344,8 @@ function App() {
         type: isService ? "service" : "product",
         position: isService ? services.length : products.length,
         link: formData.link,
+        vatRate: formData.vatRate,
+        vatSelectable: formData.vatSelectable,
       }
       if (isService) {
         setServices([...services, newItem])
@@ -355,6 +365,8 @@ function App() {
               image: selectedImage || item.image,
               brandName: isService ? undefined : formData.brandName,
               link: formData.link,
+              vatRate: formData.vatRate,
+              vatSelectable: formData.vatSelectable,
             }
           }
           return item
@@ -419,14 +431,19 @@ function App() {
   const handleCheckout = () => {
     if (cart.length === 0) return
 
+    const selectedMemberData = selectedMember ? members.find((m) => m.id === selectedMember) : null
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${String(salesHistory.length + 1).padStart(3, "0")}`
+
     const newSale = {
       id: Date.now(),
       date: new Date().toLocaleString(),
+      member: sellWithoutMember ? "No Member" : selectedMemberData?.name || "No Member Selected",
+      memberType: sellWithoutMember ? "N/A" : selectedMemberData?.type || "N/A",
       items: cart.map((item) => ({
         name: item.name,
         quantity: item.quantity,
         price: item.price,
-        type: item.type,
+        type: item.type === "service" ? "Service" : "Product",
         articalNo: item.articalNo,
         brandName: item.brandName,
       })),
@@ -435,21 +452,26 @@ function App() {
       discountApplied: discountAmount,
       vatApplied: vatAmount,
       paymentMethod: selectedPaymentMethod,
-      soldBy: sellWithoutMember
-        ? "No Member"
-        : selectedMember
-          ? members.find((m) => m.id === selectedMember)?.name
-          : "No Member Selected",
+      soldBy: sellWithoutMember ? "No Member" : selectedMemberData?.name || "No Member Selected",
+      invoiceNumber: invoiceNumber,
+      canCancel: true, // Can cancel within 24 hours
     }
 
-    setSalesHistory((prevHistory) => [newSale, ...prevHistory]) // Add new sale to the beginning
-    setCart([]) // Clear cart after checkout
-    setSelectedMember("") // Reset selected member
-    setMemberSearchQuery("") // Reset member search
-    setSellWithoutMember(false) // Reset sell without member
-    setDiscount("") // Reset discount
-    setSelectedPaymentMethod("Cash") // Reset payment method
-    setIsRightSidebarOpen(false) // Close sidebar after checkout
+    setSalesHistory((prevHistory) => [newSale, ...prevHistory])
+    setCart([])
+    setSelectedMember("")
+    setMemberSearchQuery("")
+    setSellWithoutMember(false)
+    setDiscount("")
+    setSelectedPaymentMethod("Cash")
+    setIsRightSidebarOpen(false)
+
+    setTimeout(
+      () => {
+        setSalesHistory((prev) => prev.map((sale) => (sale.id === newSale.id ? { ...sale, canCancel: false } : sale)))
+      },
+      24 * 60 * 60 * 1000,
+    ) // 24 hours in milliseconds
   }
 
   // Calculate totals
@@ -457,8 +479,67 @@ function App() {
   const discountValue = discount === "" ? 0 : Number.parseFloat(discount)
   const discountAmount = subtotal * (discountValue / 100)
   const afterDiscount = subtotal - discountAmount
+  // VAT is calculated but NOT added to total as per requirements
   const vatAmount = afterDiscount * (selectedVat / 100)
-  const total = afterDiscount + vatAmount
+  const total = afterDiscount // Only discount affects final price
+
+  const cancelSale = (saleId) => {
+    setSalesHistory((prev) => prev.filter((sale) => sale.id !== saleId))
+    toast.success("Sale cancelled successfully")
+  }
+
+  const downloadInvoice = (sale) => {
+    const invoiceData = {
+      studioName: "Fitness Studio Pro",
+      studioAddress: "123 Fitness Street, Health City, HC 12345",
+      vatNumber: "DE123456789",
+      logo: "Studio Logo Here",
+      invoiceNumber: sale.invoiceNumber,
+      date: sale.date,
+      member: sale.member,
+      memberType: sale.memberType,
+      items: sale.items,
+      subtotal: sale.subtotal,
+      discount: sale.discountApplied,
+      vat: sale.vatApplied,
+      total: sale.totalAmount,
+      paymentMethod: sale.paymentMethod,
+    }
+
+    // Create downloadable invoice content
+    const invoiceContent = `
+INVOICE - ${invoiceData.invoiceNumber}
+${invoiceData.studioName}
+${invoiceData.studioAddress}
+VAT Number: ${invoiceData.vatNumber}
+
+Date: ${invoiceData.date}
+Member: ${invoiceData.member} (${invoiceData.memberType})
+
+ITEMS:
+${invoiceData.items
+  .map((item) => `${item.name} (${item.type}) - Qty: ${item.quantity} - Price: $${item.price.toFixed(2)}`)
+  .join("\n")}
+
+Subtotal: $${invoiceData.subtotal?.toFixed(2) || "0.00"}
+Discount: -$${invoiceData.discount?.toFixed(2) || "0.00"}
+VAT (${selectedVat}%): $${invoiceData.vat?.toFixed(2) || "0.00"}
+Total: $${invoiceData.total.toFixed(2)}
+
+Payment Method: ${invoiceData.paymentMethod}
+    `
+
+    const blob = new Blob([invoiceContent], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${invoiceData.invoiceNumber}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(memberSearchQuery.toLowerCase()),
   )
@@ -556,7 +637,14 @@ function App() {
   }, [products, services])
 
   return (
-    <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
+    <div  className={`
+      min-h-screen rounded-3xl text-white bg-[#1C1C1C]
+      transition-all duration-500 ease-in-out flex-1
+      ${isRightSidebarOpen 
+        ? 'lg:mr-[35%] md:mr-96 sm:mr-96' // Adjust right margin when sidebar is open on larger screens
+        : 'mr-0' // No margin when closed
+      }
+    `}>
       {/* New Temporary Member Modal */}
       {showCreateTempMemberModal && (
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -972,7 +1060,6 @@ function App() {
                 >
                   <MdOutlineProductionQuantityLimits size={16} className="inline mr-1 md:mr-2" />
                   <span className="hidden sm:inline">Products</span>
-                  {/* <span className="sm:hidden">Prod</span> */}
                 </button>
                 <button
                   onClick={() => setActiveTab("services")}
@@ -982,7 +1069,15 @@ function App() {
                 >
                   <RiServiceFill size={16} className="inline mr-1 md:mr-2" />
                   <span className="hidden sm:inline">Services</span>
-                  {/* <span className="sm:hidden">Serv</span> */}
+                </button>
+              </div>
+              <div>
+                <button
+                  onClick={() => setShowHistoryModal(true)}
+                  className="text-white md:w-12 w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                  title="View Sales Journal"
+                >
+                  <History size={25} />
                 </button>
               </div>
               <div>
@@ -1009,14 +1104,6 @@ function App() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {/* History Icon */}
-              <button
-                onClick={() => setShowHistoryModal(true)}
-                className="text-white md:w-12 w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                title="View Sales History"
-              >
-                <History size={25} />
-              </button>
               <button
                 onClick={toggleRightSidebar}
                 className="cursor-pointer rounded-md text-sm hover:bg-white hover:text-black transition-colors flex items-center gap-2 p-2 relative"
@@ -1114,111 +1201,113 @@ function App() {
             </div>
           )}
 
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-  {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
-    <div key={item.id} className="w-full bg-[#181818] rounded-2xl overflow-visible relative">
-      {isEditModeActive && (
-        <div className="absolute top-2 left-2 z-10 bg-black/70 rounded-lg p-1 flex flex-col gap-1">
-          <button
-            onClick={() => moveItem(index, "left", activeTab === "services")}
-            className="p-1.5 rounded-md hover:bg-[#333333] text-white"
-            title="Move Left"
-          >
-            <ArrowLeft size={16} />
-          </button>
-          <button
-            onClick={() => moveItem(index, "right", activeTab === "services")}
-            className="p-1.5 rounded-md hover:bg-[#333333] text-white"
-            title="Move Right"
-          >
-            <ArrowRight size={16} />
-          </button>
-        </div>
-      )}
-      {isEditModeActive && (
-        <div className="absolute top-2 right-2 z-10 bg-[#3F74FF] text-white rounded-full p-1.5">
-          <Move size={16} />
-        </div>
-      )}
-      <div className="relative w-full h-48 overflow-hidden rounded-t-2xl">
-        <img
-          src={item.image || ProductImage}
-          alt={item.name}
-          className="object-cover w-full h-full"
-        />
-        {!isEditModeActive && (
-          <button
-            onClick={() => addToCart(item)}
-            className="absolute bottom-3 right-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
-            aria-label="Add to cart"
-          >
-            <ShoppingBasket size={16} />
-          </button>
-        )}
-        {item.link && !isEditModeActive && (
-          <button
-            onClick={() => window.open(item.link, "_blank")}
-            className="absolute bottom-3 left-3 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
-            aria-label="Open link"
-          >
-            <ExternalLink size={16} />
-          </button>
-        )}
-      </div>
-      <div className="p-3">
-        <div className="">
-          <h3 className="text-base font-medium mb-1 oxanium_font truncate">{item.name}</h3>
-          {activeTab === "products" && item.brandName && (
-            <p className="text-xs text-slate-200 mb-1 open_sans_font">{item.brandName}</p>
-          )}
-          {activeTab === "products" && item.articalNo && (
-            <p className="text-xs text-slate-400 mb-1 open_sans_font">Art. No: {item.articalNo}</p>
-          )}
-          <p className="text-lg font-bold text-[#FF843E] mb-2">${item.price.toFixed(2)}</p>
-        </div>
-        {isEditModeActive && (
-          <div className="mt-2 relative"> {/* Added relative positioning here */}
-            <div className="flex justify-end items-center">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setOpenDropdownId(openDropdownId === item.id ? null : item.id)
-                }}
-                className="bg-black text-white rounded-xl py-1.5 px-3 border border-slate-600 text-sm cursor-pointer"
-              >
-                <MoreVertical size={16} />
-              </button>
-              {openDropdownId === item.id && (
-                <div className="absolute top-full right-0 mt-1 w-36 bg-[#101010] rounded-xl shadow-lg z-[60] border border-[#333333] dropdown-container">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      openEditModal(item)
-                      setOpenDropdownId(null)
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-[#181818] transition-colors rounded-t-xl"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      openDeleteModal(item)
-                      setOpenDropdownId(null)
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#181818] transition-colors rounded-b-xl"
-                  >
-                    Remove
-                  </button>
+<div
+  className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 
+  ${isRightSidebarOpen ? "lg:grid-cols-3 xl:grid-cols-3" : "lg:grid-cols-4 xl:grid-cols-5"} 
+  gap-3`}
+>
+            {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
+              <div key={item.id} className="w-full bg-[#181818] rounded-2xl overflow-visible relative">
+                {isEditModeActive && (
+                  <div className="absolute top-2 left-2 z-10 bg-black/70 rounded-lg p-1 flex flex-col gap-1">
+                    <button
+                      onClick={() => moveItem(index, "left", activeTab === "services")}
+                      className="p-1.5 rounded-md hover:bg-[#333333] text-white"
+                      title="Move Left"
+                    >
+                      <ArrowLeft size={16} />
+                    </button>
+                    <button
+                      onClick={() => moveItem(index, "right", activeTab === "services")}
+                      className="p-1.5 rounded-md hover:bg-[#333333] text-white"
+                      title="Move Right"
+                    >
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                )}
+                {isEditModeActive && (
+                  <div className="absolute top-2 right-2 z-10 bg-[#3F74FF] text-white rounded-full p-1.5">
+                    <Move size={16} />
+                  </div>
+                )}
+                <div className="relative w-full h-48 overflow-hidden rounded-t-2xl">
+                  <img src={item.image || ProductImage} alt={item.name} className="object-cover w-full h-full" />
+                  {!isEditModeActive && (
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="absolute bottom-3 right-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
+                      aria-label="Add to cart"
+                    >
+                      <ShoppingBasket size={16} />
+                    </button>
+                  )}
+                  {item.link && !isEditModeActive && (
+                    <button
+                      onClick={() => window.open(item.link, "_blank")}
+                      className="absolute bottom-3 left-3 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+                      aria-label="Open link"
+                    >
+                      <ExternalLink size={16} />
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
+                <div className="p-3">
+                  <div className="">
+                    <h3 className="text-base font-medium mb-1 oxanium_font truncate">{item.name}</h3>
+                    {activeTab === "products" && item.brandName && (
+                      <p className="text-xs text-slate-200 mb-1 open_sans_font">{item.brandName}</p>
+                    )}
+                    {activeTab === "products" && item.articalNo && (
+                      <p className="text-xs text-slate-400 mb-1 open_sans_font">Art. No: {item.articalNo}</p>
+                    )}
+                    <p className="text-lg font-bold text-white mb-2">${item.price.toFixed(2)}</p>
+                  </div>
+                  {isEditModeActive && (
+                    <div className="mt-2 relative">
+                      {" "}
+                      {/* Added relative positioning here */}
+                      <div className="flex justify-end items-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setOpenDropdownId(openDropdownId === item.id ? null : item.id)
+                          }}
+                          className="bg-black text-white rounded-xl py-1.5 px-3 border border-slate-600 text-sm cursor-pointer"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                        {openDropdownId === item.id && (
+                          <div className="absolute top-full right-0 mt-1 w-36 bg-[#101010] rounded-xl shadow-lg z-[60] border border-[#333333] dropdown-container">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openEditModal(item)
+                                setOpenDropdownId(null)
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-[#181818] transition-colors rounded-t-xl"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openDeleteModal(item)
+                                setOpenDropdownId(null)
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#181818] transition-colors rounded-b-xl"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
-    </div>
-  ))}
-</div>
         </div>
       </main>
       {/* Sidebar Component */}
@@ -1264,17 +1353,194 @@ function App() {
         afterDiscount={afterDiscount}
         vatAmount={vatAmount}
         total={total}
-        handleCheckout={handleCheckout} // Pass checkout function
+        handleCheckout={handleCheckout}
       />
       {isRightSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 cursor-pointer"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden cursor-pointer"
           onClick={() => setIsRightSidebarOpen(false)}
         ></div>
       )}
 
       {/* History Modal */}
-      {showHistoryModal && <HistoryModal salesHistory={salesHistory} onClose={() => setShowHistoryModal(false)} />}
+      {showHistoryModal && (
+        <SalesJournalModal
+          salesHistory={salesHistory}
+          onClose={() => setShowHistoryModal(false)}
+          cancelSale={cancelSale}
+          downloadInvoice={downloadInvoice}
+          salesFilter={salesFilter}
+          setSalesFilter={setSalesFilter}
+        />
+      )}
+    </div>
+  )
+}
+
+const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice, salesFilter, setSalesFilter }) => {
+  const [filteredSales, setFilteredSales] = useState(salesHistory)
+
+  useEffect(() => {
+    let filtered = salesHistory
+
+    // Filter by type
+    if (salesFilter.type !== "all") {
+      filtered = filtered.filter((sale) =>
+        sale.items.some((item) => item.type.toLowerCase() === salesFilter.type.toLowerCase()),
+      )
+    }
+
+    // Filter by member
+    if (salesFilter.member) {
+      filtered = filtered.filter((sale) => sale.member.toLowerCase().includes(salesFilter.member.toLowerCase()))
+    }
+
+    // Filter by date range
+    if (salesFilter.dateFrom) {
+      filtered = filtered.filter((sale) => new Date(sale.date) >= new Date(salesFilter.dateFrom))
+    }
+
+    if (salesFilter.dateTo) {
+      filtered = filtered.filter((sale) => new Date(sale.date) <= new Date(salesFilter.dateTo))
+    }
+
+    setFilteredSales(filtered)
+  }, [salesHistory, salesFilter])
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#181818] rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+        <div className="p-6 border-b border-gray-700">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-white">Sales Journal</h2>
+            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1">Type</label>
+              <select
+                value={salesFilter.type}
+                onChange={(e) => setSalesFilter({ ...salesFilter, type: e.target.value })}
+                className="w-full p-2 bg-black rounded-lg text-white text-sm"
+              >
+                <option value="all">All Types</option>
+                <option value="service">Service</option>
+                <option value="product">Product</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1">Member</label>
+              <input
+                type="text"
+                value={salesFilter.member}
+                onChange={(e) => setSalesFilter({ ...salesFilter, member: e.target.value })}
+                placeholder="Search member..."
+                className="w-full p-2 bg-black rounded-lg text-white text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1">From Date</label>
+              <input
+                type="date"
+                value={salesFilter.dateFrom}
+                onChange={(e) => setSalesFilter({ ...salesFilter, dateFrom: e.target.value })}
+                className="w-full p-2 bg-black rounded-lg text-white text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1">To Date</label>
+              <input
+                type="date"
+                value={salesFilter.dateTo}
+                onChange={(e) => setSalesFilter({ ...salesFilter, dateTo: e.target.value })}
+                className="w-full p-2 bg-black rounded-lg text-white text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-y-auto max-h-[60vh]">
+          <table className="w-full">
+            <thead className="bg-black sticky top-0">
+              <tr>
+                <th className="text-left p-4 text-zinc-400 text-sm">Member</th>
+                <th className="text-left p-4 text-zinc-400 text-sm">Date</th>
+                <th className="text-left p-4 text-zinc-400 text-sm">Items</th>
+                <th className="text-left p-4 text-zinc-400 text-sm">Type</th>
+                <th className="text-left p-4 text-zinc-400 text-sm">Total</th>
+                <th className="text-left p-4 text-zinc-400 text-sm">Payment</th>
+                <th className="text-left p-4 text-zinc-400 text-sm">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSales.map((sale) => (
+                <tr key={sale.id} className="border-b border-gray-700 hover:bg-zinc-800/50">
+                  <td className="p-4">
+                    <div className="text-white text-sm">{sale.member}</div>
+                    <div className="text-zinc-400 text-xs">{sale.memberType}</div>
+                  </td>
+                  <td className="p-4 text-zinc-300 text-sm">{sale.date}</td>
+                  <td className="p-4">
+                    <div className="space-y-1">
+                      {sale.items.map((item, idx) => (
+                        <div key={idx} className="text-sm">
+                          <span className="text-white">{item.name}</span>
+                          <span className="text-zinc-400 ml-2">x{item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="space-y-1">
+                      {sale.items.map((item, idx) => (
+                        <div key={idx} className="text-xs">
+                          <span
+                            className={`px-2 py-1 rounded ${
+                              item.type === "Service" ? "bg-blue-600" : "bg-green-600"
+                            } text-white`}
+                          >
+                            {item.type}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="p-4 text-white font-semibold">${sale.totalAmount.toFixed(2)}</td>
+                  <td className="p-4 text-zinc-300 text-sm">{sale.paymentMethod}</td>
+                  <td className="p-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => downloadInvoice(sale)}
+                        className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-xs"
+                        title="Download E-Invoice"
+                      >
+                        📄
+                      </button>
+                      {sale.canCancel && (
+                        <button
+                          onClick={() => cancelSale(sale.id)}
+                          className="p-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-xs"
+                          title="Cancel Sale (24h limit)"
+                        >
+                          ❌
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {filteredSales.length === 0 && (
+            <div className="text-center py-8 text-zinc-400">No sales found matching the current filters.</div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
