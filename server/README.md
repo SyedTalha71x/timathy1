@@ -273,5 +273,5 @@ npm i
 # for github Clone
 
 ```bash
-https://github.com/
+https://github.com/SyedTalha71x/timathy1/tree/master/server
 ```
