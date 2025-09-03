@@ -208,6 +208,8 @@ http://localhost:5000/api
 
 ```markdown
 - / (get) only logged user can see his notification
+- /:id/read (put) (read only single notification)
+- /:id/read-all (put) (read all notification at once)
 ```
 
 ## .env these value needs
