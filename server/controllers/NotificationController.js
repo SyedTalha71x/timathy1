@@ -1,20 +1,45 @@
-// controllers/notificationController.js
-const Notification = require('../models/NotificationModel');
+const NotificationModel = require('../models/NotificationModel');
 
+// Get all notifications of logged-in user
 const getUserNotifications = async (req, res, next) => {
-    try {
-        const userId = req.user?.id;
+  try {
+    const userId = req.user.id; // comes from auth middleware
+    const notifications = await NotificationModel.find({ userId })
+      .sort({ createdAt: -1 });
 
-        const notifications = await Notification.find({ userId })
-            .sort({ createdAt: -1 }); // latest first
-
-        res.status(200).json({
-            status: true,
-            notifications
-        });
-    } catch (error) {
-        next(error);
-    }
+    res.status(200).json({ status: true, notifications });
+  } catch (error) {
+    next(error);
+  }
 };
 
-module.exports = { getUserNotifications };
+// Mark one notification as read
+const readNotification = async (req, res, next) => {
+  try {
+    const { id } = req.params; // notificationId
+    const notification = await NotificationModel.findByIdAndUpdate(
+      id,
+      { isRead: true },
+      { new: true }
+    );
+    res.status(200).json({ status: true, notification });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Mark all notifications as read
+const readAllNotifications = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    await NotificationModel.updateMany(
+      { userId, isRead: false },
+      { $set: { isRead: true } }
+    );
+    res.status(200).json({ status: true, message: "All marked as read" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getUserNotifications, readNotification, readAllNotifications };

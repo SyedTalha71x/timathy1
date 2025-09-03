@@ -11,7 +11,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['info', "success", "warning", "error","appointment"],
+        enum: ['info', "success", "warning", "error", "appointment", "Birthday"],
         default: 'info'
     },
     read: {
