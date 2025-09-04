@@ -38,6 +38,7 @@ import {
   UnderlineOutlined,
 } from "@ant-design/icons"
 import VariablePicker from "../../components/variable-picker" // Assuming VariablePicker is in components folder
+import defaultLogoUrl from '../../../public/default-avatar.avif'
 
 const { Option } = Select
 const { TabPane } = Tabs
@@ -110,6 +111,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
   const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
   // Other studio settings
   const [logo, setLogo] = useState([])
+  const [logoUrl, setLogoUrl] = useState("") // New state to store logo URL
   const [roles, setRoles] = useState([])
   const [appointmentTypes, setAppointmentTypes] = useState([]) // Added images array to each type
   const [tags, setTags] = useState([])
@@ -245,6 +247,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
     { id: 2, name: "Referral" },
   ])
   const nextLeadSourceId = useRef(leadSources.length > 0 ? Math.max(...leadSources.map((s) => s.id)) + 1 : 1)
+
 
   // Fetch public holidays when country changes
   useEffect(() => {
@@ -437,9 +440,23 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
   }
 
   const handleLogoUpload = (info) => {
-    if (info.file.status === "done") {
+    if (info.file.status === "uploading") {
+      return
+    }
+    
+    if (info.file.status === "done" || info.file) {
+      // Create a URL for the uploaded file to display it
+      if (info.file.originFileObj) {
+        const url = URL.createObjectURL(info.file.originFileObj)
+        setLogoUrl(url)
+      }
       setLogo([info.file])
       notification.success({ message: "Logo uploaded successfully" })
+    }
+    
+    if (info.file.status === "removed") {
+      setLogoUrl("")
+      setLogo([])
     }
   }
 
@@ -571,6 +588,49 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
           <Panel header="Studio Information" key="1" className="bg-[#202020]">
   <Form layout="vertical" className="space-y-4">
+    
+    {/* Logo Display Section - Added above all other fields */}
+    <div className="flex justify-center mb-8">
+      <div className="flex flex-col items-center space-y-4">
+        {/* Logo Image */}
+        <div className="w-32 h-32 rounded-full overflow-hidden  shadow-lg">
+          <img
+            src={logoUrl || defaultLogoUrl}
+            alt="Studio Logo"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.src = defaultLogoUrl; // Fallback to default if image fails to load
+            }}
+          />
+        </div>
+        {/* Upload Logo Button */}
+        <Upload 
+          accept="image/*" 
+          maxCount={1} 
+          onChange={handleLogoUpload} 
+          fileList={logo}
+          showUploadList={false}
+        >
+          <Button icon={<UploadOutlined />} style={buttonStyle}>
+            {logo.length > 0 ? 'Change Logo' : 'Upload Logo'}
+          </Button>
+        </Upload>
+        {logo.length > 0 && (
+          <Button 
+            type="text" 
+            danger 
+            size="small"
+            onClick={() => {
+              setLogo([]);
+              setLogoUrl('');
+            }}
+          >
+            Remove Logo
+          </Button>
+        )}
+      </div>
+    </div>
+
     {/* Row 1: Studio Name & Studio Operator */}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Form.Item label={<span className="text-white">Studio Name</span>} required>
@@ -618,8 +678,6 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
     inputMode="numeric"
   />
 </Form.Item>
-
-
 
   <Form.Item
     label={<span className="text-white">Email</span>}
@@ -687,8 +745,8 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
       </Form.Item>
     </div>
 
-    {/* Row 5: Website & Logo */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {/* Row 5: Website only (Logo section moved to top) */}
+    <div className="grid grid-cols-1 md:grid-cols-1 md:w-[49.5%] w-full gap-4">
       <Form.Item label={<span className="text-white">Studio Website</span>}>
         <Input
           value={studioWebsite}
@@ -697,13 +755,6 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           style={inputStyle}
           maxLength={50}
         />
-      </Form.Item>
-      <Form.Item label={<span className="text-white">Studio Logo</span>}>
-        <Upload accept="image/*" maxCount={1} onChange={handleLogoUpload} fileList={logo}>
-          <Button icon={<UploadOutlined />} style={buttonStyle}>
-            Upload Logo
-          </Button>
-        </Upload>
       </Form.Item>
     </div>
   </Form>

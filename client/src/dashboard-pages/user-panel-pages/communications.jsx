@@ -280,17 +280,13 @@ export default function Communications() {
     },
   ])
 
-  const birthdayTextareaRef = useRef(null)
-  const confirmationTextareaRef = useRef(null)
-  const cancellationTextareaRef = useRef(null)
-  const rescheduledTextareaRef = useRef(null)
 
-  const handleOpenEmailModal = () => {
-    setOriginalEmailData({ to: "", subject: "", body: "" })
-    setEmailData({ to: "", subject: "", body: "" })
-    setShowEmailModal(true)
+
+  const handleEmailManagementClose = () =>{
+    setShowEmailFrontend(false)
+    setActiveScreen("chat")
+
   }
-
   const handleTemplateSelect = (template) => {
     setSelectedEmailTemplate(template)
     setEmailData({
@@ -1548,7 +1544,7 @@ export default function Communications() {
   }
 
   return (
-    <div className="relative flex md:h-[92vh] h-auto bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
+    <div className="relative flex lg:min-h-[92vh]   h-auto bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
       {showSidebar && (
         <div
           className="fixed inset-0 bg-black/30 z-50"
@@ -1637,7 +1633,7 @@ export default function Communications() {
                 <User size={16} className="inline mr-2" />
                 Member
                 {unreadMessagesCount.member > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {unreadMessagesCount.member}
                   </span>
                 )}
@@ -1650,7 +1646,7 @@ export default function Communications() {
                 <Building2 size={16} className="inline mr-2" />
                 Studio
                 {unreadMessagesCount.company > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {unreadMessagesCount.company}
                   </span>
                 )}
@@ -1662,7 +1658,7 @@ export default function Communications() {
                 <Mail size={16} className="inline mr-2" />
                 Email
                 {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length}
                   </span>
                 )}
@@ -1919,7 +1915,7 @@ export default function Communications() {
                     width={48}
                     height={48}
                     className="rounded-full cursor-pointer"
-                    onClick={() => handleViewMember(selectedChat.id, {})}
+                    onClick={(e) => handleViewMember(selectedChat.id, e)}
                   />
                   {selectedChat.isBirthday && (
                     <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
@@ -1929,7 +1925,8 @@ export default function Communications() {
                 </div>
                 <span
                   className="font-medium cursor-pointer hover:text-blue-400"
-                  onClick={() => handleViewMember(selectedChat.id, {})}
+                  onClick={(e) => handleViewMember(selectedChat.id, e)}
+
                 >
                   {selectedChat.name}
                 </span>
@@ -2272,7 +2269,7 @@ export default function Communications() {
 
       <EmailManagement
         isOpen={showEmailFrontend}
-        onClose={() => setShowEmailFrontend(false)}
+        onClose={handleEmailManagementClose}
         onOpenSendEmail={() => setShowEmailModal(true)}
         onOpenSettings={() => setShowSettings(true)}
         onOpenBroadcast={() => setActiveScreen("send-message")} // Add this line

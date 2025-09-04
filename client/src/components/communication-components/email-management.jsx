@@ -1,7 +1,6 @@
+/* eslint-disable react/prop-types */
 "use client"
 
-/* eslint-disable react/prop-types */
-/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import {
   Mail,
@@ -165,7 +164,6 @@ const EmailManagement = ({
 
     setShowReplyModal(false)
     setReplyData({ to: "", subject: "", body: "" })
-    setSelectedEmail(null)
   }
 
   const bulkAction = (action) => {
@@ -317,9 +315,30 @@ const EmailManagement = ({
   }
 
   const handleClose = () => {
+    // Reset all internal state before closing
+    setSelectedEmail(null)
+    setActiveDropdown(null)
+    setShowReplyModal(false)
+    setSelectedEmails([])
+    setSelectAll(false)
+    setReplyData({ to: "", subject: "", body: "" })
 
+    // Call the parent close handler
+    if (onClose) {
       onClose()
-  
+    }
+  }
+
+  const handleBackToList = () => {
+    setSelectedEmail(null)
+    setActiveDropdown(null)
+    setShowReplyModal(false)
+  }
+
+  const handleCloseReplyModal = () => {
+    setShowReplyModal(false)
+    setReplyData({ to: "", subject: "", body: "" })
+    // Don't reset selectedEmail - stay in email view
   }
 
   if (!isOpen) return null
@@ -447,7 +466,7 @@ const EmailManagement = ({
                             Reply
                           </button>
                         )}
-                        <button onClick={handleClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+                        <button onClick={handleBackToList} className="p-2 hover:bg-zinc-700 rounded-lg">
                           <X size={16} />
                         </button>
                       </div>
@@ -481,7 +500,7 @@ const EmailManagement = ({
                   </div>
                 )}
 
-                {selectedEmails.length > 0 && (
+                {selectedEmails.length > 1 && (
                   <div className="flex flex-wrap gap-2 bg-[#222222] rounded-xl p-3">
                     <button
                       onClick={() => bulkAction("archive")}
@@ -511,13 +530,6 @@ const EmailManagement = ({
                       <EyeOff className="w-3 h-3" />
                       Mark Unread
                     </button>
-                    {/* <button
-                      onClick={() => {}}
-                      className="flex items-center gap-1 px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm"
-                    >
-                      <FolderOpen className="w-3 h-3" />
-                      Move
-                    </button> */}
                   </div>
                 )}
 
@@ -637,9 +649,9 @@ const EmailManagement = ({
       {showReplyModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-60 p-4">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="p-4  flex justify-between items-center">
+            <div className="p-4 flex justify-between items-center">
               <h3 className="text-lg font-medium">Reply to Email</h3>
-              <button onClick={() => setShowReplyModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
+              <button onClick={handleCloseReplyModal} className="p-2 hover:bg-zinc-700 rounded-lg">
                 <X size={16} />
               </button>
             </div>
@@ -678,9 +690,9 @@ const EmailManagement = ({
               </div>
             </div>
 
-            <div className="p-4  flex justify-end gap-2">
+            <div className="p-4 flex justify-end gap-2">
               <button
-                onClick={() => setShowReplyModal(false)}
+                onClick={handleCloseReplyModal}
                 className="px-4 py-2 bg-gray-600 cursor-pointer text-sm hover:bg-gray-700 text-white rounded-lg"
               >
                 Cancel

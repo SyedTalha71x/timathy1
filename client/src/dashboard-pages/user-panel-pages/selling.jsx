@@ -717,7 +717,7 @@ Payment Method: ${invoiceData.paymentMethod}
       transition-all duration-500 ease-in-out flex-1
       ${
         isRightSidebarOpen
-          ? "lg:mr-[35%] md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
+          ? "lg:mr-[36%] md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
           : "mr-0" // No margin when closed
       }
     `}
