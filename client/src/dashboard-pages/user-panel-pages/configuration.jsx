@@ -593,29 +593,52 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
       </Form.Item>
     </div>
 
-    {/* Row 2: Phone No & Email */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Form.Item label={<span className="text-white">Phone No</span>} required>
-        <Input
-          value={studioPhoneNo}
-          onChange={(e) => setStudioPhoneNo(e.target.value)}
-          placeholder="Enter phone no"
-          style={inputStyle}
-          maxLength={15}
-        />
-      </Form.Item>
-      <Form.Item label={<span className="text-white">Email</span>} required>
-        <Input
-          value={studioEmail}
-          onChange={(e) => setStudioEmail(e.target.value)}
-          placeholder="Enter email"
-          style={inputStyle}
-          maxLength={60}
-        />
-      </Form.Item>
-    </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+<Form.Item
+  label={<span className="text-white">Phone No</span>}
+  name="phone"
+  rules={[{ required: true, message: "Please enter phone number" }]}
+>
+  <Input
+    value={studioPhoneNo}
+    onChange={(e) => {
+      // Extra safety: strip non-digits if pasted
+      const onlyDigits = e.target.value.replace(/\D/g, "");
+      setStudioPhoneNo(onlyDigits);
+    }}
+    onKeyPress={(e) => {
+      // Block typing anything except digits
+      if (!/[0-9]/.test(e.key)) {
+        e.preventDefault();
+      }
+    }}
+    placeholder="Enter phone no"
+    style={inputStyle}
+    maxLength={15}
+    inputMode="numeric"
+  />
+</Form.Item>
 
-    {/* Row 3: Street & ZIP Code */}
+
+
+  <Form.Item
+    label={<span className="text-white">Email</span>}
+    name="email"
+    rules={[
+      { required: true, message: "Please enter email" },
+      { type: "email", message: "Please enter a valid email" },
+    ]}
+  >
+    <Input
+      value={studioEmail}
+      onChange={(e) => setStudioEmail(e.target.value)}
+      placeholder="Enter email"
+      style={inputStyle}
+      maxLength={60}
+    />
+  </Form.Item>
+</div>
+
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Form.Item label={<span className="text-white">Street (with number)</span>} required>
         <Input
@@ -623,7 +646,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioStreet(e.target.value)}
           placeholder="Enter street and number"
           style={inputStyle}
-          maxLength={100}
+          maxLength={60}
         />
       </Form.Item>
       <Form.Item label={<span className="text-white">ZIP Code</span>} required>
@@ -637,7 +660,6 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
       </Form.Item>
     </div>
 
-    {/* Row 4: City & Country */}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Form.Item label={<span className="text-white">City</span>} required>
         <Input
@@ -673,7 +695,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioWebsite(e.target.value)}
           placeholder="Enter studio website URL"
           style={inputStyle}
-          maxLength={80}
+          maxLength={50}
         />
       </Form.Item>
       <Form.Item label={<span className="text-white">Studio Logo</span>}>

@@ -474,6 +474,48 @@ html, body {
   }
 }
 
+/* selling menu  */
+/* Added proper sidebar spacing and responsive styles */
+.sidebar-container {
+  margin-left: 16px;
+}
+
+@media (min-width: 768px) {
+  .sidebar-container {
+    margin-left: 20px;
+  }
+}
+
+/* Enhanced wobble animation for edit mode */
+@keyframes wobble {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(1deg);
+  }
+  75% {
+    transform: rotate(-1deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-wobble {
+  animation: wobble 0.5s ease-in-out infinite;
+}
+
+/* Prevent drag when not in edit mode */
+.draggable-item:not(.edit-mode-active) {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+
 
 
 

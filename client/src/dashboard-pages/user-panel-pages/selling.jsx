@@ -10,14 +10,12 @@ import {
   Plus,
   ShoppingBasket,
   MoreVertical,
-  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Edit,
   Check,
   Move,
   ExternalLink,
-  Info,
   History,
 } from "lucide-react"
 import ProductImage from "../../../public/default-avatar.avif"
@@ -118,7 +116,7 @@ function App() {
       name: "Premium Orange Sneakers",
       brandName: "ORANGEWEAR",
       price: 129.99,
-      image: "https://placehold.co/600x400/blue/white?text=Premium+Sneakers",
+      image: "https://placehold.co/600x400/2563eb/white?text=Premium+Sneakers",
       articalNo: "ORG-001",
       paymentOption: "Card",
       type: "product",
@@ -132,7 +130,7 @@ function App() {
       name: "Orange Athletic Shoes",
       brandName: "ORANGEFIT",
       price: 189.5,
-      image: "https://placehold.co/600x400/blue/white?text=Athletic+Shoes",
+      image: "https://placehold.co/600x400/2563eb/white?text=Athletic+Shoes",
       articalNo: "ORG-002",
       paymentOption: "Card",
       type: "product",
@@ -142,13 +140,13 @@ function App() {
       vatSelectable: true,
     },
   ])
-
+  
   const [services, setServices] = useState([
     {
       id: 101,
       name: "Personal Training Session",
       price: 75.0,
-      image: "https://placehold.co/600x400/blue/white?text=Personal+Training",
+      image: "https://placehold.co/600x400/2563eb/white?text=Personal+Training",
       paymentOption: "Card",
       type: "service",
       position: 0,
@@ -160,7 +158,7 @@ function App() {
       id: 102,
       name: "Nutrition Consultation",
       price: 50.0,
-      image: "https://placehold.co/600x400/blue/white?text=Nutrition+Advice",
+      image: "https://placehold.co/600x400/2563eb/white?text=Nutrition+Advice",
       paymentOption: "Cash",
       type: "service",
       position: 1,
@@ -169,6 +167,7 @@ function App() {
       vatSelectable: true,
     },
   ])
+  
 
   // New state for sales history
   const [salesHistory, setSalesHistory] = useState([
@@ -342,7 +341,7 @@ function App() {
         name: formData.name,
         brandName: isService ? undefined : formData.brandName,
         price: Number.parseFloat(formData.price) || 0,
-        image: selectedImage || ProductImage,
+        image: selectedImage || null,
         articalNo: isService ? undefined : formData.articalNo,
         paymentOption: formData.paymentOption,
         type: isService ? "service" : "product",
@@ -522,8 +521,8 @@ Member: ${invoiceData.member} (${invoiceData.memberType})
 
 ITEMS:
 ${invoiceData.items
-        .map((item) => `${item.name} (${item.type}) - Qty: ${item.quantity} - Price: $${item.price.toFixed(2)}`)
-        .join("\n")}
+  .map((item) => `${item.name} (${item.type}) - Qty: ${item.quantity} - Price: $${item.price.toFixed(2)}`)
+  .join("\n")}
 
 Subtotal: $${invoiceData.subtotal?.toFixed(2) || "0.00"}
 Discount: -$${invoiceData.discount?.toFixed(2) || "0.00"}
@@ -592,6 +591,10 @@ Payment Method: ${invoiceData.paymentMethod}
   }
 
   const handleDragStart = (e, item, index) => {
+    if (!isEditModeActive) {
+      e.preventDefault()
+      return
+    }
     e.dataTransfer.setData("itemId", item.id)
     e.dataTransfer.setData("itemIndex", index)
     e.dataTransfer.setData("itemType", activeTab)
@@ -599,6 +602,10 @@ Payment Method: ${invoiceData.paymentMethod}
   }
 
   const handleDragOver = (e) => {
+    if (!isEditModeActive) {
+      e.preventDefault()
+      return
+    }
     e.preventDefault()
     e.currentTarget.classList.add("drag-over")
   }
@@ -608,6 +615,10 @@ Payment Method: ${invoiceData.paymentMethod}
   }
 
   const handleDrop = (e, targetIndex) => {
+    if (!isEditModeActive) {
+      e.preventDefault()
+      return
+    }
     e.preventDefault()
     e.currentTarget.classList.remove("drag-over")
 
@@ -704,10 +715,11 @@ Payment Method: ${invoiceData.paymentMethod}
       className={`
       min-h-screen rounded-3xl text-white bg-[#1C1C1C]
       transition-all duration-500 ease-in-out flex-1
-      ${isRightSidebarOpen
+      ${
+        isRightSidebarOpen
           ? "lg:mr-[35%] md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
           : "mr-0" // No margin when closed
-        }
+      }
     `}
     >
       <CreateTempMemberModal
@@ -751,13 +763,19 @@ Payment Method: ${invoiceData.paymentMethod}
               >
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
-                    <img
-                      src={selectedImage || currentProduct?.image || ProductImage}
-                      alt={activeTab === "services" ? "Service" : "Product"}
-                      width={96}
-                      height={96}
-                      className="w-full h-full object-cover"
-                    />
+                    {selectedImage || currentProduct?.image ? (
+                      <img
+                        src={selectedImage || currentProduct?.image || ProductImage}
+                        alt={activeTab === "services" ? "Service" : "Product"}
+                        width={96}
+                        height={96}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium text-center p-2">
+                        {currentProduct?.name || "New Item"}
+                      </div>
+                    )}
                   </div>
                   <input
                     type="file"
@@ -819,51 +837,50 @@ Payment Method: ${invoiceData.paymentMethod}
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-  <div>
-    <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
-    <select
-      name="vatRate"
-      value={formData.vatRate}
-      onChange={handleInputChange}
-      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-    >
-      <option value="0">0%</option>
-      <option value="7">7%</option>
-      <option value="19">19%</option>
-      <option value="custom">Custom</option>
-    </select>
-  </div>
-  {formData.vatRate === "custom" && (
-    <div>
-      <label className="text-sm text-gray-200 block mb-2">Custom VAT Rate</label>
-      <input
-        type="number"
-        name="customVatRate"
-        value={formData.customVatRate || ""}
-        onChange={handleInputChange}
-        placeholder="Enter VAT rate"
-        min="0"
-        max="100"
-        
-        className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-      />
-    </div>
-  )}
-</div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
+                    <select
+                      name="vatRate"
+                      value={formData.vatRate}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                    >
+                      <option value="0">0%</option>
+                      <option value="7">7%</option>
+                      <option value="19">19%</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                  {formData.vatRate === "custom" && (
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Custom VAT Rate</label>
+                      <input
+                        type="number"
+                        name="customVatRate"
+                        value={formData.customVatRate || ""}
+                        onChange={handleInputChange}
+                        placeholder="Enter VAT rate"
+                        min="0"
+                        max="100"
+                        className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      />
+                    </div>
+                  )}
+                </div>
 
-<div className="flex items-center space-x-2">
-  <input
-    type="checkbox"
-    id="vatSelectable"
-    name="vatSelectable"
-    checked={formData.vatSelectable}
-    onChange={handleInputChange}
-    className="rounded border-gray-300 text-[#3F74FF] focus:ring-[#3F74FF] focus:ring-2"
-  />
-  <label htmlFor="vatSelectable" className="text-sm text-gray-200">
-    Allow VAT rate selection during checkout
-  </label>
-</div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="vatSelectable"
+                    name="vatSelectable"
+                    checked={formData.vatSelectable}
+                    onChange={handleInputChange}
+                    className="rounded border-gray-300 text-[#3F74FF] focus:ring-[#3F74FF] focus:ring-2"
+                  />
+                  <label htmlFor="vatSelectable" className="text-sm text-gray-200">
+                    Allow VAT rate selection during checkout
+                  </label>
+                </div>
                 {activeTab === "products" && (
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">Brand</label>
@@ -919,16 +936,18 @@ Payment Method: ${invoiceData.paymentMethod}
               <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
                 <button
                   onClick={() => setActiveTab("products")}
-                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${activeTab === "products" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                    }`}
+                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${
+                    activeTab === "products" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
                 >
                   <MdOutlineProductionQuantityLimits size={16} className="inline mr-1 md:mr-2" />
                   <span className="hidden sm:inline">Products</span>
                 </button>
                 <button
                   onClick={() => setActiveTab("services")}
-                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${activeTab === "services" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                    }`}
+                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${
+                    activeTab === "services" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
                 >
                   <RiServiceFill size={16} className="inline mr-1 md:mr-2" />
                   <span className="hidden sm:inline">Services</span>
@@ -946,10 +965,11 @@ Payment Method: ${invoiceData.paymentMethod}
               <div>
                 <button
                   onClick={() => setIsEditModeActive(!isEditModeActive)}
-                  className={`p-2 cursor-pointer rounded-xl text-sm ${isEditModeActive
+                  className={`p-2 cursor-pointer rounded-xl text-sm ${
+                    isEditModeActive
                       ? "bg-blue-600 hover:bg-blue-700 text-white"
                       : "bg-[#333333] hover:bg-[#555555] text-gray-300"
-                    } transition-colors flex items-center gap-2 whitespace-nowrap`}
+                  } transition-colors flex items-center gap-2 whitespace-nowrap`}
                 >
                   {isEditModeActive ? (
                     <>
@@ -1075,8 +1095,9 @@ Payment Method: ${invoiceData.paymentMethod}
             {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
               <div
                 key={item.id}
-                className={`w-full bg-[#181818] rounded-2xl overflow-visible relative draggable-item ${isEditModeActive ? "animate-wobble" : ""
-                  }`}
+                className={`w-full bg-[#181818] rounded-2xl overflow-visible relative draggable-item ${
+                  isEditModeActive ? "animate-wobble" : ""
+                }`}
                 draggable={isEditModeActive}
                 onDragStart={(e) => handleDragStart(e, item, index)}
                 onDragOver={handleDragOver}
@@ -1108,11 +1129,21 @@ Payment Method: ${invoiceData.paymentMethod}
                   </div>
                 )}
                 <div className="relative w-full h-48 overflow-hidden rounded-t-2xl">
-                  <img src={item.image || ProductImage} alt={item.name} className="object-cover w-full h-full" />
+                  {item.image ? (
+                    <img
+                      src={item.image || "/placeholder.svg"}
+                      alt={item.name}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium text-center p-4">
+                      {item.name}
+                    </div>
+                  )}
                   {!isEditModeActive && (
                     <button
                       onClick={() => addToCart(item)}
-                      className="absolute bottom-3 right-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
+                      className="absolute bottom-3 right-3 bg-blue-800 cursor-pointer hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
                       aria-label="Add to cart"
                     >
                       <ShoppingBasket size={16} />
@@ -1121,7 +1152,7 @@ Payment Method: ${invoiceData.paymentMethod}
                   {item.link && !isEditModeActive && (
                     <button
                       onClick={() => window.open(item.link, "_blank")}
-                      className="absolute bottom-3 left-3 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+                      className="absolute bottom-3 left-3 cursor-pointer bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
                       aria-label="Open link"
                     >
                       <ExternalLink size={16} />
@@ -1199,7 +1230,7 @@ Payment Method: ${invoiceData.paymentMethod}
         redirectToTodos={() => console.log("Redirect to todos")}
         toggleDropdown={toggleDropdown}
         openDropdownIndex={openDropdownIndex}
-        setEditingLink={() => { }}
+        setEditingLink={() => {}}
         isEditing={false}
         // Shopping cart props
         cart={cart}
@@ -1235,6 +1266,7 @@ Payment Method: ${invoiceData.paymentMethod}
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden cursor-pointer"
           onClick={() => setIsRightSidebarOpen(false)}
+          style={{ marginLeft: "16px" }}
         ></div>
       )}
 
@@ -1274,7 +1306,5 @@ Payment Method: ${invoiceData.paymentMethod}
     </div>
   )
 }
-
-
 
 export default App
