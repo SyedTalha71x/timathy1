@@ -283,18 +283,18 @@ export default function StaffManagement() {
       onClick={() => setIsPlanningModalOpen(true)}
       className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center gap-2"
     >
-      <Calendar className="h-4 w-4" />
+      <Users className="h-4 w-4" />
       <span className="hidden sm:inline">Staff planning</span>
       <span className="sm:hidden">Planning</span>
     </button>
-    <button
+    {/* <button
       onClick={() => setIsAttendanceModalOpen(true)}
       className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center gap-2"
     >
       <Users className="h-4 w-4" />
       <span className="hidden sm:inline">Attendance Overview</span>
       <span className="sm:hidden">Attendance</span>
-    </button>
+    </button> */}
     <button
       onClick={() => setIsVacationRequestModalOpen(true)}
       className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center gap-2"
