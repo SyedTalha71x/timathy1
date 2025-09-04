@@ -19,6 +19,8 @@ const MetaAdsRoutes = require('./MetaAdsRoutes');
 const PaymentRoutes = require('./PaymentRoutes');
 const IdlePeriodRoutes = require('./IdlePeriodRoutes');
 const NotificationRoutes = require('./NotificationRoutes');
+const EmailRoutes = require('./EmailRoutes');
+
 
 const router = express.Router();
 
@@ -63,6 +65,7 @@ router.use('/metaads', MetaAdsRoutes)
 router.use('/payment', strictLimiter, PaymentRoutes)
 router.use('/vacation', IdlePeriodRoutes)
 router.use('/notification', NotificationRoutes)
+router.use('/email', EmailRoutes)
 
 
 module.exports = router

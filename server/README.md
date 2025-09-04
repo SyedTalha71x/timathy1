@@ -212,6 +212,12 @@ http://localhost:5000/api
 - /:id/read-all (put) (read all notification at once)
 ```
 
+# email Route (/email)
+
+```markdown
+- / (get) only logged user can see his email which staff send
+```
+
 ## .env these value needs
 
 ```env
