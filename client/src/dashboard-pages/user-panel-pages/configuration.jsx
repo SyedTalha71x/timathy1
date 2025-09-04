@@ -579,6 +579,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioName(e.target.value)}
           placeholder="Enter studio name"
           style={inputStyle}
+          maxLength={50}   // 👈 Limit characters
         />
       </Form.Item>
       <Form.Item label={<span className="text-white">Studio Operator</span>}>
@@ -587,6 +588,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioOperator(e.target.value)}
           placeholder="Enter studio operator name"
           style={inputStyle}
+          maxLength={50}
         />
       </Form.Item>
     </div>
@@ -599,6 +601,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioPhoneNo(e.target.value)}
           placeholder="Enter phone no"
           style={inputStyle}
+          maxLength={15}
         />
       </Form.Item>
       <Form.Item label={<span className="text-white">Email</span>} required>
@@ -607,6 +610,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioEmail(e.target.value)}
           placeholder="Enter email"
           style={inputStyle}
+          maxLength={60}
         />
       </Form.Item>
     </div>
@@ -619,6 +623,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioStreet(e.target.value)}
           placeholder="Enter street and number"
           style={inputStyle}
+          maxLength={100}
         />
       </Form.Item>
       <Form.Item label={<span className="text-white">ZIP Code</span>} required>
@@ -627,6 +632,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioZipCode(e.target.value)}
           placeholder="Enter ZIP code"
           style={inputStyle}
+          maxLength={10}
         />
       </Form.Item>
     </div>
@@ -639,18 +645,16 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioCity(e.target.value)}
           placeholder="Enter city"
           style={inputStyle}
+          maxLength={40}
         />
       </Form.Item>
-      <Form.Item
-        label={<span className="text-white">Country</span>}
-        required
-        // tooltip="Selecting a country will allow you to import public holidays and set the default currency"
-      >
+      <Form.Item label={<span className="text-white">Country</span>} required>
         <Select
           value={studioCountry}
           onChange={(value) => setStudioCountry(value)}
           placeholder="Select country"
           style={selectStyle}
+          showSearch
         >
           {countries.map((country) => (
             <Option key={country.code} value={country.code}>
@@ -661,7 +665,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
       </Form.Item>
     </div>
 
-    {/* Row 5: Website & Logo (single row for better layout) */}
+    {/* Row 5: Website & Logo */}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Form.Item label={<span className="text-white">Studio Website</span>}>
         <Input
@@ -669,6 +673,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
           onChange={(e) => setStudioWebsite(e.target.value)}
           placeholder="Enter studio website URL"
           style={inputStyle}
+          maxLength={80}
         />
       </Form.Item>
       <Form.Item label={<span className="text-white">Studio Logo</span>}>
@@ -681,6 +686,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
     </div>
   </Form>
 </Panel>
+
             <Panel header="Opening Hours" key="2" className="bg-[#202020]">
               <div className="space-y-4">
                 {openingHours.map((hour, index) => (
@@ -1498,9 +1504,9 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg text-white font-medium">Additional Documents</h3>
-                  <Button onClick={handleViewBlankContract} style={buttonStyle}>
+                  {/* <Button onClick={handleViewBlankContract} style={buttonStyle}>
                     View Blank Contract
-                  </Button>
+                  </Button> */}
                 </div>
                 <Upload
                   accept=".pdf"

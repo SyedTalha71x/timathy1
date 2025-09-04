@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
 "use client"
 
@@ -27,6 +28,9 @@ import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
 import { MdOutlineProductionQuantityLimits } from "react-icons/md"
 import { toast } from "react-hot-toast"
+import CreateTempMemberModal from "../../components/selling-components/create-temp-member-modal"
+import DeleteConfirmationModal from "../../components/selling-components/delete-confirmation-modal"
+import SalesJournalModal from "../../components/selling-components/sales-journal-modal"
 
 function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -518,8 +522,8 @@ Member: ${invoiceData.member} (${invoiceData.memberType})
 
 ITEMS:
 ${invoiceData.items
-  .map((item) => `${item.name} (${item.type}) - Qty: ${item.quantity} - Price: $${item.price.toFixed(2)}`)
-  .join("\n")}
+        .map((item) => `${item.name} (${item.type}) - Qty: ${item.quantity} - Price: $${item.price.toFixed(2)}`)
+        .join("\n")}
 
 Subtotal: $${invoiceData.subtotal?.toFixed(2) || "0.00"}
 Discount: -$${invoiceData.discount?.toFixed(2) || "0.00"}
@@ -563,11 +567,18 @@ Payment Method: ${invoiceData.paymentMethod}
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [openDropdownId, showMemberResults])
+
   const [sortBy, setSortBy] = useState("name")
   const [sortDirection, setSortDirection] = useState("asc")
   const [isEditModeActive, setIsEditModeActive] = useState(false)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
+
   const sortItems = (items, sortBy, sortDirection) => {
+    if (sortBy === "custom") {
+      // Sort by position for custom ordering
+      return [...items].sort((a, b) => a.position - b.position)
+    }
+
     const sortedItems = [...items].sort((a, b) => {
       let comparison
       if (sortBy === "articalNo") {
@@ -579,6 +590,58 @@ Payment Method: ${invoiceData.paymentMethod}
     })
     return sortedItems
   }
+
+  const handleDragStart = (e, item, index) => {
+    e.dataTransfer.setData("itemId", item.id)
+    e.dataTransfer.setData("itemIndex", index)
+    e.dataTransfer.setData("itemType", activeTab)
+    e.currentTarget.classList.add("dragging")
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.currentTarget.classList.add("drag-over")
+  }
+
+  const handleDragLeave = (e) => {
+    e.currentTarget.classList.remove("drag-over")
+  }
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault()
+    e.currentTarget.classList.remove("drag-over")
+
+    const draggedItemId = Number.parseInt(e.dataTransfer.getData("itemId"))
+    const draggedItemIndex = Number.parseInt(e.dataTransfer.getData("itemIndex"))
+    const itemType = e.dataTransfer.getData("itemType")
+
+    if (itemType !== activeTab || draggedItemIndex === targetIndex) return
+
+    const items = activeTab === "services" ? services : products
+    const setItems = activeTab === "services" ? setServices : setProducts
+
+    const newItems = [...items]
+    const [movedItem] = newItems.splice(draggedItemIndex, 1)
+    newItems.splice(targetIndex, 0, movedItem)
+
+    // Update positions
+    const updatedItems = newItems.map((item, index) => ({
+      ...item,
+      position: index,
+    }))
+
+    setItems(updatedItems)
+
+    // Automatically switch to custom sorting
+    setSortBy("custom")
+  }
+
+  const handleDragEnd = (e) => {
+    e.currentTarget.classList.remove("dragging")
+    const allItems = document.querySelectorAll(".draggable-item")
+    allItems.forEach((item) => item.classList.remove("drag-over"))
+  }
+
   const moveItem = (fromIndex, direction, isService = false) => {
     const items = isService ? services : products
     const setItems = isService ? setServices : setProducts
@@ -637,277 +700,33 @@ Payment Method: ${invoiceData.paymentMethod}
   }, [products, services])
 
   return (
-    <div  className={`
+    <div
+      className={`
       min-h-screen rounded-3xl text-white bg-[#1C1C1C]
       transition-all duration-500 ease-in-out flex-1
-      ${isRightSidebarOpen 
-        ? 'lg:mr-[35%] md:mr-96 sm:mr-96' // Adjust right margin when sidebar is open on larger screens
-        : 'mr-0' // No margin when closed
-      }
-    `}>
-      {/* New Temporary Member Modal */}
-      {showCreateTempMemberModal && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">Create Temporary Member</h2>
-                <button onClick={() => setShowCreateTempMemberModal(false)} className="text-gray-400 hover:text-white">
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
-              <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-xl p-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <Info className="text-yellow-500 " size={50} />
-                  <div>
-                    <p className="text-yellow-200 text-sm font-medium mb-1">Temporary Member Information</p>
-                    <p className="text-yellow-300/80 text-xs">
-                      Temporary members are members without a contract and are not included in payment runs. They will
-                      be automatically archived after the specified period.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              {/* Tab Navigation for Create Temp Member */}
-              <div className="flex border-b border-gray-700 mb-6">
-                <button
-                  onClick={() => setTempMemberModalTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    tempMemberModalTab === "details"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  Details
-                </button>
-                <button
-                  onClick={() => setTempMemberModalTab("note")}
-                  className={`px-4 py-2 text-sm font-medium ${
-                    tempMemberModalTab === "note"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  Special Note
-                </button>
-              </div>
-              <form
-                onSubmit={handleCreateTempMember}
-                className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]"
-              >
-                {tempMemberModalTab === "details" && (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">First Name</label>
-                        <input
-                          type="text"
-                          name="firstName"
-                          value={tempMemberForm.firstName}
-                          onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Last Name</label>
-                        <input
-                          type="text"
-                          name="lastName"
-                          value={tempMemberForm.lastName}
-                          onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={tempMemberForm.email}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Phone</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={tempMemberForm.phone}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Street</label>
-                      <input
-                        type="text"
-                        name="street"
-                        value={tempMemberForm.street}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-                        <input
-                          type="text"
-                          name="zipCode"
-                          value={tempMemberForm.zipCode}
-                          onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">City</label>
-                        <input
-                          type="text"
-                          name="city"
-                          value={tempMemberForm.city}
-                          onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
-                      <input
-                        type="date"
-                        name="dateOfBirth"
-                        value={tempMemberForm.dateOfBirth}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Auto-Archive Period (weeks)</label>
-                      <input
-                        type="number"
-                        name="autoArchivePeriod"
-                        value={tempMemberForm.autoArchivePeriod}
-                        onChange={handleTempMemberInputChange}
-                        min="1"
-                        max="52"
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                      <p className="text-xs text-gray-400 mt-1">
-                        Member will be automatically archived after this period
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">About</label>
-                      <textarea
-                        name="about"
-                        value={tempMemberForm.about}
-                        onChange={handleTempMemberInputChange}
-                        className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                      />
-                    </div>
-                  </>
-                )}
-                {tempMemberModalTab === "note" && (
-                  <div className="border border-slate-700 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <label className="text-sm text-gray-200 font-medium">Special Note</label>
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id="tempNoteImportance"
-                          checked={tempMemberForm.noteImportance === "important"}
-                          onChange={(e) => {
-                            setTempMemberForm({
-                              ...tempMemberForm,
-                              noteImportance: e.target.checked ? "important" : "unimportant",
-                            })
-                          }}
-                          className="mr-2 h-4 w-4 accent-[#FF843E]"
-                        />
-                        <label htmlFor="tempNoteImportance" className="text-sm text-gray-200">
-                          Important
-                        </label>
-                      </div>
-                    </div>
-                    <textarea
-                      name="note"
-                      value={tempMemberForm.note}
-                      onChange={handleTempMemberInputChange}
-                      className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
-                      placeholder="Enter special note..."
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Start Date</label>
-                        <input
-                          type="date"
-                          name="noteStartDate"
-                          value={tempMemberForm.noteStartDate}
-                          onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">End Date</label>
-                        <input
-                          type="date"
-                          name="noteEndDate"
-                          value={tempMemberForm.noteEndDate}
-                          onChange={handleTempMemberInputChange}
-                          className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <button
-                  type="submit"
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-2 text-sm cursor-pointer"
-                >
-                  Create Temporary Member
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
-            <div className="p-6">
-              <div className="flex flex-col items-center mb-6">
-                <div className="bg-red-500/20 p-3 rounded-full mb-4">
-                  <AlertTriangle className="h-8 w-8 text-red-500" />
-                </div>
-                <h2 className="text-white text-lg open_sans_font_700 text-center">
-                  Delete {productToDelete?.type === "service" ? "Service" : "Product"}
-                </h2>
-                <p className="text-gray-400 text-center mt-2">
-                  Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone.
-                </p>
-              </div>
-              <div className="flex flex-row justify-center items-center gap-3 pt-2">
-                <button
-                  onClick={confirmDelete}
-                  className="w-full sm:w-auto px-8 py-2.5 bg-red-500 text-sm text-white rounded-xl hover:bg-red-600 transition-colors"
-                >
-                  Delete
-                </button>
-                <button
-                  type="button"
-                  onClick={closeDeleteModal}
-                  className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-sm text-white rounded-xl border border-[#333333] hover:bg-[#101010] transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      ${isRightSidebarOpen
+          ? "lg:mr-[35%] md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
+          : "mr-0" // No margin when closed
+        }
+    `}
+    >
+      <CreateTempMemberModal
+        show={showCreateTempMemberModal}
+        onClose={() => setShowCreateTempMemberModal(false)}
+        onSubmit={handleCreateTempMember}
+        tempMemberModalTab={tempMemberModalTab}
+        setTempMemberModalTab={setTempMemberModalTab}
+        tempMemberForm={tempMemberForm}
+        handleTempMemberInputChange={handleTempMemberInputChange}
+        setTempMemberForm={setTempMemberForm}
+      />
+
+      <DeleteConfirmationModal
+        show={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        productToDelete={productToDelete}
+      />
       {/* Edit/Add Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
@@ -999,6 +818,52 @@ Payment Method: ${invoiceData.paymentMethod}
                     </div>
                   )}
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+  <div>
+    <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
+    <select
+      name="vatRate"
+      value={formData.vatRate}
+      onChange={handleInputChange}
+      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+    >
+      <option value="0">0%</option>
+      <option value="7">7%</option>
+      <option value="19">19%</option>
+      <option value="custom">Custom</option>
+    </select>
+  </div>
+  {formData.vatRate === "custom" && (
+    <div>
+      <label className="text-sm text-gray-200 block mb-2">Custom VAT Rate</label>
+      <input
+        type="number"
+        name="customVatRate"
+        value={formData.customVatRate || ""}
+        onChange={handleInputChange}
+        placeholder="Enter VAT rate"
+        min="0"
+        max="100"
+        
+        className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+      />
+    </div>
+  )}
+</div>
+
+<div className="flex items-center space-x-2">
+  <input
+    type="checkbox"
+    id="vatSelectable"
+    name="vatSelectable"
+    checked={formData.vatSelectable}
+    onChange={handleInputChange}
+    className="rounded border-gray-300 text-[#3F74FF] focus:ring-[#3F74FF] focus:ring-2"
+  />
+  <label htmlFor="vatSelectable" className="text-sm text-gray-200">
+    Allow VAT rate selection during checkout
+  </label>
+</div>
                 {activeTab === "products" && (
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">Brand</label>
@@ -1054,18 +919,16 @@ Payment Method: ${invoiceData.paymentMethod}
               <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
                 <button
                   onClick={() => setActiveTab("products")}
-                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${
-                    activeTab === "products" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${activeTab === "products" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   <MdOutlineProductionQuantityLimits size={16} className="inline mr-1 md:mr-2" />
                   <span className="hidden sm:inline">Products</span>
                 </button>
                 <button
                   onClick={() => setActiveTab("services")}
-                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${
-                    activeTab === "services" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`px-3 md:px-4 py-2 rounded-lg text-sm flex justify-center items-center transition-colors ${activeTab === "services" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   <RiServiceFill size={16} className="inline mr-1 md:mr-2" />
                   <span className="hidden sm:inline">Services</span>
@@ -1083,11 +946,10 @@ Payment Method: ${invoiceData.paymentMethod}
               <div>
                 <button
                   onClick={() => setIsEditModeActive(!isEditModeActive)}
-                  className={`p-2 cursor-pointer rounded-xl text-sm ${
-                    isEditModeActive
+                  className={`p-2 cursor-pointer rounded-xl text-sm ${isEditModeActive
                       ? "bg-blue-600 hover:bg-blue-700 text-white"
                       : "bg-[#333333] hover:bg-[#555555] text-gray-300"
-                  } transition-colors flex items-center gap-2 whitespace-nowrap`}
+                    } transition-colors flex items-center gap-2 whitespace-nowrap`}
                 >
                   {isEditModeActive ? (
                     <>
@@ -1132,6 +994,7 @@ Payment Method: ${invoiceData.paymentMethod}
               }}
               className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] "
             >
+              <option value="custom-asc">Custom</option>
               <option value="name-asc">Name ↑</option>
               <option value="name-desc">Name ↓</option>
               <option value="price-asc">Price ↑</option>
@@ -1179,6 +1042,7 @@ Payment Method: ${invoiceData.paymentMethod}
                 }}
                 className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
               >
+                <option value="custom-asc">Custom</option>
                 <option value="name-asc">Name ↑</option>
                 <option value="name-desc">Name ↓</option>
                 <option value="price-asc">Price ↑</option>
@@ -1196,18 +1060,30 @@ Payment Method: ${invoiceData.paymentMethod}
             <div className="bg-[#101010] p-3 rounded-xl mb-4 text-sm text-gray-300">
               <div className="flex items-center gap-2 mb-2">
                 <Move size={16} className="text-[#3F74FF]" />
-                <span>Use the arrow buttons to move {activeTab} in specific directions</span>
+                <span>
+                  Drag and drop {activeTab} to reorder them, or use the arrow buttons to move in specific directions
+                </span>
               </div>
             </div>
           )}
 
-<div
-  className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 
   ${isRightSidebarOpen ? "lg:grid-cols-3 xl:grid-cols-3" : "lg:grid-cols-4 xl:grid-cols-5"} 
   gap-3`}
->
+          >
             {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
-              <div key={item.id} className="w-full bg-[#181818] rounded-2xl overflow-visible relative">
+              <div
+                key={item.id}
+                className={`w-full bg-[#181818] rounded-2xl overflow-visible relative draggable-item ${isEditModeActive ? "animate-wobble" : ""
+                  }`}
+                draggable={isEditModeActive}
+                onDragStart={(e) => handleDragStart(e, item, index)}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+              >
                 {isEditModeActive && (
                   <div className="absolute top-2 left-2 z-10 bg-black/70 rounded-lg p-1 flex flex-col gap-1">
                     <button
@@ -1323,7 +1199,7 @@ Payment Method: ${invoiceData.paymentMethod}
         redirectToTodos={() => console.log("Redirect to todos")}
         toggleDropdown={toggleDropdown}
         openDropdownIndex={openDropdownIndex}
-        setEditingLink={() => {}}
+        setEditingLink={() => { }}
         isEditing={false}
         // Shopping cart props
         cart={cart}
@@ -1373,176 +1249,32 @@ Payment Method: ${invoiceData.paymentMethod}
           setSalesFilter={setSalesFilter}
         />
       )}
+      <style jsx>{`
+        @keyframes wobble {
+          0%, 100% { transform: rotate(0deg); }
+          15% { transform: rotate(-1deg); }
+          30% { transform: rotate(1deg); }
+          45% { transform: rotate(-1deg); }
+          60% { transform: rotate(1deg); }
+          75% { transform: rotate(-1deg); }
+          90% { transform: rotate(1deg); }
+        }
+        .animate-wobble {
+          animation: wobble 0.5s ease-in-out infinite;
+        }
+        .dragging {
+          opacity: 0.5;
+          border: 2px dashed #fff;
+        }
+        .drag-over {
+          border: 2px dashed #3F74FF;
+          background-color: rgba(63, 116, 255, 0.1);
+        }
+      `}</style>
     </div>
   )
 }
 
-const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice, salesFilter, setSalesFilter }) => {
-  const [filteredSales, setFilteredSales] = useState(salesHistory)
 
-  useEffect(() => {
-    let filtered = salesHistory
-
-    // Filter by type
-    if (salesFilter.type !== "all") {
-      filtered = filtered.filter((sale) =>
-        sale.items.some((item) => item.type.toLowerCase() === salesFilter.type.toLowerCase()),
-      )
-    }
-
-    // Filter by member
-    if (salesFilter.member) {
-      filtered = filtered.filter((sale) => sale.member.toLowerCase().includes(salesFilter.member.toLowerCase()))
-    }
-
-    // Filter by date range
-    if (salesFilter.dateFrom) {
-      filtered = filtered.filter((sale) => new Date(sale.date) >= new Date(salesFilter.dateFrom))
-    }
-
-    if (salesFilter.dateTo) {
-      filtered = filtered.filter((sale) => new Date(sale.date) <= new Date(salesFilter.dateTo))
-    }
-
-    setFilteredSales(filtered)
-  }, [salesHistory, salesFilter])
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#181818] rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-        <div className="p-6 border-b border-gray-700">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-white">Sales Journal</h2>
-            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
-              <X size={20} />
-            </button>
-          </div>
-
-          {/* Filter Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Type</label>
-              <select
-                value={salesFilter.type}
-                onChange={(e) => setSalesFilter({ ...salesFilter, type: e.target.value })}
-                className="w-full p-2 bg-black rounded-lg text-white text-sm"
-              >
-                <option value="all">All Types</option>
-                <option value="service">Service</option>
-                <option value="product">Product</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Member</label>
-              <input
-                type="text"
-                value={salesFilter.member}
-                onChange={(e) => setSalesFilter({ ...salesFilter, member: e.target.value })}
-                placeholder="Search member..."
-                className="w-full p-2 bg-black rounded-lg text-white text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">From Date</label>
-              <input
-                type="date"
-                value={salesFilter.dateFrom}
-                onChange={(e) => setSalesFilter({ ...salesFilter, dateFrom: e.target.value })}
-                className="w-full p-2 bg-black rounded-lg text-white text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">To Date</label>
-              <input
-                type="date"
-                value={salesFilter.dateTo}
-                onChange={(e) => setSalesFilter({ ...salesFilter, dateTo: e.target.value })}
-                className="w-full p-2 bg-black rounded-lg text-white text-sm"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="overflow-y-auto max-h-[60vh]">
-          <table className="w-full">
-            <thead className="bg-black sticky top-0">
-              <tr>
-                <th className="text-left p-4 text-zinc-400 text-sm">Member</th>
-                <th className="text-left p-4 text-zinc-400 text-sm">Date</th>
-                <th className="text-left p-4 text-zinc-400 text-sm">Items</th>
-                <th className="text-left p-4 text-zinc-400 text-sm">Type</th>
-                <th className="text-left p-4 text-zinc-400 text-sm">Total</th>
-                <th className="text-left p-4 text-zinc-400 text-sm">Payment</th>
-                <th className="text-left p-4 text-zinc-400 text-sm">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSales.map((sale) => (
-                <tr key={sale.id} className="border-b border-gray-700 hover:bg-zinc-800/50">
-                  <td className="p-4">
-                    <div className="text-white text-sm">{sale.member}</div>
-                    <div className="text-zinc-400 text-xs">{sale.memberType}</div>
-                  </td>
-                  <td className="p-4 text-zinc-300 text-sm">{sale.date}</td>
-                  <td className="p-4">
-                    <div className="space-y-1">
-                      {sale.items.map((item, idx) => (
-                        <div key={idx} className="text-sm">
-                          <span className="text-white">{item.name}</span>
-                          <span className="text-zinc-400 ml-2">x{item.quantity}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="space-y-1">
-                      {sale.items.map((item, idx) => (
-                        <div key={idx} className="text-xs">
-                          <span
-                            className={`px-2 py-1 rounded ${
-                              item.type === "Service" ? "bg-blue-600" : "bg-green-600"
-                            } text-white`}
-                          >
-                            {item.type}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="p-4 text-white font-semibold">${sale.totalAmount.toFixed(2)}</td>
-                  <td className="p-4 text-zinc-300 text-sm">{sale.paymentMethod}</td>
-                  <td className="p-4">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => downloadInvoice(sale)}
-                        className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-xs"
-                        title="Download E-Invoice"
-                      >
-                        📄
-                      </button>
-                      {sale.canCancel && (
-                        <button
-                          onClick={() => cancelSale(sale.id)}
-                          className="p-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-xs"
-                          title="Cancel Sale (24h limit)"
-                        >
-                          ❌
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {filteredSales.length === 0 && (
-            <div className="text-center py-8 text-zinc-400">No sales found matching the current filters.</div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default App

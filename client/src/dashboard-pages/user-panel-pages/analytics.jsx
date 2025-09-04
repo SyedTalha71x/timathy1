@@ -1,3 +1,4 @@
+"use client"
 
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
@@ -168,7 +169,11 @@ export default function AnalyticsDashboard() {
       case "All members":
         return (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div
+              className={`grid grid-cols-1 sm:grid-cols-2 gap-6 ${
+                isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-4"
+              }`}
+            >
               <StatCard
                 title="Total Revenue"
                 value={analyticsData.overview.totalRevenue}
@@ -254,7 +259,11 @@ export default function AnalyticsDashboard() {
             </div>
 
             <ChartCard title="Key Performance Indicators">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div
+  className={`grid grid-cols-1 md:grid-cols-2 ${
+    isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-4"
+  } gap-4`}
+>
                 <div className="text-center p-4 bg-black rounded-xl">
                   <div className="text-3xl font-bold text-blue-400 mb-2">94.2%</div>
                   <div className="text-sm text-gray-400">Member Satisfaction</div>
@@ -279,7 +288,11 @@ export default function AnalyticsDashboard() {
       case "Checked in":
         return (
           <ChartCard title="Currently Checked In Members" className="col-span-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+  className={`grid grid-cols-1 md:grid-cols-2 ${
+    isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-4"
+  } gap-4`}
+>
               {analyticsData.checkedInMembers.map((member, index) => (
                 <div key={index} className="p-4 bg-black rounded-xl">
                   <h4 className="font-semibold text-white mb-2">{member.name}</h4>
@@ -324,7 +337,11 @@ export default function AnalyticsDashboard() {
       case "Finances":
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div
+              className={`grid grid-cols-1 sm:grid-cols-2 gap-6 ${
+                isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-4"
+              }`}
+            >
               <StatCard
                 title="Monthly Revenue"
                 value={analyticsData.overview.totalRevenue}
@@ -337,16 +354,35 @@ export default function AnalyticsDashboard() {
               <StatCard title="Profit Margin" value={34.2} change={5.1} icon={TrendingUp} suffix="%" />
             </div>
             <ChartCard title="Revenue Breakdown by Service" className="col-span-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {analyticsData.topServices.map((service, index) => (
-                  <div key={index} className="p-4 bg-black rounded-xl text-center">
-                    <h4 className="font-semibold text-white mb-2">{service.name}</h4>
-                    <div className="text-2xl font-bold text-green-400 mb-1">${service.revenue.toLocaleString()}</div>
-                    <p className="text-sm text-gray-400">{service.sessions} sessions</p>
-                    <p className="text-sm text-blue-400">Avg: ${service.avgPrice}</p>
-                  </div>
-                ))}
-              </div>
+            <div
+  className={`grid grid-cols-1 md:grid-cols-2 ${
+    isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-5"
+  } gap-4`}
+>
+  {analyticsData.topServices.map((service, index) => {
+    const isLastOdd =
+      isRightSidebarOpen &&
+      analyticsData.topServices.length % 2 !== 0 &&
+      index === analyticsData.topServices.length - 1;
+
+    return (
+      <div
+        key={index}
+        className={`p-4 bg-black rounded-xl text-center ${
+          isLastOdd ? "lg:col-span-2" : ""
+        }`}
+      >
+        <h4 className="font-semibold text-white mb-2">{service.name}</h4>
+        <div className="text-2xl font-bold text-green-400 mb-1">
+          ${service.revenue.toLocaleString()}
+        </div>
+        <p className="text-sm text-gray-400">{service.sessions} sessions</p>
+        <p className="text-sm text-blue-400">Avg: ${service.avgPrice}</p>
+      </div>
+    );
+  })}
+</div>
+
             </ChartCard>
           </div>
         )
@@ -354,7 +390,11 @@ export default function AnalyticsDashboard() {
       case "Leads":
         return (
           <ChartCard title="Recent Leads" className="col-span-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+         <div
+  className={`grid grid-cols-1 md:grid-cols-2 ${
+    isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-4"
+  } gap-4`}
+>
               {analyticsData.leads.map((lead, index) => (
                 <div key={index} className="p-4 bg-black rounded-xl">
                   <h4 className="font-semibold text-white mb-2">{lead.name}</h4>
@@ -504,101 +544,102 @@ export default function AnalyticsDashboard() {
     },
   ]
 
-    const [communications, setCommunications] = useState([
-        {
-          id: 1,
-          name: "John Doe",
-          message: "Hey, how's the project going?",
-          time: "2 min ago",
-          avatar: Rectangle1,
-        },
-        {
-          id: 2,
-          name: "Jane Smith",
-          message: "Meeting scheduled for tomorrow",
-          time: "10 min ago",
-          avatar: Rectangle1,
-        },
-      ])
-    
-      const [todos, setTodos] = useState([
-        {
-          id: 1,
-          title: "Review project proposal",
-          description: "Check the latest updates",
-          assignee: "Mike",
-        },
-        {
-          id: 2,
-          title: "Update documentation",
-          description: "Add new features info",
-          assignee: "Sarah",
-        },
-      ])
-    
-      const [birthdays, setBirthdays] = useState([
-        {
-          id: 1,
-          name: "Alice Johnson",
-          date: "Dec 15, 2024",
-          avatar: Avatar,
-        },
-        {
-          id: 2,
-          name: "Bob Wilson",
-          date: "Dec 20, 2024",
-          avatar: Avatar,
-        },
-      ])
-    
-      const [customLinks, setCustomLinks] = useState([
-        {
-          id: 1,
-          title: "Google Drive",
-          url: "https://drive.google.com",
-        },
-        {
-          id: 2,
-          title: "GitHub",
-          url: "https://github.com",
-        },
-      ])
-    
-      const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-      const [editingLink, setEditingLink] = useState(null)
-    
-      const toggleRightSidebar = () => {
-        setIsRightSidebarOpen(!isRightSidebarOpen)
-      }
-    
-      const closeSidebar = () => {
-        setIsRightSidebarOpen(false)
-      }
-    
-      const redirectToCommunication = () => {
-        navigate("/dashboard/communication")
-      }
-    
-      const redirectToTodos = () => {
-        console.log("Redirecting to todos page")
-        navigate("/dashboard/to-do")
-      }
-    
-      const toggleDropdown = (index) => {
-        setOpenDropdownIndex(openDropdownIndex === index ? null : index)
-      }
+  const [communications, setCommunications] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      message: "Hey, how's the project going?",
+      time: "2 min ago",
+      avatar: Rectangle1,
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      message: "Meeting scheduled for tomorrow",
+      time: "10 min ago",
+      avatar: Rectangle1,
+    },
+  ])
 
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review project proposal",
+      description: "Check the latest updates",
+      assignee: "Mike",
+    },
+    {
+      id: 2,
+      title: "Update documentation",
+      description: "Add new features info",
+      assignee: "Sarah",
+    },
+  ])
 
+  const [birthdays, setBirthdays] = useState([
+    {
+      id: 1,
+      name: "Alice Johnson",
+      date: "Dec 15, 2024",
+      avatar: Avatar,
+    },
+    {
+      id: 2,
+      name: "Bob Wilson",
+      date: "Dec 20, 2024",
+      avatar: Avatar,
+    },
+  ])
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: 1,
+      title: "Google Drive",
+      url: "https://drive.google.com",
+    },
+    {
+      id: 2,
+      title: "GitHub",
+      url: "https://github.com",
+    },
+  ])
+
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsRightSidebarOpen(false)
+  }
+
+  const redirectToCommunication = () => {
+    navigate("/dashboard/communication")
+  }
+
+  const redirectToTodos = () => {
+    console.log("Redirecting to todos page")
+    navigate("/dashboard/to-do")
+  }
+
+  const toggleDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
 
   return (
-    <div className={`
-      min-h-screen rounded-3xl bg-[#1C1C1C] text-white lg:p-3 md:p-3 sm:p-2 p-1
+    <div
+      className={`
+      min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-4
       transition-all duration-500 ease-in-out flex-1
-      ${isRightSidebarOpen 
-        ? 'lg:mr-86 md:mr-86 sm:mr-86' // Adjust right margin when sidebar is open on larger screens
-        : 'mr-0' // No margin when closed
+      ${
+        isRightSidebarOpen
+          ? "lg:mr-86 md:mr-86 sm:mr-86" // Adjust right margin when sidebar is open on larger screens
+          : "mr-0" // No margin when closed
       }
-    `}>
+    `}
+    >
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
       )}
@@ -610,31 +651,28 @@ export default function AnalyticsDashboard() {
               <div>
                 <h1 className="text-white oxanium_font text-xl md:text-2xl">Analytics</h1>
               </div>
-             
             </div>
 
             <div className="relative" ref={analyticsFilterRef}>
-             <div className="flex items-center gap-2">
-
-            
-              <button
-                onClick={() => setIsAnalyticsFilterOpen(!isAnalyticsFilterOpen)}
-                className="flex items-center cursor-pointer gap-2 px-4 py-2 bg-black rounded-xl text-white text-sm hover:bg-gray-800 min-w-[160px] justify-between"
-              >
-                {selectedAnalyticsFilter}
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform ${isAnalyticsFilterOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-              <div className=" block">
-                                      <IoIosMenu
-                                        onClick={toggleRightSidebar}
-                                        size={25}
-                                        className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                                        />
-                                    </div>
-                                    </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsAnalyticsFilterOpen(!isAnalyticsFilterOpen)}
+                  className="flex items-center cursor-pointer gap-2 px-4 py-2 bg-black rounded-xl text-white text-sm hover:bg-gray-800 min-w-[160px] justify-between"
+                >
+                  {selectedAnalyticsFilter}
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${isAnalyticsFilterOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                <div className="block">
+                  <IoIosMenu
+                    onClick={toggleRightSidebar}
+                    size={25}
+                    className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                  />
+                </div>
+              </div>
               {isAnalyticsFilterOpen && (
                 <div className="absolute right-0 top-full mt-2 w-56 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-600 z-50 py-2">
                   {analyticsFilters.map((filter) => (
@@ -656,30 +694,25 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8">{renderFilteredContent()}</div>
+      <div className="p-4 py-8 space-y-8">{renderFilteredContent()}</div>
 
       <SidebarArea
-              isOpen={isRightSidebarOpen}
-              onClose={closeSidebar}
-              communications={communications}
-              todos={todos}
-              birthdays={birthdays}
-              customLinks={customLinks}
-              setCustomLinks={setCustomLinks}
-              redirectToCommunication={redirectToCommunication}
-              redirectToTodos={redirectToTodos}
-              toggleDropdown={toggleDropdown}
-              openDropdownIndex={openDropdownIndex}
-              setEditingLink={setEditingLink}
-            />
-      
-            {/* Overlay for mobile screens only */}
-            {isRightSidebarOpen && (
-              <div 
-                className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-                onClick={closeSidebar}
-              />
-            )}
+        isOpen={isRightSidebarOpen}
+        onClose={closeSidebar}
+        communications={communications}
+        todos={todos}
+        birthdays={birthdays}
+        customLinks={customLinks}
+        setCustomLinks={setCustomLinks}
+        redirectToCommunication={redirectToCommunication}
+        redirectToTodos={redirectToTodos}
+        toggleDropdown={toggleDropdown}
+        openDropdownIndex={openDropdownIndex}
+        setEditingLink={setEditingLink}
+      />
+
+      {/* Overlay for mobile screens only */}
+      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
     </div>
   )
 }
