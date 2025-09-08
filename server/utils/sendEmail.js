@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const EmailModel = require('../models/EmailModel');
 
 
 const transporter = nodemailer.createTransport({
@@ -25,6 +26,9 @@ const sendEmail = async (to, subject, text, html = null) => {
             html: html || text,
 
         });
+
+        const email = new EmailModel({ from, to, subject, body });
+        await email.save();
     } catch (error) {
         console.log('❌ Email Error:', error.message)
         throw new Error("Email Cloud not be sent")
