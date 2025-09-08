@@ -6,7 +6,7 @@ import { X, Calendar, User, ArrowRight } from "lucide-react"
 
 export const ContractHistoryModal = ({ contract, history, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/40 z-[100000] flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">

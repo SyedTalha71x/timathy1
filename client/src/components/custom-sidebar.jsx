@@ -1,8 +1,9 @@
+// custom sidebar code where you have to add all samw widgets and funcitonlaity like in my area
+
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-"use client"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
 import {
   X,
@@ -25,9 +26,139 @@ import {
   Globe,
   Lock,
   User,
+  ChevronDown,
+  MoreVertical,
+  Minus,
+  MessageCircle,
 } from "lucide-react"
-import { toast } from "react-hot-toast"
-import Image10 from "../../public/image10.png"
+const toast = {
+  success: (message) => console.log(`✅ ${message}`),
+  error: (message) => console.log(`❌ ${message}`),
+}
+const Image10 = "/placeholder.svg?height=20&width=20"
+
+const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
+  const ref = useRef(null)
+
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData("widgetId", id)
+    e.dataTransfer.setData("widgetIndex", index)
+    e.currentTarget.classList.add("dragging")
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    if (e.currentTarget.dataset.widgetId !== id) {
+      e.currentTarget.classList.add("drag-over")
+    }
+  }
+
+  const handleDragLeave = (e) => {
+    e.currentTarget.classList.remove("drag-over")
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.currentTarget.classList.remove("drag-over")
+    const draggedWidgetId = e.dataTransfer.getData("widgetId")
+    const draggedWidgetIndex = Number.parseInt(e.dataTransfer.getData("widgetIndex"), 10)
+    const targetWidgetIndex = index
+
+    if (draggedWidgetId !== id) {
+      moveWidget(draggedWidgetIndex, targetWidgetIndex)
+    }
+  }
+
+  const handleDragEnd = (e) => {
+    e.currentTarget.classList.remove("dragging")
+    const allWidgets = document.querySelectorAll(".draggable-widget")
+    allWidgets.forEach((widget) => widget.classList.remove("drag-over"))
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={`relative mb-4 w-full draggable-widget ${isEditing ? "animate-wobble" : ""}`}
+      draggable={isEditing}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onDragLeave={handleDragLeave}
+      onDragEnd={handleDragEnd}
+      data-widget-id={id}
+      data-widget-index={index}
+    >
+      {isEditing && (
+        <div className="absolute -top-2 -right-2 z-10 flex gap-2">
+          <button
+            onClick={() => removeWidget(id)}
+            className="p-1 bg-gray-500 rounded-md cursor-pointer text-black flex items-center justify-center w-7 h-7"
+          >
+            <Minus size={25} />
+          </button>
+        </div>
+      )}
+      {children}
+    </div>
+  )
+}
+
+const BirthdayMessageModal = ({
+  isOpen,
+  onClose,
+  selectedPerson,
+  birthdayMessage,
+  setBirthdayMessage,
+  onSendMessage,
+}) => {
+  if (!isOpen || !selectedPerson) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+      <div className="bg-[#181818] rounded-xl w-full max-w-md">
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-white">Send Birthday Message</h2>
+            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
+              <X size={16} />
+            </button>
+          </div>
+          <div className="flex items-center gap-3 p-3 bg-black rounded-xl">
+            <img src={selectedPerson.avatar || "/placeholder.svg"} className="h-10 w-10 rounded-full" alt="" />
+            <div>
+              <h3 className="font-semibold text-sm text-white">{selectedPerson.name}</h3>
+              <p className="text-xs text-zinc-400">Birthday: {selectedPerson.date}</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm text-zinc-400">Your Message</label>
+            <textarea
+              value={birthdayMessage}
+              onChange={(e) => setBirthdayMessage(e.target.value)}
+              className="w-full p-3 bg-black rounded-xl text-sm outline-none resize-none text-white"
+              rows={4}
+              placeholder="Write your birthday message..."
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700 text-white">
+              Cancel
+            </button>
+            <button
+              onClick={onSendMessage}
+              disabled={!birthdayMessage.trim()}
+              className={`px-4 py-2 text-sm rounded-xl ${
+                !birthdayMessage.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              } text-white`}
+            >
+              Send Message
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // View Management Modal Component
 const ViewManagementModal = ({
@@ -489,6 +620,23 @@ export const SidebarArea = ({
   const [currentView, setCurrentView] = useState(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
+  const [todoFilter, setTodoFilter] = useState("all")
+  const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
+  const todoFilterDropdownRef = useRef(null)
+
+  const [isBirthdayMessageModalOpen, setIsBirthdayMessageModalOpen] = useState(false)
+  const [selectedBirthdayPerson, setSelectedBirthdayPerson] = useState(null)
+  const [birthdayMessage, setBirthdayMessage] = useState("")
+
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true)
+
+  const todoFilterOptions = [
+    { value: "all", label: "All" },
+    { value: "ongoing", label: "Ongoing" },
+    { value: "pending", label: "Pending" },
+    { value: "completed", label: "Completed" },
+  ]
+
   // Load saved views and standard view on component mount
   useEffect(() => {
     const savedViewsData = localStorage.getItem("sidebarViews")
@@ -512,11 +660,24 @@ export const SidebarArea = ({
     }
   }, [savedViews])
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (todoFilterDropdownRef.current && !todoFilterDropdownRef.current.contains(event.target)) {
+        setIsTodoFilterDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
   const toggleSidebarEditing = () => {
     setIsSidebarEditing(!isSidebarEditing)
   }
 
-  const moveSidebarWidget = (fromIndex, toIndex) => {
+  const moveWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= sidebarWidgets.length) return
 
     const newWidgets = [...sidebarWidgets]
@@ -525,8 +686,14 @@ export const SidebarArea = ({
     setSidebarWidgets(newWidgets.map((w, i) => ({ ...w, position: i })))
   }
 
-  const removeSidebarWidget = (id) => {
-    setSidebarWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
+  const removeWidget = (id) => {
+    setSidebarWidgets((currentWidgets) => {
+      const filtered = currentWidgets.filter((w) => w.id !== id)
+      return filtered.map((widget, index) => ({
+        ...widget,
+        position: index,
+      }))
+    })
     toast.success("Widget removed successfully")
   }
 
@@ -567,44 +734,77 @@ export const SidebarArea = ({
     })
   }
 
-  // Sidebar Widget Component with full edit functionality
-  const SidebarWidget = ({ id, children, index, isEditing }) => {
-    return (
-      <div className="relative mb-4 sm:mb-6">
-        {isEditing && (
-          <div className="absolute top-2 right-2 z-10 flex gap-1">
-            <button
-              onClick={() => moveSidebarWidget(index, index - 1)}
-              className="p-1 sm:p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-white"
-              disabled={index === 0}
-              title="Move Up"
-            >
-              <ArrowUp size={12} />
-            </button>
-            <button
-              onClick={() => moveSidebarWidget(index, index + 1)}
-              className="p-1 sm:p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-white"
-              disabled={index === sidebarWidgets.length - 1}
-              title="Move Down"
-            >
-              <ArrowDown size={12} />
-            </button>
-            <button
-              onClick={() => removeSidebarWidget(id)}
-              className="p-1 sm:p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-white"
-              title="Remove Widget"
-            >
-              <X size={12} />
-            </button>
-          </div>
-        )}
-        {children}
-      </div>
-    )
+  const getFilteredTodos = () => {
+    if (todoFilter === "all") return todos
+    return todos.filter((todo) => {
+      switch (todoFilter) {
+        case "ongoing":
+          return todo.status === "ongoing"
+        case "pending":
+          return todo.status === "pending"
+        case "completed":
+          return todo.status === "completed"
+        default:
+          return true
+      }
+    })
+  }
+
+  const handleSendBirthdayMessage = (person) => {
+    setSelectedBirthdayPerson(person)
+    setBirthdayMessage(`Happy Birthday ${person.name}! 🎉 Wishing you a wonderful day filled with joy and celebration!`)
+    setIsBirthdayMessageModalOpen(true)
+  }
+
+  const handleSendCustomBirthdayMessage = () => {
+    if (birthdayMessage.trim()) {
+      toast.success(`Birthday message sent to ${selectedBirthdayPerson.name}!`)
+      setIsBirthdayMessageModalOpen(false)
+      setBirthdayMessage("")
+      setSelectedBirthdayPerson(null)
+    }
+  }
+
+  const handleEditTask = (todo) => {
+    // Handle edit task functionality
+    toast.success(`Editing task: ${todo.title}`)
+  }
+
+  const handleCancelTask = (todoId) => {
+    // Handle cancel task functionality
+    toast.success("Task cancelled")
+  }
+
+  const handleDeleteTask = (todoId) => {
+    // Handle delete task functionality
+    toast.success("Task deleted")
   }
 
   return (
     <>
+      <style jsx>{`
+        @keyframes wobble {
+          0%, 100% { transform: rotate(0deg); }
+          15% { transform: rotate(-1deg); }
+          30% { transform: rotate(1deg); }
+          45% { transform: rotate(-1deg); }
+          60% { transform: rotate(1deg); }
+          75% { transform: rotate(-1deg); }
+          90% { transform: rotate(1deg); }
+        }
+        .animate-wobble {
+          animation: wobble 0.5s ease-in-out infinite;
+        }
+        .dragging {
+          opacity: 0.5;
+          border: 2px dashed #fff;
+        }
+        .drag-over {
+          border: 2px dashed #3b82f6;
+          background-color: rgba(59, 130, 246, 0.1);
+        }
+      `}</style>
+
       <aside
         className={`
           fixed top-0 right-0 h-full w-full sm:w-96 lg:w-88 bg-[#181818] border-l border-gray-700 z-50
@@ -623,14 +823,16 @@ export const SidebarArea = ({
               )}
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
-              <button
-                onClick={() => setIsViewModalOpen(true)}
-                className="p-1.5 sm:p-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
-                title="Manage Views"
-              >
-                <Eye size={14} />
-              </button>
-              {activeTab === "widgets" && (
+              {!isSidebarEditing && (
+                <button
+                  onClick={() => setIsViewModalOpen(true)}
+                  className="p-1.5 sm:p-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                  title="Manage Views"
+                >
+                  <Eye size={14} />
+                </button>
+              )}
+              {activeTab === "widgets" && isSidebarEditing && (
                 <button
                   onClick={() => setIsWidgetModalOpen(true)}
                   className="p-1.5 sm:p-2 bg-black text-white hover:bg-zinc-900 rounded-lg cursor-pointer"
@@ -672,12 +874,15 @@ export const SidebarArea = ({
             </button>
             <button
               onClick={() => setActiveTab("notifications")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
                 activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
               }`}
             >
               <Bell size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
+              {hasUnreadNotifications && (
+                <span className="absolute -top-3 -right-1 w-6 h-6 text-white bg-orange-500 rounded-full">2</span>
+              )}
             </button>
           </div>
 
@@ -686,7 +891,15 @@ export const SidebarArea = ({
               {sidebarWidgets
                 .sort((a, b) => a.position - b.position)
                 .map((widget, index) => (
-                  <SidebarWidget key={widget.id} id={widget.id} index={index} isEditing={isSidebarEditing}>
+                  <DraggableWidget
+                    key={widget.id}
+                    id={widget.id}
+                    index={index}
+                    moveWidget={moveWidget}
+                    removeWidget={removeWidget}
+                    isEditing={isSidebarEditing}
+                    widgets={sidebarWidgets}
+                  >
                     {widget.type === "communications" && (
                       <div className="mb-4 sm:mb-6">
                         <div className="flex items-center justify-between mb-2">
@@ -722,7 +935,7 @@ export const SidebarArea = ({
                               </div>
                             ))}
                             <Link
-                              to={"/dashboard/communication"}
+                              href={"/dashboard/communication"}
                               className="text-xs sm:text-sm text-white flex justify-center items-center text-center hover:underline"
                             >
                               See all
@@ -738,24 +951,91 @@ export const SidebarArea = ({
                           <h2 className="text-base sm:text-lg lg:text-xl font-bold cursor-pointer text-white">TO-DO</h2>
                         </div>
                         <div className="space-y-2 sm:space-y-3">
-                          {todos.slice(0, 2).map((todo) => (
-                            <div
-                              onClick={redirectToTodos}
-                              key={todo.id}
-                              className="p-2 sm:p-3 cursor-pointer bg-black rounded-xl flex items-center justify-between gap-2"
+                          <div className="relative mb-3" ref={todoFilterDropdownRef}>
+                            <button
+                              onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
                             >
-                              <div className="min-w-0 flex-1">
-                                <h3 className="font-semibold text-xs sm:text-sm text-white truncate">{todo.title}</h3>
-                                <p className="text-xs text-zinc-400 line-clamp-1">{todo.description}</p>
+                              {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                            {isTodoFilterDropdownOpen && (
+                              <div className="absolute z-10 mt-2 w-32 bg-[#2F2F2F] rounded-xl shadow-lg">
+                                {todoFilterOptions.map((option) => (
+                                  <button
+                                    key={option.value}
+                                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
+                                    onClick={() => {
+                                      setTodoFilter(option.value)
+                                      setIsTodoFilterDropdownOpen(false)
+                                    }}
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
                               </div>
-                              <button className="px-2 sm:px-3 py-1 sm:py-1.5 flex justify-center items-center gap-1 sm:gap-2 bg-blue-600 text-white rounded-xl text-xs whitespace-nowrap">
-                                <img src={Image10 || "/placeholder.svg"} alt="" className="w-3 h-3 sm:w-4 sm:h-4" />
-                                <span className="hidden sm:inline">{todo.assignee}</span>
-                              </button>
-                            </div>
-                          ))}
+                            )}
+                          </div>
+                          {getFilteredTodos()
+                            .slice(0, 2)
+                            .map((todo) => (
+                              <div
+                                key={todo.id}
+                                className="p-2 sm:p-3 cursor-pointer bg-black rounded-xl flex items-center justify-between gap-2"
+                              >
+                                <div className="min-w-0 flex-1" onClick={redirectToTodos}>
+                                  <h3 className="font-semibold text-xs sm:text-sm text-white truncate">{todo.title}</h3>
+                                  <p className="text-xs text-zinc-400 line-clamp-1">{todo.description}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button className="px-2 sm:px-3 py-1 sm:py-1.5 flex justify-center items-center gap-1 sm:gap-2 bg-blue-600 text-white rounded-xl text-xs whitespace-nowrap">
+                                    <img src={Image10 || "/placeholder.svg"} alt="" className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    <span className="hidden sm:inline">{todo.assignee}</span>
+                                  </button>
+                                  <div className="relative">
+                                    <button
+                                      onClick={() => toggleDropdown(`main-todo-${todo.id}`)}
+                                      className="p-1 hover:bg-zinc-700 rounded text-zinc-400"
+                                    >
+                                      <MoreVertical size={16} />
+                                    </button>
+                                    {openDropdownIndex === `main-todo-${todo.id}` && (
+                                      <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                        <button
+                                          onClick={() => {
+                                            handleEditTask(todo)
+                                            toggleDropdown(null)
+                                          }}
+                                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg text-white"
+                                        >
+                                          Edit Task
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            handleCancelTask(todo.id)
+                                            toggleDropdown(null)
+                                          }}
+                                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 text-white"
+                                        >
+                                          Cancel Task
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            handleDeleteTask(todo.id)
+                                            toggleDropdown(null)
+                                          }}
+                                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                        >
+                                          Delete Task
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           <Link
-                            to={"/dashboard/to-do"}
+                            href={"/dashboard/to-do"}
                             className="text-xs sm:text-sm text-white flex justify-center items-center text-center hover:underline"
                           >
                             See all
@@ -790,6 +1070,13 @@ export const SidebarArea = ({
                                 </h3>
                                 <p className="text-xs text-zinc-400">{birthday.date}</p>
                               </div>
+                              <button
+                                onClick={() => handleSendBirthdayMessage(birthday)}
+                                className="p-1.5 sm:p-2 hover:bg-zinc-700 rounded-lg text-blue-400"
+                                title="Send Birthday Message"
+                              >
+                                <MessageCircle size={14} />
+                              </button>
                             </div>
                           ))}
                         </div>
@@ -877,7 +1164,7 @@ export const SidebarArea = ({
                         </div>
                       </div>
                     )}
-                  </SidebarWidget>
+                  </DraggableWidget>
                 ))}
             </div>
           )}
@@ -946,6 +1233,19 @@ export const SidebarArea = ({
           setCustomLinks={setCustomLinks}
         />
       )}
+
+      <BirthdayMessageModal
+        isOpen={isBirthdayMessageModalOpen}
+        onClose={() => {
+          setIsBirthdayMessageModalOpen(false)
+          setBirthdayMessage("")
+          setSelectedBirthdayPerson(null)
+        }}
+        selectedPerson={selectedBirthdayPerson}
+        birthdayMessage={birthdayMessage}
+        setBirthdayMessage={setBirthdayMessage}
+        onSendMessage={handleSendCustomBirthdayMessage}
+      />
     </>
   )
 }

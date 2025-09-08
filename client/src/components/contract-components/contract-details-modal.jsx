@@ -1,11 +1,11 @@
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, Printer, FileText, Download, User } from "lucide-react"
+import { X, Printer, FileText, Download, User, HistoryIcon } from "lucide-react"
 import { useState } from "react"
-import Contract1 from '../../../public/contract1.png'
+import Contract1 from "../../../public/contract1.png"
 
-
-export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
+export function ContractDetailsModal({ contract, onClose, onPause, onCancel, handleHistoryModal }) {
   const [showContractImage, setShowContractImage] = useState(false)
 
   const handlePrintContract = () => {
@@ -17,8 +17,8 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
     alert("Downloading contract as PDF...")
   }
 
-  const redirectToMember = () =>{
-    window.location.href = '/dashboard/members'
+  const redirectToMember = () => {
+    window.location.href = "/dashboard/members"
   }
 
   return (
@@ -39,7 +39,7 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
 
             <div className="bg-white rounded-lg overflow-hidden">
               {/* Display your contract image here */}
-              <img src={Contract1} alt="Contract Document" className="w-full h-auto" />
+              <img src={Contract1 || "/placeholder.svg"} alt="Contract Document" className="w-full h-auto" />
             </div>
 
             <div className="flex justify-end gap-3 mt-4">
@@ -63,9 +63,19 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
           <div className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
             <div>
               <h3 className="text-white text-xl font-bold">Contract Details</h3>
-              <p className="text-gray-400 mt-1">{contract.id}</p>
-              <p className="text-gray-400 mt-1">
-                {contract.startDate} - {contract.endDate}
+              <p className="text-gray-400 text-[15px] flex items-center gap-2 mt-1">
+                Contract Number: <div className="text-white">{contract.id}</div>
+              </p>
+              <div className="flex items-center text-[15px] gap-2">
+                <p className="text-gray-400">Contract Type:</p>
+                <p className="text-white">{contract.contractType}</p>
+              </div>
+
+              <p className="text-gray-400 text-[15px] flex items-center gap-2 ">
+                Contract Period:{" "}
+                <div className="text-white">
+                  {contract.startDate} - {contract.endDate}
+                </div>
               </p>
             </div>
 
@@ -77,6 +87,12 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
                 <User size={16} />
                 Go to member
               </button>
+              <button
+                onClick={() => handleHistoryModal(contract.id)}
+                className="text-white cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center flex-1 sm:flex-none sm:w-12"
+              >
+                <HistoryIcon size={16} />
+              </button>
             </div>
 
             <div className="bg-slate-500 h-[1px] w-full" />
@@ -85,11 +101,6 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
               <h3 className="text-white text-xl font-bold">Member</h3>
 
               <div className="space-y-3 text-sm">
-                <div>
-                  <p className="text-gray-400">Contract Type</p>
-                  <p className="text-white">{contract.contractType}</p>
-                </div>
-
                 <div>
                   <p className="text-gray-400">Name</p>
                   <p className="text-white">{contract.memberName}</p>
@@ -138,4 +149,3 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
     </div>
   )
 }
-

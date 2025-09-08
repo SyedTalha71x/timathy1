@@ -1,14 +1,28 @@
+"use client"
 
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText, History, Search, Grid3X3, List, Eye } from "lucide-react"
+import {
+  MoreVertical,
+  Plus,
+  ChevronDown,
+  ArrowUpDown,
+  FileText,
+  History,
+  Search,
+  Grid3X3,
+  List,
+  Eye,
+  Trash2,
+  AlertTriangle,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
-import AddContractModal from '../../components/contract-components/add-contract-modal'
+import AddContractModal from "../../components/contract-components/add-contract-modal"
 import { ContractDetailsModal } from "../../components/contract-components/contract-details-modal"
 import { PauseContractModal } from "../../components/contract-components/pause-contract-modal"
 import { CancelContractModal } from "../../components/contract-components/cancel-contract-modal"
-import { EditContractModal } from "../../components/contract-components/edit-contract-modal"
+import {EditContractModal} from "../../components/contract-components/edit-contract-modal"
 import { DocumentManagementModal } from "../../components/contract-components/document-management-modal"
 import { BonusTimeModal } from "../../components/contract-components/bonus-time-modal"
 import { RenewContractModal } from "../../components/contract-components/reniew-contract-modal"
@@ -72,6 +86,21 @@ const initialContracts = [
     cancelReason: "Financial Reasons",
     isDigital: false,
   },
+  {
+    id: "12321-5",
+    memberName: "Alice Cooper",
+    contractType: "Premium",
+    startDate: "2023-06-01",
+    endDate: "2024-06-01",
+    status: "Ongoing",
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "alice@example.com",
+    phone: "5551234567",
+    iban: "GB82WEST12345698765432",
+    signatureRequired: true,
+  },
 ]
 
 const contractHistory = {
@@ -125,43 +154,8 @@ const sampleLeads = [
   },
 ]
 
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-  return (
-    <div className="flex justify-center items-center gap-2 mt-6">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="px-3 py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800"
-      >
-        Previous
-      </button>
-      <div className="flex gap-1">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-3 py-1.5 rounded-xl transition-colors border ${
-              currentPage === page
-                ? "bg-[#F27A30] text-white border-transparent"
-                : "bg-black text-white border-gray-800 hover:bg-gray-900"
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-      </div>
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="px-3 py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800"
-      >
-        Next
-      </button>
-    </div>
-  )
-}
-
 export default function ContractList() {
+  const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isShowDetails, setIsShowDetails] = useState(false)
   const [selectedContract, setSelectedContract] = useState(null)
@@ -174,7 +168,6 @@ export default function ContractList() {
   const [filteredContracts, setFilteredContracts] = useState(initialContracts)
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
-  const navigate = useNavigate()
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [viewMode, setViewMode] = useState("list") // Added view mode state for switching between grid and list views
 
@@ -182,7 +175,7 @@ export default function ContractList() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
-  const contractsPerPage = 3
+  const contractsPerPage = 40
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
   const [selectedLead, setSelectedLead] = useState(null)
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
@@ -196,7 +189,6 @@ export default function ContractList() {
     setIsRenewModalOpen(true)
   }
 
-  // Update filtered contracts when selectedFilter, contracts, or searchTerm change
   useEffect(() => {
     let filtered = contracts
 
@@ -244,6 +236,20 @@ export default function ContractList() {
     setFilteredContracts(filtered)
     setCurrentPage(1) // Reset to the first page when filter or sort changes
   }, [selectedFilter, contracts, searchTerm, selectedSort])
+
+  const isContractExpired = (endDate) => {
+    const today = new Date()
+    const contractEndDate = new Date(endDate)
+    return today > contractEndDate
+  }
+
+  const handleDeleteOngoingContract = (contractId) => {
+    if (confirm("Are you sure you want to delete this ongoing contract?")) {
+      const updatedContracts = contracts.filter((contract) => contract.id !== contractId)
+      setContracts(updatedContracts)
+      toast.success("Ongoing contract deleted successfully")
+    }
+  }
 
   const totalPages = Math.ceil(filteredContracts.length / contractsPerPage)
   const startIndex = (currentPage - 1) * contractsPerPage
@@ -534,7 +540,7 @@ export default function ContractList() {
           transition-all duration-500 ease-in-out flex-1
           ${
             isRightSidebarOpen
-              ? "lg:mr-96 md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
+              ? "lg:mr-86 md:mr-86 sm:mr-86" // Adjust right margin when sidebar is open on larger screens
               : "mr-0" // No margin when closed
           }
         `}
@@ -542,7 +548,32 @@ export default function ContractList() {
         <div className="flex flex-col lg:justify-between md:flex-col lg:flex-row gap-4 mb-6 sm:mb-8">
           {/* Title and Menu Row */}
           <div className="flex items-center justify-between">
-            <h2 className="text-white oxanium_font text-xl sm:text-2xl">Contracts</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-white oxanium_font text-xl sm:text-2xl">Contracts</h2>
+
+              <div className="flex bg-black items-center rounded-xl border border-gray-800 p-1 w-fit">
+                <span className="text-xs text-gray-400 px-2">View</span>
+
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === "grid" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                  }`}
+                  title="Grid View"
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === "list" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                  }`}
+                  title="List View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
             <button onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)} className="md:hidden text-white">
               <IoIosMenu size={23} />
             </button>
@@ -551,26 +582,6 @@ export default function ContractList() {
           {/* Controls Row - Responsive Layout */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             {/* View Mode Toggle */}
-            <div className="flex bg-black rounded-xl border border-gray-800 p-1 w-fit">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-lg transition-colors ${
-                  viewMode === "grid" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                }`}
-                title="Grid View"
-              >
-                <Grid3X3 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded-lg transition-colors ${
-                  viewMode === "list" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                }`}
-                title="List View"
-              >
-                <List className="w-4 h-4" />
-              </button>
-            </div>
 
             {/* Filter and Sort Controls */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
@@ -585,7 +596,7 @@ export default function ContractList() {
                 </button>
                 {filterDropdownOpen && (
                   <div className="absolute left-0 right-0 sm:right-auto sm:w-full text-sm mt-2 bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
-                    {["All Contracts", "Active", "Paused", "Cancelled"].map((filter) => (
+                    {["All Contracts", "Active", "Ongoing", "Paused", "Cancelled"].map((filter) => (
                       <button
                         key={filter}
                         className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
@@ -670,14 +681,15 @@ export default function ContractList() {
                 className="flex flex-col lg:flex-row lg:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4"
               >
                 <div className="flex flex-col items-start justify-start">
-                  {/* Status Tag */}
                   <span
                     className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${
                       contract.status === "Active"
                         ? "bg-green-600 text-white"
-                        : contract.status === "Paused"
-                          ? "bg-yellow-600 text-white"
-                          : "bg-red-600 text-white"
+                        : contract.status === "Ongoing"
+                          ? "bg-gray-600 text-white"
+                          : contract.status === "Paused"
+                            ? "bg-yellow-600 text-white"
+                            : "bg-red-600 text-white"
                     }`}
                   >
                     {contract.status}
@@ -685,12 +697,23 @@ export default function ContractList() {
                     {contract.cancelReason && ` (${contract.cancelReason})`}
                   </span>
 
+                  {contract.status === "Ongoing" && contract.signatureRequired && (
+                    <div className="flex items-center gap-1 mb-1">
+                      <AlertTriangle className="w-3 h-3 text-red-500" />
+                      <span className="text-red-500 text-xs font-medium">Signature required</span>
+                    </div>
+                  )}
+
                   <span className="text-white font-medium">{contract.memberName}</span>
                   <span className="text-sm text-gray-400">{contract.contractType}</span>
-                  <span className="text-sm text-gray-400">
-                    {contract.startDate} - {contract.endDate}
-                  </span>
-                  <span className="text-sm text-gray-400">{contract.isDigital ? "Digital" : "Analog"}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-400">
+                      {contract.startDate} - {contract.endDate}
+                    </span>
+                    {isContractExpired(contract.endDate) && contract.status === "Active" && (
+                      <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
@@ -705,10 +728,13 @@ export default function ContractList() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleManageDocuments(contract)}
-                      className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                      className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
                       title="Manage Documents"
                     >
                       <FileText size={16} />
+                      {contract.status === "Ongoing" && contract.signatureRequired && (
+                        <AlertTriangle className="w-3 h-3 text-red-500 absolute -top-1 -right-1" />
+                      )}
                     </button>
                     <button
                       onClick={() => handleViewHistory(contract.id)}
@@ -717,21 +743,109 @@ export default function ContractList() {
                     >
                       <History size={16} />
                     </button>
+                    {contract.status === "Ongoing" ? (
+                      <button
+                        onClick={() => handleDeleteOngoingContract(contract.id)}
+                        className="p-2 bg-black rounded-xl border border-slate-600 hover:border-red-400 hover:text-red-400 transition-colors"
+                        title="Delete Ongoing Contract"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" />
+                      </button>
+                    ) : (
+                      <div className="relative">
+                        <button
+                          onClick={(e) => toggleDropdown(contract.id, e)}
+                          className="dropdown-trigger p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
+                        </button>
+
+                        {activeDropdownId === contract.id && (
+                          <div className="dropdown-menu absolute right-0 top-10 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
+                            <button
+                              onClick={() => handleRenewContract(contract.id)}
+                              className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                            >
+                              Renew Contract{" "}
+                            </button>
+                            <button
+                              className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                              onClick={() => handleChangeContract(contract.id)}
+                            >
+                              Change Contract
+                            </button>
+                            <button
+                              className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                              onClick={() => handleAddBonusTime(contract.id)}
+                            >
+                              Add Bonustime
+                            </button>
+                            <button
+                              className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                              onClick={() => handlePauseContract(contract.id)}
+                            >
+                              Pause Contract
+                            </button>
+                            <button
+                              className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
+                              onClick={() => handleCancelContract(contract.id)}
+                            >
+                              Cancel Contract
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {paginatedContracts.map((contract) => (
+              <div key={contract.id} className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors">
+                <div className="flex justify-between items-start mb-3">
+                  <span
+                    className={`px-2 py-0.5 text-xs font-medium rounded-lg ${
+                      contract.status === "Active"
+                        ? "bg-green-600 text-white"
+                        : contract.status === "Ongoing"
+                          ? "bg-gray-600 text-white"
+                          : contract.status === "Paused"
+                            ? "bg-yellow-600 text-white"
+                            : "bg-red-600 text-white"
+                    }`}
+                  >
+                    {contract.status}
+                    {contract.pauseReason && ` (${contract.pauseReason})`}
+                    {contract.cancelReason && ` (${contract.cancelReason})`}
+                  </span>
+
+                  {contract.status === "Ongoing" ? (
+                    <button
+                      onClick={() => handleDeleteOngoingContract(contract.id)}
+                      className="p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+                      title="Delete Ongoing Contract"
+                    >
+                      <Trash2 className="w-5 h-5 text-red-400 cursor-pointer" />
+                    </button>
+                  ) : (
                     <div className="relative">
                       <button
                         onClick={(e) => toggleDropdown(contract.id, e)}
-                        className="dropdown-trigger p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
+                        className="dropdown-trigger p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
                       >
-                        <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
+                        <MoreVertical className="w-5 h-5 text-gray-400 cursor-pointer" />
                       </button>
 
                       {activeDropdownId === contract.id && (
-                        <div className="dropdown-menu absolute right-0 top-10 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
+                        <div className="dropdown-menu absolute right-0 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
                           <button
                             onClick={() => handleRenewContract(contract.id)}
                             className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
                           >
-                            Renew Contract{" "}
+                            Renew Contract
                           </button>
                           <button
                             className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
@@ -760,81 +874,27 @@ export default function ContractList() {
                         </div>
                       )}
                     </div>
-                  </div>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedContracts.map((contract) => (
-              <div key={contract.id} className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors">
-                <div className="flex justify-between items-start mb-3">
-                  <span
-                    className={`px-2 py-0.5 text-xs font-medium rounded-lg ${
-                      contract.status === "Active"
-                        ? "bg-green-600 text-white"
-                        : contract.status === "Paused"
-                          ? "bg-yellow-600 text-white"
-                          : "bg-red-600 text-white"
-                    }`}
-                  >
-                    {contract.status}
-                    {contract.pauseReason && ` (${contract.pauseReason})`}
-                    {contract.cancelReason && ` (${contract.cancelReason})`}
-                  </span>
 
-                  <div className="relative">
-                    <button
-                      onClick={(e) => toggleDropdown(contract.id, e)}
-                      className="dropdown-trigger p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
-                    >
-                      <MoreVertical className="w-5 h-5 text-gray-400 cursor-pointer" />
-                    </button>
-
-                    {activeDropdownId === contract.id && (
-                      <div className="dropdown-menu absolute right-0 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
-                        <button
-                          onClick={() => handleRenewContract(contract.id)}
-                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                        >
-                          Renew Contract
-                        </button>
-                        <button
-                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                          onClick={() => handleChangeContract(contract.id)}
-                        >
-                          Change Contract
-                        </button>
-                        <button
-                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                          onClick={() => handleAddBonusTime(contract.id)}
-                        >
-                          Add Bonustime
-                        </button>
-                        <button
-                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                          onClick={() => handlePauseContract(contract.id)}
-                        >
-                          Pause Contract
-                        </button>
-                        <button
-                          className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
-                          onClick={() => handleCancelContract(contract.id)}
-                        >
-                          Cancel Contract
-                        </button>
-                      </div>
-                    )}
+                {contract.status === "Ongoing" && contract.signatureRequired && (
+                  <div className="flex items-center gap-1 mb-2">
+                    <AlertTriangle className="w-3 h-3 text-red-500" />
+                    <span className="text-red-500 text-xs font-medium">Signature required</span>
                   </div>
-                </div>
+                )}
 
                 <div className="space-y-2 mb-4">
                   <h3 className="text-white font-medium text-lg">{contract.memberName}</h3>
                   <p className="text-gray-400 text-sm">{contract.contractType}</p>
-                  <p className="text-gray-400 text-sm">
-                    {contract.startDate} - {contract.endDate}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-gray-400 text-sm">
+                      {contract.startDate} - {contract.endDate}
+                    </p>
+                    {isContractExpired(contract.endDate) && contract.status === "Active" && (
+                      <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
+                    )}
+                  </div>
                   <p className="text-gray-400 text-sm">{contract.isDigital ? "Digital" : "Analog"}</p>
                 </div>
 
@@ -849,10 +909,13 @@ export default function ContractList() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleManageDocuments(contract)}
-                      className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center"
+                      className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center relative"
                       title="Manage Documents"
                     >
                       <FileText className="w-5 h-5" />
+                      {contract.status === "Ongoing" && contract.signatureRequired && (
+                        <AlertTriangle className="w-3 h-3 text-red-500 absolute -top-1 -right-1" />
+                      )}
                     </button>
                     <button
                       onClick={() => handleViewHistory(contract.id)}
@@ -896,6 +959,7 @@ export default function ContractList() {
             }}
             onPause={() => handlePauseContract(selectedContract.id)}
             onCancel={() => handleCancelContract(selectedContract.id)}
+            handleHistoryModal={handleViewHistory}
           />
         )}
 

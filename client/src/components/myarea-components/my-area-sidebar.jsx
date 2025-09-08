@@ -1,0 +1,1091 @@
+// my-area-sidebar.jsx
+"use client"
+
+/* eslint-disable no-undef */
+/* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
+import { useState, useRef, useCallback } from "react"
+import { Link } from "react-router-dom"
+import Chart from "react-apexcharts"
+import {
+  X,
+  Clock,
+  ChevronDown,
+  Edit,
+  Check,
+  Plus,
+  MessageCircle,
+  ExternalLink,
+  MoreVertical,
+  Dumbbell,
+  Minus,
+  Trash2,
+  PinOff,
+  Pin,
+  Globe,
+  Lock,
+  Eye,
+  Save,
+  User,
+  Bell,
+  Settings,
+  AlertTriangle,
+  Info,
+  CalendarIcon,
+} from "lucide-react"
+import { toast } from "react-hot-toast"
+import Avatar from "../../../public/avatar.png"
+import StaffCheckInWidget from "../../components/myarea-components/staff-widget-checkin"
+import { SpecialNoteEditModal } from "./SpecialNoteEditModal"
+
+const RightSidebarWidget = ({ id, children, index, isEditing, moveRightSidebarWidget, removeRightSidebarWidget }) => {
+  const ref = useRef(null)
+
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData("widgetId", id)
+    e.dataTransfer.setData("widgetIndex", index)
+    e.currentTarget.classList.add("dragging")
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    if (e.currentTarget.dataset.widgetId !== id) {
+      e.currentTarget.classList.add("drag-over")
+    }
+  }
+
+  const handleDragLeave = (e) => {
+    e.currentTarget.classList.remove("drag-over")
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.currentTarget.classList.remove("drag-over")
+    const draggedWidgetId = e.dataTransfer.getData("widgetId")
+    const draggedWidgetIndex = Number.parseInt(e.dataTransfer.getData("widgetIndex"), 10)
+    const targetWidgetIndex = index
+
+    if (draggedWidgetId !== id) {
+      moveRightSidebarWidget(draggedWidgetIndex, targetWidgetIndex)
+    }
+  }
+
+  const handleDragEnd = (e) => {
+    e.currentTarget.classList.remove("dragging")
+    const allWidgets = document.querySelectorAll(".right-sidebar-widget")
+    allWidgets.forEach((widget) => widget.classList.remove("drag-over"))
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={`relative mb-6 right-sidebar-widget ${isEditing ? "animate-wobble" : ""}`}
+      draggable={isEditing}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onDragLeave={handleDragLeave}
+      onDragEnd={handleDragEnd}
+      data-widget-id={id}
+      data-widget-index={index}
+    >
+      {isEditing && (
+        <div className="absolute -top-2 -right-2 z-10 flex gap-2">
+          <button
+            onClick={() => removeRightSidebarWidget(id)}
+            className="p-1 bg-gray-500 rounded-md cursor-pointer text-black flex items-center justify-center w-6 h-6"
+          >
+            <Minus size={25} />
+          </button>
+        </div>
+      )}
+      {children}
+    </div>
+  )
+}
+
+// View Management Modal Component
+const ViewManagementModal = ({
+  isOpen,
+  onClose,
+  savedViews,
+  setSavedViews,
+  currentView,
+  setCurrentView,
+  sidebarWidgets,
+  setSidebarWidgets,
+}) => {
+  const [viewName, setViewName] = useState("")
+  const [isGlobalVisible, setIsGlobalVisible] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [editingView, setEditingView] = useState(null)
+
+  const currentUser = { id: "user123", name: "John Doe" }
+
+  if (!isOpen) return null
+
+  const handleSaveCurrentView = () => {
+    if (!viewName.trim()) {
+      toast.error("Please enter a view name")
+      return
+    }
+
+    const newView = {
+      id: `view_${Date.now()}`,
+      name: viewName.trim(),
+      widgets: [...sidebarWidgets],
+      isStandard: false,
+      isGlobal: isGlobalVisible,
+      createdBy: currentUser,
+      createdAt: new Date().toISOString(),
+    }
+
+    setSavedViews((prev) => [...prev, newView])
+    setViewName("")
+    setIsGlobalVisible(false)
+    setIsCreating(false)
+    toast.success(`View "${newView.name}" saved successfully`)
+  }
+
+  const handleLoadView = (view) => {
+    setSidebarWidgets([...view.widgets])
+    setCurrentView(view)
+    toast.success(`Loaded view: ${view.name}`)
+    onClose()
+  }
+
+  const handleTogglePin = (viewId) => {
+    setSavedViews((prev) =>
+      prev.map((view) => ({
+        ...view,
+        isStandard: view.id === viewId ? !view.isStandard : false,
+      })),
+    )
+    const view = savedViews.find((v) => v.id === viewId)
+    toast.success(view?.isStandard ? "View unpinned" : "View pinned as standard")
+  }
+
+  const handleDeleteView = (viewId) => {
+    setSavedViews((prev) => prev.filter((view) => view.id !== viewId))
+    toast.success("View deleted")
+  }
+
+  const handleEditView = (view) => {
+    setEditingView(view)
+    setViewName(view.name)
+    setIsGlobalVisible(view.isGlobal || false)
+  }
+
+  const handleUpdateView = () => {
+    if (!viewName.trim()) {
+      toast.error("Please enter a view name")
+      return
+    }
+
+    setSavedViews((prev) =>
+      prev.map((view) =>
+        view.id === editingView.id ? { ...view, name: viewName.trim(), isGlobal: isGlobalVisible } : view,
+      ),
+    )
+
+    setEditingView(null)
+    setViewName("")
+    setIsGlobalVisible(false)
+    toast.success("View updated successfully")
+  }
+
+  const cancelEdit = () => {
+    setEditingView(null)
+    setViewName("")
+    setIsGlobalVisible(false)
+    setIsCreating(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+      <div className="bg-[#181818] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="p-4 sm:p-6">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h3 className="text-lg sm:text-xl font-semibold text-white">Manage Views</h3>
+            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Save Current View Section */}
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-black rounded-xl">
+            <h4 className="text-base sm:text-lg font-medium text-white mb-3">
+              {editingView ? "Edit View" : "Save Current View"}
+            </h4>
+            {!isCreating && !editingView ? (
+              <button
+                onClick={() => setIsCreating(true)}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm sm:text-base"
+              >
+                <Save size={16} />
+                Save Current Layout
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={viewName}
+                  onChange={(e) => setViewName(e.target.value)}
+                  placeholder="Enter view name..."
+                  className="w-full p-2 sm:p-3 bg-zinc-800 rounded-lg text-white text-sm outline-none"
+                  autoFocus
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="globalVisible"
+                    checked={isGlobalVisible}
+                    onChange={(e) => setIsGlobalVisible(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-zinc-800 border-zinc-600 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="globalVisible" className="text-sm text-white flex items-center gap-1">
+                    <Globe size={14} />
+                    Make globally visible to all users
+                  </label>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={editingView ? handleUpdateView : handleSaveCurrentView}
+                    className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
+                  >
+                    {editingView ? "Update" : "Save"}
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    className="px-3 sm:px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-lg text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Saved Views List */}
+          <div>
+            <h4 className="text-base sm:text-lg font-medium text-white mb-3">Saved Views</h4>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              {savedViews.length === 0 ? (
+                <div className="text-center py-6 sm:py-8 text-zinc-400">
+                  <Eye size={40} className="mx-auto mb-3 opacity-50" />
+                  <p className="text-sm sm:text-base">No saved views yet</p>
+                  <p className="text-xs sm:text-sm">Save your current layout to get started</p>
+                </div>
+              ) : (
+                savedViews.map((view) => (
+                  <div
+                    key={view.id}
+                    className={`p-3 sm:p-4 rounded-xl border transition-colors ${
+                      currentView?.id === view.id
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-zinc-700 hover:border-zinc-600"
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h5 className="font-medium text-white text-sm sm:text-base truncate">{view.name}</h5>
+                          {view.isStandard && (
+                            <span className="flex items-center gap-1 px-2 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs whitespace-nowrap">
+                              <Pin size={12} />
+                              Pinned
+                            </span>
+                          )}
+                          <span
+                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs whitespace-nowrap ${
+                              view.isGlobal ? "bg-green-600/20 text-green-400" : "bg-gray-600/20 text-gray-400"
+                            }`}
+                          >
+                            {view.isGlobal ? <Globe size={12} /> : <Lock size={12} />}
+                            {view.isGlobal ? "Global" : "Private"}
+                          </span>
+                          {currentView?.id === view.id && (
+                            <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-zinc-400">
+                            {view.widgets.length} widgets • Created {new Date(view.createdAt).toLocaleDateString()}
+                          </p>
+                          <p className="text-xs text-zinc-500 flex items-center gap-1">
+                            <User size={12} />
+                            Created by {view.createdBy?.name || "Unknown"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                        <button
+                          onClick={() => handleLoadView(view)}
+                          className="px-2 sm:px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs sm:text-sm whitespace-nowrap"
+                        >
+                          Load
+                        </button>
+                        <button
+                          onClick={() => handleEditView(view)}
+                          className="p-1.5 sm:p-2 hover:bg-zinc-700 rounded text-blue-400"
+                          title="Edit view"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleTogglePin(view.id)}
+                          className={`p-1.5 sm:p-2 hover:bg-zinc-700 rounded ${
+                            view.isStandard ? "text-yellow-400" : "text-zinc-400"
+                          }`}
+                          title={view.isStandard ? "Unpin view" : "Pin as standard view"}
+                        >
+                          {view.isStandard ? <Pin size={14} /> : <PinOff size={14} />}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteView(view.id)}
+                          className="p-1.5 sm:p-2 hover:bg-zinc-700 rounded text-red-400"
+                          title="Delete view"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const Sidebar = ({
+  isRightSidebarOpen,
+  toggleRightSidebar,
+  isSidebarEditing,
+  toggleSidebarEditing,
+  rightSidebarWidgets,
+  moveRightSidebarWidget,
+  removeRightSidebarWidget,
+  setIsRightWidgetModalOpen,
+  communications,
+  redirectToCommunication,
+  todos,
+  handleTaskComplete,
+  todoFilter,
+  setTodoFilter,
+  todoFilterOptions,
+  isTodoFilterDropdownOpen,
+  setIsTodoFilterDropdownOpen,
+  openDropdownIndex,
+  toggleDropdown,
+  handleEditTask,
+  setTaskToCancel,
+  setTaskToDelete,
+  birthdays,
+  isBirthdayToday,
+  handleSendBirthdayMessage,
+  customLinks,
+  truncateUrl,
+  appointments,
+  handleDumbbellClick,
+  handleCheckIn,
+  handleAppointmentOptionsModal,
+  selectedMemberType,
+  setSelectedMemberType,
+  memberTypes,
+  isChartDropdownOpen,
+  setIsChartDropdownOpen,
+  chartOptions,
+  chartSeries,
+  expiringContracts,
+  getWidgetPlacementStatus,
+  onClose,
+  hasUnreadNotifications,
+  setIsWidgetModalOpen,
+  notifications,
+  
+}) => {
+  const todoFilterDropdownRef = useRef(null)
+  const chartDropdownRef = useRef(null)
+  const notePopoverRef = useRef(null)
+
+  const [savedViews, setSavedViews] = useState([])
+  const [currentView, setCurrentView] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState("widgets")
+
+  const [sidebarActiveNoteId, setSidebarActiveNoteId] = useState(null)
+  const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false)
+  const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
+
+
+  const handleSidebarEditNote = (appointmentId, currentNote) => {
+    const appointment = appointments.find((app) => app.id === appointmentId)
+    if (appointment) {
+      setIsSidebarSpecialNoteModalOpen(false)
+      setSelectedSidebarAppointmentForNote(null)
+  
+      setTimeout(() => {
+        setSelectedSidebarAppointmentForNote(appointment)
+        setIsSidebarSpecialNoteModalOpen(true)
+      }, 10)
+    }
+  }
+  
+  // Add separate handler for saving sidebar special note
+  const handleSaveSidebarSpecialNote = (appointmentId, updatedNote) => {
+    // Call the parent's save function if passed as prop
+    if (typeof onSaveSpecialNote === 'function') {
+      onSaveSpecialNote(appointmentId, updatedNote)
+    }
+    toast.success("Special note updated successfully")
+  }
+
+
+  const renderSidebarSpecialNoteIcon = useCallback(
+    (specialNote, memberId) => {
+      if (!specialNote.text) return null
+      const isActive =
+        specialNote.startDate === null ||
+        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+      if (!isActive) return null
+  
+      const handleNoteClick = (e) => {
+        e.stopPropagation()
+        setSidebarActiveNoteId(sidebarActiveNoteId === memberId ? null : memberId)
+      }
+  
+      return (
+        <div className="relative">
+          <div
+            className={`${
+              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            onClick={handleNoteClick}
+          >
+            {specialNote.isImportant ? (
+              <AlertTriangle size={18} className="text-white" />
+            ) : (
+              <Info size={18} className="text-white" />
+            )}
+          </div>
+  
+          {sidebarActiveNoteId === memberId && (
+            <div
+              ref={notePopoverRef}
+              className="absolute left-0 top-6 w-74 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+            >
+              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                {specialNote.isImportant ? (
+                  <AlertTriangle className="text-red-500 shrink-0" size={18} />
+                ) : (
+                  <Info className="text-blue-500 shrink-0" size={18} />
+                )}
+                <h4 className="text-white flex text-sm gap-1 items-center font-medium">
+                  <div>Special Note</div>
+                  <div className="text-sm text-gray-400">
+                    {specialNote.isImportant ? "(Important)" : "(Unimportant)"}
+                  </div>
+                </h4>
+                <button
+                  onClick={() => handleSidebarEditNote(memberId, specialNote)}
+                  className="ml-auto text-gray-400 hover:text-white mr-2"
+                >
+                  <Edit size={16} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSidebarActiveNoteId(null)
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="p-3">
+                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
+                {specialNote.startDate && specialNote.endDate ? (
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <CalendarIcon size={12} />
+                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                      {new Date(specialNote.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                      <CalendarIcon size={12} />
+                      Always valid
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    },
+    [sidebarActiveNoteId, appointments],
+  )
+
+  return (
+    <>
+      <aside
+        className={`
+          fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 lg:w-80 bg-[#181818]
+          transform transition-transform duration-500 ease-in-out
+          ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
+          lg:relative lg:translate-x-0
+        `}
+      >
+        <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto h-full">
+          {/* Header with close button and add widget button */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between w-full mb-3 sm:mb-4">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <h2 className="text-base sm:text-lg font-semibold text-white truncate">Sidebar</h2>
+                 {currentView && (
+                <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
+                  {currentView.name}
+                </span>
+              )}
+                </div>
+              </div>
+              <div></div>
+              <div className="flex items-center gap-1 sm:gap-2">
+                {!isSidebarEditing && (
+                  <button
+                    onClick={() => setIsViewModalOpen(true)}
+                    className="p-1.5 sm:p-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                    title="Manage Views"
+                  >
+                    <Eye size={14} />
+                  </button>
+                )}
+                {activeTab === "widgets" && isSidebarEditing && (
+                  <button
+                    onClick={() => setIsRightWidgetModalOpen(true)}
+                    className="p-1.5 sm:p-2 bg-black text-white hover:bg-zinc-900 rounded-lg cursor-pointer"
+                    title="Add Widget"
+                  >
+                    <Plus size={14} />
+                  </button>
+                )}
+                {activeTab === "widgets" && (
+                  <button
+                    onClick={toggleSidebarEditing}
+                    className={`p-1.5 sm:p-2 ${
+                      isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                    } rounded-lg flex items-center gap-1`}
+                    title="Toggle Edit Mode"
+                  >
+                    {isSidebarEditing ? <Check size={14} /> : <Edit size={14} />}
+                  </button>
+                )}
+                {/* Show close button only on medium and small screens */}
+                <button
+                  onClick={onClose}
+                  className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl lg:hidden"
+                  aria-label="Close sidebar"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
+            <button
+              onClick={() => setActiveTab("widgets")}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Settings size={14} className="inline mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Widgets</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("notifications")}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
+                activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Bell size={14} className="inline mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Notifications</span>
+
+              {hasUnreadNotifications && (
+                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
+                  2
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Notification Tab Content */}
+          {activeTab === "notifications" && (
+            <div className="space-y-3">
+              <h2 className="text-lg md:text-xl open_sans_font_700">Notifications</h2>
+              {notifications && notifications.length > 0 ? (
+                notifications.map((notification) => (
+                  <div key={notification.id} className="p-3 bg-black rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1">
+                        <Bell size={16} className="text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-medium text-white">{notification.title}</h3>
+                        <p className="text-xs text-zinc-400 mt-1">{notification.message}</p>
+                        <p className="text-xs mt-2 flex items-center gap-1 text-zinc-500 open_sans_font">
+                          <Clock size={12} />
+                          {notification.time}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-zinc-400">
+                  <Bell size={40} className="mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">No notifications</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Widgets Tab Content */}
+          {activeTab === "widgets" && (
+            <>
+              {rightSidebarWidgets
+                .sort((a, b) => a.position - b.position)
+                .map((widget, index) => (
+                  <RightSidebarWidget
+                    key={widget.id}
+                    id={widget.id}
+                    index={index}
+                    isEditing={isSidebarEditing}
+                    moveRightSidebarWidget={moveRightSidebarWidget}
+                    removeRightSidebarWidget={removeRightSidebarWidget}
+                  >
+                    {widget.type === "communications" && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Communications</h2>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            {communications.slice(0, 2).map((comm) => (
+                              <div
+                                onClick={redirectToCommunication}
+                                key={comm.id}
+                                className="p-2 cursor-pointer bg-black rounded-xl"
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  <img
+                                    src={comm.avatar || "/placeholder.svg"}
+                                    alt="User"
+                                    className="rounded-full h-8 w-8"
+                                  />
+                                  <div>
+                                    <h3 className="open_sans_font text-sm">{comm.name}</h3>
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-xs open_sans_font text-zinc-400">{comm.message}</p>
+                                  <p className="text-xs mt-1 flex gap-1 items-center open_sans_font text-zinc-400">
+                                    <Clock size={12} />
+                                    {comm.time}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                            <Link
+                              to={"/dashboard/communication"}
+                              className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
+                            >
+                              See all
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "todo" && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">TO-DO</h2>
+                        </div>
+                        <div className="relative mb-3" ref={todoFilterDropdownRef}>
+                          <button
+                            onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
+                          >
+                            {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          {isTodoFilterDropdownOpen && (
+                            <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+                              {todoFilterOptions.map((option) => (
+                                <button
+                                  key={option.value}
+                                  className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                  onClick={() => {
+                                    setTodoFilter(option.value)
+                                    setIsTodoFilterDropdownOpen(false)
+                                  }}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-3 open_sans_font">
+                          {todos.slice(0, 3).map((todo) => (
+                            <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="checkbox"
+                                  checked={todo.completed}
+                                  onChange={() => handleTaskComplete(todo.id)}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <div className="flex-1">
+                                  <h3
+                                    className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                  >
+                                    {todo.title}
+                                  </h3>
+                                  <p className="text-xs open_sans_font text-zinc-400">
+                                    Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="relative">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    toggleDropdown(`todo-${todo.id}`)
+                                  }}
+                                  className="p-1 hover:bg-zinc-700 rounded"
+                                >
+                                  <MoreVertical size={16} />
+                                </button>
+                                {openDropdownIndex === `todo-${todo.id}` && (
+                                  <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                    <button
+                                      onClick={() => {
+                                        handleEditTask(todo)
+                                      }}
+                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                    >
+                                      Edit Task
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setTaskToCancel(todo.id)
+                                      }}
+                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                    >
+                                      Cancel Task
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setTaskToDelete(todo.id)
+                                      }}
+                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                    >
+                                      Delete Task
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                          <Link
+                            to={"/dashboard/to-do"}
+                            className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
+                          >
+                            See all
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "birthday" && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Upcoming Birthday</h2>
+                        </div>
+                        <div className="space-y-2 open_sans_font">
+                          {birthdays.slice(0, 3).map((birthday) => (
+                            <div
+                              key={birthday.id}
+                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${
+                                isBirthdayToday(birthday.date)
+                                  ? "bg-yellow-900/30 border border-yellow-600"
+                                  : "bg-black"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div>
+                                  <img
+                                    src={birthday.avatar || "/placeholder.svg"}
+                                    className="h-8 w-8 rounded-full"
+                                    alt=""
+                                  />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold open_sans_font text-sm flex items-center gap-1">
+                                    {birthday.name}
+                                    {isBirthdayToday(birthday.date) && <span className="text-yellow-500">🎂</span>}
+                                  </h3>
+                                  <p className="text-xs open_sans_font text-zinc-400">{birthday.date}</p>
+                                </div>
+                              </div>
+                              {isBirthdayToday(birthday.date) && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleSendBirthdayMessage(birthday)
+                                  }}
+                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                                  title="Send Birthday Message"
+                                >
+                                  <MessageCircle size={16} />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "websiteLinks" && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
+                        </div>
+                        <div className="space-y-2 open_sans_font">
+                          {customLinks.map((link) => (
+                            <div
+                              key={link.id}
+                              className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold open_sans_font text-sm truncate">{link.title}</h3>
+                                <p className="text-xs open_sans_font text-zinc-400 truncate max-w-[150px]">
+                                  {truncateUrl(link.url, 30)}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => window.open(link.url, "_blank")}
+                                className="p-2 hover:bg-zinc-700 rounded-lg"
+                              >
+                                <ExternalLink size={16} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "appointments" && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">
+                            Upcoming Appointments
+                          </h2>
+                        </div>
+                        <div className="space-y-2 max-h-[25vh] overflow-y-auto custom-scrollbar pr-1">
+                          {appointments.length > 0 ? (
+                            appointments.slice(0, 2).map((appointment, index) => (
+                              <div
+                                key={appointment.id}
+                                className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
+                              >
+                                <div className="absolute p-2 top-0 left-0 z-10 flex flex-col gap-1">
+                                  {renderSidebarSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                                </div>
+                                <div
+                                  className="flex flex-col items-center justify-between gap-2 cursor-pointer"
+                                  onClick={() => {
+                                    handleAppointmentOptionsModal(appointment)
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
+                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+                                      <img
+                                        src={Avatar || "/placeholder.svg"}
+                                        alt=""
+                                        className="w-full h-full rounded-full"
+                                      />
+                                    </div>
+                                    <div className="text-white text-left">
+                                      <p className="font-semibold text-sm">{appointment.name}</p>
+                                      <p className="text-xs flex gap-1 items-center opacity-80">
+                                        <Clock size={14} />
+                                        {appointment.time} | {appointment.date.split("|")[0]}
+                                      </p>
+                                      <p className="text-xs opacity-80 mt-1">
+                                        {appointment.isTrial ? "Trial Session" : appointment.type}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleCheckIn(appointment.id)
+                                      }}
+                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${
+                                        appointment.isCheckedIn
+                                          ? " border border-white/50 text-white bg-transparent"
+                                          : "bg-black text-white"
+                                      }`}
+                                    >
+                                      {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                                    </button>
+                                    <div
+                                      className="cursor-pointer rounded transition-colors"
+                                      onClick={(e) => handleDumbbellClick(appointment, e)}
+                                    >
+                                      <Dumbbell size={16} />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-white text-center text-sm">No appointments scheduled.</p>
+                          )}
+                        </div>
+                        <div className="flex justify-center mt-2">
+                          <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
+                            See all
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+
+{isSidebarSpecialNoteModalOpen && selectedSidebarAppointmentForNote && (
+  <SpecialNoteEditModal
+    isOpen={isSidebarSpecialNoteModalOpen}
+    onClose={() => {
+      setIsSidebarSpecialNoteModalOpen(false)
+      setSelectedSidebarAppointmentForNote(null)
+    }}
+    appointment={selectedSidebarAppointmentForNote}
+    onSave={handleSaveSidebarSpecialNote}
+  />
+)}
+
+                    {widget.type === "chart" && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Chart</h2>
+                        </div>
+                        <div className="p-4 bg-black rounded-xl">
+                          <div className="relative mb-3" ref={chartDropdownRef}>
+                            <button
+                              onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-[#2F2F2F] rounded-xl text-white text-sm w-full justify-between"
+                            >
+                              {selectedMemberType}
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                            {isChartDropdownOpen && (
+                              <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+                                {Object.keys(memberTypes).map((type) => (
+                                  <button
+                                    key={type}
+                                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                    onClick={() => {
+                                      setSelectedMemberType(type)
+                                      setIsChartDropdownOpen(false)
+                                    }}
+                                  >
+                                    {type}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="w-full">
+                            <Chart options={chartOptions} series={chartSeries} type="line" height={250} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "expiringContracts" && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Expiring Contracts</h2>
+                        </div>
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                          {expiringContracts.slice(0, 3).map((contract) => (
+                            <Link to="/dashboard/contract" key={contract.id}>
+                              <div className="p-3 bg-black rounded-lg hover:bg-zinc-900 mt-2 transition-colors">
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="min-w-0">
+                                    <h3 className="text-sm font-medium truncate">{contract.title}</h3>
+                                    <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
+                                  </div>
+                                  <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap">
+                                    {contract.status}
+                                  </span>
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                        <div className="flex justify-center mt-3">
+                          <Link to="/dashboard/contract" className="text-sm text-white hover:underline">
+                            See all
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "staffCheckIn" && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Staff login</h2>
+                        </div>
+                        <div className="bg-black rounded-xl p-4">
+                          <StaffCheckInWidget />
+                        </div>
+                      </div>
+                    )}
+                  </RightSidebarWidget>
+                ))}
+            </>
+          )}
+        </div>
+      </aside>
+
+      {/* View Management Modal */}
+      <ViewManagementModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        savedViews={savedViews}
+        setSavedViews={setSavedViews}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        sidebarWidgets={rightSidebarWidgets}
+        setSidebarWidgets={() => {}} // This might need to be adjusted based on your implementation
+      />
+    </>
+  )
+}
+
+export default Sidebar

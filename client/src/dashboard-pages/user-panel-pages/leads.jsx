@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Plus, Users, Lock } from "lucide-react"
+import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Plus, Users, Lock, CalendarIcon } from "lucide-react"
 import Draggable from "react-draggable"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/avatar.png"
@@ -239,12 +239,18 @@ const LeadCard = ({
         </div>
         <div className="flex justify-center">
           {isInTrialColumn ? (
+            <div className="flex items-center w-full gap-2">
+
             <button
               onClick={() => onCreateContract(lead)}
               className="bg-[#FF843E] hover:bg-[#E64D2E] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
-            >
+              >
               Create Contract
             </button>
+            <button className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors no-drag text-sm flex items-center justify-center">
+              <CalendarIcon size={16}  />
+            </button>
+              </div>
           ) : (
             <button
               onClick={() => onAddTrial(lead)}
@@ -693,9 +699,8 @@ export default function LeadManagement() {
   }
 
   const handleEditColumn = (id, title, color) => {
-    const updatedColumns = columns.map((column) => (column.id === id ? { ...column, title, color } : column))
-    setColumns(updatedColumns)
-    toast.success("Column updated successfully")
+    setSelectedColumn({ id, title, color })
+  setIsEditColumnModalOpen(true)
   }
 
   const handleSaveColumn = (data) => {
@@ -703,6 +708,10 @@ export default function LeadManagement() {
       column.id === data.id ? { ...column, title: data.title, color: data.color } : column,
     )
     setColumns(updatedColumns)
+
+    setIsEditColumnModalOpen(false)
+    setSelectedColumn(null)
+    
     toast.success("Column saved successfully")
   }
 
@@ -1034,8 +1043,8 @@ export default function LeadManagement() {
             className="bg-orange-500 hover:bg-[#E64D2E] text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 flex-1 sm:flex-none justify-center"
           >
             <Plus size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline">Create Lead</span>
-            <span className="xs:hidden">Add</span>
+            <span className="md:inline hidden">Create Lead</span>
+            {/* <span className="xs:hidden">Add</span> */}
           </button>
           <div className="sm:block hidden">
             <IoIosMenu
@@ -1129,29 +1138,57 @@ export default function LeadManagement() {
         memberRelations={memberRelations}
         onEditLead={handleEditLead} // Pass onEditLead
       />
-      <TrialTrainingModal
-        isOpen={isTrialModalOpen}
-        onClose={handleTrialModalClose}
-        selectedLead={selectedLead}
-        trialTypes={[
-          { name: "Cardio", duration: 30 },
-          { name: "Strength", duration: 45 },
-          { name: "Flexibility", duration: 60 },
-        ]}
-        freeTimeSlots={[
-          { id: "slot1", date: "2023-10-01", time: "10:00" },
-          { id: "slot2", date: "2023-10-01", time: "11:00" },
-          { id: "slot3", date: "2023-10-02", time: "14:00" },
-        ]}
-        availableMembersLeads={availableMembersLeads}
-        relationOptions={{
-          family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Spouse"],
-          friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
-          relationship: ["Partner", "Boyfriend", "Girlfriend", "Ex-Partner"],
-          work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
-          other: ["Neighbor", "Roommate", "Mentor", "Student", "Other"],
-        }}
-      />
+     <TrialTrainingModal
+  isOpen={isTrialModalOpen}
+  onClose={handleTrialModalClose}
+  selectedLead={selectedLead}
+  trialTypes={[
+    { name: "Cardio", duration: 30 },
+    { name: "Strength", duration: 45 },
+    { name: "Flexibility", duration: 60 },
+  ]}
+  freeTimeSlots={[
+    // Monday
+    { id: "slot1", date: "2025-09-08", time: "09:00" },
+    { id: "slot2", date: "2025-09-08", time: "10:30" },
+    { id: "slot3", date: "2025-09-08", time: "14:00" },
+    { id: "slot4", date: "2025-09-08", time: "16:00" },
+    
+    // Tuesday
+    { id: "slot5", date: "2025-09-09", time: "08:00" },
+    { id: "slot6", date: "2025-09-09", time: "11:00" },
+    { id: "slot7", date: "2025-09-09", time: "15:30" },
+    { id: "slot8", date: "2025-09-09", time: "17:00" },
+    
+    // Wednesday
+    { id: "slot9", date: "2025-09-10", time: "09:30" },
+    { id: "slot10", date: "2025-09-10", time: "12:00" },
+    { id: "slot11", date: "2025-09-10", time: "14:30" },
+    
+    // Thursday
+    { id: "slot12", date: "2025-09-11", time: "10:00" },
+    { id: "slot13", date: "2025-09-11", time: "13:00" },
+    { id: "slot14", date: "2025-09-11", time: "16:30" },
+    
+    // Friday
+    { id: "slot15", date: "2025-09-12", time: "08:30" },
+    { id: "slot16", date: "2025-09-12", time: "11:30" },
+    { id: "slot17", date: "2025-09-12", time: "15:00" },
+    
+    // Saturday
+    { id: "slot18", date: "2025-09-13", time: "09:00" },
+    { id: "slot19", date: "2025-09-13", time: "12:30" },
+    { id: "slot20", date: "2025-09-13", time: "14:00" },
+  ]}
+  availableMembersLeads={availableMembersLeads}
+  relationOptions={{
+    family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Spouse"],
+    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+    relationship: ["Partner", "Boyfriend", "Girlfriend", "Ex-Partner"],
+    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+    other: ["Neighbor", "Roommate", "Mentor", "Student", "Other"],
+  }}
+/>
 
       {isCreateContractModalOpen && (
         <AddContractModal

@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
@@ -16,19 +18,10 @@ import {
   Info,
   CalendarIcon,
   Menu,
-  Users,
-  Minus,
   ExternalLink,
-  Eye,
-  Save,
-  Globe,
-  Lock,
-  User,
-  Pin,
-  PinOff,
-  Trash2,
   Settings,
   MessageCircle,
+  Dumbbell,
 } from "lucide-react"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { Toaster, toast } from "react-hot-toast"
@@ -38,83 +31,13 @@ import AppointmentActionModal from "../../components/appointments-components/app
 import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
 import ViewManagementModal from "../../components/myarea-components/view-management-modal"
-import AdditionalStaffModal from "../../components/myarea-components/additional-staff-widget"
 import StaffCheckInWidget from "../../components/myarea-components/staff-widget-checkin"
-
-
-
-
-
-const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
-  const ref = useRef(null)
-
-  const handleDragStart = (e) => {
-    e.dataTransfer.setData("widgetId", id)
-    e.dataTransfer.setData("widgetIndex", index)
-    e.currentTarget.classList.add("dragging")
-  }
-
-  const handleDragOver = (e) => {
-    e.preventDefault() // Necessary to allow dropping
-    if (e.currentTarget.dataset.widgetId !== id) {
-      e.currentTarget.classList.add("drag-over")
-    }
-  }
-
-  const handleDragLeave = (e) => {
-    e.currentTarget.classList.remove("drag-over")
-  }
-
-  const handleDrop = (e) => {
-    e.preventDefault()
-    e.currentTarget.classList.remove("drag-over")
-    const draggedWidgetId = e.dataTransfer.getData("widgetId")
-    const draggedWidgetIndex = Number.parseInt(e.dataTransfer.getData("widgetIndex"), 10)
-    const targetWidgetIndex = index // The index of the widget being dropped ONTO
-
-    if (draggedWidgetId !== id) {
-      moveWidget(draggedWidgetIndex, targetWidgetIndex)
-    }
-  }
-
-  const handleDragEnd = (e) => {
-    e.currentTarget.classList.remove("dragging")
-    const allWidgets = document.querySelectorAll(".draggable-widget")
-    allWidgets.forEach((widget) => widget.classList.remove("drag-over"))
-  }
-
-  return (
-    <div
-      ref={ref}
-      className={`relative mb-4 w-full draggable-widget ${isEditing ? "animate-wobble" : ""}`}
-      draggable={isEditing}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      onDragLeave={handleDragLeave}
-      onDragEnd={handleDragEnd}
-      data-widget-id={id}
-      data-widget-index={index}
-    >
-      {isEditing && (
-        <div className="absolute -top-2 -right-2 z-10 flex gap-2">
-          <button
-            onClick={() => removeWidget(id)}
-            className="p-1 bg-gray-500 rounded-md cursor-pointer text-black flex items-center justify-center w-7 h-7"
-          >
-            <Minus size={25} />
-          </button>
-        </div>
-      )}
-      {children}
-    </div>
-  )
-}
-
-
+import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
+import Sidebar from "../../components/myarea-components/my-area-sidebar"
+import DraggableWidget from "../../components/myarea-components/DraggableWidget"
+import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
 
 export default function MyArea() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
   const [selectedMemberType, setSelectedMemberType] = useState("All members")
@@ -147,6 +70,9 @@ export default function MyArea() {
   const [freeAppointments, setFreeAppointments] = useState([])
   const today = new Date().toISOString().split("T")[0]
 
+  const [isSpecialNoteModalOpen, setIsSpecialNoteModalOpen] = useState(false)
+  const [selectedAppointmentForNote, setSelectedAppointmentForNote] = useState(null)
+
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 }, // Always full width
     { id: "expiringContracts", type: "expiringContracts", position: 1 }, // Moved to start of grid
@@ -165,6 +91,10 @@ export default function MyArea() {
     { id: "todo", type: "todo", position: 1 },
     { id: "birthday", type: "birthday", position: 2 },
     { id: "websiteLinks", type: "websiteLinks", position: 3 },
+    { id: "sidebarAppointments", type: "appointments", position: 4 },
+    { id: "sidebarChart", type: "chart", position: 5 },
+    { id: "sidebarExpiringContracts", type: "expiringContracts", position: 6 },
+    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 7 },
   ])
 
   const [customLinks, setCustomLinks] = useState([
@@ -419,12 +349,13 @@ export default function MyArea() {
   const toggleEditing = () => setIsEditing(!isEditing)
   const toggleSidebarEditing = () => setIsSidebarEditing(!isSidebarEditing) // Toggle sidebar edit mode
   const [activeNoteId, setActiveNoteId] = useState(null)
-  const [editingNoteId, setEditingNoteId] = useState(null)
-  const [editingNoteText, setEditingNoteText] = useState("")
   const todoFilterDropdownRef = useRef(null)
 
   const [selectedAppointment, setselectedAppointment] = useState()
   const [isEditAppointmentModalOpen, setisEditAppointmentModalOpen] = useState(false)
+
+  const [isTrainingPlanModalOpen, setIsTrainingPlanModalOpen] = useState(false)
+  const [selectedUserForTrainingPlan, setSelectedUserForTrainingPlan] = useState(null)
 
   const getWidgetPlacementStatus = useCallback(
     (widgetType, widgetArea = "dashboard") => {
@@ -552,32 +483,25 @@ export default function MyArea() {
     },
   ])
 
-  const moveCustomLink = (id, direction) => {
-    setCustomLinks((currentLinks) => {
-      const index = currentLinks.findIndex((link) => link.id === id)
-      if ((direction === "up" && index === 0) || (direction === "down" && index === currentLinks.length - 1)) {
-        return currentLinks
-      }
-      const newLinks = [...currentLinks]
-      const swap = direction === "up" ? index - 1 : index + 1
-      ;[newLinks[index], newLinks[swap]] = [newLinks[swap], newLinks[index]]
-      return newLinks
-    })
-  }
-
   const handleEditNote = (appointmentId, currentNote) => {
-    setEditingNoteId(appointmentId)
-    setEditingNoteText(currentNote)
+    const appointment = appointments.find((app) => app.id === appointmentId)
+    if (appointment) {
+      // Close any existing modal first to ensure clean state
+      setIsSpecialNoteModalOpen(false)
+      setSelectedAppointmentForNote(null)
+
+      // Use setTimeout to ensure state is cleared before opening
+      setTimeout(() => {
+        setSelectedAppointmentForNote(appointment)
+        setIsSpecialNoteModalOpen(true)
+      }, 10)
+    }
   }
 
-  const handleSaveNote = (appointmentId) => {
+  const handleSaveSpecialNote = (appointmentId, updatedNote) => {
     setAppointments((prev) =>
-      prev.map((app) =>
-        app.id === appointmentId ? { ...app, specialNote: { ...app.specialNote, text: editingNoteText } } : app,
-      ),
+      prev.map((app) => (app.id === appointmentId ? { ...app, specialNote: updatedNote } : app)),
     )
-    setEditingNoteId(null)
-    setEditingNoteText("")
     toast.success("Special note updated successfully")
   }
 
@@ -901,25 +825,26 @@ export default function MyArea() {
               <Info size={18} className="text-white" />
             )}
           </div>
+
           {activeNoteId === memberId && (
             <div
               ref={notePopoverRef}
               className="absolute left-0 top-6 w-74 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
             >
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {specialNote.isImportant === "important" ? (
-                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                {specialNote.isImportant ? (
+                  <AlertTriangle className="text-red-500 shrink-0" size={18} />
                 ) : (
                   <Info className="text-blue-500 shrink-0" size={18} />
                 )}
                 <h4 className="text-white flex text-sm gap-1 items-center font-medium">
                   <div>Special Note</div>
                   <div className="text-sm text-gray-400">
-                    {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
+                    {specialNote.isImportant ? "(Important)" : "(Unimportant)"}
                   </div>
                 </h4>
                 <button
-                  onClick={() => handleEditNote(memberId, specialNote.text)}
+                  onClick={() => handleEditNote(memberId, specialNote)}
                   className="ml-auto text-gray-400 hover:text-white mr-2"
                 >
                   <Edit size={16} />
@@ -935,36 +860,7 @@ export default function MyArea() {
                 </button>
               </div>
               <div className="p-3">
-                {editingNoteId === memberId ? (
-                  <div className="space-y-3">
-                    <textarea
-                      value={editingNoteText}
-                      onChange={(e) => setEditingNoteText(e.target.value)}
-                      className="w-full p-2 bg-gray-700 rounded text-white text-sm resize-none"
-                      rows={3}
-                      placeholder="Enter special note..."
-                    />
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        onClick={() => {
-                          setEditingNoteId(null)
-                          setEditingNoteText("")
-                        }}
-                        className="px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 rounded"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => handleSaveNote(memberId)}
-                        className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded"
-                      >
-                        Save
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-                )}
+                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
                 {specialNote.startDate && specialNote.endDate ? (
                   <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                     <p className="text-xs text-gray-300 flex items-center gap-1.5">
@@ -987,76 +883,8 @@ export default function MyArea() {
         </div>
       )
     },
-    [activeNoteId, setActiveNoteId, editingNoteId, editingNoteText],
+    [activeNoteId, setActiveNoteId],
   )
-
-  // Right sidebar widget component with remove functionality
-  const RightSidebarWidget = ({ id, children, index, isEditing }) => {
-    const ref = useRef(null)
-
-    const handleDragStart = (e) => {
-      e.dataTransfer.setData("widgetId", id)
-      e.dataTransfer.setData("widgetIndex", index)
-      e.currentTarget.classList.add("dragging")
-    }
-
-    const handleDragOver = (e) => {
-      e.preventDefault() // Necessary to allow dropping
-      if (e.currentTarget.dataset.widgetId !== id) {
-        e.currentTarget.classList.add("drag-over")
-      }
-    }
-
-    const handleDragLeave = (e) => {
-      e.currentTarget.classList.remove("drag-over")
-    }
-
-    const handleDrop = (e) => {
-      e.preventDefault()
-      e.currentTarget.classList.remove("drag-over")
-      const draggedWidgetId = e.dataTransfer.getData("widgetId")
-      const draggedWidgetIndex = Number.parseInt(e.dataTransfer.getData("widgetIndex"), 10)
-      const targetWidgetIndex = index
-
-      if (draggedWidgetId !== id) {
-        moveRightSidebarWidget(draggedWidgetIndex, targetWidgetIndex)
-      }
-    }
-
-    const handleDragEnd = (e) => {
-      e.currentTarget.classList.remove("dragging")
-      const allWidgets = document.querySelectorAll(".right-sidebar-widget")
-      allWidgets.forEach((widget) => widget.classList.remove("drag-over"))
-    }
-
-    return (
-      <div
-        ref={ref}
-        className={`relative mb-6 right-sidebar-widget ${isEditing ? "animate-wobble" : ""}`}
-        draggable={isEditing}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        onDragLeave={handleDragLeave}
-        onDragEnd={handleDragEnd}
-        data-widget-id={id}
-        data-widget-index={index}
-      >
-        {" "}
-        {isEditing && (
-          <div className="absolute -top-2 -right-2 z-10 flex gap-2">
-            <button
-              onClick={() => removeRightSidebarWidget(id)}
-              className="p-1 bg-gray-500 rounded-md cursor-pointer text-black flex items-center justify-center w-6 h-6"
-            >
-              <Minus size={25} />
-            </button>
-          </div>
-        )}
-        {children}
-      </div>
-    )
-  }
 
   const handleViewMemberDetails = () => {
     toast.success("View member functionality will be implemented here later from backend")
@@ -1138,6 +966,71 @@ export default function MyArea() {
     { value: "completed", label: "Completed" },
   ]
 
+  const handleDumbbellClick = (appointment, e) => {
+    e.stopPropagation()
+    setSelectedUserForTrainingPlan(appointment)
+    setIsTrainingPlanModalOpen(true)
+  }
+
+  const mockTrainingPlans = [
+    {
+      id: 1,
+      name: "Beginner Full Body Workout",
+      description: "A comprehensive full-body workout plan designed for beginners",
+      createdBy: "John Trainer",
+      duration: "4 weeks",
+      difficulty: "Beginner",
+      workoutsPerWeek: 3,
+      category: "Strength Training",
+      exercises: [
+        {
+          videoId: "1",
+          sets: 3,
+          reps: "10-12",
+        },
+        {
+          videoId: "2",
+          sets: 3,
+          reps: "8-10",
+        },
+      ],
+    },
+  ]
+
+  const mockVideos = [
+    {
+      id: "1",
+      title: "Push-ups",
+      instructor: "Mike Trainer",
+      thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYOeTbdunIjiy-rOAtmyyBMIYoNlmWCl28Fg&s",
+      targetMuscles: ["Chest", "Triceps", "Shoulders"],
+    },
+    {
+      id: "2",
+      title: "Squats",
+      instructor: "Lisa Coach",
+      thumbnail: "https://www.shutterstock.com/image-vector/exercise-guide-by-man-doing-260nw-2081735731.jpg",
+      targetMuscles: ["Quadriceps", "Glutes", "Hamstrings"],
+    },
+  ]
+
+  const getVideoById = (videoId) => {
+    return mockVideos.find((video) => video.id === videoId)
+  }
+
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty?.toLowerCase()) {
+      case "beginner":
+        return "bg-green-600"
+      case "intermediate":
+        return "bg-yellow-600"
+      case "advanced":
+        return "bg-red-600"
+      default:
+        return "bg-gray-600"
+    }
+  }
+
   return (
     <>
       <style>
@@ -1202,21 +1095,13 @@ export default function MyArea() {
 
               {/* Buttons Section */}
               <div className="flex flex-wrap justify-center md:justify-end gap-2">
-                <button
-                  onClick={() => setIsViewModalOpen(true)}
-                  className="px-4 py-2 bg-zinc-700 w-full md:w-auto text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
-                >
-                  <Settings size={16} />
-                  {currentView ? currentView.name : "Standard View"}
-                </button>
-
                 {!isEditing && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
                     className="px-4 py-2 bg-zinc-700 md:w-auto w-full text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
                   >
                     <Settings size={16} />
-                    Manage Views
+                    {currentView ? currentView.name : "Standard View"}
                   </button>
                 )}
 
@@ -1342,9 +1227,11 @@ export default function MyArea() {
                                   key={appointment.id}
                                   className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
                                 >
-                                  <div className="absolute p-2 top-0 left-0 z-10">
+                                  <div></div>
+                                  <div className="absolute p-2 top-0 left-0 z-10 flex flex-col gap-1">
                                     {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                                   </div>
+
                                   <div
                                     className="flex flex-col items-center justify-between gap-2 cursor-pointer"
                                     onClick={() => {
@@ -1370,19 +1257,27 @@ export default function MyArea() {
                                         </p>
                                       </div>
                                     </div>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleCheckIn(appointment.id)
-                                      }}
-                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${
-                                        appointment.isCheckedIn
-                                          ? " border border-white/50 text-white bg-transparent"
-                                          : "bg-black text-white"
-                                      }`}
-                                    >
-                                      {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleCheckIn(appointment.id)
+                                        }}
+                                        className={`px-3 py-1 text-xs font-medium rounded-lg ${
+                                          appointment.isCheckedIn
+                                            ? " border border-white/50 text-white bg-transparent"
+                                            : "bg-black text-white"
+                                        }`}
+                                      >
+                                        {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                                      </button>
+                                      <div
+                                        className="cursor-pointer rounded  transition-colors"
+                                        onClick={(e) => handleDumbbellClick(appointment, e)}
+                                      >
+                                        <Dumbbell size={16} />
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               ))
@@ -1678,280 +1573,61 @@ export default function MyArea() {
             </div>
           </div>
         </main>
-        <aside
-          className={`
-          fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 lg:w-80 bg-[#181818]
-          transform transition-transform duration-500 ease-in-out
-          ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
-          lg:relative lg:translate-x-0
-        `}
-        >
-          <div className="p-4 md:p-5 h-full overflow-y-auto">
-            {/* Header with close button and add widget button */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Sidebar</h2>
-              <div className="flex items-center gap-2">
-                {/* Only show Add Widget button when sidebar editing is active */}
-                {isSidebarEditing && (
-                  <button
-                    onClick={() => setIsRightWidgetModalOpen(true)}
-                    className="py-2 px-4 bg-black text-white rounded-xl text-sm cursor-pointer flex items-center gap-1"
-                    title="Add Widget"
-                  >
-                    <Plus size={16} />
-                    <span className="hidden sm:inline">Add Widget</span>
-                  </button>
-                )}
-                <button
-                  onClick={toggleSidebarEditing}
-                  className={`px-6 py-2 text-sm ${
-                    isSidebarEditing ? "bg-blue-600 text-white " : "bg-zinc-700 text-zinc-200 "
-                  } rounded-xl flex items-center gap-2 transition-colors`}
-                  title="Edit Sidebar"
-                >
-                  {isSidebarEditing ? <Check size={18} /> : <Edit size={18} />}
-                  <span className="hidden sm:inline">{isSidebarEditing ? "Done" : "Edit Sidebar"}</span>
-                </button>
-                <button
-                  onClick={toggleRightSidebar}
-                  className="p-3 text-zinc-400 hover:bg-zinc-700 rounded-xl lg:hidden"
-                  aria-label="Close sidebar"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
-            {/* Render right sidebar widgets */}
-            {rightSidebarWidgets
-              .sort((a, b) => a.position - b.position)
-              .map((widget, index) => (
-                <RightSidebarWidget key={widget.id} id={widget.id} index={index} isEditing={isSidebarEditing}>
-                  {widget.type === "communications" && (
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Communications</h2>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          {communications.slice(0, 2).map((comm) => (
-                            <div
-                              onClick={redirectToCommunication}
-                              key={comm.id}
-                              className="p-2 cursor-pointer bg-black rounded-xl"
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <img
-                                  src={comm.avatar || "/placeholder.svg"}
-                                  alt="User"
-                                  className="rounded-full h-8 w-8"
-                                />
-                                <div>
-                                  <h3 className="open_sans_font text-sm">{comm.name}</h3>
-                                </div>
-                              </div>
-                              <div>
-                                <p className="text-xs open_sans_font text-zinc-400">{comm.message}</p>
-                                <p className="text-xs mt-1 flex gap-1 items-center open_sans_font text-zinc-400">
-                                  <Clock size={12} />
-                                  {comm.time}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                          <Link
-                            to={"/dashboard/communication"}
-                            className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                          >
-                            See all
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {widget.type === "todo" && (
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">TO-DO</h2>
-                      </div>
-                      <div className="relative mb-3" ref={todoFilterDropdownRef}>
-                        <button
-                          onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
-                        >
-                          {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
-                        {isTodoFilterDropdownOpen && (
-                          <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
-                            {todoFilterOptions.map((option) => (
-                              <button
-                                key={option.value}
-                                className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
-                                onClick={() => {
-                                  setTodoFilter(option.value)
-                                  setIsTodoFilterDropdownOpen(false)
-                                }}
-                              >
-                                {option.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="space-y-3 open_sans_font">
-                        {getFilteredTodos()
-                          .slice(0, 3)
-                          .map((todo) => (
-                            <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
-                              <div className="flex items-center gap-2 flex-1">
-                                <input
-                                  type="checkbox"
-                                  checked={todo.completed}
-                                  onChange={() => handleTaskComplete(todo.id)}
-                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <div className="flex-1">
-                                  <h3
-                                    className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
-                                  >
-                                    {todo.title}
-                                  </h3>
-                                  <p className="text-xs open_sans_font text-zinc-400">
-                                    Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="relative">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    toggleDropdown(`todo-${todo.id}`)
-                                  }}
-                                  className="p-1 hover:bg-zinc-700 rounded"
-                                >
-                                  <MoreVertical size={16} />
-                                </button>
-                                {openDropdownIndex === `todo-${todo.id}` && (
-                                  <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                                    <button
-                                      onClick={() => {
-                                        handleEditTask(todo)
-                                        setOpenDropdownIndex(null)
-                                      }}
-                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                                    >
-                                      Edit Task
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setTaskToCancel(todo.id)
-                                        setOpenDropdownIndex(null)
-                                      }}
-                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                                    >
-                                      Cancel Task
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setTaskToDelete(todo.id)
-                                        setOpenDropdownIndex(null)
-                                      }}
-                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                                    >
-                                      Delete Task
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        <Link
-                          to={"/dashboard/to-do"}
-                          className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                        >
-                          See all
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                  {widget.type === "birthday" && (
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Upcoming Birthday</h2>
-                      </div>
-                      <div className="space-y-2 open_sans_font">
-                        {birthdays.slice(0, 3).map((birthday) => (
-                          <div
-                            key={birthday.id}
-                            className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${
-                              isBirthdayToday(birthday.date) ? "bg-yellow-900/30 border border-yellow-600" : "bg-black"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <div>
-                                <img
-                                  src={birthday.avatar || "/placeholder.svg"}
-                                  className="h-8 w-8 rounded-full"
-                                  alt=""
-                                />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold open_sans_font text-sm flex items-center gap-1">
-                                  {birthday.name}
-                                  {isBirthdayToday(birthday.date) && <span className="text-yellow-500">🎂</span>}
-                                </h3>
-                                <p className="text-xs open_sans_font text-zinc-400">{birthday.date}</p>
-                              </div>
-                            </div>
-                            {isBirthdayToday(birthday.date) && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleSendBirthdayMessage(birthday)
-                                }}
-                                className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
-                                title="Send Birthday Message"
-                              >
-                                <MessageCircle size={16} />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {widget.type === "websiteLinks" && (
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
-                      </div>
-                      <div className="space-y-2 open_sans_font">
-                        {customLinks.map((link) => (
-                          <div
-                            key={link.id}
-                            className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold open_sans_font text-sm truncate">{link.title}</h3>
-                              <p className="text-xs open_sans_font text-zinc-400 truncate max-w-[150px]">
-                                {truncateUrl(link.url, 30)}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => window.open(link.url, "_blank")}
-                              className="p-2 hover:bg-zinc-700 rounded-lg"
-                            >
-                              <ExternalLink size={16} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </RightSidebarWidget>
-              ))}
-          </div>
-        </aside>
+        <Sidebar
+          isRightSidebarOpen={isRightSidebarOpen}
+          toggleRightSidebar={toggleRightSidebar}
+          isSidebarEditing={isSidebarEditing}
+          toggleSidebarEditing={toggleSidebarEditing}
+          rightSidebarWidgets={rightSidebarWidgets}
+          moveRightSidebarWidget={moveRightSidebarWidget}
+          removeRightSidebarWidget={removeRightSidebarWidget}
+          setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
+          communications={communications}
+          redirectToCommunication={redirectToCommunication}
+          todos={todos}
+          handleTaskComplete={handleTaskComplete}
+          todoFilter={todoFilter}
+          setTodoFilter={setTodoFilter}
+          todoFilterOptions={todoFilterOptions}
+          isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
+          setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
+          openDropdownIndex={openDropdownIndex}
+          toggleDropdown={toggleDropdown}
+          handleEditTask={handleEditTask}
+          setTaskToCancel={setTaskToCancel}
+          setTaskToDelete={setTaskToDelete}
+          birthdays={birthdays}
+          isBirthdayToday={isBirthdayToday}
+          handleSendBirthdayMessage={handleSendBirthdayMessage}
+          customLinks={customLinks}
+          truncateUrl={truncateUrl}
+          appointments={appointments}
+          renderSpecialNoteIcon={renderSpecialNoteIcon}
+          handleDumbbellClick={handleDumbbellClick}
+          handleCheckIn={handleCheckIn}
+          handleAppointmentOptionsModal={handleAppointmentOptionsModal}
+          selectedMemberType={selectedMemberType}
+          setSelectedMemberType={setSelectedMemberType}
+          memberTypes={memberTypes}
+          isChartDropdownOpen={isChartDropdownOpen}
+          setIsChartDropdownOpen={setIsChartDropdownOpen}
+          chartOptions={chartOptions}
+          chartSeries={chartSeries}
+          expiringContracts={expiringContracts}
+          getWidgetPlacementStatus={getWidgetPlacementStatus}
+          onClose={toggleRightSidebar} // Add this
+          hasUnreadNotifications={false} // Add appropriate value
+          setIsWidgetModalOpen={setIsWidgetModalOpen} // Add this
+          handleEditNote={handleEditNote}
+          activeNoteId={activeNoteId}
+          setActiveNoteId={setActiveNoteId}
+          isSpecialNoteModalOpen={isSpecialNoteModalOpen}
+          setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
+          selectedAppointmentForNote={selectedAppointmentForNote}
+          setSelectedAppointmentForNote={setSelectedAppointmentForNote}
+          handleSaveSpecialNote={handleSaveSpecialNote}
+          onSaveSpecialNote={handleSaveSpecialNote}
+        />
 
         {isEditTaskModalOpen && editingTask && (
           <EditTaskModal
@@ -2208,6 +1884,25 @@ export default function MyArea() {
             }}
           />
         )}
+
+        <TrainingPlanModal
+          isOpen={isTrainingPlanModalOpen}
+          onClose={() => setIsTrainingPlanModalOpen(false)}
+          user={selectedUserForTrainingPlan}
+          trainingPlans={mockTrainingPlans}
+          getDifficultyColor={getDifficultyColor}
+          getVideoById={getVideoById}
+        />
+
+        <SpecialNoteEditModal
+          isOpen={isSpecialNoteModalOpen}
+          onClose={() => {
+            setIsSpecialNoteModalOpen(false)
+            setSelectedAppointmentForNote(null)
+          }}
+          appointment={selectedAppointmentForNote}
+          onSave={handleSaveSpecialNote}
+        />
       </div>
     </>
   )

@@ -82,6 +82,30 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       description: "Recent messages and communications",
       icon: MessageSquare,
     },
+    {
+      id: "chart",
+      name: "Analytics Chart",
+      description: "Display member statistics and analytics",
+      icon: BarChart3,
+    },
+    {
+      id: "expiringContracts",
+      name: "Expiring Contracts",
+      description: "Track contracts nearing expiration",
+      icon: Calendar,
+    },
+    {
+      id: "appointments",
+      name: "Upcoming Appointments",
+      description: "Show upcoming appointments",
+      icon: Calendar,
+    },
+    {
+      id: "staffCheckIn",
+      name: "Staff Check-In",
+      description: "Staff check-in/out functionality",
+      icon: Users,
+    },
   ]
 
   // Select widgets based on the area

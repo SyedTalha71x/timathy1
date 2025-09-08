@@ -1,3 +1,4 @@
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
@@ -5,6 +6,7 @@ import { useState, useRef } from "react"
 import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { Printer } from "lucide-react"
+import { EditContractModal } from "./edit-contract-modal"
 
 export function DocumentManagementModal({ contract, onClose }) {
   const [documents, setDocuments] = useState(contract.files || [])
@@ -12,7 +14,34 @@ export function DocumentManagementModal({ contract, onClose }) {
   const [editingDocId, setEditingDocId] = useState(null)
   const [newDocName, setNewDocName] = useState("")
   const [viewingDocument, setViewingDocument] = useState(null)
+  const [showEditContract, setShowEditContract] = useState(false) // Add state for edit contract modal
+  const [editingContract, setEditingContract] = useState(null) // Store contract being edited
   const fileInputRef = useRef(null)
+  const [activePeriod, setActivePeriod] = useState("current")
+
+  const contractPeriods = [
+    {
+      id: "current",
+      name: "Current Period",
+      startDate: contract.startDate,
+      endDate: contract.endDate,
+      status: "active",
+    },
+    {
+      id: "previous-1",
+      name: "Previous Period 1",
+      startDate: "2022-01-01",
+      endDate: "2023-01-01",
+      status: "completed",
+    },
+    {
+      id: "previous-2",
+      name: "Previous Period 2",
+      startDate: "2021-01-01",
+      endDate: "2022-01-01",
+      status: "completed",
+    },
+  ]
 
   const sampleDocuments = [
     {
@@ -22,6 +51,7 @@ export function DocumentManagementModal({ contract, onClose }) {
       size: "1.2 MB",
       uploadDate: "2023-05-15",
       isSignedContract: false,
+      periodId: "current",
     },
     {
       id: "doc-2",
@@ -30,10 +60,66 @@ export function DocumentManagementModal({ contract, onClose }) {
       size: "0.8 MB",
       uploadDate: "2023-05-16",
       isSignedContract: false,
+      periodId: "current",
+    },
+    {
+      id: "doc-3",
+      name: "Unsigned Contract",
+      type: "unsigned",
+      size: "N/A",
+      uploadDate: "2023-05-10",
+      isSignedContract: false,
+      isUnsigned: true,
+      periodId: "current",
+      contractData: {
+        fullName: contract.memberName,
+        rateType: "Basic",
+        tarifMindestlaufzeit: "12 months",
+        preisProWoche: "42.90",
+        startbox: "Yes",
+        mindestlaufzeit: "12 months",
+        startDerMitgliedschaft: "2023-06-01",
+        startDesTrainings: "2023-06-01",
+        vertragsverlaengerungsdauer: "1 Week",
+        kuendigungsfrist: "1 Month",
+      },
     },
   ]
 
   const displayDocuments = documents.length > 0 ? documents : sampleDocuments
+
+  const filteredDocuments = displayDocuments.filter((doc) => doc.periodId === activePeriod)
+
+  const handleUnsignedContractClick = (doc) => {
+    if (doc.isUnsigned) {
+      // Open contract editing modal instead of viewing
+      setEditingContract(doc)
+      setShowEditContract(true)
+      return
+    }
+    handleViewDocument(doc)
+  }
+
+  const handleSaveSignedContract = (signedContractData) => {
+    // Remove the unsigned contract and add the signed PDF
+    const newSignedContract = {
+      id: `doc-signed-${Date.now()}`,
+      name: `${contract.memberName} - Signed Contract.pdf`,
+      type: "pdf",
+      size: "1.5 MB",
+      uploadDate: new Date().toISOString().split("T")[0],
+      isSignedContract: true,
+      periodId: activePeriod,
+      contractData: signedContractData,
+    }
+
+    // Remove unsigned contract and add signed contract
+    const updatedDocuments = displayDocuments.filter((doc) => !doc.isUnsigned).concat(newSignedContract)
+
+    setDocuments(updatedDocuments)
+    setShowEditContract(false)
+    setEditingContract(null)
+  }
 
   const handleUploadClick = () => {
     fileInputRef.current.click()
@@ -80,6 +166,7 @@ export function DocumentManagementModal({ contract, onClose }) {
         uploadDate: new Date().toISOString().split("T")[0],
         file: file,
         isSignedContract: false,
+        periodId: activePeriod,
       }))
 
       setDocuments([...displayDocuments, ...newDocs])
@@ -132,9 +219,9 @@ export function DocumentManagementModal({ contract, onClose }) {
   }
 
   const getFileExtension = (filename) => {
-    if (!filename) return ''
-    const parts = filename.split('.')
-    return parts.length > 1 ? parts.pop().toLowerCase() : ''
+    if (!filename) return ""
+    const parts = filename.split(".")
+    return parts.length > 1 ? parts.pop().toLowerCase() : ""
   }
 
   const handleDelete = (docId) => {
@@ -172,7 +259,6 @@ export function DocumentManagementModal({ contract, onClose }) {
     toast.success("Document renamed successfully")
   }
 
-  // New function to toggle the signed contract tag
   const toggleSignedContract = (docId) => {
     setDocuments(
       displayDocuments.map((doc) => {
@@ -192,15 +278,18 @@ export function DocumentManagementModal({ contract, onClose }) {
     )
   }
 
-
   const getDocumentIcon = (type) => {
     // Add null/undefined check and fallback
     if (!type) {
       return <File className="w-5 h-5 text-gray-400" />
     }
-    
+
     const fileType = type.toLowerCase()
-    
+
+    if (fileType === "unsigned") {
+      return <FileText className="w-5 h-5 text-orange-500" />
+    }
+
     switch (fileType) {
       case "pdf":
         return <FileText className="w-5 h-5 text-red-500" />
@@ -220,218 +309,272 @@ export function DocumentManagementModal({ contract, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-60 p-2 sm:p-4">
-      {viewingDocument && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-lg max-w-4xl max-h-[80vh] overflow-auto w-full">
-            <div className="sticky top-0 bg-gray-100 p-3 flex justify-between items-center border-b">
-              <h3 className="font-medium">{viewingDocument.name}</h3>
-              <button onClick={() => setViewingDocument(null)} className="p-1 rounded-full hover:bg-gray-200">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4">
-              {/* In a real app, you would render the document content here */}
-              <div className="bg-gray-100 p-8 rounded text-center">
-                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Document preview would appear here.</p>
-                <p className="text-gray-500 text-sm mt-2">
-                  {viewingDocument.type.toUpperCase()} document • {viewingDocument.size}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+    <>
+      {showEditContract && editingContract && (
+        <EditContractModal
+          onClose={() => {
+            setShowEditContract(false)
+            setEditingContract(null)
+          }}
+          onSave={handleSaveSignedContract}
+          contractData={editingContract.contractData}
+          memberName={contract.memberName}
+        />
       )}
 
-      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-800">
-          <h3 className="text-white text-lg sm:text-xl font-medium">Document Management</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
-        </div>
-
-        <div className="p-4 border-b border-gray-800">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <p className="text-gray-300">
-              <span className="font-medium text-white">{contract.memberName}</span>'s Contract Documents
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button
-                onClick={handleUploadClick}
-                className="text-sm gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto flex items-center justify-center"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Document
-              </button>
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-60 p-2 sm:p-4">
+        {viewingDocument && (
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[60]">
+            <div className="bg-white rounded-lg max-w-4xl max-h-[80vh] overflow-auto w-full">
+              <div className="sticky top-0 bg-gray-100 p-3 flex justify-between items-center border-b">
+                <h3 className="font-medium">{viewingDocument.name}</h3>
+                <button onClick={() => setViewingDocument(null)} className="p-1 rounded-full hover:bg-gray-200">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-4">
+                {/* In a real app, you would render the document content here */}
+                <div className="bg-gray-100 p-8 rounded text-center">
+                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Document preview would appear here.</p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    {viewingDocument.type.toUpperCase()} document • {viewingDocument.size}
+                  </p>
+                </div>
+              </div>
             </div>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
-          </div>
-        </div>
-
-        {displayDocuments.length === 0 && (
-          <div className="bg-[#141414] p-4 rounded-xl mb-4">
-            <h4 className="text-white font-medium mb-2">How to sign and upload your contract:</h4>
-            <ol className="text-gray-400 text-sm space-y-2 list-decimal pl-5">
-              <li>Generate the contract with or without digital signature</li>
-              <li>If using paper signature, print the document</li>
-              <li>Have all parties sign the printed document</li>
-              <li>Scan or take a clear photo of all signed pages</li>
-              <li>Upload the document and mark it as "Signed Contract"</li>
-            </ol>
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto p-4">
-          {isUploading && (
-            <div className="bg-[#141414] p-4 rounded-xl mb-3 animate-pulse">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-700 rounded-md flex items-center justify-center">
-                  <FilePlus className="w-5 h-5 text-gray-500" />
-                </div>
-                <div className="flex-1">
-                  <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-700 rounded w-1/4"></div>
-                </div>
-                <div className="flex gap-2">
-                  <div className="w-8 h-8 bg-gray-700 rounded-md"></div>
-                  <div className="w-8 h-8 bg-gray-700 rounded-md"></div>
-                  <div className="w-8 h-8 bg-gray-700 rounded-md"></div>
-                </div>
+        <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-800">
+            <h3 className="text-white text-lg sm:text-xl font-medium">Document Management</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          </div>
+
+          <div className="p-4 border-b border-gray-800">
+            <div className="flex flex-col gap-3">
+              <p className="text-gray-300">
+                <span className="font-medium text-white">{contract.memberName}</span>'s Contract Documents
+              </p>
+
+              {/* Contract Periods Tabs */}
+              <div className="flex flex-wrap gap-2">
+                {contractPeriods.map((period) => (
+                  <button
+                    key={period.id}
+                    onClick={() => setActivePeriod(period.id)}
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                      activePeriod === period.id
+                        ? "bg-[#F27A30] text-white"
+                        : "bg-[#2a2a2a] text-gray-300 hover:bg-[#333]"
+                    }`}
+                  >
+                    {period.name}
+                    <span className="ml-1 text-xs opacity-75">
+                      ({period.startDate} - {period.endDate})
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
+          </div>
+
+          <div className="p-4 border-b border-gray-800">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-gray-400 text-sm">
+                Upload documents for:{" "}
+                <span className="text-white font-medium">
+                  {contractPeriods.find((p) => p.id === activePeriod)?.name}
+                </span>
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handleUploadClick}
+                  className="text-sm gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#2563eb] transition-colors w-full sm:w-auto flex items-center justify-center"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Document
+                </button>
+              </div>
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
+            </div>
+          </div>
+
+          {filteredDocuments.length === 0 && (
+            <div className="bg-[#141414] p-4 rounded-xl mb-4 mx-4">
+              <h4 className="text-white font-medium mb-2">How to sign and upload your contract:</h4>
+              <ol className="text-gray-400 text-sm space-y-2 list-decimal pl-5">
+                <li>Generate the contract with or without digital signature</li>
+                <li>If using paper signature, print the document</li>
+                <li>Have all parties sign the printed document</li>
+                <li>Scan or take a clear photo of all signed pages</li>
+                <li>Upload the document and mark it as "Signed Contract"</li>
+              </ol>
+            </div>
           )}
 
-          {displayDocuments.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400">No documents available for this contract.</p>
-              <button
-                onClick={handleUploadClick}
-                className="mt-4 flex items-center gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors mx-auto"
-              >
-                <Upload className="w-4 h-4" />
-                Upload Your First Document
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {displayDocuments.map((doc) => (
-                <div key={doc.id} className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 bg-[#2a2a2a] rounded-md flex items-center justify-center">
-                        {getDocumentIcon(doc.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        {editingDocId === doc.id ? (
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <div className="flex-1 flex items-center bg-black text-white px-2 py-1 rounded border border-gray-700 w-full">
-                              <input
-                                type="text"
-                                value={newDocName}
-                                onChange={(e) => setNewDocName(e.target.value)}
-                                className="bg-transparent border-none outline-none flex-1 w-full"
-                                autoFocus
-                              />
-                              <span className="text-gray-500">.{doc.type}</span>
-                            </div>
-                            <div className="flex gap-2 mt-2 sm:mt-0">
-                              <button
-                                onClick={() => saveDocName(doc.id)}
-                                className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 flex-1 sm:flex-none"
-                              >
-                                Save
-                              </button>
-                              <button
-                                onClick={() => setEditingDocId(null)}
-                                className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 flex-1 sm:flex-none"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <p className="text-white font-medium truncate">
-                              {doc.name}
-                              {doc.isSignedContract && (
-                                <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
-                                  Signed Contract
-                                </span>
-                              )}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {doc.size} • Uploaded on {doc.uploadDate}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {editingDocId !== doc.id && (
-                      <div className="flex gap-2 mt-3 sm:mt-0 justify-end">
-                        <button
-                          onClick={() => toggleSignedContract(doc.id)}
-                          className={`p-2 ${
-                            doc.isSignedContract ? "bg-green-600 text-white" : "bg-[#2a2a2a] text-gray-300"
-                          } rounded-md hover:opacity-90 transition-colors`}
-                          title={doc.isSignedContract ? "Remove Signed Contract Tag" : "Mark as Signed Contract"}
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleViewDocument(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
-                          title="View"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDownload(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
-                          title="Download"
-                        >
-                          <Download className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handlePrint(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
-                          title="Print"
-                        >
-                          <Printer className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => startEditing(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
-                          title="Rename"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(doc.id)}
-                          className="p-2 bg-[#2a2a2a] text-red-400 rounded-md hover:bg-[#333] transition-colors"
-                          title="Delete"
-                        >
-                          <Trash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
+          <div className="flex-1 overflow-y-auto p-4">
+            {isUploading && (
+              <div className="bg-[#141414] p-4 rounded-xl mb-3 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-700 rounded-md flex items-center justify-center">
+                    <FilePlus className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-700 rounded w-1/4"></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="w-8 h-8 bg-gray-700 rounded-md"></div>
+                    <div className="w-8 h-8 bg-gray-700 rounded-md"></div>
+                    <div className="w-8 h-8 bg-gray-700 rounded-md"></div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
 
-        <div className="p-4 border-t border-gray-800 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-black text-sm text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors"
-          >
-            Close
-          </button>
+            {filteredDocuments.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400">No documents available for this contract period.</p>
+                <button
+                  onClick={handleUploadClick}
+                  className="mt-4 flex items-center gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#2563eb] transition-colors mx-auto"
+                >
+                  <Upload className="w-4 h-4" />
+                  Upload Your First Document
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredDocuments.map((doc) => (
+                  <div key={doc.id} className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-10 h-10 bg-[#2a2a2a] rounded-md flex items-center justify-center">
+                          {getDocumentIcon(doc.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {editingDocId === doc.id ? (
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <div className="flex-1 flex items-center bg-black text-white px-2 py-1 rounded border border-gray-700 w-full">
+                                <input
+                                  type="text"
+                                  value={newDocName}
+                                  onChange={(e) => setNewDocName(e.target.value)}
+                                  className="bg-transparent border-none outline-none flex-1 w-full"
+                                  autoFocus
+                                />
+                                <span className="text-gray-500">.{doc.type}</span>
+                              </div>
+                              <div className="flex gap-2 mt-2 sm:mt-0">
+                                <button
+                                  onClick={() => saveDocName(doc.id)}
+                                  className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 flex-1 sm:flex-none"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => setEditingDocId(null)}
+                                  className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 flex-1 sm:flex-none"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="text-white font-medium truncate">
+                                {doc.name}
+                                {doc.isSignedContract && (
+                                  <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                                    Signed Contract
+                                  </span>
+                                )}
+                                {doc.isUnsigned && (
+                                  <span className="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
+                                    Unsigned Contract
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {doc.size !== "N/A" && `${doc.size} • `}Uploaded on {doc.uploadDate}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {editingDocId !== doc.id && (
+                        <div className="flex gap-2 mt-3 sm:mt-0 justify-end">
+                          <button
+                            onClick={() => toggleSignedContract(doc.id)}
+                            className={`p-2 ${
+                              doc.isSignedContract ? "bg-green-600 text-white" : "bg-[#2a2a2a] text-gray-300"
+                            } rounded-md hover:opacity-90 transition-colors`}
+                            title={doc.isSignedContract ? "Remove Signed Contract Tag" : "Mark as Signed Contract"}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleUnsignedContractClick(doc)}
+                            className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                            title={doc.isUnsigned ? "Edit Contract" : "View"}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {!doc.isUnsigned && (
+                            <>
+                              <button
+                                onClick={() => handleDownload(doc)}
+                                className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                                title="Download"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handlePrint(doc)}
+                                className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                                title="Print"
+                              >
+                                <Printer className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => startEditing(doc)}
+                            className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                            title="Rename"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(doc.id)}
+                            className="p-2 bg-[#2a2a2a] text-red-400 rounded-md hover:bg-[#333] transition-colors"
+                            title="Delete"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 border-t border-gray-800 flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#2563eb] transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -41,12 +41,9 @@ export default function AppointmentActionModal({
               {appointment.date && appointment.date.split("|")[1]} • {appointment.startTime} - {appointment.endTime}
             </p>
 
-            {appointment.date &&
-              isEventInPast(
-                `${appointment.date?.split("|")[1]?.trim()?.split("-")?.reverse()?.join("-")}T${appointment.startTime}`
-              ) && (
-                <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>
-              )}
+          
+               {appointment.isPast === true && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
+              
           </div>
 
           <button

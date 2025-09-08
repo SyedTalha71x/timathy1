@@ -1,8 +1,10 @@
+"use client"
+
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState, useRef } from "react"
-import { Plus, Calendar, Tag, ChevronDown, Filter, X, Users } from "lucide-react"
+import { Plus, Calendar, Tag, ChevronDown, Filter, X, Users, Check, Clock, Bell, Repeat } from "lucide-react"
 import AddTaskModal from "../../components/task-components/add-task-modal"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
 import TaskItem from "../../components/task-components/task-item"
@@ -13,7 +15,6 @@ import Draggable from "react-draggable"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/avatar.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
-
 
 export default function TodoApp() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -27,13 +28,17 @@ export default function TodoApp() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedTime, setSelectedTime] = useState("")
+  const [selectedReminder, setSelectedReminder] = useState("")
+  const [selectedRepeat, setSelectedRepeat] = useState("")
+  const [customReminderValue, setCustomReminderValue] = useState("")
+  const [customReminderUnit, setCustomReminderUnit] = useState("Minutes")
 
   const [isAssignDropdownOpen, setIsAssignDropdownOpen] = useState(false)
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false)
 
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
   const [newTagName, setNewTagName] = useState("")
-  const [newTagColor, setNewTagColor] = useState("#FF5252")
+  const [newTagColor, setNewTagColor] = useState("#FFFFFF")
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -47,8 +52,8 @@ export default function TodoApp() {
     {
       id: 1,
       title: "Task 1",
-      assignees: ["Jack"],
-      roles: "Trainer",
+      assignees: ["Jack Smith"],
+      roles: ["Trainer"],
       tags: ["Important", "Urgent"],
       status: "ongoing",
       category: "member",
@@ -60,8 +65,8 @@ export default function TodoApp() {
     {
       id: 2,
       title: "Task 2",
-      assignees: ["Jane"],
-      roles: "Manager",
+      assignees: ["Jane Doe"],
+      roles: ["Manager"],
       tags: ["Meeting"],
       status: "ongoing",
       category: "staff",
@@ -73,8 +78,8 @@ export default function TodoApp() {
     {
       id: 3,
       title: "Reply to client inquiry",
-      assignees: ["Sarah"],
-      roles: "Support",
+      assignees: ["Sarah Davis"],
+      roles: ["Support"],
       tags: ["Client", "Important"],
       status: "ongoing",
       category: "staff",
@@ -86,8 +91,8 @@ export default function TodoApp() {
     {
       id: 4,
       title: "Schedule member onboarding",
-      assignees: ["Mike"],
-      roles: "Trainer",
+      assignees: ["Mike Johnson"],
+      roles: ["Trainer"],
       tags: ["Onboarding"],
       status: "completed",
       category: "member",
@@ -99,8 +104,8 @@ export default function TodoApp() {
     {
       id: 5,
       title: "Staff meeting preparation",
-      assignees: ["Alex"],
-      roles: "Manager",
+      assignees: ["Alex Miller"],
+      roles: ["Manager"],
       tags: ["Meeting"],
       status: "ongoing",
       category: "staff",
@@ -112,8 +117,8 @@ export default function TodoApp() {
     {
       id: 6,
       title: "Cancelled Task Example",
-      assignees: ["John"],
-      roles: "Admin",
+      assignees: ["John Wilson"],
+      roles: ["Admin"],
       tags: ["Urgent"],
       status: "canceled",
       category: "staff",
@@ -135,7 +140,16 @@ export default function TodoApp() {
     { id: 8, name: "Study", color: "#FFC107" },
   ])
 
-  const [availableAssignees] = useState(["Jack", "Jane", "John", "Jessica", "Mike", "Sarah", "Alex"])
+  const [availableAssignees] = useState([
+    { id: 1, firstName: "Jack", lastName: "Smith" },
+    { id: 2, firstName: "Jane", lastName: "Doe" },
+    { id: 3, firstName: "John", lastName: "Wilson" },
+    { id: 4, firstName: "Jessica", lastName: "Brown" },
+    { id: 5, firstName: "Mike", lastName: "Johnson" },
+    { id: 6, firstName: "Sarah", lastName: "Davis" },
+    { id: 7, firstName: "Alex", lastName: "Miller" },
+  ])
+
   const [availableRoles] = useState(["Trainer", "Manager", "Developer", "Designer", "Admin", "Support"])
 
   const [columns, setColumns] = useState([
@@ -212,9 +226,9 @@ export default function TodoApp() {
       const newTask = {
         id: newId,
         title: newTaskInput,
-        assignees: [],
-        roles: [],
-        tags: [],
+        assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
+        roles: selectedRoles,
+        tags: selectedTags.map((t) => t.name),
         status: "ongoing",
         category: "general",
         dueDate: selectedDate,
@@ -226,6 +240,9 @@ export default function TodoApp() {
       setNewTaskInput("")
       setSelectedDate("")
       setSelectedTime("")
+      setSelectedAssignees([])
+      setSelectedRoles([])
+      setSelectedTags([])
       toast.success("Task added successfully!")
     }
   }
@@ -430,27 +447,73 @@ export default function TodoApp() {
     const [currentDate, setCurrentDate] = useState(new Date())
     const [tempDate, setTempDate] = useState(selectedDate)
     const [tempTime, setTempTime] = useState(selectedTime)
+    const [tempReminder, setTempReminder] = useState(selectedReminder)
+    const [tempRepeat, setTempRepeat] = useState(selectedRepeat)
+    const [showCustomReminder, setShowCustomReminder] = useState(false)
+    const [customValue, setCustomValue] = useState(customReminderValue)
+    const [customUnit, setCustomUnit] = useState(customReminderUnit)
+    const [repeatEndType, setRepeatEndType] = useState("never")
+    const [repeatEndDate, setRepeatEndDate] = useState("")
+    const [repeatOccurrences, setRepeatOccurrences] = useState("")
 
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    const generateTimeOptions = () => {
+      const options = []
+      for (let hour = 0; hour < 24; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+          options.push(timeString)
+        }
+      }
+      return options
+    }
 
     const handleDateClick = (day) => {
       const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
       setTempDate(dateStr)
     }
 
+    const handleTimeChange = (time) => {
+      setTempTime(time)
+      if (time && !tempReminder) {
+        setTempReminder("On time")
+      }
+    }
+
+    const handleReminderChange = (reminder) => {
+      setTempReminder(reminder)
+      if (reminder === "Custom") {
+        setShowCustomReminder(true)
+      } else {
+        setShowCustomReminder(false)
+      }
+    }
+
     const handleOK = () => {
       setSelectedDate(tempDate)
       setSelectedTime(tempTime)
+      setSelectedReminder(tempReminder)
+      setSelectedRepeat(tempRepeat)
+      if (showCustomReminder) {
+        setCustomReminderValue(customValue)
+        setCustomReminderUnit(customUnit)
+      }
       setIsCalendarOpen(false)
     }
 
     const handleClear = () => {
       setTempDate("")
       setTempTime("")
+      setTempReminder("")
+      setTempRepeat("")
       setSelectedDate("")
       setSelectedTime("")
+      setSelectedReminder("")
+      setSelectedRepeat("")
+      setCustomReminderValue("")
       setIsCalendarOpen(false)
     }
 
@@ -503,34 +566,136 @@ export default function TodoApp() {
 
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-white">
-            <span className="text-sm">Time:</span>
-            <input
-              type="time"
+            <Clock size={16} className="text-gray-400" />
+            <span className="text-sm w-16">Time:</span>
+            <select
               value={tempTime}
-              onChange={(e) => setTempTime(e.target.value)}
-              className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 text-white">
-            <span className="text-sm">Reminder:</span>
-            <select className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm">
-              <option>None</option>
-              <option>5 minutes before</option>
-              <option>15 minutes before</option>
-              <option>1 hour before</option>
+              onChange={(e) => handleTimeChange(e.target.value)}
+              className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm flex-1"
+            >
+              <option value="">Select time</option>
+              {generateTimeOptions().map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
             </select>
           </div>
 
           <div className="flex items-center gap-2 text-white">
-            <span className="text-sm">Repeat:</span>
-            <select className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm">
-              <option>Never</option>
-              <option>Daily</option>
-              <option>Weekly</option>
-              <option>Monthly</option>
+            <Bell size={16} className="text-gray-400" />
+            <span className="text-sm w-16">Reminder:</span>
+            <select
+              value={tempReminder}
+              onChange={(e) => handleReminderChange(e.target.value)}
+              className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm flex-1"
+            >
+              <option value="">None</option>
+              <option value="On time">On time</option>
+              <option value="5 minutes before">5 minutes before</option>
+              <option value="15 minutes before">15 minutes before</option>
+              <option value="30 minutes before">30 minutes before</option>
+              <option value="1 hour before">1 hour before</option>
+              <option value="1 day before">1 day before</option>
+              <option value="Custom">Custom</option>
             </select>
           </div>
+
+          {showCustomReminder && (
+            <div className="flex items-center gap-2 text-white ml-6">
+              <input
+                type="number"
+                value={customValue}
+                onChange={(e) => setCustomValue(e.target.value)}
+                className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm w-16"
+                placeholder="30"
+                min="1"
+              />
+              <select
+                value={customUnit}
+                onChange={(e) => setCustomUnit(e.target.value)}
+                className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm"
+              >
+                <option value="Minutes">Minutes</option>
+                <option value="Hours">Hours</option>
+                <option value="Days">Days</option>
+                <option value="Weeks">Weeks</option>
+              </select>
+              <span className="text-sm text-gray-400">ahead</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 text-white">
+            <Repeat size={16} className="text-gray-400" />
+            <span className="text-sm w-16">Repeat:</span>
+            <select
+              value={tempRepeat}
+              onChange={(e) => setTempRepeat(e.target.value)}
+              className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm flex-1"
+            >
+              <option value="">Never</option>
+              <option value="Daily">Daily</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Monthly">Monthly</option>
+            </select>
+          </div>
+
+          {tempRepeat && tempRepeat !== "" && (
+            <div className="ml-6 space-y-2">
+              <div className="text-sm text-gray-200">Ends:</div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="repeatEnd"
+                    value="never"
+                    checked={repeatEndType === "never"}
+                    onChange={() => setRepeatEndType("never")}
+                    className="form-radio h-3 w-3 text-[#FF843E]"
+                  />
+                  Never
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="repeatEnd"
+                    value="onDate"
+                    checked={repeatEndType === "onDate"}
+                    onChange={() => setRepeatEndType("onDate")}
+                    className="form-radio h-3 w-3 text-[#FF843E]"
+                  />
+                  On date:
+                  <input
+                    type="date"
+                    value={repeatEndDate}
+                    onChange={(e) => setRepeatEndDate(e.target.value)}
+                    onClick={() => setRepeatEndType("onDate")}
+                    className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-xs ml-1"
+                  />
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="repeatEnd"
+                    value="after"
+                    checked={repeatEndType === "after"}
+                    onChange={() => setRepeatEndType("after")}
+                    className="form-radio h-3 w-3 text-[#FF843E]"
+                  />
+                  After
+                  <input
+                    type="number"
+                    value={repeatOccurrences}
+                    onChange={(e) => setRepeatOccurrences(e.target.value)}
+                    onClick={() => setRepeatEndType("after")}
+                    min="1"
+                    className="w-16 bg-[#1C1C1C] text-white px-2 py-1 rounded text-xs ml-1"
+                  />
+                  occurrences
+                </label>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-between mt-4">
@@ -620,6 +785,8 @@ export default function TodoApp() {
                       openDropdownTaskId={openDropdownTaskId}
                       setOpenDropdownTaskId={setOpenDropdownTaskId}
                       configuredTags={configuredTags}
+                      availableAssignees={availableAssignees}
+                      availableRoles={availableRoles}
                     />
                   </div>
                 </Draggable>
@@ -654,12 +821,12 @@ export default function TodoApp() {
     {
       id: 1,
       title: "Review project proposal",
-      assignee: "Mike",
+      assignee: "Mike Johnson",
     },
     {
       id: 2,
       title: "Update documentation",
-      assignee: "Sarah",
+      assignee: "Sarah Davis",
     },
   ])
 
@@ -694,6 +861,11 @@ export default function TodoApp() {
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
   const [editingLink, setEditingLink] = useState(null)
 
+  const [assignmentMode, setAssignmentMode] = useState("staff")
+  const [selectedAssignees, setSelectedAssignees] = useState([])
+  const [selectedRoles, setSelectedRoles] = useState([])
+  const [selectedTags, setSelectedTags] = useState([])
+
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
   }
@@ -714,12 +886,43 @@ export default function TodoApp() {
     setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   }
 
+  const toggleAssignee = (assignee) => {
+    setSelectedAssignees((prev) => {
+      const isSelected = prev.find((a) => a.id === assignee.id)
+      if (isSelected) {
+        return prev.filter((a) => a.id !== assignee.id)
+      } else {
+        return [...prev, assignee]
+      }
+    })
+  }
+
+  const toggleRole = (role) => {
+    setSelectedRoles((prev) => {
+      const isSelected = prev.includes(role)
+      if (isSelected) {
+        return prev.filter((r) => r !== role)
+      } else {
+        return [...prev, role]
+      }
+    })
+  }
+
+  const toggleTag = (tag) => {
+    setSelectedTags((prev) => {
+      const isSelected = prev.find((t) => t.id === tag.id)
+      if (isSelected) {
+        return prev.filter((t) => t.id !== tag.id)
+      } else {
+        return [...prev, tag]
+      }
+    })
+  }
+
   return (
     <div
       className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden  ${
-        isRightSidebarOpen
-          ? "lg:mr-96 md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
-          : "mr-0" // No margin when closed
+        isRightSidebarOpen ? "lg:mr-86 md:mr-86 sm:mr-86" : "mr-0"
       }`}
     >
       <Toaster
@@ -793,30 +996,25 @@ export default function TodoApp() {
                 </div>
 
                 <div className="relative tag-dropdown">
-                  {/* <button
-                    type="button"
-                    onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
-                    className="text-gray-400 hover:text-white ml-2 no-drag p-1"
-                    title="Add tags"
-                  >
-                    <Tag size={18} />
-                  </button> */}
                   {isTagDropdownOpen && (
                     <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-48">
                       <h4 className="text-white text-sm font-medium mb-2">Add Tags</h4>
                       <div className="space-y-1 max-h-32 overflow-y-auto">
-                        {configuredTags.map((tag) => (
-                          <button
-                            key={tag.id}
-                            className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
-                            onClick={() => {
-                              setIsTagDropdownOpen(false)
-                            }}
-                          >
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }}></div>
-                            {tag.name}
-                          </button>
-                        ))}
+                        {configuredTags.map((tag) => {
+                          const isSelected = selectedTags.find((t) => t.id === tag.id)
+                          return (
+                            <button
+                              key={tag.id}
+                              className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
+                              onClick={() => {
+                                setIsTagDropdownOpen(false)
+                              }}
+                            >
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }}></div>
+                              {tag.name}
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
                   )}
@@ -832,42 +1030,103 @@ export default function TodoApp() {
                     <ChevronDown size={18} />
                   </button>
                   {isAssignDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-48">
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="text-white text-sm font-medium mb-2">Assign Task</h4>
-                          <div className="space-y-1 max-h-24 overflow-y-auto">
-                            {availableAssignees.map((assignee) => (
-                              <button
-                                key={assignee}
-                                className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
-                                onClick={() => {
-                                  setIsAssignDropdownOpen(false)
-                                }}
-                              >
-                                <Users size={14} />
-                                {assignee}
-                              </button>
-                            ))}
-                          </div>
+                    <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-64 max-h-80 overflow-y-auto">
+                      <div className="space-y-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setAssignmentMode("staff")}
+                            className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
+                              assignmentMode === "staff"
+                                ? "bg-[#FF843E] text-white"
+                                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                            }`}
+                          >
+                            to Staff
+                          </button>
+                          <button
+                            onClick={() => setAssignmentMode("roles")}
+                            className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
+                              assignmentMode === "roles"
+                                ? "bg-[#FF843E] text-white"
+                                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                            }`}
+                          >
+                            to Roles
+                          </button>
                         </div>
+
+                        {assignmentMode === "staff" && (
+                          <div>
+                            <h4 className="text-white text-sm font-medium mb-2">Assign to Staff</h4>
+                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                              {availableAssignees.map((assignee) => {
+                                const isSelected = selectedAssignees.find((a) => a.id === assignee.id)
+                                return (
+                                  <button
+                                    key={assignee.id}
+                                    className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
+                                    onClick={() => toggleAssignee(assignee)}
+                                  >
+                                    <Users size={14} />
+                                    <span className="flex-1">
+                                      {assignee.firstName} {assignee.lastName}
+                                    </span>
+                                    {isSelected && <Check size={14} className="text-green-400" />}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {assignmentMode === "roles" && (
+                          <div>
+                            <h4 className="text-white text-sm font-medium mb-2">Assign to Roles</h4>
+                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                              {availableRoles.map((role) => {
+                                const isSelected = selectedRoles.includes(role)
+                                return (
+                                  <button
+                                    key={role}
+                                    className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
+                                    onClick={() => toggleRole(role)}
+                                  >
+                                    <Users size={14} />
+                                    <span className="flex-1">{role}</span>
+                                    {isSelected && <Check size={14} className="text-green-400" />}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+
                         <div>
                           <h4 className="text-white text-sm font-medium mb-2">Add Tags</h4>
-                          <div className="space-y-1 max-h-24 overflow-y-auto">
-                            {configuredTags.slice(0, 3).map((tag) => (
-                              <button
-                                key={tag.id}
-                                className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
-                                onClick={() => {
-                                  setIsAssignDropdownOpen(false)
-                                }}
-                              >
-                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }}></div>
-                                {tag.name}
-                              </button>
-                            ))}
+                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                            {configuredTags.map((tag) => {
+                              const isSelected = selectedTags.find((t) => t.id === tag.id)
+                              return (
+                                <button
+                                  key={tag.id}
+                                  className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
+                                  onClick={() => toggleTag(tag)}
+                                >
+                                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }}></div>
+                                  <span className="flex-1">{tag.name}</span>
+                                  {isSelected && <Check size={14} className="text-green-400" />}
+                                </button>
+                              )
+                            })}
                           </div>
                         </div>
+
+                        <button
+                          onClick={() => setIsAssignDropdownOpen(false)}
+                          className="w-full px-3 py-2 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700"
+                        >
+                          Close
+                        </button>
                       </div>
                     </div>
                   )}
@@ -960,23 +1219,28 @@ export default function TodoApp() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 open_sans_font mt-4">
             {columns.map((column) => (
-              <Column
-                key={column.id}
-                id={column.id}
-                title={column.title}
-                color={column.color}
-                tasks={getSortedTasksForColumn(column.id)}
-                onDragStop={handleDragStop}
-                onTaskStatusChange={handleTaskStatusChange}
-                onTaskUpdate={handleTaskUpdate}
-                onTaskPinToggle={handleTaskPinToggle}
-                onTaskRemove={handleTaskRemove}
-                columnRef={columnRefs.current[column.id]}
-                onEditRequest={handleEditRequest}
-                onDeleteRequest={handleDeleteRequest}
-                onDuplicateRequest={handleDuplicateTask}
-                onRepeatRequest={handleRepeatRequest}
-              />
+               <Column
+               key={column.id}
+               id={column.id}
+               title={column.title}
+               color={column.color}
+               tasks={getSortedTasksForColumn(column.id)}
+               onDragStop={handleDragStop}
+               onTaskStatusChange={handleTaskStatusChange}
+               onTaskUpdate={handleTaskUpdate}
+               onTaskPinToggle={handleTaskPinToggle}
+               onTaskRemove={handleTaskRemove}
+               columnRef={columnRefs.current[column.id]}
+               onEditRequest={handleEditRequest}
+               onDeleteRequest={handleDeleteRequest}
+               onDuplicateRequest={handleDuplicateTask}
+               onRepeatRequest={handleRepeatRequest}
+               availableAssignees={availableAssignees}
+               availableRoles={availableRoles}
+               configuredTags={configuredTags}
+               openDropdownTaskId={openDropdownTaskId}
+               setOpenDropdownTaskId={setOpenDropdownTaskId}
+             />
             ))}
           </div>
         </div>

@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X } from "lucide-react"
@@ -6,6 +8,7 @@ import { Toaster, toast } from "react-hot-toast"
 const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
   const [frequency, setFrequency] = useState("daily")
   const [repeatDays, setRepeatDays] = useState([])
+  const [endType, setEndType] = useState("never") // Add explicit end type state
   const [endDate, setEndDate] = useState("")
   const [occurrences, setOccurrences] = useState("")
 
@@ -25,6 +28,18 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
     )
   }
 
+  const handleEndTypeChange = (type) => {
+    setEndType(type)
+    if (type === "never") {
+      setEndDate("")
+      setOccurrences("")
+    } else if (type === "onDate") {
+      setOccurrences("")
+    } else if (type === "afterOccurrences") {
+      setEndDate("")
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     if (frequency === "weekly" && repeatDays.length === 0) {
@@ -35,8 +50,8 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
     const repeatOptions = {
       frequency,
       repeatDays: frequency === "weekly" ? repeatDays : [],
-      endDate: endDate || null,
-      occurrences: occurrences ? Number.parseInt(occurrences, 10) : null,
+      endDate: endType === "onDate" ? endDate : null,
+      occurrences: endType === "afterOccurrences" ? Number.parseInt(occurrences, 10) : null,
     }
 
     onRepeatTask(task, repeatOptions)
@@ -88,8 +103,8 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
                       key={day.value}
                       type="button"
                       onClick={() => handleDayToggle(day.value)}
-                      className={`px-3 py-1.5 rounded-full text-xs ${
-                        repeatDays.includes(day.value) ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
+                      className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
+                        repeatDays.includes(day.value) ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200 hover:bg-[#3F3F3F]"
                       }`}
                     >
                       {day.name}
@@ -99,71 +114,82 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
               </div>
             )}
             <div>
-              <label className="text-sm text-gray-200">Ends</label>
-              <div className="flex flex-col gap-2 mt-1">
-                <label className="flex items-center gap-2 text-sm text-gray-200">
+              <label className="text-sm text-gray-200 block mb-2">Ends</label>
+              <div className="space-y-3">
+                {/* Never option */}
+                <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer">
                   <input
                     type="radio"
                     name="repeatEnd"
                     value="never"
-                    checked={!endDate && !occurrences}
-                    onChange={() => {
-                      setEndDate("")
-                      setOccurrences("")
-                    }}
-                    className="form-radio h-4 w-4 text-[#FF843E] focus:ring-[#FF843E]"
+                    checked={endType === "never"}
+                    onChange={() => handleEndTypeChange("never")}
+                    className="w-4 h-4 text-[#FF843E] bg-[#101010] border-gray-500 focus:ring-[#FF843E] focus:ring-2"
                   />
-                  Never
+                  <span>Never</span>
                 </label>
-                <label className="flex items-center gap-2 text-sm text-gray-200">
+                
+                {/* On date option */}
+                <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer">
                   <input
                     type="radio"
                     name="repeatEnd"
                     value="onDate"
-                    checked={!!endDate}
-                    onChange={() => setOccurrences("")}
-                    className="form-radio h-4 w-4 text-[#FF843E] focus:ring-[#FF843E]"
+                    checked={endType === "onDate"}
+                    onChange={() => handleEndTypeChange("onDate")}
+                    className="w-4 h-4 text-[#FF843E] bg-[#101010] border-gray-500 focus:ring-[#FF843E] focus:ring-2"
                   />
-                  On date:
+                  <span>On date:</span>
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none"
+                    onChange={(e) => {
+                      setEndDate(e.target.value)
+                      setEndType("onDate")
+                    }}
+                    onClick={() => setEndType("onDate")}
+                    className="bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-600 focus:border-[#FF843E]"
                   />
                 </label>
-                <label className="flex items-center gap-2 text-sm text-gray-200">
+                
+                {/* After occurrences option */}
+                <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer">
                   <input
                     type="radio"
                     name="repeatEnd"
                     value="afterOccurrences"
-                    checked={!!occurrences}
-                    onChange={() => setEndDate("")}
-                    className="form-radio h-4 w-4 text-[#FF843E] focus:ring-[#FF843E]"
+                    checked={endType === "afterOccurrences"}
+                    onChange={() => handleEndTypeChange("afterOccurrences")}
+                    className="w-4 h-4 text-[#FF843E] bg-[#101010] border-gray-500 focus:ring-[#FF843E] focus:ring-2"
                   />
-                  After
+                  <span>After</span>
                   <input
                     type="number"
                     value={occurrences}
-                    onChange={(e) => setOccurrences(e.target.value)}
+                    onChange={(e) => {
+                      setOccurrences(e.target.value)
+                      setEndType("afterOccurrences")
+                    }}
+                    onClick={() => setEndType("afterOccurrences")}
                     min="1"
-                    className="w-20 bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none"
+                    placeholder="1"
+                    className="w-20 bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-600 focus:border-[#FF843E]"
                   />
-                  occurrences
+                  <span>occurrences</span>
                 </label>
               </div>
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#3F3F3F] transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90"
+                className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#4F7FFF] transition-colors"
               >
                 Save Repeat
               </button>
