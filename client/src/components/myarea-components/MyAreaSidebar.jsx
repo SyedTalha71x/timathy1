@@ -1,6 +1,3 @@
-// my-area-sidebar.jsx
-"use client"
-
 /* eslint-disable no-undef */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
@@ -35,7 +32,7 @@ import {
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import Avatar from "../../../public/avatar.png"
-import StaffCheckInWidget from "../../components/myarea-components/staff-widget-checkin"
+import StaffCheckInWidget from "./staff-widget-checkin"
 import { SpecialNoteEditModal } from "./SpecialNoteEditModal"
 
 const RightSidebarWidget = ({ id, children, index, isEditing, moveRightSidebarWidget, removeRightSidebarWidget }) => {
@@ -423,6 +420,7 @@ const Sidebar = ({
   const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false)
   const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
 
+  
 
   const handleSidebarEditNote = (appointmentId, currentNote) => {
     const appointment = appointments.find((app) => app.id === appointmentId)
@@ -534,6 +532,8 @@ const Sidebar = ({
     },
     [sidebarActiveNoteId, appointments],
   )
+
+ 
 
   return (
     <>

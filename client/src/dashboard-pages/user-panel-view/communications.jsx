@@ -383,7 +383,6 @@ export default function Communications() {
   const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current") // For contingent modal
   const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false) // For contingent modal
   const [newBillingPeriod, setNewBillingPeriod] = useState("") // For contingent modal
-  // Member contingent data structure (from Members.jsx reference)
   const [memberContingentData, setMemberContingentData] = useState({
     1: {
       current: { used: 2, total: 7 },
@@ -412,7 +411,7 @@ export default function Communications() {
   })
   const [emailTab, setEmailTab] = useState("inbox") // 'inbox', 'sent', 'draft', 'outbox', 'archive', 'error'
   const [selectedEmail, setSelectedEmail] = useState(null) // For viewing full email content
-  // Member View States (from Members.jsx context)
+
   const [isMemberOverviewModalOpen, setIsMemberOverviewModalOpen] = useState(false)
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState(null)

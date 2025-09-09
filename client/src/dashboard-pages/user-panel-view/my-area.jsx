@@ -1,4 +1,3 @@
-"use client"
 
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
@@ -22,20 +21,29 @@ import {
   Settings,
   MessageCircle,
   Dumbbell,
+  FileText,
 } from "lucide-react"
-import Rectangle1 from "../../../public/Rectangle 1.png"
 import { Toaster, toast } from "react-hot-toast"
 import Avatar from "../../../public/avatar.png"
-import { WidgetSelectionModal } from "../../components/widget-selection-modal"
+
 import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
 import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
 import ViewManagementModal from "../../components/myarea-components/view-management-modal"
 import StaffCheckInWidget from "../../components/myarea-components/staff-widget-checkin"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
-import Sidebar from "../../components/myarea-components/my-area-sidebar"
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
+import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal"
+import ContingentModal from "../../components/myarea-components/ContigentModal"
+import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
+import EditMemberModal from "../../components/myarea-components/EditMemberModal"
+
+import Sidebar from "../../components/myarea-components/MyAreaSidebar"
 import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
+import { WidgetSelectionModal } from "../../components/widget-selection-modal"
+
+import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, todosData, appointmentsData, birthdaysData, memberTypesData, expiringContractsData } from "../../utils/user-panel-states/myarea-states"
+
 
 export default function MyArea() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -48,7 +56,7 @@ export default function MyArea() {
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
   const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [isSidebarEditing, setIsSidebarEditing] = useState(false) // Separate edit state for sidebar
+  const [isSidebarEditing, setIsSidebarEditing] = useState(false)
 
   const [showAppointmentOptionsModal, setshowAppointmentOptionsModal] = useState(false)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
@@ -73,8 +81,78 @@ export default function MyArea() {
   const [isSpecialNoteModalOpen, setIsSpecialNoteModalOpen] = useState(false)
   const [selectedAppointmentForNote, setSelectedAppointmentForNote] = useState(null)
 
+
+
+  const [isMemberOverviewModalOpen, setisMemberOverviewModalOpen] = useState(false)
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [historyTab, setHistoryTab] = useState("general")
+  const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details") // 'details', 'relations'
+  const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
+
+  const [selectedMember, setSelectedMember] = useState(null)
+  const [memberHistory, setMemberHistory] = useState({})
+  const [currentBillingPeriod, setCurrentBillingPeriod] = useState("January 2025")
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editModalTab, setEditModalTab] = useState("details")
+
+  const [notifications, setnotifications] = useState(notificationData)
+  const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
+
+  const [editingRelations, setEditingRelations] = useState(false)
+  const [newRelation, setNewRelation] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
+  const [memberRelations, setMemberRelations] = useState(memberRelationsData)
+
+  const DefaultAvatar = Avatar
+  const availableMembersLeads = availableMembersLeadsNew
+  const mockMemberRelations = mockMemberRelationsNew
+  const mockMemberHistory = mockMemberHistoryNew
+  const mockTrainingPlans = mockTrainingPlansNew
+  const mockVideos = mockVideosNew
+  const memberTypes = memberTypesData
+
+
+
+  const [editForm, setEditForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    street: "",
+    zipCode: "",
+    city: "",
+    dateOfBirth: "",
+    about: "",
+    note: "",
+    noteStartDate: "",
+    noteEndDate: "",
+    noteImportance: "unimportant",
+    contractStart: "",
+    contractEnd: "",
+  })
+
+  const [customLinks, setCustomLinks] = useState(customLinksData)
+
+  const [communications, setCommunications] = useState(communicationsData)
+
+  const [todos, setTodos] = useState(todosData)
+
+  const [appointments, setAppointments] = useState(appointmentsData)
+
+  const [birthdays, setBirthdays] = useState(birthdaysData)
+
+  const [expiringContracts, setExpiringContracts] = useState(expiringContractsData)
+
+
   const [widgets, setWidgets] = useState([
-    { id: "chart", type: "chart", position: 0 }, // Always full width
+    { id: "chart", type: "chart", position: 0 }, 
     { id: "expiringContracts", type: "expiringContracts", position: 1 }, // Moved to start of grid
     { id: "appointments", type: "appointments", position: 2 },
     { id: "staffCheckIn", type: "staffCheckIn", position: 3 },
@@ -97,251 +175,6 @@ export default function MyArea() {
     { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 7 },
   ])
 
-  const [customLinks, setCustomLinks] = useState([
-    {
-      id: "link1",
-      url: "https://fitness-web-kappa.vercel.app/",
-      title: "Timathy Fitness Town",
-    },
-    { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
-    { id: "link3", url: "https://google.com", title: "Fitness Gyms" },
-  ])
-
-  const [communications, setCommunications] = useState([
-    {
-      id: 1,
-      name: "Jennifer Markus",
-      message: "Hey! Did you think the NFT marketplace for Alice app design?",
-      time: "Today | 05:30 PM",
-      avatar: Rectangle1,
-    },
-    {
-      id: 2,
-      name: "Alex Johnson",
-      message: "The new dashboard looks great! When can we review it?",
-      time: "Today | 03:15 PM",
-      avatar: Rectangle1,
-    },
-  ])
-
-  const [todos, setTodos] = useState([
-    {
-      id: 1,
-      title: "Task 1",
-      assignees: ["Jack"],
-      roles: "Trainer",
-      tags: ["Important", "Urgent"],
-      status: "ongoing",
-      category: "member",
-      dueDate: "2025-01-15",
-      isPinned: false,
-      dueTime: "10:00 AM",
-      completed: false,
-    },
-    {
-      id: 2,
-      title: "Review membership applications",
-      assignees: ["Sarah"],
-      roles: "Manager",
-      tags: ["Review"],
-      status: "pending",
-      category: "staff",
-      dueDate: "2025-01-20",
-      isPinned: false,
-      dueTime: "2:00 PM",
-      completed: false,
-    },
-    {
-      id: 3,
-      title: "Update equipment maintenance",
-      assignees: ["Mike"],
-      roles: "Technician",
-      tags: ["Maintenance"],
-      status: "completed",
-      category: "equipment",
-      dueDate: "2025-01-10",
-      isPinned: false,
-      dueTime: "9:00 AM",
-      completed: true,
-    },
-    {
-      id: 4,
-      title: "Prepare monthly report",
-      assignees: ["Admin"],
-      roles: "Admin",
-      tags: ["Report", "Monthly"],
-      status: "ongoing",
-      category: "admin",
-      dueDate: "2025-01-25",
-      isPinned: false,
-      dueTime: "11:00 AM",
-      completed: false,
-    },
-  ])
-
-  const [appointments, setAppointments] = useState([
-    {
-      id: 1,
-      name: "Yolanda",
-      time: "10:00 - 14:00",
-      date: "Mon | 03-08-2025",
-      color: "bg-[#4169E1]",
-      startTime: "10:00",
-      endTime: "14:00",
-      type: "Strength Training",
-      specialNote: {
-        text: "Prefers morning sessions",
-        startDate: null,
-        endDate: null,
-        isImportant: false,
-      },
-      status: "pending",
-      isTrial: false,
-    },
-    {
-      id: 2,
-      name: "Alexandra",
-      time: "10:00 - 18:00",
-      date: "Tue | 04-02-2025",
-      color: "bg-[#FF6B6B]",
-      startTime: "10:00",
-      endTime: "18:00",
-      type: "Cardio",
-      specialNote: {
-        text: "",
-        startDate: null,
-        endDate: null,
-        isImportant: false,
-      },
-      status: "pending",
-      isTrial: true,
-    },
-    {
-      id: 3,
-      name: "Marcus",
-      time: "14:00 - 16:00",
-      date: "Wed | 05-02-2025",
-      color: "bg-[#50C878]",
-      startTime: "14:00",
-      endTime: "16:00",
-      type: "Yoga",
-      specialNote: {
-        text: "",
-        startDate: null,
-        endDate: null,
-        isImportant: false,
-      },
-      status: "pending",
-      isTrial: false,
-    },
-    {
-      id: 4,
-      name: "John",
-      time: "14:00 - 16:00",
-      date: "Thu | 06-02-2025",
-      color: "bg-[#50C878]",
-      startTime: "14:00",
-      endTime: "16:00",
-      type: "Yoga",
-      specialNote: {
-        text: "",
-        startDate: null,
-        endDate: null,
-        isImportant: false,
-      },
-      status: "pending",
-      isTrial: false,
-    },
-  ])
-
-  const [birthdays, setBirthdays] = useState([
-    {
-      id: 1,
-      name: "John Smith",
-      date: today, // Today's birthday for testing
-      avatar: Rectangle1,
-    },
-    {
-      id: 2,
-      name: "Sarah Johnson",
-      date: "2025-01-20",
-      avatar: Rectangle1,
-    },
-    {
-      id: 3,
-      name: "Mike Wilson",
-      date: "2025-01-25",
-      avatar: Rectangle1,
-    },
-  ])
-
-  const memberTypes = {
-    "All members": {
-      data: [
-        [50, 280, 200, 450, 250, 400, 300, 200, 450],
-        [100, 150, 200, 100, 150, 300, 400, 100, 400],
-      ],
-      growth: "4%",
-      title: "Members",
-    },
-    "Checked in": {
-      data: [
-        [30, 180, 150, 350, 200, 300, 250, 150, 350],
-        [80, 120, 150, 80, 120, 250, 300, 80, 300],
-      ],
-      growth: "2%",
-      title: "Checked In Members",
-    },
-    "Cancelled appointment": {
-      data: [
-        [20, 100, 50, 100, 50, 100, 50, 50, 100],
-        [20, 30, 50, 20, 30, 50, 100, 20, 100],
-      ],
-      growth: "-1%",
-      title: "Cancelled Appointments",
-    },
-    Finances: {
-      data: [
-        [150, 320, 280, 500, 350, 450, 380, 300, 520],
-        [200, 250, 300, 200, 280, 400, 500, 200, 480],
-      ],
-      growth: "8%",
-      title: "Financial Overview",
-    },
-    Selling: {
-      data: [
-        [80, 220, 180, 380, 280, 350, 320, 250, 400],
-        [120, 180, 220, 120, 200, 320, 420, 150, 380],
-      ],
-      growth: "6%",
-      title: "Sales Performance",
-    },
-    Leads: {
-      data: [
-        [40, 160, 120, 280, 180, 250, 220, 180, 300],
-        [60, 100, 140, 80, 120, 200, 280, 100, 260],
-      ],
-      growth: "5%",
-      title: "Lead Generation",
-    },
-    "Top-selling by revenue": {
-      data: [
-        [40, 160, 120, 280, 180, 250, 220, 180, 300],
-        [60, 100, 140, 80, 120, 200, 280, 100, 260],
-      ],
-      growth: "2%",
-      title: "Top-selling by revenue",
-    },
-    "Most frequently sold": {
-      data: [
-        [40, 160, 120, 280, 180, 250, 220, 180, 300],
-        [60, 100, 140, 80, 120, 200, 280, 100, 260],
-      ],
-      growth: "3%",
-      title: "Most frequently sold",
-    },
-  }
-
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
   const redirectToTodos = () => navigate("/dashboard/to-do")
   const redirectToCommunication = () => navigate("/dashboard/communication")
@@ -356,6 +189,273 @@ export default function MyArea() {
 
   const [isTrainingPlanModalOpen, setIsTrainingPlanModalOpen] = useState(false)
   const [selectedUserForTrainingPlan, setSelectedUserForTrainingPlan] = useState(null)
+
+  const [editingLink, setEditingLink] = useState(null)
+
+
+  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 }) // For contingent modal
+  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current") // For contingent modal
+  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false) // For contingent modal
+  const [newBillingPeriod, setNewBillingPeriod] = useState("") // For contingent modal
+  const [showContingentModal, setShowContingentModal] = useState(false)
+
+
+  const notePopoverRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
+        setActiveNoteId(null)
+      }
+    }
+    if (activeNoteId !== null) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside)
+      }
+    }
+  }, [activeNoteId])
+
+
+  useEffect(() => {
+    setMemberHistory(mockMemberHistory)
+    setMemberRelations(mockMemberRelations)
+    setMemberContingentData(memberContingentData)
+  }, [])
+
+  useEffect(() => {
+    if (selectedMember && isEditModalOpen) {
+      setEditForm({
+        firstName: selectedMember.firstName || "",
+        lastName: selectedMember.lastName || "",
+        email: selectedMember.email || "",
+        phone: selectedMember.phone || "",
+        street: selectedMember.street || "",
+        zipCode: selectedMember.zipCode || "",
+        city: selectedMember.city || "",
+        dateOfBirth: selectedMember.dateOfBirth || "",
+        about: selectedMember.about || "",
+        note: selectedMember.note || "",
+        noteStartDate: selectedMember.noteStartDate || "",
+        noteEndDate: selectedMember.noteEndDate || "",
+        noteImportance: selectedMember.noteImportance || "unimportant",
+        contractStart: selectedMember.contractStart || "",
+        contractEnd: selectedMember.contractEnd || "",
+      })
+    }
+  }, [selectedMember, isEditModalOpen])
+
+  useEffect(() => {
+    const savedViewsData = localStorage.getItem("dashboardViews")
+    if (savedViewsData) {
+      const views = JSON.parse(savedViewsData)
+      setSavedViews(views)
+
+      // Load standard view if exists
+      const standardView = views.find((view) => view.isStandard)
+      if (standardView) {
+        setWidgets([...standardView.widgets])
+        setCurrentView(standardView)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (savedViews.length > 0) {
+      localStorage.setItem("dashboardViews", JSON.stringify(savedViews))
+    }
+  }, [savedViews])
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownIndex(null)
+      }
+      if (chartDropdownRef.current && !chartDropdownRef.current.contains(event.target)) {
+        setIsChartDropdownOpen(false)
+      }
+      if (todoFilterDropdownRef.current && !todoFilterDropdownRef.current.contains(event.target)) {
+        setIsTodoFilterDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+
+
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleEditSubmit = (e) => {
+    e.preventDefault()
+
+    // Update appointments array (since your members are stored in appointments)
+    const updatedAppointments = appointments.map((member) => {
+      if (member.id === selectedMember.id) {
+        return {
+          ...member,
+          firstName: editForm.firstName,
+          lastName: editForm.lastName,
+          name: `${editForm.firstName} ${editForm.lastName}`, // Update the name field too
+          email: editForm.email,
+          phone: editForm.phone,
+          street: editForm.street,
+          zipCode: editForm.zipCode,
+          city: editForm.city,
+          dateOfBirth: editForm.dateOfBirth,
+          about: editForm.about,
+          note: editForm.note,
+          noteStartDate: editForm.noteStartDate,
+          noteEndDate: editForm.noteEndDate,
+          noteImportance: editForm.noteImportance,
+          contractStart: editForm.contractStart,
+          contractEnd: editForm.contractEnd,
+        }
+      }
+      return member
+    })
+
+    setAppointments(updatedAppointments)
+
+    setSelectedMember({
+      ...selectedMember,
+      ...editForm,
+      name: `${editForm.firstName} ${editForm.lastName}`,
+    })
+
+    setIsEditModalOpen(false)
+    toast.success("Member details have been updated successfully")
+  }
+
+
+  const handleDeleteRelation = (category, relationId) => {
+    const updatedRelations = { ...memberRelations }
+    updatedRelations[selectedMember.id][category] = updatedRelations[selectedMember.id][category].filter(
+      (rel) => rel.id !== relationId,
+    )
+    setMemberRelations(updatedRelations)
+    toast.success("Relation deleted successfully")
+  }
+
+  const handleArchiveMember = (memberId) => {
+    const member = appointments.find((m) => m.id === memberId)
+    if (member && member.memberType === "temporary") {
+      if (window.confirm("Are you sure you want to archive this temporary member?")) {
+        setAppointments((prev) =>
+          prev.map((member) =>
+            member.id === memberId
+              ? { ...member, isArchived: true, archivedDate: new Date().toISOString().split("T")[0] }
+              : member,
+          ),
+        )
+        toast.success("Temporary member archived successfully")
+      }
+    } else {
+      toast.error("Only temporary members can be archived")
+    }
+  }
+
+  const handleUnarchiveMember = (memberId) => {
+    const member = appointments.find((m) => m.id === memberId)
+    if (member && member.memberType === "temporary") {
+      setAppointments((prev) =>
+        prev.map((member) => (member.id === memberId ? { ...member, isArchived: false, archivedDate: null } : member)),
+      )
+      toast.success("Temporary member unarchived successfully")
+    } else {
+      toast.error("Only temporary members can be unarchived")
+    }
+  }
+
+  const relationOptions = {
+    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
+    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
+    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+  }
+
+  const handleAddRelation = () => {
+    if (!newRelation.name || !newRelation.relation) {
+      toast.error("Please fill in all fields")
+      return
+    }
+    const relationId = Date.now()
+    const updatedRelations = { ...memberRelations }
+    if (!updatedRelations[selectedMember.id]) {
+      updatedRelations[selectedMember.id] = {
+        family: [],
+        friendship: [],
+        relationship: [],
+        work: [],
+        other: [],
+      }
+    }
+    updatedRelations[selectedMember.id][newRelation.category].push({
+      id: relationId,
+      name: newRelation.name,
+      relation: newRelation.relation,
+      type: newRelation.type,
+    })
+    setMemberRelations(updatedRelations)
+    setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
+    toast.success("Relation added successfully")
+  }
+
+  const handleSaveContingent = () => {
+    const memberId = selectedMember?.id
+    if (memberId && memberContingentData[memberId]) {
+      const updatedContingent = { ...memberContingentData }
+      if (selectedBillingPeriod === "current") {
+        updatedContingent[memberId].current = { ...tempContingent }
+      } else {
+        if (!updatedContingent[memberId].future) {
+          updatedContingent[memberId].future = {}
+        }
+        updatedContingent[memberId].future[selectedBillingPeriod] = { ...tempContingent }
+      }
+      setMemberContingentData(updatedContingent)
+      alert("Contingent updated successfully!")
+    }
+    setShowContingentModal(false)
+  }
+  const getBillingPeriods = (memberId) => {
+    const memberData = memberContingentData[memberId]
+    if (!memberData) return []
+    const periods = [{ id: "current", label: `Current (${currentBillingPeriod})`, data: memberData.current }]
+    if (memberData.future) {
+      Object.entries(memberData.future).forEach(([period, data]) => {
+        periods.push({
+          id: period,
+          label: `Future (${period})`,
+          data: data,
+        })
+      })
+    }
+    return periods
+  }
+  const handleAddBillingPeriod = () => {
+    if (newBillingPeriod.trim() && selectedMember) {
+      const updatedContingent = { ...memberContingentData }
+      if (!updatedContingent[selectedMember.id].future) {
+        updatedContingent[selectedMember.id].future = {}
+      }
+      updatedContingent[selectedMember.id].future[newBillingPeriod] = { used: 0, total: 0 }
+      setMemberContingentData(updatedContingent)
+      setNewBillingPeriod("")
+      setShowAddBillingPeriodModal(false)
+      alert("New billing period added successfully")
+    }
+  }
 
   const getWidgetPlacementStatus = useCallback(
     (widgetType, widgetArea = "dashboard") => {
@@ -379,7 +479,6 @@ export default function MyArea() {
     [widgets, rightSidebarWidgets],
   )
 
-  // Fixed moveWidget function
   const moveWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= widgets.length) return
     const newWidgets = [...widgets]
@@ -404,7 +503,6 @@ export default function MyArea() {
     })
   }
 
-  // Fixed functions for right sidebar widgets
   const moveRightSidebarWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= rightSidebarWidgets.length) return
     const newWidgets = [...rightSidebarWidgets]
@@ -428,8 +526,6 @@ export default function MyArea() {
       }))
     })
   }
-
-  const [editingLink, setEditingLink] = useState(null)
 
   const addCustomLink = () => {
     setEditingLink({})
@@ -455,33 +551,6 @@ export default function MyArea() {
         : "Member check in successfully",
     )
   }
-
-  const [expiringContracts, setExpiringContracts] = useState([
-    {
-      id: 1,
-      title: "Oxygen Gym Membership",
-      expiryDate: "June 30, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 3,
-      title: "Studio Space Rental",
-      expiryDate: "August 5, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 4,
-      title: "Insurance Policy",
-      expiryDate: "September 10, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 5,
-      title: "Software License",
-      expiryDate: "October 20, 2025",
-      status: "Expiring Soon",
-    },
-  ])
 
   const handleEditNote = (appointmentId, currentNote) => {
     const appointment = appointments.find((app) => app.id === appointmentId)
@@ -555,45 +624,6 @@ export default function MyArea() {
     setTodos((prev) => prev.map((todo) => (todo.id === taskId ? { ...todo, status: "cancelled" } : todo)))
     setTaskToCancel(null)
   }
-
-  useEffect(() => {
-    const savedViewsData = localStorage.getItem("dashboardViews")
-    if (savedViewsData) {
-      const views = JSON.parse(savedViewsData)
-      setSavedViews(views)
-
-      // Load standard view if exists
-      const standardView = views.find((view) => view.isStandard)
-      if (standardView) {
-        setWidgets([...standardView.widgets])
-        setCurrentView(standardView)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (savedViews.length > 0) {
-      localStorage.setItem("dashboardViews", JSON.stringify(savedViews))
-    }
-  }, [savedViews])
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownIndex(null)
-      }
-      if (chartDropdownRef.current && !chartDropdownRef.current.contains(event.target)) {
-        setIsChartDropdownOpen(false)
-      }
-      if (todoFilterDropdownRef.current && !todoFilterDropdownRef.current.contains(event.target)) {
-        setIsTodoFilterDropdownOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
 
   const chartOptions = {
     chart: {
@@ -737,9 +767,8 @@ export default function MyArea() {
               <button
                 onClick={handleSave}
                 disabled={!title.trim() || !url.trim()}
-                className={`px-4 py-2 text-sm rounded-xl ${
-                  !title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                }`}
+                className={`px-4 py-2 text-sm rounded-xl ${!title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                  }`}
               >
                 Save
               </button>
@@ -748,6 +777,68 @@ export default function MyArea() {
         </div>
       </div>
     )
+  }
+
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return ""
+    const today = new Date()
+    const birthDate = new Date(dateOfBirth)
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const m = today.getMonth() - birthDate.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+    return age
+  }
+
+  const isContractExpiringSoon = (contractEnd) => {
+    if (!contractEnd) return false
+    const today = new Date()
+    const endDate = new Date(contractEnd)
+    const oneMonthFromNow = new Date()
+    oneMonthFromNow.setMonth(today.getMonth() + 1)
+    return endDate <= oneMonthFromNow && endDate >= today
+  }
+
+  const handleHistoryFromOverview = () => {
+    setisMemberOverviewModalOpen(false)
+    setShowHistoryModal(true)
+  }
+
+  const handleCommunicationFromOverview = () => {
+    setisMemberOverviewModalOpen(false)
+    navigate("/dashboard/communication")
+  }
+
+
+  const handleViewDetailedInfo = () => {
+    setisMemberOverviewModalOpen(false)
+    setActiveMemberDetailsTab("details")
+    setIsMemberDetailsModalOpen(true)
+  }
+
+  const handleEditFromOverview = () => {
+    setisMemberOverviewModalOpen(false)
+
+    setEditForm({
+      firstName: selectedMember.firstName || "",
+      lastName: selectedMember.lastName || "",
+      email: selectedMember.email || "",
+      phone: selectedMember.phone || "",
+      street: selectedMember.street || "",
+      zipCode: selectedMember.zipCode || "",
+      city: selectedMember.city || "",
+      dateOfBirth: selectedMember.dateOfBirth || "",
+      about: selectedMember.about || "",
+      note: selectedMember.note || "",
+      noteStartDate: selectedMember.noteStartDate || "",
+      noteEndDate: selectedMember.noteEndDate || "",
+      noteImportance: selectedMember.noteImportance || "unimportant",
+      contractStart: selectedMember.contractStart || "",
+      contractEnd: selectedMember.contractEnd || "",
+    })
+
+    setIsEditModalOpen(true)
   }
 
   const handleAddWidget = (widgetType) => {
@@ -766,6 +857,14 @@ export default function MyArea() {
     toast.success(`${widgetType} widget has been added successfully`)
   }
 
+  const handleCalendarFromOverview = () => {
+    setisMemberOverviewModalOpen(false)
+    if (selectedMember) {
+      setShowAppointmentModal(true)
+    }
+  }
+
+
   const handleAddRightSidebarWidget = (widgetType) => {
     const { canAdd, location } = getWidgetPlacementStatus(widgetType, "sidebar")
     if (!canAdd) {
@@ -782,21 +881,6 @@ export default function MyArea() {
     toast.success(`${widgetType} widget has been added to sidebar`)
   }
 
-  const notePopoverRef = useRef(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
-        setActiveNoteId(null)
-      }
-    }
-    if (activeNoteId !== null) {
-      document.addEventListener("mousedown", handleClickOutside)
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside)
-      }
-    }
-  }, [activeNoteId])
 
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
@@ -814,9 +898,8 @@ export default function MyArea() {
       return (
         <div className="relative">
           <div
-            className={`${
-              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
@@ -887,8 +970,71 @@ export default function MyArea() {
   )
 
   const handleViewMemberDetails = () => {
-    toast.success("View member functionality will be implemented here later from backend")
-    setshowAppointmentOptionsModal(false)
+    if (selectedAppointment) {
+      // Create a more complete mock member object from appointment data
+      const mockMember = {
+        id: selectedAppointment.id,
+        title: selectedAppointment.name,
+        firstName: selectedAppointment.name.split(' ')[0] || selectedAppointment.name,
+        lastName: selectedAppointment.name.split(' ').slice(1).join(' ') || '',
+        name: selectedAppointment.name,
+        email: selectedAppointment.email || "",
+        phone: selectedAppointment.phone || "",
+        street: selectedAppointment.street || "",
+        zipCode: selectedAppointment.zipCode || "",
+        city: selectedAppointment.city || "",
+        dateOfBirth: selectedAppointment.dateOfBirth || "",
+        joinDate: selectedAppointment.joinDate || "",
+        about: selectedAppointment.about || "",
+        memberType: selectedAppointment.memberType || "",
+        contractStart: selectedAppointment.contractStart || "",
+        contractEnd: selectedAppointment.contractEnd || "",
+        autoArchiveDate: selectedAppointment.autoArchiveDate || "",
+        image: selectedAppointment.image || null,
+        note: selectedAppointment.specialNote?.text || null,
+        noteStartDate: selectedAppointment.specialNote?.startDate,
+        noteEndDate: selectedAppointment.specialNote?.endDate,
+        noteImportance: selectedAppointment.specialNote?.isImportant ? "important" : "unimportant"
+      }
+
+      setSelectedMember(mockMember)
+      setisMemberOverviewModalOpen(true)
+      setshowAppointmentOptionsModal(false)
+    }
+  }
+
+  const redirectToContract = () => {
+    navigate("/dashboard/contract")
+    setIsMemberDetailsModalOpen(false)
+    setSelectedMember(null)
+  }
+
+  const handleManageContingent = () => {
+    const memberId = selectedMember?.id
+    if (memberId && memberContingentData[memberId]) {
+      setTempContingent(memberContingentData[memberId].current)
+      setSelectedBillingPeriod("current")
+    } else {
+      setTempContingent({ used: 0, total: 0 })
+      setSelectedBillingPeriod("current")
+    }
+    setShowContingentModal(true)
+  }
+
+  const handleCreateNewAppointment = () => {
+    setShowAppointmentModal(false)
+    navigate("/dashboard/appointments?action=create")
+  }
+
+  const getMemberAppointments = (memberId) => {
+    // Return appointments for the specific member
+    return appointments.filter(app => app.id === memberId)
+  }
+
+  const handleEditAppointment = (appointment) => {
+    setselectedAppointment(appointment)
+    setisEditAppointmentModalOpen(true)
+    setShowAppointmentModal(false)
   }
 
   const isEventInPast = (eventStart) => {
@@ -971,48 +1117,6 @@ export default function MyArea() {
     setSelectedUserForTrainingPlan(appointment)
     setIsTrainingPlanModalOpen(true)
   }
-
-  const mockTrainingPlans = [
-    {
-      id: 1,
-      name: "Beginner Full Body Workout",
-      description: "A comprehensive full-body workout plan designed for beginners",
-      createdBy: "John Trainer",
-      duration: "4 weeks",
-      difficulty: "Beginner",
-      workoutsPerWeek: 3,
-      category: "Strength Training",
-      exercises: [
-        {
-          videoId: "1",
-          sets: 3,
-          reps: "10-12",
-        },
-        {
-          videoId: "2",
-          sets: 3,
-          reps: "8-10",
-        },
-      ],
-    },
-  ]
-
-  const mockVideos = [
-    {
-      id: "1",
-      title: "Push-ups",
-      instructor: "Mike Trainer",
-      thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYOeTbdunIjiy-rOAtmyyBMIYoNlmWCl28Fg&s",
-      targetMuscles: ["Chest", "Triceps", "Shoulders"],
-    },
-    {
-      id: "2",
-      title: "Squats",
-      instructor: "Lisa Coach",
-      thumbnail: "https://www.shutterstock.com/image-vector/exercise-guide-by-man-doing-260nw-2081735731.jpg",
-      targetMuscles: ["Quadriceps", "Glutes", "Hamstrings"],
-    },
-  ]
 
   const getVideoById = (videoId) => {
     return mockVideos.find((video) => video.id === videoId)
@@ -1117,9 +1221,8 @@ export default function MyArea() {
 
                 <button
                   onClick={toggleEditing}
-                  className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${
-                    isEditing ? "bg-blue-600 text-white" : "bg-zinc-700 text-zinc-200"
-                  }`}
+                  className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${isEditing ? "bg-blue-600 text-white" : "bg-zinc-700 text-zinc-200"
+                    }`}
                 >
                   {isEditing ? <Check size={18} /> : <Edit size={18} />}
                   <span className="hidden sm:inline">{isEditing ? "Done" : "Edit Dashboard"}</span>
@@ -1263,11 +1366,10 @@ export default function MyArea() {
                                           e.stopPropagation()
                                           handleCheckIn(appointment.id)
                                         }}
-                                        className={`px-3 py-1 text-xs font-medium rounded-lg ${
-                                          appointment.isCheckedIn
-                                            ? " border border-white/50 text-white bg-transparent"
-                                            : "bg-black text-white"
-                                        }`}
+                                        className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
+                                          ? " border border-white/50 text-white bg-transparent"
+                                          : "bg-black text-white"
+                                          }`}
                                       >
                                         {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                       </button>
@@ -1527,11 +1629,10 @@ export default function MyArea() {
                               {birthdays.slice(0, 3).map((birthday) => (
                                 <div
                                   key={birthday.id}
-                                  className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${
-                                    isBirthdayToday(birthday.date)
-                                      ? "bg-yellow-900/30 border border-yellow-600"
-                                      : "bg-black"
-                                  }`}
+                                  className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${isBirthdayToday(birthday.date)
+                                    ? "bg-yellow-900/30 border border-yellow-600"
+                                    : "bg-black"
+                                    }`}
                                 >
                                   <div className="flex items-center gap-3">
                                     <div>
@@ -1615,9 +1716,9 @@ export default function MyArea() {
           chartSeries={chartSeries}
           expiringContracts={expiringContracts}
           getWidgetPlacementStatus={getWidgetPlacementStatus}
-          onClose={toggleRightSidebar} // Add this
-          hasUnreadNotifications={false} // Add appropriate value
-          setIsWidgetModalOpen={setIsWidgetModalOpen} // Add this
+          onClose={toggleRightSidebar}
+          hasUnreadNotifications={2} // Add appropriate value
+          setIsWidgetModalOpen={setIsWidgetModalOpen}
           handleEditNote={handleEditNote}
           activeNoteId={activeNoteId}
           setActiveNoteId={setActiveNoteId}
@@ -1627,6 +1728,7 @@ export default function MyArea() {
           setSelectedAppointmentForNote={setSelectedAppointmentForNote}
           handleSaveSpecialNote={handleSaveSpecialNote}
           onSaveSpecialNote={handleSaveSpecialNote}
+          notifications={notifications}
         />
 
         {isEditTaskModalOpen && editingTask && (
@@ -1825,9 +1927,8 @@ export default function MyArea() {
                   <button
                     onClick={handleSendCustomBirthdayMessage}
                     disabled={!birthdayMessage.trim()}
-                    className={`px-4 py-2 text-sm rounded-xl ${
-                      !birthdayMessage.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                    }`}
+                    className={`px-4 py-2 text-sm rounded-xl ${!birthdayMessage.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                      }`}
                   >
                     Send Message
                   </button>
@@ -1902,6 +2003,643 @@ export default function MyArea() {
           }}
           appointment={selectedAppointmentForNote}
           onSave={handleSaveSpecialNote}
+        />
+
+        <MemberOverviewModal
+          isOpen={isMemberOverviewModalOpen}
+          onClose={() => {
+            setisMemberOverviewModalOpen(false)
+            setSelectedMember(null) // Clear selectedMember instead of selectedAppointment
+          }}
+          selectedMember={selectedMember} // Pass selectedMember instead of selectedAppointment
+          calculateAge={calculateAge}
+          isContractExpiringSoon={isContractExpiringSoon}
+          handleCalendarFromOverview={handleCalendarFromOverview}
+          handleHistoryFromOverview={handleHistoryFromOverview}
+          handleCommunicationFromOverview={handleCommunicationFromOverview}
+          handleViewDetailedInfo={handleViewDetailedInfo}
+          handleEditFromOverview={handleEditFromOverview}
+        />
+
+        {showAppointmentModal && selectedMember && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-medium">{selectedMember.firstName}'s Appointments</h2>
+                  <button
+                    onClick={() => {
+                      setShowAppointmentModal(false)
+                      setSelectedMember(null)
+                    }}
+                    className="p-2 hover:bg-zinc-700 rounded-lg"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="space-y-3 mb-4">
+                  <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
+                  {getMemberAppointments(selectedMember.id).length > 0 ? (
+                    getMemberAppointments(selectedMember.id).map((appointment) => {
+                      const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
+                      const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
+                      return (
+                        <div
+                          key={appointment.id}
+                          className={`${backgroundColor} rounded-xl p-3 hover:opacity-90 transition-colors cursor-pointer`}
+                          onClick={() => handleEditAppointment(appointment)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-sm text-white">{appointment.title}</p>
+                              <div>
+                                <p className="text-sm text-white/70">
+                                  {new Date(appointment.date).toLocaleString([], {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </p>
+                                <p className="text-xs text-white/70">
+                                  {new Date(appointment.date).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}{" "}
+                                  -{" "}
+                                  {new Date(
+                                    new Date(appointment.date).getTime() + (appointmentType?.duration || 30) * 60000,
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditAppointment(appointment)
+                                }}
+                                className="p-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-full"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="lucide lucide-pencil"
+                                >
+                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                  <path d="m15 5 4 4" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleCancelAppointment(appointment.id)
+                                }}
+                                className="p-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-full"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="lucide lucide-trash-2"
+                                >
+                                  <path d="M3 6h18" />
+                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                  <line x1="10" x2="10" y1="11" y2="17" />
+                                  <line x1="14" x2="14" y1="11" y2="17" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="text-center py-4 text-gray-400 bg-[#222222] rounded-xl">
+                      No appointments scheduled
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
+                  <div className="text-sm text-gray-300">
+                    Contingent ({currentBillingPeriod}): {memberContingentData[selectedMember.id]?.current?.used || 0} /{" "}
+                    {memberContingentData[selectedMember.id]?.current?.total || 0}
+                  </div>
+                  <button
+                    onClick={handleManageContingent}
+                    className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                    Manage
+                  </button>
+                </div>
+                <button
+                  onClick={handleCreateNewAppointment}
+                  className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
+                >
+                  Create New Appointment
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showHistoryModal && selectedMember && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold">
+                  History - {selectedMember.firstName} {selectedMember.lastName}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowHistoryModal(false)
+                    setSelectedMember(null)
+                  }}
+                  className="text-gray-300 hover:text-white"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="flex space-x-1 mb-6 bg-[#141414] rounded-lg p-1">
+                {[
+                  { id: "general", label: "General Changes" },
+                  { id: "checkins", label: "Check-ins & Check-outs" },
+                  { id: "appointments", label: "Past Appointments" },
+                  { id: "finance", label: "Finance Transactions" },
+                  { id: "contracts", label: "Contract Changes" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setHistoryTab(tab.id)}
+                    className={`px-4 py-2 rounded-md text-sm transition-colors ${historyTab === tab.id ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                      }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <div className="bg-[#141414] rounded-xl p-4">
+                {historyTab === "general" && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">General Changes</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.general?.map((change) => (
+                        <div key={change.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium text-white">{change.action}</p>
+                              <p className="text-sm text-gray-400">
+                                {change.date} by {change.user}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-sm">
+                            <p className="text-gray-300">{change.details}</p>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No general changes recorded</p>}
+                    </div>
+                  </div>
+                )}
+                {historyTab === "checkins" && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Check-ins & Check-outs</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.checkins?.map((activity) => (
+                        <div key={activity.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-white flex items-center gap-2">
+                                <span
+                                  className={`w-2 h-2 rounded-full ${activity.type === "Check-in" ? "bg-green-500" : "bg-red-500"
+                                    }`}
+                                ></span>
+                                {activity.type}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                {new Date(activity.date).toLocaleDateString()} at{" "}
+                                {new Date(activity.date).toLocaleTimeString()}
+                              </p>
+                              <p className="text-sm text-gray-300">Location: {activity.location}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No check-in/check-out history</p>}
+                    </div>
+                  </div>
+                )}
+                {historyTab === "appointments" && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Past Appointments</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.appointments?.map((appointment) => (
+                        <div key={appointment.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium text-white">{appointment.title}</p>
+                              <p className="text-sm text-gray-400">
+                                {new Date(appointment.date).toLocaleDateString()} at{" "}
+                                {new Date(appointment.date).toLocaleTimeString()} with {appointment.trainer}
+                              </p>
+                            </div>
+                            <span
+                              className={`px-2 py-1 rounded text-xs ${appointment.status === "completed"
+                                ? "bg-green-600 text-white"
+                                : "bg-orange-600 text-white"
+                                }`}
+                            >
+                              {appointment.status}
+                            </span>
+                          </div>
+                        </div>
+                      )) || <p className="text-gray-400">No past appointments</p>}
+                    </div>
+                  </div>
+                )}
+                {historyTab === "finance" && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Finance Transactions</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.finance?.map((transaction) => (
+                        <div key={transaction.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium text-white">
+                                {transaction.type} - {transaction.amount}
+                              </p>
+                              <p className="text-sm text-gray-400">{transaction.date}</p>
+                            </div>
+                            <span
+                              className={`px-2 py-1 rounded text-xs ${transaction.status === "completed"
+                                ? "bg-green-600 text-white"
+                                : "bg-orange-600 text-white"
+                                }`}
+                            >
+                              {transaction.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-300">{transaction.description}</p>
+                        </div>
+                      )) || <p className="text-gray-400">No financial transactions</p>}
+                    </div>
+                  </div>
+                )}
+                {historyTab === "contracts" && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Contract Changes</h3>
+                    <div className="space-y-3">
+                      {memberHistory[selectedMember.id]?.contracts?.map((contract) => (
+                        <div key={contract.id} className="bg-[#1C1C1C] rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium text-white">{contract.action}</p>
+                              <p className="text-sm text-gray-400">
+                                {contract.date} by {contract.user}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-300">{contract.details}</p>
+                        </div>
+                      )) || <p className="text-gray-400">No contract changes</p>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isMemberDetailsModalOpen && selectedMember && (
+          <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+            <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-white open_sans_font_700 text-lg font-semibold">Member Details</h2>
+                  <button
+                    onClick={() => {
+                      setIsMemberDetailsModalOpen(false)
+                      setSelectedMember(null)
+                    }}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X size={20} className="cursor-pointer" />
+                  </button>
+                </div>
+                {/* Tab Navigation */}
+                <div className="flex border-b border-gray-700 mb-6">
+                  <button
+                    onClick={() => setActiveMemberDetailsTab("details")}
+                    className={`px-4 py-2 text-sm font-medium ${activeMemberDetailsTab === "details"
+                      ? "text-blue-400 border-b-2 border-blue-400"
+                      : "text-gray-400 hover:text-white"
+                      }`}
+                  >
+                    Details
+                  </button>
+                  <button
+                    onClick={() => setActiveMemberDetailsTab("relations")}
+                    className={`px-4 py-2 text-sm font-medium ${activeMemberDetailsTab === "relations"
+                      ? "text-blue-400 border-b-2 border-blue-400"
+                      : "text-gray-400 hover:text-white"
+                      }`}
+                  >
+                    Relations
+                  </button>
+                </div>
+                {/* Tab Content */}
+                {activeMemberDetailsTab === "details" && (
+                  <div className="space-y-4 text-white">
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={selectedMember.image || DefaultAvatar}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover"
+                      />
+                      <div>
+                        <h3 className="text-xl font-semibold">
+                          {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
+                        </h3>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span
+                            className={`px-2 py-0.5 text-xs rounded-full ${selectedMember.memberType === "full"
+                              ? "bg-blue-900 text-blue-300"
+                              : "bg-purple-900 text-purple-300"
+                              }`}
+                          >
+                            {selectedMember.memberType === "full"
+                              ? "Full Member (with contract)"
+                              : "Temporary Member (without contract)"}
+                          </span>
+                        </div>
+                        <p className="text-gray-400 mt-1">
+                          {selectedMember.memberType === "full" ? (
+                            <>
+                              Contract: {selectedMember.contractStart} -
+                              <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
+                                {selectedMember.contractEnd}
+                              </span>
+                            </>
+                          ) : (
+                            <>Auto-archive date: {selectedMember.autoArchiveDate}</>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-400">Email</p>
+                        <p>{selectedMember.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400">Phone</p>
+                        <p>{selectedMember.phone}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Address</p>
+                      <p>{`${selectedMember.street}, ${selectedMember.zipCode} ${selectedMember.city}`}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-400">Date of Birth</p>
+                        <p>
+                          {selectedMember.dateOfBirth} (Age: {calculateAge(selectedMember.dateOfBirth)})
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400">Join Date</p>
+                        <p>{selectedMember.joinDate}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">About</p>
+                      <p>{selectedMember.about}</p>
+                    </div>
+                    {selectedMember.note && (
+                      <div>
+                        <p className="text-sm text-gray-400">Special Note</p>
+                        <p>{selectedMember.note}</p>
+                        <p className="text-sm text-gray-400 mt-2">
+                          Note Period: {selectedMember.noteStartDate} to {selectedMember.noteEndDate}
+                        </p>
+                        <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
+                      </div>
+                    )}
+                    <div className="flex justify-end gap-4 mt-6">
+                      {selectedMember.memberType === "full" && (
+                        <button
+                          onClick={redirectToContract}
+                          className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
+                        >
+                          <FileText size={16} />
+                          View Contract
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {activeMemberDetailsTab === "relations" && (
+                  <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+                    {/* Relations Tree Visualization */}
+                    <div className="bg-[#161616] rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-white mb-4 text-center">Relationship Tree</h3>
+                      <div className="flex flex-col items-center space-y-8">
+                        {/* Central Member */}
+                        <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
+                          {selectedMember.title}
+                        </div>
+                        {/* Connection Lines and Categories */}
+                        <div className="relative w-full">
+                          {/* Horizontal line */}
+                          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
+                          {/* Category sections */}
+                          <div className="grid grid-cols-5 gap-4 pt-8">
+                            {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
+                              <div key={category} className="flex flex-col items-center space-y-4">
+                                {/* Vertical line */}
+                                <div className="w-0.5 h-8 bg-gray-600"></div>
+                                {/* Category header */}
+                                <div
+                                  className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
+                                    ? "bg-yellow-600 text-yellow-100"
+                                    : category === "friendship"
+                                      ? "bg-green-600 text-green-100"
+                                      : category === "relationship"
+                                        ? "bg-red-600 text-red-100"
+                                        : category === "work"
+                                          ? "bg-blue-600 text-blue-100"
+                                          : "bg-gray-600 text-gray-100"
+                                    }`}
+                                >
+                                  {category}
+                                </div>
+                                {/* Relations in this category */}
+                                <div className="space-y-2">
+                                  {relations.map((relation) => (
+                                    <div
+                                      key={relation.id}
+                                      className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${relation.type === "member" || relation.type === "lead"
+                                        ? "border border-blue-500/30"
+                                        : ""
+                                        }`}
+                                      onClick={() => {
+                                        if (relation.type === "member" || relation.type === "lead") {
+                                          alert(`Clicked on ${relation.name} (${relation.type})`)
+                                        }
+                                      }}
+                                    >
+                                      <div className="text-white text-sm font-medium">{relation.name}</div>
+                                      <div className="text-gray-400 text-xs">({relation.relation})</div>
+                                      <div
+                                        className={`text-xs mt-1 px-1 py-0.5 rounded ${relation.type === "member"
+                                          ? "bg-green-600 text-green-100"
+                                          : relation.type === "lead"
+                                            ? "bg-blue-600 text-blue-100"
+                                            : "bg-gray-600 text-gray-100"
+                                          }`}
+                                      >
+                                        {relation.type}
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {relations.length === 0 && (
+                                    <div className="text-gray-500 text-xs text-center">No relations</div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Relations List */}
+                    <div className="bg-[#161616] rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
+                      <div className="space-y-4">
+                        {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
+                          <div key={category}>
+                            <h4 className="text-md font-medium text-gray-300 capitalize mb-2">{category}</h4>
+                            <div className="space-y-2 ml-4">
+                              {relations.length > 0 ? (
+                                relations.map((relation) => (
+                                  <div
+                                    key={relation.id}
+                                    className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
+                                      ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
+                                      : ""
+                                      }`}
+                                    onClick={() => {
+                                      if (relation.type === "member" || relation.type === "lead") {
+                                        alert(`Clicked on ${relation.name} (${relation.type})`)
+                                      }
+                                    }}
+                                  >
+                                    <div>
+                                      <span className="text-white font-medium">{relation.name}</span>
+                                      <span className="text-gray-400 ml-2">- {relation.relation}</span>
+                                      <span
+                                        className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
+                                          ? "bg-green-600 text-green-100"
+                                          : relation.type === "lead"
+                                            ? "bg-blue-600 text-blue-100"
+                                            : "bg-gray-600 text-gray-100"
+                                          }`}
+                                      >
+                                        {relation.type}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-gray-500 text-sm">No {category} relations</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <ContingentModal
+          show={showContingentModal}
+          setShow={setShowContingentModal}
+          selectedMember={selectedMember}
+          getBillingPeriods={getBillingPeriods}
+          selectedBillingPeriod={selectedBillingPeriod}
+          handleBillingPeriodChange={setSelectedBillingPeriod}
+          setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
+          tempContingent={tempContingent}
+          setTempContingent={setTempContingent}
+          currentBillingPeriod={currentBillingPeriod}
+          handleSaveContingent={handleSaveContingent}
+        />
+
+        <AddBillingPeriodModal
+          show={showAddBillingPeriodModal}
+          setShow={setShowAddBillingPeriodModal}
+          newBillingPeriod={newBillingPeriod}
+          setNewBillingPeriod={setNewBillingPeriod}
+          handleAddBillingPeriod={handleAddBillingPeriod}
+        />
+
+        <EditMemberModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false)
+            setSelectedMember(null)
+          }}
+          selectedMember={selectedMember}
+          editModalTab={editModalTab}
+          setEditModalTab={setEditModalTab}
+          editForm={editForm}
+          handleInputChange={handleInputChange}
+          handleEditSubmit={handleEditSubmit}
+          editingRelations={editingRelations}
+          setEditingRelations={setEditingRelations}
+          newRelation={newRelation}
+          setNewRelation={setNewRelation}
+          availableMembersLeads={availableMembersLeads}
+          relationOptions={relationOptions}
+          handleAddRelation={handleAddRelation}
+          memberRelations={memberRelations}
+          handleDeleteRelation={handleDeleteRelation}
+          handleArchiveMember={handleArchiveMember}
+          handleUnarchiveMember={handleUnarchiveMember}
         />
       </div>
     </>

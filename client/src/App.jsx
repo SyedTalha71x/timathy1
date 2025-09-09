@@ -6,38 +6,40 @@ import Login from './pages/login';
 import Register from './pages/register'
 import Profile from './pages/profile'
 
+
+// User Panel View Dashboard
 import Dashboardlayout from "./layouts/dashboard-layout";
-import MyArea from './dashboard-pages/user-panel-pages/my-area'
-import ProfileDashboard from './dashboard-pages/user-panel-pages/profile'
-import Appointments from "./dashboard-pages/user-panel-pages/appointments";
-import ToDo from './dashboard-pages/user-panel-pages/todo'
-import Members from './dashboard-pages/user-panel-pages/members'
-import Staff from './dashboard-pages/user-panel-pages/staff'
-import Marketing from './dashboard-pages/user-panel-pages/marketing'
-import Communication from "./dashboard-pages/user-panel-pages/communications";
-import Payment from "./dashboard-pages/user-panel-pages/payment"
-import Contract from './dashboard-pages/user-panel-pages/contract'
-import Configuration from './dashboard-pages/user-panel-pages/configuration'
-import Leets from './dashboard-pages/user-panel-pages/leads'
-import TrialTraining from "./dashboard-pages/user-panel-pages/trialtraining";
-import Selling from "./dashboard-pages/user-panel-pages/selling";
-import Finances from "./dashboard-pages/user-panel-pages/finances";
-import Training from "./dashboard-pages/user-panel-pages/training";
-import ActivityMonitor from "./dashboard-pages/user-panel-pages/activity-monitor";
-import Analytics from './dashboard-pages/user-panel-pages/analytics'
-import HelpCenter from "./dashboard-pages/user-panel-pages/help-center";
-import MarketPlace from './dashboard-pages/user-panel-pages/market-place'
+import MyArea from './dashboard-pages/user-panel-view/my-area'
+import ProfileDashboard from './dashboard-pages/user-panel-view/profile'
+import Appointments from "./dashboard-pages/user-panel-view/appointments";
+import ToDo from './dashboard-pages/user-panel-view/todo'
+import Members from './dashboard-pages/user-panel-view/members'
+import Staff from './dashboard-pages/user-panel-view/staff'
+import Marketing from './dashboard-pages/user-panel-view/marketing'
+import Communication from "./dashboard-pages/user-panel-view/communications";
+import Payment from "./dashboard-pages/user-panel-view/payment"
+import Contract from './dashboard-pages/user-panel-view/contract'
+import Configuration from './dashboard-pages/user-panel-view/configuration'
+import Leets from './dashboard-pages/user-panel-view/leads'
+import TrialTraining from "./dashboard-pages/user-panel-view/trialtraining";
+import Selling from "./dashboard-pages/user-panel-view/selling";
+import Finances from "./dashboard-pages/user-panel-view/finances";
+import Training from "./dashboard-pages/user-panel-view/training";
+import ActivityMonitor from "./dashboard-pages/user-panel-view/activity-monitor";
+import Analytics from './dashboard-pages/user-panel-view/analytics'
+import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
+import MarketPlace from './dashboard-pages/user-panel-view/market-place'
 
 
 // Admin Dashboard
 import AdminDashboardLayout from './layouts/admin-dashboard-layout'
-import AdminMyArea from './dashboard-pages/customer-dashboard-pages/my-area'
-import Studios from "./dashboard-pages/customer-dashboard-pages/studios";
-import AdminLeads from './dashboard-pages/customer-dashboard-pages/leads'
-import AdminTodo from './dashboard-pages/customer-dashboard-pages/todo'
-import AdminConfiguration from './dashboard-pages/customer-dashboard-pages/configuration'
-import AdminFinance from './dashboard-pages/customer-dashboard-pages/finance'
-import AdminContracts from './dashboard-pages/customer-dashboard-pages/contract'
+import AdminMyArea from './dashboard-pages/admin-view/my-area'
+import Studios from "./dashboard-pages/admin-view/studios";
+import AdminLeads from './dashboard-pages/admin-view/leads'
+import AdminTodo from './dashboard-pages/admin-view/todo'
+import AdminConfiguration from './dashboard-pages/admin-view/configuration'
+import AdminFinance from './dashboard-pages/admin-view/finance'
+import AdminContracts from './dashboard-pages/admin-view/contract'
 
 
 // Member View  
