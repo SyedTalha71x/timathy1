@@ -432,10 +432,10 @@ export default function FinancesPage() {
     <div
       className={`
       min-h-screen rounded-3xl p-3 sm:p-4 md:p-6 bg-[#1C1C1C]
-      transition-all duration-300 ease-in-out flex-1
+      transition-all duration-500 ease-in-out flex-1
       ${
         isRightSidebarOpen
-          ? "lg:mr-96 md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
+          ? "lg:mr-96 mr-0" // Adjust right margin when sidebar is open on larger screens
           : "mr-0" // No margin when closed
       }
     `}

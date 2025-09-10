@@ -1518,7 +1518,7 @@ export default function MyArea() {
                       {widget.type === "todo" && (
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">TO-DO</h2>
+                            <h2 className="text-lg font-semibold">To-Do</h2>
                           </div>
                           <div className="relative mb-3" ref={todoFilterDropdownRef}>
                             <button

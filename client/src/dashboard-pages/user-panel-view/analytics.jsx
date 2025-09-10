@@ -635,7 +635,7 @@ export default function AnalyticsDashboard() {
       transition-all duration-500 ease-in-out flex-1
       ${
         isRightSidebarOpen
-          ? "lg:mr-86 md:mr-86 sm:mr-86" // Adjust right margin when sidebar is open on larger screens
+          ? "lg:mr-86 mr-0" // Adjust right margin when sidebar is open on larger screens
           : "mr-0" // No margin when closed
       }
     `}

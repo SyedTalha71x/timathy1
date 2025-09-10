@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
@@ -21,7 +23,7 @@ export default function TaskItem({
   availableAssignees = [],
   availableRoles = [],
   onOpenAssignModal,
-  onOpenTagsModal
+  onOpenTagsModal,
 }) {
   const [isAnimatingCompletion, setIsAnimatingCompletion] = useState(false)
   const [isCheckboxAnimating, setIsCheckboxAnimating] = useState(false)
@@ -102,7 +104,7 @@ export default function TaskItem({
     const currentTags = task.tags || []
     let updatedTags
     if (currentTags.includes(tagName)) {
-      updatedTags = currentTags.filter(tag => tag !== tagName)
+      updatedTags = currentTags.filter((tag) => tag !== tagName)
     } else {
       updatedTags = [...currentTags, tagName]
     }
@@ -110,7 +112,7 @@ export default function TaskItem({
   }
 
   const removeTag = (tagToRemove) => {
-    const updatedTags = (task.tags || []).filter(tag => tag !== tagToRemove)
+    const updatedTags = (task.tags || []).filter((tag) => tag !== tagToRemove)
     onUpdate(task.id, { ...task, tags: updatedTags })
   }
 
@@ -120,7 +122,7 @@ export default function TaskItem({
     const assigneeName = `${assignee.firstName} ${assignee.lastName}`
     let updatedAssignees
     if (currentAssignees.includes(assigneeName)) {
-      updatedAssignees = currentAssignees.filter(a => a !== assigneeName)
+      updatedAssignees = currentAssignees.filter((a) => a !== assigneeName)
     } else {
       updatedAssignees = [...currentAssignees, assigneeName]
     }
@@ -131,7 +133,7 @@ export default function TaskItem({
     const currentRoles = task.roles || []
     let updatedRoles
     if (currentRoles.includes(role)) {
-      updatedRoles = currentRoles.filter(r => r !== role)
+      updatedRoles = currentRoles.filter((r) => r !== role)
     } else {
       updatedRoles = [...currentRoles, role]
     }
@@ -264,11 +266,13 @@ export default function TaskItem({
               </div>
             )}
             <div className="flex-grow">
-              <h3 
+              <h3
                 className={`font-medium text-sm break-words whitespace-normal ${
                   isCompleted || isCanceled ? "" : "cursor-pointer hover:text-gray-300 transition-colors"
                 } ${
-                  !isDragging && !isCompleted && !isCanceled ? 'hover:bg-gray-800 hover:bg-opacity-30 rounded px-1 py-0.5 -mx-1 -my-0.5' : ''
+                  !isDragging && !isCompleted && !isCanceled
+                    ? "hover:bg-gray-800 hover:bg-opacity-30 rounded px-1 py-0.5 -mx-1 -my-0.5"
+                    : ""
                 }`}
                 onClick={!isCompleted && !isCanceled ? handleEditTask : undefined}
                 title={!isCompleted && !isCanceled ? "Click to edit task" : ""}
@@ -300,7 +304,7 @@ export default function TaskItem({
                   <Edit size={14} />
                   Edit Task
                 </button>
-                
+
                 {/* New Assign To option */}
                 <button
                   onClick={handleAssignClick}
@@ -309,7 +313,7 @@ export default function TaskItem({
                   <Users size={14} />
                   Assign To
                 </button>
-                
+
                 {/* New Tags option */}
                 <button
                   onClick={handleTagsClick}
@@ -318,7 +322,7 @@ export default function TaskItem({
                   <Tag size={14} />
                   Tags
                 </button>
-                
+
                 <button
                   onClick={handlePinToggle}
                   className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
@@ -383,11 +387,10 @@ export default function TaskItem({
                     <span
                       key={index}
                       className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer ${
-                        isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "bg-[#2F2F2F]"
+                        isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "text-white"
                       }`}
                       style={{
-                        color: isCompleted || isCanceled ? "#9CA3AF" : getTagColor(tag),
-                        backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : `${getTagColor(tag)}20`,
+                        backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag),
                       }}
                       onClick={handleTagsClick}
                     >

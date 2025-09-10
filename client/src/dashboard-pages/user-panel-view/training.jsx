@@ -624,7 +624,7 @@ export default function Training() {
           min-h-screen rounded-3xl bg-[#1C1C1C] lg:p-6 md:p-5 sm:p-2 p-1
           transition-all duration-500 ease-in-out flex-1
           ${isRightSidebarOpen 
-            ? 'lg:mr-86 md:mr-86 sm:mr-86' // Adjust right margin when sidebar is open on larger screens
+            ? 'lg:mr-86 mr-0' // Adjust right margin when sidebar is open on larger screens
             : 'mr-0' // No margin when closed
           }
         `}>

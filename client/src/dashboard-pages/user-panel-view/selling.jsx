@@ -717,7 +717,7 @@ Payment Method: ${invoiceData.paymentMethod}
       transition-all duration-500 ease-in-out flex-1
       ${
         isRightSidebarOpen
-          ? "lg:mr-[36%] md:mr-96 sm:mr-96" // Adjust right margin when sidebar is open on larger screens
+          ? "lg:mr-[36%] mr-0" // Adjust right margin when sidebar is open on larger screens
           : "mr-0" // No margin when closed
       }
     `}
@@ -1264,9 +1264,8 @@ Payment Method: ${invoiceData.paymentMethod}
       />
       {isRightSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden cursor-pointer"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden block cursor-pointer"
           onClick={() => setIsRightSidebarOpen(false)}
-          style={{ marginLeft: "16px" }}
         ></div>
       )}
 

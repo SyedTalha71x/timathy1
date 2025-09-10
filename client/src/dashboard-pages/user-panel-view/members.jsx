@@ -1148,7 +1148,7 @@ const handleDocumentClick = (member) => {
       />
       <div
         className={`flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative  ${
-          isRightSidebarOpen ? "lg:mr-96 md:mr-96 sm:mr-96" : "mr-0"
+          isRightSidebarOpen ? "lg:mr-96 mr-0" : "mr-0"
         }`}
       >
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">

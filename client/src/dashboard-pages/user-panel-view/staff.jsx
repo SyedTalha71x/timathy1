@@ -228,7 +228,7 @@ export default function StaffManagement() {
         {/* Main container - shifts on sidebar open */}
         <div
           className={`flex relative rounded-3xl transition-all duration-500 cursor-pointer bg-[#1C1C1C] text-white ${
-            isRightSidebarOpen ? "lg:mr-89" : "mr-0"
+            isRightSidebarOpen ? "lg:mr-89 mr-0" : "mr-0"
           }`}
         >
           <div className="flex-1 min-w-0 p-4 sm:p-6">
@@ -313,7 +313,7 @@ export default function StaffManagement() {
     {/* Sidebar toggle (desktop only) */}
     <button
       onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-      className="hidden lg:block text-sm rounded-xl cursor-pointer"
+      className="block text-sm rounded-xl cursor-pointer"
     >
       <IoIosMenu size={24} />
     </button>

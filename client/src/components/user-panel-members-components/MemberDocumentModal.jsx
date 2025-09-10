@@ -280,7 +280,7 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
               <button
                 onClick={handleUploadClick}
                 disabled={isUploading}
-                className="text-sm gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-sm gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl transition-colors w-full sm:w-auto flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 {isUploading ? "Uploading..." : "Upload Document"}
@@ -466,7 +466,7 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
             </div>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-black text-sm text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors w-full sm:w-auto"
+              className="px-4 py-2 bg-[#3F74FF] text-sm text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors w-full sm:w-auto"
             >
               Close
             </button>

@@ -3,18 +3,19 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useEffect, useState, useRef } from "react"
-import { Plus, Calendar, Tag, ChevronDown, Filter, X, Users, Check, Clock, Bell, Repeat } from "lucide-react"
-import AddTaskModal from "../../components/task-components/add-task-modal"
+import React, { useState, useRef, useEffect } from "react"
+import { Plus, Filter, X, Calendar, Tag, Users, Repeat, Check, ChevronDown, Clock, Bell } from "lucide-react"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
-import TaskItem from "../../components/task-components/task-item"
-import RepeatTaskModal from "../../components/task-components/repeat-task-modal"
 import { IoIosMenu } from "react-icons/io"
 import { SidebarArea } from "../../components/custom-sidebar"
-import Draggable from "react-draggable"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/avatar.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
+import RepeatTaskModal from "../../components/task-components/repeat-task-modal"
+import TaskItem from "../../components/task-components/task-item"
+import AssignModal from "../../components/task-components/assign-modal"
+import TagsModal from "../../components/task-components/edit-tags"
+import Draggable from "react-draggable"
 
 export default function TodoApp() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -129,16 +130,19 @@ export default function TodoApp() {
     },
   ])
 
+ 
   const [configuredTags, setConfiguredTags] = useState([
-    { id: 1, name: "Important", color: "#FF5252" },
-    { id: 2, name: "Urgent", color: "#FFD740" },
-    { id: 3, name: "Meeting", color: "#64FFDA" },
-    { id: 4, name: "Client", color: "#448AFF" },
-    { id: 5, name: "Onboarding", color: "#B388FF" },
-    { id: 6, name: "Personal", color: "#FF80AB" },
-    { id: 7, name: "Work", color: "#4CAF50" },
-    { id: 8, name: "Study", color: "#FFC107" },
-  ])
+    { id: 1, name: "Important", color: "#D32F2F" },   // Dark Red
+    { id: 2, name: "Urgent", color: "#F57C00" },      // Dark Orange
+    { id: 3, name: "Meeting", color: "#7B1FA2" },     // Dark Purple (new for meeting)
+    { id: 4, name: "Client", color: "#1565C0" },      // Dark Blue
+    { id: 5, name: "Onboarding", color: "#512DA8" },  // Dark Indigo
+    { id: 6, name: "Personal", color: "#C2185B" },    // Dark Pink
+    { id: 7, name: "Work", color: "#2E7D32" },        // Dark Green
+    { id: 8, name: "Study", color: "#FF8F00" },       // Dark Amber
+  ]);
+  
+  
 
   const [availableAssignees] = useState([
     { id: 1, firstName: "Jack", lastName: "Smith" },
@@ -158,19 +162,18 @@ export default function TodoApp() {
     { id: "canceled", title: "Canceled", color: "#ef4444" },
   ])
 
-  const [assignModalTask, setAssignModalTask] = useState(null);
-const [tagsModalTask, setTagsModalTask] = useState(null);
-
+  const [assignModalTask, setAssignModalTask] = useState(null)
+  const [tagsModalTask, setTagsModalTask] = useState(null)
 
   const columnRefs = useRef({})
 
   const handleOpenAssignModal = (task) => {
-    setAssignModalTask(task);
-  };
-  
+    setAssignModalTask(task)
+  }
+
   const handleOpenTagsModal = (task) => {
-    setTagsModalTask(task);
-  };
+    setTagsModalTask(task)
+  }
 
   useEffect(() => {
     columns.forEach((column) => {
@@ -936,7 +939,7 @@ const [tagsModalTask, setTagsModalTask] = useState(null);
   return (
     <div
       className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden  ${
-        isRightSidebarOpen ? "lg:mr-86 md:mr-86 sm:mr-86" : "mr-0"
+        isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"
       }`}
     >
       <Toaster
@@ -1233,28 +1236,28 @@ const [tagsModalTask, setTagsModalTask] = useState(null);
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 open_sans_font mt-4">
             {columns.map((column) => (
-               <Column
-               key={column.id}
-               id={column.id}
-               title={column.title}
-               color={column.color}
-               tasks={getSortedTasksForColumn(column.id)}
-               onDragStop={handleDragStop}
-               onTaskStatusChange={handleTaskStatusChange}
-               onTaskUpdate={handleTaskUpdate}
-               onTaskPinToggle={handleTaskPinToggle}
-               onTaskRemove={handleTaskRemove}
-               columnRef={columnRefs.current[column.id]}
-               onEditRequest={handleEditRequest}
-               onDeleteRequest={handleDeleteRequest}
-               onDuplicateRequest={handleDuplicateTask}
-               onRepeatRequest={handleRepeatRequest}
-               availableAssignees={availableAssignees}
-               availableRoles={availableRoles}
-               configuredTags={configuredTags}
-               openDropdownTaskId={openDropdownTaskId}
-               setOpenDropdownTaskId={setOpenDropdownTaskId}
-             />
+              <Column
+                key={column.id}
+                id={column.id}
+                title={column.title}
+                color={column.color}
+                tasks={getSortedTasksForColumn(column.id)}
+                onDragStop={handleDragStop}
+                onTaskStatusChange={handleTaskStatusChange}
+                onTaskUpdate={handleTaskUpdate}
+                onTaskPinToggle={handleTaskPinToggle}
+                onTaskRemove={handleTaskRemove}
+                columnRef={columnRefs.current[column.id]}
+                onEditRequest={handleEditRequest}
+                onDeleteRequest={handleDeleteRequest}
+                onDuplicateRequest={handleDuplicateTask}
+                onRepeatRequest={handleRepeatRequest}
+                availableAssignees={availableAssignees}
+                availableRoles={availableRoles}
+                configuredTags={configuredTags}
+                openDropdownTaskId={openDropdownTaskId}
+                setOpenDropdownTaskId={setOpenDropdownTaskId}
+              />
             ))}
           </div>
         </div>
@@ -1328,14 +1331,14 @@ const [tagsModalTask, setTagsModalTask] = useState(null);
         </div>
       )}
 
-      {isModalOpen && (
+      {/* {isModalOpen && (
         <AddTaskModal
           onClose={() => setIsModalOpen(false)}
           onAddTask={handleAddTask}
           configuredTags={configuredTags}
           initialTask={selectedTask}
         />
-      )}
+      )} */}
 
       {isEditModalOpen && selectedTask && (
         <EditTaskModal
@@ -1388,21 +1391,24 @@ const [tagsModalTask, setTagsModalTask] = useState(null);
         />
       )}
 
-{assignModalTask && (
-  <EditTaskModal 
-    task={assignModalTask} 
-    onClose={() => setAssignModalTask(null)}
-    onUpdateTask={handleTaskUpdate}
-  />
-)}
+      {assignModalTask && (
+        <AssignModal
+          task={assignModalTask}
+          availableAssignees={availableAssignees}
+          availableRoles={availableRoles}
+          onClose={() => setAssignModalTask(null)}
+          onUpdate={handleTaskUpdate}
+        />
+      )}
 
-{tagsModalTask && (
-  <EditTaskModal 
-    task={tagsModalTask} 
-    onClose={() => setTagsModalTask(null)}
-    onUpdateTask={handleTaskUpdate}
-  />
-)}
+      {tagsModalTask && (
+        <TagsModal
+          task={tagsModalTask}
+          configuredTags={configuredTags}
+          onClose={() => setTagsModalTask(null)}
+          onUpdate={handleTaskUpdate}
+        />
+      )}
     </div>
   )
 }
