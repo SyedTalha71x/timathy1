@@ -19,6 +19,7 @@ import {
   List,
   File,
   Dumbbell,
+  FileText,
 } from "lucide-react"
 import DefaultAvatar from "../../../public/default-avatar.avif"
 import toast, { Toaster } from "react-hot-toast"
@@ -1483,10 +1484,10 @@ const handleDocumentClick = (member) => {
               </button>
               <button
                  onClick={() => handleDocumentClick(member)}
-                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                title="Document Management"
+                 className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                 title="Document Management"
               >
-                <File size={16} />
+                <FileText size={16} />
               </button>
               <button
                 onClick={() => handleChatClick(member)}
@@ -1620,7 +1621,7 @@ const handleDocumentClick = (member) => {
                   className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                   title="Document Management"
                 >
-                  <File size={16} />
+                  <FileText size={16} />
                 </button>
                 <button
                   onClick={() => handleChatClick(member)}

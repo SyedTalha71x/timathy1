@@ -370,7 +370,7 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
                             <div className="flex gap-2 mt-2 sm:mt-0">
                               <button
                                 onClick={() => saveDocName(doc.id)}
-                                className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 flex-1 sm:flex-none"
+                                className="px-2 py-1 bg-blue-500 text-white rounded flex-1 sm:flex-none"
                               >
                                 Save
                               </button>

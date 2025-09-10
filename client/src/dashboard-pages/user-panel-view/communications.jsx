@@ -31,11 +31,10 @@ import {
   ShoppingCart,
   BadgeDollarSign,
 } from "lucide-react"
+
 import { IoIosMegaphone } from "react-icons/io"
 import CommuncationBg from "../../../public/communication-bg.svg"
-import AddAppointmentModal from "../../components/appointments-components/add-appointment-modal"
-import SelectedAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
-import DefaultAvatar from "../../../public/default-avatar.avif" // Assuming this path is correct
+import DefaultAvatar from "../../../public/default-avatar.avif" 
 import { Link } from "react-router-dom"
 import { CiMonitor } from "react-icons/ci"
 import { FaCartPlus, FaPeopleLine, FaUsers } from "react-icons/fa6"
@@ -43,16 +42,26 @@ import { RiContractLine } from "react-icons/ri"
 import { CgGym } from "react-icons/cg"
 import { TbBrandGoogleAnalytics } from "react-icons/tb"
 import { MdOutlineHelpCenter } from "react-icons/md"
-const img1 = "/Rectangle 1.png"
-const img2 = "/avatar3.png"
-import EmailManagement from "../../components/communication-components/email-management"
+
+
+import AddAppointmentModal from "../../components/appointments-components/add-appointment-modal"
+import SelectedAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import EmailManagement from "../../components/communication-components/EmailManagement"
 import ContingentModal from "../../components/communication-components/ContingentModal"
-import CreateMessageModal from "../../components/communication-components/create-message-modal"
+import CreateMessageModal from "../../components/communication-components/CreateMessageModal"
 import AddBillingPeriodModal from "../../components/communication-components/AddBillingPeriodModal"
 import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal"
 import NotifyMemberModal from "../../components/communication-components/NotifyMemberModal"
 import SettingsModal from "../../components/communication-components/SettingsModal"
 import ArchiveModal from "../../components/communication-components/ArchiveModal"
+import { MemberHistoryModal } from "../../components/communication-components/HistoryModal"
+import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
+import DraftModal from "../../components/communication-components/DraftModal"
+import FolderModal from "../../components/communication-components/FolderModal"
+import EmailModal from "../../components/communication-components/EmailModal"
+
+import { memberContingentDataNew } from "../../utils/user-panel-states/myarea-states"
+import { appointmentNotificationTypesNew, appointmentsNew, companyChatListNew, emailListNew, emailTemplatesNew, memberChatListNew, memberHistoryNew, memberRelationsNew, membersNew, preConfiguredMessagesNew, settingsNew, staffChatListNew } from "../../utils/user-panel-states/communication-states"
 
 export default function Communications() {
   const [isMessagesOpen, setIsMessagesOpen] = useState(true)
@@ -76,113 +85,15 @@ export default function Communications() {
   const [searchMember, setSearchMember] = useState("")
   const [showReactionPicker, setShowReactionPicker] = useState(null)
   const [messageReactions, setMessageReactions] = useState({})
-  const [emailList, setEmailList] = useState({
-    inbox: [
-      {
-        id: 1,
-        sender: "support@example.com",
-        subject: "Your recent inquiry",
-        body: "Dear user, thank you for contacting us. We have received your inquiry and will get back to you within 24 hours. Best regards, Support Team",
-        time: "2025-07-18T10:00:00Z",
-        isRead: false,
-        isPinned: false,
-        isArchived: false,
-      },
-      {
-        id: 2,
-        sender: "marketing@example.com",
-        subject: "New product launch!",
-        body: "Exciting news! Our new product is now available. Check it out here: [link]",
-        time: "2025-07-17T15:30:00Z",
-        isRead: true,
-        isPinned: false,
-        isArchived: false,
-      },
-    ],
-    sent: [
-      {
-        id: 3,
-        recipient: "jennifer@example.com",
-        subject: "Meeting Reminder",
-        body: "Hi Jennifer, just a friendly reminder about our meeting tomorrow at 10 AM. Please be prepared to discuss the project milestones. Thanks!",
-        status: "Delivered",
-        time: "2025-07-16T09:00:00Z",
-        isRead: true,
-        isPinned: false,
-        isArchived: false,
-      },
-      {
-        id: 4,
-        recipient: "jerry@example.com",
-        subject: "Event Announcement",
-        body: "Hi Jerry, We're excited to announce our upcoming event! It will be held on August 1st at the community center. More details to follow soon.",
-        status: "Read",
-        time: "2025-07-15T14:30:00Z",
-        isRead: true,
-        isPinned: false,
-        isArchived: false,
-      },
-    ],
-    draft: [
-      {
-        id: 5,
-        recipient: "draft@example.com",
-        subject: "Draft Email Subject",
-        body: "This is a draft email. I'll finish it later.",
-        status: "Draft",
-        time: "2025-07-19T11:00:00Z",
-        isRead: true,
-        isPinned: false,
-        isArchived: false,
-      },
-    ],
-    outbox: [],
-    archive: [],
-    error: [],
-  })
-  const [emailTemplates, setEmailTemplates] = useState([
-    {
-      id: 1,
-      name: "Welcome Email",
-      subject: "Welcome to our fitness community!",
-      body: "Dear {name},\n\nWelcome to our fitness community! We're excited to have you on board.\n\nBest regards,\nThe Team",
-    },
-    {
-      id: 2,
-      name: "Appointment Reminder",
-      subject: "Appointment Reminder",
-      body: "Dear {name},\n\nThis is a reminder about your upcoming appointment on {date} at {time}.\n\nSee you soon!",
-    },
-    {
-      id: 3,
-      name: "Class Cancellation",
-      subject: "Class Cancellation Notice",
-      body: "Dear {name},\n\nWe regret to inform you that the class scheduled for {date} has been cancelled.\n\nWe apologize for any inconvenience.",
-    },
-  ])
+  const [emailList, setEmailList] = useState(emailListNew)
+  const [emailTemplates, setEmailTemplates] = useState(emailTemplatesNew)
   const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null)
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
   const [showDraftModal, setShowDraftModal] = useState(false)
   const [originalEmailData, setOriginalEmailData] = useState({ to: "", subject: "", body: "" })
   const [showSidebar, setShowSidebar] = useState(false)
   const [settingsTab, setSettingsTab] = useState("notifications") // 'notifications' or 'setup'
-  const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState({
-    confirmation: {
-      enabled: true,
-      template:
-        "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}. Best wishes from {Studio_Name}!",
-    },
-    cancellation: {
-      enabled: true,
-      template:
-        "Hello {Member_Name}, your {Appointment_Type} has been cancelled. Please contact {Studio_Name} for rescheduling.",
-    },
-    rescheduled: {
-      enabled: true,
-      template:
-        "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}. Thank you, {Studio_Name}!",
-    },
-  })
+  const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState(appointmentNotificationTypesNew)
   const [unreadMessagesCount, setUnreadMessagesCount] = useState({
     member: 0,
     company: 0,
@@ -207,153 +118,16 @@ export default function Communications() {
     subject: "",
     body: "",
   })
-  const [settings, setSettings] = useState({
-    autoArchiveDuration: 30, // days
-    emailNotifications: true,
-    chatNotifications: true,
-    studioChatNotifications: true, // New
-    memberChatNotifications: true, // New
-    emailSignature: "Best regards,\nYour Team",
-    broadcastEmail: true,
-    broadcastChat: true,
-    smtpHost: "smtp.example.com", // New
-    smtpPort: 587, // New
-    smtpUser: "user@example.com", // New
-    smtpPass: "password", // New
-    birthdayMessageEnabled: true, // New
-    birthdayMessageTemplate: "Happy Birthday, {name}!", // New
-    appointmentNotificationEnabled: true, // New
-    appointmentNotificationTemplate: "Reminder: You have an appointment on {date} at {time}.", // New
-  })
-  const [preConfiguredMessages, setPreConfiguredMessages] = useState([
-    {
-      id: 1,
-      title: "Meeting Reminder",
-      message: "This is a reminder about our upcoming meeting.",
-      folderId: 1,
-    },
-    {
-      id: 2,
-      title: "Event Announcement",
-      message: "We're excited to announce our upcoming event!",
-      folderId: 2,
-    },
-    {
-      id: 3,
-      title: "Important Update",
-      message: "There has been an important update to our policies.",
-      folderId: 2,
-    },
-    {
-      id: 4,
-      title: "Welcome Message",
-      message: "Welcome to our platform! We're glad to have you here.",
-      folderId: 1,
-    },
-  ])
+  const [settings, setSettings] = useState(settingsNew)
+  const [preConfiguredMessages, setPreConfiguredMessages] = useState(preConfiguredMessagesNew)
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
-  const [appointments, setAppointments] = useState([
-    {
-      id: 1,
-      title: "Initial Consultation",
-      date: "2025-03-15T10:00",
-      status: "upcoming",
-      type: "Consultation",
-      memberId: 1,
-    },
-    {
-      id: 2,
-      title: "Follow-up Meeting",
-      date: "2025-03-20T14:30",
-      status: "upcoming",
-      type: "Follow-up",
-      memberId: 1,
-    },
-    {
-      id: 3,
-      title: "Annual Review",
-      date: "2025-04-05T11:00",
-      status: "upcoming",
-      type: "Annual Review",
-      memberId: 2,
-    },
-  ])
+  const [appointments, setAppointments] = useState(appointmentsNew)
 
 
 
-  const handleEmailManagementClose = () =>{
-    setShowEmailFrontend(false)
-    setActiveScreen("chat")
+ 
 
-  }
-  const handleTemplateSelect = (template) => {
-    setSelectedEmailTemplate(template)
-    setEmailData({
-      ...emailData,
-      subject: template.subject,
-      body: template.body,
-    })
-    setShowTemplateDropdown(false)
-  }
-
-  const hasUnsavedChanges = () => {
-    return (
-      (emailData.to !== originalEmailData.to ||
-        emailData.subject !== originalEmailData.subject ||
-        emailData.body !== originalEmailData.body) &&
-      (emailData.to.trim() || emailData.subject.trim() || emailData.body.trim())
-    )
-  }
-
-  const handleCloseEmailModal = () => {
-    if (hasUnsavedChanges()) {
-      setShowDraftModal(true)
-    } else {
-      setShowEmailModal(false)
-      setEmailData({ to: "", subject: "", body: "" })
-      setSelectedEmailTemplate(null)
-    }
-  }
-
-  const handleSaveDraft = () => {
-    const newDraft = {
-      id: Date.now(),
-      recipient: emailData.to || "draft@example.com",
-      subject: emailData.subject || "Draft Email Subject",
-      body: emailData.body || "This is a draft email.",
-      status: "Draft",
-      time: new Date().toISOString(),
-      isRead: true,
-      isPinned: false,
-      isArchived: false,
-    }
-
-    setEmailList((prev) => ({
-      ...prev,
-      draft: [newDraft, ...prev.draft],
-    }))
-
-    setShowDraftModal(false)
-    setShowEmailModal(false)
-    setEmailData({ to: "", subject: "", body: "" })
-    setSelectedEmailTemplate(null)
-    alert("Draft saved successfully!")
-  }
-
-  const handleDiscardDraft = () => {
-    setShowDraftModal(false)
-    setShowEmailModal(false)
-    setEmailData({ to: "", subject: "", body: "" })
-    setSelectedEmailTemplate(null)
-  }
-
-  const [editingAppointment, setEditingAppointment] = useState(null)
-  const [newAppointment, setNewAppointment] = useState({
-    title: "",
-    date: "",
-    status: "upcoming",
-  })
   const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
   const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
@@ -376,57 +150,20 @@ export default function Communications() {
   ])
   const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
   const [newMessage, setNewMessage] = useState({ title: "", message: "", folderId: 1 })
-  const [contingent, setContingent] = useState({ used: 1, total: 7 })
   const [showContingentModal, setShowContingentModal] = useState(false)
   const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
   const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 }) // For contingent modal
   const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current") // For contingent modal
   const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false) // For contingent modal
   const [newBillingPeriod, setNewBillingPeriod] = useState("") // For contingent modal
-  const [memberContingentData, setMemberContingentData] = useState({
-    1: {
-      current: { used: 2, total: 7 },
-      future: {
-        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
-        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
-        "07.14.25 - 07.18.2025": { used: 0, total: 8 },
-        "08.14.25 - 08.18.2025": { used: 0, total: 8 },
-        "09.14.25 - 09.18.2025": { used: 0, total: 8 },
-      },
-    },
-    2: {
-      current: { used: 1, total: 8 },
-      future: {
-        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
-        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
-      },
-    },
-    3: { current: { used: 0, total: 5 }, future: {} },
-    4: { current: { used: 3, total: 10 }, future: {} },
-    5: { current: { used: 0, total: 6 }, future: {} },
-    100: {
-      current: { used: 0, total: 0 }, // Company chat has no contingent
-      future: {},
-    },
-  })
-  const [emailTab, setEmailTab] = useState("inbox") // 'inbox', 'sent', 'draft', 'outbox', 'archive', 'error'
-  const [selectedEmail, setSelectedEmail] = useState(null) // For viewing full email content
+  const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
 
   const [isMemberOverviewModalOpen, setIsMemberOverviewModalOpen] = useState(false)
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState(null)
   const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details") // 'details', 'relations'
   const [showHistoryModal, setShowHistoryModal] = useState(false)
-  const [historyTab, setHistoryTab] = useState("general")
-  const [editingRelations, setEditingRelations] = useState(false)
-  const [newRelation, setNewRelation] = useState({
-    name: "",
-    relation: "",
-    category: "family",
-    type: "manual",
-    selectedMemberId: null,
-  })
-  const searchInputRef = useRef(null)
+
   const dropdownRef = useRef(null)
   const chatDropdownRef = useRef(null)
   const groupDropdownRef = useRef(null)
@@ -436,6 +173,18 @@ export default function Communications() {
   const chatMenuRef = useRef(null)
   const notePopoverRef = useRef(null)
   // Add refs for notification textarea
+
+  const staffChatList = staffChatListNew
+  const memberChatList = memberChatListNew
+  const companyChatList = companyChatListNew
+
+
+  const [members, setMembers] = useState(membersNew)
+
+  const [memberRelations, setMemberRelations] = useState(memberRelationsNew)
+  const [memberHistory, setMemberHistory] = useState(memberHistoryNew)
+
+
 
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
@@ -460,7 +209,6 @@ export default function Communications() {
     { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
   ]
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -470,270 +218,6 @@ export default function Communications() {
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
-
-  // Dummy Member Data (from Members.jsx context)
-  const [members, setMembers] = useState([
-    {
-      id: 1,
-      firstName: "Jennifer",
-      lastName: "Markus",
-      title: "Jennifer Markus",
-      email: "jennifer@example.com",
-      phone: "+1234567890",
-      street: "123 Main St",
-      zipCode: "12345",
-      city: "New York",
-      image: img1,
-      isActive: true,
-      isArchived: false,
-      memberType: "full",
-      note: "Allergic to peanuts. Prefers morning sessions.",
-      noteStartDate: "2023-01-01",
-      noteEndDate: "2023-12-31",
-      noteImportance: "important",
-      dateOfBirth: "1990-05-15",
-      about: "Experienced developer with a passion for clean code.",
-      joinDate: "2022-03-01",
-      contractStart: "2022-03-01",
-      contractEnd: "2025-03-01",
-    },
-    {
-      id: 2,
-      firstName: "Jerry",
-      lastName: "Haffer",
-      title: "Jerry Haffer",
-      email: "jerry@example.com",
-      phone: "+1234567891",
-      street: "456 Oak St",
-      zipCode: "67890",
-      city: "Los Angeles",
-      image: img1,
-      isActive: true,
-      isArchived: false,
-      memberType: "full",
-      note: "Loves cardio workouts.",
-      noteStartDate: "2023-01-01",
-      noteEndDate: "2023-12-31",
-      noteImportance: "unimportant",
-      dateOfBirth: "1985-08-22",
-      about: "Certified PMP with 10 years of experience in IT project management.",
-      joinDate: "2021-11-15",
-      contractStart: "2021-11-15",
-      contractEnd: "2025-04-15",
-    },
-    {
-      id: 3,
-      firstName: "Group",
-      lastName: "1",
-      title: "Group 1",
-      email: "group1@example.com",
-      phone: null,
-      street: null,
-      zipCode: null,
-      city: null,
-      image: img2,
-      isActive: true,
-      isArchived: false,
-      memberType: "group", // Custom type for groups
-      note: "General group chat for project updates.",
-      noteStartDate: null,
-      noteEndDate: null,
-      noteImportance: "unimportant",
-      dateOfBirth: null,
-      about: "A group of members working on Project X.",
-      joinDate: "2023-01-01",
-      contractStart: null,
-      contractEnd: null,
-    },
-    {
-      id: 4,
-      firstName: "David",
-      lastName: "Eison",
-      title: "David Eison",
-      email: "david@example.com",
-      phone: "+1234567893",
-      street: "321 Elm St",
-      zipCode: "98765",
-      city: "Miami",
-      image: img2,
-      isActive: true,
-      isArchived: false,
-      memberType: "full",
-      note: "Personal training focused.",
-      noteStartDate: "2023-01-01",
-      noteEndDate: "2023-12-31",
-      noteImportance: "unimportant",
-      dateOfBirth: "1988-07-25",
-      about: "Dedicated to personal fitness goals.",
-      joinDate: "2022-06-01",
-      contractStart: "2022-06-01",
-      contractEnd: "2025-06-01",
-    },
-    {
-      id: 5,
-      firstName: "Mary",
-      lastName: "Freund",
-      title: "Mary Freund",
-      email: "mary@example.com",
-      phone: "+1234567894",
-      street: "654 Maple Ave",
-      zipCode: "13579",
-      city: "Seattle",
-      image: img1,
-      isActive: true,
-      isArchived: false,
-      memberType: "full",
-      note: "Strength training enthusiast.",
-      noteStartDate: "2023-01-01",
-      noteEndDate: "2023-12-31",
-      noteImportance: "important",
-      dateOfBirth: "1991-12-05",
-      about: "Powerlifter and strength training coach.",
-      joinDate: "2022-02-15",
-      contractStart: "2022-02-15",
-      contractEnd: "2025-02-15",
-    },
-    {
-      id: 100,
-      firstName: "Fit Chain",
-      lastName: "GmbH",
-      title: "Fit Chain GmbH",
-      email: "studio@fitchain.com",
-      phone: null,
-      street: null,
-      zipCode: null,
-      city: null,
-      image: img1,
-      isActive: true,
-      isArchived: false,
-      memberType: "company",
-      note: "Official studio communication channel.",
-      noteStartDate: null,
-      noteEndDate: null,
-      noteImportance: "unimportant",
-      dateOfBirth: null,
-      about: "The main communication channel for Fit Chain GmbH.",
-      joinDate: "2020-01-01",
-      contractStart: null,
-      contractEnd: null,
-    },
-  ])
-  // Dummy Member Relations Data (from Members.jsx context)
-  const [memberRelations, setMemberRelations] = useState({
-    1: {
-      family: [
-        { name: "Anna Doe", relation: "Mother", id: 101, type: "member" },
-        { name: "Peter Doe", relation: "Father", id: 102, type: "lead" },
-      ],
-      friendship: [{ name: "Max Miller", relation: "Best Friend", id: 201, type: "member" }],
-      relationship: [{ name: "Marie Smith", relation: "Partner", id: 301, type: "member" }],
-      work: [{ name: "Tom Wilson", relation: "Colleague", id: 401, type: "lead" }],
-      other: [{ name: "Mrs. Smith", relation: "Neighbor", id: 501, type: "manual" }],
-    },
-    2: {
-      family: [],
-      friendship: [],
-      relationship: [],
-      work: [],
-      other: [],
-    },
-    3: { family: [], friendship: [], relationship: [], work: [], other: [] }, // Group 1
-    4: { family: [], friendship: [], relationship: [], work: [], other: [] }, // David Eison
-    5: { family: [], friendship: [], relationship: [], work: [], other: [] }, // Mary Freund
-    100: { family: [], friendship: [], relationship: [], work: [], other: [] }, // Fit Chain GmbH
-  })
-  // Dummy Member History Data (from Members.jsx context)
-  const [memberHistory, setMemberHistory] = useState({
-    1: {
-      general: [
-        {
-          id: 1,
-          date: "2025-01-15",
-          action: "Email updated",
-          details: "Changed from old@email.com to jennifer@example.com",
-          user: "Admin",
-        },
-        { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
-      ],
-      checkins: [
-        { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "Jennifer Markus" },
-        { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "Jennifer Markus" },
-      ],
-      appointments: [
-        { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
-        { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
-      ],
-      finance: [
-        {
-          id: 1,
-          date: "2025-01-01",
-          type: "Payment",
-          amount: "$99.99",
-          description: "Monthly membership fee",
-          status: "completed",
-        },
-        {
-          id: 2,
-          date: "2024-12-01",
-          type: "Payment",
-          amount: "$99.99",
-          description: "Monthly membership fee",
-          status: "completed",
-        },
-      ],
-      contracts: [
-        {
-          id: 1,
-          date: "2024-03-01",
-          action: "Contract signed",
-          details: "Initial 12-month membership contract",
-          user: "Admin",
-        },
-        { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
-      ],
-    },
-    2: {
-      general: [
-        {
-          id: 1,
-          date: "2025-01-12",
-          action: "Profile updated",
-          details: "Updated personal information",
-          user: "Admin",
-        },
-      ],
-      checkins: [
-        { id: 1, date: "2025-01-19T08:00", type: "Check-in", location: "Main Entrance", user: "Jerry Haffer" },
-        { id: 2, date: "2025-01-19T10:30", type: "Check-out", location: "Main Entrance", user: "Jerry Haffer" },
-      ],
-      appointments: [
-        { id: 1, date: "2025-01-17T14:00", title: "Cardio Session", status: "completed", trainer: "Lisa Davis" },
-      ],
-      finance: [
-        {
-          id: 1,
-          date: "2025-01-01",
-          type: "Payment",
-          amount: "$89.99",
-          description: "Monthly membership fee",
-          status: "completed",
-        },
-      ],
-      contracts: [
-        {
-          id: 1,
-          date: "2021-11-15",
-          action: "Contract signed",
-          details: "Initial membership contract",
-          user: "Admin",
-        },
-      ],
-    },
-    3: { general: [], checkins: [], appointments: [], finance: [], contracts: [] }, // Group 1
-    4: { general: [], checkins: [], appointments: [], finance: [], contracts: [] }, // David Eison
-    5: { general: [], checkins: [], appointments: [], finance: [], contracts: [] }, // Mary Freund
-    100: { general: [], checkins: [], appointments: [], finance: [], contracts: [] }, // Fit Chain GmbH
-  })
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -776,11 +260,7 @@ export default function Communications() {
       setChatList(companyChatList)
     }
   }, [chatType])
-  // useEffect(() => {
-  //   if (messagesEndRef.current) {
-  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
-  //   }
-  // }, [messages])
+ 
   useEffect(() => {
     // Calculate unread counts for tabs
     const memberUnread = memberChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
@@ -794,191 +274,54 @@ export default function Communications() {
     })
   }, [chatList, archivedChats, emailList]) // Add emailList to dependencies
 
-  const handleSearchClick = () => {
-    setIsSearchOpen(!isSearchOpen)
+
+  const handleEmailManagementClose = () => {
+    setShowEmailFrontend(false)
+    setActiveScreen("chat")
+
   }
-  const handleNewChat = () => {
-    setShowChatDropdown(true)
-    setShowGroupDropdown(false)
-    setActiveDropdownId(null)
+  const handleTemplateSelect = (template) => {
+    setSelectedEmailTemplate(template)
+    setEmailData({
+      ...emailData,
+      subject: template.subject,
+      body: template.body,
+    })
+    setShowTemplateDropdown(false)
   }
-  const handleNewGroup = () => {
-    setShowGroupDropdown(true)
-    setShowChatDropdown(false)
-    setActiveDropdownId(null)
+
+
+  const handleSaveDraft = () => {
+    const newDraft = {
+      id: Date.now(),
+      recipient: emailData.to || "draft@example.com",
+      subject: emailData.subject || "Draft Email Subject",
+      body: emailData.body || "This is a draft email.",
+      status: "Draft",
+      time: new Date().toISOString(),
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+    }
+
+    setEmailList((prev) => ({
+      ...prev,
+      draft: [newDraft, ...prev.draft],
+    }))
+
+    setShowDraftModal(false)
+    setShowEmailModal(false)
+    setEmailData({ to: "", subject: "", body: "" })
+    setSelectedEmailTemplate(null)
+    alert("Draft saved successfully!")
   }
-  // Staff chat list (renamed from employee)
-  const staffChatList = [
-    {
-      id: 1,
-      name: "Jennifer Markus",
-      time: "Today | 05:30 PM",
-      active: true,
-      message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: img1,
-      isBirthday: true,
-      isRead: false,
-      unreadCount: 2, // New
-      messageStatus: "read",
-      messages: [
-        {
-          id: 1,
-          sender: "Jennifer",
-          content: "Oh, hello! All perfectly. I will check it and get back to you soon.",
-          time: "04:45 PM",
-          isUnread: false,
-          status: "read",
-        },
-        {
-          id: 2,
-          sender: "You",
-          content: "Yes, hello! All perfectly. I will check it and get back to you soon.",
-          time: "04:45 PM",
-          isUnread: false,
-          status: "read",
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Jerry Haffer",
-      time: "Today | 05:30 PM",
-      verified: true,
-      message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: img1,
-      isRead: true,
-      unreadCount: 0, // New
-      messageStatus: "delivered",
-      messages: [
-        {
-          id: 1,
-          sender: "Jerry",
-          content: "Have you seen the latest design updates?",
-          time: "03:30 PM",
-          isUnread: false,
-          status: "delivered",
-        },
-        {
-          id: 2,
-          sender: "You",
-          content: "Not yet, I'll take a look right away.",
-          time: "03:32 PM",
-          isUnread: false,
-          status: "sent",
-        },
-      ],
-    },
-  ]
-  const memberChatList = [
-    {
-      id: 3,
-      name: "Group 1",
-      time: "Today | 05:30 PM",
-      message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: img2,
-      isRead: true,
-      unreadCount: 0, // New
-      messageStatus: "read",
-      messages: [
-        {
-          id: 1,
-          sender: "Alex",
-          content: "When is our next meeting scheduled?",
-          time: "02:15 PM",
-          isUnread: false,
-          status: "read",
-        },
-        {
-          id: 2,
-          sender: "You",
-          content: "Tomorrow at 10 AM.",
-          time: "02:17 PM",
-          isUnread: false,
-          status: "read",
-        },
-      ],
-    },
-    {
-      id: 4,
-      name: "David Eison",
-      time: "Today | 05:30 PM",
-      message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: img2,
-      isBirthday: true,
-      isRead: false,
-      unreadCount: 5, // New
-      messageStatus: "sent",
-      messages: [
-        {
-          id: 1,
-          sender: "David",
-          content: "Can we discuss the project timeline?",
-          time: "01:45 PM",
-          isUnread: false,
-          status: "sent",
-        },
-        {
-          id: 2,
-          sender: "You",
-          content: "Sure, I'm available this afternoon.",
-          time: "01:50 PM",
-          isUnread: false,
-          status: "delivered",
-        },
-      ],
-    },
-    {
-      id: 5,
-      name: "Mary Freund",
-      time: "Today | 05:30 PM",
-      message: "Hey! Did you finish the Hi-Fi wireframes for Beta app design?",
-      logo: img1,
-      isRead: true,
-      unreadCount: 0, // New
-      messageStatus: "delivered",
-      messages: [
-        {
-          id: 1,
-          sender: "Mary",
-          content: "Did you review the latest feedback?",
-          time: "11:20 AM",
-          isUnread: false,
-          status: "delivered",
-        },
-        {
-          id: 2,
-          sender: "You",
-          content: "Yes, I've incorporated the changes.",
-          time: "11:25 AM",
-          isUnread: false,
-          status: "read",
-        },
-      ],
-    },
-  ]
-  // Company chat - single chat with studio name
-  const companyChatList = [
-    {
-      id: 100,
-      name: "Fit Chain GmbH",
-      time: "Today | 05:30 PM",
-      message: "Welcome to Fit Chain GmbH communications",
-      logo: img1,
-      isRead: false, // Changed to unread for demo
-      unreadCount: 1, // New
-      messageStatus: "read",
-      messages: [
-        {
-          id: 1,
-          sender: "System",
-          content: "Welcome to Fit Chain GmbH internal communications.",
-          time: "09:00 AM",
-          isUnread: false,
-          status: "read",
-        },
-      ],
-    },
-  ]
+
+  const handleDiscardDraft = () => {
+    setShowDraftModal(false)
+    setShowEmailModal(false)
+    setEmailData({ to: "", subject: "", body: "" })
+    setSelectedEmailTemplate(null)
+  }
   const handleArchiveChat = (chatId, e) => {
     e.stopPropagation()
     const chatToArchive = chatList.find((chat) => chat.id === chatId)
@@ -1197,13 +540,7 @@ export default function Communications() {
     setMessageText((prevText) => prevText + emoji.native)
     setShowEmojiPicker(false)
   }
-  const handleFileUpload = (event) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      console.log("File uploaded:", file.name)
-      setShowMediaUpload(false)
-    }
-  }
+
   const handleBroadcast = () => {
     if (!selectedMessage) {
       alert("Please select a message to broadcast")
@@ -1274,18 +611,7 @@ export default function Communications() {
     setIsNotifyMemberOpen(true)
     setNotifyAction("delete")
   }
-  const handleSaveAppointment = () => {
-    if (editingAppointment) {
-      setAppointments(
-        appointments.map((app) => (app.id === editingAppointment.id ? { ...app, ...newAppointment } : app)),
-      )
-      setEditingAppointment(null)
-    } else {
-      const id = Math.max(0, ...appointments.map((a) => a.id)) + 1
-      setAppointments([...appointments, { id, ...newAppointment }])
-    }
-    setNewAppointment({ title: "", date: "", status: "upcoming" })
-  }
+
   const handleManageContingent = () => {
     // Use selectedChat.id to get the correct contingent data
     const memberId = selectedChat?.id
@@ -1349,19 +675,10 @@ export default function Communications() {
     { emoji: "😢", name: "sad" },
     { emoji: "😡", name: "angry" },
   ]
-  // Filter and sort chats (pinned first, then by time)
-  const sortedChatList = [...chatList].sort((a, b) => {
-    const aPinned = pinnedChats.has(a.id)
-    const bPinned = pinnedChats.has(b.id)
-    if (aPinned && !bPinned) return -1
-    if (!aPinned && bPinned) return 1
-    return 0
-  })
-  // Combined search for both active and archived chats
+
   const searchResults = searchMember
     ? [...chatList, ...archivedChats].filter((chat) => chat.name.toLowerCase().includes(searchMember.toLowerCase()))
     : []
-  // Contingent management functions (from Members.jsx reference)
   const getBillingPeriods = (memberId) => {
     const memberData = memberContingentData[memberId]
     if (!memberData) return []
@@ -1400,28 +717,7 @@ export default function Communications() {
       alert("New billing period added successfully")
     }
   }
-  const handleEmailTabClick = (tab) => {
-    setEmailTab(tab)
-    setSelectedEmail(null) // Close email view when changing tabs
-  }
-  const handleEmailItemClick = (email) => {
-    setSelectedEmail(email)
-    // Mark email as read
-    if (!email.isRead) {
-      const updatedEmailList = { ...emailList }
-      const tabToUpdate = updatedEmailList[emailTab]
-      const emailIndex = tabToUpdate.findIndex((e) => e.id === email.id)
-      if (emailIndex !== -1) {
-        tabToUpdate[emailIndex] = { ...tabToUpdate[emailIndex], isRead: true }
-        // This is a shallow copy, for a real app you'd need to update the state immutably
-        // For this demo, direct modification is fine as emailList is a local const
-      }
-      setUnreadMessagesCount((prev) => ({
-        ...prev,
-        email: updatedEmailList.inbox.filter((e) => !e.isRead).length,
-      }))
-    }
-  }
+
   const handleSearchMemberForEmail = (query) => {
     // This would typically fetch members from a backend
     // For now, filter from existing chat lists
@@ -1434,7 +730,6 @@ export default function Communications() {
     setEmailData((prev) => ({ ...prev, to: member.email || member.name }))
     setShowRecipientDropdown(false) // Close dropdown after selection
   }
-  // Member Details/Overview Functions (from Members.jsx context)
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return ""
     const today = new Date()
@@ -1487,59 +782,15 @@ export default function Communications() {
     setIsMemberOverviewModalOpen(false)
     alert("Edit functionality would be implemented here.")
   }
-  const handleAddRelation = () => {
-    if (!newRelation.name || !newRelation.relation) {
-      alert("Please fill in all fields")
-      return
-    }
-    const relationId = Date.now()
-    const updatedRelations = { ...memberRelations }
-    if (!updatedRelations[selectedMember.id]) {
-      updatedRelations[selectedMember.id] = {
-        family: [],
-        friendship: [],
-        relationship: [],
-        work: [],
-        other: [],
-      }
-    }
-    updatedRelations[selectedMember.id][newRelation.category].push({
-      id: relationId,
-      name: newRelation.name,
-      relation: newRelation.relation,
-      type: newRelation.type,
-    })
-    setMemberRelations(updatedRelations)
-    setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
-    alert("Relation added successfully")
-  }
-
   const getMemberAppointments = (memberId) => {
     return appointments.filter((app) => app.memberId === memberId)
   }
-
   const getCombinedChatList = () => {
     if (chatType === "company") {
       // Studio chat at top, then employee chats below with separator
       return [...companyChatList, { id: "separator", type: "separator" }, ...staffChatList]
     }
     return chatType === "member" ? memberChatList : staffChatList
-  }
-
-  const insertVariable = (variable, textareaRef, currentValue, setValue) => {
-    if (textareaRef && textareaRef.current) {
-      const textarea = textareaRef.current
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-      const newValue = currentValue.substring(0, start) + `{${variable}}` + currentValue.substring(end)
-      setValue(newValue)
-
-      // Set cursor position after inserted variable
-      setTimeout(() => {
-        textarea.focus()
-        textarea.setSelectionRange(start + variable.length + 2, start + variable.length + 2)
-      }, 0)
-    }
   }
 
   return (
@@ -2246,10 +1497,10 @@ export default function Communications() {
                   <button
                     onClick={handleBroadcast}
                     className={`w-full py-3 ${selectedMessage &&
-                        selectedRecipients.length > 0 &&
-                        (settings.broadcastEmail || settings.broadcastChat)
-                        ? "bg-[#FF843E] text-sm hover:bg-orange-600"
-                        : "bg-gray-600"
+                      selectedRecipients.length > 0 &&
+                      (settings.broadcastEmail || settings.broadcastChat)
+                      ? "bg-[#FF843E] text-sm hover:bg-orange-600"
+                      : "bg-gray-600"
                       } text-white text-sm rounded-xl`}
                     disabled={
                       !selectedMessage ||
@@ -2266,235 +1517,6 @@ export default function Communications() {
         )}
       </div>
 
-      <EmailManagement
-        isOpen={showEmailFrontend}
-        onClose={handleEmailManagementClose}
-        onOpenSendEmail={() => setShowEmailModal(true)}
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenBroadcast={() => setActiveScreen("send-message")} // Add this line
-        initialEmailList={emailList}
-      />
-         <SettingsModal
-        showSettings={showSettings}
-        setShowSettings={setShowSettings}
-        settings={settings}
-        setSettings={setSettings}
-        settingsTab={settingsTab}
-        setSettingsTab={setSettingsTab}
-        appointmentNotificationTypes={appointmentNotificationTypes}
-        setAppointmentNotificationTypes={setAppointmentNotificationTypes}
-        handleSaveSettings={handleSaveSettings}
-      />
-
-      {/* Email Modal (Send Email) */}
-      {showEmailModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium flex items-center gap-2">
-                  <Mail className="w-5 h-5" />
-                  Send Email
-                </h2>
-                <button onClick={handleCloseEmailModal} className="p-2 hover:bg-zinc-700 rounded-lg">
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="space-y-4">
-                {/* Template Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Email Template</label>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
-                      className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm text-left flex items-center justify-between"
-                    >
-                      <span>{selectedEmailTemplate ? selectedEmailTemplate.name : "Select a template (optional)"}</span>
-                      <Search className="h-4 w-4 text-gray-400" />
-                    </button>
-                    {showTemplateDropdown && (
-                      <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-10 max-h-48 overflow-y-auto">
-                        <button
-                          onClick={() => {
-                            setSelectedEmailTemplate(null)
-                            setEmailData({ ...emailData, subject: "", body: "" })
-                            setShowTemplateDropdown(false)
-                          }}
-                          className="w-full text-left p-3 hover:bg-[#2F2F2F] text-sm text-gray-400 border-b border-gray-700"
-                        >
-                          No template (blank email)
-                        </button>
-                        {emailTemplates.map((template) => (
-                          <button
-                            key={template.id}
-                            onClick={() => handleTemplateSelect(template)}
-                            className="w-full text-left p-3 hover:bg-[#2F2F2F]"
-                          >
-                            <div className="font-medium text-sm">{template.name}</div>
-                            <div className="text-xs text-gray-400 truncate">{template.subject}</div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* To Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">To</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={emailData.to}
-                      onChange={(e) => {
-                        setEmailData({ ...emailData, to: e.target.value })
-                        setShowRecipientDropdown(e.target.value.length > 0)
-                      }}
-                      onFocus={() => setShowRecipientDropdown(emailData.to.length > 0)}
-                      className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm pr-10"
-                      placeholder="Search members or type email"
-                    />
-                    <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-                    {showRecipientDropdown && emailData.to.length > 0 && (
-                      <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-10 max-h-48 overflow-y-auto custom-scrollbar">
-                        {handleSearchMemberForEmail(emailData.to).map((member) => (
-                          <button
-                            key={member.id}
-                            onClick={() => handleSelectEmailRecipient(member)}
-                            className="w-full text-left p-2 hover:bg-[#2F2F2F] flex items-center gap-2"
-                          >
-                            <img
-                              src={member.logo || "/placeholder.svg"}
-                              alt={member.name}
-                              className="h-8 w-8 rounded-full"
-                            />
-                            <span className="text-sm">
-                              {member.name} ({member.email})
-                            </span>
-                          </button>
-                        ))}
-                        {handleSearchMemberForEmail(emailData.to).length === 0 && (
-                          <p className="p-2 text-sm text-gray-400">No members found. Type full email to send.</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Subject Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Subject</label>
-                  <input
-                    type="text"
-                    value={emailData.subject}
-                    onChange={(e) => setEmailData({ ...emailData, subject: e.target.value })}
-                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
-                    placeholder="Email subject"
-                  />
-                </div>
-
-                {/* Message Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Message</label>
-                  <div className="bg-[#222222] rounded-xl">
-                    {/* Email Toolbar */}
-                    <div className="flex items-center gap-2 p-2 border-b border-gray-700">
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm font-bold">B</button>
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm italic">I</button>
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm underline">U</button>
-                      <div className="w-px h-4 bg-gray-600 mx-1" />
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Attach file">
-                        📎
-                      </button>
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Insert link">
-                        🔗
-                      </button>
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Insert table">
-                        📊
-                      </button>
-                    </div>
-                    <textarea
-                      value={emailData.body}
-                      onChange={(e) => setEmailData({ ...emailData, body: e.target.value })}
-                      className="w-full bg-transparent text-white px-4 py-2 text-sm h-48 resize-none focus:outline-none"
-                      placeholder="Type your email message here..."
-                    />
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 justify-end">
-                  <button
-                    onClick={handleCloseEmailModal}
-                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSendEmail}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm flex items-center gap-2"
-                  >
-                    <Send className="w-4 h-4" />
-                    Send Email
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-       <ArchiveModal
-        showArchive={showArchive}
-        setShowArchive={setShowArchive}
-        archivedChats={archivedChats}
-        handleRestoreChat={(id) => handleRestoreChat(id)}
-      />
-
-      {/* Folder Creation Modal */}
-      {showFolderModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium flex items-center gap-2">
-                  <FolderPlus className="w-5 h-5" />
-                  Create New Folder
-                </h2>
-                <button onClick={() => setShowFolderModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Folder Name</label>
-                  <input
-                    type="text"
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
-                    placeholder="Enter folder name"
-                    autoFocus
-                  />
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button
-                    onClick={() => setShowFolderModal(false)}
-                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleCreateFolder}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
-                  >
-                    Create Folder
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Appointment Modal */}
       {showAppointmentModal && selectedMember && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -2647,7 +1669,56 @@ export default function Communications() {
           </div>
         </div>
       )}
-      {/* Add Appointment Modal */}
+
+      <EmailManagement
+        isOpen={showEmailFrontend}
+        onClose={handleEmailManagementClose}
+        onOpenSendEmail={() => setShowEmailModal(true)}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenBroadcast={() => setActiveScreen("send-message")} // Add this line
+        initialEmailList={emailList}
+      />
+      <SettingsModal
+        showSettings={showSettings}
+        setShowSettings={setShowSettings}
+        settings={settings}
+        setSettings={setSettings}
+        settingsTab={settingsTab}
+        setSettingsTab={setSettingsTab}
+        appointmentNotificationTypes={appointmentNotificationTypes}
+        setAppointmentNotificationTypes={setAppointmentNotificationTypes}
+        handleSaveSettings={handleSaveSettings}
+      />
+      
+      <EmailModal
+        show={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        emailData={emailData}
+        setEmailData={setEmailData}
+        handleSendEmail={handleSendEmail}
+        emailTemplates={emailTemplates}
+        selectedEmailTemplate={selectedEmailTemplate}
+        handleTemplateSelect={handleTemplateSelect}
+        showTemplateDropdown={showTemplateDropdown}
+        setShowTemplateDropdown={setShowTemplateDropdown}
+        showRecipientDropdown={showRecipientDropdown}
+        setShowRecipientDropdown={setShowRecipientDropdown}
+        handleSearchMemberForEmail={handleSearchMemberForEmail}
+        handleSelectEmailRecipient={handleSelectEmailRecipient}
+      />
+      <ArchiveModal
+        showArchive={showArchive}
+        setShowArchive={setShowArchive}
+        archivedChats={archivedChats}
+        handleRestoreChat={(id) => handleRestoreChat(id)}
+      />
+
+      <FolderModal
+        isOpen={showFolderModal}
+        onClose={() => setShowFolderModal(false)}
+        onCreateFolder={handleCreateFolder}
+      />
+
       {showAddAppointmentModal && (
         <AddAppointmentModal
           isOpen={showAddAppointmentModal}
@@ -2659,7 +1730,6 @@ export default function Communications() {
           freeAppointments={freeAppointments}
         />
       )}
-      {/* Edit Appointment Modal */}
       {showSelectedAppointmentModal && selectedAppointmentData && (
         <SelectedAppointmentModal
           selectedAppointment={selectedAppointmentData}
@@ -2675,32 +1745,12 @@ export default function Communications() {
         />
       )}
 
-      {showDraftModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-            <div className="p-6">
-              <h3 className="text-lg font-medium mb-4">Save as Draft?</h3>
-              <p className="text-gray-400 text-sm mb-6">
-                You have unsaved changes. Would you like to save this email as a draft?
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={handleDiscardDraft}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
-                >
-                  Discard
-                </button>
-                <button
-                  onClick={handleSaveDraft}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
-                >
-                  Save Draft
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DraftModal
+        show={showDraftModal}
+        onClose={() => setShowDraftModal(false)}
+        onDiscard={handleDiscardDraft}
+        onSave={handleSaveDraft}
+      />
       <CreateMessageModal
         show={showCreateMessageModal}
         setShow={setShowCreateMessageModal}
@@ -2749,422 +1799,28 @@ export default function Communications() {
         handleViewDetailedInfo={handleViewDetailedInfo}
         handleEditFromOverview={handleEditFromOverview}
       />
-      {/* Member Details Modal with Tabs - INTEGRATED */}
-      {isMemberDetailsModalOpen && selectedMember && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">Member Details</h2>
-                <button
-                  onClick={() => {
-                    setIsMemberDetailsModalOpen(false)
-                    setSelectedMember(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
-              {/* Tab Navigation */}
-              <div className="flex border-b border-gray-700 mb-6">
-                <button
-                  onClick={() => setActiveMemberDetailsTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${activeMemberDetailsTab === "details"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
-                    }`}
-                >
-                  Details
-                </button>
-                <button
-                  onClick={() => setActiveMemberDetailsTab("relations")}
-                  className={`px-4 py-2 text-sm font-medium ${activeMemberDetailsTab === "relations"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
-                    }`}
-                >
-                  Relations
-                </button>
-              </div>
-              {/* Tab Content */}
-              {activeMemberDetailsTab === "details" && (
-                <div className="space-y-4 text-white">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={selectedMember.image || DefaultAvatar}
-                      alt="Profile"
-                      className="w-24 h-24 rounded-full object-cover"
-                    />
-                    <div>
-                      <h3 className="text-xl font-semibold">
-                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
-                      </h3>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${selectedMember.memberType === "full"
-                              ? "bg-blue-900 text-blue-300"
-                              : "bg-purple-900 text-purple-300"
-                            }`}
-                        >
-                          {selectedMember.memberType === "full"
-                            ? "Full Member (with contract)"
-                            : "Temporary Member (without contract)"}
-                        </span>
-                      </div>
-                      <p className="text-gray-400 mt-1">
-                        {selectedMember.memberType === "full" ? (
-                          <>
-                            Contract: {selectedMember.contractStart} -
-                            <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                              {selectedMember.contractEnd}
-                            </span>
-                          </>
-                        ) : (
-                          <>Auto-archive date: {selectedMember.autoArchiveDate}</>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-400">Email</p>
-                      <p>{selectedMember.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Phone</p>
-                      <p>{selectedMember.phone}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Address</p>
-                    <p>{`${selectedMember.street}, ${selectedMember.zipCode} ${selectedMember.city}`}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-400">Date of Birth</p>
-                      <p>
-                        {selectedMember.dateOfBirth} (Age: {calculateAge(selectedMember.dateOfBirth)})
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Join Date</p>
-                      <p>{selectedMember.joinDate}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">About</p>
-                    <p>{selectedMember.about}</p>
-                  </div>
-                  {selectedMember.note && (
-                    <div>
-                      <p className="text-sm text-gray-400">Special Note</p>
-                      <p>{selectedMember.note}</p>
-                      <p className="text-sm text-gray-400 mt-2">
-                        Note Period: {selectedMember.noteStartDate} to {selectedMember.noteEndDate}
-                      </p>
-                      <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
-                    </div>
-                  )}
-                  <div className="flex justify-end gap-4 mt-6">
-                    {selectedMember.memberType === "full" && (
-                      <button
-                        onClick={redirectToContract}
-                        className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
-                      >
-                        <FileText size={16} />
-                        View Contract
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-              {activeMemberDetailsTab === "relations" && (
-                <div className="space-y-6 max-h-[60vh] overflow-y-auto">
-                  {/* Relations Tree Visualization */}
-                  <div className="bg-[#161616] rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4 text-center">Relationship Tree</h3>
-                    <div className="flex flex-col items-center space-y-8">
-                      {/* Central Member */}
-                      <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
-                        {selectedMember.title}
-                      </div>
-                      {/* Connection Lines and Categories */}
-                      <div className="relative w-full">
-                        {/* Horizontal line */}
-                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
-                        {/* Category sections */}
-                        <div className="grid grid-cols-5 gap-4 pt-8">
-                          {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
-                            <div key={category} className="flex flex-col items-center space-y-4">
-                              {/* Vertical line */}
-                              <div className="w-0.5 h-8 bg-gray-600"></div>
-                              {/* Category header */}
-                              <div
-                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
-                                    ? "bg-yellow-600 text-yellow-100"
-                                    : category === "friendship"
-                                      ? "bg-green-600 text-green-100"
-                                      : category === "relationship"
-                                        ? "bg-red-600 text-red-100"
-                                        : category === "work"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                  }`}
-                              >
-                                {category}
-                              </div>
-                              {/* Relations in this category */}
-                              <div className="space-y-2">
-                                {relations.map((relation) => (
-                                  <div
-                                    key={relation.id}
-                                    className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${relation.type === "member" || relation.type === "lead"
-                                        ? "border border-blue-500/30"
-                                        : ""
-                                      }`}
-                                    onClick={() => {
-                                      if (relation.type === "member" || relation.type === "lead") {
-                                        alert(`Clicked on ${relation.name} (${relation.type})`)
-                                      }
-                                    }}
-                                  >
-                                    <div className="text-white text-sm font-medium">{relation.name}</div>
-                                    <div className="text-gray-400 text-xs">({relation.relation})</div>
-                                    <div
-                                      className={`text-xs mt-1 px-1 py-0.5 rounded ${relation.type === "member"
-                                          ? "bg-green-600 text-green-100"
-                                          : relation.type === "lead"
-                                            ? "bg-blue-600 text-blue-100"
-                                            : "bg-gray-600 text-gray-100"
-                                        }`}
-                                    >
-                                      {relation.type}
-                                    </div>
-                                  </div>
-                                ))}
-                                {relations.length === 0 && (
-                                  <div className="text-gray-500 text-xs text-center">No relations</div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Relations List */}
-                  <div className="bg-[#161616] rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
-                    <div className="space-y-4">
-                      {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
-                        <div key={category}>
-                          <h4 className="text-md font-medium text-gray-300 capitalize mb-2">{category}</h4>
-                          <div className="space-y-2 ml-4">
-                            {relations.length > 0 ? (
-                              relations.map((relation) => (
-                                <div
-                                  key={relation.id}
-                                  className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
-                                      ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
-                                      : ""
-                                    }`}
-                                  onClick={() => {
-                                    if (relation.type === "member" || relation.type === "lead") {
-                                      alert(`Clicked on ${relation.name} (${relation.type})`)
-                                    }
-                                  }}
-                                >
-                                  <div>
-                                    <span className="text-white font-medium">{relation.name}</span>
-                                    <span className="text-gray-400 ml-2">- {relation.relation}</span>
-                                    <span
-                                      className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
-                                          ? "bg-green-600 text-green-100"
-                                          : relation.type === "lead"
-                                            ? "bg-blue-600 text-blue-100"
-                                            : "bg-gray-600 text-gray-100"
-                                        }`}
-                                    >
-                                      {relation.type}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-gray-500 text-sm">No {category} relations</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {/* History Modal - INTEGRATED */}
-      {showHistoryModal && selectedMember && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">
-                History - {selectedMember.firstName} {selectedMember.lastName}
-              </h2>
-              <button onClick={() => setShowHistoryModal(false)} className="text-gray-300 hover:text-white">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="flex space-x-1 mb-6 bg-[#141414] rounded-lg p-1">
-              {[
-                { id: "general", label: "General Changes" },
-                { id: "checkins", label: "Check-ins & Check-outs" },
-                { id: "appointments", label: "Past Appointments" },
-                { id: "finance", label: "Finance Transactions" },
-                { id: "contracts", label: "Contract Changes" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setHistoryTab(tab.id)}
-                  className={`px-4 py-2 rounded-md text-sm transition-colors ${historyTab === tab.id ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-                    }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <div className="bg-[#141414] rounded-xl p-4">
-              {historyTab === "general" && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">General Changes</h3>
-                  <div className="space-y-3">
-                    {memberHistory[selectedMember.id]?.general?.map((change) => (
-                      <div key={change.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-medium text-white">{change.action}</p>
-                            <p className="text-sm text-gray-400">
-                              {change.date} by {change.user}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-sm">
-                          <p className="text-gray-300">{change.details}</p>
-                        </div>
-                      </div>
-                    )) || <p className="text-gray-400">No general changes recorded</p>}
-                  </div>
-                </div>
-              )}
-              {historyTab === "checkins" && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Check-ins & Check-outs</h3>
-                  <div className="space-y-3">
-                    {memberHistory[selectedMember.id]?.checkins?.map((activity) => (
-                      <div key={activity.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-white flex items-center gap-2">
-                              <span
-                                className={`w-2 h-2 rounded-full ${activity.type === "Check-in" ? "bg-green-500" : "bg-red-500"
-                                  }`}
-                              ></span>
-                              {activity.type}
-                            </p>
-                            <p className="text-sm text-gray-400">
-                              {new Date(activity.date).toLocaleDateString()} at{" "}
-                              {new Date(activity.date).toLocaleTimeString()}
-                            </p>
-                            <p className="text-sm text-gray-300">Location: {activity.location}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )) || <p className="text-gray-400">No check-in/check-out history</p>}
-                  </div>
-                </div>
-              )}
-              {historyTab === "appointments" && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Past Appointments</h3>
-                  <div className="space-y-3">
-                    {memberHistory[selectedMember.id]?.appointments?.map((appointment) => (
-                      <div key={appointment.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-medium text-white">{appointment.title}</p>
-                            <p className="text-sm text-gray-400">
-                              {new Date(appointment.date).toLocaleDateString()} at{" "}
-                              {new Date(appointment.date).toLocaleTimeString()} with {appointment.trainer}
-                            </p>
-                          </div>
-                          <span
-                            className={`px-2 py-1 rounded text-xs ${appointment.status === "completed"
-                                ? "bg-green-600 text-white"
-                                : "bg-orange-600 text-white"
-                              }`}
-                          >
-                            {appointment.status}
-                          </span>
-                        </div>
-                      </div>
-                    )) || <p className="text-gray-400">No past appointments</p>}
-                  </div>
-                </div>
-              )}
-              {historyTab === "finance" && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Finance Transactions</h3>
-                  <div className="space-y-3">
-                    {memberHistory[selectedMember.id]?.finance?.map((transaction) => (
-                      <div key={transaction.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-medium text-white">
-                              {transaction.type} - {transaction.amount}
-                            </p>
-                            <p className="text-sm text-gray-400">{transaction.date}</p>
-                          </div>
-                          <span
-                            className={`px-2 py-1 rounded text-xs ${transaction.status === "completed"
-                                ? "bg-green-600 text-white"
-                                : "bg-orange-600 text-white"
-                              }`}
-                          >
-                            {transaction.status}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-300">{transaction.description}</p>
-                      </div>
-                    )) || <p className="text-gray-400">No financial transactions</p>}
-                  </div>
-                </div>
-              )}
-              {historyTab === "contracts" && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Contract Changes</h3>
-                  <div className="space-y-3">
-                    {memberHistory[selectedMember.id]?.contracts?.map((contract) => (
-                      <div key={contract.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-medium text-white">{contract.action}</p>
-                            <p className="text-sm text-gray-400">
-                              {contract.date} by {contract.user}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-300">{contract.details}</p>
-                      </div>
-                    )) || <p className="text-gray-400">No contract changes</p>}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <MemberDetailsModal
+        isOpen={isMemberDetailsModalOpen}
+        onClose={() => {
+          setIsMemberDetailsModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        memberRelations={memberRelations}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        redirectToContract={redirectToContract}
+        DefaultAvatar={DefaultAvatar}
+      />
+      <MemberHistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => {
+          setShowHistoryModal(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        memberHistory={memberHistory}
+      />
     </div>
   )
 }

@@ -34,6 +34,8 @@ import Rectangle1 from "../../../public/Rectangle 1.png"
 import { useNavigate } from "react-router-dom"
 import { SidebarArea } from "../../components/custom-sidebar"
 import { IoIosMenu } from "react-icons/io"
+import { AiOutlineExclamation } from "react-icons/ai";
+
 
 const initialContracts = [
   {
@@ -733,7 +735,8 @@ export default function ContractList() {
                     >
                       <FileText size={16} />
                       {contract.status === "Ongoing" && contract.signatureRequired && (
-                        <AlertTriangle className="w-3 h-3 text-red-500 absolute -top-1 -right-1" />
+                        <AiOutlineExclamation
+                        className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
                       )}
                     </button>
                     <button
@@ -914,7 +917,8 @@ export default function ContractList() {
                     >
                       <FileText className="w-5 h-5" />
                       {contract.status === "Ongoing" && contract.signatureRequired && (
-                        <AlertTriangle className="w-3 h-3 text-red-500 absolute -top-1 -right-1" />
+                        <AiOutlineExclamation
+                        className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
                       )}
                     </button>
                     <button

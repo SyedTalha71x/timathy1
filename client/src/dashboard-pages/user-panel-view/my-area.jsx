@@ -29,8 +29,8 @@ import Avatar from "../../../public/avatar.png"
 import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
 import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
-import ViewManagementModal from "../../components/myarea-components/view-management-modal"
-import StaffCheckInWidget from "../../components/myarea-components/staff-widget-checkin"
+import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
+import StaffCheckInWidget from "../../components/myarea-components/StaffWidgetCheckIn"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
 import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal"
@@ -43,6 +43,11 @@ import { SpecialNoteEditModal } from "../../components/myarea-components/Special
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
 import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, todosData, appointmentsData, birthdaysData, memberTypesData, expiringContractsData } from "../../utils/user-panel-states/myarea-states"
+import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
+import HistoryModal from "../../components/myarea-components/HistoryModal"
+import AppointmentModal from "../../components/myarea-components/AppointmentModal"
+import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
+import BirthdayMessageModal from "../../components/myarea-components/BirthdayMessageModal"
 
 
 export default function MyArea() {
@@ -152,7 +157,7 @@ export default function MyArea() {
 
 
   const [widgets, setWidgets] = useState([
-    { id: "chart", type: "chart", position: 0 }, 
+    { id: "chart", type: "chart", position: 0 },
     { id: "expiringContracts", type: "expiringContracts", position: 1 }, // Moved to start of grid
     { id: "appointments", type: "appointments", position: 2 },
     { id: "staffCheckIn", type: "staffCheckIn", position: 3 },
@@ -1135,6 +1140,7 @@ export default function MyArea() {
     }
   }
 
+  const filteredTodos = getFilteredTodos()
   return (
     <>
       <style>
@@ -1674,6 +1680,54 @@ export default function MyArea() {
             </div>
           </div>
         </main>
+        {taskToDelete && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToDelete(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteTask(taskToDelete)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {taskToCancel && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToCancel(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => handleCancelTask(taskToCancel)}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+                >
+                  Cancel Task
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <Sidebar
           isRightSidebarOpen={isRightSidebarOpen}
           toggleRightSidebar={toggleRightSidebar}
@@ -1742,53 +1796,7 @@ export default function MyArea() {
           />
         )}
 
-        {taskToDelete && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
-              <p className="text-gray-300 mb-6">
-                Are you sure you want to delete this task? This action cannot be undone.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToDelete(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteTask(taskToDelete)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {taskToCancel && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
-              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToCancel(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  No
-                </button>
-                <button
-                  onClick={() => handleCancelTask(taskToCancel)}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-                >
-                  Cancel Task
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <AppointmentActionModal
           isOpen={showAppointmentOptionsModal}
@@ -1806,137 +1814,26 @@ export default function MyArea() {
           onViewMember={handleViewMemberDetails}
         />
 
-        {isNotifyMemberOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-            onClick={() => setIsNotifyMemberOpen(false)}
-          >
-            <div
-              className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-white">Notify Member</h2>
-                <button
-                  onClick={() => {
-                    setIsNotifyMemberOpen(false)
-                  }}
-                  className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-                >
-                  {" "}
-                  <X size={20} />{" "}
-                </button>
-              </div>
-              <div className="p-6">
-                <p className="text-white text-sm">
-                  {" "}
-                  Do you want to notify the member about this{" "}
-                  {notifyAction === "change"
-                    ? "change"
-                    : notifyAction === "cancel"
-                      ? "cancellation"
-                      : notifyAction === "delete"
-                        ? "deletion"
-                        : "booking"}{" "}
-                  ?{" "}
-                </p>
-              </div>
-              <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-                <button
-                  onClick={() => {
-                    if (notifyAction === "cancel") {
-                      actuallyHandleCancelAppointment(true) // Confirm cancellation and notify
-                    } else {
-                      handleNotifyMember(true) // Confirm other changes and notify
-                    }
-                    setIsNotifyMemberOpen(false)
-                  }}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-                >
-                  {" "}
-                  Yes, Notify Member{" "}
-                </button>
-                <button
-                  onClick={() => {
-                    if (notifyAction === "cancel") {
-                      actuallyHandleCancelAppointment(false) // Confirm cancellation without notifying
-                    } else {
-                      handleNotifyMember(false) // Cancel other changes and don't notify (triggers revert)
-                    }
-                    setIsNotifyMemberOpen(false)
-                  }}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
-                >
-                  {" "}
-                  No, Don't Notify{" "}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <NotifyMemberModal
+          isOpen={isNotifyMemberOpen}
+          onClose={() => setIsNotifyMemberOpen(false)}
+          notifyAction={notifyAction}
+          actuallyHandleCancelAppointment={actuallyHandleCancelAppointment}
+          handleNotifyMember={handleNotifyMember}
+        />
 
-        {isBirthdayMessageModalOpen && selectedBirthdayPerson && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-              <div className="p-6 space-y-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold">Send Birthday Message</h2>
-                  <button
-                    onClick={() => {
-                      setIsBirthdayMessageModalOpen(false)
-                      setBirthdayMessage("")
-                      setSelectedBirthdayPerson(null)
-                    }}
-                    className="p-2 hover:bg-zinc-700 rounded-lg"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-black rounded-xl">
-                  <img
-                    src={selectedBirthdayPerson.avatar || "/placeholder.svg"}
-                    className="h-10 w-10 rounded-full"
-                    alt=""
-                  />
-                  <div>
-                    <h3 className="font-semibold text-sm">{selectedBirthdayPerson.name}</h3>
-                    <p className="text-xs text-zinc-400">Birthday: {selectedBirthdayPerson.date}</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm text-zinc-400">Your Message</label>
-                  <textarea
-                    value={birthdayMessage}
-                    onChange={(e) => setBirthdayMessage(e.target.value)}
-                    className="w-full p-3 bg-black rounded-xl text-sm outline-none resize-none"
-                    rows={4}
-                    placeholder="Write your birthday message..."
-                  />
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button
-                    onClick={() => {
-                      setIsBirthdayMessageModalOpen(false)
-                      setBirthdayMessage("")
-                      setSelectedBirthdayPerson(null)
-                    }}
-                    className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSendCustomBirthdayMessage}
-                    disabled={!birthdayMessage.trim()}
-                    className={`px-4 py-2 text-sm rounded-xl ${!birthdayMessage.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                      }`}
-                  >
-                    Send Message
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <BirthdayMessageModal
+          isOpen={isBirthdayMessageModalOpen}
+          onClose={() => {
+            setIsBirthdayMessageModalOpen(false)
+            setBirthdayMessage("")
+            setSelectedBirthdayPerson(null)
+          }}
+          selectedBirthdayPerson={selectedBirthdayPerson}
+          birthdayMessage={birthdayMessage}
+          setBirthdayMessage={setBirthdayMessage}
+          handleSendCustomBirthdayMessage={handleSendCustomBirthdayMessage}
+        />
 
         <ViewManagementModal
           isOpen={isViewModalOpen}
@@ -2021,580 +1918,48 @@ export default function MyArea() {
           handleEditFromOverview={handleEditFromOverview}
         />
 
-        {showAppointmentModal && selectedMember && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-medium">{selectedMember.firstName}'s Appointments</h2>
-                  <button
-                    onClick={() => {
-                      setShowAppointmentModal(false)
-                      setSelectedMember(null)
-                    }}
-                    className="p-2 hover:bg-zinc-700 rounded-lg"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="space-y-3 mb-4">
-                  <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
-                  {getMemberAppointments(selectedMember.id).length > 0 ? (
-                    getMemberAppointments(selectedMember.id).map((appointment) => {
-                      const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
-                      const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
-                      return (
-                        <div
-                          key={appointment.id}
-                          className={`${backgroundColor} rounded-xl p-3 hover:opacity-90 transition-colors cursor-pointer`}
-                          onClick={() => handleEditAppointment(appointment)}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-sm text-white">{appointment.title}</p>
-                              <div>
-                                <p className="text-sm text-white/70">
-                                  {new Date(appointment.date).toLocaleString([], {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  })}
-                                </p>
-                                <p className="text-xs text-white/70">
-                                  {new Date(appointment.date).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}{" "}
-                                  -{" "}
-                                  {new Date(
-                                    new Date(appointment.date).getTime() + (appointmentType?.duration || 30) * 60000,
-                                  ).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleEditAppointment(appointment)
-                                }}
-                                className="p-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-full"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className="lucide lucide-pencil"
-                                >
-                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                                  <path d="m15 5 4 4" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleCancelAppointment(appointment.id)
-                                }}
-                                className="p-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-full"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className="lucide lucide-trash-2"
-                                >
-                                  <path d="M3 6h18" />
-                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                                  <line x1="10" x2="10" y1="11" y2="17" />
-                                  <line x1="14" x2="14" y1="11" y2="17" />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })
-                  ) : (
-                    <div className="text-center py-4 text-gray-400 bg-[#222222] rounded-xl">
-                      No appointments scheduled
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
-                  <div className="text-sm text-gray-300">
-                    Contingent ({currentBillingPeriod}): {memberContingentData[selectedMember.id]?.current?.used || 0} /{" "}
-                    {memberContingentData[selectedMember.id]?.current?.total || 0}
-                  </div>
-                  <button
-                    onClick={handleManageContingent}
-                    className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
-                    Manage
-                  </button>
-                </div>
-                <button
-                  onClick={handleCreateNewAppointment}
-                  className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
-                >
-                  Create New Appointment
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <AppointmentModal
+          show={showAppointmentModal}
+          member={selectedMember}
+          onClose={() => {
+            setShowAppointmentModal(false)
+            setSelectedMember(null)
+          }}
+          getMemberAppointments={getMemberAppointments}
+          appointmentTypes={appointmentTypes}
+          handleEditAppointment={handleEditAppointment}
+          handleCancelAppointment={handleCancelAppointment}
+          currentBillingPeriod={currentBillingPeriod}
+          memberContingentData={memberContingentData}
+          handleManageContingent={handleManageContingent}
+          handleCreateNewAppointment={handleCreateNewAppointment}
+        />
 
-        {showHistoryModal && selectedMember && (
-          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">
-                  History - {selectedMember.firstName} {selectedMember.lastName}
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowHistoryModal(false)
-                    setSelectedMember(null)
-                  }}
-                  className="text-gray-300 hover:text-white"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="flex space-x-1 mb-6 bg-[#141414] rounded-lg p-1">
-                {[
-                  { id: "general", label: "General Changes" },
-                  { id: "checkins", label: "Check-ins & Check-outs" },
-                  { id: "appointments", label: "Past Appointments" },
-                  { id: "finance", label: "Finance Transactions" },
-                  { id: "contracts", label: "Contract Changes" },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setHistoryTab(tab.id)}
-                    className={`px-4 py-2 rounded-md text-sm transition-colors ${historyTab === tab.id ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-                      }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-              <div className="bg-[#141414] rounded-xl p-4">
-                {historyTab === "general" && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">General Changes</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.general?.map((change) => (
-                        <div key={change.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-medium text-white">{change.action}</p>
-                              <p className="text-sm text-gray-400">
-                                {change.date} by {change.user}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-sm">
-                            <p className="text-gray-300">{change.details}</p>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No general changes recorded</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "checkins" && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Check-ins & Check-outs</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.checkins?.map((activity) => (
-                        <div key={activity.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-white flex items-center gap-2">
-                                <span
-                                  className={`w-2 h-2 rounded-full ${activity.type === "Check-in" ? "bg-green-500" : "bg-red-500"
-                                    }`}
-                                ></span>
-                                {activity.type}
-                              </p>
-                              <p className="text-sm text-gray-400">
-                                {new Date(activity.date).toLocaleDateString()} at{" "}
-                                {new Date(activity.date).toLocaleTimeString()}
-                              </p>
-                              <p className="text-sm text-gray-300">Location: {activity.location}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No check-in/check-out history</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "appointments" && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Past Appointments</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.appointments?.map((appointment) => (
-                        <div key={appointment.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-medium text-white">{appointment.title}</p>
-                              <p className="text-sm text-gray-400">
-                                {new Date(appointment.date).toLocaleDateString()} at{" "}
-                                {new Date(appointment.date).toLocaleTimeString()} with {appointment.trainer}
-                              </p>
-                            </div>
-                            <span
-                              className={`px-2 py-1 rounded text-xs ${appointment.status === "completed"
-                                ? "bg-green-600 text-white"
-                                : "bg-orange-600 text-white"
-                                }`}
-                            >
-                              {appointment.status}
-                            </span>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No past appointments</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "finance" && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Finance Transactions</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.finance?.map((transaction) => (
-                        <div key={transaction.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-medium text-white">
-                                {transaction.type} - {transaction.amount}
-                              </p>
-                              <p className="text-sm text-gray-400">{transaction.date}</p>
-                            </div>
-                            <span
-                              className={`px-2 py-1 rounded text-xs ${transaction.status === "completed"
-                                ? "bg-green-600 text-white"
-                                : "bg-orange-600 text-white"
-                                }`}
-                            >
-                              {transaction.status}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-300">{transaction.description}</p>
-                        </div>
-                      )) || <p className="text-gray-400">No financial transactions</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "contracts" && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Contract Changes</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.contracts?.map((contract) => (
-                        <div key={contract.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-medium text-white">{contract.action}</p>
-                              <p className="text-sm text-gray-400">
-                                {contract.date} by {contract.user}
-                              </p>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-300">{contract.details}</p>
-                        </div>
-                      )) || <p className="text-gray-400">No contract changes</p>}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        <HistoryModal
+          show={showHistoryModal}
+          onClose={() => {
+            setShowHistoryModal(false);
+            setSelectedMember(null);
+          }}
+          selectedMember={selectedMember}
+          historyTab={historyTab}
+          setHistoryTab={setHistoryTab}
+          memberHistory={memberHistory}
+        />
 
-        {isMemberDetailsModalOpen && selectedMember && (
-          <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-            <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-white open_sans_font_700 text-lg font-semibold">Member Details</h2>
-                  <button
-                    onClick={() => {
-                      setIsMemberDetailsModalOpen(false)
-                      setSelectedMember(null)
-                    }}
-                    className="text-gray-400 hover:text-white"
-                  >
-                    <X size={20} className="cursor-pointer" />
-                  </button>
-                </div>
-                {/* Tab Navigation */}
-                <div className="flex border-b border-gray-700 mb-6">
-                  <button
-                    onClick={() => setActiveMemberDetailsTab("details")}
-                    className={`px-4 py-2 text-sm font-medium ${activeMemberDetailsTab === "details"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
-                      }`}
-                  >
-                    Details
-                  </button>
-                  <button
-                    onClick={() => setActiveMemberDetailsTab("relations")}
-                    className={`px-4 py-2 text-sm font-medium ${activeMemberDetailsTab === "relations"
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
-                      }`}
-                  >
-                    Relations
-                  </button>
-                </div>
-                {/* Tab Content */}
-                {activeMemberDetailsTab === "details" && (
-                  <div className="space-y-4 text-white">
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={selectedMember.image || DefaultAvatar}
-                        alt="Profile"
-                        className="w-24 h-24 rounded-full object-cover"
-                      />
-                      <div>
-                        <h3 className="text-xl font-semibold">
-                          {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
-                        </h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span
-                            className={`px-2 py-0.5 text-xs rounded-full ${selectedMember.memberType === "full"
-                              ? "bg-blue-900 text-blue-300"
-                              : "bg-purple-900 text-purple-300"
-                              }`}
-                          >
-                            {selectedMember.memberType === "full"
-                              ? "Full Member (with contract)"
-                              : "Temporary Member (without contract)"}
-                          </span>
-                        </div>
-                        <p className="text-gray-400 mt-1">
-                          {selectedMember.memberType === "full" ? (
-                            <>
-                              Contract: {selectedMember.contractStart} -
-                              <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                                {selectedMember.contractEnd}
-                              </span>
-                            </>
-                          ) : (
-                            <>Auto-archive date: {selectedMember.autoArchiveDate}</>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-400">Email</p>
-                        <p>{selectedMember.email}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-400">Phone</p>
-                        <p>{selectedMember.phone}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Address</p>
-                      <p>{`${selectedMember.street}, ${selectedMember.zipCode} ${selectedMember.city}`}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-400">Date of Birth</p>
-                        <p>
-                          {selectedMember.dateOfBirth} (Age: {calculateAge(selectedMember.dateOfBirth)})
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-400">Join Date</p>
-                        <p>{selectedMember.joinDate}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">About</p>
-                      <p>{selectedMember.about}</p>
-                    </div>
-                    {selectedMember.note && (
-                      <div>
-                        <p className="text-sm text-gray-400">Special Note</p>
-                        <p>{selectedMember.note}</p>
-                        <p className="text-sm text-gray-400 mt-2">
-                          Note Period: {selectedMember.noteStartDate} to {selectedMember.noteEndDate}
-                        </p>
-                        <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
-                      </div>
-                    )}
-                    <div className="flex justify-end gap-4 mt-6">
-                      {selectedMember.memberType === "full" && (
-                        <button
-                          onClick={redirectToContract}
-                          className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
-                        >
-                          <FileText size={16} />
-                          View Contract
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {activeMemberDetailsTab === "relations" && (
-                  <div className="space-y-6 max-h-[60vh] overflow-y-auto">
-                    {/* Relations Tree Visualization */}
-                    <div className="bg-[#161616] rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4 text-center">Relationship Tree</h3>
-                      <div className="flex flex-col items-center space-y-8">
-                        {/* Central Member */}
-                        <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
-                          {selectedMember.title}
-                        </div>
-                        {/* Connection Lines and Categories */}
-                        <div className="relative w-full">
-                          {/* Horizontal line */}
-                          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
-                          {/* Category sections */}
-                          <div className="grid grid-cols-5 gap-4 pt-8">
-                            {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
-                              <div key={category} className="flex flex-col items-center space-y-4">
-                                {/* Vertical line */}
-                                <div className="w-0.5 h-8 bg-gray-600"></div>
-                                {/* Category header */}
-                                <div
-                                  className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
-                                    ? "bg-yellow-600 text-yellow-100"
-                                    : category === "friendship"
-                                      ? "bg-green-600 text-green-100"
-                                      : category === "relationship"
-                                        ? "bg-red-600 text-red-100"
-                                        : category === "work"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                    }`}
-                                >
-                                  {category}
-                                </div>
-                                {/* Relations in this category */}
-                                <div className="space-y-2">
-                                  {relations.map((relation) => (
-                                    <div
-                                      key={relation.id}
-                                      className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${relation.type === "member" || relation.type === "lead"
-                                        ? "border border-blue-500/30"
-                                        : ""
-                                        }`}
-                                      onClick={() => {
-                                        if (relation.type === "member" || relation.type === "lead") {
-                                          alert(`Clicked on ${relation.name} (${relation.type})`)
-                                        }
-                                      }}
-                                    >
-                                      <div className="text-white text-sm font-medium">{relation.name}</div>
-                                      <div className="text-gray-400 text-xs">({relation.relation})</div>
-                                      <div
-                                        className={`text-xs mt-1 px-1 py-0.5 rounded ${relation.type === "member"
-                                          ? "bg-green-600 text-green-100"
-                                          : relation.type === "lead"
-                                            ? "bg-blue-600 text-blue-100"
-                                            : "bg-gray-600 text-gray-100"
-                                          }`}
-                                      >
-                                        {relation.type}
-                                      </div>
-                                    </div>
-                                  ))}
-                                  {relations.length === 0 && (
-                                    <div className="text-gray-500 text-xs text-center">No relations</div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Relations List */}
-                    <div className="bg-[#161616] rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
-                      <div className="space-y-4">
-                        {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
-                          <div key={category}>
-                            <h4 className="text-md font-medium text-gray-300 capitalize mb-2">{category}</h4>
-                            <div className="space-y-2 ml-4">
-                              {relations.length > 0 ? (
-                                relations.map((relation) => (
-                                  <div
-                                    key={relation.id}
-                                    className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
-                                      ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
-                                      : ""
-                                      }`}
-                                    onClick={() => {
-                                      if (relation.type === "member" || relation.type === "lead") {
-                                        alert(`Clicked on ${relation.name} (${relation.type})`)
-                                      }
-                                    }}
-                                  >
-                                    <div>
-                                      <span className="text-white font-medium">{relation.name}</span>
-                                      <span className="text-gray-400 ml-2">- {relation.relation}</span>
-                                      <span
-                                        className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
-                                          ? "bg-green-600 text-green-100"
-                                          : relation.type === "lead"
-                                            ? "bg-blue-600 text-blue-100"
-                                            : "bg-gray-600 text-gray-100"
-                                          }`}
-                                      >
-                                        {relation.type}
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <p className="text-gray-500 text-sm">No {category} relations</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
+        <MemberDetailsModal
+          isOpen={isMemberDetailsModalOpen}
+          onClose={() => {
+            setIsMemberDetailsModalOpen(false)
+            setSelectedMember(null)
+          }}
+          selectedMember={selectedMember}
+          memberRelations={memberRelations}
+          DefaultAvatar={DefaultAvatar}
+          calculateAge={calculateAge}
+          isContractExpiringSoon={isContractExpiringSoon}
+          redirectToContract={redirectToContract}
+        />
         <ContingentModal
           show={showContingentModal}
           setShow={setShowContingentModal}

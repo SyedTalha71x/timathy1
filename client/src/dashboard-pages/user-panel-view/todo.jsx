@@ -158,7 +158,19 @@ export default function TodoApp() {
     { id: "canceled", title: "Canceled", color: "#ef4444" },
   ])
 
+  const [assignModalTask, setAssignModalTask] = useState(null);
+const [tagsModalTask, setTagsModalTask] = useState(null);
+
+
   const columnRefs = useRef({})
+
+  const handleOpenAssignModal = (task) => {
+    setAssignModalTask(task);
+  };
+  
+  const handleOpenTagsModal = (task) => {
+    setTagsModalTask(task);
+  };
 
   useEffect(() => {
     columns.forEach((column) => {
@@ -787,6 +799,8 @@ export default function TodoApp() {
                       configuredTags={configuredTags}
                       availableAssignees={availableAssignees}
                       availableRoles={availableRoles}
+                      onOpenAssignModal={handleOpenAssignModal}
+                      onOpenTagsModal={handleOpenTagsModal}
                     />
                   </div>
                 </Draggable>
@@ -1373,6 +1387,22 @@ export default function TodoApp() {
           onRepeatTask={handleRepeatTask}
         />
       )}
+
+{assignModalTask && (
+  <EditTaskModal 
+    task={assignModalTask} 
+    onClose={() => setAssignModalTask(null)}
+    onUpdateTask={handleTaskUpdate}
+  />
+)}
+
+{tagsModalTask && (
+  <EditTaskModal 
+    task={tagsModalTask} 
+    onClose={() => setTagsModalTask(null)}
+    onUpdateTask={handleTaskUpdate}
+  />
+)}
     </div>
   )
 }

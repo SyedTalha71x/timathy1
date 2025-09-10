@@ -20,27 +20,20 @@ export default function TaskItem({
   configuredTags,
   availableAssignees = [],
   availableRoles = [],
+  onOpenAssignModal,
+  onOpenTagsModal
 }) {
   const [isAnimatingCompletion, setIsAnimatingCompletion] = useState(false)
   const [isCheckboxAnimating, setIsCheckboxAnimating] = useState(false)
   const [showTagMenu, setShowTagMenu] = useState(false)
   const [showAssigneeMenu, setShowAssigneeMenu] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
-  const [isEditingTitle, setIsEditingTitle] = useState(false)
-  const [editedTitle, setEditedTitle] = useState(task.title)
   const [assignmentMode, setAssignmentMode] = useState("staff")
-  const [isEditing, setIsEditing] = useState(false) // NEW: Track overall editing state
   const dropdownRef = useRef(null)
   const tagMenuRef = useRef(null)
   const assigneeMenuRef = useRef(null)
   const calendarRef = useRef(null)
-  const titleInputRef = useRef(null)
   const isDropdownOpen = openDropdownTaskId === task.id
-
-  // Update editedTitle when task.title changes
-  useEffect(() => {
-    setEditedTitle(task.title)
-  }, [task.title])
 
   const toggleDropdown = (e) => {
     e.stopPropagation()
@@ -68,88 +61,12 @@ export default function TaskItem({
   const handleEditTask = (e) => {
     e.stopPropagation()
     e.preventDefault()
-    setIsEditingTitle(true)
-    setIsEditing(true) // NEW: Set editing state
-    setEditedTitle(task.title)
+    onEditRequest(task)
     setOpenDropdownTaskId(null)
     // Close all other menus
     setShowTagMenu(false)
     setShowAssigneeMenu(false)
     setShowCalendar(false)
-    
-    // Focus the input after state update
-    setTimeout(() => {
-      titleInputRef.current?.focus()
-      titleInputRef.current?.select()
-    }, 0)
-  }
-
-  const handleTitleSubmit = () => {
-    if (editedTitle.trim() && editedTitle !== task.title) {
-      onUpdate(task.id, { ...task, title: editedTitle.trim() })
-    } else {
-      // Revert to original title if no changes or empty
-      setEditedTitle(task.title)
-    }
-    setIsEditingTitle(false)
-    setIsEditing(false) // NEW: Reset editing state
-  }
-
-  const handleTitleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      handleTitleSubmit()
-    } else if (e.key === "Escape") {
-      e.preventDefault()
-      setEditedTitle(task.title)
-      setIsEditingTitle(false)
-      setIsEditing(false) // NEW: Reset editing state
-    }
-  }
-
-  const handleTitleClick = (e) => {
-    // Only allow title click to edit if not already editing and not dragging
-    if (!isEditingTitle && !isDragging) {
-      e.stopPropagation()
-      e.preventDefault()
-      handleEditTask(e)
-    }
-  }
-
-  // NEW: Unified click handler for all editable elements
-  const handleEditableElementClick = (e, elementType) => {
-    e.stopPropagation()
-    e.preventDefault()
-    
-    if (isDragging) return;
-    
-    switch(elementType) {
-      case 'title':
-        if (!isEditingTitle) {
-          handleEditTask(e);
-        }
-        break;
-      case 'assignee':
-        setShowAssigneeMenu(true);
-        setShowTagMenu(false);
-        setShowCalendar(false);
-        setOpenDropdownTaskId(null);
-        break;
-      case 'date':
-        setShowCalendar(true);
-        setShowTagMenu(false);
-        setShowAssigneeMenu(false);
-        setOpenDropdownTaskId(null);
-        break;
-      case 'tag':
-        setShowTagMenu(true);
-        setShowAssigneeMenu(false);
-        setShowCalendar(false);
-        setOpenDropdownTaskId(null);
-        break;
-      default:
-        break;
-    }
   }
 
   const openDeleteConfirmation = (e) => {
@@ -247,6 +164,24 @@ export default function TaskItem({
     return tag ? tag.color : "#FFFFFF"
   }
 
+  const handleAssignClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    if (onOpenAssignModal) {
+      onOpenAssignModal(task)
+    }
+    setOpenDropdownTaskId(null)
+  }
+
+  const handleTagsClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    if (onOpenTagsModal) {
+      onOpenTagsModal(task)
+    }
+    setOpenDropdownTaskId(null)
+  }
+
   const isCompleted = task.status === "completed"
   const isCanceled = task.status === "canceled"
   const hasRepeat = task.repeatSettings && task.repeatSettings.frequency
@@ -265,18 +200,14 @@ export default function TaskItem({
       if (calendarRef.current && !calendarRef.current.contains(event.target)) {
         setShowCalendar(false)
       }
-      // Handle clicking outside of title input
-      if (isEditingTitle && titleInputRef.current && !titleInputRef.current.contains(event.target)) {
-        handleTitleSubmit()
-      }
     }
-    if (isDropdownOpen || showTagMenu || showAssigneeMenu || showCalendar || isEditingTitle) {
+    if (isDropdownOpen || showTagMenu || showAssigneeMenu || showCalendar) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
         document.removeEventListener("mousedown", handleClickOutside)
       }
     }
-  }, [isDropdownOpen, showTagMenu, showAssigneeMenu, showCalendar, isEditingTitle, setOpenDropdownTaskId])
+  }, [isDropdownOpen, showTagMenu, showAssigneeMenu, showCalendar, setOpenDropdownTaskId])
 
   return (
     <div
@@ -295,13 +226,6 @@ export default function TaskItem({
         pointerEvents: isDragging ? "none" : "auto",
       }}
     >
-      {/* NEW: Editing indicator */}
-      {isEditing && (
-        <div className="absolute top-2 right-2 bg-[#FF843E] text-white text-xs px-2 py-1 rounded-md z-10">
-          You are editing this task
-        </div>
-      )}
-      
       <div className="flex flex-col gap-3">
         {/* Top: checkbox/cancel + title + dropdown */}
         <div className="flex items-start justify-between gap-3">
@@ -340,36 +264,24 @@ export default function TaskItem({
               </div>
             )}
             <div className="flex-grow">
-              {isEditingTitle ? (
-                <input
-                  ref={titleInputRef}
-                  type="text"
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                  onBlur={handleTitleSubmit}
-                  onKeyDown={handleTitleKeyDown}
-                  className="font-medium text-sm break-words whitespace-normal bg-transparent border-b border-gray-500 focus:border-[#FF843E] outline-none w-full text-white placeholder-gray-400"
-                  placeholder="Enter task title..."
-                  autoFocus
-                />
-              ) : (
-                <h3 
-                  className={`font-medium text-sm break-words whitespace-normal cursor-pointer hover:text-gray-300 transition-colors ${
-                    !isDragging ? 'hover:bg-gray-800 hover:bg-opacity-30 rounded px-1 py-0.5 -mx-1 -my-0.5' : ''
-                  }`}
-                  onClick={(e) => handleEditableElementClick(e, 'title')}
-                  title="Click to edit"
-                >
-                  {task.title}
-                  {task.isPinned && (
-                    <Pin
-                      size={14}
-                      className="inline-block ml-2 text-gray-500 fill-gray-500"
-                      aria-label="Task is pinned"
-                    />
-                  )}
-                </h3>
-              )}
+              <h3 
+                className={`font-medium text-sm break-words whitespace-normal ${
+                  isCompleted || isCanceled ? "" : "cursor-pointer hover:text-gray-300 transition-colors"
+                } ${
+                  !isDragging && !isCompleted && !isCanceled ? 'hover:bg-gray-800 hover:bg-opacity-30 rounded px-1 py-0.5 -mx-1 -my-0.5' : ''
+                }`}
+                onClick={!isCompleted && !isCanceled ? handleEditTask : undefined}
+                title={!isCompleted && !isCanceled ? "Click to edit task" : ""}
+              >
+                {task.title}
+                {task.isPinned && (
+                  <Pin
+                    size={14}
+                    className="inline-block ml-2 text-gray-500 fill-gray-500"
+                    aria-label="Task is pinned"
+                  />
+                )}
+              </h3>
             </div>
           </div>
           <div className="relative flex items-center gap-1" ref={dropdownRef}>
@@ -388,6 +300,25 @@ export default function TaskItem({
                   <Edit size={14} />
                   Edit Task
                 </button>
+                
+                {/* New Assign To option */}
+                <button
+                  onClick={handleAssignClick}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Users size={14} />
+                  Assign To
+                </button>
+                
+                {/* New Tags option */}
+                <button
+                  onClick={handleTagsClick}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Tag size={14} />
+                  Tags
+                </button>
+                
                 <button
                   onClick={handlePinToggle}
                   className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
@@ -406,18 +337,6 @@ export default function TaskItem({
                   className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
                 >
                   <Repeat size={14} /> Repeat Task
-                </button>
-                <button
-                  onClick={(e) => handleEditableElementClick(e, 'assignee')}
-                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-                >
-                  <Users size={14} /> Assign to
-                </button>
-                <button
-                  onClick={(e) => handleEditableElementClick(e, 'tag')}
-                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-                >
-                  <Tag size={14} /> Tags
                 </button>
                 {!isCanceled && (
                   <button
@@ -463,14 +382,14 @@ export default function TaskItem({
                   tag && (
                     <span
                       key={index}
-                      onClick={(e) => handleEditableElementClick(e, 'tag')}
-                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer hover:opacity-80 ${
+                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer ${
                         isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "bg-[#2F2F2F]"
                       }`}
                       style={{
                         color: isCompleted || isCanceled ? "#9CA3AF" : getTagColor(tag),
                         backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : `${getTagColor(tag)}20`,
                       }}
+                      onClick={handleTagsClick}
                     >
                       <Tag size={10} />
                       {tag}
@@ -486,10 +405,10 @@ export default function TaskItem({
           {(task.assignees?.length > 0 || task.roles?.length > 0) && (
             <div className="relative">
               <div
-                onClick={(e) => handleEditableElementClick(e, 'assignee')}
-                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer hover:opacity-80 ${
+                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer ${
                   isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
                 }`}
+                onClick={handleAssignClick}
               >
                 <Users size={12} />
                 <span className="truncate max-w-[120px]">{task.assignees?.join(", ") || task.roles?.join(", ")}</span>
@@ -498,8 +417,7 @@ export default function TaskItem({
           )}
           <div className="relative">
             <div
-              onClick={(e) => handleEditableElementClick(e, 'date')}
-              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer hover:opacity-80 ${
+              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 ${
                 isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
               }`}
             >
@@ -511,202 +429,6 @@ export default function TaskItem({
         </div>
       </div>
 
-      {/* Tag Management Menu */}
-      {showTagMenu && (
-        <div
-          ref={tagMenuRef}
-          className="absolute top-full left-4 mt-2 w-64 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-[10000] p-4 max-h-80 overflow-y-auto"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h4 className="text-white text-sm font-medium mb-3">Manage Tags</h4>
-          
-          {/* Current Tags */}
-          {task.tags && task.tags.length > 0 && (
-            <div className="mb-4">
-              <h5 className="text-gray-400 text-xs mb-2">Current Tags:</h5>
-              <div className="space-y-1">
-                {task.tags.map((tagName, index) => (
-                  <div key={index} className="flex items-center justify-between bg-[#1a1a1a] px-3 py-2 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getTagColor(tagName) }}></div>
-                      <span className="text-white text-sm">{tagName}</span>
-                    </div>
-                    <button
-                      onClick={() => removeTag(tagName)}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Available Tags */}
-          <div>
-            <h5 className="text-gray-400 text-xs mb-2">Available Tags:</h5>
-            <div className="space-y-1 max-h-32 overflow-y-auto">
-              {configuredTags.map((tag) => {
-                const isSelected = task.tags && task.tags.includes(tag.name)
-                return (
-                  <button
-                    key={tag.id}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-white hover:bg-gray-600 rounded"
-                    onClick={() => toggleTag(tag.name)}
-                  >
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }}></div>
-                    <span className="flex-1">{tag.name}</span>
-                    {isSelected && <Check size={14} className="text-green-400" />}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Assignment Management Menu */}
-      {showAssigneeMenu && (
-        <div
-          ref={assigneeMenuRef}
-          className="absolute top-full left-4 mt-2 w-64 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-[10000] p-4 max-h-80 overflow-y-auto"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h4 className="text-white text-sm font-medium mb-3">Manage Assignments</h4>
-          
-          {/* Current Assignments */}
-          {((task.assignees && task.assignees.length > 0) || (task.roles && task.roles.length > 0)) && (
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <h5 className="text-gray-400 text-xs">Current Assignments:</h5>
-                <button
-                  onClick={removeAssignment}
-                  className="text-red-400 hover:text-red-300 text-xs"
-                >
-                  Remove All
-                </button>
-              </div>
-              <div className="space-y-1">
-                {task.assignees?.map((assignee, index) => (
-                  <div key={index} className="bg-[#1a1a1a] px-3 py-2 rounded-lg text-white text-sm">
-                    Staff: {assignee}
-                  </div>
-                ))}
-                {task.roles?.map((role, index) => (
-                  <div key={index} className="bg-[#1a1a1a] px-3 py-2 rounded-lg text-white text-sm">
-                    Role: {role}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Assignment Mode Toggle */}
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => setAssignmentMode("staff")}
-              className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
-                assignmentMode === "staff"
-                  ? "bg-[#FF843E] text-white"
-                  : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-              }`}
-            >
-              to Staff
-            </button>
-            <button
-              onClick={() => setAssignmentMode("roles")}
-              className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
-                assignmentMode === "roles"
-                  ? "bg-[#FF843E] text-white"
-                  : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-              }`}
-            >
-              to Roles
-            </button>
-          </div>
-
-          {/* Staff Assignment */}
-          {assignmentMode === "staff" && (
-            <div>
-              <h5 className="text-gray-400 text-xs mb-2">Assign to Staff:</h5>
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {availableAssignees.map((assignee) => {
-                  const assigneeName = `${assignee.firstName} ${assignee.lastName}`
-                  const isSelected = task.assignees && task.assignees.includes(assigneeName)
-                  return (
-                    <button
-                      key={assignee.id}
-                      className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-white hover:bg-gray-600 rounded"
-                      onClick={() => toggleAssignee(assignee)}
-                    >
-                      <Users size={14} />
-                      <span className="flex-1">{assigneeName}</span>
-                      {isSelected && <Check size={14} className="text-green-400" />}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Role Assignment */}
-          {assignmentMode === "roles" && (
-            <div>
-              <h5 className="text-gray-400 text-xs mb-2">Assign to Roles:</h5>
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {availableRoles.map((role) => {
-                  const isSelected = task.roles && task.roles.includes(role)
-                  return (
-                    <button
-                      key={role}
-                      className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-white hover:bg-gray-600 rounded"
-                      onClick={() => toggleRole(role)}
-                    >
-                      <Users size={14} />
-                      <span className="flex-1">{role}</span>
-                      {isSelected && <Check size={14} className="text-green-400" />}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Calendar Menu */}
-      {showCalendar && (
-        <div
-          ref={calendarRef}
-          className="absolute top-full left-4 mt-2 w-64 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-[10000] p-4"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h4 className="text-white text-sm font-medium mb-3">Select Date & Time</h4>
-          <div className="space-y-3">
-            <input
-              type="date"
-              className="w-full px-3 py-2 bg-[#1a1a1a] text-white rounded-lg border border-gray-600 text-sm"
-              defaultValue={task.dueDate}
-              onChange={(e) => handleDateTimeUpdate(e.target.value, task.dueTime)}
-            />
-            <input
-              type="time"
-              className="w-full px-3 py-2 bg-[#1a1a1a] text-white rounded-lg border border-gray-600 text-sm"
-              defaultValue={task.dueTime}
-              onChange={(e) => handleDateTimeUpdate(task.dueDate, e.target.value)}
-            />
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setShowCalendar(false)}
-                className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <style jsx global>{`
         @keyframes tick {
           from {

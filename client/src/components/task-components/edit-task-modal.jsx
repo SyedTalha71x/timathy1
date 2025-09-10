@@ -1,416 +1,691 @@
 /* eslint-disable react/no-unknown-property */
-"use client"
-
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
+import { useEffect, useRef, useState } from "react"
+import { Tag, Calendar, X, Pin, PinOff, MoreHorizontal, Copy, Repeat, Edit, Check, Users } from "lucide-react"
 
-import { X, ChevronDown, Users, Tag } from "lucide-react"
-import { useState } from "react"
-import { toast, Toaster } from "react-hot-toast"
+export default function TaskItem({
+  task,
+  onStatusChange,
+  onUpdate,
+  onRemove,
+  onPinToggle,
+  onEditRequest,
+  onDeleteRequest,
+  onDuplicateRequest,
+  onRepeatRequest,
+  isDragging,
+  openDropdownTaskId,
+  setOpenDropdownTaskId,
+  configuredTags,
+  availableAssignees = [],
+  availableRoles = [],
+  onOpenAssignModal,
+  onOpenTagsModal
+}) {
+  const [isAnimatingCompletion, setIsAnimatingCompletion] = useState(false)
+  const [isCheckboxAnimating, setIsCheckboxAnimating] = useState(false)
+  const [showTagMenu, setShowTagMenu] = useState(false)
+  const [showAssigneeMenu, setShowAssigneeMenu] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [assignmentMode, setAssignmentMode] = useState("staff")
+  const dropdownRef = useRef(null)
+  const tagMenuRef = useRef(null)
+  const assigneeMenuRef = useRef(null)
+  const calendarRef = useRef(null)
+  const isDropdownOpen = openDropdownTaskId === task.id
 
-const EditTaskModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => {
-  const [editedTask, setEditedTask] = useState({
-    ...task,
-    assignees: task?.assignees || (task?.assignee ? [task.assignee] : []),
-    roles: task?.roles || (task?.role ? [task.role] : []),
-    tags: task?.tags || [],
-    dueTime: task?.dueTime || "",
-    title: task?.title || "",
-    dueDate: task?.dueDate || "",
-  })
-
-  const [assignmentType, setAssignmentType] = useState(
-    (task?.assignees && task.assignees.length > 0) || task?.assignee ? "staff" : "roles",
-  )
-
-  const [isAssignDropdownOpen, setIsAssignDropdownOpen] = useState(false)
-  const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false)
-
-  // Sample data - replace with your actual data
-  const staff = [
-    { id: 1, firstName: "John", lastName: "Doe" },
-    { id: 2, firstName: "Jane", lastName: "Smith" },
-    { id: 3, firstName: "Jack", lastName: "Wilson" },
-    { id: 4, firstName: "Sarah", lastName: "Johnson" },
-    { id: 5, firstName: "Mike", lastName: "Brown" },
-    { id: 6, firstName: "Lisa", lastName: "Davis" },
-  ]
-
-  const roles = ["Developer", "Designer", "Manager", "QA Tester", "Product Owner"]
-
-  const handleSubmit = (e) => {
+  const toggleDropdown = (e) => {
+    e.stopPropagation()
     e.preventDefault()
-    if (!editedTask.dueDate) {
-      toast.error("Task not updated. You must add a due date.")
-      return
-    }
-    if (onUpdateTask) {
-      const updatedTask = {
-        ...editedTask,
-        assignees: assignmentType === "staff" ? editedTask.assignees : [],
-        roles: assignmentType === "roles" ? editedTask.roles : [],
-        assignee: assignmentType === "staff" ? editedTask.assignees[0] || "" : "",
-        role: assignmentType === "roles" ? editedTask.roles[0] || "" : "",
-      }
-      onUpdateTask(updatedTask)
-      toast.success("Task has been updated successfully!")
+    setOpenDropdownTaskId(isDropdownOpen ? null : task.id)
+  }
+
+  const handleStatusChange = (newStatus) => {
+    if (newStatus === "completed" && task.status !== "completed") {
+      setIsCheckboxAnimating(true)
       setTimeout(() => {
-        onClose()
-      }, 2000)
+        setIsCheckboxAnimating(false)
+        setIsAnimatingCompletion(true)
+        setTimeout(() => {
+          onStatusChange(task.id, newStatus)
+          setIsAnimatingCompletion(false)
+        }, 500)
+      }, 300)
     } else {
-      console.error("onUpdateTask function is not provided!")
-      toast.error("Something went wrong. Please try again.")
+      onStatusChange(task.id, newStatus)
     }
+    setOpenDropdownTaskId(null)
   }
 
-  const handleAssignmentTypeChange = (type) => {
-    setAssignmentType(type)
-    setEditedTask((prev) => ({
-      ...prev,
-      assignees: [],
-      roles: [],
-    }))
+  const handleEditTask = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    onEditRequest(task)
+    setOpenDropdownTaskId(null)
+    // Close all other menus
+    setShowTagMenu(false)
+    setShowAssigneeMenu(false)
+    setShowCalendar(false)
   }
 
-  const handleStaffToggle = (staffMember) => {
-    const fullName = `${staffMember.firstName} ${staffMember.lastName}`
-    setEditedTask((prev) => ({
-      ...prev,
-      assignees: prev.assignees.includes(fullName)
-        ? prev.assignees.filter((name) => name !== fullName)
-        : [...prev.assignees, fullName],
-    }))
+  const openDeleteConfirmation = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    onDeleteRequest(task.id)
+    setOpenDropdownTaskId(null)
   }
 
-  const handleRoleToggle = (role) => {
-    setEditedTask((prev) => ({
-      ...prev,
-      roles: prev.roles.includes(role) ? prev.roles.filter((r) => r !== role) : [...prev.roles, role],
-    }))
+  const handlePinToggle = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    onPinToggle(task.id)
+    setOpenDropdownTaskId(null)
   }
 
-  const handleTagToggle = (tagName) => {
-    setEditedTask((prev) => ({
-      ...prev,
-      tags: prev.tags.includes(tagName) ? prev.tags.filter((tag) => tag !== tagName) : [...prev.tags, tagName],
-    }))
+  const handleDuplicate = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    onDuplicateRequest(task)
+    setOpenDropdownTaskId(null)
   }
 
-  if (!task) {
-    return null
+  const handleRepeat = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    onRepeatRequest(task)
+    setOpenDropdownTaskId(null)
   }
+
+  // Tag management functions
+  const toggleTag = (tagName) => {
+    const currentTags = task.tags || []
+    let updatedTags
+    if (currentTags.includes(tagName)) {
+      updatedTags = currentTags.filter(tag => tag !== tagName)
+    } else {
+      updatedTags = [...currentTags, tagName]
+    }
+    onUpdate(task.id, { ...task, tags: updatedTags })
+  }
+
+  const removeTag = (tagToRemove) => {
+    const updatedTags = (task.tags || []).filter(tag => tag !== tagToRemove)
+    onUpdate(task.id, { ...task, tags: updatedTags })
+  }
+
+  // Assignment management functions
+  const toggleAssignee = (assignee) => {
+    const currentAssignees = task.assignees || []
+    const assigneeName = `${assignee.firstName} ${assignee.lastName}`
+    let updatedAssignees
+    if (currentAssignees.includes(assigneeName)) {
+      updatedAssignees = currentAssignees.filter(a => a !== assigneeName)
+    } else {
+      updatedAssignees = [...currentAssignees, assigneeName]
+    }
+    onUpdate(task.id, { ...task, assignees: updatedAssignees })
+  }
+
+  const toggleRole = (role) => {
+    const currentRoles = task.roles || []
+    let updatedRoles
+    if (currentRoles.includes(role)) {
+      updatedRoles = currentRoles.filter(r => r !== role)
+    } else {
+      updatedRoles = [...currentRoles, role]
+    }
+    onUpdate(task.id, { ...task, roles: updatedRoles })
+  }
+
+  const removeAssignment = () => {
+    onUpdate(task.id, { ...task, assignees: [], roles: [] })
+  }
+
+  // Date/time management functions
+  const handleDateTimeUpdate = (newDate, newTime) => {
+    onUpdate(task.id, { ...task, dueDate: newDate, dueTime: newTime })
+    setShowCalendar(false)
+  }
+
+  const formatDateTime = () => {
+    let display = ""
+    if (task.dueDate) {
+      display += task.dueDate
+    }
+    if (task.dueTime) {
+      display += task.dueDate ? ` @ ${task.dueTime}` : task.dueTime
+    }
+    return display || "No due date"
+  }
+
+  const getTagColor = (tagName) => {
+    const tag = configuredTags.find((t) => t.name === tagName)
+    return tag ? tag.color : "#FFFFFF"
+  }
+
+  const handleAssignClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    if (onOpenAssignModal) {
+      onOpenAssignModal(task)
+    }
+    setOpenDropdownTaskId(null)
+  }
+
+  const handleTagsClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    if (onOpenTagsModal) {
+      onOpenTagsModal(task)
+    }
+    setOpenDropdownTaskId(null)
+  }
+
+  const isCompleted = task.status === "completed"
+  const isCanceled = task.status === "canceled"
+  const hasRepeat = task.repeatSettings && task.repeatSettings.frequency
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownTaskId(null)
+      }
+      if (tagMenuRef.current && !tagMenuRef.current.contains(event.target)) {
+        setShowTagMenu(false)
+      }
+      if (assigneeMenuRef.current && !assigneeMenuRef.current.contains(event.target)) {
+        setShowAssigneeMenu(false)
+      }
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setShowCalendar(false)
+      }
+    }
+    if (isDropdownOpen || showTagMenu || showAssigneeMenu || showCalendar) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside)
+      }
+    }
+  }, [isDropdownOpen, showTagMenu, showAssigneeMenu, showCalendar, setOpenDropdownTaskId])
 
   return (
-    <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
-      <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-        <div className="bg-[#181818] rounded-xl w-[500px] max-h-[90vh] p-6">
-          <div className="flex justify-between items-center mb-5 sm:mb-6">
-            <h2 className="text-white text-lg font-semibold">Edit task</h2>
-            <button onClick={onClose} className="text-gray-400 cursor-pointer hover:text-white">
-              <X size={20} />
-            </button>
-          </div>
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4 max-h-[calc(90vh-120px)] overflow-y-auto custom-scrollbar pr-2"
-          >
-            <div>
-              <label className="text-sm text-gray-200">Task Title</label>
-              <input
-                type="text"
-                value={editedTask.title}
-                onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
-                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-200 mb-2"> Assignment Type</label>
-              <div className="flex gap-4 mt-1">
-                <button
-                  type="button"
-                  onClick={() => handleAssignmentTypeChange("staff")}
-                  className={`px-4 py-2 rounded-xl text-sm ${
-                    assignmentType === "staff" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
-                  }`}
-                >
-                  to Staff
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAssignmentTypeChange("roles")}
-                  className={`px-4 py-2 rounded-xl text-sm ${
-                    assignmentType === "roles" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
-                  }`}
-                >
-                  to Roles
-                </button>
-              </div>
-            </div>
-
-            {assignmentType === "staff" && (
-              <div>
-                <label className="text-sm text-gray-200">Assign to Staff</label>
-                <div className="relative mt-1">
-                  <button
-                    type="button"
-                    onClick={() => setIsAssignDropdownOpen(!isAssignDropdownOpen)}
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Users size={16} />
-                      <span>
-                        {editedTask.assignees.length > 0
-                          ? `${editedTask.assignees.length} staff selected`
-                          : "Select staff members"}
-                      </span>
-                    </div>
-                    <ChevronDown
-                      size={16}
-                      className={`transition-transform ${isAssignDropdownOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {isAssignDropdownOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-50 max-h-48 overflow-y-auto">
-                      {staff.map((staffMember) => {
-                        const fullName = `${staffMember.firstName} ${staffMember.lastName}`
-                        const isSelected = editedTask.assignees.includes(fullName)
-                        return (
-                          <button
-                            key={staffMember.id}
-                            type="button"
-                            onClick={() => handleStaffToggle(staffMember)}
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Users size={14} />
-                              <span className="text-gray-200">{fullName}</span>
-                            </div>
-                            {isSelected && <span className="text-green-400">✓</span>}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {editedTask.assignees.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {editedTask.assignees.map((assignee) => (
-                      <span
-                        key={assignee}
-                        className="bg-[#3F74FF] text-white px-2 py-1 rounded-lg text-sm flex items-center gap-1"
-                      >
-                        {assignee}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleStaffToggle({ firstName: assignee.split(" ")[0], lastName: assignee.split(" ")[1] })
-                          }
-                          className="hover:text-gray-200"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {assignmentType === "roles" && (
-              <div>
-                <label className="text-sm text-gray-200">Assign to Roles</label>
-                <div className="relative mt-1">
-                  <button
-                    type="button"
-                    onClick={() => setIsAssignDropdownOpen(!isAssignDropdownOpen)}
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Users size={16} />
-                      <span>
-                        {editedTask.roles.length > 0 ? `${editedTask.roles.length} roles selected` : "Select roles"}
-                      </span>
-                    </div>
-                    <ChevronDown
-                      size={16}
-                      className={`transition-transform ${isAssignDropdownOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {isAssignDropdownOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-50 max-h-48 overflow-y-auto">
-                      {roles.map((role) => {
-                        const isSelected = editedTask.roles.includes(role)
-                        return (
-                          <button
-                            key={role}
-                            type="button"
-                            onClick={() => handleRoleToggle(role)}
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Users size={14} />
-                              <span className="text-gray-200">{role}</span>
-                            </div>
-                            {isSelected && <span className="text-green-400">✓</span>}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {editedTask.roles.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {editedTask.roles.map((role) => (
-                      <span
-                        key={role}
-                        className="bg-[#3F74FF] text-white px-2 py-1 rounded-lg text-sm flex items-center gap-1"
-                      >
-                        {role}
-                        <button type="button" onClick={() => handleRoleToggle(role)} className="hover:text-gray-200">
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div>
-              <label className="text-sm text-gray-200">Tags</label>
+    <div
+      className={`rounded-2xl p-4 transition-all duration-300 ease-in-out relative ${
+        isDragging ? "opacity-90 z-[9999] shadow-2xl" : "opacity-100"
+      } ${
+        isCompleted
+          ? "bg-[#1c1c1c] text-gray-500"
+          : isCanceled
+            ? "bg-[#1a1a1a] text-gray-600 italic line-through"
+            : "bg-[#161616] text-white"
+      } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
+      style={{
+        position: isDragging ? "relative" : "static",
+        zIndex: isDragging ? 9999 : "auto",
+        pointerEvents: isDragging ? "none" : "auto",
+      }}
+    >
+      <div className="flex flex-col gap-3">
+        {/* Top: checkbox/cancel + title + dropdown */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1">
+            {isCanceled ? (
+              <button
+                onClick={() => handleStatusChange("ongoing")}
+                className="mt-1 h-4 w-4 flex items-center justify-center text-gray-400 bg-[#3a3a3a] rounded-sm cursor-pointer no-drag border border-gray-500"
+                title="Canceled"
+              >
+                <X size={14} />
+              </button>
+            ) : (
               <div className="relative mt-1">
-                <button
-                  type="button"
-                  onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
-                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <Tag size={16} />
-                    <span>
-                      {editedTask.tags.length > 0 ? `${editedTask.tags.length} tags selected` : "Select tags"}
-                    </span>
-                  </div>
-                  <ChevronDown size={16} className={`transition-transform ${isTagDropdownOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                {isTagDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-50 max-h-48 overflow-y-auto">
-                    {configuredTags.map((tag) => {
-                      const isSelected = editedTask.tags.includes(tag.name)
-                      return (
-                        <button
-                          key={tag.id}
-                          type="button"
-                          onClick={() => handleTagToggle(tag.name)}
-                          className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }} />
-                            <span className="text-gray-200">{tag.name}</span>
-                          </div>
-                          {isSelected && <span className="text-green-400">✓</span>}
-                        </button>
-                      )
-                    })}
+                <input
+                  type="checkbox"
+                  checked={isCompleted}
+                  onChange={() => handleStatusChange(isCompleted ? "ongoing" : "completed")}
+                  className={`form-checkbox h-4 w-4 cursor-pointer text-[#FF843E] rounded-full border-gray-300 focus:ring-[#FF843E] no-drag transition-all duration-200 ${
+                    isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
+                  }`}
+                />
+                {isCheckboxAnimating && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Check
+                      size={14}
+                      className="text-[#FF843E] animate-tick"
+                      style={{
+                        animation: "tick 0.3s ease-out forwards",
+                        strokeDasharray: 18,
+                        strokeDashoffset: isCheckboxAnimating ? 0 : 18,
+                      }}
+                    />
                   </div>
                 )}
               </div>
+            )}
+            <div className="flex-grow">
+              <h3 
+                className={`font-medium text-sm break-words whitespace-normal ${
+                  isCompleted || isCanceled ? "" : "cursor-pointer hover:text-gray-300 transition-colors"
+                } ${
+                  !isDragging && !isCompleted && !isCanceled ? 'hover:bg-gray-800 hover:bg-opacity-30 rounded px-1 py-0.5 -mx-1 -my-0.5' : ''
+                }`}
+                onClick={!isCompleted && !isCanceled ? handleEditTask : undefined}
+                title={!isCompleted && !isCanceled ? "Click to edit task" : ""}
+              >
+                {task.title}
+                {task.isPinned && (
+                  <Pin
+                    size={14}
+                    className="inline-block ml-2 text-gray-500 fill-gray-500"
+                    aria-label="Task is pinned"
+                  />
+                )}
+              </h3>
+            </div>
+          </div>
+          <div className="relative flex items-center gap-1" ref={dropdownRef}>
+            <button onClick={toggleDropdown} className="hover:text-white p-1 no-drag relative z-[100000]">
+              <MoreHorizontal size={18} className="cursor-pointer" />
+            </button>
+            {isDropdownOpen && !isDragging && (
+              <div
+                className="absolute right-5 bottom-1 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 no-drag z-[100000]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={handleEditTask}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left rounded-t-xl flex items-center gap-2"
+                >
+                  <Edit size={14} />
+                  Edit Task
+                </button>
+                
+                {/* New Assign To option */}
+                <button
+                  onClick={handleAssignClick}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Users size={14} />
+                  Assign To
+                </button>
+                
+                {/* New Tags option */}
+                <button
+                  onClick={handleTagsClick}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Tag size={14} />
+                  Tags
+                </button>
+                
+                <button
+                  onClick={handlePinToggle}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  {task.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
+                  {task.isPinned ? "Unpin Task" : "Pin Task"}
+                </button>
+                <button
+                  onClick={handleDuplicate}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Copy size={14} /> Duplicate Task
+                </button>
+                <button
+                  onClick={handleRepeat}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Repeat size={14} /> Repeat Task
+                </button>
+                {!isCanceled && (
+                  <button
+                    onClick={() => handleStatusChange("canceled")}
+                    className="w-full px-4 py-2 text-xs text-red-600 hover:bg-gray-700 text-left"
+                  >
+                    Cancel Task
+                  </button>
+                )}
+                {isCanceled && (
+                  <>
+                    <button
+                      onClick={() => handleStatusChange("ongoing")}
+                      className="w-full px-4 py-2 text-xs text-yellow-500 hover:bg-gray-700 text-left"
+                    >
+                      Move to Ongoing
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange("completed")}
+                      className="w-full px-4 py-2 text-xs text-green-500 hover:bg-gray-700 text-left"
+                    >
+                      Mark as Completed
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={openDeleteConfirmation}
+                  className="w-full px-4 py-2 text-xs text-red-600 hover:bg-gray-700 text-left rounded-b-xl"
+                >
+                  Delete Task
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
-              {editedTask.tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {editedTask.tags.map((tagName) => {
-                    const tag = configuredTags.find((t) => t.name === tagName)
-                    return (
-                      <span
-                        key={tagName}
-                        className="text-white px-2 py-1 rounded-lg text-sm flex items-center gap-1"
-                        style={{ backgroundColor: tag?.color || "#3F74FF" }}
-                      >
-                        {tagName}
-                        <button type="button" onClick={() => handleTagToggle(tagName)} className="hover:text-gray-200">
-                          ×
-                        </button>
-                      </span>
-                    )
-                  })}
-                </div>
+        {/* Tags */}
+        {task.tags && task.tags.length > 0 && (
+          <div className="relative ml-7">
+            <div className="flex flex-wrap gap-1.5">
+              {task.tags?.map(
+                (tag, index) =>
+                  tag && (
+                    <span
+                      key={index}
+                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer ${
+                        isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "bg-[#2F2F2F]"
+                      }`}
+                      style={{
+                        color: isCompleted || isCanceled ? "#9CA3AF" : getTagColor(tag),
+                        backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : `${getTagColor(tag)}20`,
+                      }}
+                      onClick={handleTagsClick}
+                    >
+                      <Tag size={10} />
+                      {tag}
+                    </span>
+                  ),
               )}
             </div>
+          </div>
+        )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-gray-200">Due Date</label>
-                <input
-                  type="date"
-                  value={editedTask.dueDate}
-                  onChange={(e) => setEditedTask({ ...editedTask, dueDate: e.target.value })}
-                  className="w-full bg-[#101010] white-calendar-icon mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm text-gray-200"> Due Time (Optional)</label>
-                <input
-                  type="time"
-                  value={editedTask.dueTime}
-                  onChange={(e) => setEditedTask({ ...editedTask, dueTime: e.target.value })}
-                  className="w-full bg-[#101010] white-calendar-icon mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
-                />
+        {/* Assignees and Date */}
+        <div className="flex flex-col items-center justify-center gap-2 mt-2 lg:flex-row lg:justify-center">
+          {(task.assignees?.length > 0 || task.roles?.length > 0) && (
+            <div className="relative">
+              <div
+                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer ${
+                  isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
+                }`}
+                onClick={handleAssignClick}
+              >
+                <Users size={12} />
+                <span className="truncate max-w-[120px]">{task.assignees?.join(", ") || task.roles?.join(", ")}</span>
               </div>
             </div>
-
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer"
-              >
-                Save Changes
-              </button>
+          )}
+          <div className="relative">
+            <div
+              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 ${
+                isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
+              }`}
+            >
+              <Calendar size={12} />
+              <span className="whitespace-nowrap">{formatDateTime()}</span>
+              {hasRepeat && <Repeat size={10} className="text-blue-400 ml-1" title="Repeating task" />}
             </div>
-          </form>
+          </div>
         </div>
       </div>
 
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+      <style jsx global>{`
+        @keyframes tick {
+          from {
+            stroke-dashoffset: 18;
+            transform: scale(0.8);
+          }
+          to {
+            stroke-dashoffset: 0;
+            transform: scale(1);
+          }
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #2F2F2F;
-          border-radius: 3px;
+        .animate-tick {
+          animation: tick 0.5s ease-out forwards;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #555;
-          border-radius: 3px;
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(0.98); }
+          100% { transform: scale(1); }
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #777;
+        .animate-pulse {
+          animation: pulse 0.5s ease-out;
         }
       `}</style>
-    </>
+    </div>
   )
 }
 
-export default EditTaskModal
+export const AssignToModal = ({ task, onClose, onUpdateTask, availableAssignees = [], availableRoles = [] }) => {
+  const [assignmentType, setAssignmentType] = useState(
+    (task?.assignees && task.assignees.length > 0) ? "staff" : "roles"
+  )
+  const [assignees, setAssignees] = useState(task?.assignees || [])
+  const [roles, setRoles] = useState(task?.roles || [])
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (onUpdateTask) {
+      const updatedTask = {
+        ...task,
+        assignees: assignmentType === "staff" ? assignees : [],
+        roles: assignmentType === "roles" ? roles : [],
+      }
+      onUpdateTask(updatedTask)
+      onClose()
+    }
+  }
+
+  const toggleStaffMember = (staffMember) => {
+    const fullName = `${staffMember.firstName} ${staffMember.lastName}`
+    if (assignees.includes(fullName)) {
+      setAssignees(assignees.filter(name => name !== fullName))
+    } else {
+      setAssignees([...assignees, fullName])
+    }
+  }
+
+  const toggleRole = (role) => {
+    if (roles.includes(role)) {
+      setRoles(roles.filter(r => r !== role))
+    } else {
+      setRoles([...roles, role])
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-[#181818] rounded-xl w-[400px] max-h-[80vh] p-6">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-white text-lg font-semibold">Assign Task</h2>
+          <button onClick={onClose} className="text-gray-400 cursor-pointer hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-sm text-gray-200 mb-2">Assignment Type</label>
+            <div className="flex gap-4 mt-1">
+              <button
+                type="button"
+                onClick={() => setAssignmentType("staff")}
+                className={`px-4 py-2 rounded-xl text-sm ${
+                  assignmentType === "staff" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
+                }`}
+              >
+                to Staff
+              </button>
+              <button
+                type="button"
+                onClick={() => setAssignmentType("roles")}
+                className={`px-4 py-2 rounded-xl text-sm ${
+                  assignmentType === "roles" ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200"
+                }`}
+              >
+                to Roles
+              </button>
+            </div>
+          </div>
+
+          {assignmentType === "staff" && (
+            <div>
+              <label className="text-sm text-gray-200">Assign to Staff</label>
+              <div className="mt-2 max-h-48 overflow-y-auto space-y-2">
+                {availableAssignees.map((staffMember) => {
+                  const fullName = `${staffMember.firstName} ${staffMember.lastName}`
+                  const isSelected = assignees.includes(fullName)
+                  return (
+                    <div
+                      key={staffMember.id}
+                      className={`flex items-center p-2 rounded-lg cursor-pointer ${
+                        isSelected ? "bg-[#3F74FF]/20" : "bg-[#2F2F2F] hover:bg-[#3F74FF]/10"
+                      }`}
+                      onClick={() => toggleStaffMember(staffMember)}
+                    >
+                      <div className={`w-4 h-4 rounded-full border mr-3 flex items-center justify-center ${
+                        isSelected ? "bg-[#3F74FF] border-[#3F74FF]" : "border-gray-500"
+                      }`}>
+                        {isSelected && <Check size={12} className="text-white" />}
+                      </div>
+                      <span className="text-gray-200">{fullName}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {assignmentType === "roles" && (
+            <div>
+              <label className="text-sm text-gray-200">Assign to Roles</label>
+              <div className="mt-2 max-h-48 overflow-y-auto space-y-2">
+                {availableRoles.map((role) => {
+                  const isSelected = roles.includes(role)
+                  return (
+                    <div
+                      key={role}
+                      className={`flex items-center p-2 rounded-lg cursor-pointer ${
+                        isSelected ? "bg-[#3F74FF]/20" : "bg-[#2F2F2F] hover:bg-[#3F74FF]/10"
+                      }`}
+                      onClick={() => toggleRole(role)}
+                    >
+                      <div className={`w-4 h-4 rounded-full border mr-3 flex items-center justify-center ${
+                        isSelected ? "bg-[#3F74FF] border-[#3F74FF]" : "border-gray-500"
+                      }`}>
+                        {isSelected && <Check size={12} className="text-white" />}
+                      </div>
+                      <span className="text-gray-200">{role}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Tags Modal Component
+export const TagsModal = ({ task, onClose, onUpdateTask, configuredTags = [] }) => {
+  const [selectedTags, setSelectedTags] = useState(task?.tags || [])
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (onUpdateTask) {
+      const updatedTask = {
+        ...task,
+        tags: selectedTags
+      }
+      onUpdateTask(updatedTask)
+      onClose()
+    }
+  }
+
+  const toggleTag = (tagName) => {
+    if (selectedTags.includes(tagName)) {
+      setSelectedTags(selectedTags.filter(tag => tag !== tagName))
+    } else {
+      setSelectedTags([...selectedTags, tagName])
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-[#181818] rounded-xl w-[400px] max-h-[80vh] p-6">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-white text-lg font-semibold">Edit Tags</h2>
+          <button onClick={onClose} className="text-gray-400 cursor-pointer hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-sm text-gray-200">Select Tags</label>
+            <div className="mt-2 max-h-48 overflow-y-auto space-y-2">
+              {configuredTags.map((tag) => {
+                const isSelected = selectedTags.includes(tag.name)
+                return (
+                  <div
+                    key={tag.id}
+                    className={`flex items-center p-2 rounded-lg cursor-pointer ${
+                      isSelected ? "bg-opacity-20" : "bg-[#2F2F2F] hover:bg-opacity-10"
+                    }`}
+                    style={{ backgroundColor: isSelected ? `${tag.color}20` : undefined }}
+                    onClick={() => toggleTag(tag.name)}
+                  >
+                    <div className={`w-4 h-4 rounded-full border mr-3 flex items-center justify-center ${
+                      isSelected ? "border-transparent" : "border-gray-500"
+                    }`} style={{ backgroundColor: isSelected ? tag.color : undefined }}>
+                      {isSelected && <Check size={12} className="text-white" />}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }} />
+                      <span className="text-gray-200">{tag.name}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+

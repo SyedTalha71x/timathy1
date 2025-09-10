@@ -104,7 +104,7 @@ const ViewManagementModal = ({
         <div className="bg-[#181818] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
           <div className="p-4 sm:p-6">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h3 className="text-lg sm:text-xl font-semibold text-white">Manage Dashboard Views</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-white">Manage My Area Views</h3>
               <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
                 <X size={20} />
               </button>
