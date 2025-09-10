@@ -28,7 +28,138 @@ import StaffCheckInWidget from "./StaffWidgetCheckIn"
 import { SpecialNoteEditModal } from "./SpecialNoteEditModal"
 import RightSidebarWidget from "./sidebar-components/RightSidebarWidget"
 import ViewManagementModal from "./sidebar-components/ViewManagementModal"
+import { memberTypesData } from "../../utils/user-panel-states/myarea-states"
 
+
+const ChartWithLocalState = () => {
+  const [selectedMemberType, setSelectedMemberType] = useState("All members");
+  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false);
+  const chartDropdownRef = useRef(null);
+  
+  // Get the keys from the memberTypesData object for the dropdown
+  const memberTypeKeys = Object.keys(memberTypesData);
+
+  const chartOptions = {
+    chart: {
+      type: "line",
+      height: 180,
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
+    },
+    colors: ["#FF6B1A", "#2E5BFF"],
+    stroke: { curve: "smooth", width: 4, opacity: 1 },
+    markers: {
+      size: 1,
+      strokeWidth: 0,
+      hover: { size: 6 },
+    },
+    xaxis: {
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      labels: { style: { colors: "#999999", fontSize: "12px" } },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      min: 0,
+      max: 600,
+      tickAmount: 6,
+      labels: {
+        style: { colors: "#999999", fontSize: "12px" },
+        formatter: (value) => Math.round(value),
+      },
+    },
+    grid: {
+      show: true,
+      borderColor: "#333333",
+      position: "back",
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: true } },
+      row: { opacity: 0.1 },
+      column: { opacity: 0.1 },
+    },
+    legend: {
+      show: true,
+      position: "top",
+      horizontalAlign: "right",
+      offsetY: -30,
+      offsetX: -10,
+      labels: { colors: "#ffffff" },
+      itemMargin: { horizontal: 5 },
+    },
+    title: {
+      text: memberTypesData[selectedMemberType]?.title || "Chart Title",
+      align: "left",
+      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
+    },
+    subtitle: {
+      text: `↑ ${memberTypesData[selectedMemberType]?.growth || "0"} more in 2024`,
+      align: "left",
+      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
+    },
+    tooltip: {
+      theme: "dark",
+      style: {
+        fontSize: "12px",
+        fontFamily: "Inter, sans-serif",
+      },
+      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
+        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
+        '<span style="color: black;">' +
+        series[seriesIndex][dataPointIndex] +
+        "</span></div>",
+    },
+  };
+
+  const chartSeries = [
+    { 
+      name: "Comp1", 
+      data: memberTypesData[selectedMemberType]?.data?.[0] || [] 
+    },
+    { 
+      name: "Comp2", 
+      data: memberTypesData[selectedMemberType]?.data?.[1] || [] 
+    },
+  ];
+
+  return (
+    <>
+      <div className="relative mb-3" ref={chartDropdownRef}>
+        <button
+          onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
+          className="flex items-center gap-2 px-3 py-1.5 bg-[#2F2F2F] rounded-xl text-white text-sm w-full justify-between"
+        >
+          {selectedMemberType}
+          <ChevronDown className="w-4 h-4" />
+        </button>
+        {isChartDropdownOpen && (
+          <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+            {memberTypeKeys.map((typeKey) => (
+              <button
+                key={typeKey}
+                className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                onClick={() => {
+                  setSelectedMemberType(typeKey);
+                  setIsChartDropdownOpen(false);
+                }}
+              >
+                {typeKey}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="w-full">
+        <Chart 
+          options={chartOptions} 
+          series={chartSeries} 
+          type="line" 
+          height={250} 
+        />
+      </div>
+    </>
+  );
+};
 const Sidebar = ({
   isRightSidebarOpen,
   toggleRightSidebar,
@@ -673,44 +804,16 @@ const Sidebar = ({
   />
 )}
 
-                    {widget.type === "chart" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Chart</h2>
-                        </div>
-                        <div className="p-4 bg-black rounded-xl">
-                          <div className="relative mb-3" ref={chartDropdownRef}>
-                            <button
-                              onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
-                              className="flex items-center gap-2 px-3 py-1.5 bg-[#2F2F2F] rounded-xl text-white text-sm w-full justify-between"
-                            >
-                              {selectedMemberType}
-                              <ChevronDown className="w-4 h-4" />
-                            </button>
-                            {isChartDropdownOpen && (
-                              <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
-                                {Object.keys(memberTypes).map((type) => (
-                                  <button
-                                    key={type}
-                                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
-                                    onClick={() => {
-                                      setSelectedMemberType(type)
-                                      setIsChartDropdownOpen(false)
-                                    }}
-                                  >
-                                    {type}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <div className="w-full">
-                            <Chart options={chartOptions} series={chartSeries} type="line" height={250} />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
+{widget.type === "chart" && (
+  <div className="mb-6">
+    <div className="flex items-center justify-between mb-2">
+      <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Chart</h2>
+    </div>
+    <div className="p-4 bg-black rounded-xl">
+      <ChartWithLocalState />
+    </div>
+  </div>
+)}
                     {widget.type === "expiringContracts" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-3">
