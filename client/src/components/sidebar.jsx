@@ -5,7 +5,6 @@ import { MdOutlineHelpCenter } from "react-icons/md";
 import { FaPeopleLine } from "react-icons/fa6";
 import { FaCartPlus } from "react-icons/fa";
 
-
 import {
   Calendar,
   Home,
@@ -17,9 +16,9 @@ import {
   CheckSquare,
   Settings,
   ShoppingCart,
-  Bell,
   ChevronLeft,
   ChevronRight,
+  Globe,
 } from "lucide-react";
 import { RiContractLine, RiStockFill } from "react-icons/ri";
 import { CiMonitor } from "react-icons/ci";
@@ -28,7 +27,6 @@ import { FaUsers } from "react-icons/fa6";
 import { IoIosPeople } from "react-icons/io";
 
 import { TbBrandGoogleAnalytics } from "react-icons/tb";
-
 
 import { BadgeDollarSign } from 'lucide-react';
 import { CgGym } from "react-icons/cg";
@@ -42,40 +40,37 @@ const Sidebar = () => {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("English");
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      heading: "Heading",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
-    },
-    {
-      id: 2,
-      heading: "Heading",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
-    },
-  ]);
+  // Language options
+  const languages = [
+    { code: "en", name: "English" },
+    { code: "de", name: "German" },
+    { code: "fr", name: "French" },
+    { code: "es", name: "Spanish" },
+    { code: "it", name: "Italian" },
+  ];
 
   // Replace with real data
   const studioName = "Studio One";
   const fullName = "Samantha";
   const role = "Trainer";
 
-
   const location = useLocation();
   const navigate = useNavigate();
 
-  const removeNotification = (id) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
-  };
-
-  const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+  const toggleLanguageDropdown = () => setIsLanguageDropdownOpen(!isLanguageDropdownOpen);
+
+  const handleLanguageSelect = (language) => {
+    setSelectedLanguage(language.name);
+    setIsLanguageDropdownOpen(false);
+    // Here you would typically implement the language change logic
+    console.log("Language selected:", language);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -98,6 +93,18 @@ const Sidebar = () => {
   const handleEditProfile = () => {
     setIsDropdownOpen(false);
     window.location.href = "/dashboard/edit-profile";
+  };
+  const handlePrivacyPolicy = () => {
+    setIsDropdownOpen(false);
+    window.location.href = "/";
+  };
+  const handleTermsOfUse = () => {
+    setIsDropdownOpen(false);
+    window.location.href = "/";
+  };
+  const handleChangelog = () => {
+    setIsDropdownOpen(false);
+    window.location.href = "/";
   };
   const handleLogout = () => {
     setIsDropdownOpen(false);
@@ -156,13 +163,36 @@ const Sidebar = () => {
             <Menu size={24} />
           </button>
         </div>
-        <div className="flex gap-2 items-center">
-          <div className="mr-1">
-            <Bell
-              onClick={toggleRightSidebar}
-              className="text-white cursor-pointer"
-            />
+        <div className="flex gap-1 items-center">
+          {/* Language Selection */}
+          <div className="relative mr-2">
+            <button
+              onClick={toggleLanguageDropdown}
+              className="p-2 rounded-lg text-white hover:bg-zinc-700 flex items-center gap-1"
+              aria-label="Language Selection"
+            >
+              <Globe size={20} />
+            </button>
+            {isLanguageDropdownOpen && (
+              <div className="absolute right-0 top-12 w-32 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+                <div className="py-2" role="menu">
+                  {languages.map((language) => (
+                    <button
+                      key={language.code}
+                      onClick={() => handleLanguageSelect(language)}
+                      className={`block w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 ${
+                        selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
+                      }`}
+                    >
+                      {language.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Profile */}
           <div
             onClick={toggleDropdown}
             className="flex items-center gap-2 cursor-pointer"
@@ -170,7 +200,7 @@ const Sidebar = () => {
             <img src="/girl.png" alt="Profile" className="w-8 h-8 rounded-full" />
           </div>
           {isDropdownOpen && (
-            <div className="absolute right-5 top-8 w-36 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+            <div className="absolute right-5 top-13 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
               <div className="py-2" role="menu">
                 <button
                   onClick={handleEditProfile}
@@ -178,6 +208,26 @@ const Sidebar = () => {
                 >
                   Edit Profile
                 </button>
+                <hr className="border-zinc-600 my-1" />
+                <button
+                  onClick={handlePrivacyPolicy}
+                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                >
+                  Privacy Policy
+                </button>
+                <button
+                  onClick={handleTermsOfUse}
+                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                >
+                  Terms of Use
+                </button>
+                <button
+                  onClick={handleChangelog}
+                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                >
+                  Changelog
+                </button>
+                <hr className="border-zinc-600 my-1" />
                 <button
                   onClick={handleLogout}
                   className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
@@ -195,7 +245,7 @@ const Sidebar = () => {
           fixed top-0 left-0 z-50 h-screen bg-[#111111] transition-all duration-500 overflow-hidden 
           lg:relative lg:block
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          ${isCollapsed ? "lg:w-20" : "lg:w-56 w-56"}   // <-- yahan width kam ki hai
+          ${isCollapsed ? "lg:w-20" : "lg:w-56 w-56"}
         `}
       >
         {/* Collapse Toggle */}
@@ -223,17 +273,37 @@ const Sidebar = () => {
               </div>
 
               {isDropdownOpen && !isCollapsed && (
-                <div className="absolute right-14 top-34 w-36 bg-[#222222]/40 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+                <div className="absolute right-8 top-30 w-40 bg-[#222222]/40 backdrop-blur-3xl rounded-lg shadow-lg z-50">
                   <div className="py-2" role="menu">
                     <button
                       onClick={handleEditProfile}
-                      className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
                     >
                       Edit Profile
                     </button>
+                    <hr className="border-zinc-600 my-1" />
+                    <button
+                      onClick={handlePrivacyPolicy}
+                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
+                    >
+                      Privacy Policy
+                    </button>
+                    <button
+                      onClick={handleTermsOfUse}
+                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
+                    >
+                      Terms of Use
+                    </button>
+                    <button
+                      onClick={handleChangelog}
+                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
+                    >
+                      Changelog
+                    </button>
+                    <hr className="border-zinc-600 my-1" />
                     <button
                       onClick={handleLogout}
-                      className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
                     >
                       Logout
                     </button>
@@ -317,7 +387,6 @@ const Sidebar = () => {
   </ul>
 </nav>
 
-
           {/* Logout Button */}
           <div className="p-4 mt-auto">
             <button
@@ -333,51 +402,6 @@ const Sidebar = () => {
               {!isCollapsed && <span>Logout</span>}
             </button>
           </div>
-        </div>
-      </aside>
-
-      {/* Notifications Sidebar */}
-      {isRightSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setIsRightSidebarOpen(false)}
-        />
-      )}
-      <aside
-        className={`
-          fixed top-0 right-0 bottom-0 w-[320px] bg-[#181818] p-6 z-50 
-          lg:static lg:w-80 lg:hidden block lg:rounded-3xl
-          transform ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-          }
-          transition-all duration-500 ease-in-out
-          overflow-y-auto
-        `}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl md:text-2xl text-white font-bold">Notification</h2>
-          <button
-            onClick={toggleRightSidebar}
-            className="lg:hidden p-2 hover:bg-zinc-700 text-white rounded-lg"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <div className="space-y-4">
-          {notifications.map((n) => (
-            <div
-              key={n.id}
-              className="bg-[#1C1C1C] rounded-lg p-4 relative hover:scale-[1.02] transition-all"
-            >
-              <button
-                onClick={() => removeNotification(n.id)}
-                className="absolute top-4 right-4 text-zinc-500 hover:text-white"
-              >
-                <X size={16} />
-              </button>
-              <h3 className="mb-2 text-white">{n.heading}</h3>
-              <p className="text-sm text-zinc-400">{n.description}</p>
-            </div>
-          ))}
         </div>
       </aside>
     </>
