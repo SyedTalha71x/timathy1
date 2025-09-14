@@ -13,6 +13,18 @@ html, body {
 }
 
 
+/* Text color */
+input[type="date"] {
+  color: white;
+}
+
+/* Calendar icon color */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* icon ko white bana dega */
+  cursor: pointer;
+}
+
+
 .navbar_h1{
   font-family: "Oxanium", serif;
   font-optical-sizing: auto;
