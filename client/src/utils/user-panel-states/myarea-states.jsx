@@ -496,3 +496,51 @@ export const mockVideosNew = [
         targetMuscles: ["Quadriceps", "Glutes", "Hamstrings"],
     },
 ];
+
+export const bulletinBoardData = [
+    {
+      id: 1,
+      title: "Gym Maintenance Notice",
+      content: "The gym will be closed for maintenance on Saturday from 2 PM to 6 PM.",
+      category: "staff",
+      date: "2025-01-15",
+      author: "Admin",
+      priority: "high"
+    },
+    {
+      id: 2,
+      title: "New Yoga Classes Starting",
+      content: "We're excited to announce new yoga classes starting next week. Sign up now!",
+      category: "members",
+      date: "2025-01-14",
+      author: "Fitness Team",
+      priority: "medium"
+    },
+    {
+      id: 3,
+      title: "Holiday Schedule Update",
+      content: "Special holiday hours: Open 8 AM - 4 PM on December 24th and 25th.",
+      category: "all",
+      date: "2025-01-13",
+      author: "Management",
+      priority: "low"
+    },
+    {
+      id: 4,
+      title: "Staff Meeting Reminder",
+      content: "Monthly staff meeting this Friday at 10 AM in the conference room.",
+      category: "staff",
+      date: "2025-01-12",
+      author: "Manager",
+      priority: "high"
+    },
+    {
+      id: 5,
+      title: "Member Appreciation Day",
+      content: "Join us this Saturday for free classes and refreshments!",
+      category: "members",
+      date: "2025-01-11",
+      author: "Events Team",
+      priority: "medium"
+    }
+  ];

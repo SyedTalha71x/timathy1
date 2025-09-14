@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unknown-property */
-"use client"
+
 
 /* eslint-disable react/prop-types */
 import { X, ChevronDown, Users, Tag } from "lucide-react"

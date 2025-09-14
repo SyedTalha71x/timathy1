@@ -6,7 +6,7 @@ import "react-datepicker/dist/react-datepicker.css"; // Import styles for the da
 import "../../custom-css/marketing-table-style.css";
 import { useNavigate } from "react-router-dom";
 import { SidebarArea } from "../../components/custom-sidebar";
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io";
 

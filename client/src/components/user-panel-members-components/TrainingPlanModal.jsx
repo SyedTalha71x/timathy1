@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
-"use client"
+
 
 import { useState } from "react"
 import { X, Plus, Trash2, Dumbbell } from "lucide-react"

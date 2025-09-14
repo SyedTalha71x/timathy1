@@ -1,5 +1,5 @@
 import Rectangle1 from "../../../public/Rectangle 1.png";
-import Avatar from "../../../public/avatar.png";
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png";
 
 export const communicationsData = [
   {

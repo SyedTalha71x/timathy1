@@ -3,7 +3,7 @@ import { useState } from "react"
 import { ExternalLink } from "lucide-react"
 import { IoIosMenu } from "react-icons/io"
 import { useNavigate } from "react-router-dom"
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { SidebarArea } from "../../components/custom-sidebar"
 

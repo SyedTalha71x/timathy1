@@ -1,4 +1,4 @@
-"use client"
+
 
 import { Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"

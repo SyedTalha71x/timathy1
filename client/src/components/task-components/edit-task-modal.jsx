@@ -1,4 +1,4 @@
-"use client"
+
 
 /* eslint-disable react/no-unknown-property */
 

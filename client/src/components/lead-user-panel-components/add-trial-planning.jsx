@@ -1,4 +1,4 @@
-"use client"
+
 
 // refernce trial modal
 import { Search, X, Trash2 } from "lucide-react"

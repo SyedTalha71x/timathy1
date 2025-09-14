@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
-"use client"
+
 
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
@@ -21,7 +21,7 @@ import {
 import ProductImage from "../../../public/default-avatar.avif"
 import { RiServiceFill } from "react-icons/ri"
 import SidebarAreaSelling from "../../components/selling-components/custom-sidebar-selling"
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
 import { MdOutlineProductionQuantityLimits } from "react-icons/md"

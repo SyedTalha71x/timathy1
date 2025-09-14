@@ -21,12 +21,11 @@ import {
   Dumbbell,
   FileText,
 } from "lucide-react"
-import DefaultAvatar from "../../../public/default-avatar.avif"
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import toast, { Toaster } from "react-hot-toast"
 import AddAppointmentModal from "../../components/appointments-components/add-appointment-modal"
 import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
 import { IoIosMenu } from "react-icons/io"
-import Avatar from "../../../public/default-avatar.avif"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { useNavigate } from "react-router-dom"
 import { SidebarArea } from "../../components/custom-sidebar"
@@ -1087,13 +1086,13 @@ const handleDocumentClick = (member) => {
       id: 1,
       name: "Alice Johnson",
       date: "Dec 15, 2024",
-      avatar: Avatar,
+      avatar: DefaultAvatar,
     },
     {
       id: 2,
       name: "Bob Wilson",
       date: "Dec 20, 2024",
-      avatar: Avatar,
+      avatar: DefaultAvatar,
     },
   ])
 
@@ -1386,14 +1385,13 @@ const handleDocumentClick = (member) => {
           </div>
         )}
 
-        {/* Main content layout - different for grid vs list */}
         {viewMode === "grid" ? (
           // Grid layout
           <div className="flex flex-col">
             <div className="flex flex-col items-center mb-4">
               <img
                 src={member.image || DefaultAvatar}
-                className="h-20 w-20 rounded-full flex-shrink-0 object-cover mb-3"
+                className="h-20 w-20 rounded-2xl flex-shrink-0 object-cover mb-3"
                 alt=""
               />
               <div className="flex flex-col items-center">
@@ -1522,7 +1520,7 @@ const handleDocumentClick = (member) => {
             <div className="flex items-center gap-4 flex-1 min-w-0">
               <img
                 src={member.image || DefaultAvatar}
-                className="h-12 w-12 sm:h-20 sm:w-20 rounded-full flex-shrink-0 object-cover"
+                className="h-12 w-12 sm:h-20 sm:w-20 rounded-2xl flex-shrink-0 object-cover"
                 alt=""
               />
               <div className="flex-1 min-w-0">

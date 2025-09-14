@@ -34,7 +34,7 @@ import {
 
 import { IoIosMegaphone } from "react-icons/io"
 import CommuncationBg from "../../../public/communication-bg.svg"
-import DefaultAvatar from "../../../public/default-avatar.avif" 
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png" 
 import { Link } from "react-router-dom"
 import { CiMonitor } from "react-icons/ci"
 import { FaCartPlus, FaPeopleLine, FaUsers } from "react-icons/fa6"

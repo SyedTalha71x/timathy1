@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-"use client"
+
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"

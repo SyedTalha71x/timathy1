@@ -23,19 +23,19 @@ import {
   CalendarIcon,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import StaffCheckInWidget from "./StaffWidgetCheckIn"
 import { SpecialNoteEditModal } from "./SpecialNoteEditModal"
 import RightSidebarWidget from "./sidebar-components/RightSidebarWidget"
 import ViewManagementModal from "./sidebar-components/ViewManagementModal"
-import { memberTypesData } from "../../utils/user-panel-states/myarea-states"
+import { bulletinBoardData, memberTypesData } from "../../utils/user-panel-states/myarea-states"
 
 
 const ChartWithLocalState = () => {
   const [selectedMemberType, setSelectedMemberType] = useState("All members");
   const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false);
   const chartDropdownRef = useRef(null);
-  
+
   // Get the keys from the memberTypesData object for the dropdown
   const memberTypeKeys = Object.keys(memberTypesData);
 
@@ -112,13 +112,13 @@ const ChartWithLocalState = () => {
   };
 
   const chartSeries = [
-    { 
-      name: "Comp1", 
-      data: memberTypesData[selectedMemberType]?.data?.[0] || [] 
+    {
+      name: "Comp1",
+      data: memberTypesData[selectedMemberType]?.data?.[0] || []
     },
-    { 
-      name: "Comp2", 
-      data: memberTypesData[selectedMemberType]?.data?.[1] || [] 
+    {
+      name: "Comp2",
+      data: memberTypesData[selectedMemberType]?.data?.[1] || []
     },
   ];
 
@@ -150,11 +150,11 @@ const ChartWithLocalState = () => {
         )}
       </div>
       <div className="w-full">
-        <Chart 
-          options={chartOptions} 
-          series={chartSeries} 
-          type="line" 
-          height={250} 
+        <Chart
+          options={chartOptions}
+          series={chartSeries}
+          type="line"
+          height={250}
         />
       </div>
     </>
@@ -173,7 +173,6 @@ const Sidebar = ({
   redirectToCommunication,
   todos,
   handleTaskComplete,
-  // Removed todoFilter, setTodoFilter, isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen props
   openDropdownIndex,
   toggleDropdown,
   handleEditTask,
@@ -188,20 +187,11 @@ const Sidebar = ({
   handleDumbbellClick,
   handleCheckIn,
   handleAppointmentOptionsModal,
-  selectedMemberType,
-  setSelectedMemberType,
-  memberTypes,
-  isChartDropdownOpen,
-  setIsChartDropdownOpen,
-  chartOptions,
-  chartSeries,
   expiringContracts,
-  getWidgetPlacementStatus,
   onClose,
   hasUnreadNotifications,
-  setIsWidgetModalOpen,
   notifications,
-  
+
 }) => {
   const todoFilterDropdownRef = useRef(null)
   const chartDropdownRef = useRef(null)
@@ -215,11 +205,14 @@ const Sidebar = ({
   const [sidebarActiveNoteId, setSidebarActiveNoteId] = useState(null)
   const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false)
   const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
-  
+
+  const [sidebarBulletinFilter, setSidebarBulletinFilter] = useState("all");
+
+
   // Local state for todo filtering
   const [todoFilter, setTodoFilter] = useState("all")
   const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
-  
+
   // Todo filter options
   const todoFilterOptions = [
     { value: "all", label: "All Tasks" },
@@ -241,19 +234,30 @@ const Sidebar = ({
     }
   }
 
+  const handleSidebarBulletinFilterChange = (filter) => {
+    setSidebarBulletinFilter(filter);
+  };
+
+  const getSidebarFilteredBulletinPosts = () => {
+    if (sidebarBulletinFilter === "all") {
+      return bulletinBoardData;
+    }
+    return bulletinBoardData.filter(post => post.category === sidebarBulletinFilter);
+  };
+
   const handleSidebarEditNote = (appointmentId, currentNote) => {
     const appointment = appointments.find((app) => app.id === appointmentId)
     if (appointment) {
       setIsSidebarSpecialNoteModalOpen(false)
       setSelectedSidebarAppointmentForNote(null)
-  
+
       setTimeout(() => {
         setSelectedSidebarAppointmentForNote(appointment)
         setIsSidebarSpecialNoteModalOpen(true)
       }, 10)
     }
   }
-  
+
   // Add separate handler for saving sidebar special note
   const handleSaveSidebarSpecialNote = (appointmentId, updatedNote) => {
     // Call the parent's save function if passed as prop
@@ -270,18 +274,17 @@ const Sidebar = ({
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
-  
+
       const handleNoteClick = (e) => {
         e.stopPropagation()
         setSidebarActiveNoteId(sidebarActiveNoteId === memberId ? null : memberId)
       }
-  
+
       return (
         <div className="relative">
           <div
-            className={`${
-              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
@@ -290,7 +293,7 @@ const Sidebar = ({
               <Info size={18} className="text-white" />
             )}
           </div>
-  
+
           {sidebarActiveNoteId === memberId && (
             <div
               ref={notePopoverRef}
@@ -368,11 +371,11 @@ const Sidebar = ({
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <h2 className="text-base sm:text-lg font-semibold text-white truncate">Sidebar</h2>
-                 {currentView && (
-                <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
-                  {currentView.name}
-                </span>
-              )}
+                  {currentView && (
+                    <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
+                      {currentView.name}
+                    </span>
+                  )}
                 </div>
               </div>
               <div></div>
@@ -398,9 +401,8 @@ const Sidebar = ({
                 {activeTab === "widgets" && (
                   <button
                     onClick={toggleSidebarEditing}
-                    className={`p-1.5 sm:p-2 ${
-                      isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                    } rounded-lg flex items-center gap-1`}
+                    className={`p-1.5 sm:p-2 ${isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                      } rounded-lg flex items-center gap-1`}
                     title="Toggle Edit Mode"
                   >
                     {isSidebarEditing ? <Check size={14} /> : <Edit size={14} />}
@@ -421,9 +423,8 @@ const Sidebar = ({
           <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
             <button
               onClick={() => setActiveTab("widgets")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+                }`}
             >
               <Settings size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Widgets</span>
@@ -431,9 +432,8 @@ const Sidebar = ({
 
             <button
               onClick={() => setActiveTab("notifications")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
-                activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+                }`}
             >
               <Bell size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
@@ -645,11 +645,10 @@ const Sidebar = ({
                           {birthdays.slice(0, 3).map((birthday) => (
                             <div
                               key={birthday.id}
-                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${
-                                isBirthdayToday(birthday.date)
+                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${isBirthdayToday(birthday.date)
                                   ? "bg-yellow-900/30 border border-yellow-600"
                                   : "bg-black"
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2">
                                 <div>
@@ -762,11 +761,10 @@ const Sidebar = ({
                                         e.stopPropagation()
                                         handleCheckIn(appointment.id)
                                       }}
-                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${
-                                        appointment.isCheckedIn
+                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
                                           ? " border border-white/50 text-white bg-transparent"
                                           : "bg-black text-white"
-                                      }`}
+                                        }`}
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                     </button>
@@ -792,28 +790,28 @@ const Sidebar = ({
                       </div>
                     )}
 
-{isSidebarSpecialNoteModalOpen && selectedSidebarAppointmentForNote && (
-  <SpecialNoteEditModal
-    isOpen={isSidebarSpecialNoteModalOpen}
-    onClose={() => {
-      setIsSidebarSpecialNoteModalOpen(false)
-      setSelectedSidebarAppointmentForNote(null)
-    }}
-    appointment={selectedSidebarAppointmentForNote}
-    onSave={handleSaveSidebarSpecialNote}
-  />
-)}
+                    {isSidebarSpecialNoteModalOpen && selectedSidebarAppointmentForNote && (
+                      <SpecialNoteEditModal
+                        isOpen={isSidebarSpecialNoteModalOpen}
+                        onClose={() => {
+                          setIsSidebarSpecialNoteModalOpen(false)
+                          setSelectedSidebarAppointmentForNote(null)
+                        }}
+                        appointment={selectedSidebarAppointmentForNote}
+                        onSave={handleSaveSidebarSpecialNote}
+                      />
+                    )}
 
-{widget.type === "chart" && (
-  <div className="mb-6">
-    <div className="flex items-center justify-between mb-2">
-      <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Chart</h2>
-    </div>
-    <div className="p-4 bg-black rounded-xl">
-      <ChartWithLocalState />
-    </div>
-  </div>
-)}
+                    {widget.type === "chart" && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Chart</h2>
+                        </div>
+                        <div className="p-4 bg-black rounded-xl">
+                          <ChartWithLocalState />
+                        </div>
+                      </div>
+                    )}
                     {widget.type === "expiringContracts" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-3">
@@ -844,6 +842,41 @@ const Sidebar = ({
                       </div>
                     )}
 
+                    {widget.type === "bulletinBoard" && (
+                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-auto flex flex-col">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Bulletin Board</h2>
+                        </div>
+                        <div className="relative">
+                          <select
+                            value={sidebarBulletinFilter}
+                            onChange={(e) => handleSidebarBulletinFilterChange(e.target.value)}
+                            className="w-full p-2 bg-black rounded-xl text-white text-sm"
+                          >
+                            <option value="all">All Posts</option>
+                            <option value="staff">Staff Only</option>
+                            <option value="members">Members Only</option>
+                          </select>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 mt-2">
+                          <div className="space-y-2">
+                            {getSidebarFilteredBulletinPosts().slice(0, 2).map((post) => (
+                              <div key={post.id} className="p-3 bg-black rounded-xl">
+                                <div className="flex justify-between items-start">
+                                  <h3 className="font-semibold text-sm">{post.title}</h3>
+                                </div>
+                                <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{post.content}</p>
+                                <div className="flex justify-between items-center mt-2">
+                                  <span className="text-xs text-zinc-500 capitalize">{post.category}</span>
+                                  <span className="text-xs text-zinc-500">{post.date}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {widget.type === "staffCheckIn" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
@@ -869,7 +902,7 @@ const Sidebar = ({
         currentView={currentView}
         setCurrentView={setCurrentView}
         sidebarWidgets={rightSidebarWidgets}
-        setSidebarWidgets={() => {}} // This might need to be adjusted based on your implementation
+        setSidebarWidgets={() => { }} // This might need to be adjusted based on your implementation
       />
     </>
   )

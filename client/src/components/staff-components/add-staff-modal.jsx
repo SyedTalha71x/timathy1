@@ -1,4 +1,3 @@
-"use client"
 
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
@@ -6,7 +5,7 @@
 import { X } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
-import Avatar from "../../../public/default-avatar.avif"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   const [activeTab, setActiveTab] = useState("details")

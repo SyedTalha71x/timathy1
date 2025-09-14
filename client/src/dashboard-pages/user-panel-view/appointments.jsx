@@ -25,7 +25,7 @@ import { appointmentsData as initialAppointmentsData } from "../../utils/states"
 import Calendar from "../../components/appointments-components/calendar"
 import { useNavigate } from "react-router-dom"
 import { SidebarArea } from "../../components/custom-sidebar"
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
 

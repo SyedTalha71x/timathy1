@@ -8,7 +8,7 @@ import SepaXmlModal from "../../components/finance-components/sepa-xml-modal"
 import { financialData } from "../../utils/states"
 import { useNavigate } from "react-router-dom"
 
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
 import { SidebarArea } from "../../components/custom-sidebar"

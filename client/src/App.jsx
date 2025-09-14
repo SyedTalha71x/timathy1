@@ -29,6 +29,8 @@ import ActivityMonitor from "./dashboard-pages/user-panel-view/activity-monitor"
 import Analytics from './dashboard-pages/user-panel-view/analytics'
 import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
 import MarketPlace from './dashboard-pages/user-panel-view/market-place'
+import NotesApp from "./dashboard-pages/user-panel-view/notes";
+import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
 
 
 // Admin Dashboard
@@ -86,6 +88,8 @@ function App() {
           <Route path="analytics" element={<Analytics />} />
           <Route path="help-center" element={<HelpCenter />} />
           <Route path="market-place" element={<MarketPlace />} />
+          <Route path="notes" element={<NotesApp />} />
+          <Route path="bulletin-board" element={<BulletinBoard />} />
 
 
 

@@ -1,4 +1,4 @@
-"use client"
+
 
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
@@ -29,7 +29,7 @@ import { RenewContractModal } from "../../components/contract-components/reniew-
 import { ChangeContractModal } from "../../components/contract-components/change-contract-modal"
 import { ContractHistoryModal } from "../../components/contract-components/contract-history-modal"
 
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { useNavigate } from "react-router-dom"
 import { SidebarArea } from "../../components/custom-sidebar"

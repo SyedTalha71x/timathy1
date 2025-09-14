@@ -22,7 +22,7 @@ import {
   Users,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { useNavigate } from "react-router-dom"
 import { SidebarArea } from "../../components/custom-sidebar"

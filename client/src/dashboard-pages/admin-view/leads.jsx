@@ -9,7 +9,7 @@ import { EditLeadModal } from "../../components/customer-dashboard/studios-modal
 import ViewLeadDetailsModal from "../../components/customer-dashboard/view-lead-details"
 import { AddLeadContractModal } from "../../components/customer-dashboard/add-lead-contract-modal"
 import toast, { Toaster } from "react-hot-toast"
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteLead, columnId, onDragStop, index }) => {
   const [isDragging, setIsDragging] = useState(false)

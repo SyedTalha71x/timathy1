@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
-"use client"
 import { X, Info, Trash2 } from "lucide-react"
-import Avatar from "../../../public/default-avatar.avif"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { toast } from "react-hot-toast"
 
 const CreateTempMemberModal = ({

@@ -1,4 +1,4 @@
-"use client"
+
 
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from "react"
 import Chart from "react-apexcharts"
 import { TrendingUp, Users, Calendar, DollarSign, Clock, Target, ChevronDown, ArrowUp, ArrowDown } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { SidebarArea } from "../../components/custom-sidebar"
 import { IoIosMenu } from "react-icons/io"

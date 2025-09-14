@@ -1,7 +1,8 @@
+"use client"
 
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
-import { BarChart3, Calendar, Users, Link, MessageSquare, CheckSquare, Gift } from "lucide-react"
+import { BarChart3, Calendar, Users, Link, MessageSquare, CheckSquare, Gift, Clipboard } from "lucide-react"
 
 export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus, widgetArea = "dashboard" }) {
   if (!isOpen) return null
@@ -55,6 +56,12 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       description: "Upcoming member birthdays",
       icon: Gift,
     },
+    {
+      id: "bulletinBoard",
+      name: "Bulletin Board",
+      description: "View bulletin board posts for staff and members",
+      icon: Clipboard,
+    },
   ]
 
   const sidebarWidgets = [
@@ -105,6 +112,12 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       name: "Staff Check-In",
       description: "Staff check-in/out functionality",
       icon: Users,
+    },
+    {
+      id: "bulletinBoard",
+      name: "Bulletin Board",
+      description: "View bulletin board posts for staff and members",
+      icon: Clipboard,
     },
   ]
 

@@ -3,7 +3,7 @@
 import { X } from "lucide-react"
 import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
-import Avatar from "../../../../public/default-avatar.avif"
+import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 
 export default function AddStaffModal({
   isOpen,

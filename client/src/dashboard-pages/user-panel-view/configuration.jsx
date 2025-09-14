@@ -38,7 +38,7 @@ import {
   UnderlineOutlined,
 } from "@ant-design/icons"
 import VariablePicker from "../../components/variable-picker" // Assuming VariablePicker is in components folder
-import defaultLogoUrl from '../../../public/default-avatar.avif'
+import defaultLogoUrl from '../../../public/gray-avatar-fotor-20250912192528.png'
 
 const { Option } = Select
 const { TabPane } = Tabs
@@ -91,7 +91,7 @@ const tooltipStyle = {
 
 const ConfigurationPage = () => {
   // Add near other state variables
-const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(true);
+  const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(true);
 
   // Basic studio information
   const [studioName, setStudioName] = useState("")
@@ -443,7 +443,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
     if (info.file.status === "uploading") {
       return
     }
-    
+
     if (info.file.status === "done" || info.file) {
       // Create a URL for the uploaded file to display it
       if (info.file.originFileObj) {
@@ -453,7 +453,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
       setLogo([info.file])
       notification.success({ message: "Logo uploaded successfully" })
     }
-    
+
     if (info.file.status === "removed") {
       setLogoUrl("")
       setLogo([])
@@ -586,179 +586,176 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="Studio Data" key="1">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-          <Panel header="Studio Information" key="1" className="bg-[#202020]">
-  <Form layout="vertical" className="space-y-4">
-    
-    {/* Logo Display Section - Added above all other fields */}
-    <div className="flex justify-center mb-8">
-      <div className="flex flex-col items-center space-y-4">
-        {/* Logo Image */}
-        <div className="w-32 h-32 rounded-full overflow-hidden  shadow-lg">
-          <img
-            src={logoUrl || defaultLogoUrl}
-            alt="Studio Logo"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.src = defaultLogoUrl; // Fallback to default if image fails to load
-            }}
-          />
-        </div>
-        {/* Upload Logo Button */}
-        <Upload 
-          accept="image/*" 
-          maxCount={1} 
-          onChange={handleLogoUpload} 
-          fileList={logo}
-          showUploadList={false}
-        >
-          <Button icon={<UploadOutlined />} style={buttonStyle}>
-            {logo.length > 0 ? 'Change Logo' : 'Upload Logo'}
-          </Button>
-        </Upload>
-        {logo.length > 0 && (
-          <Button 
-            type="text" 
-            danger 
-            size="small"
-            onClick={() => {
-              setLogo([]);
-              setLogoUrl('');
-            }}
-          >
-            Remove Logo
-          </Button>
-        )}
-      </div>
-    </div>
+            <Panel header="Studio Information" key="1" className="bg-[#202020]">
+              <Form layout="vertical" className="space-y-4">
 
-    {/* Row 1: Studio Name & Studio Operator */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Form.Item label={<span className="text-white">Studio Name</span>} required>
-        <Input
-          value={studioName}
-          onChange={(e) => setStudioName(e.target.value)}
-          placeholder="Enter studio name"
-          style={inputStyle}
-          maxLength={50}   // 👈 Limit characters
-        />
-      </Form.Item>
-      <Form.Item label={<span className="text-white">Studio Operator</span>}>
-        <Input
-          value={studioOperator}
-          onChange={(e) => setStudioOperator(e.target.value)}
-          placeholder="Enter studio operator name"
-          style={inputStyle}
-          maxLength={50}
-        />
-      </Form.Item>
-    </div>
+                <div className="flex justify-center mb-8">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="w-32 h-32 rounded-xl overflow-hidden  shadow-lg">
+                      <img
+                        src={logoUrl || defaultLogoUrl}
+                        alt="Studio Logo"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = defaultLogoUrl;
+                        }}
+                      />
+                    </div>
+                    <Upload
+                      accept="image/*"
+                      maxCount={1}
+                      onChange={handleLogoUpload}
+                      fileList={logo}
+                      showUploadList={false}
+                    >
+                      <Button icon={<UploadOutlined />} style={buttonStyle}>
+                        {logo.length > 0 ? 'Change Logo' : 'Upload Logo'}
+                      </Button>
+                    </Upload>
+                    {logo.length > 0 && (
+                      <Button
+                        type="text"
+                        danger
+                        size="small"
+                        onClick={() => {
+                          setLogo([]);
+                          setLogoUrl('');
+                        }}
+                      >
+                        Remove Logo
+                      </Button>
+                    )}
+                  </div>
+                </div>
 
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-<Form.Item
-  label={<span className="text-white">Phone No</span>}
-  name="phone"
-  rules={[{ required: true, message: "Please enter phone number" }]}
->
-  <Input
-    value={studioPhoneNo}
-    onChange={(e) => {
-      // Extra safety: strip non-digits if pasted
-      const onlyDigits = e.target.value.replace(/\D/g, "");
-      setStudioPhoneNo(onlyDigits);
-    }}
-    onKeyPress={(e) => {
-      // Block typing anything except digits
-      if (!/[0-9]/.test(e.key)) {
-        e.preventDefault();
-      }
-    }}
-    placeholder="Enter phone no"
-    style={inputStyle}
-    maxLength={15}
-    inputMode="numeric"
-  />
-</Form.Item>
+                {/* Row 1: Studio Name & Studio Operator */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Form.Item label={<span className="text-white">Studio Name</span>} required>
+                    <Input
+                      value={studioName}
+                      onChange={(e) => setStudioName(e.target.value)}
+                      placeholder="Enter studio name"
+                      style={inputStyle}
+                      maxLength={50}   // 👈 Limit characters
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Studio Operator</span>}>
+                    <Input
+                      value={studioOperator}
+                      onChange={(e) => setStudioOperator(e.target.value)}
+                      placeholder="Enter studio operator name"
+                      style={inputStyle}
+                      maxLength={50}
+                    />
+                  </Form.Item>
+                </div>
 
-  <Form.Item
-    label={<span className="text-white">Email</span>}
-    name="email"
-    rules={[
-      { required: true, message: "Please enter email" },
-      { type: "email", message: "Please enter a valid email" },
-    ]}
-  >
-    <Input
-      value={studioEmail}
-      onChange={(e) => setStudioEmail(e.target.value)}
-      placeholder="Enter email"
-      style={inputStyle}
-      maxLength={60}
-    />
-  </Form.Item>
-</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Form.Item
+                    label={<span className="text-white">Phone No</span>}
+                    name="phone"
+                    rules={[{ required: true, message: "Please enter phone number" }]}
+                  >
+                    <Input
+                      value={studioPhoneNo}
+                      onChange={(e) => {
+                        // Extra safety: strip non-digits if pasted
+                        const onlyDigits = e.target.value.replace(/\D/g, "");
+                        setStudioPhoneNo(onlyDigits);
+                      }}
+                      onKeyPress={(e) => {
+                        // Block typing anything except digits
+                        if (!/[0-9]/.test(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      placeholder="Enter phone no"
+                      style={inputStyle}
+                      maxLength={15}
+                      inputMode="numeric"
+                    />
+                  </Form.Item>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Form.Item label={<span className="text-white">Street (with number)</span>} required>
-        <Input
-          value={studioStreet}
-          onChange={(e) => setStudioStreet(e.target.value)}
-          placeholder="Enter street and number"
-          style={inputStyle}
-          maxLength={60}
-        />
-      </Form.Item>
-      <Form.Item label={<span className="text-white">ZIP Code</span>} required>
-        <Input
-          value={studioZipCode}
-          onChange={(e) => setStudioZipCode(e.target.value)}
-          placeholder="Enter ZIP code"
-          style={inputStyle}
-          maxLength={10}
-        />
-      </Form.Item>
-    </div>
+                  <Form.Item
+                    label={<span className="text-white">Email</span>}
+                    name="email"
+                    rules={[
+                      { required: true, message: "Please enter email" },
+                      { type: "email", message: "Please enter a valid email" },
+                    ]}
+                  >
+                    <Input
+                      value={studioEmail}
+                      onChange={(e) => setStudioEmail(e.target.value)}
+                      placeholder="Enter email"
+                      style={inputStyle}
+                      maxLength={60}
+                    />
+                  </Form.Item>
+                </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Form.Item label={<span className="text-white">City</span>} required>
-        <Input
-          value={studioCity}
-          onChange={(e) => setStudioCity(e.target.value)}
-          placeholder="Enter city"
-          style={inputStyle}
-          maxLength={40}
-        />
-      </Form.Item>
-      <Form.Item label={<span className="text-white">Country</span>} required>
-        <Select
-          value={studioCountry}
-          onChange={(value) => setStudioCountry(value)}
-          placeholder="Select country"
-          style={selectStyle}
-          showSearch
-        >
-          {countries.map((country) => (
-            <Option key={country.code} value={country.code}>
-              {country.name} ({country.currency})
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Form.Item label={<span className="text-white">Street (with number)</span>} required>
+                    <Input
+                      value={studioStreet}
+                      onChange={(e) => setStudioStreet(e.target.value)}
+                      placeholder="Enter street and number"
+                      style={inputStyle}
+                      maxLength={60}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">ZIP Code</span>} required>
+                    <Input
+                      value={studioZipCode}
+                      onChange={(e) => setStudioZipCode(e.target.value)}
+                      placeholder="Enter ZIP code"
+                      style={inputStyle}
+                      maxLength={10}
+                    />
+                  </Form.Item>
+                </div>
 
-    {/* Row 5: Website only (Logo section moved to top) */}
-    <div className="grid grid-cols-1 md:grid-cols-1 md:w-[49.5%] w-full gap-4">
-      <Form.Item label={<span className="text-white">Studio Website</span>}>
-        <Input
-          value={studioWebsite}
-          onChange={(e) => setStudioWebsite(e.target.value)}
-          placeholder="Enter studio website URL"
-          style={inputStyle}
-          maxLength={50}
-        />
-      </Form.Item>
-    </div>
-  </Form>
-</Panel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Form.Item label={<span className="text-white">City</span>} required>
+                    <Input
+                      value={studioCity}
+                      onChange={(e) => setStudioCity(e.target.value)}
+                      placeholder="Enter city"
+                      style={inputStyle}
+                      maxLength={40}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Country</span>} required>
+                    <Select
+                      value={studioCountry}
+                      onChange={(value) => setStudioCountry(value)}
+                      placeholder="Select country"
+                      style={selectStyle}
+                      showSearch
+                    >
+                      {countries.map((country) => (
+                        <Option key={country.code} value={country.code}>
+                          {country.name} ({country.currency})
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+
+                {/* Row 5: Website only (Logo section moved to top) */}
+                <div className="grid grid-cols-1 md:grid-cols-1 md:w-[49.5%] w-full gap-4">
+                  <Form.Item label={<span className="text-white">Studio Website</span>}>
+                    <Input
+                      value={studioWebsite}
+                      onChange={(e) => setStudioWebsite(e.target.value)}
+                      placeholder="Enter studio website URL"
+                      style={inputStyle}
+                      maxLength={50}
+                    />
+                  </Form.Item>
+                </div>
+              </Form>
+            </Panel>
 
             <Panel header="Opening Hours" key="2" className="bg-[#202020]">
               <div className="space-y-4">
@@ -934,74 +931,74 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
                   <div className="space-y-4">
                     {appointmentTypes.map((type, index) => (
                       <div key={index} className="flex flex-col gap-4 p-4 border border-[#303030] rounded-lg">
-                   <div className="flex flex-wrap gap-4 items-center">
-                   <Row>
-  <Input
-    placeholder="Appointment Type Name"
-    value={type.name}
-    onChange={(e) =>
-      handleUpdateAppointmentType(index, "name", e.target.value)
-    }
-    className="!w-full md:!w-32 lg:!w-90 !py-3.5 white-text"
-    style={inputStyle}
-  />
-</Row>
+                        <div className="flex flex-wrap gap-4 items-center">
+                          <Row>
+                            <Input
+                              placeholder="Appointment Type Name"
+                              value={type.name}
+                              onChange={(e) =>
+                                handleUpdateAppointmentType(index, "name", e.target.value)
+                              }
+                              className="!w-full md:!w-32 lg:!w-90 !py-3.5 white-text"
+                              style={inputStyle}
+                            />
+                          </Row>
 
-  <div className="flex items-center">
-    <InputNumber
-      placeholder="Duration"
-      value={type.duration}
-      onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
-      className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
-      style={inputStyle}
-    />
-    <Tooltip title="Duration in minutes">
-      <InfoCircleOutlined style={tooltipStyle} />
-    </Tooltip>
-  </div>
-  <div className="flex items-center">
-    <InputNumber
-      placeholder="Capacity"
-      value={type.capacity}
-      onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
-      className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
-      style={inputStyle}
-    />
-    <Tooltip title="Maximum number of participants">
-      <InfoCircleOutlined style={tooltipStyle} />
-    </Tooltip>
-  </div>
-  <div className="flex items-center">
-    <ColorPicker
-      value={type.color}
-      onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
-    />
-    <Tooltip title="Calendar display color">
-      <InfoCircleOutlined style={tooltipStyle} />
-    </Tooltip>
-  </div>
-  <div className="flex items-center">
-    <InputNumber
-      placeholder="Interval"
-      value={type.interval}
-      onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
-      className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
-      style={inputStyle}
-    />
-    <Tooltip title="Time between appointments in minutes">
-      <InfoCircleOutlined style={tooltipStyle} />
-    </Tooltip>
-  </div>
-  <Button
-    danger
-    icon={<DeleteOutlined />}
-    onClick={() => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))}
-    className="w-full sm:w-auto"
-    style={buttonStyle}
-  >
-    Remove
-  </Button>
-</div>
+                          <div className="flex items-center">
+                            <InputNumber
+                              placeholder="Duration"
+                              value={type.duration}
+                              onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
+                              className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
+                              style={inputStyle}
+                            />
+                            <Tooltip title="Duration in minutes">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <div className="flex items-center">
+                            <InputNumber
+                              placeholder="Capacity"
+                              value={type.capacity}
+                              onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
+                              className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
+                              style={inputStyle}
+                            />
+                            <Tooltip title="Maximum number of participants">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <div className="flex items-center">
+                            <ColorPicker
+                              value={type.color}
+                              onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
+                            />
+                            <Tooltip title="Calendar display color">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <div className="flex items-center">
+                            <InputNumber
+                              placeholder="Interval"
+                              value={type.interval}
+                              onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
+                              className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
+                              style={inputStyle}
+                            />
+                            <Tooltip title="Time between appointments in minutes">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))}
+                            className="w-full sm:w-auto"
+                            style={buttonStyle}
+                          >
+                            Remove
+                          </Button>
+                        </div>
                         {/* New: Upload Pictures for Appointment Type */}
                         <Form.Item label={<span className="text-white">Upload Images</span>}>
                           <Upload
@@ -1243,45 +1240,45 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
         </TabPane>
         <TabPane tab="Contracts" key="3">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-          <Panel header="Contract Settings" key="5" className="bg-[#202020]">
-  <div className="space-y-4">
-    <Form layout="vertical">
-      <Form.Item
-        label={
-          <div className="flex items-center">
-            <span className="text-white">Allow Member Self-Cancellation</span>
-            <Tooltip title="When enabled, members can cancel their contracts on their own">
-              <InfoCircleOutlined style={tooltipStyle} />
-            </Tooltip>
-          </div>
-        }
-      >
-        <Switch
-          checked={allowMemberSelfCancellation}
-          onChange={setAllowMemberSelfCancellation}
-        />
-      </Form.Item>
-      <Form.Item label={<span className="text-white">Default Notice Period (days)</span>}>
-        <InputNumber
-          min={0}
-          value={noticePeriod}
-          onChange={setNoticePeriod}
-          style={inputStyle}
-          className="white-text"
-        />
-      </Form.Item>
-      <Form.Item label={<span className="text-white">Default Extension Period (months)</span>}>
-        <InputNumber
-          min={0}
-          value={extensionPeriod}
-          onChange={setExtensionPeriod}
-          style={inputStyle}
-          className="white-text"
-        />
-      </Form.Item>
-    </Form>
-  </div>
-</Panel>
+            <Panel header="Contract Settings" key="5" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item
+                    label={
+                      <div className="flex items-center">
+                        <span className="text-white">Allow Member Self-Cancellation</span>
+                        <Tooltip title="When enabled, members can cancel their contracts on their own">
+                          <InfoCircleOutlined style={tooltipStyle} />
+                        </Tooltip>
+                      </div>
+                    }
+                  >
+                    <Switch
+                      checked={allowMemberSelfCancellation}
+                      onChange={setAllowMemberSelfCancellation}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Default Notice Period (days)</span>}>
+                    <InputNumber
+                      min={0}
+                      value={noticePeriod}
+                      onChange={setNoticePeriod}
+                      style={inputStyle}
+                      className="white-text"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Default Extension Period (months)</span>}>
+                    <InputNumber
+                      min={0}
+                      value={extensionPeriod}
+                      onChange={setExtensionPeriod}
+                      style={inputStyle}
+                      className="white-text"
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
             <Panel header="Contract Types" key="1" className="bg-[#202020]">
               <div className="space-y-4">
                 {contractTypes.map((type, index) => (
@@ -1324,7 +1321,7 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
                               }}
                               style={inputStyle}
                               precision={2}
-                              // addonAfter={currency}
+                            // addonAfter={currency}
                             />
                           </div>
                         </Form.Item>
@@ -1372,61 +1369,61 @@ const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(t
                           </div>
                         </Form.Item>
                         <Form.Item label={<span className="text-white">Automatic Renewal</span>}>
-  <Switch
-    checked={type.autoRenewal || false}
-    onChange={(checked) => {
-      const updated = [...contractTypes];
-      updated[index].autoRenewal = checked;
-      setContractTypes(updated);
-    }}
-  />
-</Form.Item>
+                          <Switch
+                            checked={type.autoRenewal || false}
+                            onChange={(checked) => {
+                              const updated = [...contractTypes];
+                              updated[index].autoRenewal = checked;
+                              setContractTypes(updated);
+                            }}
+                          />
+                        </Form.Item>
 
-{type.autoRenewal && (
-  <>
-    <Form.Item label={<span className="text-white">Renewal Period (months)</span>}>
-      <InputNumber
-        min={1}
-        value={type.renewalPeriod || 1}
-        onChange={(value) => {
-          const updated = [...contractTypes];
-          updated[index].renewalPeriod = value || 1;
-          setContractTypes(updated);
-        }}
-        style={inputStyle}
-        className="white-text"
-      />
-    </Form.Item>
-    <Form.Item label={<span className="text-white">Renewal Price</span>}>
-      <InputNumber
-        value={type.renewalPrice || 0}
-        onChange={(value) => {
-          const updated = [...contractTypes];
-          updated[index].renewalPrice = value || 0;
-          setContractTypes(updated);
-        }}
-        style={inputStyle}
-        className="white-text"
-        precision={2}
-        // addonAfter={currency}
-      />
-    </Form.Item>
-  </>
-)}
+                        {type.autoRenewal && (
+                          <>
+                            <Form.Item label={<span className="text-white">Renewal Period (months)</span>}>
+                              <InputNumber
+                                min={1}
+                                value={type.renewalPeriod || 1}
+                                onChange={(value) => {
+                                  const updated = [...contractTypes];
+                                  updated[index].renewalPeriod = value || 1;
+                                  setContractTypes(updated);
+                                }}
+                                style={inputStyle}
+                                className="white-text"
+                              />
+                            </Form.Item>
+                            <Form.Item label={<span className="text-white">Renewal Price</span>}>
+                              <InputNumber
+                                value={type.renewalPrice || 0}
+                                onChange={(value) => {
+                                  const updated = [...contractTypes];
+                                  updated[index].renewalPrice = value || 0;
+                                  setContractTypes(updated);
+                                }}
+                                style={inputStyle}
+                                className="white-text"
+                                precision={2}
+                              // addonAfter={currency}
+                              />
+                            </Form.Item>
+                          </>
+                        )}
 
-<Form.Item label={<span className="text-white">Cancellation Period (days)</span>}>
-  <InputNumber
-    min={0}
-    value={type.cancellationPeriod || 30}
-    onChange={(value) => {
-      const updated = [...contractTypes];
-      updated[index].cancellationPeriod = value || 30;
-      setContractTypes(updated);
-    }}
-    style={inputStyle}
-    className="white-text"
-  />
-</Form.Item>
+                        <Form.Item label={<span className="text-white">Cancellation Period (days)</span>}>
+                          <InputNumber
+                            min={0}
+                            value={type.cancellationPeriod || 30}
+                            onChange={(value) => {
+                              const updated = [...contractTypes];
+                              updated[index].cancellationPeriod = value || 30;
+                              setContractTypes(updated);
+                            }}
+                            style={inputStyle}
+                            className="white-text"
+                          />
+                        </Form.Item>
                       </Form>
                       <Button
                         danger

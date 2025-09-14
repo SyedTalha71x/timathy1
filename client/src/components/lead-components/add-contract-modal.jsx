@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-"use client"
+
 /* eslint-disable no-constant-binary-expression */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */

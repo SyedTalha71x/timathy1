@@ -1,8 +1,7 @@
-"use client"
 
 /* eslint-disable react/prop-types */
 import { X, Trash2, Archive, ArchiveRestore } from "lucide-react"
-import DefaultAvatar from "../../../public/default-avatar.avif" // update path accordingly
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png" // update path accordingly
 import { toast } from "react-hot-toast"
 
 const EditMemberModal = ({

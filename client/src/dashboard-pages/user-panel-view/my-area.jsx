@@ -24,7 +24,7 @@ import {
   FileText,
 } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
-import Avatar from "../../../public/avatar.png"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
 import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
@@ -42,7 +42,7 @@ import Sidebar from "../../components/myarea-components/MyAreaSidebar"
 import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
-import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, todosData, appointmentsData, birthdaysData, memberTypesData, expiringContractsData } from "../../utils/user-panel-states/myarea-states"
+import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, todosData, appointmentsData, birthdaysData, memberTypesData, expiringContractsData, bulletinBoardData } from "../../utils/user-panel-states/myarea-states"
 import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
 import HistoryModal from "../../components/myarea-components/HistoryModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
@@ -85,6 +85,8 @@ export default function MyArea() {
 
   const [isSpecialNoteModalOpen, setIsSpecialNoteModalOpen] = useState(false)
   const [selectedAppointmentForNote, setSelectedAppointmentForNote] = useState(null)
+
+  const [bulletinFilter, setBulletinFilter] = useState("all");
 
 
 
@@ -165,7 +167,7 @@ export default function MyArea() {
     { id: "communications", type: "communications", position: 5 },
     { id: "todo", type: "todo", position: 6 },
     { id: "birthday", type: "birthday", position: 7 },
-    // Removed topSelling and mostFrequent
+    { id: "bulletinBoard", type: "bulletinBoard", position: 8 }, // Add this line
   ])
 
   // Add right sidebar widgets state
@@ -177,11 +179,12 @@ export default function MyArea() {
     { id: "sidebarAppointments", type: "appointments", position: 4 },
     { id: "sidebarChart", type: "chart", position: 5 },
     { id: "sidebarExpiringContracts", type: "expiringContracts", position: 6 },
-    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 7 },
+    { id: "bulletinBoard", type: "bulletinBoard", position: 7 }, // Add this line
+
+    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 8 },
   ])
 
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
-  const redirectToTodos = () => navigate("/dashboard/to-do")
   const redirectToCommunication = () => navigate("/dashboard/communication")
   const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   const toggleEditing = () => setIsEditing(!isEditing)
@@ -299,6 +302,18 @@ export default function MyArea() {
       [name]: value,
     }))
   }
+
+  const handleBulletinFilterChange = (filter) => {
+    setBulletinFilter(filter);
+  };
+
+  const getFilteredBulletinPosts = () => {
+    if (bulletinFilter === "all") {
+      return bulletinBoardData;
+    }
+    return bulletinBoardData.filter(post => post.category === bulletinFilter);
+  };
+
 
   const handleEditSubmit = (e) => {
     e.preventDefault()
@@ -1674,6 +1689,40 @@ export default function MyArea() {
                           </div>
                         </div>
                       )}
+                      {widget.type === "bulletinBoard" && (
+  <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+    <div className="flex justify-between items-center">
+      <h2 className="text-lg font-semibold">Bulletin Board</h2>
+    </div>
+    <div className="relative">
+      <select 
+        value={bulletinFilter}
+        onChange={(e) => handleBulletinFilterChange(e.target.value)}
+        className="w-full p-2 bg-black rounded-xl text-white text-sm"
+      >
+        <option value="all">All Posts</option>
+        <option value="staff">Staff Only</option>
+        <option value="members">Members Only</option>
+      </select>
+    </div>
+    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 mt-2">
+      <div className="space-y-2">
+        {getFilteredBulletinPosts().map((post) => (
+          <div key={post.id} className="p-3 bg-black rounded-xl">
+            <div className="flex justify-between items-start">
+              <h3 className="font-semibold text-sm">{post.title}</h3>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">{post.content}</p>
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-xs text-zinc-500 capitalize">{post.category}</span>
+              <span className="text-xs text-zinc-500">{post.date}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
                     </DraggableWidget>
                   ))}
               </div>
@@ -1783,6 +1832,7 @@ export default function MyArea() {
           handleSaveSpecialNote={handleSaveSpecialNote}
           onSaveSpecialNote={handleSaveSpecialNote}
           notifications={notifications}
+
         />
 
         {isEditTaskModalOpen && editingTask && (
