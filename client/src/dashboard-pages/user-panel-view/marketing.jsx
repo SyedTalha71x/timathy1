@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io";
-import { appointmentsData, availableMembersLeadsNew, birthdaysData, communicationsData, customLinksData, expiringContractsData, memberContingentDataNew, memberRelationsData, memberTypesData, notificationData, todosData } from "../../utils/user-panel-states/myarea-states";
+import { appointmentsData, availableMembersLeadsNew, birthdaysData, communicationsData, customLinksData, expiringContractsData, memberContingentDataNew, memberRelationsData, memberTypesData, mockTrainingPlansNew, mockVideosNew, notificationData, todosData } from "../../utils/user-panel-states/myarea-states";
 import toast, { Toaster } from "react-hot-toast";
 import Sidebar from "../../components/central-sidebar";
 import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal";
@@ -29,6 +29,7 @@ import EditTaskModal from "../../components/task-components/edit-task-modal";
 
 
 import { useSidebarSystem } from "../../hooks/useSidebarSystem";
+import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal";
 
 const MarketingTable = () => {
 
@@ -92,6 +93,8 @@ const MarketingTable = () => {
 
   const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
 
+    const mockTrainingPlans = mockTrainingPlansNew
+    const mockVideos = mockVideosNew
   const [editingRelations, setEditingRelations] = useState(false)
   const [newRelation, setNewRelation] = useState({
     name: "",
@@ -938,6 +941,22 @@ const MarketingTable = () => {
     setTodos((prev) => prev.filter((todo) => todo.id !== taskId))
     setTaskToDelete(null)
   }
+  const getVideoById = (videoId) => {
+    return mockVideos.find((video) => video.id === videoId)
+  }
+
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty?.toLowerCase()) {
+      case "beginner":
+        return "bg-green-600"
+      case "intermediate":
+        return "bg-yellow-600"
+      case "advanced":
+        return "bg-red-600"
+      default:
+        return "bg-gray-600"
+    }
+  }
 
 
   return (
@@ -976,7 +995,7 @@ const MarketingTable = () => {
           },
         }}
       />
-      <div className="flex min-h-screen">
+      <div className=" min-h-screen">
         <div
           className={`
           min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-4 p-3
@@ -987,7 +1006,7 @@ const MarketingTable = () => {
             }
         `}
         >
-          <div className="rounded-xl p-3 w-full overflow-hidden">
+          <div className="p-3">
             <div className="flex justify-between items-center mb-8 relative flex-wrap gap-4">
               <div className="w-full flex justify-between items-center md:w-auto">
                 <h1 className="text-2xl oxanium_font text-white">Marketing</h1>
@@ -1183,6 +1202,15 @@ const MarketingTable = () => {
           notifications={notifications}
 
         />
+
+         <TrainingPlanModal
+                  isOpen={isTrainingPlanModalOpen}
+                  onClose={() => setIsTrainingPlanModalOpen(false)}
+                  user={selectedUserForTrainingPlan}
+                  trainingPlans={mockTrainingPlans}
+                  getDifficultyColor={getDifficultyColor}
+                  getVideoById={getVideoById}
+                />
 
 
         <AppointmentActionModal

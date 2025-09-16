@@ -5,7 +5,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from "react"
 import { Tag, Calendar, X, Pin, PinOff, MoreHorizontal, Copy, Repeat, Edit, Check, Users } from "lucide-react"
-import ReactDOM from "react-dom"
 
 export default function TaskItem({
   task,
@@ -32,7 +31,6 @@ export default function TaskItem({
   const [showAssigneeMenu, setShowAssigneeMenu] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const [assignmentMode, setAssignmentMode] = useState("staff")
-  const [dropdownPos, setDropdownPos] = useState(null) // Start as null
 
   const dropdownRef = useRef(null)
   const dropdownMenuRef = useRef(null)
@@ -43,81 +41,11 @@ export default function TaskItem({
 
   const toggleDropdown = (e) => {
     e.stopPropagation()
-    // Remove preventDefault calls that cause scroll jumping
-
+    
     if (isDropdownOpen) {
       setOpenDropdownTaskId(null)
-      setDropdownPos(null)
     } else {
       setOpenDropdownTaskId(task.id)
-      // Calculate position immediately
-      calculateDropdownPosition()
-    }
-  }
-
-  const calculateDropdownPosition = () => {
-    if (dropdownRef.current) {
-      const rect = dropdownRef.current.getBoundingClientRect()
-      const viewportHeight = window.innerHeight
-      const viewportWidth = window.innerWidth
-      const scrollY = window.pageYOffset || document.documentElement.scrollTop
-      const scrollX = window.pageXOffset || document.documentElement.scrollLeft
-
-      // Calculate position for dropdown - align more to the left under the three dots
-      const dropdownWidth = 192
-      const dropdownHeight = 300
-
-      // Position dropdown to the left of the three dots button for better alignment
-      let left = rect.left + scrollX - dropdownWidth + rect.width
-      let top = rect.bottom + scrollY + 4 // Small gap below the button
-
-      // Mobile-specific adjustments
-      const isMobile = viewportWidth <= 768
-
-      if (isMobile) {
-        // On mobile, ensure dropdown doesn't go off screen
-        const padding = 16
-
-        // Adjust horizontal position
-        if (left < padding) {
-          left = padding
-        } else if (left + dropdownWidth > viewportWidth - padding) {
-          left = viewportWidth - dropdownWidth - padding
-        }
-
-        // Adjust vertical position
-        if (top + dropdownHeight > viewportHeight + scrollY - padding) {
-          // Show above the button if not enough space below
-          top = rect.top + scrollY - dropdownHeight - 4
-
-          // If still not enough space above, position in viewport
-          if (top < scrollY + padding) {
-            top = scrollY + padding
-          }
-        }
-      } else {
-        // Desktop adjustments
-        // Ensure dropdown doesn't go off right edge
-        if (left < 10) {
-          left = 10
-        }
-
-        // Ensure dropdown doesn't go off bottom
-        if (top + dropdownHeight > viewportHeight + scrollY - 10) {
-          top = rect.top + scrollY - dropdownHeight - 4
-        }
-
-        // Ensure dropdown doesn't go off top
-        if (top < scrollY + 10) {
-          top = scrollY + 10
-        }
-      }
-
-      setDropdownPos({
-        top,
-        left,
-        width: dropdownWidth,
-      })
     }
   }
 
@@ -136,37 +64,12 @@ export default function TaskItem({
       onStatusChange(task.id, newStatus)
     }
     setOpenDropdownTaskId(null)
-    setDropdownPos(null)
   }
-
-  useEffect(() => {
-    if (isDropdownOpen) {
-      calculateDropdownPosition()
-
-      // Recalculate on window resize and scroll
-      const handleResize = () => {
-        calculateDropdownPosition()
-      }
-
-      const handleScroll = () => {
-        calculateDropdownPosition()
-      }
-
-      window.addEventListener("resize", handleResize)
-      window.addEventListener("scroll", handleScroll, true) // Use capture for better performance
-
-      return () => {
-        window.removeEventListener("resize", handleResize)
-        window.removeEventListener("scroll", handleScroll, true)
-      }
-    }
-  }, [isDropdownOpen])
 
   const handleEditTask = (e) => {
     e.stopPropagation()
     onEditRequest(task)
     setOpenDropdownTaskId(null)
-    setDropdownPos(null)
     // Close all other menus
     setShowTagMenu(false)
     setShowAssigneeMenu(false)
@@ -177,28 +80,24 @@ export default function TaskItem({
     e.stopPropagation()
     onDeleteRequest(task.id)
     setOpenDropdownTaskId(null)
-    setDropdownPos(null)
   }
 
   const handlePinToggle = (e) => {
     e.stopPropagation()
     onPinToggle(task.id)
     setOpenDropdownTaskId(null)
-    setDropdownPos(null)
   }
 
   const handleDuplicate = (e) => {
     e.stopPropagation()
     onDuplicateRequest(task)
     setOpenDropdownTaskId(null)
-    setDropdownPos(null)
   }
 
   const handleRepeat = (e) => {
     e.stopPropagation()
     onRepeatRequest(task)
     setOpenDropdownTaskId(null)
-    setDropdownPos(null)
   }
 
   // Tag management functions
@@ -274,7 +173,6 @@ export default function TaskItem({
       onOpenAssignModal(task)
     }
     setOpenDropdownTaskId(null)
-    setDropdownPos(null)
   }
 
   const handleTagsClick = (e) => {
@@ -283,7 +181,6 @@ export default function TaskItem({
       onOpenTagsModal(task)
     }
     setOpenDropdownTaskId(null)
-    setDropdownPos(null)
   }
 
   const isCompleted = task.status === "completed"
@@ -301,7 +198,6 @@ export default function TaskItem({
         !dropdownRef.current.contains(event.target)
       ) {
         setOpenDropdownTaskId(null)
-        setDropdownPos(null)
       }
 
       if (tagMenuRef.current && !tagMenuRef.current.contains(event.target)) {
@@ -398,10 +294,98 @@ export default function TaskItem({
               </h3>
             </div>
           </div>
-          <div className="relative flex items-center gap-1" ref={dropdownRef}>
-            <button onClick={toggleDropdown} className="hover:text-white p-1 no-drag relative z-[100000]">
+          
+          {/* Dropdown container */}
+          <div className="relative " ref={dropdownRef}>
+            <button 
+              onClick={toggleDropdown} 
+              className="hover:text-white p-1 no-drag relative z-10"
+            >
               <MoreHorizontal size={18} className="cursor-pointer" />
             </button>
+            
+            {/* Simple dropdown menu */}  
+            {isDropdownOpen && !isDragging && (
+              <div
+                ref={dropdownMenuRef}
+                className="absolute right-0  top-full mt-1 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 no-drag z-[9999]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={handleEditTask}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left rounded-t-xl flex items-center gap-2"
+                >
+                  <Edit size={14} /> Edit Task
+                </button>
+
+                <button
+                  onClick={handleAssignClick}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Users size={14} /> Assign To
+                </button>
+
+                <button
+                  onClick={handleTagsClick}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Tag size={14} /> Tags
+                </button>
+
+                <button
+                  onClick={handlePinToggle}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  {task.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
+                  {task.isPinned ? "Unpin Task" : "Pin Task"}
+                </button>
+
+                <button
+                  onClick={handleDuplicate}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Copy size={14} /> Duplicate Task
+                </button>
+
+                <button
+                  onClick={handleRepeat}
+                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
+                >
+                  <Repeat size={14} /> Repeat Task
+                </button>
+
+                {!isCanceled ? (
+                  <button
+                    onClick={() => handleStatusChange("canceled")}
+                    className="w-full px-4 py-2 text-xs text-red-600 hover:bg-gray-700 text-left"
+                  >
+                    Cancel Task
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleStatusChange("ongoing")}
+                      className="w-full px-4 py-2 text-xs text-yellow-500 hover:bg-gray-700 text-left"
+                    >
+                      Move to Ongoing
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange("completed")}
+                      className="w-full px-4 py-2 text-xs text-green-500 hover:bg-gray-700 text-left"
+                    >
+                      Mark as Completed
+                    </button>
+                  </>
+                )}
+
+                <button
+                  onClick={openDeleteConfirmation}
+                  className="w-full px-4 py-2 text-xs text-red-600 hover:bg-gray-700 text-left rounded-b-xl"
+                >
+                  Delete Task
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -459,99 +443,6 @@ export default function TaskItem({
           </div>
         </div>
       </div>
-
-      {isDropdownOpen &&
-        !isDragging &&
-        dropdownPos &&
-        ReactDOM.createPortal(
-          <div
-            ref={dropdownMenuRef}
-            className="w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 no-drag z-[100000] fixed"
-            style={{
-              top: dropdownPos.top,
-              left: dropdownPos.left,
-              width: dropdownPos.width,
-              maxHeight: "80vh",
-              overflowY: "auto",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={handleEditTask}
-              className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left rounded-t-xl flex items-center gap-2"
-            >
-              <Edit size={14} /> Edit Task
-            </button>
-
-            <button
-              onClick={handleAssignClick}
-              className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-            >
-              <Users size={14} /> Assign To
-            </button>
-
-            <button
-              onClick={handleTagsClick}
-              className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-            >
-              <Tag size={14} /> Tags
-            </button>
-
-            <button
-              onClick={handlePinToggle}
-              className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-            >
-              {task.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
-              {task.isPinned ? "Unpin Task" : "Pin Task"}
-            </button>
-
-            <button
-              onClick={handleDuplicate}
-              className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-            >
-              <Copy size={14} /> Duplicate Task
-            </button>
-
-            <button
-              onClick={handleRepeat}
-              className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-            >
-              <Repeat size={14} /> Repeat Task
-            </button>
-
-            {!isCanceled ? (
-              <button
-                onClick={() => handleStatusChange("canceled")}
-                className="w-full px-4 py-2 text-xs text-red-600 hover:bg-gray-700 text-left"
-              >
-                Cancel Task
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => handleStatusChange("ongoing")}
-                  className="w-full px-4 py-2 text-xs text-yellow-500 hover:bg-gray-700 text-left"
-                >
-                  Move to Ongoing
-                </button>
-                <button
-                  onClick={() => handleStatusChange("completed")}
-                  className="w-full px-4 py-2 text-xs text-green-500 hover:bg-gray-700 text-left"
-                >
-                  Mark as Completed
-                </button>
-              </>
-            )}
-
-            <button
-              onClick={openDeleteConfirmation}
-              className="w-full px-4 py-2 text-xs text-red-600 hover:bg-gray-700 text-left rounded-b-xl"
-            >
-              Delete Task
-            </button>
-          </div>,
-          document.body,
-        )}
 
       <style jsx global>{`
         @keyframes tick {
