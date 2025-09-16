@@ -125,7 +125,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
   const widgetTypes = widgetArea === "dashboard" ? dashboardWidgets : sidebarWidgets
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
       <div className="bg-[#181818] rounded-xl custom-scrollbar w-full max-w-md mx-4 max-h-[70vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">

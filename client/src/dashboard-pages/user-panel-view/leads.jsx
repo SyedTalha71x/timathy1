@@ -1,8 +1,23 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Plus, Users, Lock, CalendarIcon } from "lucide-react"
+import {
+  Search,
+  X,
+  AlertTriangle,
+  Info,
+  Calendar,
+  MoreVertical,
+  Edit,
+  Trash2,
+  Plus,
+  Users,
+  Lock,
+  CalendarIcon,
+} from "lucide-react"
 import Draggable from "react-draggable"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
@@ -19,6 +34,11 @@ import { useNavigate } from "react-router-dom"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { MdHistory } from "react-icons/md"
 import LeadHistoryModal from "../../components/lead-user-panel-components/lead-history-modal"
+import TrialAppointmentModal from "../../components/lead-user-panel-components/trial-appointment-modal"
+import EditTrialModal from "../../components/lead-user-panel-components/edit-trial-modal"
+import DeleteConfirmationModal from "../../components/lead-user-panel-components/delete-confirmation-modal"
+
+
 
 const LeadCard = ({
   lead,
@@ -33,6 +53,7 @@ const LeadCard = ({
   memberRelations,
   setShowHistoryModal,
   setSelectedLead,
+  onManageTrialAppointments,
 }) => {
   const [isDragging, setIsDragging] = useState(false)
   const [isNoteOpen, setIsNoteOpen] = useState(false)
@@ -240,17 +261,19 @@ const LeadCard = ({
         <div className="flex justify-center">
           {isInTrialColumn ? (
             <div className="flex items-center w-full gap-2">
-
-            <button
-              onClick={() => onCreateContract(lead)}
-              className="bg-[#FF843E] hover:bg-[#E64D2E] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
+              <button
+                onClick={() => onCreateContract(lead)}
+                className="bg-[#FF843E] hover:bg-[#E64D2E] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
               >
-              Create Contract
-            </button>
-            <button className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors no-drag text-sm flex items-center justify-center">
-              <CalendarIcon size={16}  />
-            </button>
-              </div>
+                Create Contract
+              </button>
+              <button
+                onClick={() => onManageTrialAppointments(lead)}
+                className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors no-drag text-sm flex items-center justify-center"
+              >
+                <CalendarIcon size={16} />
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => onAddTrial(lead)}
@@ -282,6 +305,7 @@ const Column = ({
   memberRelations,
   setShowHistoryModal, // Add this to the props
   setSelectedLead, // Add this to the props - THIS WAS MISSING
+  onManageTrialAppointments,
 }) => {
   const isTrialColumn = id === "trial"
 
@@ -341,6 +365,7 @@ const Column = ({
             memberRelations={memberRelations}
             setShowHistoryModal={setShowHistoryModal}
             setSelectedLead={setSelectedLead} // NOW PASSING setSelectedLead TO LeadCard
+            onManageTrialAppointments={onManageTrialAppointments}
           />
         ))}
       </div>
@@ -373,6 +398,12 @@ export default function LeadManagement() {
   const navigate = useNavigate()
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [selectedEditTab, setSelectedEditTab] = useState("details") // New state for EditLeadModal tab
+
+  const [isTrialAppointmentModalOpen, setIsTrialAppointmentModalOpen] = useState(false)
+  const [isEditTrialModalOpen, setIsEditTrialModalOpen] = useState(false)
+  const [isDeleteTrialConfirmationModalOpen, setIsDeleteTrialConfirmationModalOpen] = useState(false)
+  const [selectedTrialAppointment, setSelectedTrialAppointment] = useState(null)
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null)
 
   // Relations states - enhanced for leads
   const [memberRelations, setMemberRelations] = useState({
@@ -700,7 +731,7 @@ export default function LeadManagement() {
 
   const handleEditColumn = (id, title, color) => {
     setSelectedColumn({ id, title, color })
-  setIsEditColumnModalOpen(true)
+    setIsEditColumnModalOpen(true)
   }
 
   const handleSaveColumn = (data) => {
@@ -711,7 +742,7 @@ export default function LeadManagement() {
 
     setIsEditColumnModalOpen(false)
     setSelectedColumn(null)
-    
+
     toast.success("Column saved successfully")
   }
 
@@ -1007,6 +1038,62 @@ export default function LeadManagement() {
     setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   }
 
+  const handleManageTrialAppointments = (lead) => {
+    setSelectedLead(lead)
+    setIsTrialAppointmentModalOpen(true)
+  }
+
+  const handleEditTrialAppointment = (appointment) => {
+    setSelectedTrialAppointment(appointment)
+    setIsTrialAppointmentModalOpen(false)
+    setIsEditTrialModalOpen(true)
+  }
+
+  const handleDeleteTrialAppointment = (appointmentId) => {
+    setAppointmentToDelete(appointmentId)
+    setIsTrialAppointmentModalOpen(false)
+    setIsDeleteTrialConfirmationModalOpen(true)
+  }
+
+  const handleSaveEditedTrial = (updatedAppointment) => {
+    // Update the appointment in localStorage
+    const storedAppointments = localStorage.getItem("trialAppointments")
+    let appointments = storedAppointments ? JSON.parse(storedAppointments) : []
+
+    appointments = appointments.map((apt) => (apt.id === updatedAppointment.id ? updatedAppointment : apt))
+
+    localStorage.setItem("trialAppointments", JSON.stringify(appointments))
+
+    // Show success message
+    toast.success("Trial appointment updated successfully!")
+
+    // Close modal and refresh
+    setIsEditTrialModalOpen(false)
+    setSelectedTrialAppointment(null)
+  }
+
+  const handleConfirmDelete = () => {
+    if (appointmentToDelete) {
+      // Remove appointment from localStorage
+      const storedAppointments = localStorage.getItem("trialAppointments")
+      let appointments = storedAppointments ? JSON.parse(storedAppointments) : []
+
+      appointments = appointments.filter((apt) => apt.id !== appointmentToDelete)
+      localStorage.setItem("trialAppointments", JSON.stringify(appointments))
+
+      // Show success message
+      toast.success("Trial appointment deleted successfully!")
+
+      // Close modals and reset state
+      setIsDeleteTrialConfirmationModalOpen(false)
+      setAppointmentToDelete(null)
+    }
+  }
+
+  const getLeadsForColumn = (columnId) => {
+    return filteredLeads.filter((lead) => lead.columnId === columnId)
+  }
+
   return (
     <div
       className={`
@@ -1085,6 +1172,7 @@ export default function LeadManagement() {
             memberRelations={memberRelations}
             setShowHistoryModal={setShowHistoryModal}
             setSelectedLead={setSelectedLead} // ADD THIS LINE - this was missing!
+            onManageTrialAppointments={handleManageTrialAppointments}
           />
         ))}
       </div>
@@ -1138,57 +1226,57 @@ export default function LeadManagement() {
         memberRelations={memberRelations}
         onEditLead={handleEditLead} // Pass onEditLead
       />
-     <TrialTrainingModal
-  isOpen={isTrialModalOpen}
-  onClose={handleTrialModalClose}
-  selectedLead={selectedLead}
-  trialTypes={[
-    { name: "Cardio", duration: 30 },
-    { name: "Strength", duration: 45 },
-    { name: "Flexibility", duration: 60 },
-  ]}
-  freeTimeSlots={[
-    // Monday
-    { id: "slot1", date: "2025-09-08", time: "09:00" },
-    { id: "slot2", date: "2025-09-08", time: "10:30" },
-    { id: "slot3", date: "2025-09-08", time: "14:00" },
-    { id: "slot4", date: "2025-09-08", time: "16:00" },
-    
-    // Tuesday
-    { id: "slot5", date: "2025-09-09", time: "08:00" },
-    { id: "slot6", date: "2025-09-09", time: "11:00" },
-    { id: "slot7", date: "2025-09-09", time: "15:30" },
-    { id: "slot8", date: "2025-09-09", time: "17:00" },
-    
-    // Wednesday
-    { id: "slot9", date: "2025-09-10", time: "09:30" },
-    { id: "slot10", date: "2025-09-10", time: "12:00" },
-    { id: "slot11", date: "2025-09-10", time: "14:30" },
-    
-    // Thursday
-    { id: "slot12", date: "2025-09-11", time: "10:00" },
-    { id: "slot13", date: "2025-09-11", time: "13:00" },
-    { id: "slot14", date: "2025-09-11", time: "16:30" },
-    
-    // Friday
-    { id: "slot15", date: "2025-09-12", time: "08:30" },
-    { id: "slot16", date: "2025-09-12", time: "11:30" },
-    { id: "slot17", date: "2025-09-12", time: "15:00" },
-    
-    // Saturday
-    { id: "slot18", date: "2025-09-13", time: "09:00" },
-    { id: "slot19", date: "2025-09-13", time: "12:30" },
-    { id: "slot20", date: "2025-09-13", time: "14:00" },
-  ]}
-  availableMembersLeads={availableMembersLeads}
-  relationOptions={{
-    family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Spouse"],
-    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
-    relationship: ["Partner", "Boyfriend", "Girlfriend", "Ex-Partner"],
-    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
-    other: ["Neighbor", "Roommate", "Mentor", "Student", "Other"],
-  }}
-/>
+      <TrialTrainingModal
+        isOpen={isTrialModalOpen}
+        onClose={handleTrialModalClose}
+        selectedLead={selectedLead}
+        trialTypes={[
+          { name: "Cardio", duration: 30 },
+          { name: "Strength", duration: 45 },
+          { name: "Flexibility", duration: 60 },
+        ]}
+        freeTimeSlots={[
+          // Monday
+          { id: "slot1", date: "2025-09-08", time: "09:00" },
+          { id: "slot2", date: "2025-09-08", time: "10:30" },
+          { id: "slot3", date: "2025-09-08", time: "14:00" },
+          { id: "slot4", date: "2025-09-08", time: "16:00" },
+
+          // Tuesday
+          { id: "slot5", date: "2025-09-09", time: "08:00" },
+          { id: "slot6", date: "2025-09-09", time: "11:00" },
+          { id: "slot7", date: "2025-09-09", time: "15:30" },
+          { id: "slot8", date: "2025-09-09", time: "17:00" },
+
+          // Wednesday
+          { id: "slot9", date: "2025-09-10", time: "09:30" },
+          { id: "slot10", date: "2025-09-10", time: "12:00" },
+          { id: "slot11", date: "2025-09-10", time: "14:30" },
+
+          // Thursday
+          { id: "slot12", date: "2025-09-11", time: "10:00" },
+          { id: "slot13", date: "2025-09-11", time: "13:00" },
+          { id: "slot14", date: "2025-09-11", time: "16:30" },
+
+          // Friday
+          { id: "slot15", date: "2025-09-12", time: "08:30" },
+          { id: "slot16", date: "2025-09-12", time: "11:30" },
+          { id: "slot17", date: "2025-09-12", time: "15:00" },
+
+          // Saturday
+          { id: "slot18", date: "2025-09-13", time: "09:00" },
+          { id: "slot19", date: "2025-09-13", time: "12:30" },
+          { id: "slot20", date: "2025-09-13", time: "14:00" },
+        ]}
+        availableMembersLeads={availableMembersLeads}
+        relationOptions={{
+          family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Spouse"],
+          friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+          relationship: ["Partner", "Boyfriend", "Girlfriend", "Ex-Partner"],
+          work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+          other: ["Neighbor", "Roommate", "Mentor", "Student", "Other"],
+        }}
+      />
 
       {isCreateContractModalOpen && (
         <AddContractModal
@@ -1302,6 +1390,41 @@ export default function LeadManagement() {
           </div>
         </div>
       )}
+
+      <TrialAppointmentModal
+        isOpen={isTrialAppointmentModalOpen}
+        onClose={() => {
+          setIsTrialAppointmentModalOpen(false)
+          setSelectedLead(null)
+        }}
+        lead={selectedLead}
+        onEditTrial={handleEditTrialAppointment}
+        onDeleteTrial={handleDeleteTrialAppointment}
+      />
+
+      <EditTrialModal
+        isOpen={isEditTrialModalOpen}
+        onClose={() => {
+          setIsEditTrialModalOpen(false)
+          setSelectedTrialAppointment(null)
+        }}
+        appointment={selectedTrialAppointment}
+        trialTypes={[]} // You can pass your trial types here
+        freeTimeSlots={[]} // You can pass your time slots here
+        availableMembersLeads={[]} // You can pass your members/leads here
+        onSave={handleSaveEditedTrial}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteTrialConfirmationModalOpen}
+        onClose={() => {
+          setIsDeleteTrialConfirmationModalOpen(false)
+          setAppointmentToDelete(null)
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Trial Appointment"
+        message="Are you sure you want to delete this trial appointment? This action cannot be undone."
+      />
     </div>
   )
 }

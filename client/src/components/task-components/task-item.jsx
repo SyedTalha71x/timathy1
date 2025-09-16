@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
@@ -30,7 +32,7 @@ export default function TaskItem({
   const [showAssigneeMenu, setShowAssigneeMenu] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const [assignmentMode, setAssignmentMode] = useState("staff")
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 })
+  const [dropdownPos, setDropdownPos] = useState(null) // Start as null
 
   const dropdownRef = useRef(null)
   const dropdownMenuRef = useRef(null)
@@ -41,8 +43,82 @@ export default function TaskItem({
 
   const toggleDropdown = (e) => {
     e.stopPropagation()
-    e.preventDefault()
-    setOpenDropdownTaskId(isDropdownOpen ? null : task.id)
+    // Remove preventDefault calls that cause scroll jumping
+
+    if (isDropdownOpen) {
+      setOpenDropdownTaskId(null)
+      setDropdownPos(null)
+    } else {
+      setOpenDropdownTaskId(task.id)
+      // Calculate position immediately
+      calculateDropdownPosition()
+    }
+  }
+
+  const calculateDropdownPosition = () => {
+    if (dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const viewportWidth = window.innerWidth
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+
+      // Calculate position for dropdown - align more to the left under the three dots
+      const dropdownWidth = 192
+      const dropdownHeight = 300
+
+      // Position dropdown to the left of the three dots button for better alignment
+      let left = rect.left + scrollX - dropdownWidth + rect.width
+      let top = rect.bottom + scrollY + 4 // Small gap below the button
+
+      // Mobile-specific adjustments
+      const isMobile = viewportWidth <= 768
+
+      if (isMobile) {
+        // On mobile, ensure dropdown doesn't go off screen
+        const padding = 16
+
+        // Adjust horizontal position
+        if (left < padding) {
+          left = padding
+        } else if (left + dropdownWidth > viewportWidth - padding) {
+          left = viewportWidth - dropdownWidth - padding
+        }
+
+        // Adjust vertical position
+        if (top + dropdownHeight > viewportHeight + scrollY - padding) {
+          // Show above the button if not enough space below
+          top = rect.top + scrollY - dropdownHeight - 4
+
+          // If still not enough space above, position in viewport
+          if (top < scrollY + padding) {
+            top = scrollY + padding
+          }
+        }
+      } else {
+        // Desktop adjustments
+        // Ensure dropdown doesn't go off right edge
+        if (left < 10) {
+          left = 10
+        }
+
+        // Ensure dropdown doesn't go off bottom
+        if (top + dropdownHeight > viewportHeight + scrollY - 10) {
+          top = rect.top + scrollY - dropdownHeight - 4
+        }
+
+        // Ensure dropdown doesn't go off top
+        if (top < scrollY + 10) {
+          top = scrollY + 10
+        }
+      }
+
+      setDropdownPos({
+        top,
+        left,
+        width: dropdownWidth,
+      })
+    }
   }
 
   const handleStatusChange = (newStatus) => {
@@ -60,41 +136,37 @@ export default function TaskItem({
       onStatusChange(task.id, newStatus)
     }
     setOpenDropdownTaskId(null)
+    setDropdownPos(null)
   }
 
   useEffect(() => {
-    if (isDropdownOpen && dropdownRef.current) {
-      const rect = dropdownRef.current.getBoundingClientRect()
-      const viewportHeight = window.innerHeight
-      const viewportWidth = window.innerWidth
-      
-      // Calculate position for dropdown
-      let top = rect.bottom + window.scrollY
-      let left = rect.left + window.scrollX
-      
-      // Adjust if dropdown would go off screen
-      const dropdownWidth = 192
-      if (left + dropdownWidth > viewportWidth) {
-        left = viewportWidth - dropdownWidth - 10
+    if (isDropdownOpen) {
+      calculateDropdownPosition()
+
+      // Recalculate on window resize and scroll
+      const handleResize = () => {
+        calculateDropdownPosition()
       }
-      
-      if (top + 300 > viewportHeight + window.scrollY) {
-        top = rect.top + window.scrollY - 300
+
+      const handleScroll = () => {
+        calculateDropdownPosition()
       }
-      
-      setDropdownPos({
-        top,
-        left,
-        width: dropdownWidth
-      })
+
+      window.addEventListener("resize", handleResize)
+      window.addEventListener("scroll", handleScroll, true) // Use capture for better performance
+
+      return () => {
+        window.removeEventListener("resize", handleResize)
+        window.removeEventListener("scroll", handleScroll, true)
+      }
     }
   }, [isDropdownOpen])
 
   const handleEditTask = (e) => {
     e.stopPropagation()
-    e.preventDefault()
     onEditRequest(task)
     setOpenDropdownTaskId(null)
+    setDropdownPos(null)
     // Close all other menus
     setShowTagMenu(false)
     setShowAssigneeMenu(false)
@@ -103,30 +175,30 @@ export default function TaskItem({
 
   const openDeleteConfirmation = (e) => {
     e.stopPropagation()
-    e.preventDefault()
     onDeleteRequest(task.id)
     setOpenDropdownTaskId(null)
+    setDropdownPos(null)
   }
 
   const handlePinToggle = (e) => {
     e.stopPropagation()
-    e.preventDefault()
     onPinToggle(task.id)
     setOpenDropdownTaskId(null)
+    setDropdownPos(null)
   }
 
   const handleDuplicate = (e) => {
     e.stopPropagation()
-    e.preventDefault()
     onDuplicateRequest(task)
     setOpenDropdownTaskId(null)
+    setDropdownPos(null)
   }
 
   const handleRepeat = (e) => {
     e.stopPropagation()
-    e.preventDefault()
     onRepeatRequest(task)
     setOpenDropdownTaskId(null)
+    setDropdownPos(null)
   }
 
   // Tag management functions
@@ -198,20 +270,20 @@ export default function TaskItem({
 
   const handleAssignClick = (e) => {
     e.stopPropagation()
-    e.preventDefault()
     if (onOpenAssignModal) {
       onOpenAssignModal(task)
     }
     setOpenDropdownTaskId(null)
+    setDropdownPos(null)
   }
 
   const handleTagsClick = (e) => {
     e.stopPropagation()
-    e.preventDefault()
     if (onOpenTagsModal) {
       onOpenTagsModal(task)
     }
     setOpenDropdownTaskId(null)
+    setDropdownPos(null)
   }
 
   const isCompleted = task.status === "completed"
@@ -221,12 +293,17 @@ export default function TaskItem({
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Check if click is outside dropdown menu
-      if (dropdownMenuRef.current && !dropdownMenuRef.current.contains(event.target) &&
-          // And also outside the dropdown button
-          dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownMenuRef.current &&
+        !dropdownMenuRef.current.contains(event.target) &&
+        // And also outside the dropdown button
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
         setOpenDropdownTaskId(null)
+        setDropdownPos(null)
       }
-      
+
       if (tagMenuRef.current && !tagMenuRef.current.contains(event.target)) {
         setShowTagMenu(false)
       }
@@ -237,7 +314,7 @@ export default function TaskItem({
         setShowCalendar(false)
       }
     }
-    
+
     document.addEventListener("mousedown", handleClickOutside)
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
@@ -383,8 +460,9 @@ export default function TaskItem({
         </div>
       </div>
 
-      {/* Portal for dropdown */}
-      {isDropdownOpen && !isDragging &&
+      {isDropdownOpen &&
+        !isDragging &&
+        dropdownPos &&
         ReactDOM.createPortal(
           <div
             ref={dropdownMenuRef}
@@ -392,7 +470,9 @@ export default function TaskItem({
             style={{
               top: dropdownPos.top,
               left: dropdownPos.left,
-              width: dropdownPos.width
+              width: dropdownPos.width,
+              maxHeight: "80vh",
+              overflowY: "auto",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -470,9 +550,8 @@ export default function TaskItem({
               Delete Task
             </button>
           </div>,
-          document.body
-        )
-      }
+          document.body,
+        )}
 
       <style jsx global>{`
         @keyframes tick {

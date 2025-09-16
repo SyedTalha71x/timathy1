@@ -1,3 +1,4 @@
+"use client"
 
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
@@ -13,7 +14,15 @@ import AssignModal from "../../components/task-components/assign-modal"
 import TagsModal from "../../components/task-components/edit-tags"
 import Draggable from "react-draggable"
 
-import { communicationsData, todosData, birthdaysData, customLinksData, todosTaskData, configuredTagsData, availableAssigneesData } from "../../utils/user-panel-states/todo-states"
+import {
+  communicationsData,
+  todosData,
+  birthdaysData,
+  customLinksData,
+  todosTaskData,
+  configuredTagsData,
+  availableAssigneesData,
+} from "../../utils/user-panel-states/todo-states"
 import DeleteModal from "../../components/task-components/delete-task"
 
 export default function TodoApp() {
@@ -47,7 +56,7 @@ export default function TodoApp() {
   const [selectedTaskForRepeat, setSelectedTaskForRepeat] = useState(null)
 
   const [tasks, setTasks] = useState(todosTaskData)
-  const [configuredTags, setConfiguredTags] = useState(configuredTagsData);
+  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
   const [availableAssignees] = useState(availableAssigneesData)
 
   const [availableRoles] = useState(["Trainer", "Manager", "Developer", "Designer", "Admin", "Support"])
@@ -87,9 +96,9 @@ export default function TodoApp() {
       if (!event.target.closest(".sort-dropdown")) {
         setIsSortDropdownOpen(false)
       }
-      // if (!event.target.closest(".calendar-dropdown")) {
-      //   setIsCalendarOpen(false)
-      // }
+      if (!event.target.closest(".calendar-dropdown")) {
+        setIsCalendarOpen(false)
+      }
       if (!event.target.closest(".assign-dropdown")) {
         setIsAssignDropdownOpen(false)
       }
@@ -245,7 +254,7 @@ export default function TodoApp() {
         if (repeatOptions.frequency === "daily") {
           currentIterationDate.setDate(currentIterationDate.getDate() + 1)
         } else if (repeatOptions.frequency === "weekly") {
-          currentIterationDate.setDate(currentIterationDate.getDate() + 1)
+          currentIterationDate.setDate(currentIterationDate.getDate() + 7)
         } else if (repeatOptions.frequency === "monthly") {
           currentIterationDate.setMonth(currentIterationDate.getMonth() + 1)
         } else {
@@ -465,8 +474,9 @@ export default function TodoApp() {
               <button
                 key={day}
                 onClick={() => handleDateClick(day)}
-                className={`p-2 text-sm rounded hover:bg-gray-600 ${isSelected ? "bg-blue-600 text-white" : "text-white"
-                  }`}
+                className={`p-2 text-sm rounded hover:bg-gray-600 ${
+                  isSelected ? "bg-blue-600 text-white" : "text-white"
+                }`}
               >
                 {day}
               </button>
@@ -780,8 +790,9 @@ export default function TodoApp() {
 
   return (
     <div
-      className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-hidden  ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"
-        }`}
+      className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-visible ${
+        isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"
+      }`}
     >
       <Toaster
         position="top-right"
@@ -893,19 +904,21 @@ export default function TodoApp() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => setAssignmentMode("staff")}
-                            className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${assignmentMode === "staff"
+                            className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
+                              assignmentMode === "staff"
                                 ? "bg-[#FF843E] text-white"
                                 : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                              }`}
+                            }`}
                           >
                             to Staff
                           </button>
                           <button
                             onClick={() => setAssignmentMode("roles")}
-                            className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${assignmentMode === "roles"
+                            className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
+                              assignmentMode === "roles"
                                 ? "bg-[#FF843E] text-white"
                                 : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                              }`}
+                            }`}
                           >
                             to Roles
                           </button>
@@ -1021,8 +1034,9 @@ export default function TodoApp() {
                             setSortOption("dueDate-asc")
                             setIsSortDropdownOpen(false)
                           }}
-                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
-                            }`}
+                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
+                            sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                         >
                           <Calendar size={14} />
                           <span>Earliest First</span>
@@ -1032,8 +1046,9 @@ export default function TodoApp() {
                             setSortOption("dueDate-desc")
                             setIsSortDropdownOpen(false)
                           }}
-                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
-                            }`}
+                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
+                            sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                         >
                           <Calendar size={14} />
                           <span>Latest First</span>
@@ -1044,8 +1059,9 @@ export default function TodoApp() {
                             setSortOption("tag-asc")
                             setIsSortDropdownOpen(false)
                           }}
-                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
-                            }`}
+                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
+                            sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                         >
                           <Tag size={14} />
                           <span>A to Z</span>
@@ -1055,8 +1071,9 @@ export default function TodoApp() {
                             setSortOption("tag-desc")
                             setIsSortDropdownOpen(false)
                           }}
-                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
-                            }`}
+                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
+                            sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
+                          }`}
                         >
                           <Tag size={14} />
                           <span>Z to A</span>
@@ -1182,8 +1199,8 @@ export default function TodoApp() {
         isOpen={isDeleteModalOpen}
         task={selectedTask}
         onCancel={() => {
-          setIsDeleteModalOpen(false);
-          setSelectedTask(null);
+          setIsDeleteModalOpen(false)
+          setSelectedTask(null)
         }}
         onConfirm={confirmDeleteTask}
       />
