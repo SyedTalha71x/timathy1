@@ -16,16 +16,31 @@ import ExportConfirmationModal from "../../components/finance-components/export-
 import DocumentsModal from "../../components/finance-components/documents-modal"
 import ServicesModal from "../../components/finance-components/service-modal"
 import CustomDateModal from "../../components/finance-components/custom-date-modal"
+import { financesData } from "../../utils/user-panel-states/finance-states"
+import { useSidebarSystem } from "../../hooks/useSidebarSystem"
+import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 
-
-
-
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+import Sidebar from "../../components/central-sidebar"
+import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
+import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
+import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
+import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import { WidgetSelectionModal } from "../../components/widget-selection-modal"
+import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal"
+import AppointmentModal from "../../components/myarea-components/AppointmentModal"
+import HistoryModal from "../../components/myarea-components/HistoryModal"
+import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
+import ContingentModal from "../../components/myarea-components/ContigentModal"
+import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
+import EditMemberModal from "../../components/myarea-components/EditMemberModal"
+import EditTaskModal from "../../components/task-components/edit-task-modal"
+import { Toaster } from "react-hot-toast"
 
 
 export default function FinancesPage() {
   const navigate = useNavigate()
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
-
+  const sidebarSystem = useSidebarSystem()
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
   const [statusFilterOpen, setStatusFilterOpen] = useState(false)
@@ -48,6 +63,8 @@ export default function FinancesPage() {
 
   const transactionsPerPage = 5
 
+
+  const trainingVideos = trainingVideosData
   // Get all possible status values
   const statusOptions = ["All", "Successful", "Pending", "Failed", "Check incoming funds"]
 
@@ -154,61 +171,7 @@ export default function FinancesPage() {
     link.click()
     document.body.removeChild(link)
   }
-  const [sepaDocuments, setSepaDocuments] = useState([
-    // Sample documents for demonstration
-    {
-      id: "doc-001",
-      filename: "SEPA_Payment_2023-05-15.xml",
-      createdAt: "2023-05-15T10:30:00Z",
-      size: 2048,
-      transactionCount: 3,
-      content: `<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
-  <CstmrCdtTrfInitn>
-    <GrpHdr>
-      <MsgId>MSG-001-20230515</MsgId>
-      <CreDtTm>2023-05-15T10:30:00</CreDtTm>
-      <NbOfTxs>3</NbOfTxs>
-      <CtrlSum>500.00</CtrlSum>
-    </GrpHdr>
-    <PmtInf>
-      <PmtInfId>PMT-001</PmtInfId>
-      <PmtMtd>TRF</PmtMtd>
-      <ReqdExctnDt>2023-05-16</ReqdExctnDt>
-      <Dbtr>
-        <Nm>Studio Management Company</Nm>
-      </Dbtr>
-    </PmtInf>
-  </CstmrCdtTrfInitn>
-</Document>`,
-    },
-    {
-      id: "doc-002",
-      filename: "SEPA_Payment_2023-05-10.xml",
-      createdAt: "2023-05-10T14:15:00Z",
-      size: 1536,
-      transactionCount: 2,
-      content: `<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
-  <CstmrCdtTrfInitn>
-    <GrpHdr>
-      <MsgId>MSG-002-20230510</MsgId>
-      <CreDtTm>2023-05-10T14:15:00</CreDtTm>
-      <NbOfTxs>2</NbOfTxs>
-      <CtrlSum>350.00</CtrlSum>
-    </GrpHdr>
-    <PmtInf>
-      <PmtInfId>PMT-002</PmtInfId>
-      <PmtMtd>TRF</PmtMtd>
-      <ReqdExctnDt>2023-05-11</ReqdExctnDt>
-      <Dbtr>
-        <Nm>Studio Management Company</Nm>
-      </Dbtr>
-    </PmtInf>
-  </CstmrCdtTrfInitn>
-</Document>`,
-    },
-  ])
+  const [sepaDocuments, setSepaDocuments] = useState(financesData)
 
   const handleGenerateXml = (selectedTransactions) => {
     // In a real application, this would generate and download the XML file
@@ -339,96 +302,379 @@ export default function FinancesPage() {
     return financialState[selectedPeriod] || financialData[selectedPeriod]
   }
 
-  const [communications, setCommunications] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      message: "Hey, how's the project going?",
-      time: "2 min ago",
-      avatar: Rectangle1,
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      message: "Meeting scheduled for tomorrow",
-      time: "10 min ago",
-      avatar: Rectangle1,
-    },
-  ])
+     // Extract all states and functions from the hook
+     const {
+      // States
+      isRightSidebarOpen,
+      isSidebarEditing,
+      isRightWidgetModalOpen,
+      openDropdownIndex,
+      selectedMemberType,
+      isChartDropdownOpen,
+      isWidgetModalOpen,
+      editingTask,
+      todoFilter,
+      isEditTaskModalOpen,
+      isTodoFilterDropdownOpen,
+      taskToCancel,
+      taskToDelete,
+      isBirthdayMessageModalOpen,
+      selectedBirthdayPerson,
+      birthdayMessage,
+      activeNoteId,
+      isSpecialNoteModalOpen,
+      selectedAppointmentForNote,
+      isTrainingPlanModalOpen,
+      selectedUserForTrainingPlan,
+      selectedAppointment,
+      isEditAppointmentModalOpen,
+      showAppointmentOptionsModal,
+      showAppointmentModal,
+      freeAppointments,
+      selectedMember,
+      isMemberOverviewModalOpen,
+      isMemberDetailsModalOpen,
+      activeMemberDetailsTab,
+      isEditModalOpen,
+      editModalTab,
+      isNotifyMemberOpen,
+      notifyAction,
+      showHistoryModal,
+      historyTab,
+      memberHistory,
+      currentBillingPeriod,
+      tempContingent,
+      selectedBillingPeriod,
+      showAddBillingPeriodModal,
+      newBillingPeriod,
+      showContingentModal,
+      editingRelations,
+      newRelation,
+      editForm,
+      widgets,
+      rightSidebarWidgets,
+      notePopoverRef,
+  
+      // Setters
+      setIsRightSidebarOpen,
+      setIsSidebarEditing,
+      setIsRightWidgetModalOpen,
+      setOpenDropdownIndex,
+      setSelectedMemberType,
+      setIsChartDropdownOpen,
+      setIsWidgetModalOpen,
+      setEditingTask,
+      setTodoFilter,
+      setIsEditTaskModalOpen,
+      setIsTodoFilterDropdownOpen,
+      setTaskToCancel,
+      setTaskToDelete,
+      setIsBirthdayMessageModalOpen,
+      setSelectedBirthdayPerson,
+      setBirthdayMessage,
+      setActiveNoteId,
+      setIsSpecialNoteModalOpen,
+      setSelectedAppointmentForNote,
+      setIsTrainingPlanModalOpen,
+      setSelectedUserForTrainingPlan,
+      setSelectedAppointment,
+      setIsEditAppointmentModalOpen,
+      setShowAppointmentOptionsModal,
+      setShowAppointmentModal,
+      setFreeAppointments,
+      setSelectedMember,
+      setIsMemberOverviewModalOpen,
+      setIsMemberDetailsModalOpen,
+      setActiveMemberDetailsTab,
+      setIsEditModalOpen,
+      setEditModalTab,
+      setIsNotifyMemberOpen,
+      setNotifyAction,
+      setShowHistoryModal,
+      setHistoryTab,
+      setMemberHistory,
+      setCurrentBillingPeriod,
+      setTempContingent,
+      setSelectedBillingPeriod,
+      setShowAddBillingPeriodModal,
+      setNewBillingPeriod,
+      setShowContingentModal,
+      setEditingRelations,
+      setNewRelation,
+      setEditForm,
+      setWidgets,
+      setRightSidebarWidgets,
+  
+      // Functions
+      toggleRightSidebar,
+      closeSidebar,
+      toggleSidebarEditing,
+      toggleDropdown,
+      redirectToCommunication,
+      moveRightSidebarWidget,
+      removeRightSidebarWidget,
+      getWidgetPlacementStatus,
+      handleAddRightSidebarWidget,
+      handleTaskComplete,
+      handleEditTask,
+      handleUpdateTask,
+      handleCancelTask,
+      handleDeleteTask,
+      isBirthdayToday,
+      handleSendBirthdayMessage,
+      handleEditNote,
+      handleDumbbellClick,
+      handleCheckIn,
+      handleAppointmentOptionsModal,
+      handleSaveSpecialNote,
+      isEventInPast,
+      handleCancelAppointment,
+      actuallyHandleCancelAppointment,
+      handleDeleteAppointment,
+      handleEditAppointment,
+      handleCreateNewAppointment,
+      handleViewMemberDetails,
+      handleNotifyMember,
+      calculateAge,
+      isContractExpiringSoon,
+      redirectToContract,
+      handleCalendarFromOverview,
+      handleHistoryFromOverview,
+      handleCommunicationFromOverview,
+      handleViewDetailedInfo,
+      handleEditFromOverview,
+      getMemberAppointments,
+      handleManageContingent,
+      getBillingPeriods,
+      handleAddBillingPeriod,
+      handleSaveContingent,
+      handleInputChange,
+      handleEditSubmit,
+      handleAddRelation,
+      handleDeleteRelation,
+      handleArchiveMember,
+      handleUnarchiveMember,
+      truncateUrl,
+      renderSpecialNoteIcon,
+  
+      // new states 
+      customLinks,setCustomLinks, communications, setCommunications,
+      todos, setTodos, expiringContracts, setExpiringContracts,
+      birthdays, setBirthdays, notifications, setNotifications,
+      appointments, setAppointments,
+      memberContingentData, setMemberContingentData,
+      memberRelations, setMemberRelations,
+  
+      memberTypes,
+      availableMembersLeads,
+      mockTrainingPlans,
+      mockVideos,
+  
+      todoFilterOptions,
+      relationOptions,
+      appointmentTypes
+    } = sidebarSystem;
 
-  const [todos, setTodos] = useState([
-    {
-      id: 1,
-      title: "Review project proposal",
-      description: "Check the latest updates",
-      assignee: "Mike",
-    },
-    {
-      id: 2,
-      title: "Update documentation",
-      description: "Add new features info",
-      assignee: "Sarah",
-    },
-  ])
+     // more sidebar related functions
 
-  const [birthdays, setBirthdays] = useState([
-    {
-      id: 1,
-      name: "Alice Johnson",
-      date: "Dec 15, 2024",
-      avatar: Avatar,
-    },
-    {
-      id: 2,
-      name: "Bob Wilson",
-      date: "Dec 20, 2024",
-      avatar: Avatar,
-    },
-  ])
+  // Chart configuration
+  const chartSeries = [
+    { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
+    { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
+  ];
 
-  const [customLinks, setCustomLinks] = useState([
-    {
-      id: 1,
-      title: "Google Drive",
-      url: "https://drive.google.com",
+  const chartOptions = {
+    chart: {
+      type: "line",
+      height: 180,
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
     },
-    {
-      id: 2,
-      title: "GitHub",
-      url: "https://github.com",
+    colors: ["#FF6B1A", "#2E5BFF"],
+    stroke: { curve: "smooth", width: 4, opacity: 1 },
+    markers: {
+      size: 1,
+      strokeWidth: 0,
+      hover: { size: 6 },
     },
-  ])
+    xaxis: {
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      labels: { style: { colors: "#999999", fontSize: "12px" } },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      min: 0,
+      max: 600,
+      tickAmount: 6,
+      labels: {
+        style: { colors: "#999999", fontSize: "12px" },
+        formatter: (value) => Math.round(value),
+      },
+    },
+    grid: {
+      show: true,
+      borderColor: "#333333",
+      position: "back",
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: true } },
+      row: { opacity: 0.1 },
+      column: { opacity: 0.1 },
+    },
+    legend: {
+      show: true,
+      position: "top",
+      horizontalAlign: "right",
+      offsetY: -30,
+      offsetX: -10,
+      labels: { colors: "#ffffff" },
+      itemMargin: { horizontal: 5 },
+    },
+    title: {
+      text: memberTypes[selectedMemberType].title,
+      align: "left",
+      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
+    },
+    subtitle: {
+      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
+      align: "left",
+      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
+    },
+    tooltip: {
+      theme: "dark",
+      style: {
+        fontSize: "12px",
+        fontFamily: "Inter, sans-serif",
+      },
+      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
+        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
+        '<span style="color: black;">' +
+        series[seriesIndex][dataPointIndex] +
+        "</span></div>",
+    },
+  };
 
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-  const [editingLink, setEditingLink] = useState(null)
 
-  const toggleRightSidebar = () => {
-    setIsRightSidebarOpen(!isRightSidebarOpen)
+  // Wrapper functions to pass local state to hook functions
+  const handleTaskCompleteWrapper = (taskId) => {
+    handleTaskComplete(taskId, todos, setTodos);
+  };
+
+  const handleUpdateTaskWrapper = (updatedTask) => {
+    handleUpdateTask(updatedTask, setTodos);
+  };
+
+  const handleCancelTaskWrapper = (taskId) => {
+    handleCancelTask(taskId, setTodos);
+  };
+
+  const handleDeleteTaskWrapper = (taskId) => {
+    handleDeleteTask(taskId, setTodos);
+  };
+
+  const handleEditNoteWrapper = (appointmentId, currentNote) => {
+    handleEditNote(appointmentId, currentNote, appointments);
+  };
+
+  const handleCheckInWrapper = (appointmentId) => {
+    handleCheckIn(appointmentId, appointments, setAppointments);
+  };
+
+  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
+    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
+  };
+
+  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
+    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
+  };
+
+  const handleDeleteAppointmentWrapper = (id) => {
+    handleDeleteAppointment(id, appointments, setAppointments);
+  };
+
+  const getMemberAppointmentsWrapper = (memberId) => {
+    return getMemberAppointments(memberId, appointments);
+  };
+
+  const handleAddBillingPeriodWrapper = () => {
+    handleAddBillingPeriod(memberContingentData, setMemberContingentData);
+  };
+
+  const handleSaveContingentWrapper = () => {
+    handleSaveContingent(memberContingentData, setMemberContingentData);
+  };
+
+  const handleEditSubmitWrapper = (e) => {
+    handleEditSubmit(e, appointments, setAppointments);
+  };
+
+  const handleAddRelationWrapper = () => {
+    handleAddRelation(memberRelations, setMemberRelations);
+  };
+
+  const handleDeleteRelationWrapper = (category, relationId) => {
+    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations);
+  };
+
+  const handleArchiveMemberWrapper = (memberId) => {
+    handleArchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const handleUnarchiveMemberWrapper = (memberId) => {
+    handleUnarchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const getBillingPeriodsWrapper = (memberId) => {
+    return getBillingPeriods(memberId, memberContingentData);
+  };
+
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case "Beginner":
+        return "bg-green-600"
+      case "Intermediate":
+        return "bg-yellow-600"
+      case "Advanced":
+        return "bg-red-600"
+      default:
+        return "bg-gray-600"
+    }
   }
 
-  const closeSidebar = () => {
-    setIsRightSidebarOpen(false)
+  const getVideoById = (id) => {
+    return trainingVideos.find((video) => video.id === id)
   }
 
-  const redirectToCommunication = () => {
-    navigate("/dashboard/communication")
-  }
 
-  const redirectToTodos = () => {
-    console.log("Redirecting to todos page")
-    navigate("/dashboard/to-do")
-  }
-
-  const toggleDropdown = (index) => {
-    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
-  }
 
   const currentPeriodData = getCurrentPeriodData()
 
-  // Responsive classes for large screen sidebar open state
-  const isLargeSidebarOpen = isRightSidebarOpen && window.innerWidth >= 1024
-
   return (
+    <>
+    <style>
+        {`
+          @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-1deg); }
+            30% { transform: rotate(1deg); }
+            45% { transform: rotate(-1deg); }
+            60% { transform: rotate(1deg); }
+            75% { transform: rotate(-1deg); }
+            90% { transform: rotate(1deg); }
+          }
+          .animate-wobble {
+            animation: wobble 0.5s ease-in-out infinite;
+          }
+          .dragging {
+            opacity: 0.5;
+            border: 2px dashed #fff;
+          }
+          .drag-over {
+            border: 2px dashed #888;
+          }
+        `}
+      </style>
     <div
       className={`
       min-h-screen rounded-3xl p-3 sm:p-4 md:p-6 bg-[#1C1C1C]
@@ -839,23 +1085,6 @@ export default function FinancesPage() {
         </div>
       )}
 
-      <SidebarArea
-        isOpen={isRightSidebarOpen}
-        onClose={closeSidebar}
-        communications={communications}
-        todos={todos}
-        birthdays={birthdays}
-        customLinks={customLinks}
-        setCustomLinks={setCustomLinks}
-        redirectToCommunication={redirectToCommunication}
-        redirectToTodos={redirectToTodos}
-        toggleDropdown={toggleDropdown}
-        openDropdownIndex={openDropdownIndex}
-        setEditingLink={setEditingLink}
-      />
-
-      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
-
       <ExportConfirmationModal
         isOpen={exportConfirmationOpen}
         onClose={() => setExportConfirmationOpen(false)}
@@ -895,6 +1124,299 @@ export default function FinancesPage() {
         onClose={() => setCustomDateModalOpen(false)}
         onApply={handleCustomDateApply}
       />
+
+<Sidebar
+          isRightSidebarOpen={isRightSidebarOpen}
+          toggleRightSidebar={toggleRightSidebar}
+          isSidebarEditing={isSidebarEditing}
+          toggleSidebarEditing={toggleSidebarEditing}
+          rightSidebarWidgets={rightSidebarWidgets}
+          moveRightSidebarWidget={moveRightSidebarWidget}
+          removeRightSidebarWidget={removeRightSidebarWidget}
+          setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
+          communications={communications}
+          redirectToCommunication={redirectToCommunication}
+          todos={todos}
+          handleTaskComplete={handleTaskCompleteWrapper}
+          todoFilter={todoFilter}
+          setTodoFilter={setTodoFilter}
+          todoFilterOptions={todoFilterOptions}
+          isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
+          setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
+          openDropdownIndex={openDropdownIndex}
+          toggleDropdown={toggleDropdown}
+          handleEditTask={handleEditTask}
+          setTaskToCancel={setTaskToCancel}
+          setTaskToDelete={setTaskToDelete}
+          birthdays={birthdays}
+          isBirthdayToday={isBirthdayToday}
+          handleSendBirthdayMessage={handleSendBirthdayMessage}
+          customLinks={customLinks}
+          truncateUrl={truncateUrl}
+          appointments={appointments}
+          renderSpecialNoteIcon={renderSpecialNoteIcon}
+          handleDumbbellClick={handleDumbbellClick}
+          handleCheckIn={handleCheckInWrapper}
+          handleAppointmentOptionsModal={handleAppointmentOptionsModal}
+          selectedMemberType={selectedMemberType}
+          setSelectedMemberType={setSelectedMemberType}
+          memberTypes={memberTypes}
+          isChartDropdownOpen={isChartDropdownOpen}
+          setIsChartDropdownOpen={setIsChartDropdownOpen}
+          chartOptions={chartOptions}
+          chartSeries={chartSeries}
+          expiringContracts={expiringContracts}
+          getWidgetPlacementStatus={getWidgetPlacementStatus}
+          onClose={toggleRightSidebar}
+          hasUnreadNotifications={2}
+          setIsWidgetModalOpen={setIsWidgetModalOpen}
+          handleEditNote={handleEditNoteWrapper}
+          activeNoteId={activeNoteId}
+          setActiveNoteId={setActiveNoteId}
+          isSpecialNoteModalOpen={isSpecialNoteModalOpen}
+          setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
+          selectedAppointmentForNote={selectedAppointmentForNote}
+          setSelectedAppointmentForNote={setSelectedAppointmentForNote}
+          handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
+          onSaveSpecialNote={handleSaveSpecialNoteWrapper}
+          notifications={notifications}
+        />
+
+        {/* Sidebar related modals */}
+        <TrainingPlanModal
+          isOpen={isTrainingPlanModalOpen}
+          onClose={() => setIsTrainingPlanModalOpen(false)}
+          user={selectedUserForTrainingPlan}
+          trainingPlans={mockTrainingPlans}
+          getDifficultyColor={getDifficultyColor}
+          getVideoById={getVideoById}
+        />
+
+        <AppointmentActionModal
+          isOpen={showAppointmentOptionsModal}
+          onClose={() => {
+            setShowAppointmentOptionsModal(false);
+            setSelectedAppointment(null);
+          }}
+          appointment={selectedAppointment}
+          isEventInPast={isEventInPast}
+          onEdit={() => {
+            setShowAppointmentOptionsModal(false);
+            setIsEditAppointmentModalOpen(true);
+          }}
+          onCancel={handleCancelAppointment}
+          onViewMember={handleViewMemberDetails}
+        />
+
+        <NotifyMemberModal
+          isOpen={isNotifyMemberOpen}
+          onClose={() => setIsNotifyMemberOpen(false)}
+          notifyAction={notifyAction}
+          actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
+          handleNotifyMember={handleNotifyMember}
+        />
+
+        {isEditAppointmentModalOpen && selectedAppointment && (
+          <EditAppointmentModal
+            selectedAppointment={selectedAppointment}
+            setSelectedAppointment={setSelectedAppointment}
+            appointmentTypes={appointmentTypes}
+            freeAppointments={freeAppointments}
+            handleAppointmentChange={(changes) => {
+              setSelectedAppointment({ ...selectedAppointment, ...changes });
+            }}
+            appointments={appointments}
+            setAppointments={setAppointments}
+            setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+            setNotifyAction={setNotifyAction}
+            onDelete={handleDeleteAppointmentWrapper}
+            onClose={() => {
+              setIsEditAppointmentModalOpen(false);
+              setSelectedAppointment(null);
+            }}
+          />
+        )}
+
+        <WidgetSelectionModal
+          isOpen={isRightWidgetModalOpen}
+          onClose={() => setIsRightWidgetModalOpen(false)}
+          onSelectWidget={handleAddRightSidebarWidget}
+          getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
+          widgetArea="sidebar"
+        />
+
+        <MemberOverviewModal
+          isOpen={isMemberOverviewModalOpen}
+          onClose={() => {
+            setIsMemberOverviewModalOpen(false);
+            setSelectedMember(null);
+          }}
+          selectedMember={selectedMember}
+          calculateAge={calculateAge}
+          isContractExpiringSoon={isContractExpiringSoon}
+          handleCalendarFromOverview={handleCalendarFromOverview}
+          handleHistoryFromOverview={handleHistoryFromOverview}
+          handleCommunicationFromOverview={handleCommunicationFromOverview}
+          handleViewDetailedInfo={handleViewDetailedInfo}
+          handleEditFromOverview={handleEditFromOverview}
+        />
+
+        <AppointmentModal
+          show={showAppointmentModal}
+          member={selectedMember}
+          onClose={() => {
+            setShowAppointmentModal(false);
+            setSelectedMember(null);
+          }}
+          getMemberAppointments={getMemberAppointmentsWrapper}
+          appointmentTypes={appointmentTypes}
+          handleEditAppointment={handleEditAppointment}
+          handleCancelAppointment={handleCancelAppointment}
+          currentBillingPeriod={currentBillingPeriod}
+          memberContingentData={memberContingentData}
+          handleManageContingent={handleManageContingent}
+          handleCreateNewAppointment={handleCreateNewAppointment}
+        />
+
+        <HistoryModal
+          show={showHistoryModal}
+          onClose={() => {
+            setShowHistoryModal(false);
+            setSelectedMember(null);
+          }}
+          selectedMember={selectedMember}
+          historyTab={historyTab}
+          setHistoryTab={setHistoryTab}
+          memberHistory={memberHistory}
+        />
+
+        <MemberDetailsModal
+          isOpen={isMemberDetailsModalOpen}
+          onClose={() => {
+            setIsMemberDetailsModalOpen(false);
+            setSelectedMember(null);
+          }}
+          selectedMember={selectedMember}
+          memberRelations={memberRelations}
+          DefaultAvatar={DefaultAvatar}
+          calculateAge={calculateAge}
+          isContractExpiringSoon={isContractExpiringSoon}
+          redirectToContract={redirectToContract}
+        />
+
+        <ContingentModal
+          show={showContingentModal}
+          setShow={setShowContingentModal}
+          selectedMember={selectedMember}
+          getBillingPeriods={getBillingPeriodsWrapper}
+          selectedBillingPeriod={selectedBillingPeriod}
+          handleBillingPeriodChange={setSelectedBillingPeriod}
+          setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
+          tempContingent={tempContingent}
+          setTempContingent={setTempContingent}
+          currentBillingPeriod={currentBillingPeriod}
+          handleSaveContingent={handleSaveContingentWrapper}
+        />
+
+        <AddBillingPeriodModal
+          show={showAddBillingPeriodModal}
+          setShow={setShowAddBillingPeriodModal}
+          newBillingPeriod={newBillingPeriod}
+          setNewBillingPeriod={setNewBillingPeriod}
+          handleAddBillingPeriod={handleAddBillingPeriodWrapper}
+        />
+
+        <EditMemberModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedMember(null);
+          }}
+          selectedMember={selectedMember}
+          editModalTab={editModalTab}
+          setEditModalTab={setEditModalTab}
+          editForm={editForm}
+          handleInputChange={handleInputChange}
+          handleEditSubmit={handleEditSubmitWrapper}
+          editingRelations={editingRelations}
+          setEditingRelations={setEditingRelations}
+          newRelation={newRelation}
+          setNewRelation={setNewRelation}
+          availableMembersLeads={availableMembersLeads}
+          relationOptions={relationOptions}
+          handleAddRelation={handleAddRelationWrapper}
+          memberRelations={memberRelations}
+          handleDeleteRelation={handleDeleteRelationWrapper}
+          handleArchiveMember={handleArchiveMemberWrapper}
+          handleUnarchiveMember={handleUnarchiveMemberWrapper}
+        />
+
+        {isRightSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={closeSidebar}
+          />
+        )}
+
+        {isEditTaskModalOpen && editingTask && (
+          <EditTaskModal
+            task={editingTask}
+            onClose={() => {
+              setIsEditTaskModalOpen(false);
+              setEditingTask(null);
+            }}
+            onUpdateTask={handleUpdateTaskWrapper}
+          />
+        )}
+
+        {taskToDelete && (
+          <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToDelete(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteTaskWrapper(taskToDelete)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {taskToCancel && (
+          <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToCancel(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => handleCancelTaskWrapper(taskToCancel)}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+                >
+                  Cancel Task
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
+    </>
   )
 }

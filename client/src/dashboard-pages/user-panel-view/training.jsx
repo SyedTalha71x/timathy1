@@ -22,11 +22,26 @@ import {
   Users,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
-import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { useNavigate } from "react-router-dom"
-import { SidebarArea } from "../../components/custom-sidebar"
 import { IoIosMenu } from "react-icons/io"
+import { categoriesData, membersData, staffMembersData, trainingPlansData, trainingVideosData } from "../../utils/user-panel-states/training-states"
+import { useSidebarSystem } from "../../hooks/useSidebarSystem"
+import Sidebar from "../../components/central-sidebar"
+import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
+import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
+import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
+import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import { WidgetSelectionModal } from "../../components/widget-selection-modal"
+import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal"
+import AppointmentModal from "../../components/myarea-components/AppointmentModal"
+import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
+import ContingentModal from "../../components/myarea-components/ContigentModal"
+import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
+import EditMemberModal from "../../components/myarea-components/EditMemberModal"
+import EditTaskModal from "../../components/task-components/edit-task-modal"
+import HistoryModal from "../../components/myarea-components/HistoryModal"
 
 export default function Training() {
   const [activeTab, setActiveTab] = useState("videos")
@@ -49,268 +64,15 @@ export default function Training() {
   const [isMuted, setIsMuted] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const navigate = useNavigate()
 
+  const staffMembers = staffMembersData
+  const members =membersData
+  const categories = categoriesData
 
-  // Staff members
-  const staffMembers = [
-    { id: "own", name: "My Plans", isOwn: true },
-    { id: "mike", name: "Mike Johnson" },
-    { id: "sarah", name: "Sarah Wilson" },
-    { id: "jessica", name: "Jessica Lee" },
-    { id: "all", name: "All Staff Members" },
-  ]
+  const [trainingVideos] = useState(trainingVideosData)
+  const [trainingPlans, setTrainingPlans] = useState(trainingPlansData)
 
-  const members = [
-    { id: 1, name: "John Smith", email: "john@example.com" },
-    { id: 2, name: "Emma Davis", email: "emma@example.com" },
-    { id: 3, name: "Michael Brown", email: "michael@example.com" },
-    { id: 4, name: "Sarah Johnson", email: "sarah@example.com" },
-    { id: 5, name: "David Wilson", email: "david@example.com" },
-  ]
-
-  // Training video categories
-  const categories = [
-    { id: "chest", name: "Chest", color: "bg-red-600" },
-    { id: "back", name: "Back", color: "bg-blue-600" },
-    { id: "shoulders", name: "Shoulders", color: "bg-yellow-600" },
-    { id: "arms", name: "Arms", color: "bg-green-600" },
-    { id: "legs", name: "Legs", color: "bg-purple-600" },
-    { id: "glutes", name: "Glutes", color: "bg-purple-800" },
-    { id: "core", name: "Core", color: "bg-orange-600" },
-  ]
-
-  // Sample training videos
-  const [trainingVideos] = useState([
-    {
-      id: 1,
-      title: "Push-Up Variations",
-      description: "Learn different push-up techniques for chest development",
-      category: "chest",
-      duration: "8:45",
-      difficulty: "Beginner",
-      thumbnail:
-        "https://cdn.prod.website-files.com/674732398a7cbc934e4c2f56/67f2538f3b071e2e85b1752b_11%20Push%20ups%20Variations%20to%20try%20out%20.jpg",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
-      instructor: "Mike Johnson",
-      views: 1250,
-      equipment: ["None"],
-      targetMuscles: ["Chest", "Triceps", "Shoulders"],
-    },
-    {
-      id: 2,
-      title: "Deadlift Form Guide",
-      description: "Master the deadlift with proper form and technique",
-      category: "back",
-      duration: "12:30",
-      difficulty: "Intermediate",
-      thumbnail:
-        "https://www.gymshark.com/_next/image?url=https%3A%2F%2Fimages.ctfassets.net%2F8urtyqugdt2l%2F5ZN0GgcR2fSncFwnKuL1RP%2Fe603ba111e193d35510142c7eff9aae4%2Fdesktop-deadlift.jpg&w=3840&q=85",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4",
-      instructor: "Sarah Wilson",
-      views: 2100,
-      equipment: ["Barbell", "Plates"],
-      targetMuscles: ["Back", "Glutes", "Hamstrings"],
-    },
-    {
-      id: 3,
-      title: "Shoulder Mobility Routine",
-      description: "Improve shoulder flexibility and prevent injuries",
-      category: "shoulders",
-      duration: "15:20",
-      difficulty: "Beginner",
-      thumbnail:
-        "https://i.ytimg.com/vi/TNU6umd0sNA/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCpPN4NdKLe5ssqBHti4bbHb0LsqQ",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
-      instructor: "Lisa Davis",
-      views: 890,
-      equipment: ["Resistance Band"],
-      targetMuscles: ["Shoulders", "Upper Back"],
-    },
-    {
-      id: 4,
-      title: "Bicep & Tricep Superset",
-      description: "Effective arm workout combining bicep and tricep exercises",
-      category: "arms",
-      duration: "10:15",
-      difficulty: "Intermediate",
-      thumbnail: "https://fitnessprogramer.com/wp-content/uploads/2023/09/biceps-and-triceps-superset-workout.webp",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4",
-      instructor: "Tom Anderson",
-      views: 1680,
-      equipment: ["Dumbbells"],
-      targetMuscles: ["Biceps", "Triceps"],
-    },
-    {
-      id: 5,
-      title: "Squat Progression",
-      description: "From bodyweight to weighted squats progression guide",
-      category: "legs",
-      duration: "14:45",
-      difficulty: "Beginner",
-      thumbnail: "https://i.ytimg.com/vi/c0IAQC-seG8/maxresdefault.jpg",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
-      instructor: "Emma Thompson",
-      views: 3200,
-      equipment: ["None", "Barbell"],
-      targetMuscles: ["Quadriceps", "Glutes", "Calves"],
-    },
-    {
-      id: 6,
-      title: "Core Strengthening Circuit",
-      description: "15-minute core workout for all fitness levels",
-      category: "core",
-      duration: "15:00",
-      difficulty: "Intermediate",
-      thumbnail: "https://media.hearstapps.com/loop/wh-loops-day-2-taylor-128-leglowers-v1-1665091082.mp4/poster.jpg",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4",
-      instructor: "Alex Rodriguez",
-      views: 2450,
-      equipment: ["Mat"],
-      targetMuscles: ["Abs", "Obliques", "Lower Back"],
-    },
-    {
-      id: 7,
-      title: "HIIT Cardio Blast",
-      description: "High-intensity interval training for fat burning",
-      category: "cardio",
-      duration: "20:30",
-      difficulty: "Advanced",
-      thumbnail: "https://hiitacademy.com/wp-content/uploads/2015/04/hiit_workout_20-791x1024.jpg",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
-      instructor: "Jessica Lee",
-      views: 4100,
-      equipment: ["None"],
-      targetMuscles: ["Full Body"],
-    },
-    {
-      id: 8,
-      title: "Yoga Flow for Athletes",
-      description: "Flexibility and recovery routine for athletes",
-      category: "flexibility",
-      duration: "25:15",
-      difficulty: "Beginner",
-      thumbnail:
-        "https://i0.wp.com/skill-yoga.blog/wp-content/uploads/2021/05/skill-yoga-ultimate-guide-1.jpg?resize=1160%2C653&ssl=1",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4",
-      instructor: "Maya Patel",
-      views: 1890,
-      equipment: ["Yoga Mat"],
-      targetMuscles: ["Full Body"],
-    },
-    {
-      id: 9,
-      title: "Bench Press Technique",
-      description: "Perfect your bench press form for maximum gains",
-      category: "chest",
-      duration: "11:20",
-      difficulty: "Intermediate",
-      thumbnail:
-        "https://cdn.prod.website-files.com/611abd833ca7af7702667729/641df9609f209750c235ed87_Screenshot%202023-03-24%20at%202.15.08%20PM.png",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
-      instructor: "David Kim",
-      views: 2800,
-      equipment: ["Barbell", "Bench"],
-      targetMuscles: ["Chest", "Triceps", "Shoulders"],
-    },
-    {
-      id: 10,
-      title: "Pull-Up Progressions",
-      description: "Build up to your first pull-up with these progressions",
-      category: "back",
-      duration: "13:45",
-      difficulty: "Beginner",
-      thumbnail: "https://i.ytimg.com/vi/toLLBqqzGqI/maxresdefault.jpg",
-      videoUrl: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4",
-      instructor: "Rachel Green",
-      views: 3500,
-      equipment: ["Pull-up Bar", "Resistance Band"],
-      targetMuscles: ["Lats", "Biceps", "Rhomboids"],
-    },
-  ])
-
-  // Training plans state
-  const [trainingPlans, setTrainingPlans] = useState([
-    {
-      id: 1,
-      name: "Beginner Full Body",
-      description: "A comprehensive full-body workout plan for beginners",
-      createdBy: "Current User",
-      createdAt: "2024-01-15",
-      duration: "4 weeks",
-      difficulty: "Beginner",
-      category: "Full Body",
-      workoutsPerWeek: 3,
-      exercises: [
-        { videoId: 1, sets: 3, reps: "10-12", rest: "60s" },
-        { videoId: 5, sets: 3, reps: "12-15", rest: "90s" },
-        { videoId: 6, sets: 2, reps: "30s", rest: "45s" },
-      ],
-      isPublic: true,
-      likes: 45,
-      uses: 120,
-    },
-    {
-      id: 2,
-      name: "Upper Body Strength",
-      description: "Focus on building upper body strength and muscle mass",
-      createdBy: "Sarah Wilson",
-      createdAt: "2024-01-20",
-      duration: "6 weeks",
-      difficulty: "Intermediate",
-      category: "Upper Body",
-      workoutsPerWeek: 4,
-      exercises: [
-        { videoId: 1, sets: 4, reps: "8-10", rest: "90s" },
-        { videoId: 2, sets: 4, reps: "6-8", rest: "120s" },
-        { videoId: 4, sets: 3, reps: "10-12", rest: "75s" },
-        { videoId: 9, sets: 4, reps: "8-10", rest: "90s" },
-      ],
-      isPublic: true,
-      likes: 78,
-      uses: 89,
-    },
-    {
-      id: 3,
-      name: "Cardio & Conditioning",
-      description: "High-intensity cardio workouts for fat loss and conditioning",
-      createdBy: "Jessica Lee",
-      createdAt: "2024-02-01",
-      duration: "",
-      difficulty: "Advanced",
-      category: "Cardio",
-      workoutsPerWeek: null,
-      exercises: [
-        { videoId: 7, sets: 1, reps: "20 min", rest: "0s" },
-        { videoId: 6, sets: 3, reps: "45s", rest: "15s" },
-        { videoId: 8, sets: 1, reps: "25 min", rest: "0s" },
-      ],
-      isPublic: true,
-      likes: 92,
-      uses: 156,
-    },
-    {
-      id: 4,
-      name: "Quick Morning Routine",
-      description: "Short and effective morning workout",
-      createdBy: "Mike Johnson",
-      createdAt: "2024-02-05",
-      duration: "",
-      difficulty: "Beginner",
-      category: "Full Body",
-      workoutsPerWeek: null,
-      exercises: [
-        { videoId: 1, sets: 2, reps: "8-10", rest: "30s" },
-        { videoId: 5, sets: 2, reps: "10-12", rest: "45s" },
-      ],
-      isPublic: true,
-      likes: 23,
-      uses: 67,
-    },
-  ])
-
-  // Create plan form state
   const [planForm, setPlanForm] = useState({
     name: "",
     description: "",
@@ -324,6 +86,182 @@ export default function Training() {
   const [editingPlan, setEditingPlan] = useState(null)
   const [selectedExercises, setSelectedExercises] = useState([])
   const [videoToAdd, setVideoToAdd] = useState(null)
+
+    // Use the sidebar system hook
+    const sidebarSystem = useSidebarSystem();
+    
+    // Extract all states and functions from the hook
+    const {
+      // States
+      isRightSidebarOpen,
+      isSidebarEditing,
+      isRightWidgetModalOpen,
+      openDropdownIndex,
+      selectedMemberType,
+      isChartDropdownOpen,
+      isWidgetModalOpen,
+      editingTask,
+      todoFilter,
+      isEditTaskModalOpen,
+      isTodoFilterDropdownOpen,
+      taskToCancel,
+      taskToDelete,
+      isBirthdayMessageModalOpen,
+      selectedBirthdayPerson,
+      birthdayMessage,
+      activeNoteId,
+      isSpecialNoteModalOpen,
+      selectedAppointmentForNote,
+      isTrainingPlanModalOpen,
+      selectedUserForTrainingPlan,
+      selectedAppointment,
+      isEditAppointmentModalOpen,
+      showAppointmentOptionsModal,
+      showAppointmentModal,
+      freeAppointments,
+      selectedMember,
+      isMemberOverviewModalOpen,
+      isMemberDetailsModalOpen,
+      activeMemberDetailsTab,
+      isEditModalOpen,
+      editModalTab,
+      isNotifyMemberOpen,
+      notifyAction,
+      showHistoryModal,
+      historyTab,
+      memberHistory,
+      currentBillingPeriod,
+      tempContingent,
+      selectedBillingPeriod,
+      showAddBillingPeriodModal,
+      newBillingPeriod,
+      showContingentModal,
+      editingRelations,
+      newRelation,
+      editForm,
+      widgets,
+      rightSidebarWidgets,
+      notePopoverRef,
+  
+      // Setters
+      setIsRightSidebarOpen,
+      setIsSidebarEditing,
+      setIsRightWidgetModalOpen,
+      setOpenDropdownIndex,
+      setSelectedMemberType,
+      setIsChartDropdownOpen,
+      setIsWidgetModalOpen,
+      setEditingTask,
+      setTodoFilter,
+      setIsEditTaskModalOpen,
+      setIsTodoFilterDropdownOpen,
+      setTaskToCancel,
+      setTaskToDelete,
+      setIsBirthdayMessageModalOpen,
+      setSelectedBirthdayPerson,
+      setBirthdayMessage,
+      setActiveNoteId,
+      setIsSpecialNoteModalOpen,
+      setSelectedAppointmentForNote,
+      setIsTrainingPlanModalOpen,
+      setSelectedUserForTrainingPlan,
+      setSelectedAppointment,
+      setIsEditAppointmentModalOpen,
+      setShowAppointmentOptionsModal,
+      setShowAppointmentModal,
+      setFreeAppointments,
+      setSelectedMember,
+      setIsMemberOverviewModalOpen,
+      setIsMemberDetailsModalOpen,
+      setActiveMemberDetailsTab,
+      setIsEditModalOpen,
+      setEditModalTab,
+      setIsNotifyMemberOpen,
+      setNotifyAction,
+      setShowHistoryModal,
+      setHistoryTab,
+      setMemberHistory,
+      setCurrentBillingPeriod,
+      setTempContingent,
+      setSelectedBillingPeriod,
+      setShowAddBillingPeriodModal,
+      setNewBillingPeriod,
+      setShowContingentModal,
+      setEditingRelations,
+      setNewRelation,
+      setEditForm,
+      setWidgets,
+      setRightSidebarWidgets,
+  
+      // Functions
+      toggleRightSidebar,
+      closeSidebar,
+      toggleSidebarEditing,
+      toggleDropdown,
+      redirectToCommunication,
+      moveRightSidebarWidget,
+      removeRightSidebarWidget,
+      getWidgetPlacementStatus,
+      handleAddRightSidebarWidget,
+      handleTaskComplete,
+      handleEditTask,
+      handleUpdateTask,
+      handleCancelTask,
+      handleDeleteTask,
+      isBirthdayToday,
+      handleSendBirthdayMessage,
+      handleEditNote,
+      handleDumbbellClick,
+      handleCheckIn,
+      handleAppointmentOptionsModal,
+      handleSaveSpecialNote,
+      isEventInPast,
+      handleCancelAppointment,
+      actuallyHandleCancelAppointment,
+      handleDeleteAppointment,
+      handleEditAppointment,
+      handleCreateNewAppointment,
+      handleViewMemberDetails,
+      handleNotifyMember,
+      calculateAge,
+      isContractExpiringSoon,
+      redirectToContract,
+      handleCalendarFromOverview,
+      handleHistoryFromOverview,
+      handleCommunicationFromOverview,
+      handleViewDetailedInfo,
+      handleEditFromOverview,
+      getMemberAppointments,
+      handleManageContingent,
+      getBillingPeriods,
+      handleAddBillingPeriod,
+      handleSaveContingent,
+      handleInputChange,
+      handleEditSubmit,
+      handleAddRelation,
+      handleDeleteRelation,
+      handleArchiveMember,
+      handleUnarchiveMember,
+      truncateUrl,
+      renderSpecialNoteIcon,
+  
+      // new states 
+      customLinks,setCustomLinks, communications, setCommunications,
+      todos, setTodos, expiringContracts, setExpiringContracts,
+      birthdays, setBirthdays, notifications, setNotifications,
+      appointments, setAppointments,
+      memberContingentData, setMemberContingentData,
+      memberRelations, setMemberRelations,
+  
+      memberTypes,
+      availableMembersLeads,
+      mockTrainingPlans,
+      mockVideos,
+  
+      todoFilterOptions,
+      relationOptions,
+      appointmentTypes
+    } = sidebarSystem;
 
   // Filter videos based on category and search
   const filteredVideos = trainingVideos.filter((video) => {
@@ -415,15 +353,15 @@ export default function Training() {
     const updatedPlans = trainingPlans.map((plan) =>
       plan.id === editingPlan.id
         ? {
-            ...plan,
-            ...planForm,
-            id: editingPlan.id,
-            createdBy: plan.createdBy,
-            createdAt: plan.createdAt,
-            likes: plan.likes,
-            uses: plan.uses,
-            isPublic: plan.isPublic,
-          }
+          ...plan,
+          ...planForm,
+          id: editingPlan.id,
+          createdBy: plan.createdBy,
+          createdAt: plan.createdAt,
+          likes: plan.likes,
+          uses: plan.uses,
+          isPublic: plan.isPublic,
+        }
         : plan,
     )
     setTrainingPlans(updatedPlans)
@@ -532,115 +470,219 @@ export default function Training() {
     return plan.createdBy === "Current User"
   }
 
-   const [communications, setCommunications] = useState([
-      {
-        id: 1,
-        name: "John Doe",
-        message: "Hey, how's the project going?",
-        time: "2 min ago",
-        avatar: Rectangle1,
-      },
-      {
-        id: 2,
-        name: "Jane Smith",
-        message: "Meeting scheduled for tomorrow",
-        time: "10 min ago",
-        avatar: Rectangle1,
-      },
-    ])
-  
-    const [todos, setTodos] = useState([
-      {
-        id: 1,
-        title: "Review project proposal",
-        description: "Check the latest updates",
-        assignee: "Mike",
-      },
-      {
-        id: 2,
-        title: "Update documentation",
-        description: "Add new features info",
-        assignee: "Sarah",
-      },
-    ])
-  
-    const [birthdays, setBirthdays] = useState([
-      {
-        id: 1,
-        name: "Alice Johnson",
-        date: "Dec 15, 2024",
-        avatar: Avatar,
-      },
-      {
-        id: 2,
-        name: "Bob Wilson",
-        date: "Dec 20, 2024",
-        avatar: Avatar,
-      },
-    ])
-  
-    const [customLinks, setCustomLinks] = useState([
-      {
-        id: 1,
-        title: "Google Drive",
-        url: "https://drive.google.com",
-      },
-      {
-        id: 2,
-        title: "GitHub",
-        url: "https://github.com",
-      },
-    ])
-  
-    const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-    const [editingLink, setEditingLink] = useState(null)
-  
-    const toggleRightSidebar = () => {
-      setIsRightSidebarOpen(!isRightSidebarOpen)
-    }
-  
-    const closeSidebar = () => {
-      setIsRightSidebarOpen(false)
-    }
-  
-    const redirectToCommunication = () => {
-      navigate("/dashboard/communication")
-    }
-  
-    const redirectToTodos = () => {
-      console.log("Redirecting to todos page")
-      navigate("/dashboard/to-do")
-    }
+  const [editingLink, setEditingLink] = useState(null)
 
-    const toggleDropdown = (index) => {
-      setOpenDropdownIndex(openDropdownIndex === index ? null : index)
-    }
-  
+  // more sidebar related functions
+
+  // Chart configuration
+  const chartSeries = [
+    { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
+    { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
+  ];
+
+  const chartOptions = {
+    chart: {
+      type: "line",
+      height: 180,
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
+    },
+    colors: ["#FF6B1A", "#2E5BFF"],
+    stroke: { curve: "smooth", width: 4, opacity: 1 },
+    markers: {
+      size: 1,
+      strokeWidth: 0,
+      hover: { size: 6 },
+    },
+    xaxis: {
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      labels: { style: { colors: "#999999", fontSize: "12px" } },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      min: 0,
+      max: 600,
+      tickAmount: 6,
+      labels: {
+        style: { colors: "#999999", fontSize: "12px" },
+        formatter: (value) => Math.round(value),
+      },
+    },
+    grid: {
+      show: true,
+      borderColor: "#333333",
+      position: "back",
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: true } },
+      row: { opacity: 0.1 },
+      column: { opacity: 0.1 },
+    },
+    legend: {
+      show: true,
+      position: "top",
+      horizontalAlign: "right",
+      offsetY: -30,
+      offsetX: -10,
+      labels: { colors: "#ffffff" },
+      itemMargin: { horizontal: 5 },
+    },
+    title: {
+      text: memberTypes[selectedMemberType].title,
+      align: "left",
+      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
+    },
+    subtitle: {
+      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
+      align: "left",
+      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
+    },
+    tooltip: {
+      theme: "dark",
+      style: {
+        fontSize: "12px",
+        fontFamily: "Inter, sans-serif",
+      },
+      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
+        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
+        '<span style="color: black;">' +
+        series[seriesIndex][dataPointIndex] +
+        "</span></div>",
+    },
+  };
+
+
+  // Wrapper functions to pass local state to hook functions
+  const handleTaskCompleteWrapper = (taskId) => {
+    handleTaskComplete(taskId, todos, setTodos);
+  };
+
+  const handleUpdateTaskWrapper = (updatedTask) => {
+    handleUpdateTask(updatedTask, setTodos);
+  };
+
+  const handleCancelTaskWrapper = (taskId) => {
+    handleCancelTask(taskId, setTodos);
+  };
+
+  const handleDeleteTaskWrapper = (taskId) => {
+    handleDeleteTask(taskId, setTodos);
+  };
+
+  const handleEditNoteWrapper = (appointmentId, currentNote) => {
+    handleEditNote(appointmentId, currentNote, appointments);
+  };
+
+  const handleCheckInWrapper = (appointmentId) => {
+    handleCheckIn(appointmentId, appointments, setAppointments);
+  };
+
+  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
+    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
+  };
+
+  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
+    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
+  };
+
+  const handleDeleteAppointmentWrapper = (id) => {
+    handleDeleteAppointment(id, appointments, setAppointments);
+  };
+
+  const getMemberAppointmentsWrapper = (memberId) => {
+    return getMemberAppointments(memberId, appointments);
+  };
+
+  const handleAddBillingPeriodWrapper = () => {
+    handleAddBillingPeriod(memberContingentData, setMemberContingentData);
+  };
+
+  const handleSaveContingentWrapper = () => {
+    handleSaveContingent(memberContingentData, setMemberContingentData);
+  };
+
+  const handleEditSubmitWrapper = (e) => {
+    handleEditSubmit(e, appointments, setAppointments);
+  };
+
+  const handleAddRelationWrapper = () => {
+    handleAddRelation(memberRelations, setMemberRelations);
+  };
+
+  const handleDeleteRelationWrapper = (category, relationId) => {
+    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations);
+  };
+
+  const handleArchiveMemberWrapper = (memberId) => {
+    handleArchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const handleUnarchiveMemberWrapper = (memberId) => {
+    handleUnarchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const getBillingPeriodsWrapper = (memberId) => {
+    return getBillingPeriods(memberId, memberContingentData);
+  };
+
 
   return (
     <>
-      <Toaster position="top-right" />
-      <div    className={`
-          min-h-screen rounded-3xl bg-[#1C1C1C] lg:p-6 md:p-5 sm:p-2 p-1
-          transition-all duration-500 ease-in-out flex-1
-          ${isRightSidebarOpen 
-            ? 'lg:mr-86 mr-0' // Adjust right margin when sidebar is open on larger screens
-            : 'mr-0' // No margin when closed
+      <style>
+        {`
+          @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-1deg); }
+            30% { transform: rotate(1deg); }
+            45% { transform: rotate(-1deg); }
+            60% { transform: rotate(1deg); }
+            75% { transform: rotate(-1deg); }
+            90% { transform: rotate(1deg); }
           }
+          .animate-wobble {
+            animation: wobble 0.5s ease-in-out infinite;
+          }
+          .dragging {
+            opacity: 0.5;
+            border: 2px dashed #fff;
+          }
+          .drag-over {
+            border: 2px dashed #888;
+          }
+        `}
+      </style>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
+      <div className={`
+          min-h-screen rounded-3xl bg-[#1C1C1C] text--white p-3
+          transition-all duration-500 ease-in-out flex-1
+          ${isRightSidebarOpen
+          ? 'lg:mr-86 mr-0' // Adjust right margin when sidebar is open on larger screens
+          : 'mr-0' // No margin when closed
+        }
         `}>
         <div className="w-full mx-auto">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div>
               <h1 className="text-white oxanium_font text-xl md:text-2xl">Training</h1>
             </div>
-             <div className="block">
-                            <IoIosMenu
-                              onClick={toggleRightSidebar}
-                              size={25}
-                              className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                            />
-                          </div>
+            <div className="block">
+              <IoIosMenu
+                onClick={toggleRightSidebar}
+                size={25}
+                className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+              />
+            </div>
           </div>
 
           {/* Tab Navigation */}
@@ -648,18 +690,16 @@ export default function Training() {
             <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
               <button
                 onClick={() => setActiveTab("videos")}
-                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${
-                  activeTab === "videos" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                }`}
+                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "videos" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
               >
                 <Play size={14} className="inline mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Training </span>Videos ({trainingVideos.length})
               </button>
               <button
                 onClick={() => setActiveTab("plans")}
-                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${
-                  activeTab === "plans" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                }`}
+                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "plans" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                  }`}
               >
                 <Target size={14} className="inline mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Training </span>Plans ({trainingPlans.length})
@@ -702,9 +742,8 @@ export default function Training() {
                           setSelectedCategory("all")
                           setIsFilterDropdownOpen(false)
                         }}
-                        className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${
-                          selectedCategory === "all" ? "bg-[#3F3F3F]" : ""
-                        }`}
+                        className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${selectedCategory === "all" ? "bg-[#3F3F3F]" : ""
+                          }`}
                       >
                         <span className="text-white">All Exercises</span>
                       </button>
@@ -715,9 +754,8 @@ export default function Training() {
                             setSelectedCategory(category.id)
                             setIsFilterDropdownOpen(false)
                           }}
-                          className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${
-                            selectedCategory === category.id ? "bg-[#3F3F3F]" : ""
-                          }`}
+                          className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${selectedCategory === category.id ? "bg-[#3F3F3F]" : ""
+                            }`}
                         >
                           <span className="text-white">{category.name}</span>
                         </button>
@@ -731,11 +769,10 @@ export default function Training() {
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
                 <button
                   onClick={() => setSelectedCategory("all")}
-                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-                    selectedCategory === "all"
+                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategory === "all"
                       ? "bg-blue-600 text-white"
                       : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                  }`}
+                    }`}
                 >
                   All
                 </button>
@@ -743,11 +780,10 @@ export default function Training() {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-                      selectedCategory === category.id
+                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategory === category.id
                         ? `${category.color} text-white`
                         : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                    }`}
+                      }`}
                   >
                     {category.name}
                   </button>
@@ -756,49 +792,49 @@ export default function Training() {
 
               {/* Videos Grid */}
               <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>                {filteredVideos.map((video) => (
-                  <div
-                    key={video.id}
-                    className="bg-[#161616] rounded-xl overflow-hidden hover:bg-[#1F1F1F] transition-colors cursor-pointer group"
-                    onClick={() => handleVideoClick(video)}
-                  >
-                    <div className="relative">
-                      <img
-                        src={video.thumbnail || "/placeholder.svg"}
-                        alt={video.title}
-                        className="w-full h-36 sm:h-48 object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="bg-blue-600 rounded-full p-2 sm:p-3">
-                          <Play className="text-white" size={20} />
-                        </div>
-                      </div>
-                      <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs text-white">
-                        {video.duration}
-                      </div>
-                      <div
-                        className={`absolute top-2 left-2 px-2 py-1 rounded text-xs text-white ${getDifficultyColor(
-                          video.difficulty,
-                        )}`}
-                      >
-                        {video.difficulty}
+                <div
+                  key={video.id}
+                  className="bg-[#161616] rounded-xl overflow-hidden hover:bg-[#1F1F1F] transition-colors cursor-pointer group"
+                  onClick={() => handleVideoClick(video)}
+                >
+                  <div className="relative">
+                    <img
+                      src={video.thumbnail || "/placeholder.svg"}
+                      alt={video.title}
+                      className="w-full h-36 sm:h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="bg-blue-600 rounded-full p-2 sm:p-3">
+                        <Play className="text-white" size={20} />
                       </div>
                     </div>
-                    <div className="p-3 sm:p-4">
-                      <h3 className="font-semibold text-white mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
-                      <p className="text-gray-400 text-xs sm:text-sm mb-3 line-clamp-2">{video.description}</p>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {video.targetMuscles.slice(0, 2).map((muscle, index) => (
-                          <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs">
-                            {muscle}
-                          </span>
-                        ))}
-                        {video.targetMuscles.length > 2 && (
-                          <span className="text-gray-500 text-xs">+{video.targetMuscles.length - 2}</span>
-                        )}
-                      </div>
+                    <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs text-white">
+                      {video.duration}
+                    </div>
+                    <div
+                      className={`absolute top-2 left-2 px-2 py-1 rounded text-xs text-white ${getDifficultyColor(
+                        video.difficulty,
+                      )}`}
+                    >
+                      {video.difficulty}
                     </div>
                   </div>
-                ))}
+                  <div className="p-3 sm:p-4">
+                    <h3 className="font-semibold text-white mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
+                    <p className="text-gray-400 text-xs sm:text-sm mb-3 line-clamp-2">{video.description}</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {video.targetMuscles.slice(0, 2).map((muscle, index) => (
+                        <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs">
+                          {muscle}
+                        </span>
+                      ))}
+                      {video.targetMuscles.length > 2 && (
+                        <span className="text-gray-500 text-xs">+{video.targetMuscles.length - 2}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
               </div>
 
               {filteredVideos.length === 0 && (
@@ -839,9 +875,8 @@ export default function Training() {
                               setSelectedStaffMember(member.id)
                               setIsStaffDropdownOpen(false)
                             }}
-                            className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${
-                              selectedStaffMember === member.id ? "bg-[#3F3F3F]" : ""
-                            }`}
+                            className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${selectedStaffMember === member.id ? "bg-[#3F3F3F]" : ""
+                              }`}
                           >
                             <span className="text-white">{member.name}</span>
                           </button>
@@ -860,7 +895,7 @@ export default function Training() {
               </div>
 
               {/* Plans Grid */}
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>                
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>
                 {filteredPlans.map((plan) => (
                   <div
                     key={plan.id}
@@ -1645,10 +1680,10 @@ export default function Training() {
           </div>
         </div>
 
-        
+
       )}
 
-{isViewPlanModalOpen && selectedPlan && (
+      {isViewPlanModalOpen && selectedPlan && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="p-4 sm:p-6">
@@ -1756,28 +1791,297 @@ export default function Training() {
         </div>
       )}
 
-<SidebarArea
-                isOpen={isRightSidebarOpen}
-                onClose={closeSidebar}
-                communications={communications}
-                todos={todos}
-                birthdays={birthdays}
-                customLinks={customLinks}
-                setCustomLinks={setCustomLinks}
-                redirectToCommunication={redirectToCommunication}
-                redirectToTodos={redirectToTodos}
-                toggleDropdown={toggleDropdown}
-                openDropdownIndex={openDropdownIndex}
-                setEditingLink={setEditingLink}
-              />
-        
-              {/* Overlay for mobile screens only */}
-              {isRightSidebarOpen && (
-                <div 
-                  className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-                  onClick={closeSidebar}
-                />
-              )}
+<Sidebar
+          isRightSidebarOpen={isRightSidebarOpen}
+          toggleRightSidebar={toggleRightSidebar}
+          isSidebarEditing={isSidebarEditing}
+          toggleSidebarEditing={toggleSidebarEditing}
+          rightSidebarWidgets={rightSidebarWidgets}
+          moveRightSidebarWidget={moveRightSidebarWidget}
+          removeRightSidebarWidget={removeRightSidebarWidget}
+          setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
+          communications={communications}
+          redirectToCommunication={redirectToCommunication}
+          todos={todos}
+          handleTaskComplete={handleTaskCompleteWrapper}
+          todoFilter={todoFilter}
+          setTodoFilter={setTodoFilter}
+          todoFilterOptions={todoFilterOptions}
+          isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
+          setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
+          openDropdownIndex={openDropdownIndex}
+          toggleDropdown={toggleDropdown}
+          handleEditTask={handleEditTask}
+          setTaskToCancel={setTaskToCancel}
+          setTaskToDelete={setTaskToDelete}
+          birthdays={birthdays}
+          isBirthdayToday={isBirthdayToday}
+          handleSendBirthdayMessage={handleSendBirthdayMessage}
+          customLinks={customLinks}
+          truncateUrl={truncateUrl}
+          appointments={appointments}
+          renderSpecialNoteIcon={renderSpecialNoteIcon}
+          handleDumbbellClick={handleDumbbellClick}
+          handleCheckIn={handleCheckInWrapper}
+          handleAppointmentOptionsModal={handleAppointmentOptionsModal}
+          selectedMemberType={selectedMemberType}
+          setSelectedMemberType={setSelectedMemberType}
+          memberTypes={memberTypes}
+          isChartDropdownOpen={isChartDropdownOpen}
+          setIsChartDropdownOpen={setIsChartDropdownOpen}
+          chartOptions={chartOptions}
+          chartSeries={chartSeries}
+          expiringContracts={expiringContracts}
+          getWidgetPlacementStatus={getWidgetPlacementStatus}
+          onClose={toggleRightSidebar}
+          hasUnreadNotifications={2}
+          setIsWidgetModalOpen={setIsWidgetModalOpen}
+          handleEditNote={handleEditNoteWrapper}
+          activeNoteId={activeNoteId}
+          setActiveNoteId={setActiveNoteId}
+          isSpecialNoteModalOpen={isSpecialNoteModalOpen}
+          setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
+          selectedAppointmentForNote={selectedAppointmentForNote}
+          setSelectedAppointmentForNote={setSelectedAppointmentForNote}
+          handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
+          onSaveSpecialNote={handleSaveSpecialNoteWrapper}
+          notifications={notifications}
+        />
+
+        {/* Sidebar related modals */}
+        <TrainingPlanModal
+          isOpen={isTrainingPlanModalOpen}
+          onClose={() => setIsTrainingPlanModalOpen(false)}
+          user={selectedUserForTrainingPlan}
+          trainingPlans={mockTrainingPlans}
+          getDifficultyColor={getDifficultyColor}
+          getVideoById={getVideoById}
+        />
+
+        <AppointmentActionModal
+          isOpen={showAppointmentOptionsModal}
+          onClose={() => {
+            setShowAppointmentOptionsModal(false);
+            setSelectedAppointment(null);
+          }}
+          appointment={selectedAppointment}
+          isEventInPast={isEventInPast}
+          onEdit={() => {
+            setShowAppointmentOptionsModal(false);
+            setIsEditAppointmentModalOpen(true);
+          }}
+          onCancel={handleCancelAppointment}
+          onViewMember={handleViewMemberDetails}
+        />
+
+        <NotifyMemberModal
+          isOpen={isNotifyMemberOpen}
+          onClose={() => setIsNotifyMemberOpen(false)}
+          notifyAction={notifyAction}
+          actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
+          handleNotifyMember={handleNotifyMember}
+        />
+
+        {isEditAppointmentModalOpen && selectedAppointment && (
+          <EditAppointmentModal
+            selectedAppointment={selectedAppointment}
+            setSelectedAppointment={setSelectedAppointment}
+            appointmentTypes={appointmentTypes}
+            freeAppointments={freeAppointments}
+            handleAppointmentChange={(changes) => {
+              setSelectedAppointment({ ...selectedAppointment, ...changes });
+            }}
+            appointments={appointments}
+            setAppointments={setAppointments}
+            setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+            setNotifyAction={setNotifyAction}
+            onDelete={handleDeleteAppointmentWrapper}
+            onClose={() => {
+              setIsEditAppointmentModalOpen(false);
+              setSelectedAppointment(null);
+            }}
+          />
+        )}
+
+        <WidgetSelectionModal
+          isOpen={isRightWidgetModalOpen}
+          onClose={() => setIsRightWidgetModalOpen(false)}
+          onSelectWidget={handleAddRightSidebarWidget}
+          getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
+          widgetArea="sidebar"
+        />
+
+        <MemberOverviewModal
+          isOpen={isMemberOverviewModalOpen}
+          onClose={() => {
+            setIsMemberOverviewModalOpen(false);
+            setSelectedMember(null);
+          }}
+          selectedMember={selectedMember}
+          calculateAge={calculateAge}
+          isContractExpiringSoon={isContractExpiringSoon}
+          handleCalendarFromOverview={handleCalendarFromOverview}
+          handleHistoryFromOverview={handleHistoryFromOverview}
+          handleCommunicationFromOverview={handleCommunicationFromOverview}
+          handleViewDetailedInfo={handleViewDetailedInfo}
+          handleEditFromOverview={handleEditFromOverview}
+        />
+
+        <AppointmentModal
+          show={showAppointmentModal}
+          member={selectedMember}
+          onClose={() => {
+            setShowAppointmentModal(false);
+            setSelectedMember(null);
+          }}
+          getMemberAppointments={getMemberAppointmentsWrapper}
+          appointmentTypes={appointmentTypes}
+          handleEditAppointment={handleEditAppointment}
+          handleCancelAppointment={handleCancelAppointment}
+          currentBillingPeriod={currentBillingPeriod}
+          memberContingentData={memberContingentData}
+          handleManageContingent={handleManageContingent}
+          handleCreateNewAppointment={handleCreateNewAppointment}
+        />
+
+        <HistoryModal
+          show={showHistoryModal}
+          onClose={() => {
+            setShowHistoryModal(false);
+            setSelectedMember(null);
+          }}
+          selectedMember={selectedMember}
+          historyTab={historyTab}
+          setHistoryTab={setHistoryTab}
+          memberHistory={memberHistory}
+        />
+
+        <MemberDetailsModal
+          isOpen={isMemberDetailsModalOpen}
+          onClose={() => {
+            setIsMemberDetailsModalOpen(false);
+            setSelectedMember(null);
+          }}
+          selectedMember={selectedMember}
+          memberRelations={memberRelations}
+          DefaultAvatar={DefaultAvatar}
+          calculateAge={calculateAge}
+          isContractExpiringSoon={isContractExpiringSoon}
+          redirectToContract={redirectToContract}
+        />
+
+        <ContingentModal
+          show={showContingentModal}
+          setShow={setShowContingentModal}
+          selectedMember={selectedMember}
+          getBillingPeriods={getBillingPeriodsWrapper}
+          selectedBillingPeriod={selectedBillingPeriod}
+          handleBillingPeriodChange={setSelectedBillingPeriod}
+          setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
+          tempContingent={tempContingent}
+          setTempContingent={setTempContingent}
+          currentBillingPeriod={currentBillingPeriod}
+          handleSaveContingent={handleSaveContingentWrapper}
+        />
+
+        <AddBillingPeriodModal
+          show={showAddBillingPeriodModal}
+          setShow={setShowAddBillingPeriodModal}
+          newBillingPeriod={newBillingPeriod}
+          setNewBillingPeriod={setNewBillingPeriod}
+          handleAddBillingPeriod={handleAddBillingPeriodWrapper}
+        />
+
+        <EditMemberModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedMember(null);
+          }}
+          selectedMember={selectedMember}
+          editModalTab={editModalTab}
+          setEditModalTab={setEditModalTab}
+          editForm={editForm}
+          handleInputChange={handleInputChange}
+          handleEditSubmit={handleEditSubmitWrapper}
+          editingRelations={editingRelations}
+          setEditingRelations={setEditingRelations}
+          newRelation={newRelation}
+          setNewRelation={setNewRelation}
+          availableMembersLeads={availableMembersLeads}
+          relationOptions={relationOptions}
+          handleAddRelation={handleAddRelationWrapper}
+          memberRelations={memberRelations}
+          handleDeleteRelation={handleDeleteRelationWrapper}
+          handleArchiveMember={handleArchiveMemberWrapper}
+          handleUnarchiveMember={handleUnarchiveMemberWrapper}
+        />
+
+        {isRightSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={closeSidebar}
+          />
+        )}
+
+        {isEditTaskModalOpen && editingTask && (
+          <EditTaskModal
+            task={editingTask}
+            onClose={() => {
+              setIsEditTaskModalOpen(false);
+              setEditingTask(null);
+            }}
+            onUpdateTask={handleUpdateTaskWrapper}
+          />
+        )}
+
+        {taskToDelete && (
+          <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToDelete(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteTaskWrapper(taskToDelete)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {taskToCancel && (
+          <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToCancel(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => handleCancelTaskWrapper(taskToCancel)}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+                >
+                  Cancel Task
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </>
   )
 }

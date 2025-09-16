@@ -22,142 +22,41 @@ import AddContractModal from "../../components/contract-components/add-contract-
 import { ContractDetailsModal } from "../../components/contract-components/contract-details-modal"
 import { PauseContractModal } from "../../components/contract-components/pause-contract-modal"
 import { CancelContractModal } from "../../components/contract-components/cancel-contract-modal"
-import {EditContractModal} from "../../components/contract-components/edit-contract-modal"
+import { EditContractModal } from "../../components/contract-components/edit-contract-modal"
 import { DocumentManagementModal } from "../../components/contract-components/document-management-modal"
 import { BonusTimeModal } from "../../components/contract-components/bonus-time-modal"
 import { RenewContractModal } from "../../components/contract-components/reniew-contract-modal"
 import { ChangeContractModal } from "../../components/contract-components/change-contract-modal"
 import { ContractHistoryModal } from "../../components/contract-components/contract-history-modal"
 
-import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import Rectangle1 from "../../../public/Rectangle 1.png"
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { useNavigate } from "react-router-dom"
-import { SidebarArea } from "../../components/custom-sidebar"
 import { IoIosMenu } from "react-icons/io"
 import { AiOutlineExclamation } from "react-icons/ai";
 
+import Sidebar from "../../components/central-sidebar"
+import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
+import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
+import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
+import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import { WidgetSelectionModal } from "../../components/widget-selection-modal"
+import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal"
+import AppointmentModal from "../../components/myarea-components/AppointmentModal"
+import HistoryModal from "../../components/myarea-components/HistoryModal"
+import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
+import ContingentModal from "../../components/myarea-components/ContigentModal"
+import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
+import EditMemberModal from "../../components/myarea-components/EditMemberModal"
+import EditTaskModal from "../../components/task-components/edit-task-modal"
+import { useSidebarSystem } from "../../hooks/useSidebarSystem"
+import { trainingVideosData } from "../../utils/user-panel-states/training-states"
+import { contractHistory, initialContracts, sampleLeads } from "../../utils/user-panel-states/contract-states"
 
-const initialContracts = [
-  {
-    id: "12321-1",
-    memberName: "John Doe",
-    contractType: "Premium",
-    startDate: "2023-01-01",
-    endDate: "2024-01-01",
-    status: "Active",
-    pauseReason: null,
-    cancelReason: null,
-    isDigital: true,
-    email: "john@example.com",
-    phone: "1234567890",
-    iban: "DE89370400440532013000",
-  },
-  {
-    id: "12321-2",
-    memberName: "Jane Smith",
-    contractType: "Basic",
-    startDate: "2023-02-15",
-    endDate: "2024-02-15",
-    status: "Paused",
-    pauseReason: "Pregnancy",
-    cancelReason: null,
-    isDigital: false,
-  },
-  {
-    id: "12321-3",
-    memberName: "Bob Johnson",
-    contractType: "Premium",
-    startDate: "2023-03-01",
-    endDate: "2024-03-01",
-    status: "Cancelled",
-    pauseReason: null,
-    cancelReason: null,
-    isDigital: true,
-    email: "bob@example.com",
-    phone: "9876543210",
-    iban: "FR1420041010050500013M02606",
-  },
-  {
-    id: "12321-4",
-    memberName: "Scarlet Johnson",
-    contractType: "Bronze",
-    startDate: "2023-03-01",
-    endDate: "2024-03-01",
-    status: "Cancelled",
-    pauseReason: null,
-    cancelReason: "Financial Reasons",
-    isDigital: false,
-  },
-  {
-    id: "12321-5",
-    memberName: "Alice Cooper",
-    contractType: "Premium",
-    startDate: "2023-06-01",
-    endDate: "2024-06-01",
-    status: "Ongoing",
-    pauseReason: null,
-    cancelReason: null,
-    isDigital: true,
-    email: "alice@example.com",
-    phone: "5551234567",
-    iban: "GB82WEST12345698765432",
-    signatureRequired: true,
-  },
-]
 
-const contractHistory = {
-  "12321-1": [
-    {
-      id: "hist-1",
-      date: "2023-12-15",
-      action: "Contract Changed",
-      details: "Changed from Basic to Premium",
-      performedBy: "Admin User",
-      oldValue: "Basic",
-      newValue: "Premium",
-    },
-    {
-      id: "hist-2",
-      date: "2023-11-20",
-      action: "Contract Renewed",
-      details: "Renewed for 12 months",
-      performedBy: "System",
-      oldValue: "2023-01-01 to 2024-01-01",
-      newValue: "2024-01-01 to 2025-01-01",
-    },
-  ],
-  "12321-2": [
-    {
-      id: "hist-3",
-      date: "2023-10-10",
-      action: "Contract Paused",
-      details: "Paused due to Pregnancy",
-      performedBy: "Admin User",
-      oldValue: "Active",
-      newValue: "Paused",
-    },
-  ],
-}
-
-const sampleLeads = [
-  {
-    id: "lead-1",
-    name: "Michael Brown",
-    email: "michael@example.com",
-    phone: "5551234567",
-    interestedIn: "Premium",
-  },
-  {
-    id: "lead-2",
-    name: "Sarah Wilson",
-    email: "sarah@example.com",
-    phone: "5559876543",
-    interestedIn: "Basic",
-  },
-]
 
 export default function ContractList() {
   const navigate = useNavigate()
+  const sidebarSystem = useSidebarSystem()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isShowDetails, setIsShowDetails] = useState(false)
   const [selectedContract, setSelectedContract] = useState(null)
@@ -170,11 +69,10 @@ export default function ContractList() {
   const [filteredContracts, setFilteredContracts] = useState(initialContracts)
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [viewMode, setViewMode] = useState("list") // Added view mode state for switching between grid and list views
 
   const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isEditModalOpenContract, setIsEditModalOpenContract] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
   const contractsPerPage = 40
@@ -239,6 +137,21 @@ export default function ContractList() {
     setCurrentPage(1) // Reset to the first page when filter or sort changes
   }, [selectedFilter, contracts, searchTerm, selectedSort])
 
+  const toggleContractDropdown = (index) => {
+    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
+  }
+
+  const sortOptions = [
+    "Alphabetical (A-Z)",
+    "Alphabetical (Z-A)",
+    "Contract Type (A-Z)",
+    "Contract Type (Z-A)",
+    "Status (A-Z)",
+    "Status (Z-A)",
+    "Expiring Soon",
+    "Recently Added",
+  ]
+
   const isContractExpired = (endDate) => {
     const today = new Date()
     const contractEndDate = new Date(endDate)
@@ -294,11 +207,11 @@ export default function ContractList() {
       const updatedContracts = contracts.map((contract) =>
         contract.id === selectedContract.id
           ? {
-              ...contract,
-              contractType: renewalData.contractType,
-              endDate: endDate.toISOString().split("T")[0],
-              status: "Active",
-            }
+            ...contract,
+            contractType: renewalData.contractType,
+            endDate: endDate.toISOString().split("T")[0],
+            status: "Active",
+          }
           : contract,
       )
       setContracts(updatedContracts)
@@ -313,10 +226,10 @@ export default function ContractList() {
       const updatedContracts = contracts.map((contract) =>
         contract.id === selectedContract.id
           ? {
-              ...contract,
-              contractType: changeData.newContractType,
-              // You might want to update other fields based on the change
-            }
+            ...contract,
+            contractType: changeData.newContractType,
+            // You might want to update other fields based on the change
+          }
           : contract,
       )
       setContracts(updatedContracts)
@@ -335,7 +248,7 @@ export default function ContractList() {
     setIsShowDetails(true)
   }
 
-  const toggleDropdown = (contractId, event) => {
+  const toggleDropdownContract = (contractId, event) => {
     event.stopPropagation()
     setActiveDropdownId(activeDropdownId === contractId ? null : contractId)
   }
@@ -372,13 +285,13 @@ export default function ContractList() {
 
   const handleEditContract = (contractId) => {
     setSelectedContract(contracts.find((contract) => contract.id === contractId))
-    setIsEditModalOpen(true)
+    setIsEditModalOpenContract(true)
   }
 
   const handleSaveEditedContract = (updatedContract) => {
     const updatedContracts = contracts.map((c) => (c.id === updatedContract.id ? updatedContract : c))
     setContracts(updatedContracts)
-    setIsEditModalOpen(false)
+    setIsEditModalOpenContract(false)
     toast.success("Contract updated successfully")
   }
 
@@ -427,104 +340,379 @@ export default function ContractList() {
     setSelectedContract(contracts.find((contract) => contract.id === contractId))
     setIsHistoryModalOpen(true)
   }
+  // Extract all states and functions from the hook
+  const {
+    // States
+    isRightSidebarOpen,
+    isSidebarEditing,
+    isRightWidgetModalOpen,
+    openDropdownIndex,
+    selectedMemberType,
+    isChartDropdownOpen,
+    isWidgetModalOpen,
+    editingTask,
+    todoFilter,
+    isEditTaskModalOpen,
+    isTodoFilterDropdownOpen,
+    taskToCancel,
+    taskToDelete,
+    isBirthdayMessageModalOpen,
+    selectedBirthdayPerson,
+    birthdayMessage,
+    activeNoteId,
+    isSpecialNoteModalOpen,
+    selectedAppointmentForNote,
+    isTrainingPlanModalOpen,
+    selectedUserForTrainingPlan,
+    selectedAppointment,
+    isEditAppointmentModalOpen,
+    showAppointmentOptionsModal,
+    showAppointmentModal,
+    freeAppointments,
+    selectedMember,
+    isMemberOverviewModalOpen,
+    isMemberDetailsModalOpen,
+    activeMemberDetailsTab,
+    isEditModalOpen,
+    editModalTab,
+    isNotifyMemberOpen,
+    notifyAction,
+    showHistoryModal,
+    historyTab,
+    memberHistory,
+    currentBillingPeriod,
+    tempContingent,
+    selectedBillingPeriod,
+    showAddBillingPeriodModal,
+    newBillingPeriod,
+    showContingentModal,
+    editingRelations,
+    newRelation,
+    editForm,
+    widgets,
+    rightSidebarWidgets,
+    notePopoverRef,
 
-  const [communications, setCommunications] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      message: "Hey, how's the project going?",
-      time: "2 min ago",
-      avatar: Rectangle1,
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      message: "Meeting scheduled for tomorrow",
-      time: "10 min ago",
-      avatar: Rectangle1,
-    },
-  ])
+    // Setters
+    setIsRightSidebarOpen,
+    setIsSidebarEditing,
+    setIsRightWidgetModalOpen,
+    setOpenDropdownIndex,
+    setSelectedMemberType,
+    setIsChartDropdownOpen,
+    setIsWidgetModalOpen,
+    setEditingTask,
+    setTodoFilter,
+    setIsEditTaskModalOpen,
+    setIsTodoFilterDropdownOpen,
+    setTaskToCancel,
+    setTaskToDelete,
+    setIsBirthdayMessageModalOpen,
+    setSelectedBirthdayPerson,
+    setBirthdayMessage,
+    setActiveNoteId,
+    setIsSpecialNoteModalOpen,
+    setSelectedAppointmentForNote,
+    setIsTrainingPlanModalOpen,
+    setSelectedUserForTrainingPlan,
+    setSelectedAppointment,
+    setIsEditAppointmentModalOpen,
+    setShowAppointmentOptionsModal,
+    setShowAppointmentModal,
+    setFreeAppointments,
+    setSelectedMember,
+    setIsMemberOverviewModalOpen,
+    setIsMemberDetailsModalOpen,
+    setActiveMemberDetailsTab,
+    setIsEditModalOpen,
+    setEditModalTab,
+    setIsNotifyMemberOpen,
+    setNotifyAction,
+    setShowHistoryModal,
+    setHistoryTab,
+    setMemberHistory,
+    setCurrentBillingPeriod,
+    setTempContingent,
+    setSelectedBillingPeriod,
+    setShowAddBillingPeriodModal,
+    setNewBillingPeriod,
+    setShowContingentModal,
+    setEditingRelations,
+    setNewRelation,
+    setEditForm,
+    setWidgets,
+    setRightSidebarWidgets,
 
-  const [todos, setTodos] = useState([
-    {
-      id: 1,
-      title: "Review project proposal",
-      description: "Check the latest updates",
-      assignee: "Mike",
-    },
-    {
-      id: 2,
-      title: "Update documentation",
-      description: "Add new features info",
-      assignee: "Sarah",
-    },
-  ])
+    // Functions
+    toggleRightSidebar,
+    closeSidebar,
+    toggleSidebarEditing,
+    toggleDropdown,
+    redirectToCommunication,
+    moveRightSidebarWidget,
+    removeRightSidebarWidget,
+    getWidgetPlacementStatus,
+    handleAddRightSidebarWidget,
+    handleTaskComplete,
+    handleEditTask,
+    handleUpdateTask,
+    handleCancelTask,
+    handleDeleteTask,
+    isBirthdayToday,
+    handleSendBirthdayMessage,
+    handleEditNote,
+    handleDumbbellClick,
+    handleCheckIn,
+    handleAppointmentOptionsModal,
+    handleSaveSpecialNote,
+    isEventInPast,
+    handleCancelAppointment,
+    actuallyHandleCancelAppointment,
+    handleDeleteAppointment,
+    handleEditAppointment,
+    handleCreateNewAppointment,
+    handleViewMemberDetails,
+    handleNotifyMember,
+    calculateAge,
+    isContractExpiringSoon,
+    redirectToContract,
+    handleCalendarFromOverview,
+    handleHistoryFromOverview,
+    handleCommunicationFromOverview,
+    handleViewDetailedInfo,
+    handleEditFromOverview,
+    getMemberAppointments,
+    handleManageContingent,
+    getBillingPeriods,
+    handleAddBillingPeriod,
+    handleSaveContingent,
+    handleInputChange,
+    handleEditSubmit,
+    handleAddRelation,
+    handleDeleteRelation,
+    handleArchiveMember,
+    handleUnarchiveMember,
+    truncateUrl,
+    renderSpecialNoteIcon,
 
-  const [birthdays, setBirthdays] = useState([
-    {
-      id: 1,
-      name: "Alice Johnson",
-      date: "Dec 15, 2024",
-      avatar: Avatar,
-    },
-    {
-      id: 2,
-      name: "Bob Wilson",
-      date: "Dec 20, 2024",
-      avatar: Avatar,
-    },
-  ])
+    // new states 
+    customLinks, setCustomLinks, communications, setCommunications,
+    todos, setTodos, expiringContracts, setExpiringContracts,
+    birthdays, setBirthdays, notifications, setNotifications,
+    appointments, setAppointments,
+    memberContingentData, setMemberContingentData,
+    memberRelations, setMemberRelations,
 
-  const [customLinks, setCustomLinks] = useState([
-    {
-      id: 1,
-      title: "Google Drive",
-      url: "https://drive.google.com",
-    },
-    {
-      id: 2,
-      title: "GitHub",
-      url: "https://github.com",
-    },
-  ])
+    memberTypes,
+    availableMembersLeads,
+    mockTrainingPlans,
+    mockVideos,
 
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-  const [editingLink, setEditingLink] = useState(null)
+    todoFilterOptions,
+    relationOptions,
+    appointmentTypes
+  } = sidebarSystem;
 
-  const toggleRightSidebar = () => {
-    setIsRightSidebarOpen(!isRightSidebarOpen)
+  // more sidebar related functions
+
+  const trainingVideos = trainingVideosData
+
+  // Chart configuration
+  const chartSeries = [
+    { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
+    { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
+  ];
+
+  const chartOptions = {
+    chart: {
+      type: "line",
+      height: 180,
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
+    },
+    colors: ["#FF6B1A", "#2E5BFF"],
+    stroke: { curve: "smooth", width: 4, opacity: 1 },
+    markers: {
+      size: 1,
+      strokeWidth: 0,
+      hover: { size: 6 },
+    },
+    xaxis: {
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      labels: { style: { colors: "#999999", fontSize: "12px" } },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      min: 0,
+      max: 600,
+      tickAmount: 6,
+      labels: {
+        style: { colors: "#999999", fontSize: "12px" },
+        formatter: (value) => Math.round(value),
+      },
+    },
+    grid: {
+      show: true,
+      borderColor: "#333333",
+      position: "back",
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: true } },
+      row: { opacity: 0.1 },
+      column: { opacity: 0.1 },
+    },
+    legend: {
+      show: true,
+      position: "top",
+      horizontalAlign: "right",
+      offsetY: -30,
+      offsetX: -10,
+      labels: { colors: "#ffffff" },
+      itemMargin: { horizontal: 5 },
+    },
+    title: {
+      text: memberTypes[selectedMemberType].title,
+      align: "left",
+      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
+    },
+    subtitle: {
+      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
+      align: "left",
+      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
+    },
+    tooltip: {
+      theme: "dark",
+      style: {
+        fontSize: "12px",
+        fontFamily: "Inter, sans-serif",
+      },
+      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
+        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
+        '<span style="color: black;">' +
+        series[seriesIndex][dataPointIndex] +
+        "</span></div>",
+    },
+  };
+
+
+  // Wrapper functions to pass local state to hook functions
+  const handleTaskCompleteWrapper = (taskId) => {
+    handleTaskComplete(taskId, todos, setTodos);
+  };
+
+  const handleUpdateTaskWrapper = (updatedTask) => {
+    handleUpdateTask(updatedTask, setTodos);
+  };
+
+  const handleCancelTaskWrapper = (taskId) => {
+    handleCancelTask(taskId, setTodos);
+  };
+
+  const handleDeleteTaskWrapper = (taskId) => {
+    handleDeleteTask(taskId, setTodos);
+  };
+
+  const handleEditNoteWrapper = (appointmentId, currentNote) => {
+    handleEditNote(appointmentId, currentNote, appointments);
+  };
+
+  const handleCheckInWrapper = (appointmentId) => {
+    handleCheckIn(appointmentId, appointments, setAppointments);
+  };
+
+  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
+    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
+  };
+
+  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
+    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
+  };
+
+  const handleDeleteAppointmentWrapper = (id) => {
+    handleDeleteAppointment(id, appointments, setAppointments);
+  };
+
+  const getMemberAppointmentsWrapper = (memberId) => {
+    return getMemberAppointments(memberId, appointments);
+  };
+
+  const handleAddBillingPeriodWrapper = () => {
+    handleAddBillingPeriod(memberContingentData, setMemberContingentData);
+  };
+
+  const handleSaveContingentWrapper = () => {
+    handleSaveContingent(memberContingentData, setMemberContingentData);
+  };
+
+  const handleEditSubmitWrapper = (e) => {
+    handleEditSubmit(e, appointments, setAppointments);
+  };
+
+  const handleAddRelationWrapper = () => {
+    handleAddRelation(memberRelations, setMemberRelations);
+  };
+
+  const handleDeleteRelationWrapper = (category, relationId) => {
+    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations);
+  };
+
+  const handleArchiveMemberWrapper = (memberId) => {
+    handleArchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const handleUnarchiveMemberWrapper = (memberId) => {
+    handleUnarchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const getBillingPeriodsWrapper = (memberId) => {
+    return getBillingPeriods(memberId, memberContingentData);
+  };
+
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case "Beginner":
+        return "bg-green-600"
+      case "Intermediate":
+        return "bg-yellow-600"
+      case "Advanced":
+        return "bg-red-600"
+      default:
+        return "bg-gray-600"
+    }
   }
 
-  const closeSidebar = () => {
-    setIsRightSidebarOpen(false)
+  const getVideoById = (id) => {
+    return trainingVideos.find((video) => video.id === id)
   }
 
-  const redirectToCommunication = () => {
-    navigate("/dashboard/communication")
-  }
 
-  const redirectToTodos = () => {
-    console.log("Redirecting to todos page")
-    navigate("/dashboard/to-do")
-  }
-
-  const toggleContractDropdown = (index) => {
-    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
-  }
-
-  const sortOptions = [
-    "Alphabetical (A-Z)",
-    "Alphabetical (Z-A)",
-    "Contract Type (A-Z)",
-    "Contract Type (Z-A)",
-    "Status (A-Z)",
-    "Status (Z-A)",
-    "Expiring Soon",
-    "Recently Added",
-  ]
 
   return (
     <>
+      <style>
+        {`
+          @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-1deg); }
+            30% { transform: rotate(1deg); }
+            45% { transform: rotate(-1deg); }
+            60% { transform: rotate(1deg); }
+            75% { transform: rotate(-1deg); }
+            90% { transform: rotate(1deg); }
+          }
+          .animate-wobble {
+            animation: wobble 0.5s ease-in-out infinite;
+          }
+          .dragging {
+            opacity: 0.5;
+            border: 2px dashed #fff;
+          }
+          .drag-over {
+            border: 2px dashed #888;
+          }
+        `}
+      </style>
       <Toaster
         position="top-right"
         toastOptions={{
@@ -540,10 +728,9 @@ export default function ContractList() {
         className={`
           min-h-screen rounded-3xl bg-[#1C1C1C] p-4 sm:p-6
           transition-all duration-500 ease-in-out flex-1
-          ${
-            isRightSidebarOpen
-              ? "lg:mr-86 mr-0" // Adjust right margin when sidebar is open on larger screens
-              : "mr-0" // No margin when closed
+          ${isRightSidebarOpen
+            ? "lg:mr-86 mr-0" // Adjust right margin when sidebar is open on larger screens
+            : "mr-0" // No margin when closed
           }
         `}
       >
@@ -558,18 +745,16 @@ export default function ContractList() {
 
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === "grid" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                    }`}
                   title="Grid View"
                 >
                   <Grid3X3 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === "list" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                    }`}
                   title="List View"
                 >
                   <List className="w-4 h-4" />
@@ -684,15 +869,14 @@ export default function ContractList() {
               >
                 <div className="flex flex-col items-start justify-start">
                   <span
-                    className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${
-                      contract.status === "Active"
+                    className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${contract.status === "Active"
                         ? "bg-green-600 text-white"
                         : contract.status === "Ongoing"
                           ? "bg-gray-600 text-white"
                           : contract.status === "Paused"
                             ? "bg-yellow-600 text-white"
                             : "bg-red-600 text-white"
-                    }`}
+                      }`}
                   >
                     {contract.status}
                     {contract.pauseReason && ` (${contract.pauseReason})`}
@@ -736,7 +920,7 @@ export default function ContractList() {
                       <FileText size={16} />
                       {contract.status === "Ongoing" && contract.signatureRequired && (
                         <AiOutlineExclamation
-                        className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
+                          className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
                       )}
                     </button>
                     <button
@@ -757,7 +941,7 @@ export default function ContractList() {
                     ) : (
                       <div className="relative">
                         <button
-                          onClick={(e) => toggleDropdown(contract.id, e)}
+                          onClick={(e) => toggleDropdownContract(contract.id, e)}
                           className="dropdown-trigger p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
                         >
                           <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
@@ -810,15 +994,14 @@ export default function ContractList() {
               <div key={contract.id} className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors">
                 <div className="flex justify-between items-start mb-3">
                   <span
-                    className={`px-2 py-0.5 text-xs font-medium rounded-lg ${
-                      contract.status === "Active"
+                    className={`px-2 py-0.5 text-xs font-medium rounded-lg ${contract.status === "Active"
                         ? "bg-green-600 text-white"
                         : contract.status === "Ongoing"
                           ? "bg-gray-600 text-white"
                           : contract.status === "Paused"
                             ? "bg-yellow-600 text-white"
                             : "bg-red-600 text-white"
-                    }`}
+                      }`}
                   >
                     {contract.status}
                     {contract.pauseReason && ` (${contract.pauseReason})`}
@@ -836,7 +1019,7 @@ export default function ContractList() {
                   ) : (
                     <div className="relative">
                       <button
-                        onClick={(e) => toggleDropdown(contract.id, e)}
+                        onClick={(e) => toggleDropdownContract(contract.id, e)}
                         className="dropdown-trigger p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
                       >
                         <MoreVertical className="w-5 h-5 text-gray-400 cursor-pointer" />
@@ -918,7 +1101,7 @@ export default function ContractList() {
                       <FileText className="w-5 h-5" />
                       {contract.status === "Ongoing" && contract.signatureRequired && (
                         <AiOutlineExclamation
-                        className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
+                          className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
                       )}
                     </button>
                     <button
@@ -978,10 +1161,10 @@ export default function ContractList() {
         )}
 
         {/* Edit Contract Modal */}
-        {isEditModalOpen && selectedContract && (
+        {isEditModalOpenContract && selectedContract && (
           <EditContractModal
             contract={selectedContract}
-            onClose={() => setIsEditModalOpen(false)}
+            onClose={() => setIsEditModalOpenContract(false)}
             onSave={handleSaveEditedContract}
           />
         )}
@@ -1037,23 +1220,297 @@ export default function ContractList() {
           />
         )}
       </div>
-      <SidebarArea
-        isOpen={isRightSidebarOpen}
-        onClose={closeSidebar}
+      <Sidebar
+        isRightSidebarOpen={isRightSidebarOpen}
+        toggleRightSidebar={toggleRightSidebar}
+        isSidebarEditing={isSidebarEditing}
+        toggleSidebarEditing={toggleSidebarEditing}
+        rightSidebarWidgets={rightSidebarWidgets}
+        moveRightSidebarWidget={moveRightSidebarWidget}
+        removeRightSidebarWidget={removeRightSidebarWidget}
+        setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
         communications={communications}
-        todos={todos}
-        birthdays={birthdays}
-        customLinks={customLinks}
-        setCustomLinks={setCustomLinks}
         redirectToCommunication={redirectToCommunication}
-        redirectToTodos={redirectToTodos}
-        toggleDropdown={toggleDropdown}
+        todos={todos}
+        handleTaskComplete={handleTaskCompleteWrapper}
+        todoFilter={todoFilter}
+        setTodoFilter={setTodoFilter}
+        todoFilterOptions={todoFilterOptions}
+        isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
+        setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
         openDropdownIndex={openDropdownIndex}
-        setEditingLink={setEditingLink}
+        toggleDropdown={toggleDropdown}
+        handleEditTask={handleEditTask}
+        setTaskToCancel={setTaskToCancel}
+        setTaskToDelete={setTaskToDelete}
+        birthdays={birthdays}
+        isBirthdayToday={isBirthdayToday}
+        handleSendBirthdayMessage={handleSendBirthdayMessage}
+        customLinks={customLinks}
+        truncateUrl={truncateUrl}
+        appointments={appointments}
+        renderSpecialNoteIcon={renderSpecialNoteIcon}
+        handleDumbbellClick={handleDumbbellClick}
+        handleCheckIn={handleCheckInWrapper}
+        handleAppointmentOptionsModal={handleAppointmentOptionsModal}
+        selectedMemberType={selectedMemberType}
+        setSelectedMemberType={setSelectedMemberType}
+        memberTypes={memberTypes}
+        isChartDropdownOpen={isChartDropdownOpen}
+        setIsChartDropdownOpen={setIsChartDropdownOpen}
+        chartOptions={chartOptions}
+        chartSeries={chartSeries}
+        expiringContracts={expiringContracts}
+        getWidgetPlacementStatus={getWidgetPlacementStatus}
+        onClose={toggleRightSidebar}
+        hasUnreadNotifications={2}
+        setIsWidgetModalOpen={setIsWidgetModalOpen}
+        handleEditNote={handleEditNoteWrapper}
+        activeNoteId={activeNoteId}
+        setActiveNoteId={setActiveNoteId}
+        isSpecialNoteModalOpen={isSpecialNoteModalOpen}
+        setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
+        selectedAppointmentForNote={selectedAppointmentForNote}
+        setSelectedAppointmentForNote={setSelectedAppointmentForNote}
+        handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
+        onSaveSpecialNote={handleSaveSpecialNoteWrapper}
+        notifications={notifications}
       />
 
-      {/* Overlay for mobile screens only */}
-      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
+      {/* Sidebar related modals */}
+      <TrainingPlanModal
+        isOpen={isTrainingPlanModalOpen}
+        onClose={() => setIsTrainingPlanModalOpen(false)}
+        user={selectedUserForTrainingPlan}
+        trainingPlans={mockTrainingPlans}
+        getDifficultyColor={getDifficultyColor}
+        getVideoById={getVideoById}
+      />
+
+      <AppointmentActionModal
+        isOpen={showAppointmentOptionsModal}
+        onClose={() => {
+          setShowAppointmentOptionsModal(false);
+          setSelectedAppointment(null);
+        }}
+        appointment={selectedAppointment}
+        isEventInPast={isEventInPast}
+        onEdit={() => {
+          setShowAppointmentOptionsModal(false);
+          setIsEditAppointmentModalOpen(true);
+        }}
+        onCancel={handleCancelAppointment}
+        onViewMember={handleViewMemberDetails}
+      />
+
+      <NotifyMemberModal
+        isOpen={isNotifyMemberOpen}
+        onClose={() => setIsNotifyMemberOpen(false)}
+        notifyAction={notifyAction}
+        actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
+        handleNotifyMember={handleNotifyMember}
+      />
+
+      {isEditAppointmentModalOpen && selectedAppointment && (
+        <EditAppointmentModal
+          selectedAppointment={selectedAppointment}
+          setSelectedAppointment={setSelectedAppointment}
+          appointmentTypes={appointmentTypes}
+          freeAppointments={freeAppointments}
+          handleAppointmentChange={(changes) => {
+            setSelectedAppointment({ ...selectedAppointment, ...changes });
+          }}
+          appointments={appointments}
+          setAppointments={setAppointments}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          onDelete={handleDeleteAppointmentWrapper}
+          onClose={() => {
+            setIsEditAppointmentModalOpen(false);
+            setSelectedAppointment(null);
+          }}
+        />
+      )}
+
+      <WidgetSelectionModal
+        isOpen={isRightWidgetModalOpen}
+        onClose={() => setIsRightWidgetModalOpen(false)}
+        onSelectWidget={handleAddRightSidebarWidget}
+        getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
+        widgetArea="sidebar"
+      />
+
+      <MemberOverviewModal
+        isOpen={isMemberOverviewModalOpen}
+        onClose={() => {
+          setIsMemberOverviewModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        handleCalendarFromOverview={handleCalendarFromOverview}
+        handleHistoryFromOverview={handleHistoryFromOverview}
+        handleCommunicationFromOverview={handleCommunicationFromOverview}
+        handleViewDetailedInfo={handleViewDetailedInfo}
+        handleEditFromOverview={handleEditFromOverview}
+      />
+
+      <AppointmentModal
+        show={showAppointmentModal}
+        member={selectedMember}
+        onClose={() => {
+          setShowAppointmentModal(false);
+          setSelectedMember(null);
+        }}
+        getMemberAppointments={getMemberAppointmentsWrapper}
+        appointmentTypes={appointmentTypes}
+        handleEditAppointment={handleEditAppointment}
+        handleCancelAppointment={handleCancelAppointment}
+        currentBillingPeriod={currentBillingPeriod}
+        memberContingentData={memberContingentData}
+        handleManageContingent={handleManageContingent}
+        handleCreateNewAppointment={handleCreateNewAppointment}
+      />
+
+      <HistoryModal
+        show={showHistoryModal}
+        onClose={() => {
+          setShowHistoryModal(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        historyTab={historyTab}
+        setHistoryTab={setHistoryTab}
+        memberHistory={memberHistory}
+      />
+
+      <MemberDetailsModal
+        isOpen={isMemberDetailsModalOpen}
+        onClose={() => {
+          setIsMemberDetailsModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        memberRelations={memberRelations}
+        DefaultAvatar={DefaultAvatar}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        redirectToContract={redirectToContract}
+      />
+
+      <ContingentModal
+        show={showContingentModal}
+        setShow={setShowContingentModal}
+        selectedMember={selectedMember}
+        getBillingPeriods={getBillingPeriodsWrapper}
+        selectedBillingPeriod={selectedBillingPeriod}
+        handleBillingPeriodChange={setSelectedBillingPeriod}
+        setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
+        tempContingent={tempContingent}
+        setTempContingent={setTempContingent}
+        currentBillingPeriod={currentBillingPeriod}
+        handleSaveContingent={handleSaveContingentWrapper}
+      />
+
+      <AddBillingPeriodModal
+        show={showAddBillingPeriodModal}
+        setShow={setShowAddBillingPeriodModal}
+        newBillingPeriod={newBillingPeriod}
+        setNewBillingPeriod={setNewBillingPeriod}
+        handleAddBillingPeriod={handleAddBillingPeriodWrapper}
+      />
+
+      <EditMemberModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        editModalTab={editModalTab}
+        setEditModalTab={setEditModalTab}
+        editForm={editForm}
+        handleInputChange={handleInputChange}
+        handleEditSubmit={handleEditSubmitWrapper}
+        editingRelations={editingRelations}
+        setEditingRelations={setEditingRelations}
+        newRelation={newRelation}
+        setNewRelation={setNewRelation}
+        availableMembersLeads={availableMembersLeads}
+        relationOptions={relationOptions}
+        handleAddRelation={handleAddRelationWrapper}
+        memberRelations={memberRelations}
+        handleDeleteRelation={handleDeleteRelationWrapper}
+        handleArchiveMember={handleArchiveMemberWrapper}
+        handleUnarchiveMember={handleUnarchiveMemberWrapper}
+      />
+
+      {isRightSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      {isEditTaskModalOpen && editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onClose={() => {
+            setIsEditTaskModalOpen(false);
+            setEditingTask(null);
+          }}
+          onUpdateTask={handleUpdateTaskWrapper}
+        />
+      )}
+
+      {taskToDelete && (
+        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this task? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteTaskWrapper(taskToDelete)}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {taskToCancel && (
+        <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToCancel(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                No
+              </button>
+              <button
+                onClick={() => handleCancelTaskWrapper(taskToCancel)}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+              >
+                Cancel Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
