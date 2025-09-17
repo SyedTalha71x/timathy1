@@ -42,6 +42,8 @@ import AddBillingPeriodModal from "../../components/myarea-components/AddBilling
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
 import HistoryModal from "../../components/myarea-components/HistoryModal"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
 export default function Training() {
   const [activeTab, setActiveTab] = useState("videos")
@@ -1858,7 +1860,7 @@ export default function Training() {
           getVideoById={getVideoById}
         />
 
-        <AppointmentActionModal
+        <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}
           onClose={() => {
             setShowAppointmentOptionsModal(false);
@@ -1883,7 +1885,7 @@ export default function Training() {
         />
 
         {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModal
+          <EditAppointmentModalV2
             selectedAppointment={selectedAppointment}
             setSelectedAppointment={setSelectedAppointment}
             appointmentTypes={appointmentTypes}

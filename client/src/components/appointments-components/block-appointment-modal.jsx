@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 
-const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypes, onSubmit, selectedDate }) => {
+const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypesMain, onSubmit, selectedDate }) => {
   const [blockData, setBlockData] = useState({
     date: selectedDate ? new Date(selectedDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
     startTime: "09:00",
@@ -132,7 +132,7 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypes, onSubmit, se
 
                 {!blockData.blockAll && (
                   <div className="mt-3 space-y-2 pl-6">
-                    {appointmentTypes.map((type) => (
+                    {appointmentTypesMain.map((type) => (
                       <div key={type.name} className="flex items-center">
                         <input
                           type="checkbox"
@@ -159,7 +159,7 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypes, onSubmit, se
                 value={blockData.note}
                 onChange={handleChange}
                 placeholder="Add a note about why this time is blocked"
-                className="w-full bg-[#0D0D0D] resize-none text-white resize-none  rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[80px]"
+                className="w-full bg-[#0D0D0D]  text-white resize-none  rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[80px]"
               />
             </div>
           </div>

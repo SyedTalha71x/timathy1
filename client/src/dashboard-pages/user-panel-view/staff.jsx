@@ -31,6 +31,8 @@ import AppointmentActionModal from "../../components/appointments-components/app
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
 
 const StaffContext = createContext(null)
@@ -810,7 +812,7 @@ export default function StaffManagement() {
           getVideoById={getVideoById}
         />
 
-        <AppointmentActionModal
+        <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}
           onClose={() => {
             setShowAppointmentOptionsModal(false);
@@ -835,7 +837,7 @@ export default function StaffManagement() {
         />
 
         {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModal
+          <EditAppointmentModalV2
             selectedAppointment={selectedAppointment}
             setSelectedAppointment={setSelectedAppointment}
             appointmentTypes={appointmentTypes}

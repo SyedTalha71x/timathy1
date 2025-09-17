@@ -21,6 +21,8 @@ import { IoIosMenu } from "react-icons/io"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 
+
+// sidebar related import
 import EditTaskModal from "../../components/task-components/edit-task-modal"
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
@@ -36,6 +38,8 @@ import TrainingPlanModal from "../../components/myarea-components/TrainingPlanMo
 import Sidebar from "../../components/central-sidebar"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
 export default function ActivityMonitor() {
   const sidebarSystem = useSidebarSystem();
@@ -531,11 +535,10 @@ export default function ActivityMonitor() {
           transition-all duration-500 ease-in-out flex-1
           ${isRightSidebarOpen
           ? 'lg:mr-86 mr-0' // Adjust right margin when sidebar is open on larger screens
-          : 'mr-0' // No margin when closed
+          : 'mr-0' 
         }
         `}>
         <div className="w-full mx-auto">
-          {/* Header - Mobile Optimized */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">Activity Monitor</h1>
@@ -1116,7 +1119,7 @@ export default function ActivityMonitor() {
         getVideoById={getVideoById}
       />
 
-      <AppointmentActionModal
+      <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}
         onClose={() => {
           setShowAppointmentOptionsModal(false);
@@ -1141,7 +1144,7 @@ export default function ActivityMonitor() {
       />
 
       {isEditAppointmentModalOpen && selectedAppointment && (
-        <EditAppointmentModal
+        <EditAppointmentModalV2
           selectedAppointment={selectedAppointment}
           setSelectedAppointment={setSelectedAppointment}
           appointmentTypes={appointmentTypes}

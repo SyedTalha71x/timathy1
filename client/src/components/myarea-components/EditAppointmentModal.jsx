@@ -5,19 +5,19 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-const EditAppointmentModalMain = ({
-  selectedAppointmentMain,
-  setSelectedAppointmentMain,
-  appointmentTypesMain,
-  freeAppointmentsMain,
+const EditAppointmentModalV2 = ({
+  selectedAppointment,
+  setSelectedAppointment,
+  appointmentTypes,
+  freeAppointments,
   handleAppointmentChange,
-  appointmentsMain,
-  setAppointmentsMain,
-  setIsNotifyMemberOpenMain,
-  setNotifyActionMain,
+  appointments,
+  setAppointments,
+  setIsNotifyMemberOpen,
+  setNotifyAction,
   onDelete,
 }) => {
-  if (!selectedAppointmentMain) return null;
+  if (!selectedAppointment) return null;
 
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [alternativeSlots, setAlternativeSlots] = useState([]);
@@ -26,7 +26,7 @@ const EditAppointmentModalMain = ({
   const [isDeleteConfirm, setisDeleteConfirm] = useState(false);
 
   const handleDelete = () => {
-    onDelete(selectedAppointmentMain.id);
+    onDelete(selectedAppointment.id);
     setisDeleteConfirm(false);
   };
 
@@ -34,22 +34,22 @@ const EditAppointmentModalMain = ({
   const [recurringOptions, setRecurringOptions] = useState({
     frequency: "weekly", // weekly, biweekly, monthly
     dayOfWeek: "1", // 0-6 (Sunday-Saturday)
-    startDate: selectedAppointmentMain.date || "",
+    startDate: selectedAppointment.date || "",
     occurrences: 5,
   });
 
   // Update recurring options when needed
   useEffect(() => {
-    if (selectedAppointmentMain && selectedAppointmentMain.recurring) {
+    if (selectedAppointment && selectedAppointment.recurring) {
       setShowRecurringOptions(true);
       setRecurringOptions({
         ...recurringOptions,
-        ...selectedAppointmentMain.recurring,
+        ...selectedAppointment.recurring,
       });
     } else {
       setShowRecurringOptions(false);
     }
-  }, [selectedAppointmentMain]);
+  }, [selectedAppointment]);
 
   // Update recurring options
   const updateRecurringOptions = (field, value) => {
@@ -71,14 +71,14 @@ const EditAppointmentModalMain = ({
   const getAvailableSlots = (selectedDate) => {
     if (!selectedDate) return [];
 
-    const slots = freeAppointmentsMain.filter((app) => app.date === selectedDate);
+    const slots = freeAppointments.filter((app) => app.date === selectedDate);
 
     // Add the current appointment's time to available slots if it's on this date
-    if (selectedDate === selectedAppointmentMain.date) {
+    if (selectedDate === selectedAppointment.date) {
       const existingTime = {
         id: "current",
-        time: selectedAppointmentMain.time,
-        date: selectedAppointmentMain.date,
+        time: selectedAppointment.time,
+        date: selectedAppointment.date,
       };
 
       // Check if the time already exists in the list
@@ -109,8 +109,8 @@ const EditAppointmentModalMain = ({
 
     if (!isAvailable) {
       const alternatives = generateAlternativeSlots(
-        selectedAppointmentMain.date,
-        selectedAppointmentMain.time
+        selectedAppointment.date,
+        selectedAppointment.time
       );
       setAlternativeSlots(alternatives);
       setShowAlternatives(true);
@@ -164,20 +164,20 @@ const EditAppointmentModalMain = ({
 
   // Save changes to the appointments list
   const saveChanges = () => {
-    const updatedAppointments = appointmentsMain.map((app) =>
-      app.id === selectedAppointmentMain.id ? selectedAppointmentMain : app
+    const updatedAppointments = appointments.map((app) =>
+      app.id === selectedAppointment.id ? selectedAppointment : app
     );
 
-    setAppointmentsMain(updatedAppointments);
-    setIsNotifyMemberOpenMain(true);
-    setNotifyActionMain("change");
-    setSelectedAppointmentMain(null);
+    setAppointments(updatedAppointments);
+    setIsNotifyMemberOpen(true);
+    setNotifyAction("change");
+    setSelectedAppointment(null);
   };
 
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000000] p-4"
-      onClick={() => setSelectedAppointmentMain(null)}
+      onClick={() => setSelectedAppointment(null)}
     >
       <div
         className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
@@ -186,7 +186,7 @@ const EditAppointmentModalMain = ({
         <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-white">Edit Appointment</h2>
           <button
-            onClick={() => setSelectedAppointmentMain(null)}
+            onClick={() => setSelectedAppointment(null)}
             className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
           >
             <X size={20} />
@@ -199,7 +199,7 @@ const EditAppointmentModalMain = ({
               <label className="text-sm text-gray-200">Member</label>
               <input
                 type="text"
-                value={selectedAppointmentMain.name}
+                value={selectedAppointment.name}
                 readOnly
                 className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
               />
@@ -208,13 +208,13 @@ const EditAppointmentModalMain = ({
             <div className="space-y-1.5">
               <label className="text-sm text-gray-200">Appointment Type</label>
               <select
-                value={selectedAppointmentMain.type}
+                value={selectedAppointment.type}
                 onChange={(e) =>
                   handleAppointmentChange({ type: e.target.value })
                 }
                 className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
               >
-                {appointmentTypesMain.map((type) => (
+                {appointmentTypes.map((type) => (
                   <option
                     key={type.name}
                     value={type.name}
@@ -263,7 +263,7 @@ const EditAppointmentModalMain = ({
                   <label className="text-xs text-gray-400">Date</label>
                   <input
                     type="date"
-                    value={selectedAppointmentMain.date}
+                    value={selectedAppointment.date}
                     onChange={(e) => {
                       handleAppointmentChange({
                         date: e.target.value,
@@ -279,7 +279,7 @@ const EditAppointmentModalMain = ({
                     Available Time Slots
                   </label>
                   <select
-                    value={selectedAppointmentMain.time}
+                    value={selectedAppointment.time}
                     onChange={(e) => {
                       handleAppointmentChange({
                         time: e.target.value,
@@ -288,7 +288,7 @@ const EditAppointmentModalMain = ({
                     }}
                     className="w-full bg-[#181818] text-sm rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   >
-                    {getAvailableSlots(selectedAppointmentMain.date).map((slot) => (
+                    {getAvailableSlots(selectedAppointment.date).map((slot) => (
                       <option
                         key={slot.id || `slot-${slot.time}`}
                         value={slot.time}
@@ -297,8 +297,8 @@ const EditAppointmentModalMain = ({
                       </option>
                     ))}
                     {/* Show message if no time slots available */}
-                    {selectedAppointmentMain.date &&
-                      getAvailableSlots(selectedAppointmentMain.date).length ===
+                    {selectedAppointment.date &&
+                      getAvailableSlots(selectedAppointment.date).length ===
                         0 && (
                         <option value="" disabled>
                           No available slots for this date
@@ -375,7 +375,7 @@ const EditAppointmentModalMain = ({
                 <div>
                   <label className="text-xs text-gray-400">Time Slot</label>
                   <select
-                    value={selectedAppointmentMain.time}
+                    value={selectedAppointment.time}
                     onChange={(e) =>
                       handleAppointmentChange({ time: e.target.value })
                     }
@@ -442,11 +442,11 @@ const EditAppointmentModalMain = ({
                   <input
                     type="checkbox"
                     id="isImportant"
-                    checked={selectedAppointmentMain.specialNote.isImportant}
+                    checked={selectedAppointment.specialNote.isImportant}
                     onChange={(e) =>
                       handleAppointmentChange({
                         specialNote: {
-                          ...selectedAppointmentMain.specialNote,
+                          ...selectedAppointment.specialNote,
                           isImportant: e.target.checked,
                         },
                       })
@@ -463,11 +463,11 @@ const EditAppointmentModalMain = ({
               </div>
 
               <textarea
-                value={selectedAppointmentMain.specialNote.text}
+                value={selectedAppointment.specialNote.text}
                 onChange={(e) =>
                   handleAppointmentChange({
                     specialNote: {
-                      ...selectedAppointmentMain.specialNote,
+                      ...selectedAppointment.specialNote,
                       text: e.target.value,
                     },
                   })
@@ -483,11 +483,11 @@ const EditAppointmentModalMain = ({
                   </label>
                   <input
                     type="date"
-                    value={selectedAppointmentMain.specialNote.startDate || ""}
+                    value={selectedAppointment.specialNote.startDate || ""}
                     onChange={(e) =>
                       handleAppointmentChange({
                         specialNote: {
-                          ...selectedAppointmentMain.specialNote,
+                          ...selectedAppointment.specialNote,
                           startDate: e.target.value,
                         },
                       })
@@ -501,11 +501,11 @@ const EditAppointmentModalMain = ({
                   </label>
                   <input
                     type="date"
-                    value={selectedAppointmentMain.specialNote.endDate || ""}
+                    value={selectedAppointment.specialNote.endDate || ""}
                     onChange={(e) =>
                       handleAppointmentChange({
                         specialNote: {
-                          ...selectedAppointmentMain.specialNote,
+                          ...selectedAppointment.specialNote,
                           endDate: e.target.value,
                         },
                       })
@@ -520,11 +520,11 @@ const EditAppointmentModalMain = ({
               <input
                 type="checkbox"
                 id="isImportant"
-                checked={selectedAppointmentMain.specialNote.isImportant}
+                checked={selectedAppointment.specialNote.isImportant}
                 onChange={(e) =>
                   handleAppointmentChange({
                     specialNote: {
-                      ...selectedAppointmentMain.specialNote,
+                      ...selectedAppointment.specialNote,
                       isImportant: e.target.checked,
                     },
                   })
@@ -541,11 +541,11 @@ const EditAppointmentModalMain = ({
               <div className="flex space-x-2">
                 <input
                   type="date"
-                  value={selectedAppointmentMain.specialNote.startDate || ""}
+                  value={selectedAppointment.specialNote.startDate || ""}
                   onChange={(e) =>
                     handleAppointmentChange({
                       specialNote: {
-                        ...selectedAppointmentMain.specialNote,
+                        ...selectedAppointment.specialNote,
                         startDate: e.target.value,
                       },
                     })
@@ -554,11 +554,11 @@ const EditAppointmentModalMain = ({
                 />
                 <input
                   type="date"
-                  value={selectedAppointmentMain.specialNote.endDate || ""}
+                  value={selectedAppointment.specialNote.endDate || ""}
                   onChange={(e) =>
                     handleAppointmentChange({
                       specialNote: {
-                        ...selectedAppointmentMain.specialNote,
+                        ...selectedAppointment.specialNote,
                         endDate: e.target.value,
                       },
                     })
@@ -603,8 +603,8 @@ const EditAppointmentModalMain = ({
               <div className="p-6">
                 <p className="text-white text-sm">
                   Are you sure you want to delete this appointment with{" "}
-                  {selectedAppointmentMain.name} on {selectedAppointmentMain.date} at{" "}
-                  {selectedAppointmentMain.time}?
+                  {selectedAppointment.name} on {selectedAppointment.date} at{" "}
+                  {selectedAppointment.time}?
                 </p>
               </div>
 
@@ -630,4 +630,4 @@ const EditAppointmentModalMain = ({
   );
 };
 
-export default EditAppointmentModalMain;
+export default EditAppointmentModalV2;

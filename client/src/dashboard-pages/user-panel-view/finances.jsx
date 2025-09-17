@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
 
 import { useState, useEffect } from "react"
 import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X, FileText, Eye, Trash2 } from "lucide-react"
@@ -36,6 +35,8 @@ import AddBillingPeriodModal from "../../components/myarea-components/AddBilling
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
 import { Toaster } from "react-hot-toast"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
 
 export default function FinancesPage() {
@@ -801,7 +802,7 @@ export default function FinancesPage() {
             >
               <FileText className="w-5 h-5" />
               {sepaDocuments.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                   {sepaDocuments.length}
                 </span>
               )}
@@ -1192,7 +1193,7 @@ export default function FinancesPage() {
           getVideoById={getVideoById}
         />
 
-        <AppointmentActionModal
+        <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}
           onClose={() => {
             setShowAppointmentOptionsModal(false);
@@ -1217,7 +1218,7 @@ export default function FinancesPage() {
         />
 
         {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModal
+          <EditAppointmentModalV2
             selectedAppointment={selectedAppointment}
             setSelectedAppointment={setSelectedAppointment}
             appointmentTypes={appointmentTypes}

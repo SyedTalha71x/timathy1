@@ -29,6 +29,8 @@ import AddBillingPeriodModal from "../../components/myarea-components/AddBilling
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
 import { Toaster } from "react-hot-toast"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
 export default function AnalyticsDashboard() {
   const navigate = useNavigate()
@@ -959,7 +961,7 @@ export default function AnalyticsDashboard() {
           getVideoById={getVideoById}
         />
 
-        <AppointmentActionModal
+        <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}
           onClose={() => {
             setShowAppointmentOptionsModal(false);
@@ -984,7 +986,7 @@ export default function AnalyticsDashboard() {
         />
 
         {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModal
+          <EditAppointmentModalV2
             selectedAppointment={selectedAppointment}
             setSelectedAppointment={setSelectedAppointment}
             appointmentTypes={appointmentTypes}

@@ -10,8 +10,8 @@ const EditLeadModal = ({
   onClose, 
   onSave, 
   leadData, 
-  memberRelations, 
-  setMemberRelations,
+  memberRelationsLead, 
+  setMemberRelationsLead,
   availableMembersLeads = [],
   relationOptions = {
     family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
@@ -22,7 +22,7 @@ const EditLeadModal = ({
   }
 }) => {
   const [activeTab, setActiveTab] = useState("details")
-  const [editingRelations, setEditingRelations] = useState(false)
+  const [editingRelationsLead, setEditingRelationsLead] = useState(false)
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -55,7 +55,7 @@ const EditLeadModal = ({
     "Other",
   ]
 
-  const [newRelation, setNewRelation] = useState({
+  const [newRelationLead, setNewRelationLead] = useState({
     name: "",
     relation: "",
     category: "family",
@@ -98,17 +98,17 @@ const EditLeadModal = ({
     }
   }, [leadData])
 
-  const handleAddRelation = (e) => {
+  const handleAddRelationLead = (e) => {
     e.preventDefault()
     e.stopPropagation()
     
-    if (!newRelation.name || !newRelation.relation) {
+    if (!newRelationLead.name || !newRelationLead.relation) {
       toast.error("Please fill in all fields")
       return
     }
 
     const relationId = Date.now()
-    const updatedRelations = { ...memberRelations }
+    const updatedRelations = { ...memberRelationsLead }
     if (!updatedRelations[leadData.id]) {
       updatedRelations[leadData.id] = {
         family: [],
@@ -119,27 +119,27 @@ const EditLeadModal = ({
       }
     }
 
-    updatedRelations[leadData.id][newRelation.category].push({
+    updatedRelations[leadData.id][newRelationLead.category].push({
       id: relationId,
-      name: newRelation.name,
-      relation: newRelation.relation,
-      type: newRelation.type,
+      name: newRelationLead.name,
+      relation: newRelationLead.relation,
+      type: newRelationLead.type,
     })
 
-    setMemberRelations(updatedRelations)
-    setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
+    setMemberRelationsLead(updatedRelations)
+    setNewRelationLead({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
     toast.success("Relation added successfully")
   }
 
-  const handleDeleteRelation = (category, relationId, e) => {
+  const handleDeleteRelationLead = (category, relationId, e) => {
     e.preventDefault()
     e.stopPropagation()
     
-    const updatedRelations = { ...memberRelations }
+    const updatedRelations = { ...memberRelationsLead }
     updatedRelations[leadData.id][category] = updatedRelations[leadData.id][category].filter(
       (rel) => rel.id !== relationId,
     )
-    setMemberRelations(updatedRelations)
+    setMemberRelationsLead(updatedRelations)
     toast.success("Relation deleted successfully")
   }
 
@@ -177,7 +177,7 @@ const EditLeadModal = ({
   const handleEditingRelationsToggle = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    setEditingRelations(!editingRelations)
+    setEditingRelationsLead(!editingRelationsLead)
   }
 
   // Handle close button click
@@ -435,18 +435,18 @@ const EditLeadModal = ({
                     onClick={handleEditingRelationsToggle}
                     className="text-sm text-blue-400 hover:text-blue-300"
                   >
-                    {editingRelations ? "Done" : "Edit"}
+                    {editingRelationsLead ? "Done" : "Edit"}
                   </button>
                 </div>
                 
-                {editingRelations && (
+                {editingRelationsLead && (
                   <div className="mb-4 p-3 bg-[#101010] rounded-xl">
                     <div className="grid grid-cols-1 gap-2 mb-2">
                       <select
-                        value={newRelation.type}
+                        value={newRelationLead.type}
                         onChange={(e) => {
                           const type = e.target.value
-                          setNewRelation({ ...newRelation, type, name: "", selectedMemberId: null })
+                          setNewRelationLead({ ...newRelationLead, type, name: "", selectedMemberId: null })
                         }}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
@@ -454,31 +454,31 @@ const EditLeadModal = ({
                         <option value="member">Select Member</option>
                         <option value="lead">Select Lead</option>
                       </select>
-                      {newRelation.type === "manual" ? (
+                      {newRelationLead.type === "manual" ? (
                         <input
                           type="text"
                           placeholder="Name"
-                          value={newRelation.name}
-                          onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
+                          value={newRelationLead.name}
+                          onChange={(e) => setNewRelationLead({ ...newRelationLead, name: e.target.value })}
                           className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                         />
                       ) : (
                         <select
-                          value={newRelation.selectedMemberId || ""}
+                          value={newRelationLead.selectedMemberId || ""}
                           onChange={(e) => {
                             const selectedId = e.target.value
                             const selectedPerson = membersLeads.find((p) => p.id.toString() === selectedId)
-                            setNewRelation({
-                              ...newRelation,
+                            setNewRelationLead({
+                              ...newRelationLead,
                               selectedMemberId: selectedId,
                               name: selectedPerson ? selectedPerson.name : "",
                             })
                           }}
                           className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                         >
-                          <option value="">Select {newRelation.type}</option>
+                          <option value="">Select {newRelationLead.type}</option>
                           {membersLeads
-                            .filter((p) => p.type === newRelation.type)
+                            .filter((p) => p.type === newRelationLead.type)
                             .map((person) => (
                               <option key={person.id} value={person.id}>
                                 {person.name} ({person.type})
@@ -489,8 +489,8 @@ const EditLeadModal = ({
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <select
-                        value={newRelation.category}
-                        onChange={(e) => setNewRelation({ ...newRelation, category: e.target.value, relation: "" })}
+                        value={newRelationLead.category}
+                        onChange={(e) => setNewRelationLead({ ...newRelationLead, category: e.target.value, relation: "" })}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
                         <option value="family">Family</option>
@@ -500,12 +500,12 @@ const EditLeadModal = ({
                         <option value="other">Other</option>
                       </select>
                       <select
-                        value={newRelation.relation}
-                        onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
+                        value={newRelationLead.relation}
+                        onChange={(e) => setNewRelationLead({ ...newRelationLead, relation: e.target.value })}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
                         <option value="">Select Relation</option>
-                        {relationOptions[newRelation.category]?.map((option) => (
+                        {relationOptions[newRelationLead.category]?.map((option) => (
                           <option key={option} value={option}>
                             {option}
                           </option>
@@ -514,7 +514,7 @@ const EditLeadModal = ({
                     </div>
                     <button
                       type="button"
-                      onClick={handleAddRelation}
+                      onClick={handleAddRelationLead}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full"
                     >
                       Add Relation
@@ -524,8 +524,8 @@ const EditLeadModal = ({
                 
                 <div className="space-y-2 max-h-32 overflow-y-auto">
                   {leadData &&
-                    memberRelations[leadData.id] &&
-                    Object.entries(memberRelations[leadData.id]).map(([category, relations]) =>
+                    memberRelationsLead[leadData.id] &&
+                    Object.entries(memberRelationsLead[leadData.id]).map(([category, relations]) =>
                       relations.map((relation) => (
                         <div key={relation.id} className="flex items-center justify-between bg-[#101010] rounded px-3 py-2">
                           <div className="text-sm">
@@ -544,10 +544,10 @@ const EditLeadModal = ({
                               {relation.type}
                             </span>
                           </div>
-                          {editingRelations && (
+                          {editingRelationsLead && (
                             <button
                               type="button"
-                              onClick={(e) => handleDeleteRelation(category, relation.id, e)}
+                              onClick={(e) => handleDeleteRelationLead(category, relation.id, e)}
                               className="text-red-400 hover:text-red-300"
                             >
                               <Trash2 size={14} />
@@ -556,8 +556,8 @@ const EditLeadModal = ({
                         </div>
                       )),
                     )}
-                  {(!memberRelations[leadData?.id] || 
-                    Object.values(memberRelations[leadData?.id] || {}).every(arr => arr.length === 0)) && (
+                  {(!memberRelationsLead[leadData?.id] || 
+                    Object.values(memberRelationsLead[leadData?.id] || {}).every(arr => arr.length === 0)) && (
                     <div className="text-gray-500 text-sm text-center py-4">
                       No relations added yet
                     </div>

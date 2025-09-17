@@ -7,10 +7,10 @@ import { useState } from "react";
 const AddAppointmentModal = ({
   isOpen,
   onClose,
-  appointmentTypes = [],
+  appointmentTypesMain = [],
   onSubmit,
-  setIsNotifyMemberOpen,
-  setNotifyAction,
+  setIsNotifyMemberOpenMain,
+  setNotifyActionMain,
   freeAppointments = [],
   availableMembersLeads = [], // For relations
   relationOptions = {
@@ -143,8 +143,8 @@ const AddAppointmentModal = ({
     } else {
       // Proceed with booking
       onClose();
-      setIsNotifyMemberOpen(true);
-      setNotifyAction("book");
+      setIsNotifyMemberOpenMain(true);
+      setNotifyActionMain("book");
     }
   };
 
@@ -349,7 +349,7 @@ const AddAppointmentModal = ({
                     onChange={(e) => updateAppointment("type", e.target.value)}
                   >
                     <option value="">Select type</option>
-                    {appointmentTypes.map((type) => (
+                    {appointmentTypesMain.map((type) => (
                       <option
                         key={type.name}
                         value={type.name}

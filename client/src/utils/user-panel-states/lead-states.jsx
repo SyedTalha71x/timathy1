@@ -107,3 +107,23 @@ export const hardcodedLeads = [
       leadId: "LEAD-004",
     },
   ]
+
+  export const memberRelationsLeadNew = {
+    h1: {
+      family: [
+        { name: "Anna Doe", relation: "Mother", id: 101, type: "member" },
+        { name: "Peter Doe", relation: "Father", id: 102, type: "lead" },
+      ],
+      friendship: [{ name: "Max Miller", relation: "Best Friend", id: 201, type: "member" }],
+      relationship: [],
+      work: [{ name: "Tom Wilson", relation: "Colleague", id: 401, type: "lead" }],
+      other: [],
+    },
+    h2: {
+      family: [],
+      friendship: [],
+      relationship: [{ name: "Marie Smith", relation: "Partner", id: 301, type: "member" }],
+      work: [],
+      other: [],
+    },
+  }

@@ -15,8 +15,8 @@ const LeadCard = ({
     columnId,
     onDragStop,
     index,
-    memberRelations,
-    setShowHistoryModal,
+    memberRelationsLead,
+    setShowHistoryModalLead,
     setSelectedLead,
     onManageTrialAppointments,
   }) => {
@@ -68,7 +68,7 @@ const LeadCard = ({
     }
   
     // Calculate relations count
-    const hasRelationsCount = Object.values(memberRelations[lead.id] || {}).flat().length
+    const hasRelationsCount = Object.values(memberRelationsLead[lead.id] || {}).flat().length
   
     // Determine button based on column
     const isInTrialColumn = columnId === "trial"
@@ -203,7 +203,7 @@ const LeadCard = ({
                   <button
                     onClick={() => {
                       setSelectedLead(lead) // Add this line to set the selected lead
-                      setShowHistoryModal(true)
+                      setShowHistoryModalLead(true)
                       setIsMenuOpen(false)
                     }}
                     className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"

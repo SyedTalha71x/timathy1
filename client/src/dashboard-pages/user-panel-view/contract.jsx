@@ -1,6 +1,5 @@
 
 
-/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import {
   MoreVertical,
@@ -51,6 +50,8 @@ import EditTaskModal from "../../components/task-components/edit-task-modal"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import { contractHistory, initialContracts, sampleLeads } from "../../utils/user-panel-states/contract-states"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
 
 
@@ -1287,7 +1288,7 @@ export default function ContractList() {
         getVideoById={getVideoById}
       />
 
-      <AppointmentActionModal
+      <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}
         onClose={() => {
           setShowAppointmentOptionsModal(false);
@@ -1312,7 +1313,7 @@ export default function ContractList() {
       />
 
       {isEditAppointmentModalOpen && selectedAppointment && (
-        <EditAppointmentModal
+        <EditAppointmentModalV2
           selectedAppointment={selectedAppointment}
           setSelectedAppointment={setSelectedAppointment}
           appointmentTypes={appointmentTypes}

@@ -3,15 +3,15 @@
 import React from "react";
 import { X, Edit, User } from "lucide-react";
 
-export default function AppointmentActionModal({
+export default function AppointmentActionModalV2({
   isOpen,
   onClose,
-  appointmentMain,
+  appointment,
   onEdit,
   onCancel,
   onViewMember,
 }) {
-  if (!isOpen || !appointmentMain) return null;
+  if (!isOpen || !appointment) return null;
 
   return (
     <div
@@ -34,14 +34,14 @@ export default function AppointmentActionModal({
 
         <div className="p-6 space-y-2">
           <div className="mb-4">
-            <h3 className="text-white font-medium">{appointmentMain.name}</h3>
-            <p className="text-gray-400 text-sm">{appointmentMain.type}</p>
+            <h3 className="text-white font-medium">{appointment.name}</h3>
+            <p className="text-gray-400 text-sm">{appointment.type}</p>
             <p className="text-gray-400 text-sm">
-              {appointmentMain.date && appointmentMain.date.split("|")[1]} • {appointmentMain.startTime} - {appointmentMain.endTime}
+              {appointment.date && appointment.date.split("|")[1]} • {appointment.startTime} - {appointment.endTime}
             </p>
 
           
-               {appointmentMain.isPast === true && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
+               {appointment.isPast === true && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
               
           </div>
 

@@ -16,8 +16,8 @@ const Column = ({
     isEditable,
     onEditColumn,
     columnRef,
-    memberRelations,
-    setShowHistoryModal, // Add this to the props
+    memberRelationsLead,
+    setShowHistoryModalLead, // Add this to the props
     setSelectedLead, // Add this to the props - THIS WAS MISSING
     onManageTrialAppointments,
   }) => {
@@ -76,8 +76,8 @@ const Column = ({
               columnId={id}
               onDragStop={onDragStop}
               index={index}
-              memberRelations={memberRelations}
-              setShowHistoryModal={setShowHistoryModal}
+              memberRelationsLead={memberRelationsLead}
+              setShowHistoryModalLead={setShowHistoryModalLead}
               setSelectedLead={setSelectedLead} // NOW PASSING setSelectedLead TO LeadCard
               onManageTrialAppointments={onManageTrialAppointments}
             />

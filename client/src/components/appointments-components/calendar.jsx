@@ -10,18 +10,18 @@ import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialTrainingModal from "./add-trial-training"
-import SelectedAppointmentModal from "./selected-appointment-modal" // New import
 import { membersData } from "../../utils/states"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go";
+import EditAppointmentModalMain from "./selected-appointment-modal"
 
 
 export default function Calendar({
-  appointments = [],
+  appointmentsMain = [],
   onEventClick,
   onDateSelect,
   searchQuery = "",
   selectedDate,
-  setAppointments,
+  setAppointmentsMain,
   appointmentFilters = {},
 }) {
   const [isMobile, setIsMobile] = useState(false)
@@ -75,7 +75,7 @@ export default function Calendar({
   })
 
   // Enhanced appointment types
-  const [appointmentTypes, setAppointmentTypes] = useState([
+  const [appointmentTypesMain, setAppointmentTypesMain] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
     { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
     { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
@@ -444,7 +444,7 @@ export default function Calendar({
 
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
-      id: appointments.length + 1,
+      id: appointmentsMain.length + 1,
       ...appointmentData,
       status: "pending",
       isTrial: false,
@@ -454,7 +454,7 @@ export default function Calendar({
         new Date(appointmentData.date),
       )}`,
     }
-    setAppointments([...appointments, newAppointment])
+    setAppointmentsMain([...appointmentsMain, newAppointment])
     toast.success("Appointment booked successfully")
   }
 
@@ -473,7 +473,7 @@ export default function Calendar({
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
-      id: appointments.length + 1,
+      id: appointmentsMain.length + 1,
       ...trialData,
       status: "pending",
       isTrial: true,
@@ -483,7 +483,7 @@ export default function Calendar({
         new Date(trialData.date),
       )}`,
     }
-    setAppointments([...appointments, newTrial])
+    setAppointmentsMain([...appointmentsMain, newTrial])
     toast.success("Trial training booked successfully")
   }
 
@@ -590,7 +590,7 @@ export default function Calendar({
         // User confirmed, apply the change
         const { event } = pendingEventInfo
         const duration = event.end - event.start
-        const updatedAppointments = appointments.map((appointment) => {
+        const updatedAppointments = appointmentsMain.map((appointment) => {
           if (appointment.id === Number(event.id)) {
             return {
               ...appointment,
@@ -601,7 +601,7 @@ export default function Calendar({
           }
           return appointment
         })
-        setAppointments(updatedAppointments)
+        setAppointmentsMain(updatedAppointments)
         toast.success("Appointment updated successfully and member notified!")
       } else {
         // User cancelled, revert the event visually
@@ -634,7 +634,7 @@ export default function Calendar({
     }
     // Allow all appointments (including past ones) to open the action modal
     const appointmentId = Number.parseInt(clickInfo.event.id)
-    const appointment = appointments?.find((app) => app.id === appointmentId)
+    const appointment = appointmentsMain?.find((app) => app.id === appointmentId)
     if (appointment) {
       setSelectedAppointment(appointment)
       setIsAppointmentActionModalOpen(true)
@@ -683,11 +683,11 @@ export default function Calendar({
 
   // Modified actuallyHandleCancelAppointment to update status in main appointments array
   const actuallyHandleCancelAppointment = (shouldNotify) => {
-    if (!appointments || !setAppointments || !selectedAppointment) return
-    const updatedAppointments = appointments.map((app) =>
+    if (!appointmentsMain || !setAppointmentsMain || !selectedAppointment) return
+    const updatedAppointments = appointmentsMain.map((app) =>
       app.id === selectedAppointment.id ? { ...app, status: "cancelled", isCancelled: true } : app,
     )
-    setAppointments(updatedAppointments)
+    setAppointmentsMain(updatedAppointments)
     toast.success("Appointment cancelled successfully")
     if (shouldNotify) {
       console.log("Notifying member about cancellation")
@@ -859,7 +859,7 @@ export default function Calendar({
     return eventDate < now
   }
 
-  const safeAppointments = appointments || []
+  const safeAppointments = appointmentsMain || []
   const safeSearchQuery = searchQuery || ""
 
   // Filter appointments to show non-past by default, unless filters specify otherwise
@@ -989,8 +989,8 @@ export default function Calendar({
       toast.error("Cannot resize past appointments")
       return
     }
-    if (!appointments || !setAppointments) return
-    const updatedAppointments = appointments.map((appointment) => {
+    if (!appointmentsMain || !setAppointmentsMain) return
+    const updatedAppointments = appointmentsMain.map((appointment) => {
       if (appointment.id === Number(event.id)) {
         return {
           ...appointment,
@@ -1000,7 +1000,7 @@ export default function Calendar({
       }
       return appointment
     })
-    setAppointments(updatedAppointments)
+    setAppointmentsMain(updatedAppointments)
     setNotifyAction("change")
     setPendingEventInfo(info) // Store info for resize notification
     setIsNotifyMemberOpen(true)
@@ -2234,7 +2234,7 @@ export default function Calendar({
                 <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
                 {getMemberAppointments(selectedMemberForAppointments.id).length > 0 ? (
                   getMemberAppointments(selectedMemberForAppointments.id).map((appointment) => {
-                    const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
+                    const appointmentType = appointmentTypesMain.find((type) => type.name === appointment.type)
                     const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
                     return (
                       <div
@@ -2588,7 +2588,7 @@ export default function Calendar({
         <AddAppointmentModal
           isOpen={showAddAppointmentModal}
           onClose={() => setShowAddAppointmentModal(false)}
-          appointmentTypes={appointmentTypes}
+          appointmentTypesMain={appointmentTypesMain}
           onSubmit={handleAddAppointmentSubmit}
           setIsNotifyMemberOpen={setIsNotifyMemberOpen}
           setNotifyAction={setNotifyAction}
@@ -2599,7 +2599,7 @@ export default function Calendar({
         <AddAppointmentModal
           isOpen={isAppointmentModalOpen}
           onClose={() => setIsAppointmentModalOpen(false)}
-          appointmentTypes={appointmentTypes}
+          appointmentTypesMain={appointmentTypesMain}
           onSubmit={handleAppointmentSubmit}
           setIsNotifyMemberOpen={setIsNotifyMemberOpen}
           setNotifyAction={setNotifyAction}
@@ -2614,11 +2614,11 @@ export default function Calendar({
       <BlockAppointmentModal
         isOpen={isBlockModalOpen}
         onClose={() => setIsBlockModalOpen(false)}
-        appointmentTypes={appointmentTypes}
+        appointmentTypesMain={appointmentTypesMain}
         selectedDate={selectedDate || new Date()}
         onSubmit={(blockData) => {
           const newBlock = {
-            id: appointments.length + 1,
+            id: appointmentsMain.length + 1,
             name: "BLOCKED",
             time: `${blockData.startTime} - ${blockData.endTime}`,
             date: `${new Date(blockData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(
@@ -2639,7 +2639,7 @@ export default function Calendar({
             isCancelled: false, // Default for new blocks
             isPast: false, // Default for new blocks
           }
-          setAppointments([...appointments, newBlock])
+          setAppointmentsMain([...appointmentsMain, newBlock])
           toast.success("Time slot blocked successfully")
           setIsBlockModalOpen(false)
         }}
@@ -2827,18 +2827,18 @@ export default function Calendar({
       )}
       {/* New Selected Appointment Modal */}
       {showSelectedAppointmentModal && selectedAppointmentData && (
-        <SelectedAppointmentModal
-          selectedAppointment={selectedAppointmentData}
-          setSelectedAppointment={setSelectedAppointmentData}
-          appointmentTypes={appointmentTypes}
-          freeAppointments={freeAppointments}
+        <EditAppointmentModalMain
+        selectedAppointmentMain={selectedAppointmentData}
+          setSelectedAppointmentMain={setSelectedAppointmentData}
+          appointmentTypesMain={appointmentTypesMain}
+          freeAppointmentsMain={freeAppointments}
           handleAppointmentChange={(changes) => {
             setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })
           }}
-          appointments={appointments}
-          setAppointments={setAppointments}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
+          appointmentsMain={appointmentsMain}
+          setAppointmentsMain={setAppointmentsMain}
+          setIsNotifyMemberOpenMain={setIsNotifyMemberOpen}
+          setNotifyActionMain={setNotifyAction}
           onDelete={handleDeleteAppointment}
         />
       )}

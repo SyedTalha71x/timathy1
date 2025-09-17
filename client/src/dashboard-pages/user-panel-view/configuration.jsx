@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import { Checkbox, Row } from "antd"
 /* eslint-disable react/no-unescaped-entities */

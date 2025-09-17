@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useRef, useState } from "react";
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 

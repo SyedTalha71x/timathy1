@@ -1,5 +1,4 @@
-
-/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useCallback, useEffect } from "react"
@@ -48,6 +47,8 @@ import HistoryModal from "../../components/myarea-components/HistoryModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import BirthdayMessageModal from "../../components/myarea-components/BirthdayMessageModal"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
 
 export default function MyArea() {
@@ -1848,7 +1849,7 @@ export default function MyArea() {
 
 
 
-        <AppointmentActionModal
+        <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}
           onClose={() => {
             setshowAppointmentOptionsModal(false)
@@ -1913,7 +1914,7 @@ export default function MyArea() {
         />
 
         {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModal
+          <EditAppointmentModalV2
             selectedAppointment={selectedAppointment}
             setSelectedAppointment={setselectedAppointment}
             appointmentTypes={appointmentTypes}

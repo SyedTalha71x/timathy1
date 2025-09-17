@@ -1,9 +1,5 @@
 /* eslint-disable react/no-unknown-property */
-/* eslint-disable react/prop-types */
-
-
 /* eslint-disable no-unused-vars */
-/* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from "react"
 import {
   X,

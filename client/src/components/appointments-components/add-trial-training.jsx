@@ -1,8 +1,9 @@
+/* eslint-disable react/prop-types */
 // refernce trial modal
 import { Search, X, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import AddLeadModal from "../lead-user-panel-components/add-lead-modal"
-/* eslint-disable react/prop-types */
+
 const TrialTrainingModal = ({
   isOpen,
   onClose,

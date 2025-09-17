@@ -22,6 +22,8 @@ import TrainingPlanModal from "../../components/myarea-components/TrainingPlanMo
 import Sidebar from "../../components/central-sidebar"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 const BulletinBoard = () => {
   const sidebarSystem = useSidebarSystem();
   const [posts, setPosts] = useState([
@@ -906,7 +908,7 @@ const BulletinBoard = () => {
           getVideoById={getVideoById}
         />
 
-        <AppointmentActionModal
+        <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}
           onClose={() => {
             setShowAppointmentOptionsModal(false);
@@ -931,7 +933,7 @@ const BulletinBoard = () => {
         />
 
         {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModal
+          <EditAppointmentModalV2
             selectedAppointment={selectedAppointment}
             setSelectedAppointment={setSelectedAppointment}
             appointmentTypes={appointmentTypes}

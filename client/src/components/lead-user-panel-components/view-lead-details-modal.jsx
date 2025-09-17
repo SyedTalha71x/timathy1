@@ -6,7 +6,7 @@ import { X, AlertTriangle, Info } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
 
-const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations, onEditLead }) => {
+const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLead, onEditLead }) => {
   const [activeTab, setActiveTab] = useState("details")
 
   if (!isVisible || !leadData) return null
@@ -196,7 +196,7 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations, o
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
                     {/* Category sections */}
                     <div className="grid grid-cols-5 gap-4 pt-8">
-                      {Object.entries(memberRelations[leadData.id] || {}).map(([category, relations]) => (
+                      {Object.entries(memberRelationsLead[leadData.id] || {}).map(([category, relations]) => (
                         <div key={category} className="flex flex-col items-center space-y-4">
                           {/* Vertical line */}
                           <div className="w-0.5 h-8 bg-gray-600"></div>
@@ -261,7 +261,7 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelations, o
               <div className="bg-[#161616] rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
                 <div className="space-y-4">
-                  {Object.entries(memberRelations[leadData.id] || {}).map(([category, relations]) => (
+                  {Object.entries(memberRelationsLead[leadData.id] || {}).map(([category, relations]) => (
                     <div key={category}>
                       <h4 className="text-md font-medium text-gray-300 capitalize mb-2">{category}</h4>
                       <div className="space-y-2 ml-4">
