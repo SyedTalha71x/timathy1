@@ -13,12 +13,12 @@ const CreateTempMemberModal = ({
   handleCreateTempMember,
   handleTempMemberInputChange,
   handleImgUpload,
-  editingRelations,
-  setEditingRelations,
-  newRelation,
-  setNewRelation,
-  availableMembersLeads,
-  relationOptions,
+  editingRelationsMain,
+  setEditingRelationsMain,
+  newRelationMain,
+  setNewRelationMain,
+  availableMembersLeadsMain,
+  relationOptionsMain,
 }) => {
   if (!show) return null
 
@@ -315,20 +315,20 @@ const CreateTempMemberModal = ({
                   <label className="text-sm text-gray-200 font-medium">Relations</label>
                   <button
                     type="button"
-                    onClick={() => setEditingRelations(!editingRelations)}
+                    onClick={() => setEditingRelationsMain(!editingRelationsMain)}
                     className="text-sm text-blue-400 hover:text-blue-300"
                   >
-                    {editingRelations ? "Done" : "Edit"}
+                    {editingRelationsMain ? "Done" : "Edit"}
                   </button>
                 </div>
-                {editingRelations && (
+                {editingRelationsMain && (
                   <div className="mb-4 p-3 bg-[#101010] rounded-xl">
                     <div className="grid grid-cols-1 gap-2 mb-2">
                       <select
-                        value={newRelation.type}
+                        value={newRelationMain.type}
                         onChange={(e) => {
                           const type = e.target.value
-                          setNewRelation({ ...newRelation, type, name: "", selectedMemberId: null })
+                          setNewRelationMain({ ...newRelationMain, type, name: "", selectedMemberId: null })
                         }}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
@@ -336,31 +336,31 @@ const CreateTempMemberModal = ({
                         <option value="member">Select Member</option>
                         <option value="lead">Select Lead</option>
                       </select>
-                      {newRelation.type === "manual" ? (
+                      {newRelationMain.type === "manual" ? (
                         <input
                           type="text"
                           placeholder="Name"
-                          value={newRelation.name}
-                          onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
+                          value={newRelationMain.name}
+                          onChange={(e) => setNewRelationMain({ ...newRelationMain, name: e.target.value })}
                           className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                         />
                       ) : (
                         <select
-                          value={newRelation.selectedMemberId || ""}
+                          value={newRelationMain.selectedMemberId || ""}
                           onChange={(e) => {
                             const selectedId = e.target.value
-                            const selectedPerson = availableMembersLeads.find((p) => p.id.toString() === selectedId)
-                            setNewRelation({
-                              ...newRelation,
+                            const selectedPerson = availableMembersLeadsMain.find((p) => p.id.toString() === selectedId)
+                            setNewRelationMain({
+                              ...newRelationMain,
                               selectedMemberId: selectedId,
                               name: selectedPerson ? selectedPerson.name : "",
                             })
                           }}
                           className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                         >
-                          <option value="">Select {newRelation.type}</option>
-                          {availableMembersLeads
-                            .filter((p) => p.type === newRelation.type)
+                          <option value="">Select {newRelationMain.type}</option>
+                          {availableMembersLeadsMain
+                            .filter((p) => p.type === newRelationMain.type)
                             .map((person) => (
                               <option key={person.id} value={person.id}>
                                 {person.name} ({person.type})
@@ -371,8 +371,8 @@ const CreateTempMemberModal = ({
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <select
-                        value={newRelation.category}
-                        onChange={(e) => setNewRelation({ ...newRelation, category: e.target.value, relation: "" })}
+                        value={newRelationMain.category}
+                        onChange={(e) => setNewRelationMain({ ...newRelationMain, category: e.target.value, relation: "" })}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
                         <option value="family">Family</option>
@@ -382,12 +382,12 @@ const CreateTempMemberModal = ({
                         <option value="other">Other</option>
                       </select>
                       <select
-                        value={newRelation.relation}
-                        onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
+                        value={newRelationMain.relation}
+                        onChange={(e) => setNewRelationMain({ ...newRelationMain, relation: e.target.value })}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
                         <option value="">Select Relation</option>
-                        {relationOptions[newRelation.category]?.map((option) => (
+                        {relationOptionsMain[newRelationMain.category]?.map((option) => (
                           <option key={option} value={option}>
                             {option}
                           </option>
@@ -397,7 +397,7 @@ const CreateTempMemberModal = ({
                     <button
                       type="button"
                       onClick={() => {
-                        if (!newRelation.name || !newRelation.relation) {
+                        if (!newRelationMain.name || !newRelationMain.relation) {
                           toast.error("Please fill in all fields")
                           return
                         }
@@ -405,9 +405,9 @@ const CreateTempMemberModal = ({
                         const relationId = Date.now()
                         const newRel = {
                           id: relationId,
-                          name: newRelation.name,
-                          relation: newRelation.relation,
-                          type: newRelation.type,
+                          name: newRelationMain.name,
+                          relation: newRelationMain.relation,
+                          type: newRelationMain.type,
                         }
 
                         // Initialize relations if not exists
@@ -429,11 +429,11 @@ const CreateTempMemberModal = ({
                           ...prev,
                           relations: {
                             ...prev.relations,
-                            [newRelation.category]: [...(prev.relations?.[newRelation.category] || []), newRel],
+                            [newRelationMain.category]: [...(prev.relations?.[newRelationMain.category] || []), newRel],
                           },
                         }))
 
-                        setNewRelation({
+                        setNewRelationMain({
                           name: "",
                           relation: "",
                           category: "family",
@@ -472,7 +472,7 @@ const CreateTempMemberModal = ({
                               {relation.type}
                             </span>
                           </div>
-                          {editingRelations && (
+                          {editingRelationsMain && (
                             <button
                               type="button"
                               onClick={() => {

@@ -4,28 +4,28 @@ import { X, Trash2, Archive, ArchiveRestore } from "lucide-react"
 import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png" // update path accordingly
 import { toast } from "react-hot-toast"
 
-const EditMemberModal = ({
+const EditMemberModalMain = ({
   isOpen,
   onClose,
-  selectedMember,
-  editModalTab,
-  setEditModalTab,
-  editForm,
-  handleInputChange,
-  handleEditSubmit,
-  editingRelations,
-  setEditingRelations,
-  newRelation,
-  setNewRelation,
-  availableMembersLeads,
-  relationOptions,
-  handleAddRelation,
-  memberRelations,
-  handleDeleteRelation,
-  handleArchiveMember,
-  handleUnarchiveMember,
+  selectedMemberMain,
+  editModalTabMain,
+  setEditModalTabMain,
+  editFormMain,
+  handleInputChangeMain,
+  handleEditSubmitMain,
+  editingRelationsMain,
+  setEditingRelationsMain,
+  newRelationMain,
+  setNewRelationMain,
+  availableMembersLeadsMain,
+  relationOptionsMain,
+  handleAddRelationMain,
+  memberRelationsMain,
+  handleDeleteRelationMain,
+  handleArchiveMemberMain,
+  handleUnarchiveMemberMain,
 }) => {
-  if (!isOpen || !selectedMember) return null
+  if (!isOpen || !selectedMemberMain) return null
 
   return (
     <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -44,9 +44,9 @@ const EditMemberModal = ({
             {["details", "note", "relations"].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setEditModalTab(tab)}
+                onClick={() => setEditModalTabMain(tab)}
                 className={`px-4 py-2 text-sm font-medium ${
-                  editModalTab === tab ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                  editModalTabMain === tab ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
                 }`}
               >
                 {tab === "details" && "Details"}
@@ -57,14 +57,14 @@ const EditMemberModal = ({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleEditSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
+          <form onSubmit={handleEditSubmitMain} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
             {/* ---------- DETAILS TAB ---------- */}
-            {editModalTab === "details" && (
+            {editModalTabMain === "details" && (
               <>
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
                     <img
-                      src={selectedMember.image || DefaultAvatar}
+                      src={selectedMemberMain.image || DefaultAvatar}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
@@ -95,8 +95,8 @@ const EditMemberModal = ({
                     <input
                       type="text"
                       name="firstName"
-                      value={editForm.firstName}
-                      onChange={handleInputChange}
+                      value={editFormMain.firstName}
+                      onChange={handleInputChangeMain}
                       className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
@@ -105,8 +105,8 @@ const EditMemberModal = ({
                     <input
                       type="text"
                       name="lastName"
-                      value={editForm.lastName}
-                      onChange={handleInputChange}
+                      value={editFormMain.lastName}
+                      onChange={handleInputChangeMain}
                       className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
@@ -118,8 +118,8 @@ const EditMemberModal = ({
                   <input
                     type="email"
                     name="email"
-                    value={editForm.email}
-                    onChange={handleInputChange}
+                    value={editFormMain.email}
+                    onChange={handleInputChangeMain}
                     className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                   />
                 </div>
@@ -129,8 +129,8 @@ const EditMemberModal = ({
                   <input
                     type="tel"
                     name="phone"
-                    value={editForm.phone}
-                    onChange={handleInputChange}
+                    value={editFormMain.phone}
+                    onChange={handleInputChangeMain}
                     className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                   />
                 </div>
@@ -140,8 +140,8 @@ const EditMemberModal = ({
                   <input
                     type="text"
                     name="country"
-                    value={editForm.country}
-                    onChange={handleInputChange}
+                    value={editFormMain.country}
+                    onChange={handleInputChangeMain}
                     className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                   />
                 </div>
@@ -151,8 +151,8 @@ const EditMemberModal = ({
                   <input
                     type="text"
                     name="street"
-                    value={editForm.street}
-                    onChange={handleInputChange}
+                    value={editFormMain.street}
+                    onChange={handleInputChangeMain}
                     className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                   />
                 </div>
@@ -163,8 +163,8 @@ const EditMemberModal = ({
                     <input
                       type="text"
                       name="zipCode"
-                      value={editForm.zipCode}
-                      onChange={handleInputChange}
+                      value={editFormMain.zipCode}
+                      onChange={handleInputChangeMain}
                       className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
@@ -173,8 +173,8 @@ const EditMemberModal = ({
                     <input
                       type="text"
                       name="city"
-                      value={editForm.city}
-                      onChange={handleInputChange}
+                      value={editFormMain.city}
+                      onChange={handleInputChangeMain}
                       className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
@@ -185,8 +185,8 @@ const EditMemberModal = ({
                   <input
                     type="date"
                     name="dateOfBirth"
-                    value={editForm.dateOfBirth}
-                    onChange={handleInputChange}
+                    value={editFormMain.dateOfBirth}
+                    onChange={handleInputChangeMain}
                     className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                   />
                 </div>
@@ -195,18 +195,18 @@ const EditMemberModal = ({
                   <label className="text-sm text-gray-200 block mb-2">About</label>
                   <textarea
                     name="about"
-                    value={editForm.about}
-                    onChange={handleInputChange}
+                    value={editFormMain.about}
+                    onChange={handleInputChangeMain}
                     className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                   />
-                  {selectedMember && selectedMember.memberType === "temporary" && (
+                  {selectedMemberMain && selectedMemberMain.memberType === "temporary" && (
                     <div className="mt-4">
                       <label className="text-sm text-gray-200 block mb-2">Auto-Archive Due Date</label>
                       <input
                         type="date"
                         name="autoArchiveDate"
-                        value={editForm.autoArchiveDate}
-                        onChange={handleInputChange}
+                        value={editFormMain.autoArchiveDate}
+                        onChange={handleInputChangeMain}
                         className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
                     </div>
@@ -216,7 +216,7 @@ const EditMemberModal = ({
             )}
 
             {/* ---------- NOTE TAB ---------- */}
-            {editModalTab === "note" && (
+            {editModalTabMain === "note" && (
               <div className="border border-slate-700 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-sm text-gray-200 font-medium">Special Note</label>
@@ -224,9 +224,9 @@ const EditMemberModal = ({
                     <input
                       type="checkbox"
                       id="editNoteImportance"
-                      checked={editForm.noteImportance === "important"}
+                      checked={editFormMain.noteImportance === "important"}
                       onChange={(e) =>
-                        handleInputChange({
+                        handleInputChangeMain({
                           target: { name: "noteImportance", value: e.target.checked ? "important" : "unimportant" },
                         })
                       }
@@ -239,8 +239,8 @@ const EditMemberModal = ({
                 </div>
                 <textarea
                   name="note"
-                  value={editForm.note}
-                  onChange={handleInputChange}
+                  value={editFormMain.note}
+                  onChange={handleInputChangeMain}
                   className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
                   placeholder="Enter special note..."
                 />
@@ -250,8 +250,8 @@ const EditMemberModal = ({
                     <input
                       type="date"
                       name="noteStartDate"
-                      value={editForm.noteStartDate}
-                      onChange={handleInputChange}
+                      value={editFormMain.noteStartDate}
+                      onChange={handleInputChangeMain}
                       className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
@@ -260,8 +260,8 @@ const EditMemberModal = ({
                     <input
                       type="date"
                       name="noteEndDate"
-                      value={editForm.noteEndDate}
-                      onChange={handleInputChange}
+                      value={editFormMain.noteEndDate}
+                      onChange={handleInputChangeMain}
                       className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
@@ -270,26 +270,26 @@ const EditMemberModal = ({
             )}
 
             {/* ---------- RELATIONS TAB ---------- */}
-            {editModalTab === "relations" && (
+            {editModalTabMain === "relations" && (
               <div className="border border-slate-700 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-sm text-gray-200 font-medium">Relations</label>
                   <button
                     type="button"
-                    onClick={() => setEditingRelations(!editingRelations)}
+                    onClick={() => setEditingRelationsMain(!editingRelationsMain)}
                     className="text-sm text-blue-400 hover:text-blue-300"
                   >
-                    {editingRelations ? "Done" : "Edit"}
+                    {editingRelationsMain ? "Done" : "Edit"}
                   </button>
                 </div>
-                {editingRelations && (
+                {editingRelationsMain && (
                   <div className="mb-4 p-3 bg-[#101010] rounded-xl">
                     <div className="grid grid-cols-1 gap-2 mb-2">
                       <select
-                        value={newRelation.type}
+                        value={newRelationMain.type}
                         onChange={(e) => {
                           const type = e.target.value
-                          setNewRelation({ ...newRelation, type, name: "", selectedMemberId: null })
+                          setNewRelationMain({ ...newRelationMain, type, name: "", selectedMemberId: null })
                         }}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
@@ -297,31 +297,31 @@ const EditMemberModal = ({
                         <option value="member">Select Member</option>
                         <option value="lead">Select Lead</option>
                       </select>
-                      {newRelation.type === "manual" ? (
+                      {newRelationMain.type === "manual" ? (
                         <input
                           type="text"
                           placeholder="Name"
-                          value={newRelation.name}
-                          onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
+                          value={newRelationMain.name}
+                          onChange={(e) => setNewRelationMain({ ...newRelationMain, name: e.target.value })}
                           className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                         />
                       ) : (
                         <select
-                          value={newRelation.selectedMemberId || ""}
+                          value={newRelationMain.selectedMemberId || ""}
                           onChange={(e) => {
                             const selectedId = e.target.value
-                            const selectedPerson = availableMembersLeads.find((p) => p.id.toString() === selectedId)
-                            setNewRelation({
-                              ...newRelation,
+                            const selectedPerson = availableMembersLeadsMain.find((p) => p.id.toString() === selectedId)
+                            setNewRelationMain({
+                              ...newRelationMain,
                               selectedMemberId: selectedId,
                               name: selectedPerson ? selectedPerson.name : "",
                             })
                           }}
                           className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                         >
-                          <option value="">Select {newRelation.type}</option>
-                          {availableMembersLeads
-                            .filter((p) => p.type === newRelation.type)
+                          <option value="">Select {newRelationMain.type}</option>
+                          {availableMembersLeadsMain
+                            .filter((p) => p.type === newRelationMain.type)
                             .map((person) => (
                               <option key={person.id} value={person.id}>
                                 {person.name} ({person.type})
@@ -332,8 +332,8 @@ const EditMemberModal = ({
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <select
-                        value={newRelation.category}
-                        onChange={(e) => setNewRelation({ ...newRelation, category: e.target.value, relation: "" })}
+                        value={newRelationMain.category}
+                        onChange={(e) => setNewRelationMain({ ...newRelationMain, category: e.target.value, relation: "" })}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
                         <option value="family">Family</option>
@@ -343,12 +343,12 @@ const EditMemberModal = ({
                         <option value="other">Other</option>
                       </select>
                       <select
-                        value={newRelation.relation}
-                        onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
+                        value={newRelationMain.relation}
+                        onChange={(e) => setNewRelationMain({ ...newRelationMain, relation: e.target.value })}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
                         <option value="">Select Relation</option>
-                        {relationOptions[newRelation.category]?.map((option) => (
+                        {relationOptionsMain[newRelationMain.category]?.map((option) => (
                           <option key={option} value={option}>
                             {option}
                           </option>
@@ -357,7 +357,7 @@ const EditMemberModal = ({
                     </div>
                     <button
                       type="button"
-                      onClick={handleAddRelation}
+                      onClick={handleAddRelationMain}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full"
                     >
                       Add Relation
@@ -365,9 +365,9 @@ const EditMemberModal = ({
                   </div>
                 )}
                 <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {selectedMember &&
-                    memberRelations[selectedMember.id] &&
-                    Object.entries(memberRelations[selectedMember.id]).map(([category, relations]) =>
+                  {selectedMemberMain &&
+                    memberRelationsMain[selectedMemberMain.id] &&
+                    Object.entries(memberRelationsMain[selectedMemberMain.id]).map(([category, relations]) =>
                       relations.map((relation) => (
                         <div
                           key={relation.id}
@@ -389,10 +389,10 @@ const EditMemberModal = ({
                               {relation.type}
                             </span>
                           </div>
-                          {editingRelations && (
+                          {editingRelationsMain && (
                             <button
                               type="button"
-                              onClick={() => handleDeleteRelation(category, relation.id)}
+                              onClick={() => handleDeleteRelationMain(category, relation.id)}
                               className="text-red-400 hover:text-red-300"
                             >
                               <Trash2 size={14} />
@@ -411,24 +411,24 @@ const EditMemberModal = ({
                 Save Changes
               </button>
 
-              {selectedMember && selectedMember.memberType === "temporary" && (
+              {selectedMemberMain && selectedMemberMain.memberType === "temporary" && (
                 <button
                   type="button"
                   onClick={() => {
-                    if (selectedMember.isArchived) {
-                      handleUnarchiveMember(selectedMember.id)
+                    if (selectedMemberMain.isArchived) {
+                      handleUnarchiveMemberMain(selectedMemberMain.id)
                     } else {
-                      handleArchiveMember(selectedMember.id)
+                      handleArchiveMemberMain(selectedMemberMain.id)
                     }
                     onClose()
                   }}
                   className={`px-4 py-2 rounded-xl text-sm ${
-                    selectedMember.isArchived
+                    selectedMemberMain.isArchived
                       ? "bg-gray-600 hover:bg-gray-700 text-white"
                       : "bg-gray-600 hover:bg-gray-700 text-white"
                   }`}
                 >
-                  {selectedMember.isArchived ? (
+                  {selectedMemberMain.isArchived ? (
                     <>
                       <ArchiveRestore size={16} className="inline mr-1" />
                       Unarchive
@@ -449,4 +449,4 @@ const EditMemberModal = ({
   )
 }
 
-export default EditMemberModal
+export default EditMemberModalMain

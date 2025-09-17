@@ -3,20 +3,20 @@
 import React from "react";
 import { X, Plus, Lock, Info } from "lucide-react";
 
-export default function ContingentModal({
-  showContingentModal,
-  setShowContingentModal,
-  selectedMemberForAppointments,
-  getBillingPeriods,
-  selectedBillingPeriod,
+export default function ContingentModalMain({
+  showContingentModalMain,
+  setShowContingentModalMain,
+  selectedMemberForAppointmentsMain,
+  getBillingPeriodsMain,
+  selectedBillingPeriodMain,
   handleBillingPeriodChange,
-  setShowAddBillingPeriodModal,
-  currentBillingPeriod,
-  tempContingent,
-  setTempContingent,
-  handleSaveContingent,
+  setShowAddBillingPeriodModalMain,
+  currentBillingPeriodMain,
+  tempContingentMain,
+  setTempContingentMain,
+  handleSaveContingentMain,
 }) {
-  if (!showContingentModal) return null;
+  if (!showContingentModalMain) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -28,7 +28,7 @@ export default function ContingentModal({
               Manage Appointment Contingent
             </h2>
             <button
-              onClick={() => setShowContingentModal(false)}
+              onClick={() => setShowContingentModalMain(false)}
               className="p-2 hover:bg-zinc-700 text-white rounded-lg"
             >
               <X size={16} />
@@ -41,14 +41,14 @@ export default function ContingentModal({
               Select Billing Period
             </label>
             <div className="space-y-2">
-              {selectedMemberForAppointments &&
-                getBillingPeriods(selectedMemberForAppointments.id).map(
+              {selectedMemberForAppointmentsMain &&
+                getBillingPeriodsMain(selectedMemberForAppointmentsMain.id).map(
                   (period) => (
                     <button
                       key={period.id}
                       onClick={() => handleBillingPeriodChange(period.id)}
                       className={`w-full text-left p-3 rounded-xl border transition-colors ${
-                        selectedBillingPeriod === period.id
+                        selectedBillingPeriodMain === period.id
                           ? "bg-blue-600/20 border-blue-500 text-blue-300"
                           : "bg-[#222222] border-gray-600 text-gray-300 hover:bg-[#2A2A2A]"
                       }`}
@@ -65,7 +65,7 @@ export default function ContingentModal({
             </div>
             {/* Add New Billing Period */}
             <button
-              onClick={() => setShowAddBillingPeriodModal(true)}
+              onClick={() => setShowAddBillingPeriodModalMain(true)}
               className="w-full mt-3 p-3 border-2 border-dashed border-gray-600 rounded-xl text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center gap-2"
             >
               <Plus size={16} />
@@ -77,9 +77,9 @@ export default function ContingentModal({
           <div className="space-y-4">
             <div className="bg-[#222222] rounded-xl p-4">
               <h3 className="text-white font-medium mb-3">
-                {selectedBillingPeriod === "current"
-                  ? `Current Period (${currentBillingPeriod})`
-                  : `Future Period (${selectedBillingPeriod})`}
+                {selectedBillingPeriodMain === "current"
+                  ? `Current Period (${currentBillingPeriodMain})`
+                  : `Future Period (${selectedBillingPeriodMain})`}
               </h3>
               <div className="flex items-center gap-4">
                 {/* Used Appointments */}
@@ -90,11 +90,11 @@ export default function ContingentModal({
                   <input
                     type="number"
                     min={0}
-                    max={tempContingent.total}
-                    value={tempContingent.used}
+                    max={tempContingentMain.total}
+                    value={tempContingentMain.used}
                     onChange={(e) =>
-                      setTempContingent({
-                        ...tempContingent,
+                      setTempContingentMain({
+                        ...tempContingentMain,
                         used: Number.parseInt(e.target.value),
                       })
                     }
@@ -106,7 +106,7 @@ export default function ContingentModal({
                 <div className="flex-1">
                   <label className="block text-sm text-gray-400 mb-1 flex items-center gap-2">
                     Total Appointments
-                    {selectedBillingPeriod === "current" && (
+                    {selectedBillingPeriodMain === "current" && (
                       <Lock
                         size={14}
                         className="text-gray-500"
@@ -117,20 +117,20 @@ export default function ContingentModal({
                   <input
                     type="number"
                     min={
-                      selectedBillingPeriod === "current"
-                        ? tempContingent.used
+                      selectedBillingPeriodMain === "current"
+                        ? tempContingentMain.used
                         : 0
                     }
-                    value={tempContingent.total}
+                    value={tempContingentMain.total}
                     onChange={(e) =>
-                      setTempContingent({
-                        ...tempContingent,
+                      setTempContingentMain({
+                        ...tempContingentMain,
                         total: Number.parseInt(e.target.value),
                       })
                     }
-                    disabled={selectedBillingPeriod === "current"}
+                    disabled={selectedBillingPeriodMain === "current"}
                     className={`w-full rounded-xl px-4 py-2 text-sm ${
-                      selectedBillingPeriod === "current"
+                      selectedBillingPeriodMain === "current"
                         ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                         : "bg-[#333333] text-white"
                     }`}
@@ -142,13 +142,13 @@ export default function ContingentModal({
               <div className="mt-3 flex justify-between items-center text-sm">
                 <span className="text-gray-400">Remaining:</span>
                 <span className="text-white font-medium">
-                  {tempContingent.total - tempContingent.used} appointments
+                  {tempContingentMain.total - tempContingentMain.used} appointments
                 </span>
               </div>
             </div>
 
             {/* Info Boxes */}
-            {selectedBillingPeriod === "current" && (
+            {selectedBillingPeriodMain === "current" && (
               <div className="p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-xl">
                 <p className="text-yellow-200 text-sm flex items-center gap-2">
                   <Lock size={14} />
@@ -157,7 +157,7 @@ export default function ContingentModal({
                 </p>
               </div>
             )}
-            {selectedBillingPeriod !== "current" && (
+            {selectedBillingPeriodMain !== "current" && (
               <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
                 <p className="text-blue-200 text-sm flex items-center gap-2">
                   <Info size={14} />
@@ -171,13 +171,13 @@ export default function ContingentModal({
           {/* Actions */}
           <div className="flex gap-3 justify-end mt-6">
             <button
-              onClick={() => setShowContingentModal(false)}
+              onClick={() => setShowContingentModalMain(false)}
               className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
             >
               Cancel
             </button>
             <button
-              onClick={handleSaveContingent}
+              onClick={handleSaveContingentMain}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
             >
               Save Changes

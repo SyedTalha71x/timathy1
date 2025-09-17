@@ -7,23 +7,23 @@ import { toast } from 'react-toastify';
 const ViewDetailsModal = ({
   isOpen,
   onClose,
-  selectedMember,
-  memberRelations,
-  calculateAge,
-  isContractExpiringSoon,
+  selectedMemberMain,
+  memberRelationsMain,
+  calculateAgeMain,
+  isContractExpiringSoonMain,
   redirectToContract,
   handleEditMember,
-  setEditModalTab,
-  DefaultAvatar
+  setEditModalTabMain,
+  DefaultAvatar1
 }) => {
   const [activeTab, setActiveTab] = useState("details");
 
-  if (!isOpen || !selectedMember) return null;
+  if (!isOpen || !selectedMemberMain) return null;
 
   const handleEditAndOpenTab = (tab) => {
     onClose();
-    handleEditMember(selectedMember);
-    setEditModalTab(tab);
+    handleEditMember(selectedMemberMain);
+    setEditModalTabMain(tab);
   };
 
   return (
@@ -84,24 +84,24 @@ const ViewDetailsModal = ({
               <div className="space-y-4 text-white">
                 <div className="flex flex-col md:flex-row items-center gap-4">
                   <img
-                    src={selectedMember.image || DefaultAvatar}
+                    src={selectedMemberMain.image || DefaultAvatar1}
                     alt="Profile"
                     className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover flex-shrink-0"
                   />
                   <div className="text-center md:text-left">
                     <h3 className="text-lg md:text-xl font-semibold">
-                      {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
+                      {selectedMemberMain.title} ({calculateAgeMain(selectedMemberMain.dateOfBirth)})
                     </h3>
                     <p className="text-gray-400 mt-1 text-sm">
-                      {selectedMember.memberType === "full" ? (
+                      {selectedMemberMain.memberType === "full" ? (
                         <>
-                          Contract: {selectedMember.contractStart} -
-                          <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                            {selectedMember.contractEnd}
+                          Contract: {selectedMemberMain.contractStart} -
+                          <span className={isContractExpiringSoonMain(selectedMemberMain.contractEnd) ? "text-red-500" : ""}>
+                            {selectedMemberMain.contractEnd}
                           </span>
                         </>
                       ) : (
-                        <>Auto-archive date: {selectedMember.autoArchiveDate}</>
+                        <>Auto-archive date: {selectedMemberMain.autoArchiveDate}</>
                       )}
                     </p>
                   </div>
@@ -110,53 +110,53 @@ const ViewDetailsModal = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Member Type</p>
-                    <p className="text-sm">{selectedMember.memberType === "full" ? "Full Member (with contract)" : "Temporary Member (without contract)"}</p>
+                    <p className="text-sm">{selectedMemberMain.memberType === "full" ? "Full Member (with contract)" : "Temporary Member (without contract)"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Member Number</p>
-                    <p className="text-sm">{selectedMember.memberNumber}</p>
+                    <p className="text-sm">{selectedMemberMain.memberNumber}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Email</p>
-                    <p className="text-sm break-all">{selectedMember.email}</p>
+                    <p className="text-sm break-all">{selectedMemberMain.email}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Phone</p>
-                    <p className="text-sm">{selectedMember.phone}</p>
+                    <p className="text-sm">{selectedMemberMain.phone}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Country</p>
-                    <p className="text-sm">{selectedMember.country}</p>
+                    <p className="text-sm">{selectedMemberMain.country}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Join Date</p>
-                    <p className="text-sm">{selectedMember.joinDate}</p>
+                    <p className="text-sm">{selectedMemberMain.joinDate}</p>
                   </div>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Address</p>
-                  <p className="text-sm">{`${selectedMember.street}, ${selectedMember.zipCode} ${selectedMember.city}`}</p>
+                  <p className="text-sm">{`${selectedMemberMain.street}, ${selectedMemberMain.zipCode} ${selectedMemberMain.city}`}</p>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Date of Birth</p>
                     <p className="text-sm">
-                      {selectedMember.dateOfBirth} (Age: {calculateAge(selectedMember.dateOfBirth)})
+                      {selectedMemberMain.dateOfBirth} (Age: {calculateAgeMain(selectedMemberMain.dateOfBirth)})
                     </p>
                   </div>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">About</p>
-                  <p className="text-sm">{selectedMember.about}</p>
-                  {selectedMember.memberType === "temporary" && selectedMember.autoArchiveDate && (
+                  <p className="text-sm">{selectedMemberMain.about}</p>
+                  {selectedMemberMain.memberType === "temporary" && selectedMemberMain.autoArchiveDate && (
                     <div className="mt-2 p-2 bg-orange-900/20 border border-orange-600/30 rounded-lg">
                       <p className="text-orange-200 text-sm">
                         <Clock size={14} className="inline mr-1" />
-                        Auto-archive due date: {selectedMember.autoArchiveDate}
+                        Auto-archive due date: {selectedMemberMain.autoArchiveDate}
                       </p>
                     </div>
                   )}
@@ -167,23 +167,23 @@ const ViewDetailsModal = ({
             {activeTab === "note" && (
               <div className="space-y-4 text-white">
                 <h3 className="text-lg font-semibold mb-4">Special Note</h3>
-                {selectedMember.note ? (
+                {selectedMemberMain.note ? (
                   <div className="border border-slate-700 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-4">
-                      {selectedMember.noteImportance === "important" ? (
+                      {selectedMemberMain.noteImportance === "important" ? (
                         <AlertTriangle className="text-yellow-500" size={20} />
                       ) : (
                         <Info className="text-blue-500" size={20} />
                       )}
                       <p className="font-medium">
-                        {selectedMember.noteImportance === "important" ? "Important Note" : "Unimportant Note"}
+                        {selectedMemberMain.noteImportance === "important" ? "Important Note" : "Unimportant Note"}
                       </p>
                     </div>
-                    <p className="text-sm leading-relaxed">{selectedMember.note}</p>
-                    {selectedMember.noteStartDate && selectedMember.noteEndDate && (
+                    <p className="text-sm leading-relaxed">{selectedMemberMain.note}</p>
+                    {selectedMemberMain.noteStartDate && selectedMemberMain.noteEndDate && (
                       <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                         <p className="text-xs text-gray-300">
-                          Valid from {selectedMember.noteStartDate} to {selectedMember.noteEndDate}
+                          Valid from {selectedMemberMain.noteStartDate} to {selectedMemberMain.noteEndDate}
                         </p>
                       </div>
                     )}
@@ -202,7 +202,7 @@ const ViewDetailsModal = ({
                   <div className="flex flex-col items-center space-y-6 md:space-y-8">
                     {/* Central Member */}
                     <div className="bg-blue-600 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg border-2 border-blue-400 font-semibold text-sm md:text-base">
-                      {selectedMember.title}
+                      {selectedMemberMain.title}
                     </div>
                     {/* Connection Lines and Categories */}
                     <div className="relative w-full">
@@ -210,7 +210,7 @@ const ViewDetailsModal = ({
                       <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
                       {/* Category sections */}
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 pt-6 md:pt-8">
-                        {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
+                        {Object.entries(memberRelationsMain[selectedMemberMain.id] || {}).map(([category, relations]) => (
                           <div key={category} className="flex flex-col items-center space-y-3 md:space-y-4">
                             {/* Vertical line */}
                             <div className="w-0.5 h-6 md:h-8 bg-gray-600"></div>
@@ -276,7 +276,7 @@ const ViewDetailsModal = ({
                 <div className="bg-[#161616] rounded-xl p-4 md:p-6">
                   <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
                   <div className="space-y-4">
-                    {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
+                    {Object.entries(memberRelationsMain[selectedMemberMain.id] || {}).map(([category, relations]) => (
                       <div key={category}>
                         <h4 className="text-md font-medium text-gray-300 capitalize mb-2">{category}</h4>
                         <div className="space-y-2 ml-2 md:ml-4">
@@ -341,7 +341,7 @@ const ViewDetailsModal = ({
         {activeTab === "details" && (
           <div className="flex-shrink-0 p-4 md:p-6 border-t border-gray-700">
             <div className="flex flex-col md:flex-row justify-end gap-4">
-              {selectedMember.memberType === "full" && (
+              {selectedMemberMain.memberType === "full" && (
                 <button
                   onClick={redirectToContract}
                   className="flex items-center justify-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"

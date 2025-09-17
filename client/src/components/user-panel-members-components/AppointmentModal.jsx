@@ -4,20 +4,20 @@
 import React from 'react';
 import { X, Edit3, Trash2 } from 'lucide-react';
 
-const AppointmentModal = ({
+const AppointmentModalMain = ({
   isOpen,
   onClose,
-  selectedMember,
-  getMemberAppointments,
-  appointmentTypes,
-  handleEditAppointment,
-  handleDeleteAppointment,
+  selectedMemberMain,
+  getMemberAppointmentsMain,
+  appointmentTypesMain,
+  handleEditAppointmentMain,
+  handleDeleteAppointmentMain,
   memberContingent,
-  currentBillingPeriod,
-  handleManageContingent,
-  handleCreateNewAppointment
+  currentBillingPeriodMain,
+  handleManageContingentMain,
+  handleCreateNewAppointmentMain
 }) => {
-  if (!isOpen || !selectedMember) return null;
+  if (!isOpen || !selectedMemberMain) return null;
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -25,7 +25,7 @@ const AppointmentModal = ({
         <div className="p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-medium text-white">
-              {selectedMember.title}'s Appointments
+              {selectedMemberMain.title}'s Appointments
             </h2>
             <button
               onClick={onClose}
@@ -37,16 +37,16 @@ const AppointmentModal = ({
 
           <div className="space-y-3 mb-4">
             <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
-            {getMemberAppointments(selectedMember.id).length > 0 ? (
-              getMemberAppointments(selectedMember.id).map((appointment) => {
-                const appointmentType = appointmentTypes.find((type) => type.name === appointment.type);
+            {getMemberAppointmentsMain(selectedMemberMain.id).length > 0 ? (
+              getMemberAppointmentsMain(selectedMemberMain.id).map((appointment) => {
+                const appointmentType = appointmentTypesMain.find((type) => type.name === appointment.type);
                 const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700";
                 
                 return (
                   <div
                     key={appointment.id}
                     className={`${backgroundColor} rounded-xl p-3 hover:opacity-90 transition-colors cursor-pointer`}
-                    onClick={() => handleEditAppointment(appointment)}
+                    onClick={() => handleEditAppointmentMain(appointment)}
                   >
                     <div className="flex justify-between items-start">
                       <div>
@@ -78,7 +78,7 @@ const AppointmentModal = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleEditAppointment(appointment);
+                            handleEditAppointmentMain(appointment);
                           }}
                           className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
                         >
@@ -87,7 +87,7 @@ const AppointmentModal = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteAppointment(appointment.id);
+                            handleDeleteAppointmentMain(appointment.id);
                           }}
                           className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
                         >
@@ -107,12 +107,12 @@ const AppointmentModal = ({
 
           <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
             <div className="text-sm text-gray-300">
-              Contingent ({currentBillingPeriod}):{" "}
-              {memberContingent[selectedMember.id]?.current?.used || 0} /{" "}
-              {memberContingent[selectedMember.id]?.current?.total || 0}
+              Contingent ({currentBillingPeriodMain}):{" "}
+              {memberContingent[selectedMemberMain.id]?.current?.used || 0} /{" "}
+              {memberContingent[selectedMemberMain.id]?.current?.total || 0}
             </div>
             <button
-              onClick={() => handleManageContingent(selectedMember.id)}
+              onClick={() => handleManageContingentMain(selectedMemberMain.id)}
               className="flex items-center gap-1 bg-gray-700 text-white hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
             >
               <Edit3 size={16} />
@@ -121,7 +121,7 @@ const AppointmentModal = ({
           </div>
 
           <button
-            onClick={handleCreateNewAppointment}
+            onClick={handleCreateNewAppointmentMain}
             className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
           >
             Create New Appointment
@@ -132,4 +132,4 @@ const AppointmentModal = ({
   );
 };
 
-export default AppointmentModal;
+export default AppointmentModalMain;

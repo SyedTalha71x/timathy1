@@ -3,12 +3,12 @@
 import React from "react";
 import { X } from "lucide-react";
 
-export default function HistoryModal({
+export default function HistoryModalMain({
   show,
   member,
-  memberHistory,
-  historyTab,
-  setHistoryTab,
+  memberHistoryMain,
+  historyTabMain,
+  setHistoryTabMain,
   onClose
 }) {
   if (!show || !member) return null;
@@ -32,9 +32,9 @@ export default function HistoryModal({
             {["general", "checkins", "appointments", "finance", "contracts"].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setHistoryTab(tab)}
+                onClick={() => setHistoryTabMain(tab)}
                 className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm transition-colors ${
-                  historyTab === tab ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                  historyTabMain === tab ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
                 }`}
               >
                 {tab === "general" && "General Changes"}
@@ -49,10 +49,10 @@ export default function HistoryModal({
 
         {/* Content */}
         <div className="bg-[#141414] rounded-xl p-3 sm:p-4">
-          {historyTab === "general" && (
+          {historyTabMain === "general" && (
             <Section
               title="General Changes"
-              data={memberHistory[member.id]?.general}
+              data={memberHistoryMain[member.id]?.general}
               render={(change) => (
                 <>
                   <p className="font-medium text-white text-sm sm:text-base">{change.action}</p>
@@ -65,10 +65,10 @@ export default function HistoryModal({
             />
           )}
 
-          {historyTab === "checkins" && (
+          {historyTabMain === "checkins" && (
             <Section
               title="Check-ins & Check-outs"
-              data={memberHistory[member.id]?.checkins}
+              data={memberHistoryMain[member.id]?.checkins}
               render={(activity) => (
                 <>
                   <p className="font-medium text-white flex items-center gap-2 text-sm sm:text-base">
@@ -89,10 +89,10 @@ export default function HistoryModal({
             />
           )}
 
-          {historyTab === "appointments" && (
+          {historyTabMain === "appointments" && (
             <Section
               title="Past Appointments"
-              data={memberHistory[member.id]?.appointments}
+              data={memberHistoryMain[member.id]?.appointments}
               render={(appointment) => (
                 <>
                   <p className="font-medium text-white text-sm sm:text-base">{appointment.title}</p>
@@ -114,10 +114,10 @@ export default function HistoryModal({
             />
           )}
 
-          {historyTab === "finance" && (
+          {historyTabMain === "finance" && (
             <Section
               title="Finance Transactions"
-              data={memberHistory[member.id]?.finance}
+              data={memberHistoryMain[member.id]?.finance}
               render={(transaction) => (
                 <>
                   <p className="font-medium text-white text-sm sm:text-base">
@@ -139,10 +139,10 @@ export default function HistoryModal({
             />
           )}
 
-          {historyTab === "contracts" && (
+          {historyTabMain === "contracts" && (
             <Section
               title="Contract Changes"
-              data={memberHistory[member.id]?.contracts}
+              data={memberHistoryMain[member.id]?.contracts}
               render={(contract) => (
                 <>
                   <p className="font-medium text-white text-sm sm:text-base">{contract.action}</p>

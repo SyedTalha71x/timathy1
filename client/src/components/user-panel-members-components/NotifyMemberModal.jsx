@@ -4,7 +4,7 @@ import React from "react";
 import { X } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-export default function NotifyMemberModal({ open, action, onClose }) {
+export default function NotifyMemberModalMain({ open, action, onClose }) {
   if (!open) return null;
 
   return (

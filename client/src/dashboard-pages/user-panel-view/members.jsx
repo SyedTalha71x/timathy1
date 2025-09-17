@@ -21,38 +21,64 @@ import {
   Dumbbell,
   FileText,
 } from "lucide-react"
-import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+import DefaultAvatar1 from "../../../public/gray-avatar-fotor-20250912192528.png"
 import toast, { Toaster } from "react-hot-toast"
-import AddAppointmentModal from "../../components/appointments-components/add-appointment-modal"
-import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
 import { IoIosMenu } from "react-icons/io"
-import Rectangle1 from "../../../public/Rectangle 1.png"
 import { useNavigate } from "react-router-dom"
-import { SidebarArea } from "../../components/custom-sidebar"
-import HistoryModal from "../../components/user-panel-members-components/HistoryModal"
-import NotifyMemberModal from "../../components/user-panel-members-components/NotifyMemberModal"
+import HistoryModalMain from "../../components/user-panel-members-components/HistoryModal"
+import NotifyMemberModalMain from "../../components/user-panel-members-components/NotifyMemberModal"
 import CreateTempMemberModal from "../../components/user-panel-members-components/CreateTempMemberModal"
-import EditMemberModal from "../../components/user-panel-members-components/EditMemberModal"
-import AddBillingPeriodModal from "../../components/user-panel-members-components/AddBillingPeriodModal"
-import ContingentModal from "../../components/user-panel-members-components/ShowContigentModal"
+import EditMemberModalMain from "../../components/user-panel-members-components/EditMemberModal"
+import AddBillingPeriodModalMain from "../../components/user-panel-members-components/AddBillingPeriodModal"
+import ContingentModalMain from "../../components/user-panel-members-components/ShowContigentModal"
 import ViewDetailsModal from "../../components/user-panel-members-components/ViewDetailsModal"
-import AppointmentModal from "../../components/user-panel-members-components/AppointmentModal"
+import AppointmentModalMain from "../../components/user-panel-members-components/AppointmentModal"
 import FilterModal from "../../components/user-panel-members-components/FilterModal"
 import TrainingPlansModal from "../../components/user-panel-members-components/TrainingPlanModal"
 import { MemberDocumentModal } from "../../components/user-panel-members-components/MemberDocumentModal"
+import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain } from "../../utils/user-panel-states/members-states"
+import AddAppointmentModal from "../../components/user-panel-members-components/AddAppointmentModal"
+import EditAppointmentModalMain from "../../components/user-panel-members-components/EditAppointmentModal"
+
+
+// sidebar related import
+import EditTaskModal from "../../components/task-components/edit-task-modal"
+import EditMemberModal from "../../components/myarea-components/EditMemberModal"
+import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
+import ContingentModal from "../../components/myarea-components/ContigentModal"
+import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
+import HistoryModal from "../../components/myarea-components/HistoryModal"
+import AppointmentModal from "../../components/myarea-components/AppointmentModal"
+import { WidgetSelectionModal } from "../../components/widget-selection-modal"
+import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
+import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
+import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
+import Sidebar from "../../components/central-sidebar"
+import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
+import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+
+import { useSidebarSystem } from "../../hooks/useSidebarSystem"
+import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 
 export default function Members() {
+
+  const sidebarSystem = useSidebarSystem()
+  const trainingVideos = trainingVideosData
   const navigate = useNavigate()
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isEditModalOpenMain, setIsEditModalOpenMain] = useState(false)
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
-  const [selectedMember, setSelectedMember] = useState(null)
+  const [selectedMemberMain, setSelectedMemberMain] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
-  const [activeNoteId, setActiveNoteId] = useState(null)
+  // 
+  const [activeNoteIdMain, setActiveNoteIdMain] = useState(null)
   const [activeTab, setActiveTab] = useState("details")
   const [tempMemberModalTab, setTempMemberModalTab] = useState("details")
-  const [editModalTab, setEditModalTab] = useState("details")
+  // 
+  const [editModalTabMain, setEditModalTabMain] = useState("details")
 
   const [sortBy, setSortBy] = useState("alphabetical")
   const [sortDirection, setSortDirection] = useState("asc")
@@ -71,13 +97,16 @@ export default function Members() {
   const [archivedFilter, setArchivedFilter] = useState("active")
   const [filterStatus, setFilterStatus] = useState("all")
 
-  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
-  const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
-  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
-  const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
-  const [selectedAppointmentData, setSelectedAppointmentData] = useState(null)
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
-  const [notifyAction, setNotifyAction] = useState("")
+  // 
+  const [showAppointmentModalMain, setShowAppointmentModalMain] = useState(false)
+  const [selectedMemberForAppointmentsMain, setSelectedMemberForAppointmentsMain] = useState(null)
+  const [showAddAppointmentModalMain, setShowAddAppointmentModalMain] = useState(false)
+  const [showSelectedAppointmentModalMain, setShowSelectedAppointmentModalMain] = useState(false)
+  const [selectedAppointmentDataMain, setSelectedAppointmentDataMain] = useState(null)
+  // 
+  const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
+  // 
+  const [notifyActionMain, setNotifyActionMain] = useState("")
 
   const [memberContingent, setMemberContingent] = useState({
     1: {
@@ -95,17 +124,19 @@ export default function Members() {
       },
     },
   })
-  const [showContingentModal, setShowContingentModal] = useState(false)
-  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
-  const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
-  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current")
-  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
-  const [newBillingPeriod, setNewBillingPeriod] = useState("")
+  //  all
+  const [showContingentModalMain, setShowContingentModalMain] = useState(false)
+  const [tempContingentMain, setTempContingentMain] = useState({ used: 0, total: 0 })
+  const [currentBillingPeriodMain, setCurrentBillingPeriodMain] = useState("04.14.25 - 04.18.2025")
+  const [selectedBillingPeriodMain, setSelectedBillingPeriodMain] = useState("current")
+  const [showAddBillingPeriodModalMain, setShowAddBillingPeriodModalMain] = useState(false)
+  const [newBillingPeriodMain, setNewBillingPeriodMain] = useState("")
 
-  const getBillingPeriods = (memberId) => {
+  // 
+  const getBillingPeriodsMain = (memberId) => {
     const memberData = memberContingent[memberId]
     if (!memberData) return []
-    const periods = [{ id: "current", label: `Current (${currentBillingPeriod})`, data: memberData.current }]
+    const periods = [{ id: "current", label: `Current (${currentBillingPeriodMain})`, data: memberData.current }]
     if (memberData.future) {
       Object.entries(memberData.future).forEach(([period, data]) => {
         periods.push({
@@ -118,53 +149,32 @@ export default function Members() {
     return periods
   }
 
-  const [showHistoryModal, setShowHistoryModal] = useState(false)
-  const [historyTab, setHistoryTab] = useState("general")
+  // 
+  const [showHistoryModalMain, setShowHistoryModalMain] = useState(false)
+  // 
+  const [historyTabMain, setHistoryTabMain] = useState("general")
 
   const [showDocumentModal, setShowDocumentModal] = useState(false)
-const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
+  const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
 
 
-const handleDocumentClick = (member) => {
-  setSelectedMemberForDocuments(member)
-  setShowDocumentModal(true)
-}
+  const handleDocumentClick = (member) => {
+    setSelectedMemberForDocuments(member)
+    setShowDocumentModal(true)
+  }
 
-
-  const [editingRelations, setEditingRelations] = useState(false)
-  const [newRelation, setNewRelation] = useState({
+//  
+  const [editingRelationsMain, setEditingRelationsMain] = useState(false)
+  // 
+  const [newRelationMain, setNewRelationMain] = useState({
     name: "",
     relation: "",
     category: "family",
     type: "manual",
     selectedMemberId: null,
   })
-  const [memberRelations, setMemberRelations] = useState({
-    1: {
-      family: [
-        { name: "Anna Doe", relation: "Mother", id: 101, type: "member" },
-        { name: "Peter Doe", relation: "Father", id: 102, type: "lead" },
-        { name: "Lisa Doe", relation: "Sister", id: 103, type: "manual" },
-      ],
-      friendship: [{ name: "Max Miller", relation: "Best Friend", id: 201, type: "member" }],
-      relationship: [
-        { name: "Marie Smith", relation: "Partner", id: 301, type: "member" },
-        { name: "Julia Brown", relation: "Ex-Partner", id: 302, type: "manual" },
-      ],
-      work: [
-        { name: "Tom Wilson", relation: "Colleague", id: 401, type: "lead" },
-        { name: "Mr. Johnson", relation: "Boss", id: 402, type: "manual" },
-      ],
-      other: [{ name: "Mrs. Smith", relation: "Neighbor", id: 501, type: "manual" }],
-    },
-    2: {
-      family: [],
-      friendship: [],
-      relationship: [],
-      work: [],
-      other: [],
-    },
-  })
+  // 
+  const [memberRelationsMain, setMemberRelationsMain] = useState(memberRelationsMainData)
 
   const [tempMemberForm, setTempMemberForm] = useState({
     firstName: "",
@@ -190,7 +200,8 @@ const handleDocumentClick = (member) => {
       other: [],
     },
   })
-  const [editForm, setEditForm] = useState({
+  // 
+  const [editFormMain, setEditFormMain] = useState({
     firstName: "",
     lastName: "",
     email: "",
@@ -209,162 +220,49 @@ const handleDocumentClick = (member) => {
   })
 
   const [viewMode, setViewMode] = useState("list")
-
+  
   const getRelationsCount = (memberId) => {
-    const relations = memberRelations[memberId]
+    const relations = memberRelationsMain[memberId]
     if (!relations) return 0
     return Object.values(relations).reduce((total, categoryRelations) => total + categoryRelations.length, 0)
   }
+  const [members, setMembers] = useState(membersData)
 
-  const [appointments, setAppointments] = useState([
-    {
-      id: 1,
-      title: "Initial Consultation",
-      date: "2025-03-15T10:00",
-      status: "upcoming",
-      type: "Consultation",
-      memberId: 1,
-      specialNote: {
-        text: "First time client, needs introduction to equipment",
-        isImportant: true,
-        startDate: "2025-03-15",
-        endDate: "2025-03-20",
-      },
-    },
-    {
-      id: 2,
-      title: "Follow-up Meeting",
-      date: "2025-03-20T14:30",
-      status: "upcoming",
-      type: "Follow-up",
-      memberId: 1,
-    },
-    {
-      id: 3,
-      title: "Annual Review",
-      date: "2025-04-05T11:00",
-      status: "upcoming",
-      type: "Annual Review",
-      memberId: 2,
-    },
-  ])
-  const [appointmentTypes, setAppointmentTypes] = useState([
-    { name: "Consultation", duration: 30, color: "bg-blue-700" },
-    { name: "Follow-up", duration: 45, color: "bg-green-700" },
-    { name: "Annual Review", duration: 60, color: "bg-purple-600" },
-    { name: "Training", duration: 60, color: "bg-orange-600" },
-    { name: "Assessment", duration: 90, color: "bg-red-600" },
-  ])
-  const [freeAppointments, setFreeAppointments] = useState([
-    { id: 1, date: "2025-03-15", time: "9:00 AM" },
-    { id: 2, date: "2025-03-15", time: "11:00 AM" },
-    { id: 3, date: "2025-03-15", time: "2:00 PM" },
-    { id: 4, date: "2025-03-20", time: "10:00 AM" },
-    { id: 5, date: "2025-03-20", time: "1:30 PM" },
-    { id: 6, date: "2025-04-05", time: "9:30 AM" },
-    { id: 7, date: "2025-04-05", time: "3:00 PM" },
-  ])
+  //  all
+  const [appointmentsMain, setAppointmentsMain] = useState(appointmentsMainData)
+  const [appointmentTypesMain, setAppointmentTypesMain] = useState(appointmentTypeMainData)
+  const [freeAppointmentsMain, setFreeAppointmentsMain] = useState(freeAppointmentsMainData)
 
-  const [memberHistory, setMemberHistory] = useState({
-    1: {
-      general: [
-        {
-          id: 1,
-          date: "2025-01-15",
-          action: "Email updated",
-          details: "Changed from old@email.com to john@example.com",
-          user: "Admin",
-        },
-        { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
-      ],
-      checkins: [
-        { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "John Doe" },
-        { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "John Doe" },
-      ],
-      appointments: [
-        { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
-        { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
-      ],
-      finance: [
-        {
-          id: 1,
-          date: "2025-01-01",
-          type: "Payment",
-          amount: "$99.99",
-          description: "Monthly membership fee",
-          status: "completed",
-        },
-        {
-          id: 2,
-          date: "2024-12-01",
-          type: "Payment",
-          amount: "$99.99",
-          description: "Monthly membership fee",
-          status: "completed",
-        },
-      ],
-      contracts: [
-        {
-          id: 1,
-          date: "2024-03-01",
-          action: "Contract signed",
-          details: "Initial 12-month membership contract",
-          user: "Admin",
-        },
-        { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
-      ],
-    },
-    2: {
-      general: [],
-      checkins: [],
-      appointments: [],
-      finance: [],
-      contracts: [],
-    },
-  })
+  const [memberHistoryMain, setMemberHistoryMain] = useState(memberHistoryMainData)
 
-  const availableMembersLeads = [
-    { id: 101, name: "Anna Doe", type: "member" },
-    { id: 102, name: "Peter Doe", type: "lead" },
-    { id: 103, name: "Lisa Doe", type: "member" },
-    { id: 201, name: "Max Miller", type: "member" },
-    { id: 301, name: "Marie Smith", type: "member" },
-    { id: 401, name: "Tom Wilson", type: "lead" },
-  ]
 
-  const relationOptions = {
-    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
-    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
-    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
-    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
-    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
-  }
 
   useEffect(() => {
-    if (selectedMember) {
-      setEditForm({
-        firstName: selectedMember.firstName,
-        lastName: selectedMember.lastName,
-        email: selectedMember.email,
-        phone: selectedMember.phone,
-        street: selectedMember.street,
-        zipCode: selectedMember.zipCode,
-        city: selectedMember.city,
-        dateOfBirth: selectedMember.dateOfBirth,
-        about: selectedMember.about,
-        note: selectedMember.note,
-        noteStartDate: selectedMember.noteStartDate,
-        noteEndDate: selectedMember.noteEndDate,
-        noteImportance: selectedMember.noteImportance,
-        contractStart: selectedMember.contractStart,
-        contractEnd: selectedMember.contractEnd,
+    if (selectedMemberMain) {
+      setEditFormMain({
+        firstName: selectedMemberMain.firstName,
+        lastName: selectedMemberMain.lastName,
+        email: selectedMemberMain.email,
+        phone: selectedMemberMain.phone,
+        street: selectedMemberMain.street,
+        zipCode: selectedMemberMain.zipCode,
+        city: selectedMemberMain.city,
+        dateOfBirth: selectedMemberMain.dateOfBirth,
+        about: selectedMemberMain.about,
+        note: selectedMemberMain.note,
+        noteStartDate: selectedMemberMain.noteStartDate,
+        noteEndDate: selectedMemberMain.noteEndDate,
+        noteImportance: selectedMemberMain.noteImportance,
+        contractStart: selectedMemberMain.contractStart,
+        contractEnd: selectedMemberMain.contractEnd,
       })
     }
-  }, [selectedMember])
+  }, [selectedMemberMain])
 
-  const handleInputChange = (e) => {
+  // 
+  const handleInputChangeMain = (e) => {
     const { name, value } = e.target
-    setEditForm((prev) => ({
+    setEditFormMain((prev) => ({
       ...prev,
       [name]: value,
     }))
@@ -378,21 +276,22 @@ const handleDocumentClick = (member) => {
     }))
   }
 
-  const handleEditSubmit = (e) => {
+  // 
+  const handleEditSubmitMain = (e) => {
     e.preventDefault()
     const updatedMembers = members.map((member) => {
-      if (member.id === selectedMember.id) {
+      if (member.id === selectedMemberMain.id) {
         return {
           ...member,
-          ...editForm,
-          title: `${editForm.firstName} ${editForm.lastName}`,
+          ...editFormMain,
+          title: `${editFormMain.firstName} ${editFormMain.lastName}`,
         }
       }
       return member
     })
     setMembers(updatedMembers)
-    setIsEditModalOpen(false)
-    setSelectedMember(null)
+    setIsEditModalOpenMain(false)
+    setSelectedMemberMain(null)
     toast.success("Member details have been updated successfully")
   }
 
@@ -435,7 +334,8 @@ const handleDocumentClick = (member) => {
     toast.success("Temporary member created successfully")
   }
 
-  const handleArchiveMember = (memberId) => {
+  // 
+  const handleArchiveMemberMain = (memberId) => {
     const member = members.find((m) => m.id === memberId)
     if (member && member.memberType === "temporary") {
       if (window.confirm("Are you sure you want to archive this temporary member?")) {
@@ -453,7 +353,8 @@ const handleDocumentClick = (member) => {
     }
   }
 
-  const handleUnarchiveMember = (memberId) => {
+  // 
+  const handleUnarchiveMemberMain = (memberId) => {
     const member = members.find((m) => m.id === memberId)
     if (member && member.memberType === "temporary") {
       setMembers((prev) =>
@@ -465,208 +366,22 @@ const handleDocumentClick = (member) => {
     }
   }
 
-  const notePopoverRef = useRef(null)
+  // 
+  const notePopoverRefMain = useRef(null)
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
-        setActiveNoteId(null)
+      if (notePopoverRefMain.current && !notePopoverRefMain.current.contains(event.target)) {
+        setActiveNoteIdMain(null)
       }
     }
-    if (activeNoteId !== null) {
+    if (activeNoteIdMain !== null) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
         document.removeEventListener("mousedown", handleClickOutside)
       }
     }
-  }, [activeNoteId])
+  }, [activeNoteIdMain])
 
-  const [members, setMembers] = useState([
-    {
-      id: 1,
-      firstName: "John",
-      lastName: "Doe",
-      title: "John Doe",
-      email: "john@example.com",
-      phone: "+1234567890",
-      street: "123 Main St",
-      zipCode: "12345",
-      city: "New York",
-      country: "United States",
-      memberNumber: "M001",
-      image: null,
-      reason: "",
-      isActive: true,
-      isArchived: false,
-      memberType: "full",
-      note: "Allergic to peanuts",
-      noteStartDate: "2023-01-01",
-      noteEndDate: "2023-12-31",
-      noteImportance: "important",
-      dateOfBirth: "1990-05-15",
-      about: "Experienced developer with a passion for clean code.",
-      joinDate: "2022-03-01",
-      contractStart: "2022-03-01",
-      contractEnd: "2023-03-01",
-      autoArchiveDate: null,
-      documents: [
-        {
-          id: "doc-1-1",
-          name: "Medical Clearance Certificate.pdf",
-          type: "pdf",
-          size: "1.2 MB",
-          uploadDate: "2023-01-15",
-          category: "medical",
-        },
-        {
-          id: "doc-1-2",
-          name: "Emergency Contact Form.pdf",
-          type: "pdf",
-          size: "0.8 MB",
-          uploadDate: "2023-01-16",
-          category: "emergency",
-        },
-        {
-          id: "doc-1-3",
-          name: "Fitness Assessment Report.xlsx",
-          type: "xlsx",
-          size: "1.5 MB",
-          uploadDate: "2023-02-01",
-          category: "fitness",
-        },
-        {
-          id: "doc-1-4",
-          name: "Insurance Policy.pdf",
-          type: "pdf",
-          size: "2.1 MB",
-          uploadDate: "2023-01-20",
-          category: "legal",
-        }
-      ],
-    },
-    {
-      id: 2,
-      firstName: "Jane",
-      lastName: "Smith",
-      title: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+1234567891",
-      street: "456 Oak St",
-      zipCode: "67890",
-      city: "Los Angeles",
-      country: "United States",
-      memberNumber: "M002",
-      image: null,
-      isActive: false,
-      reason: "Vacation Leaves",
-      isArchived: false,
-      memberType: "full",
-      note: "",
-      noteStartDate: "",
-      noteEndDate: "",
-      noteImportance: "unimportant",
-      dateOfBirth: "1985-08-22",
-      about: "Certified PMP with 10 years of experience in IT project management.",
-      joinDate: "2021-11-15",
-      contractStart: "2021-11-15",
-      contractEnd: "2024-04-15",
-      autoArchiveDate: null,
-      documents: [
-        {
-          id: "doc-2-1",
-          name: "Health Declaration.pdf",
-          type: "pdf",
-          size: "0.7 MB",
-          uploadDate: "2021-11-20",
-          category: "medical",
-        },
-        {
-          id: "doc-2-2",
-          name: "Personal Training Goals.docx",
-          type: "docx",
-          size: "0.3 MB",
-          uploadDate: "2021-12-01",
-          category: "fitness",
-        },
-        {
-          id: "doc-2-3",
-          name: "Identification Copy.jpg",
-          type: "jpg",
-          size: "2.8 MB",
-          uploadDate: "2021-11-18",
-          category: "personal",
-        }
-      ],
-    },
-    {
-      id: 3,
-      firstName: "Michael",
-      lastName: "Johnson",
-      title: "Michael Johnson",
-      email: "michael@example.com",
-      phone: "+1234567892",
-      street: "789 Pine St",
-      zipCode: "10112",
-      city: "Chicago",
-      country: "United States",
-      memberNumber: "M003",
-      image: null,
-      isActive: true,
-      isArchived: false,
-      memberType: "full",
-      note: "Prefers morning sessions",
-      noteStartDate: "2023-03-01",
-      noteEndDate: "2023-12-31",
-      noteImportance: "unimportant",
-      dateOfBirth: "1988-11-30",
-      about: "Fitness enthusiast and marathon runner.",
-      joinDate: "2022-06-15",
-      contractStart: "2022-06-15",
-      contractEnd: "2023-12-15",
-      autoArchiveDate: null,
-      documents: [
-        {
-          id: "doc-3-1",
-          name: "Marathon Training Plan.pdf",
-          type: "pdf",
-          size: "3.2 MB",
-          uploadDate: "2022-07-01",
-          category: "fitness",
-        },
-        {
-          id: "doc-3-2",
-          name: "Injury History Report.docx",
-          type: "docx",
-          size: "0.6 MB",
-          uploadDate: "2022-06-20",
-          category: "medical",
-        },
-        {
-          id: "doc-3-3",
-          name: "Emergency Contacts.txt",
-          type: "txt",
-          size: "0.1 MB",
-          uploadDate: "2022-06-16",
-          category: "emergency",
-        },
-        {
-          id: "doc-3-4",
-          name: "Nutrition Guidelines.xlsx",
-          type: "xlsx",
-          size: "1.8 MB",
-          uploadDate: "2022-08-15",
-          category: "fitness",
-        },
-        {
-          id: "doc-3-5",
-          name: "Waiver Form.pdf",
-          type: "pdf",
-          size: "0.4 MB",
-          uploadDate: "2022-06-15",
-          category: "legal",
-        }
-      ],
-    },
-  ])
 
   const filterOptions = [
     { id: "all", label: `All Members (${members.length})` },
@@ -675,7 +390,8 @@ const handleDocumentClick = (member) => {
     { id: "archived", label: `Archived Members (${members.filter((m) => m.isArchived).length})` },
   ]
 
-  const isContractExpiringSoon = (contractEnd) => {
+  // 
+  const isContractExpiringSoonMain = (contractEnd) => {
     if (!contractEnd) return false
     const today = new Date()
     const endDate = new Date(contractEnd)
@@ -749,45 +465,21 @@ const handleDocumentClick = (member) => {
     return filtered
   }
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      heading: "Heading",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    },
-    {
-      id: 2,
-      heading: "Heading",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    },
-  ])
-
-  const handleFilterSelect = (filterId) => {
-    setFilterStatus(filterId)
-  }
-
-  const handleSortSelect = (sortId) => {
-    setSortBy(sortId)
-    setIsSortDropdownOpen(false)
-  }
-
-  const removeNotification = (id) => {
-    setNotifications(notifications.filter((n) => n.id !== id))
-  }
 
   const handleEditMember = (member) => {
-    setSelectedMember(member)
-    setIsEditModalOpen(true)
-    setEditModalTab("details")
+    setSelectedMemberMain(member)
+    setIsEditModalOpenMain(true)
+    setEditModalTabMain("details")
   }
 
   const handleViewDetails = (member) => {
-    setSelectedMember(member)
+    setSelectedMemberMain(member)
     setActiveTab("details")
     setIsViewDetailsModalOpen(true)
   }
 
-  const calculateAge = (dateOfBirth) => {
+  // 
+  const calculateAgeMain = (dateOfBirth) => {
     if (!dateOfBirth) return ""
     const today = new Date()
     const birthDate = new Date(dateOfBirth)
@@ -806,9 +498,6 @@ const handleDocumentClick = (member) => {
     return today.getMonth() === birthDate.getMonth() && today.getDate() === birthDate.getDate()
   }
 
-  const redirectToContract = () => {
-    window.location.href = "/dashboard/contract"
-  }
 
   const handleImgUpload = (e) => {
     const file = e.target.files[0]
@@ -856,8 +545,8 @@ const handleDocumentClick = (member) => {
   ])
 
   const handleCalendarClick = (member) => {
-    setSelectedMemberForAppointments(member)
-    setShowAppointmentModal(true)
+    setSelectedMemberForAppointmentsMain(member)
+    setShowAppointmentModalMain(true)
   }
 
   const handleTrainingPlansClick = (member) => {
@@ -890,63 +579,66 @@ const handleDocumentClick = (member) => {
 
     toast.success("Training plan removed successfully!")
   }
-
-  const handleManageContingent = (memberId) => {
+  // 
+  const handleManageContingentMain = (memberId) => {
     const memberData = memberContingent[memberId]
     if (memberData) {
-      setTempContingent(memberData.current)
-      setSelectedBillingPeriod("current")
+      setTempContingentMain(memberData.current)
+      setSelectedBillingPeriodMain("current")
     } else {
-      setTempContingent({ used: 0, total: 0 })
+      setTempContingentMain({ used: 0, total: 0 })
     }
-    setShowContingentModal(true)
+    setShowContingentModalMain(true)
   }
 
   const handleBillingPeriodChange = (periodId) => {
-    setSelectedBillingPeriod(periodId)
-    const memberData = memberContingent[selectedMemberForAppointments.id]
+    setSelectedBillingPeriodMain(periodId)
+    const memberData = memberContingent[selectedMemberForAppointmentsMain.id]
     if (periodId === "current") {
-      setTempContingent(memberData.current)
+      setTempContingentMain(memberData.current)
     } else {
-      setTempContingent(memberData.future[periodId] || { used: 0, total: 0 })
+      setTempContingentMain(memberData.future[periodId] || { used: 0, total: 0 })
     }
   }
 
-  const handleSaveContingent = () => {
-    if (selectedMemberForAppointments) {
+  // 
+  const handleSaveContingentMain = () => {
+    if (selectedMemberForAppointmentsMain) {
       const updatedContingent = { ...memberContingent }
-      if (selectedBillingPeriod === "current") {
-        updatedContingent[selectedMemberForAppointments.id].current = { ...tempContingent }
+      if (selectedBillingPeriodMain === "current") {
+        updatedContingent[selectedMemberForAppointmentsMain.id].current = { ...tempContingentMain }
       } else {
-        if (!updatedContingent[selectedMemberForAppointments.id].future) {
-          updatedContingent[selectedMemberForAppointments.id].future = {}
+        if (!updatedContingent[selectedMemberForAppointmentsMain.id].future) {
+          updatedContingent[selectedMemberForAppointmentsMain.id].future = {}
         }
-        updatedContingent[selectedMemberForAppointments.id].future[selectedBillingPeriod] = { ...tempContingent }
+        updatedContingent[selectedMemberForAppointmentsMain.id].future[selectedBillingPeriodMain] = { ...tempContingentMain }
       }
       setMemberContingent(updatedContingent)
       toast.success("Contingent updated successfully")
     }
-    setShowContingentModal(false)
+    setShowContingentModalMain(false)
   }
 
-  const handleAddBillingPeriod = () => {
-    if (newBillingPeriod.trim() && selectedMemberForAppointments) {
+  // 
+  const handleAddBillingPeriodMain = () => {
+    if (newBillingPeriodMain.trim() && selectedMemberForAppointmentsMain) {
       const updatedContingent = { ...memberContingent }
-      if (!updatedContingent[selectedMemberForAppointments.id].future) {
-        updatedContingent[selectedMemberForAppointments.id].future = {}
+      if (!updatedContingent[selectedMemberForAppointmentsMain.id].future) {
+        updatedContingent[selectedMemberForAppointmentsMain.id].future = {}
       }
-      updatedContingent[selectedMemberForAppointments.id].future[newBillingPeriod] = { used: 0, total: 0 }
+      updatedContingent[selectedMemberForAppointmentsMain.id].future[newBillingPeriodMain] = { used: 0, total: 0 }
       setMemberContingent(updatedContingent)
-      setNewBillingPeriod("")
-      setShowAddBillingPeriodModal(false)
+      setNewBillingPeriodMain("")
+      setShowAddBillingPeriodModalMain(false)
       toast.success("New billing period added successfully")
     }
   }
 
-  const handleEditAppointment = (appointment) => {
+  // 
+  const handleEditAppointmentMain = (appointment) => {
     const fullAppointment = {
       ...appointment,
-      name: selectedMemberForAppointments?.title || "Member",
+      name: selectedMemberForAppointmentsMain?.title || "Member",
       specialNote: appointment.specialNote || {
         text: "",
         isImportant: false,
@@ -954,49 +646,51 @@ const handleDocumentClick = (member) => {
         endDate: "",
       },
     }
-    setSelectedAppointmentData(fullAppointment)
-    setShowSelectedAppointmentModal(true)
-    setShowAppointmentModal(false)
+    setSelectedAppointmentDataMain(fullAppointment)
+    setShowSelectedAppointmentModalMain(true)
+    setShowAppointmentModalMain(false)
   }
 
-  const handleCreateNewAppointment = () => {
-    setShowAddAppointmentModal(true)
-    setShowAppointmentModal(false)
+  // 
+  const handleCreateNewAppointmentMain = () => {
+    setShowAddAppointmentModalMain(true)
+    setShowAppointmentModalMain(false)
   }
 
   const handleAddAppointmentSubmit = (data) => {
     const newAppointment = {
-      id: Math.max(0, ...appointments.map((a) => a.id)) + 1,
+      id: Math.max(0, ...appointmentsMain.map((a) => a.id)) + 1,
       ...data,
-      memberId: selectedMemberForAppointments?.id,
+      memberId: selectedMemberForAppointmentsMain?.id,
     }
-    setAppointments([...appointments, newAppointment])
-    setShowAddAppointmentModal(false)
+    setAppointmentsMain([...appointmentsMain, newAppointment])
+    setShowAddAppointmentModalMain(false)
   }
 
-  const handleDeleteAppointment = (id) => {
-    setAppointments(appointments.filter((app) => app.id !== id))
-    setSelectedAppointmentData(null)
-    setShowSelectedAppointmentModal(false)
-    setIsNotifyMemberOpen(true)
-    setNotifyAction("delete")
+  // 
+  const handleDeleteAppointmentMain = (id) => {
+    setAppointmentsMain(appointmentsMain.filter((app) => app.id !== id))
+    setSelectedAppointmentDataMain(null)
+    setShowSelectedAppointmentModalMain(false)
+    setIsNotifyMemberOpenMain(true)
+    setNotifyActionMain("delete")
   }
   const toggleViewMode = () => {
     setViewMode(viewMode === "grid" ? "list" : "grid")
   }
 
   const handleAppointmentChange = (changes) => {
-    if (selectedAppointmentData) {
-      setSelectedAppointmentData({
-        ...selectedAppointmentData,
+    if (selectedAppointmentDataMain) {
+      setSelectedAppointmentDataMain({
+        ...selectedAppointmentDataMain,
         ...changes,
       })
     }
   }
 
   const handleHistoryClick = (member) => {
-    setSelectedMember(member)
-    setShowHistoryModal(true)
+    setSelectedMemberMain(member)
+    setShowHistoryModalMain(true)
   }
 
   const handleChatClick = (member) => {
@@ -1004,20 +698,21 @@ const handleDocumentClick = (member) => {
   }
 
   const handleRelationClick = (member) => {
-    setSelectedMember(member)
+    setSelectedMemberMain(member)
     setActiveTab("relations")
     setIsViewDetailsModalOpen(true)
   }
 
-  const handleAddRelation = () => {
-    if (!newRelation.name || !newRelation.relation) {
+  // 
+  const handleAddRelationMain = () => {
+    if (!newRelationMain.name || !newRelationMain.relation) {
       toast.error("Please fill in all fields")
       return
     }
     const relationId = Date.now()
-    const updatedRelations = { ...memberRelations }
-    if (!updatedRelations[selectedMember.id]) {
-      updatedRelations[selectedMember.id] = {
+    const updatedRelations = { ...memberRelationsMain }
+    if (!updatedRelations[selectedMemberMain.id]) {
+      updatedRelations[selectedMemberMain.id] = {
         family: [],
         friendship: [],
         relationship: [],
@@ -1025,116 +720,405 @@ const handleDocumentClick = (member) => {
         other: [],
       }
     }
-    updatedRelations[selectedMember.id][newRelation.category].push({
+    updatedRelations[selectedMemberMain.id][newRelationMain.category].push({
       id: relationId,
-      name: newRelation.name,
-      relation: newRelation.relation,
-      type: newRelation.type,
+      name: newRelationMain.name,
+      relation: newRelationMain.relation,
+      type: newRelationMain.type,
     })
-    setMemberRelations(updatedRelations)
-    setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
+    setMemberRelationsMain(updatedRelations)
+    setNewRelationMain({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
     toast.success("Relation added successfully")
   }
 
-  const handleDeleteRelation = (category, relationId) => {
-    const updatedRelations = { ...memberRelations }
-    updatedRelations[selectedMember.id][category] = updatedRelations[selectedMember.id][category].filter(
+  // 
+  const handleDeleteRelationMain = (category, relationId) => {
+    const updatedRelations = { ...memberRelationsMain }
+    updatedRelations[selectedMemberMain.id][category] = updatedRelations[selectedMemberMain.id][category].filter(
       (rel) => rel.id !== relationId,
     )
-    setMemberRelations(updatedRelations)
+    setMemberRelationsMain(updatedRelations)
     toast.success("Relation deleted successfully")
   }
 
-  const getMemberAppointments = (memberId) => {
-    return appointments.filter((app) => app.memberId === memberId)
+  // 
+  const getMemberAppointmentsMain = (memberId) => {
+    return appointmentsMain.filter((app) => app.memberId === memberId)
   }
 
-  const [communications, setCommunications] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      message: "Hey, how's the project going?",
-      time: "2 min ago",
-      avatar: Rectangle1,
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      message: "Meeting scheduled for tomorrow",
-      time: "10 min ago",
-      avatar: Rectangle1,
-    },
-  ])
 
-  const [todos, setTodos] = useState([
-    {
-      id: 1,
-      title: "Review project proposal",
-      description: "Check the latest updates",
-      assignee: "Mike",
-    },
-    {
-      id: 2,
-      title: "Update documentation",
-      description: "Add new features info",
-      assignee: "Sarah",
-    },
-  ])
+  // Extract all states and functions from the hook
+  const {
+    // States
+    isRightSidebarOpen,
+    isSidebarEditing,
+    isRightWidgetModalOpen,
+    openDropdownIndex,
+    selectedMemberType,
+    isChartDropdownOpen,
+    isWidgetModalOpen,
+    editingTask,
+    todoFilter,
+    isEditTaskModalOpen,
+    isTodoFilterDropdownOpen,
+    taskToCancel,
+    taskToDelete,
+    isBirthdayMessageModalOpen,
+    selectedBirthdayPerson,
+    birthdayMessage,
+    activeNoteId,
+    isSpecialNoteModalOpen,
+    selectedAppointmentForNote,
+    isTrainingPlanModalOpen,
+    selectedUserForTrainingPlan,
+    selectedAppointment,
+    isEditAppointmentModalOpen,
+    showAppointmentOptionsModal,
+    showAppointmentModal,
+    freeAppointments,
+    selectedMember,
+    isMemberOverviewModalOpen,
+    isMemberDetailsModalOpen,
+    activeMemberDetailsTab,
+    isEditModalOpen,
+    editModalTab,
+    isNotifyMemberOpen,
+    notifyAction,
+    showHistoryModal,
+    historyTab,
+    memberHistory,
+    currentBillingPeriod,
+    tempContingent,
+    selectedBillingPeriod,
+    showAddBillingPeriodModal,
+    newBillingPeriod,
+    showContingentModal,
+    editingRelations,
+    newRelation,
+    editForm,
+    widgets,
+    rightSidebarWidgets,
+    notePopoverRef,
 
-  const [birthdays, setBirthdays] = useState([
-    {
-      id: 1,
-      name: "Alice Johnson",
-      date: "Dec 15, 2024",
-      avatar: DefaultAvatar,
-    },
-    {
-      id: 2,
-      name: "Bob Wilson",
-      date: "Dec 20, 2024",
-      avatar: DefaultAvatar,
-    },
-  ])
+    // Setters
+    setIsRightSidebarOpen,
+    setIsSidebarEditing,
+    setIsRightWidgetModalOpen,
+    setOpenDropdownIndex,
+    setSelectedMemberType,
+    setIsChartDropdownOpen,
+    setIsWidgetModalOpen,
+    setEditingTask,
+    setTodoFilter,
+    setIsEditTaskModalOpen,
+    setIsTodoFilterDropdownOpen,
+    setTaskToCancel,
+    setTaskToDelete,
+    setIsBirthdayMessageModalOpen,
+    setSelectedBirthdayPerson,
+    setBirthdayMessage,
+    setActiveNoteId,
+    setIsSpecialNoteModalOpen,
+    setSelectedAppointmentForNote,
+    setIsTrainingPlanModalOpen,
+    setSelectedUserForTrainingPlan,
+    setSelectedAppointment,
+    setIsEditAppointmentModalOpen,
+    setShowAppointmentOptionsModal,
+    setShowAppointmentModal,
+    setFreeAppointments,
+    setSelectedMember,
+    setIsMemberOverviewModalOpen,
+    setIsMemberDetailsModalOpen,
+    setActiveMemberDetailsTab,
+    setIsEditModalOpen,
+    setEditModalTab,
+    setIsNotifyMemberOpen,
+    setNotifyAction,
+    setShowHistoryModal,
+    setHistoryTab,
+    setMemberHistory,
+    setCurrentBillingPeriod,
+    setTempContingent,
+    setSelectedBillingPeriod,
+    setShowAddBillingPeriodModal,
+    setNewBillingPeriod,
+    setShowContingentModal,
+    setEditingRelations,
+    setNewRelation,
+    setEditForm,
+    setWidgets,
+    setRightSidebarWidgets,
 
-  const [customLinks, setCustomLinks] = useState([
-    {
-      id: 1,
-      title: "Google Drive",
-      url: "https://drive.google.com",
-    },
-    {
-      id: 2,
-      title: "GitHub",
-      url: "https://github.com",
-    },
-  ])
+    // Functions
+    toggleRightSidebar,
+    closeSidebar,
+    toggleSidebarEditing,
+    toggleDropdown,
+    redirectToCommunication,
+    moveRightSidebarWidget,
+    removeRightSidebarWidget,
+    getWidgetPlacementStatus,
+    handleAddRightSidebarWidget,
+    handleTaskComplete,
+    handleEditTask,
+    handleUpdateTask,
+    handleCancelTask,
+    handleDeleteTask,
+    isBirthdayToday,
+    handleSendBirthdayMessage,
+    handleEditNote,
+    handleDumbbellClick,
+    handleCheckIn,
+    handleAppointmentOptionsModal,
+    handleSaveSpecialNote,
+    isEventInPast,
+    handleCancelAppointment,
+    actuallyHandleCancelAppointment,
+    handleDeleteAppointment,
+    handleEditAppointment,
+    handleCreateNewAppointment,
+    handleViewMemberDetails,
+    handleNotifyMember,
+    calculateAge,
+    isContractExpiringSoon,
+    redirectToContract,
+    handleCalendarFromOverview,
+    handleHistoryFromOverview,
+    handleCommunicationFromOverview,
+    handleViewDetailedInfo,
+    handleEditFromOverview,
+    getMemberAppointments,
+    handleManageContingent,
+    getBillingPeriods,
+    handleAddBillingPeriod,
+    handleSaveContingent,
+    handleInputChange,
+    handleEditSubmit,
+    handleAddRelation,
+    handleDeleteRelation,
+    handleArchiveMember,
+    handleUnarchiveMember,
+    truncateUrl,
+    renderSpecialNoteIcon,
 
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-  const [editingLink, setEditingLink] = useState(null)
+    // new states 
+    customLinks, setCustomLinks, communications, setCommunications,
+    todos, setTodos, expiringContracts, setExpiringContracts,
+    birthdays, setBirthdays, notifications, setNotifications,
+    appointments, setAppointments,
+    memberContingentData, setMemberContingentData,
+    memberRelations, setMemberRelations,
 
-  const toggleRightSidebar = () => {
-    setIsRightSidebarOpen(!isRightSidebarOpen)
+    memberTypes,
+    availableMembersLeads,
+    mockTrainingPlans,
+    mockVideos,
+
+    todoFilterOptions,
+    relationOptions,
+    appointmentTypes
+  } = sidebarSystem;
+
+  // more sidebar related functions
+
+  // Chart configuration
+  const chartSeries = [
+    { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
+    { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
+  ];
+
+  const chartOptions = {
+    chart: {
+      type: "line",
+      height: 180,
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
+    },
+    colors: ["#FF6B1A", "#2E5BFF"],
+    stroke: { curve: "smooth", width: 4, opacity: 1 },
+    markers: {
+      size: 1,
+      strokeWidth: 0,
+      hover: { size: 6 },
+    },
+    xaxis: {
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      labels: { style: { colors: "#999999", fontSize: "12px" } },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      min: 0,
+      max: 600,
+      tickAmount: 6,
+      labels: {
+        style: { colors: "#999999", fontSize: "12px" },
+        formatter: (value) => Math.round(value),
+      },
+    },
+    grid: {
+      show: true,
+      borderColor: "#333333",
+      position: "back",
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: true } },
+      row: { opacity: 0.1 },
+      column: { opacity: 0.1 },
+    },
+    legend: {
+      show: true,
+      position: "top",
+      horizontalAlign: "right",
+      offsetY: -30,
+      offsetX: -10,
+      labels: { colors: "#ffffff" },
+      itemMargin: { horizontal: 5 },
+    },
+    title: {
+      text: memberTypes[selectedMemberType].title,
+      align: "left",
+      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
+    },
+    subtitle: {
+      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
+      align: "left",
+      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
+    },
+    tooltip: {
+      theme: "dark",
+      style: {
+        fontSize: "12px",
+        fontFamily: "Inter, sans-serif",
+      },
+      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
+        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
+        '<span style="color: black;">' +
+        series[seriesIndex][dataPointIndex] +
+        "</span></div>",
+    },
+  };
+
+
+  // Wrapper functions to pass local state to hook functions
+  const handleTaskCompleteWrapper = (taskId) => {
+    handleTaskComplete(taskId, todos, setTodos);
+  };
+
+  const handleUpdateTaskWrapper = (updatedTask) => {
+    handleUpdateTask(updatedTask, setTodos);
+  };
+
+  const handleCancelTaskWrapper = (taskId) => {
+    handleCancelTask(taskId, setTodos);
+  };
+
+  const handleDeleteTaskWrapper = (taskId) => {
+    handleDeleteTask(taskId, setTodos);
+  };
+
+  const handleEditNoteWrapper = (appointmentId, currentNote) => {
+    handleEditNote(appointmentId, currentNote, appointments);
+  };
+
+  const handleCheckInWrapper = (appointmentId) => {
+    handleCheckIn(appointmentId, appointments, setAppointments);
+  };
+
+  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
+    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
+  };
+
+  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
+    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
+  };
+
+  const handleDeleteAppointmentWrapper = (id) => {
+    handleDeleteAppointment(id, appointments, setAppointments);
+  };
+
+  const getMemberAppointmentsWrapper = (memberId) => {
+    return getMemberAppointments(memberId, appointments);
+  };
+
+  const handleAddBillingPeriodWrapper = () => {
+    handleAddBillingPeriod(memberContingentData, setMemberContingentData);
+  };
+
+  const handleSaveContingentWrapper = () => {
+    handleSaveContingent(memberContingentData, setMemberContingentData);
+  };
+
+  const handleEditSubmitWrapper = (e) => {
+    handleEditSubmit(e, appointments, setAppointments);
+  };
+
+  const handleAddRelationWrapper = () => {
+    handleAddRelation(memberRelations, setMemberRelations);
+  };
+
+  const handleDeleteRelationWrapper = (category, relationId) => {
+    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations);
+  };
+
+  const handleArchiveMemberWrapper = (memberId) => {
+    handleArchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const handleUnarchiveMemberWrapper = (memberId) => {
+    handleUnarchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const getBillingPeriodsWrapper = (memberId) => {
+    return getBillingPeriods(memberId, memberContingentData);
+  };
+
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case "Beginner":
+        return "bg-green-600"
+      case "Intermediate":
+        return "bg-yellow-600"
+      case "Advanced":
+        return "bg-red-600"
+      default:
+        return "bg-gray-600"
+    }
   }
 
-  const closeSidebar = () => {
-    setIsRightSidebarOpen(false)
+  const getVideoById = (id) => {
+    return trainingVideos.find((video) => video.id === id)
   }
 
-  const redirectToCommunication = () => {
-    navigate("/dashboard/communication")
-  }
+    
 
-  const redirectToTodos = () => {
-    console.log("Redirecting to todos page")
-    navigate("/dashboard/to-do")
-  }
-
-  const toggleDropdown = (index) => {
-    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
-  }
 
   return (
     <>
+     <style>
+        {`
+          @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-1deg); }
+            30% { transform: rotate(1deg); }
+            45% { transform: rotate(-1deg); }
+            60% { transform: rotate(1deg); }
+            75% { transform: rotate(-1deg); }
+            90% { transform: rotate(1deg); }
+          }
+          .animate-wobble {
+            animation: wobble 0.5s ease-in-out infinite;
+          }
+          .dragging {
+            opacity: 0.5;
+            border: 2px dashed #fff;
+          }
+          .drag-over {
+            border: 2px dashed #888;
+          }
+        `}
+      </style>
       <Toaster
         position="top-right"
         toastOptions={{
@@ -1146,9 +1130,8 @@ const handleDocumentClick = (member) => {
         }}
       />
       <div
-        className={`flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative  ${
-          isRightSidebarOpen ? "lg:mr-96 mr-0" : "mr-0"
-        }`}
+        className={`flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative  ${isRightSidebarOpen ? "lg:mr-96 mr-0" : "mr-0"
+          }`}
       >
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 w-full">
@@ -1162,18 +1145,16 @@ const handleDocumentClick = (member) => {
                   <span className="text-xs text-gray-400 px-2">View</span>
                   <button
                     onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${
-                      viewMode === "grid" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
-                    }`}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
+                      }`}
                     title="Grid View"
                   >
                     <Grid3X3 size={16} />
                   </button>
                   <button
                     onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${
-                      viewMode === "list" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
-                    }`}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
+                      }`}
                     title="List View"
                   >
                     <List size={16} />
@@ -1237,9 +1218,8 @@ const handleDocumentClick = (member) => {
                             setSortDirection("asc")
                             setIsSortDropdownOpen(false)
                           }}
-                          className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${
-                            option.id === sortBy && sortDirection === "asc" ? "bg-black" : ""
-                          }`}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${option.id === sortBy && sortDirection === "asc" ? "bg-black" : ""
+                            }`}
                         >
                           <span>{option.label}</span>
                           <span className="text-gray-400">↑</span>
@@ -1250,9 +1230,8 @@ const handleDocumentClick = (member) => {
                             setSortDirection("desc")
                             setIsSortDropdownOpen(false)
                           }}
-                          className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${
-                            option.id === sortBy && sortDirection === "desc" ? "bg-black" : ""
-                          }`}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${option.id === sortBy && sortDirection === "desc" ? "bg-black" : ""
+                            }`}
                         >
                           <span>{option.label}</span>
                           <span className="text-gray-400">↓</span>
@@ -1268,18 +1247,16 @@ const handleDocumentClick = (member) => {
                 <span className="text-xs text-gray-400 px-2">View</span>
                 <button
                   onClick={toggleViewMode}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === "grid" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
+                    }`}
                   title="Grid View"
                 >
                   <Grid3X3 size={16} />
                 </button>
                 <button
                   onClick={toggleViewMode}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === "list" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
+                    }`}
                   title="List View"
                 >
                   <List size={16} />
@@ -1313,375 +1290,355 @@ const handleDocumentClick = (member) => {
           </div>
 
           <div
-  className={`open_sans_font ${
-    viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-3"
-  }`}
->
-  {filteredAndSortedMembers().length > 0 ? (
-    filteredAndSortedMembers().map((member) => (
-      <div
-        key={member.id}
-        className={`bg-[#161616] rounded-xl relative ${viewMode === "grid" ? "p-4" : "p-4 sm:p-6"}`}
-      >
-        {/* Note indicator - positioned absolutely in top-left */}
-        {member.note && (
-          <div className="absolute top-3 left-3 z-10">
-            <div className="relative">
-              <div
-                className={`${
-                  member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setActiveNoteId(activeNoteId === member.id ? null : member.id)
-                }}
-              >
-                {member.noteImportance === "important" ? (
-                  <AlertTriangle size={18} className="text-white" />
-                ) : (
-                  <Info size={18} className="text-white" />
-                )}
-              </div>
-              {activeNoteId === member.id && (
+            className={`open_sans_font ${viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-3"
+              }`}
+          >
+            {filteredAndSortedMembers().length > 0 ? (
+              filteredAndSortedMembers().map((member) => (
                 <div
-                  ref={notePopoverRef}
-                  className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+                  key={member.id}
+                  className={`bg-[#161616] rounded-xl relative ${viewMode === "grid" ? "p-4" : "p-4 sm:p-6"}`}
                 >
-                  <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                    {member.noteImportance === "important" ? (
-                      <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                    ) : (
-                      <Info className="text-blue-500 shrink-0" size={18} />
-                    )}
-                    <h4 className="text-white flex gap-1 items-center font-medium">
-                      <div>Special Note</div>
-                      <div className="text-sm text-gray-400">
-                        {member.noteImportance === "important" ? "(Important)" : "(Unimportant Note)"}
+                  {/* Note indicator - positioned absolutely in top-left */}
+                  {member.note && (
+                    <div className="absolute top-3 left-3 z-10">
+                      <div className="relative">
+                        <div
+                          className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
+                          }}
+                        >
+                          {member.noteImportance === "important" ? (
+                            <AlertTriangle size={18} className="text-white" />
+                          ) : (
+                            <Info size={18} className="text-white" />
+                          )}
+                        </div>
+                        {activeNoteIdMain === member.id && (
+                          <div
+                            ref={notePopoverRefMain}
+                            className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+                          >
+                            <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                              {member.noteImportance === "important" ? (
+                                <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                              ) : (
+                                <Info className="text-blue-500 shrink-0" size={18} />
+                              )}
+                              <h4 className="text-white flex gap-1 items-center font-medium">
+                                <div>Special Note</div>
+                                <div className="text-sm text-gray-400">
+                                  {member.noteImportance === "important" ? "(Important)" : "(Unimportant Note)"}
+                                </div>
+                              </h4>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setActiveNoteIdMain(null)
+                                }}
+                                className="ml-auto text-gray-400 hover:text-white"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                            <div className="p-3">
+                              <p className="text-white text-sm leading-relaxed">{member.note}</p>
+                              {member.noteStartDate && member.noteEndDate && (
+                                <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                                  <p className="text-xs text-gray-300">
+                                    Valid from {member.noteStartDate} to {member.noteEndDate}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </h4>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setActiveNoteId(null)
-                      }}
-                      className="ml-auto text-gray-400 hover:text-white"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                  <div className="p-3">
-                    <p className="text-white text-sm leading-relaxed">{member.note}</p>
-                    {member.noteStartDate && member.noteEndDate && (
-                      <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                        <p className="text-xs text-gray-300">
-                          Valid from {member.noteStartDate} to {member.noteEndDate}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {viewMode === "grid" ? (
-          // Grid layout
-          <div className="flex flex-col">
-            <div className="flex flex-col items-center mb-4">
-              <img
-                src={member.image || DefaultAvatar}
-                className="h-20 w-20 rounded-2xl flex-shrink-0 object-cover mb-3"
-                alt=""
-              />
-              <div className="flex flex-col items-center">
-                <div className="flex flex-col sm:flex-row items-center gap-2">
-                  <h3 className="text-white font-medium truncate text-lg">
-                    {member.title}
-                    {member.dateOfBirth && ` (${calculateAge(member.dateOfBirth)})`}
-                  </h3>
-
-                  <div className="flex items-center gap-2">
-                    {member.isArchived ? (
-                      <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
-                    ) : (
-                      <span
-                        className={`px-2 py-0.5 text-xs rounded-full ${
-                          member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
-                        }`}
-                      >
-                        {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
-                      </span>
-                    )}
-
-                    {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
-                  </div>
-                </div>
-
-                <div className="text-sm mt-1 flex items-center gap-1">
-                  <p className="text-gray-400">Member Type:</p>
-                  <span className="text-gray-400">
-                    {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                  </span>
-                </div>
-
-                <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
-                  {member.memberType === "full" ? (
-                    <>
-                      Contract: {member.contractStart} -{" "}
-                      <span className={isContractExpiringSoon(member.contractEnd) ? "text-red-500" : ""}>
-                        {member.contractEnd}
-                      </span>
-                      {isContractExpiringSoon(member.contractEnd) && (
-                        <Info size={16} className="text-red-500 ml-1" />
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      No Contract - Auto-archive: {member.autoArchiveDate}
-                      {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
-                        <Clock size={16} className="text-orange-500 ml-1" />
-                      )}
-                    </>
+                    </div>
                   )}
+
+                  {viewMode === "grid" ? (
+                    // Grid layout
+                    <div className="flex flex-col">
+                      <div className="flex flex-col items-center mb-4">
+                        <img
+                          src={member.image || DefaultAvatar1}
+                          className="h-20 w-20 rounded-2xl flex-shrink-0 object-cover mb-3"
+                          alt=""
+                        />
+                        <div className="flex flex-col items-center">
+                          <div className="flex flex-col sm:flex-row items-center gap-2">
+                            <h3 className="text-white font-medium truncate text-lg">
+                              {member.title}
+                              {member.dateOfBirth && ` (${calculateAgeMain(member.dateOfBirth)})`}
+                            </h3>
+
+                            <div className="flex items-center gap-2">
+                              {member.isArchived ? (
+                                <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
+                              ) : (
+                                <span
+                                  className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
+                                    }`}
+                                >
+                                  {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
+                                </span>
+                              )}
+
+                              {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
+                            </div>
+                          </div>
+
+                          <div className="text-sm mt-1 flex items-center gap-1">
+                            <p className="text-gray-400">Member Type:</p>
+                            <span className="text-gray-400">
+                              {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                            </span>
+                          </div>
+
+                          <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
+                            {member.memberType === "full" ? (
+                              <>
+                                Contract: {member.contractStart} -{" "}
+                                <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
+                                  {member.contractEnd}
+                                </span>
+                                {isContractExpiringSoonMain(member.contractEnd) && (
+                                  <Info size={16} className="text-red-500 ml-1" />
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                No Contract - Auto-archive: {member.autoArchiveDate}
+                                {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
+                                  <Clock size={16} className="text-orange-500 ml-1" />
+                                )}
+                              </>
+                            )}
+                          </p>
+                          <div className="mt-2">
+                            <button
+                              onClick={() => handleRelationClick(member)}
+                              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                            >
+                              <Users size={12} />
+                              Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action buttons - Icons only in first row */}
+                      <div className="grid grid-cols-5 gap-2 mt-auto">
+                        <button
+                          onClick={() => handleCalendarClick(member)}
+                          className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                          title="View Appointments"
+                        >
+                          <Calendar size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleTrainingPlansClick(member)}
+                          className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                          title="Training Plans"
+                        >
+                          <Dumbbell size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleHistoryClick(member)}
+                          className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                          title="View History"
+                        >
+                          <History size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDocumentClick(member)}
+                          className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                          title="Document Management"
+                        >
+                          <FileText size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleChatClick(member)}
+                          className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                          title="Start Chat"
+                        >
+                          <MessageCircle size={16} />
+                        </button>
+                      </div>
+
+                      {/* Second row - Text buttons */}
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        <button
+                          onClick={() => handleViewDetails(member)}
+                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-1"
+                        >
+                          <Eye size={14} />
+                          <span className="text-xs">View Details</span>
+                        </button>
+                        <button
+                          onClick={() => handleEditMember(member)}
+                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                        >
+                          <span className="text-sm">Edit</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // List layout
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-4 pl-4">
+                      {/* Left side - Profile info */}
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <img
+                          src={member.image || DefaultAvatar1}
+                          className="h-12 w-12 sm:h-20 sm:w-20 rounded-2xl flex-shrink-0 object-cover"
+                          alt=""
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                            <h3 className="text-white font-medium text-base sm:text-lg truncate">
+                              {member.title}
+                              {member.dateOfBirth && ` (${calculateAgeMain(member.dateOfBirth)})`}
+                            </h3>
+
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {member.isArchived ? (
+                                <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
+                              ) : (
+                                <span
+                                  className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
+                                    }`}
+                                >
+                                  {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
+                                </span>
+                              )}
+
+                              {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
+                            </div>
+                          </div>
+
+                          <div className="text-sm mt-1 flex flex-col sm:items-start gap-1">
+                            <div className="flex items-center gap-1">
+                              <p className="text-gray-400">Member Type:</p>
+                              <span className="text-gray-400">
+                                {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                              </span>
+                            </div>
+
+                            <p className="text-gray-400 text-sm flex items-center gap-1">
+                              {member.memberType === "full" ? (
+                                <>
+                                  Contract: {member.contractStart} -{" "}
+                                  <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
+                                    {member.contractEnd}
+                                  </span>
+                                  {isContractExpiringSoonMain(member.contractEnd) && (
+                                    <Info size={14} className="text-red-500" />
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  No Contract - Auto-archive: {member.autoArchiveDate}
+                                  {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
+                                    <Clock size={14} className="text-orange-500" />
+                                  )}
+                                </>
+                              )}
+                            </p>
+                          </div>
+
+                          <div className="mt-1">
+                            <button
+                              onClick={() => handleRelationClick(member)}
+                              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                            >
+                              <Users size={12} />
+                              Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right side - Action buttons */}
+                      <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
+                        {/* First row - 5 icon buttons only */}
+                        <div className="grid grid-cols-5 gap-2">
+                          <button
+                            onClick={() => handleCalendarClick(member)}
+                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                            title="View Appointments"
+                          >
+                            <Calendar size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleTrainingPlansClick(member)}
+                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                            title="Training Plans"
+                          >
+                            <Dumbbell size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleHistoryClick(member)}
+                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                            title="View History"
+                          >
+                            <History size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDocumentClick(member)}
+                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                            title="Document Management"
+                          >
+                            <FileText size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleChatClick(member)}
+                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                            title="Start Chat"
+                          >
+                            <MessageCircle size={16} />
+                          </button>
+                        </div>
+
+                        {/* Second row - Text buttons */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => handleViewDetails(member)}
+                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                          >
+                            <Eye size={16} />
+                            <span className="text-sm">View Details</span>
+                          </button>
+                          <button
+                            onClick={() => handleEditMember(member)}
+                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                          >
+                            <span className="text-sm">Edit</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-red-600 text-center text-sm cursor-pointer col-span-full">
+                <p className="text-gray-400">
+                  {filterStatus === "active"
+                    ? "No active members found."
+                    : filterStatus === "paused"
+                      ? "No paused members found."
+                      : filterStatus === "archived"
+                        ? "No archived members found."
+                        : "No members found."}
                 </p>
-                <div className="mt-2">
-                  <button
-                    onClick={() => handleRelationClick(member)}
-                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                  >
-                    <Users size={12} />
-                    Relations ({Object.values(memberRelations[member.id] || {}).flat().length})
-                  </button>
-                </div>
               </div>
-            </div>
-
-            {/* Action buttons - Icons only in first row */}
-            <div className="grid grid-cols-5 gap-2 mt-auto">
-              <button
-                onClick={() => handleCalendarClick(member)}
-                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                title="View Appointments"
-              >
-                <Calendar size={16} />
-              </button>
-              <button
-                onClick={() => handleTrainingPlansClick(member)}
-                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                title="Training Plans"
-              >
-                <Dumbbell size={16} />
-              </button>
-              <button
-                onClick={() => handleHistoryClick(member)}
-                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                title="View History"
-              >
-                <History size={16} />
-              </button>
-              <button
-                 onClick={() => handleDocumentClick(member)}
-                 className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
-                 title="Document Management"
-              >
-                <FileText size={16} />
-              </button>
-              <button
-                onClick={() => handleChatClick(member)}
-                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                title="Start Chat"
-              >
-                <MessageCircle size={16} />
-              </button>
-            </div>
-
-            {/* Second row - Text buttons */}
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <button
-                onClick={() => handleViewDetails(member)}
-                className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-1"
-              >
-                <Eye size={14} />
-                <span className="text-xs">View Details</span>
-              </button>
-              <button
-                onClick={() => handleEditMember(member)}
-                className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-              >
-                <span className="text-sm">Edit</span>
-              </button>
-            </div>
+            )}
           </div>
-        ) : (
-          // List layout
-          <div className="flex flex-col lg:flex-row lg:items-center gap-4 pl-4">
-            {/* Left side - Profile info */}
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <img
-                src={member.image || DefaultAvatar}
-                className="h-12 w-12 sm:h-20 sm:w-20 rounded-2xl flex-shrink-0 object-cover"
-                alt=""
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                  <h3 className="text-white font-medium text-base sm:text-lg truncate">
-                    {member.title}
-                    {member.dateOfBirth && ` (${calculateAge(member.dateOfBirth)})`}
-                  </h3>
-
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {member.isArchived ? (
-                      <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
-                    ) : (
-                      <span
-                        className={`px-2 py-0.5 text-xs rounded-full ${
-                          member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
-                        }`}
-                      >
-                        {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
-                      </span>
-                    )}
-
-                    {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
-                  </div>
-                </div>
-
-                <div className="text-sm mt-1 flex flex-col sm:items-start gap-1">
-                  <div className="flex items-center gap-1">
-                    <p className="text-gray-400">Member Type:</p>
-                    <span className="text-gray-400">
-                      {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                    </span>
-                  </div>
-
-                  <p className="text-gray-400 text-sm flex items-center gap-1">
-                    {member.memberType === "full" ? (
-                      <>
-                        Contract: {member.contractStart} -{" "}
-                        <span className={isContractExpiringSoon(member.contractEnd) ? "text-red-500" : ""}>
-                          {member.contractEnd}
-                        </span>
-                        {isContractExpiringSoon(member.contractEnd) && (
-                          <Info size={14} className="text-red-500" />
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        No Contract - Auto-archive: {member.autoArchiveDate}
-                        {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
-                          <Clock size={14} className="text-orange-500" />
-                        )}
-                      </>
-                    )}
-                  </p>
-                </div>
-
-                <div className="mt-1">
-                  <button
-                    onClick={() => handleRelationClick(member)}
-                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                  >
-                    <Users size={12} />
-                    Relations ({Object.values(memberRelations[member.id] || {}).flat().length})
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right side - Action buttons */}
-            <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
-              {/* First row - 5 icon buttons only */}
-              <div className="grid grid-cols-5 gap-2">
-                <button
-                  onClick={() => handleCalendarClick(member)}
-                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                  title="View Appointments"
-                >
-                  <Calendar size={16} />
-                </button>
-                <button
-                  onClick={() => handleTrainingPlansClick(member)}
-                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                  title="Training Plans"
-                >
-                  <Dumbbell size={16} />
-                </button>
-                <button
-                  onClick={() => handleHistoryClick(member)}
-                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                  title="View History"
-                >
-                  <History size={16} />
-                </button>
-                <button
-                  onClick={() => handleDocumentClick(member)}
-                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                  title="Document Management"
-                >
-                  <FileText size={16} />
-                </button>
-                <button
-                  onClick={() => handleChatClick(member)}
-                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                  title="Start Chat"
-                >
-                  <MessageCircle size={16} />
-                </button>
-              </div>
-
-              {/* Second row - Text buttons */}
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleViewDetails(member)}
-                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                >
-                  <Eye size={16} />
-                  <span className="text-sm">View Details</span>
-                </button>
-                <button
-                  onClick={() => handleEditMember(member)}
-                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                >
-                  <span className="text-sm">Edit</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    ))
-  ) : (
-    <div className="text-red-600 text-center text-sm cursor-pointer col-span-full">
-      <p className="text-gray-400">
-        {filterStatus === "active"
-          ? "No active members found."
-          : filterStatus === "paused"
-            ? "No paused members found."
-            : filterStatus === "archived"
-              ? "No archived members found."
-              : "No members found."}
-      </p>
-    </div>
-  )}
-</div>
-          <SidebarArea
-            isOpen={isRightSidebarOpen}
-            onClose={closeSidebar}
-            communications={communications}
-            todos={todos}
-            birthdays={birthdays}
-            customLinks={customLinks}
-            setCustomLinks={setCustomLinks}
-            redirectToCommunication={redirectToCommunication}
-            redirectToTodos={redirectToTodos}
-            toggleDropdown={toggleDropdown}
-            openDropdownIndex={openDropdownIndex}
-            setEditingLink={setEditingLink}
-          />
-
-          {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
-
+        
           <FilterModal
             isOpen={showFilterModal}
             onClose={() => setShowFilterModal(false)}
@@ -1702,37 +1659,37 @@ const handleDocumentClick = (member) => {
             handleCreateTempMember={handleCreateTempMember}
             handleTempMemberInputChange={handleTempMemberInputChange}
             handleImgUpload={handleImgUpload}
-            editingRelations={editingRelations}
-            setEditingRelations={setEditingRelations}
-            newRelation={newRelation}
-            setNewRelation={setNewRelation}
-            availableMembersLeads={availableMembersLeads}
-            relationOptions={relationOptions}
+            editingRelationsMain={editingRelationsMain}
+            setEditingRelationsMain={setEditingRelationsMain}
+            newRelationMain={newRelationMain}
+            setNewRelationMain={setNewRelationMain}
+            availableMembersLeadsMain={availableMembersLeadsMain}
+            relationOptionsMain={relationOptionsMain}
           />
 
-          <EditMemberModal
-            isOpen={isEditModalOpen}
+          <EditMemberModalMain
+            isOpen={isEditModalOpenMain}
             onClose={() => {
-              setIsEditModalOpen(false)
-              setSelectedMember(null)
+              setIsEditModalOpenMain(false)
+              setSelectedMemberMain(null)
             }}
-            selectedMember={selectedMember}
-            editModalTab={editModalTab}
-            setEditModalTab={setEditModalTab}
-            editForm={editForm}
-            handleInputChange={handleInputChange}
-            handleEditSubmit={handleEditSubmit}
-            editingRelations={editingRelations}
-            setEditingRelations={setEditingRelations}
-            newRelation={newRelation}
-            setNewRelation={setNewRelation}
-            availableMembersLeads={availableMembersLeads}
-            relationOptions={relationOptions}
-            handleAddRelation={handleAddRelation}
-            memberRelations={memberRelations}
-            handleDeleteRelation={handleDeleteRelation}
-            handleArchiveMember={handleArchiveMember}
-            handleUnarchiveMember={handleUnarchiveMember}
+            selectedMemberMain={selectedMemberMain}
+            editModalTabMain={editModalTabMain}
+            setEditModalTabMain={setEditModalTabMain}
+            editFormMain={editFormMain}
+            handleInputChangeMain={handleInputChangeMain}
+            handleEditSubmitMain={handleEditSubmitMain}
+            editingRelationsMain={editingRelationsMain}
+            setEditingRelationsMain={setEditingRelationsMain}
+            newRelationMain={newRelationMain}
+            setNewRelationMain={setNewRelationMain}
+            availableMembersLeadsMain={availableMembersLeadsMain}
+            relationOptionsMain={relationOptionsMain}
+            handleAddRelationMain={handleAddRelationMain}
+            memberRelationsMain={memberRelationsMain}
+            handleDeleteRelationMain={handleDeleteRelationMain}
+            handleArchiveMemberMain={handleArchiveMemberMain}
+            handleUnarchiveMemberMain={handleUnarchiveMemberMain}
           />
         </div>
       </div>
@@ -1741,85 +1698,85 @@ const handleDocumentClick = (member) => {
         isOpen={isViewDetailsModalOpen}
         onClose={() => {
           setIsViewDetailsModalOpen(false)
-          setSelectedMember(null)
+          setSelectedMemberMain(null)
         }}
-        selectedMember={selectedMember}
-        memberRelations={memberRelations}
-        calculateAge={calculateAge}
-        isContractExpiringSoon={isContractExpiringSoon}
+        selectedMemberMain={selectedMemberMain}
+        memberRelationsMain={memberRelationsMain}
+        calculateAgeMain={calculateAgeMain}
+        isContractExpiringSoonMain={isContractExpiringSoonMain}
         redirectToContract={redirectToContract}
         handleEditMember={handleEditMember}
-        setEditModalTab={setEditModalTab}
-        DefaultAvatar={DefaultAvatar}
+        setEditModalTabMain={setEditModalTabMain}
+        DefaultAvatar1={DefaultAvatar1}
       />
-      <AppointmentModal
-        isOpen={showAppointmentModal}
+      <AppointmentModalMain
+        isOpen={showAppointmentModalMain}
         onClose={() => {
-          setShowAppointmentModal(false)
-          setSelectedMemberForAppointments(null)
+          setShowAppointmentModalMain(false)
+          setSelectedMemberForAppointmentsMain(null)
         }}
-        selectedMember={selectedMemberForAppointments}
-        getMemberAppointments={getMemberAppointments}
-        appointmentTypes={appointmentTypes}
-        handleEditAppointment={handleEditAppointment}
-        handleDeleteAppointment={handleDeleteAppointment}
+        selectedMemberMain={selectedMemberForAppointmentsMain}
+        getMemberAppointmentsMain={getMemberAppointmentsMain}
+        appointmentTypesMain={appointmentTypesMain}
+        handleEditAppointmentMain={handleEditAppointmentMain}
+        handleDeleteAppointmentMain={handleDeleteAppointmentMain}
         memberContingent={memberContingent}
-        currentBillingPeriod={currentBillingPeriod}
-        handleManageContingent={handleManageContingent}
-        handleCreateNewAppointment={handleCreateNewAppointment}
+        currentBillingPeriodMain={currentBillingPeriodMain}
+        handleManageContingentMain={handleManageContingentMain}
+        handleCreateNewAppointmentMain={handleCreateNewAppointmentMain}
       />
-      {showAddAppointmentModal && (
+      {showAddAppointmentModalMain && (
         <AddAppointmentModal
-          isOpen={showAddAppointmentModal}
-          onClose={() => setShowAddAppointmentModal(false)}
-          appointmentTypes={appointmentTypes}
+          isOpen={showAddAppointmentModalMain}
+          onClose={() => setShowAddAppointmentModalMain(false)}
+          appointmentTypesMain={appointmentTypesMain}
           onSubmit={handleAddAppointmentSubmit}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
-          freeAppointments={freeAppointments}
+          setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain}
+          setNotifyActionMain={setNotifyActionMain}
+          freeAppointmentsMain={freeAppointmentsMain}
         />
       )}
-      {showSelectedAppointmentModal && selectedAppointmentData && (
-        <EditAppointmentModal
-          selectedAppointment={selectedAppointmentData}
-          setSelectedAppointment={setSelectedAppointmentData}
-          appointmentTypes={appointmentTypes}
-          freeAppointments={freeAppointments}
+      {showSelectedAppointmentModalMain && selectedAppointmentDataMain && (
+        <EditAppointmentModalMain
+          selectedAppointmentMain={selectedAppointmentDataMain}
+          setSelectedAppointmentMain={setSelectedAppointmentDataMain}
+          appointmentTypesMain={appointmentTypesMain}
+          freeAppointmentsMain={freeAppointmentsMain}
           handleAppointmentChange={handleAppointmentChange}
-          appointments={appointments}
-          setAppointments={setAppointments}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
-          onDelete={handleDeleteAppointment}
+          appointmentsMain={appointmentsMain}
+          setAppointmentsMain={setAppointmentsMain}
+          setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain}
+          setNotifyActionMain={setNotifyActionMain}
+          onDelete={handleDeleteAppointmentMain}
         />
       )}
       <MemberDocumentModal
-  member={selectedMemberForDocuments}
-  isOpen={showDocumentModal}
-  onClose={() => {
-    setShowDocumentModal(false)
-    setSelectedMemberForDocuments(null)
-  }}
-/>
-      <ContingentModal
-        showContingentModal={showContingentModal}
-        setShowContingentModal={setShowContingentModal}
-        selectedMemberForAppointments={selectedMemberForAppointments}
-        getBillingPeriods={getBillingPeriods}
-        selectedBillingPeriod={selectedBillingPeriod}
-        handleBillingPeriodChange={handleBillingPeriodChange}
-        setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
-        currentBillingPeriod={currentBillingPeriod}
-        tempContingent={tempContingent}
-        setTempContingent={setTempContingent}
-        handleSaveContingent={handleSaveContingent}
+        member={selectedMemberForDocuments}
+        isOpen={showDocumentModal}
+        onClose={() => {
+          setShowDocumentModal(false)
+          setSelectedMemberForDocuments(null)
+        }}
       />
-      <AddBillingPeriodModal
-        open={showAddBillingPeriodModal}
-        newBillingPeriod={newBillingPeriod}
-        setNewBillingPeriod={setNewBillingPeriod}
-        onClose={() => setShowAddBillingPeriodModal(false)}
-        onAdd={handleAddBillingPeriod}
+      <ContingentModalMain
+        showContingentModalMain={showContingentModalMain}
+        setShowContingentModalMain={setShowContingentModalMain}
+        selectedMemberForAppointmentsMain={selectedMemberForAppointmentsMain}
+        getBillingPeriodsMain={getBillingPeriodsMain}
+        selectedBillingPeriodMain={selectedBillingPeriodMain}
+        handleBillingPeriodChange={handleBillingPeriodChange}
+        setShowAddBillingPeriodModalMain={setShowAddBillingPeriodModalMain}
+        currentBillingPeriodMain={currentBillingPeriodMain}
+        tempContingentMain={tempContingentMain}
+        setTempContingentMain={setTempContingentMain}
+        handleSaveContingentMain={handleSaveContingentMain}
+      />
+      <AddBillingPeriodModalMain
+        open={showAddBillingPeriodModalMain}
+        newBillingPeriodMain={newBillingPeriodMain}
+        setNewBillingPeriodMain={setNewBillingPeriodMain}
+        onClose={() => setShowAddBillingPeriodModalMain(false)}
+        onAdd={handleAddBillingPeriodMain}
       />
       <TrainingPlansModal
         isOpen={showTrainingPlansModal}
@@ -1833,15 +1790,309 @@ const handleDocumentClick = (member) => {
         onAssignPlan={handleAssignTrainingPlan}
         onRemovePlan={handleRemoveTrainingPlan}
       />
+      <HistoryModalMain
+        show={showHistoryModalMain}
+        member={selectedMemberMain}
+        memberHistoryMain={memberHistoryMain}
+        historyTabMain={historyTabMain}
+        setHistoryTabMain={setHistoryTabMain}
+        onClose={() => setShowHistoryModalMain(false)}
+      />
+      <NotifyMemberModalMain open={isNotifyMemberOpenMain} action={notifyActionMain} onClose={() => setIsNotifyMemberOpenMain(false)} />
+   
+   {/* sidebar related modal  */}
+
+   <Sidebar
+        isRightSidebarOpen={isRightSidebarOpen}
+        toggleRightSidebar={toggleRightSidebar}
+        isSidebarEditing={isSidebarEditing}
+        toggleSidebarEditing={toggleSidebarEditing}
+        rightSidebarWidgets={rightSidebarWidgets}
+        moveRightSidebarWidget={moveRightSidebarWidget}
+        removeRightSidebarWidget={removeRightSidebarWidget}
+        setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
+        communications={communications}
+        redirectToCommunication={redirectToCommunication}
+        todos={todos}
+        handleTaskComplete={handleTaskCompleteWrapper}
+        todoFilter={todoFilter}
+        setTodoFilter={setTodoFilter}
+        todoFilterOptions={todoFilterOptions}
+        isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
+        setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
+        openDropdownIndex={openDropdownIndex}
+        toggleDropdown={toggleDropdown}
+        handleEditTask={handleEditTask}
+        setTaskToCancel={setTaskToCancel}
+        setTaskToDelete={setTaskToDelete}
+        birthdays={birthdays}
+        isBirthdayToday={isBirthdayToday}
+        handleSendBirthdayMessage={handleSendBirthdayMessage}
+        customLinks={customLinks}
+        truncateUrl={truncateUrl}
+        appointments={appointments}
+        renderSpecialNoteIcon={renderSpecialNoteIcon}
+        handleDumbbellClick={handleDumbbellClick}
+        handleCheckIn={handleCheckInWrapper}
+        handleAppointmentOptionsModal={handleAppointmentOptionsModal}
+        selectedMemberType={selectedMemberType}
+        setSelectedMemberType={setSelectedMemberType}
+        memberTypes={memberTypes}
+        isChartDropdownOpen={isChartDropdownOpen}
+        setIsChartDropdownOpen={setIsChartDropdownOpen}
+        chartOptions={chartOptions}
+        chartSeries={chartSeries}
+        expiringContracts={expiringContracts}
+        getWidgetPlacementStatus={getWidgetPlacementStatus}
+        onClose={toggleRightSidebar}
+        hasUnreadNotifications={2}
+        setIsWidgetModalOpen={setIsWidgetModalOpen}
+        handleEditNote={handleEditNoteWrapper}
+        activeNoteId={activeNoteId}
+        setActiveNoteId={setActiveNoteId}
+        isSpecialNoteModalOpen={isSpecialNoteModalOpen}
+        setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
+        selectedAppointmentForNote={selectedAppointmentForNote}
+        setSelectedAppointmentForNote={setSelectedAppointmentForNote}
+        handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
+        onSaveSpecialNote={handleSaveSpecialNoteWrapper}
+        notifications={notifications}
+      />
+
+      {/* Sidebar related modals */}
+      <TrainingPlanModal
+        isOpen={isTrainingPlanModalOpen}
+        onClose={() => setIsTrainingPlanModalOpen(false)}
+        user={selectedUserForTrainingPlan}
+        trainingPlans={mockTrainingPlans}
+        getDifficultyColor={getDifficultyColor}
+        getVideoById={getVideoById}
+      />
+
+      <AppointmentActionModalV2
+        isOpen={showAppointmentOptionsModal}
+        onClose={() => {
+          setShowAppointmentOptionsModal(false);
+          setSelectedAppointment(null);
+        }}
+        appointment={selectedAppointment}
+        isEventInPast={isEventInPast}
+        onEdit={() => {
+          setShowAppointmentOptionsModal(false);
+          setIsEditAppointmentModalOpen(true);
+        }}
+        onCancel={handleCancelAppointment}
+        onViewMember={handleViewMemberDetails}
+      />
+
+      <NotifyMemberModal
+        isOpen={isNotifyMemberOpen}
+        onClose={() => setIsNotifyMemberOpen(false)}
+        notifyAction={notifyAction}
+        actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
+        handleNotifyMember={handleNotifyMember}
+      />
+
+      {isEditAppointmentModalOpen && selectedAppointment && (
+        <EditAppointmentModalV2
+          selectedAppointment={selectedAppointment}
+          setSelectedAppointment={setSelectedAppointment}
+          appointmentTypes={appointmentTypes}
+          freeAppointments={freeAppointments}
+          handleAppointmentChange={(changes) => {
+            setSelectedAppointment({ ...selectedAppointment, ...changes });
+          }}
+          appointments={appointments}
+          setAppointments={setAppointments}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          onDelete={handleDeleteAppointmentWrapper}
+          onClose={() => {
+            setIsEditAppointmentModalOpen(false);
+            setSelectedAppointment(null);
+          }}
+        />
+      )}
+
+      <WidgetSelectionModal
+        isOpen={isRightWidgetModalOpen}
+        onClose={() => setIsRightWidgetModalOpen(false)}
+        onSelectWidget={handleAddRightSidebarWidget}
+        getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
+        widgetArea="sidebar"
+      />
+
+      <MemberOverviewModal
+        isOpen={isMemberOverviewModalOpen}
+        onClose={() => {
+          setIsMemberOverviewModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        handleCalendarFromOverview={handleCalendarFromOverview}
+        handleHistoryFromOverview={handleHistoryFromOverview}
+        handleCommunicationFromOverview={handleCommunicationFromOverview}
+        handleViewDetailedInfo={handleViewDetailedInfo}
+        handleEditFromOverview={handleEditFromOverview}
+      />
+
+      <AppointmentModal
+        show={showAppointmentModal}
+        member={selectedMember}
+        onClose={() => {
+          setShowAppointmentModal(false);
+          setSelectedMember(null);
+        }}
+        getMemberAppointments={getMemberAppointmentsWrapper}
+        appointmentTypes={appointmentTypes}
+        handleEditAppointment={handleEditAppointment}
+        handleCancelAppointment={handleCancelAppointment}
+        currentBillingPeriod={currentBillingPeriod}
+        memberContingentData={memberContingentData}
+        handleManageContingent={handleManageContingent}
+        handleCreateNewAppointment={handleCreateNewAppointment}
+      />
+
       <HistoryModal
         show={showHistoryModal}
-        member={selectedMember}
-        memberHistory={memberHistory}
+        onClose={() => {
+          setShowHistoryModal(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
         historyTab={historyTab}
         setHistoryTab={setHistoryTab}
-        onClose={() => setShowHistoryModal(false)}
+        memberHistory={memberHistory}
       />
-      <NotifyMemberModal open={isNotifyMemberOpen} action={notifyAction} onClose={() => setIsNotifyMemberOpen(false)} />
+
+      <MemberDetailsModal
+        isOpen={isMemberDetailsModalOpen}
+        onClose={() => {
+          setIsMemberDetailsModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        memberRelations={memberRelations}
+        DefaultAvatar={DefaultAvatar}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        redirectToContract={redirectToContract}
+      />
+
+      <ContingentModal
+        show={showContingentModal}
+        setShow={setShowContingentModal}
+        selectedMember={selectedMember}
+        getBillingPeriods={getBillingPeriodsWrapper}
+        selectedBillingPeriod={selectedBillingPeriod}
+        handleBillingPeriodChange={setSelectedBillingPeriod}
+        setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
+        tempContingent={tempContingent}
+        setTempContingent={setTempContingent}
+        currentBillingPeriod={currentBillingPeriod}
+        handleSaveContingent={handleSaveContingentWrapper}
+      />
+
+      <AddBillingPeriodModal
+        show={showAddBillingPeriodModal}
+        setShow={setShowAddBillingPeriodModal}
+        newBillingPeriod={newBillingPeriod}
+        setNewBillingPeriod={setNewBillingPeriod}
+        handleAddBillingPeriod={handleAddBillingPeriodWrapper}
+      />
+
+      <EditMemberModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        editModalTab={editModalTab}
+        setEditModalTab={setEditModalTab}
+        editForm={editForm}
+        handleInputChange={handleInputChange}
+        handleEditSubmit={handleEditSubmitWrapper}
+        editingRelations={editingRelations}
+        setEditingRelations={setEditingRelations}
+        newRelation={newRelation}
+        setNewRelation={setNewRelation}
+        availableMembersLeads={availableMembersLeads}
+        relationOptions={relationOptions}
+        handleAddRelation={handleAddRelationWrapper}
+        memberRelations={memberRelations}
+        handleDeleteRelation={handleDeleteRelationWrapper}
+        handleArchiveMember={handleArchiveMemberWrapper}
+        handleUnarchiveMember={handleUnarchiveMemberWrapper}
+      />
+
+      {isRightSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      {isEditTaskModalOpen && editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onClose={() => {
+            setIsEditTaskModalOpen(false);
+            setEditingTask(null);
+          }}
+          onUpdateTask={handleUpdateTaskWrapper}
+        />
+      )}
+
+      {taskToDelete && (
+        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this task? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteTaskWrapper(taskToDelete)}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {taskToCancel && (
+        <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToCancel(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                No
+              </button>
+              <button
+                onClick={() => handleCancelTaskWrapper(taskToCancel)}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+              >
+                Cancel Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

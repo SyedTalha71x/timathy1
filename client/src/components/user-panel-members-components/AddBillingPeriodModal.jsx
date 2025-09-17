@@ -4,10 +4,10 @@
     import React from "react";
     import { X, Info } from "lucide-react";
 
-    export default function AddBillingPeriodModal({
+    export default function AddBillingPeriodModalMain({
     open,
-    newBillingPeriod,
-    setNewBillingPeriod,
+    newBillingPeriodMain,
+    setNewBillingPeriodMain,
     onClose,
     onAdd
     }) {
@@ -36,8 +36,8 @@
                 </label>
                 <input
                     type="text"
-                    value={newBillingPeriod}
-                    onChange={(e) => setNewBillingPeriod(e.target.value)}
+                    value={newBillingPeriodMain}
+                    onChange={(e) => setNewBillingPeriodMain(e.target.value)}
                     placeholder="MM.DD.YY - MM.DD.YYYY"
                     className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
                 />
@@ -63,7 +63,7 @@
                 </button>
                 <button
                 onClick={onAdd}
-                disabled={!newBillingPeriod.trim()}
+                disabled={!newBillingPeriodMain.trim()}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl text-sm"
                 >
                 Add Period
