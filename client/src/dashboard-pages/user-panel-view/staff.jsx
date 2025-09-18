@@ -90,8 +90,8 @@ export default function StaffManagement() {
   }
 
 
-   // Extract all states and functions from the hook
-   const {
+  // Extract all states and functions from the hook
+  const {
     // States
     isRightSidebarOpen,
     isSidebarEditing,
@@ -433,13 +433,13 @@ export default function StaffManagement() {
   const getVideoById = (id) => {
     return trainingVideos.find((video) => video.id === id)
   }
- 
+
 
   return (
     <StaffContext.Provider value={{ staffMembers, setStaffMembers }}>
       <>
-      <style>
-        {`
+        <style>
+          {`
           @keyframes wobble {
             0%, 100% { transform: rotate(0deg); }
             15% { transform: rotate(-1deg); }
@@ -460,17 +460,17 @@ export default function StaffManagement() {
             border: 2px dashed #888;
           }
         `}
-      </style>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
+        </style>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 2000,
+            style: {
+              background: "#333",
+              color: "#fff",
+            },
+          }}
+        />
 
         <div
           className={`flex relative rounded-3xl transition-all duration-500 cursor-pointer bg-[#1C1C1C] text-white ${isRightSidebarOpen ? "lg:mr-89 mr-0" : "mr-0"
@@ -478,100 +478,103 @@ export default function StaffManagement() {
         >
           <div className="flex-1 min-w-0 p-4 sm:p-6">
             <div
-              className={`flex flex-col ${isRightSidebarOpen ? "lg:flex-row lg:items-center lg:justify-between" : "lg:flex-row lg:items-center lg:justify-between"
-                } gap-4 mb-6 transition-all duration-500`}
+              className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 transition-all duration-500`}
             >
-              <div
-                className={`flex ${isRightSidebarOpen
-                    ? "flex items-center gap-3 mb-13 w-full lg:w-auto"
-                    : "flex-col sm:flex-row sm:items-center gap-3  w-full lg:w-auto justify-between"
-                  }`}
-              >
-                <h1 className="text-xl sm:text-2xl lg:text-2xl oxanium_font text-white">
-                  Staff
-                </h1>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl sm:text-2xl lg:text-2xl oxanium_font text-white">
+                    Staff
+                  </h1>
 
-                <div className="flex items-center gap-1 bg-black rounded-xl p-1 w-fit">
-                  <span className="text-xs text-gray-400 px-2">View</span>
-                  <button
-                    onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === "grid"
-                        ? "bg-[#FF843E] text-white"
-                        : "text-gray-400 hover:text-white"
-                      }`}
-                    title="Grid View"
-                  >
-                    <Grid3X3 size={16} />
-                  </button>
-                  <button
-                    onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === "list"
-                        ? "bg-[#FF843E] text-white"
-                        : "text-gray-400 hover:text-white"
-                      }`}
-                    title="List View"
-                  >
-                    <List size={16} />
-                  </button>
+                  <div className="flex items-center gap-1 bg-black rounded-xl p-1 w-fit">
+                    <span className="text-xs text-gray-400 px-2">View</span>
+                    <button
+                      onClick={toggleViewMode}
+                      className={`p-2 rounded-lg transition-colors ${viewMode === "grid"
+                          ? "bg-[#FF843E] text-white"
+                          : "text-gray-400 hover:text-white"
+                        }`}
+                      title="Grid View"
+                    >
+                      <Grid3X3 size={16} />
+                    </button>
+                    <button
+                      onClick={toggleViewMode}
+                      className={`p-2 rounded-lg transition-colors ${viewMode === "list"
+                          ? "bg-[#FF843E] text-white"
+                          : "text-gray-400 hover:text-white"
+                        }`}
+                      title="List View"
+                    >
+                      <List size={16} />
+                    </button>
+                  </div>
                 </div>
+
+                <button
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md lg:hidden block"
+                >
+                  <IoIosMenu size={24} />
+                </button>
               </div>
 
-              {/* Right side - Action buttons */}
-              <div className="flex flex-wrap items-center justify-end gap-3 w-full lg:w-auto">
+              {/* Action Buttons */}
+              <div className="flex flex-col lg:flex-row  items-center gap-3 w-full">
                 <button
                   onClick={() => setIsPlanningModalOpen(true)}
-                  className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center gap-2"
+                  className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center justify-center gap-2 w-full lg:w-auto"
                 >
                   <Users className="h-4 w-4" />
-                  <span className="hidden sm:inline">Staff planning</span>
+                  {!isRightSidebarOpen && <span className="hidden sm:inline">Staff planning</span>}
                   <span className="sm:hidden">Planning</span>
                 </button>
-              
+
                 <button
                   onClick={() => setIsVacationRequestModalOpen(true)}
-                  className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center gap-2"
+                  className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center justify-center gap-2 w-full lg:w-auto"
                 >
                   <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">Vacation Calendar</span>
+                 {!isRightSidebarOpen && <span className="hidden sm:inline">Vacation Calendar</span>}
                   <span className="sm:hidden">Vacation</span>
                 </button>
+
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-orange-500 text-white px-4 lg:px-10 py-2.5 rounded-xl text-sm whitespace-nowrap"
+                  className="bg-orange-500 text-white px-4 lg:px-10 py-2.5 rounded-xl text-sm whitespace-nowrap w-full lg:w-auto"
                 >
                   + Add Staff
                 </button>
 
-                {/* Sidebar toggle (desktop only) */}
                 <button
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md lg:block hidden"
                 >
                   <IoIosMenu size={24} />
                 </button>
               </div>
             </div>
 
-            {/* Staff cards section */}
+
             <div
               className={`open_sans_font mt-6 sm:mt-15 ${viewMode === "grid"
-                  ? `grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "xl:grid-cols-2" : "xl:grid-cols-3"
-                  } gap-3 sm:gap-4`
-                  : "flex flex-col gap-3"
+                ? `grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "xl:grid-cols-2" : "xl:grid-cols-3"
+                } gap-3 sm:gap-4`
+                : "flex flex-col gap-3"
                 }`}
             >
               {staffMembers.map((staff) => (
                 <div
                   key={staff.id}
                   className={`bg-[#141414] rounded-xl p-4 sm:p-6 ${viewMode === "grid"
-                      ? "flex flex-col items-center text-center"
-                      : "flex flex-col sm:flex-row items-start sm:items-center text-left gap-4"
+                    ? "flex flex-col items-center text-center"
+                    : "flex flex-col sm:flex-row items-start sm:items-center text-left gap-4"
                     }`}
                 >
                   <div
                     className={`${viewMode === "grid"
-                        ? "relative w-full mb-4"
-                        : "flex-shrink-0 self-center sm:self-start"
+                      ? "relative w-full mb-4"
+                      : "flex-shrink-0 self-center sm:self-start"
                       }`}
                   >
                     <img
@@ -579,8 +582,8 @@ export default function StaffManagement() {
                       width={80}
                       height={80}
                       className={`rounded-xl ${viewMode === "grid"
-                          ? "h-16 w-16 sm:h-20 sm:w-20 mx-auto"
-                          : "h-12 w-12 sm:h-16 sm:w-16"
+                        ? "h-16 w-16 sm:h-20 sm:w-20 mx-auto"
+                        : "h-12 w-12 sm:h-16 sm:w-16"
                         }`}
                       alt={`${staff.firstName} ${staff.lastName}`}
                     />
@@ -592,16 +595,16 @@ export default function StaffManagement() {
                   >
                     <h3
                       className={`text-white font-medium text-base sm:text-lg mb-1 ${viewMode === "list"
-                          ? "text-center sm:text-left"
-                          : "text-center"
+                        ? "text-center sm:text-left"
+                        : "text-center"
                         }`}
                     >
                       {staff.firstName} {staff.lastName}
                     </h3>
                     <p
                       className={`text-gray-400 text-xs sm:text-sm mb-2 ${viewMode === "list"
-                          ? "text-center sm:text-left"
-                          : "text-center"
+                        ? "text-center sm:text-left"
+                        : "text-center"
                         }`}
                     >
                       {staff.role}
@@ -619,8 +622,8 @@ export default function StaffManagement() {
 
                   <div
                     className={`flex gap-2 ${viewMode === "grid"
-                        ? "flex-col sm:flex-row justify-center w-full"
-                        : "flex-col sm:flex-row flex-shrink-0 w-full sm:w-auto"
+                      ? "flex-col sm:flex-row justify-center w-full"
+                      : "flex-col sm:flex-row flex-shrink-0 w-full sm:w-auto"
                       }`}
                   >
                     <button
@@ -743,9 +746,9 @@ export default function StaffManagement() {
         )}
 
 
-{/* sidebar related stuff */}
+        {/* sidebar related stuff */}
 
-<Sidebar
+        <Sidebar
           isRightSidebarOpen={isRightSidebarOpen}
           toggleRightSidebar={toggleRightSidebar}
           isSidebarEditing={isSidebarEditing}

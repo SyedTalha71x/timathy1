@@ -665,7 +665,7 @@ export default function Training() {
         }}
       />
       <div className={`
-          min-h-screen rounded-3xl bg-[#1C1C1C] text--white p-3
+          min-h-screen rounded-3xl bg-[#1C1C1C] text--white md:p-6 p-3
           transition-all duration-500 ease-in-out flex-1
           ${isRightSidebarOpen
           ? 'lg:mr-86 mr-0' // Adjust right margin when sidebar is open on larger screens
@@ -723,7 +723,7 @@ export default function Training() {
                     className="w-full bg-[#161616] pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700 outline-none"
                   />
                 </div>
-                <div className="relative">
+                {/* <div className="relative">
                   <button
                     onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
                     className="md:w-auto w-full text-white flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
@@ -764,7 +764,7 @@ export default function Training() {
                       ))}
                     </div>
                   )}
-                </div>
+                </div> */}
               </div>
 
               {/* Category Pills */}

@@ -49,11 +49,11 @@ const Sidebar = () => {
   const [isProductivityHubOpen, setIsProductivityHubOpen] = useState(false)
 
   const languages = [
-    { code: "en", name: "English" },
-    { code: "de", name: "German" },
-    { code: "fr", name: "French" },
-    { code: "es", name: "Spanish" },
-    { code: "it", name: "Italian" },
+    { code: "en", name: "English", flag: "🇺🇸" },
+    { code: "de", name: "German", flag: "🇩🇪" },
+    { code: "fr", name: "French", flag: "🇫🇷" },
+    { code: "es", name: "Spanish", flag: "🇪🇸" },
+    { code: "it", name: "Italian", flag: "🇮🇹" },
   ]
 
   const studioName = "Studio One"
@@ -220,17 +220,18 @@ const Sidebar = () => {
               <Globe size={20} />
             </button>
             {isLanguageDropdownOpen && (
-              <div className="absolute right-0 top-12 w-32 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+              <div className="absolute right-0 top-12 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
                 <div className="py-2" role="menu">
                   {languages.map((language) => (
                     <button
                       key={language.code}
                       onClick={() => handleLanguageSelect(language)}
-                      className={`block w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 ${
+                      className={`block w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-3 ${
                         selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
                       }`}
                     >
-                      {language.name}
+                      <span className="text-base">{language.flag}</span>
+                      <span>{language.name}</span>
                     </button>
                   ))}
                 </div>
