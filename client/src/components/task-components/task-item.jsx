@@ -17,8 +17,6 @@ export default function TaskItem({
   onDuplicateRequest,
   onRepeatRequest,
   isDragging,
-  openDropdownTaskId,
-  setOpenDropdownTaskId,
   configuredTags,
   availableAssignees = [],
   availableRoles = [],
@@ -30,24 +28,13 @@ export default function TaskItem({
   const [showTagMenu, setShowTagMenu] = useState(false)
   const [showAssigneeMenu, setShowAssigneeMenu] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
   const [assignmentMode, setAssignmentMode] = useState("staff")
 
-  const dropdownRef = useRef(null)
-  const dropdownMenuRef = useRef(null)
   const tagMenuRef = useRef(null)
   const assigneeMenuRef = useRef(null)
   const calendarRef = useRef(null)
-  const isDropdownOpen = openDropdownTaskId === task.id
-
-  const toggleDropdown = (e) => {
-    e.stopPropagation()
-    
-    if (isDropdownOpen) {
-      setOpenDropdownTaskId(null)
-    } else {
-      setOpenDropdownTaskId(task.id)
-    }
-  }
+  const editButtonsRef = useRef(null)
 
   const handleStatusChange = (newStatus) => {
     if (newStatus === "completed" && task.status !== "completed") {
@@ -63,14 +50,12 @@ export default function TaskItem({
     } else {
       onStatusChange(task.id, newStatus)
     }
-    setOpenDropdownTaskId(null)
   }
 
   const handleEditTask = (e) => {
     e.stopPropagation()
     onEditRequest(task)
-    setOpenDropdownTaskId(null)
-    // Close all other menus
+    // Don't close edit mode - let user manually close it
     setShowTagMenu(false)
     setShowAssigneeMenu(false)
     setShowCalendar(false)
@@ -79,25 +64,30 @@ export default function TaskItem({
   const openDeleteConfirmation = (e) => {
     e.stopPropagation()
     onDeleteRequest(task.id)
-    setOpenDropdownTaskId(null)
+    // Don't close edit mode - let user manually close it
   }
 
   const handlePinToggle = (e) => {
     e.stopPropagation()
     onPinToggle(task.id)
-    setOpenDropdownTaskId(null)
+    // Don't close edit mode - let user manually close it
   }
 
   const handleDuplicate = (e) => {
     e.stopPropagation()
     onDuplicateRequest(task)
-    setOpenDropdownTaskId(null)
+    // Don't close edit mode - let user manually close it
   }
 
   const handleRepeat = (e) => {
     e.stopPropagation()
     onRepeatRequest(task)
-    setOpenDropdownTaskId(null)
+    // Don't close edit mode - let user manually close it
+  }
+
+  const toggleEditMode = (e) => {
+    e.stopPropagation()
+    setIsEditMode(!isEditMode)
   }
 
   // Tag management functions
@@ -172,7 +162,7 @@ export default function TaskItem({
     if (onOpenAssignModal) {
       onOpenAssignModal(task)
     }
-    setOpenDropdownTaskId(null)
+    // Don't close edit mode - let user manually close it
   }
 
   const handleTagsClick = (e) => {
@@ -180,7 +170,7 @@ export default function TaskItem({
     if (onOpenTagsModal) {
       onOpenTagsModal(task)
     }
-    setOpenDropdownTaskId(null)
+    // Don't close edit mode - let user manually close it
   }
 
   const isCompleted = task.status === "completed"
@@ -189,17 +179,6 @@ export default function TaskItem({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Check if click is outside dropdown menu
-      if (
-        dropdownMenuRef.current &&
-        !dropdownMenuRef.current.contains(event.target) &&
-        // And also outside the dropdown button
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
-        setOpenDropdownTaskId(null)
-      }
-
       if (tagMenuRef.current && !tagMenuRef.current.contains(event.target)) {
         setShowTagMenu(false)
       }
@@ -209,13 +188,19 @@ export default function TaskItem({
       if (calendarRef.current && !calendarRef.current.contains(event.target)) {
         setShowCalendar(false)
       }
+      // Only close edit mode if clicking outside the entire task item
+      if (editButtonsRef.current && 
+          !editButtonsRef.current.contains(event.target) &&
+          !event.target.closest('.edit-mode-toggle')) {
+        setIsEditMode(false)
+      }
     }
 
     document.addEventListener("mousedown", handleClickOutside)
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [setOpenDropdownTaskId])
+  }, [])
 
   return (
     <div
@@ -235,7 +220,7 @@ export default function TaskItem({
       }}
     >
       <div className="flex flex-col gap-3">
-        {/* Top: checkbox/cancel + title + dropdown */}
+        {/* Top: checkbox/cancel + title + edit icon */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1">
             {isCanceled ? (
@@ -273,7 +258,7 @@ export default function TaskItem({
             )}
             <div className="flex-grow">
               <h3
-                className={`font-medium text-sm break-words whitespace-normal ${
+                className={`font-medium text-sm break-words whitespace-normal no-drag ${
                   isCompleted || isCanceled ? "" : "cursor-pointer hover:text-gray-300 transition-colors"
                 } ${
                   !isDragging && !isCompleted && !isCanceled
@@ -295,98 +280,15 @@ export default function TaskItem({
             </div>
           </div>
           
-          {/* Dropdown container */}
-          <div className="relative " ref={dropdownRef}>
+          {/* Edit/Close button */}
+          {!isDragging && (
             <button 
-              onClick={toggleDropdown} 
-              className="hover:text-white p-1 no-drag relative z-10"
+              onClick={toggleEditMode} 
+              className="p-1 no-drag text-gray-400 hover:text-white transition-colors edit-mode-toggle"
             >
-              <MoreHorizontal size={18} className="cursor-pointer" />
+              {isEditMode ? <X size={18} /> : <Edit size={18} />}
             </button>
-            
-            {/* Simple dropdown menu */}  
-            {isDropdownOpen && !isDragging && (
-              <div
-                ref={dropdownMenuRef}
-                className="absolute right-0  top-full mt-1 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 no-drag z-[9999]"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={handleEditTask}
-                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left rounded-t-xl flex items-center gap-2"
-                >
-                  <Edit size={14} /> Edit Task
-                </button>
-
-                <button
-                  onClick={handleAssignClick}
-                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-                >
-                  <Users size={14} /> Assign To
-                </button>
-
-                <button
-                  onClick={handleTagsClick}
-                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-                >
-                  <Tag size={14} /> Tags
-                </button>
-
-                <button
-                  onClick={handlePinToggle}
-                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-                >
-                  {task.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
-                  {task.isPinned ? "Unpin Task" : "Pin Task"}
-                </button>
-
-                <button
-                  onClick={handleDuplicate}
-                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-                >
-                  <Copy size={14} /> Duplicate Task
-                </button>
-
-                <button
-                  onClick={handleRepeat}
-                  className="w-full px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 text-left flex items-center gap-2"
-                >
-                  <Repeat size={14} /> Repeat Task
-                </button>
-
-                {!isCanceled ? (
-                  <button
-                    onClick={() => handleStatusChange("canceled")}
-                    className="w-full px-4 py-2 text-xs text-red-600 hover:bg-gray-700 text-left"
-                  >
-                    Cancel Task
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => handleStatusChange("ongoing")}
-                      className="w-full px-4 py-2 text-xs text-yellow-500 hover:bg-gray-700 text-left"
-                    >
-                      Move to Ongoing
-                    </button>
-                    <button
-                      onClick={() => handleStatusChange("completed")}
-                      className="w-full px-4 py-2 text-xs text-green-500 hover:bg-gray-700 text-left"
-                    >
-                      Mark as Completed
-                    </button>
-                  </>
-                )}
-
-                <button
-                  onClick={openDeleteConfirmation}
-                  className="w-full px-4 py-2 text-xs text-red-600 hover:bg-gray-700 text-left rounded-b-xl"
-                >
-                  Delete Task
-                </button>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Tags */}
@@ -398,7 +300,7 @@ export default function TaskItem({
                   tag && (
                     <span
                       key={index}
-                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer ${
+                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag ${
                         isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "text-white"
                       }`}
                       style={{
@@ -420,7 +322,7 @@ export default function TaskItem({
           {(task.assignees?.length > 0 || task.roles?.length > 0) && (
             <div className="relative">
               <div
-                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer no-drag ${
                   isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
                 }`}
                 onClick={handleAssignClick}
@@ -432,7 +334,7 @@ export default function TaskItem({
           )}
           <div className="relative">
             <div
-              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 ${
+              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag ${
                 isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
               }`}
             >
@@ -442,6 +344,88 @@ export default function TaskItem({
             </div>
           </div>
         </div>
+
+        {/* Edit buttons panel - shown when in edit mode */}
+        {isEditMode && !isDragging && (
+          <div 
+            ref={editButtonsRef}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 pt-3 mt-2 border-t border-gray-700 no-drag"
+          >
+            <button
+              onClick={handleEditTask}
+              className="px-3 py-2 text-xs bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 rounded-lg flex items-center justify-center gap-1 no-drag"
+            >
+              <Edit size={12} /> Edit
+            </button>
+
+            <button
+              onClick={handleAssignClick}
+              className="px-3 py-2 text-xs bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 rounded-lg flex items-center justify-center gap-1 no-drag"
+            >
+              <Users size={12} /> Assign
+            </button>
+
+            <button
+              onClick={handleTagsClick}
+              className="px-3 py-2 text-xs bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 rounded-lg flex items-center justify-center gap-1 no-drag"
+            >
+              <Tag size={12} /> Tags
+            </button>
+
+            <button
+              onClick={handlePinToggle}
+              className="px-3 py-2 text-xs bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 rounded-lg flex items-center justify-center gap-1 no-drag"
+            >
+              {task.isPinned ? <PinOff size={12} /> : <Pin size={12} />}
+              {task.isPinned ? "Unpin" : "Pin"}
+            </button>
+
+            <button
+              onClick={handleDuplicate}
+              className="px-3 py-2 text-xs bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 rounded-lg flex items-center justify-center gap-1 no-drag"
+            >
+              <Copy size={12} /> Duplicate
+            </button>
+
+            <button
+              onClick={handleRepeat}
+              className="px-3 py-2 text-xs bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 rounded-lg flex items-center justify-center gap-1 no-drag"
+            >
+              <Repeat size={12} /> Repeat
+            </button>
+
+            {!isCanceled ? (
+              <button
+                onClick={() => handleStatusChange("canceled")}
+                className="px-3 py-2 text-xs bg-[#2F2F2F] text-red-500 hover:bg-gray-700 rounded-lg no-drag"
+              >
+                Cancel
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleStatusChange("ongoing")}
+                  className="px-3 py-2 text-xs bg-[#2F2F2F] text-yellow-500 hover:bg-gray-700 rounded-lg no-drag"
+                >
+                  Ongoing
+                </button>
+                <button
+                  onClick={() => handleStatusChange("completed")}
+                  className="px-3 py-2 text-xs bg-[#2F2F2F] text-green-500 hover:bg-gray-700 rounded-lg no-drag"
+                >
+                  Complete
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={openDeleteConfirmation}
+              className="px-3 py-2 text-xs bg-[#2F2F2F] text-red-500 hover:bg-gray-700 rounded-lg no-drag"
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </div>
 
       <style jsx global>{`
