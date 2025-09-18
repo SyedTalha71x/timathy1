@@ -1,3 +1,4 @@
+// central sidebar reference code for widgets 
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-undef */
 /* eslint-disable react/prop-types */

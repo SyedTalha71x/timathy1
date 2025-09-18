@@ -1,3 +1,5 @@
+// reference code of activity monitor that how i used hook and central sidebar for widgets 
+
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
 import {

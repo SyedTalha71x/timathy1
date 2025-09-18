@@ -21,13 +21,39 @@ import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io"
 import { MdOutlineProductionQuantityLimits } from "react-icons/md"
-import { toast } from "react-hot-toast"
+import { toast, Toaster } from "react-hot-toast"
 import CreateTempMemberModal from "../../components/selling-components/create-temp-member-modal"
 import DeleteConfirmationModal from "../../components/selling-components/delete-confirmation-modal"
 import SalesJournalModal from "../../components/selling-components/sales-journal-modal"
+import { productsMainData, sellingMainData, serviceMainData } from "../../utils/user-panel-states/selling-states"
+import { useSidebarSystem } from "../../hooks/useSidebarSystem"
+import { trainingVideosData } from "../../utils/user-panel-states/training-states"
+
+
+// sidebar related import
+import EditTaskModal from "../../components/task-components/edit-task-modal"
+import EditMemberModal from "../../components/myarea-components/EditMemberModal"
+import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
+import ContingentModal from "../../components/myarea-components/ContigentModal"
+import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
+import HistoryModal from "../../components/myarea-components/HistoryModal"
+import AppointmentModal from "../../components/myarea-components/AppointmentModal"
+import { WidgetSelectionModal } from "../../components/widget-selection-modal"
+import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
+import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
+import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
+import Sidebar from "../../components/central-sidebar"
+import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
+import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
 function App() {
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+
+  const sidebarSystem = useSidebarSystem();
+  const trainingVideos = trainingVideosData
+  //
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [showCreateTempMemberModal, setShowCreateTempMemberModal] = useState(false)
@@ -36,6 +62,12 @@ function App() {
   const [currentProduct, setCurrentProduct] = useState(null)
   const [activeTab, setActiveTab] = useState("products") // "products" or "services"
   const [sellWithoutMember, setSellWithoutMember] = useState(false)
+
+  const [sortBy, setSortBy] = useState("name")
+  const [sortDirection, setSortDirection] = useState("asc")
+  const [isEditModeActive, setIsEditModeActive] = useState(false)
+  //
+  const [showHistoryModalMain, setShowHistoryModalMain] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -75,155 +107,62 @@ function App() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("Cash")
   const [discount, setDiscount] = useState("")
   const [selectedVat, setSelectedVat] = useState(19)
-  const [selectedMember, setSelectedMember] = useState("")
+  const [selectedMemberMain, setSelectedMemberMain] = useState("")
   const [memberSearchQuery, setMemberSearchQuery] = useState("")
   const [showMemberResults, setShowMemberResults] = useState(false)
 
-  // Sidebar state
-  const [customLinks, setCustomLinks] = useState([
-    { id: "link1", title: "Google", url: "https://google.com" },
-    { id: "link2", title: "GitHub", url: "https://github.com" },
-  ])
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-
-  // Mock data for sidebar
-  const communications = [
-    { id: 1, name: "John Doe", message: "Hello, how are you?", time: "2 min ago", avatar: Rectangle1 },
-    { id: 2, name: "Jane Smith", message: "Meeting at 3 PM", time: "5 min ago", avatar: Rectangle1 },
-  ]
-  const todos = [
-    { id: 1, title: "Review proposals", description: "Check new member applications", assignee: "Admin" },
-    { id: 2, title: "Update website", description: "Add new features", assignee: "Dev" },
-  ]
-  const birthdays = [
-    { id: 1, name: "Alice Johnson", date: "Tomorrow", avatar: Avatar },
-    { id: 2, name: "Bob Wilson", date: "Next week", avatar: Avatar },
-  ]
-
-  // Members list (example)
-  const [members, setMembers] = useState([
-    { id: 1, name: "John Doe", type: "Full Member" },
-    { id: 2, name: "Jane Smith", type: "Full Member" },
-    { id: 3, name: "Mike Johnson", type: "Full Member" },
-  ])
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Premium Orange Sneakers",
-      brandName: "ORANGEWEAR",
-      price: 129.99,
-      image: "https://placehold.co/600x400/2563eb/white?text=Premium+Sneakers",
-      articalNo: "ORG-001",
-      paymentOption: "Card",
-      type: "product",
-      position: 0,
-      link: "https://example.com/product1",
-      vatRate: "19",
-      vatSelectable: false,
-    },
-    {
-      id: 2,
-      name: "Orange Athletic Shoes",
-      brandName: "ORANGEFIT",
-      price: 189.5,
-      image: "https://placehold.co/600x400/2563eb/white?text=Athletic+Shoes",
-      articalNo: "ORG-002",
-      paymentOption: "Card",
-      type: "product",
-      position: 1,
-      link: "",
-      vatRate: "7",
-      vatSelectable: true,
-    },
-  ])
+  const [products, setProducts] = useState(productsMainData)
+  const [services, setServices] = useState(serviceMainData)
+  const [salesHistory, setSalesHistory] = useState(sellingMainData)
   
-  const [services, setServices] = useState([
-    {
-      id: 101,
-      name: "Personal Training Session",
-      price: 75.0,
-      image: "https://placehold.co/600x400/2563eb/white?text=Personal+Training",
-      paymentOption: "Card",
-      type: "service",
-      position: 0,
-      link: "https://example.com/training",
-      vatRate: "19",
-      vatSelectable: false,
-    },
-    {
-      id: 102,
-      name: "Nutrition Consultation",
-      price: 50.0,
-      image: "https://placehold.co/600x400/2563eb/white?text=Nutrition+Advice",
-      paymentOption: "Cash",
-      type: "service",
-      position: 1,
-      link: "",
-      vatRate: "7",
-      vatSelectable: true,
-    },
-  ])
-  
-
-  // New state for sales history
-  const [salesHistory, setSalesHistory] = useState([
-    {
-      id: 1,
-      date: "2024-01-15 14:30:22",
-      member: "John Doe",
-      memberType: "Full Member",
-      items: [
-        { name: "Premium Orange Sneakers", quantity: 2, price: 129.99, type: "Product" },
-        { name: "Personal Training Session", quantity: 1, price: 75.0, type: "Service" },
-      ],
-      totalAmount: 334.98,
-      paymentMethod: "Credit Card",
-      soldBy: "John Smith",
-      invoiceNumber: "INV-2024-001",
-      canCancel: true,
-    },
-    {
-      id: 2,
-      date: "2024-01-14 09:15:45",
-      member: "No Member",
-      memberType: "N/A",
-      items: [{ name: "Orange Athletic Shoes", quantity: 1, price: 189.5, type: "Product" }],
-      totalAmount: 189.5,
-      paymentMethod: "Cash",
-      soldBy: "Sarah Johnson",
-      invoiceNumber: "INV-2024-002",
-      canCancel: false,
-    },
-    {
-      id: 3,
-      date: "2024-01-13 16:45:12",
-      member: "Jane Smith",
-      memberType: "Temporary Member",
-      items: [
-        { name: "Nutrition Consultation", quantity: 3, price: 50.0, type: "Service" },
-        { name: "Premium Orange Sneakers", quantity: 1, price: 129.99, type: "Product" },
-      ],
-      totalAmount: 279.99,
-      paymentMethod: "Debit Card",
-      soldBy: "Mike Davis",
-      invoiceNumber: "INV-2024-003",
-      canCancel: true,
-    },
-  ])
-
   const [salesFilter, setSalesFilter] = useState({
-    type: "all", // all, service, product
+    type: "all", 
     member: "",
     dateFrom: "",
     dateTo: "",
   })
 
-  const toggleRightSidebar = () => {
-    setIsRightSidebarOpen(!isRightSidebarOpen)
-  }
-  const toggleDropdown = (id) => {
-    setOpenDropdownIndex(openDropdownIndex === id ? null : id)
-  }
+  const [members, setMembers] = useState([
+    { id: 1, name: "John Doe", type: "Full Member" },
+    { id: 2, name: "Jane Smith", type: "Full Member" },
+    { id: 3, name: "Mike Johnson", type: "Full Member" },
+  ])
+
+
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const discountValue = discount === "" ? 0 : Number.parseFloat(discount)
+  const discountAmount = subtotal * (discountValue / 100)
+  const afterDiscount = subtotal - discountAmount
+  // VAT is calculated but NOT added to total as per requirements
+  const vatAmount = afterDiscount * (selectedVat / 100)
+  const total = afterDiscount // Only discount affects final price
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openDropdownId !== null && !event.target.closest(".dropdown-container")) {
+        setOpenDropdownId(null)
+      }
+      if (showMemberResults && !event.target.closest(".member-search-container")) {
+        setShowMemberResults(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [openDropdownId, showMemberResults])
+
+  useEffect(() => {
+    const handleResize = () => {
+      setProducts([...products])
+      setServices([...services])
+    }
+    window.addEventListener("resize", handleResize)
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [products, services])
+
   const openAddModal = () => {
     setModalMode("add")
     setFormData({
@@ -259,8 +198,6 @@ function App() {
   const closeModal = () => {
     setIsModalOpen(false)
   }
-
-  // Updated temporary member functions
   const handleTempMemberInputChange = (e) => {
     const { name, value } = e.target
     setTempMemberForm({
@@ -289,7 +226,7 @@ function App() {
       type: "Temporary Member",
     }
     setMembers([...members, newMember])
-    setSelectedMember(newMember.id)
+    setSelectedMemberMain(newMember.id)
     setMemberSearchQuery(newMember.name)
     setShowMemberResults(false)
     // Reset form
@@ -312,7 +249,7 @@ function App() {
     setTempMemberModalTab("details")
     setShowCreateTempMemberModal(false)
   }
-  const handleInputChange = (e) => {
+  const handleInputChangeMain = (e) => {
     const { name, value, type, checked } = e.target
     setFormData({
       ...formData,
@@ -378,8 +315,6 @@ function App() {
     }
     closeModal()
   }
-
-  // Shopping cart functions
   const addToCart = (item) => {
     const existingItem = cart.find((cartItem) => cartItem.id === item.id)
     if (existingItem) {
@@ -425,12 +360,14 @@ function App() {
       }
     }
   }
-
-  // Checkout function to record sales history
+  const cancelSale = (saleId) => {
+    setSalesHistory((prev) => prev.filter((sale) => sale.id !== saleId))
+    toast.success("Sale cancelled successfully")
+  }
   const handleCheckout = () => {
     if (cart.length === 0) return
 
-    const selectedMemberData = selectedMember ? members.find((m) => m.id === selectedMember) : null
+    const selectedMemberData = selectedMemberMain ? members.find((m) => m.id === selectedMemberMain) : null
     const invoiceNumber = `INV-${new Date().getFullYear()}-${String(salesHistory.length + 1).padStart(3, "0")}`
 
     const newSale = {
@@ -458,7 +395,7 @@ function App() {
 
     setSalesHistory((prevHistory) => [newSale, ...prevHistory])
     setCart([])
-    setSelectedMember("")
+    setSelectedMemberMain("")
     setMemberSearchQuery("")
     setSellWithoutMember(false)
     setDiscount("")
@@ -472,21 +409,6 @@ function App() {
       24 * 60 * 60 * 1000,
     ) // 24 hours in milliseconds
   }
-
-  // Calculate totals
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const discountValue = discount === "" ? 0 : Number.parseFloat(discount)
-  const discountAmount = subtotal * (discountValue / 100)
-  const afterDiscount = subtotal - discountAmount
-  // VAT is calculated but NOT added to total as per requirements
-  const vatAmount = afterDiscount * (selectedVat / 100)
-  const total = afterDiscount // Only discount affects final price
-
-  const cancelSale = (saleId) => {
-    setSalesHistory((prev) => prev.filter((sale) => sale.id !== saleId))
-    toast.success("Sale cancelled successfully")
-  }
-
   const downloadInvoice = (sale) => {
     const invoiceData = {
       studioName: "Fitness Studio Pro",
@@ -538,36 +460,15 @@ Payment Method: ${invoiceData.paymentMethod}
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }
-
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(memberSearchQuery.toLowerCase()),
   )
   const selectMember = (member) => {
-    setSelectedMember(member.id)
+    setSelectedMemberMain(member.id)
     setMemberSearchQuery(member.name)
     setShowMemberResults(false)
     setSellWithoutMember(false)
   }
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (openDropdownId !== null && !event.target.closest(".dropdown-container")) {
-        setOpenDropdownId(null)
-      }
-      if (showMemberResults && !event.target.closest(".member-search-container")) {
-        setShowMemberResults(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [openDropdownId, showMemberResults])
-
-  const [sortBy, setSortBy] = useState("name")
-  const [sortDirection, setSortDirection] = useState("asc")
-  const [isEditModeActive, setIsEditModeActive] = useState(false)
-  const [showHistoryModal, setShowHistoryModal] = useState(false)
-
   const sortItems = (items, sortBy, sortDirection) => {
     if (sortBy === "custom") {
       // Sort by position for custom ordering
@@ -585,7 +486,6 @@ Payment Method: ${invoiceData.paymentMethod}
     })
     return sortedItems
   }
-
   const handleDragStart = (e, item, index) => {
     if (!isEditModeActive) {
       e.preventDefault()
@@ -596,7 +496,6 @@ Payment Method: ${invoiceData.paymentMethod}
     e.dataTransfer.setData("itemType", activeTab)
     e.currentTarget.classList.add("dragging")
   }
-
   const handleDragOver = (e) => {
     if (!isEditModeActive) {
       e.preventDefault()
@@ -605,11 +504,9 @@ Payment Method: ${invoiceData.paymentMethod}
     e.preventDefault()
     e.currentTarget.classList.add("drag-over")
   }
-
   const handleDragLeave = (e) => {
     e.currentTarget.classList.remove("drag-over")
   }
-
   const handleDrop = (e, targetIndex) => {
     if (!isEditModeActive) {
       e.preventDefault()
@@ -642,13 +539,11 @@ Payment Method: ${invoiceData.paymentMethod}
     // Automatically switch to custom sorting
     setSortBy("custom")
   }
-
   const handleDragEnd = (e) => {
     e.currentTarget.classList.remove("dragging")
     const allItems = document.querySelectorAll(".draggable-item")
     allItems.forEach((item) => item.classList.remove("drag-over"))
   }
-
   const moveItem = (fromIndex, direction, isService = false) => {
     const items = isService ? services : products
     const setItems = isService ? setServices : setProducts
@@ -695,25 +590,397 @@ Payment Method: ${invoiceData.paymentMethod}
         (item.articalNo && item.articalNo.toLowerCase().includes(searchQuery.toLowerCase())),
     )
   }
-  useEffect(() => {
-    const handleResize = () => {
-      setProducts([...products])
-      setServices([...services])
+ 
+    // Extract all states and functions from the hook
+    const {
+      // States
+      isRightSidebarOpen,
+      isSidebarEditing,
+      isRightWidgetModalOpen,
+      openDropdownIndex,
+      selectedMemberType,
+      isChartDropdownOpen,
+      isWidgetModalOpen,
+      editingTask,
+      todoFilter,
+      isEditTaskModalOpen,
+      isTodoFilterDropdownOpen,
+      taskToCancel,
+      taskToDelete,
+      isBirthdayMessageModalOpen,
+      selectedBirthdayPerson,
+      birthdayMessage,
+      activeNoteId,
+      isSpecialNoteModalOpen,
+      selectedAppointmentForNote,
+      isTrainingPlanModalOpen,
+      selectedUserForTrainingPlan,
+      selectedAppointment,
+      isEditAppointmentModalOpen,
+      showAppointmentOptionsModal,
+      showAppointmentModal,
+      freeAppointments,
+      selectedMember,
+      isMemberOverviewModalOpen,
+      isMemberDetailsModalOpen,
+      activeMemberDetailsTab,
+      isEditModalOpen,
+      editModalTab,
+      isNotifyMemberOpen,
+      notifyAction,
+      showHistoryModal,
+      historyTab,
+      memberHistory,
+      currentBillingPeriod,
+      tempContingent,
+      selectedBillingPeriod,
+      showAddBillingPeriodModal,
+      newBillingPeriod,
+      showContingentModal,
+      editingRelations,
+      newRelation,
+      editForm,
+      widgets,
+      rightSidebarWidgets,
+      notePopoverRef,
+  
+      // Setters
+      setIsRightSidebarOpen,
+      setIsSidebarEditing,
+      setIsRightWidgetModalOpen,
+      setOpenDropdownIndex,
+      setSelectedMemberType,
+      setIsChartDropdownOpen,
+      setIsWidgetModalOpen,
+      setEditingTask,
+      setTodoFilter,
+      setIsEditTaskModalOpen,
+      setIsTodoFilterDropdownOpen,
+      setTaskToCancel,
+      setTaskToDelete,
+      setIsBirthdayMessageModalOpen,
+      setSelectedBirthdayPerson,
+      setBirthdayMessage,
+      setActiveNoteId,
+      setIsSpecialNoteModalOpen,
+      setSelectedAppointmentForNote,
+      setIsTrainingPlanModalOpen,
+      setSelectedUserForTrainingPlan,
+      setSelectedAppointment,
+      setIsEditAppointmentModalOpen,
+      setShowAppointmentOptionsModal,
+      setShowAppointmentModal,
+      setFreeAppointments,
+      setSelectedMember,
+      setIsMemberOverviewModalOpen,
+      setIsMemberDetailsModalOpen,
+      setActiveMemberDetailsTab,
+      setIsEditModalOpen,
+      setEditModalTab,
+      setIsNotifyMemberOpen,
+      setNotifyAction,
+      setShowHistoryModal,
+      setHistoryTab,
+      setMemberHistory,
+      setCurrentBillingPeriod,
+      setTempContingent,
+      setSelectedBillingPeriod,
+      setShowAddBillingPeriodModal,
+      setNewBillingPeriod,
+      setShowContingentModal,
+      setEditingRelations,
+      setNewRelation,
+      setEditForm,
+      setWidgets,
+      setRightSidebarWidgets,
+  
+      // Functions
+      toggleRightSidebar,
+      closeSidebar,
+      toggleSidebarEditing,
+      toggleDropdown,
+      redirectToCommunication,
+      moveRightSidebarWidget,
+      removeRightSidebarWidget,
+      getWidgetPlacementStatus,
+      handleAddRightSidebarWidget,
+      handleTaskComplete,
+      handleEditTask,
+      handleUpdateTask,
+      handleCancelTask,
+      handleDeleteTask,
+      isBirthdayToday,
+      handleSendBirthdayMessage,
+      handleEditNote,
+      handleDumbbellClick,
+      handleCheckIn,
+      handleAppointmentOptionsModal,
+      handleSaveSpecialNote,
+      isEventInPast,
+      handleCancelAppointment,
+      actuallyHandleCancelAppointment,
+      handleDeleteAppointment,
+      handleEditAppointment,
+      handleCreateNewAppointment,
+      handleViewMemberDetails,
+      handleNotifyMember,
+      calculateAge,
+      isContractExpiringSoon,
+      redirectToContract,
+      handleCalendarFromOverview,
+      handleHistoryFromOverview,
+      handleCommunicationFromOverview,
+      handleViewDetailedInfo,
+      handleEditFromOverview,
+      getMemberAppointments,
+      handleManageContingent,
+      getBillingPeriods,
+      handleAddBillingPeriod,
+      handleSaveContingent,
+      handleInputChange,
+      handleEditSubmit,
+      handleAddRelation,
+      handleDeleteRelation,
+      handleArchiveMember,
+      handleUnarchiveMember,
+      truncateUrl,
+      renderSpecialNoteIcon,
+  
+      // new states 
+      customLinks, setCustomLinks, communications, setCommunications,
+      todos, setTodos, expiringContracts, setExpiringContracts,
+      birthdays, setBirthdays, notifications, setNotifications,
+      appointments, setAppointments,
+      memberContingentData, setMemberContingentData,
+      memberRelations, setMemberRelations,
+  
+      memberTypes,
+      availableMembersLeads,
+      mockTrainingPlans,
+      mockVideos,
+  
+      todoFilterOptions,
+      relationOptions,
+      appointmentTypes
+    } = sidebarSystem;
+  
+    // more sidebar related functions
+  
+    // Chart configuration
+    const chartSeries = [
+      { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
+      { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
+    ];
+  
+    const chartOptions = {
+      chart: {
+        type: "line",
+        height: 180,
+        toolbar: { show: false },
+        background: "transparent",
+        fontFamily: "Inter, sans-serif",
+      },
+      colors: ["#FF6B1A", "#2E5BFF"],
+      stroke: { curve: "smooth", width: 4, opacity: 1 },
+      markers: {
+        size: 1,
+        strokeWidth: 0,
+        hover: { size: 6 },
+      },
+      xaxis: {
+        categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        labels: { style: { colors: "#999999", fontSize: "12px" } },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+      },
+      yaxis: {
+        min: 0,
+        max: 600,
+        tickAmount: 6,
+        labels: {
+          style: { colors: "#999999", fontSize: "12px" },
+          formatter: (value) => Math.round(value),
+        },
+      },
+      grid: {
+        show: true,
+        borderColor: "#333333",
+        position: "back",
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: true } },
+        row: { opacity: 0.1 },
+        column: { opacity: 0.1 },
+      },
+      legend: {
+        show: true,
+        position: "top",
+        horizontalAlign: "right",
+        offsetY: -30,
+        offsetX: -10,
+        labels: { colors: "#ffffff" },
+        itemMargin: { horizontal: 5 },
+      },
+      title: {
+        text: memberTypes[selectedMemberType].title,
+        align: "left",
+        style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
+      },
+      subtitle: {
+        text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
+        align: "left",
+        style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
+      },
+      tooltip: {
+        theme: "dark",
+        style: {
+          fontSize: "12px",
+          fontFamily: "Inter, sans-serif",
+        },
+        custom: ({ series, seriesIndex, dataPointIndex, w }) =>
+          '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
+          '<span style="color: black;">' +
+          series[seriesIndex][dataPointIndex] +
+          "</span></div>",
+      },
+    };
+  
+  
+    // Wrapper functions to pass local state to hook functions
+    const handleTaskCompleteWrapper = (taskId) => {
+      handleTaskComplete(taskId, todos, setTodos);
+    };
+  
+    const handleUpdateTaskWrapper = (updatedTask) => {
+      handleUpdateTask(updatedTask, setTodos);
+    };
+  
+    const handleCancelTaskWrapper = (taskId) => {
+      handleCancelTask(taskId, setTodos);
+    };
+  
+    const handleDeleteTaskWrapper = (taskId) => {
+      handleDeleteTask(taskId, setTodos);
+    };
+  
+    const handleEditNoteWrapper = (appointmentId, currentNote) => {
+      handleEditNote(appointmentId, currentNote, appointments);
+    };
+  
+    const handleCheckInWrapper = (appointmentId) => {
+      handleCheckIn(appointmentId, appointments, setAppointments);
+    };
+  
+    const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
+      handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
+    };
+  
+    const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
+      actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
+    };
+  
+    const handleDeleteAppointmentWrapper = (id) => {
+      handleDeleteAppointment(id, appointments, setAppointments);
+    };
+  
+    const getMemberAppointmentsWrapper = (memberId) => {
+      return getMemberAppointments(memberId, appointments);
+    };
+  
+    const handleAddBillingPeriodWrapper = () => {
+      handleAddBillingPeriod(memberContingentData, setMemberContingentData);
+    };
+  
+    const handleSaveContingentWrapper = () => {
+      handleSaveContingent(memberContingentData, setMemberContingentData);
+    };
+  
+    const handleEditSubmitWrapper = (e) => {
+      handleEditSubmit(e, appointments, setAppointments);
+    };
+  
+    const handleAddRelationWrapper = () => {
+      handleAddRelation(memberRelations, setMemberRelations);
+    };
+  
+    const handleDeleteRelationWrapper = (category, relationId) => {
+      handleDeleteRelation(category, relationId, memberRelations, setMemberRelations);
+    };
+  
+    const handleArchiveMemberWrapper = (memberId) => {
+      handleArchiveMember(memberId, appointments, setAppointments);
+    };
+  
+    const handleUnarchiveMemberWrapper = (memberId) => {
+      handleUnarchiveMember(memberId, appointments, setAppointments);
+    };
+  
+    const getBillingPeriodsWrapper = (memberId) => {
+      return getBillingPeriods(memberId, memberContingentData);
+    };
+  
+    const getDifficultyColor = (difficulty) => {
+      switch (difficulty) {
+        case "Beginner":
+          return "bg-green-600"
+        case "Intermediate":
+          return "bg-yellow-600"
+        case "Advanced":
+          return "bg-red-600"
+        default:
+          return "bg-gray-600"
+      }
     }
-    window.addEventListener("resize", handleResize)
-    return () => {
-      window.removeEventListener("resize", handleResize)
+  
+    const getVideoById = (id) => {
+      return trainingVideos.find((video) => video.id === id)
     }
-  }, [products, services])
+
+
 
   return (
+    <>  
+    <style>
+    {`
+      @keyframes wobble {
+        0%, 100% { transform: rotate(0deg); }
+        15% { transform: rotate(-1deg); }
+        30% { transform: rotate(1deg); }
+        45% { transform: rotate(-1deg); }
+        60% { transform: rotate(1deg); }
+        75% { transform: rotate(-1deg); }
+        90% { transform: rotate(1deg); }
+      }
+      .animate-wobble {
+        animation: wobble 0.5s ease-in-out infinite;
+      }
+      .dragging {
+        opacity: 0.5;
+        border: 2px dashed #fff;
+      }
+      .drag-over {
+        border: 2px dashed #888;
+      }
+    `}
+  </style>
+  <Toaster
+    position="top-right"
+    toastOptions={{
+      duration: 2000,
+      style: {
+        background: "#333",
+        color: "#fff",
+      },
+    }}
+  />
+
+    
     <div
       className={`
       min-h-screen rounded-3xl text-white bg-[#1C1C1C]
       transition-all duration-500 ease-in-out flex-1
       ${
         isRightSidebarOpen
-          ? "lg:mr-[36%] mr-0" // Adjust right margin when sidebar is open on larger screens
+          ? "lg:mr-[37%] mr-0" // Adjust right margin when sidebar is open on larger screens
           : "mr-0" // No margin when closed
       }
     `}
@@ -796,7 +1063,7 @@ Payment Method: ${invoiceData.paymentMethod}
                     type="text"
                     name="name"
                     value={formData.name}
-                    onChange={handleInputChange}
+                    onChange={handleInputChangeMain}
                     placeholder={`Enter ${activeTab === "services" ? "service" : "product"} name`}
                     className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     required
@@ -811,7 +1078,7 @@ Payment Method: ${invoiceData.paymentMethod}
                         type="text"
                         name="price"
                         value={formData.price}
-                        onChange={handleInputChange}
+                        onChange={handleInputChangeMain}
                         placeholder="0.00"
                         className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
                         required
@@ -825,7 +1092,7 @@ Payment Method: ${invoiceData.paymentMethod}
                         type="text"
                         name="articalNo"
                         value={formData.articalNo}
-                        onChange={handleInputChange}
+                        onChange={handleInputChangeMain}
                         placeholder="Enter article no"
                         className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                       />
@@ -838,7 +1105,7 @@ Payment Method: ${invoiceData.paymentMethod}
                     <select
                       name="vatRate"
                       value={formData.vatRate}
-                      onChange={handleInputChange}
+                      onChange={handleInputChangeMain}
                       className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     >
                       <option value="0">0%</option>
@@ -854,7 +1121,7 @@ Payment Method: ${invoiceData.paymentMethod}
                         type="number"
                         name="customVatRate"
                         value={formData.customVatRate || ""}
-                        onChange={handleInputChange}
+                        onChange={handleInputChangeMain}
                         placeholder="Enter VAT rate"
                         min="0"
                         max="100"
@@ -870,7 +1137,7 @@ Payment Method: ${invoiceData.paymentMethod}
                     id="vatSelectable"
                     name="vatSelectable"
                     checked={formData.vatSelectable}
-                    onChange={handleInputChange}
+                    onChange={handleInputChangeMain}
                     className="rounded border-gray-300 text-[#3F74FF] focus:ring-[#3F74FF] focus:ring-2"
                   />
                   <label htmlFor="vatSelectable" className="text-sm text-gray-200">
@@ -884,7 +1151,7 @@ Payment Method: ${invoiceData.paymentMethod}
                       type="text"
                       name="brandName"
                       value={formData.brandName}
-                      onChange={handleInputChange}
+                      onChange={handleInputChangeMain}
                       placeholder="Enter brand name"
                       className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-gray-400 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     />
@@ -896,7 +1163,7 @@ Payment Method: ${invoiceData.paymentMethod}
                     type="url"
                     name="link"
                     value={formData.link}
-                    onChange={handleInputChange}
+                    onChange={handleInputChangeMain}
                     placeholder="https://example.com"
                     className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                   />
@@ -951,7 +1218,7 @@ Payment Method: ${invoiceData.paymentMethod}
               </div>
               <div>
                 <button
-                  onClick={() => setShowHistoryModal(true)}
+                  onClick={() => setShowHistoryModalMain(true)}
                   className="text-white md:w-12 w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                   title="View Sales Journal"
                 >
@@ -1213,51 +1480,99 @@ Payment Method: ${invoiceData.paymentMethod}
           </div>
         </div>
       </main>
-      {/* Sidebar Component */}
-      <SidebarAreaSelling
-        isOpen={isRightSidebarOpen}
-        onClose={() => setIsRightSidebarOpen(false)}
-        communications={communications}
-        todos={todos}
-        birthdays={birthdays}
-        customLinks={customLinks}
-        setCustomLinks={setCustomLinks}
-        redirectToCommunication={() => console.log("Redirect to communication")}
-        redirectToTodos={() => console.log("Redirect to todos")}
-        toggleDropdown={toggleDropdown}
-        openDropdownIndex={openDropdownIndex}
-        setEditingLink={() => {}}
-        isEditing={false}
-        // Shopping cart props
-        cart={cart}
-        updateQuantity={updateQuantity}
-        removeFromCart={removeFromCart}
-        selectedPaymentMethod={selectedPaymentMethod}
-        setSelectedPaymentMethod={setSelectedPaymentMethod}
-        discount={discount}
-        setDiscount={setDiscount}
-        selectedVat={selectedVat}
-        setSelectedVat={setSelectedVat}
-        selectedMember={selectedMember}
-        setSelectedMember={setSelectedMember}
-        memberSearchQuery={memberSearchQuery}
-        setMemberSearchQuery={setMemberSearchQuery}
-        showMemberResults={showMemberResults}
-        setShowMemberResults={setShowMemberResults}
-        members={members}
-        sellWithoutMember={sellWithoutMember}
-        setSellWithoutMember={setSellWithoutMember}
-        setIsTempMemberModalOpen={() => setShowCreateTempMemberModal(true)}
-        filteredMembers={filteredMembers}
-        selectMember={selectMember}
-        subtotal={subtotal}
-        discountValue={discountValue}
-        discountAmount={discountAmount}
-        afterDiscount={afterDiscount}
-        vatAmount={vatAmount}
-        total={total}
-        handleCheckout={handleCheckout}
-      />
+    
+
+      {/* History Modal */}
+      {showHistoryModalMain && (
+        <SalesJournalModal
+          salesHistory={salesHistory}
+          onClose={() => setShowHistoryModalMain(false)}
+          cancelSale={cancelSale}
+          downloadInvoice={downloadInvoice}
+          salesFilter={salesFilter}
+          setSalesFilter={setSalesFilter}
+        />
+      )}
+
+        {/* Sidebar Component */}
+        <SidebarAreaSelling
+          isOpen={isRightSidebarOpen}
+          onClose={() => setIsRightSidebarOpen(false)}
+          // SHOPPING TAB LOGIC - Cart and payment related props
+          cart={cart}
+          updateQuantity={updateQuantity}
+          removeFromCart={removeFromCart}
+          selectedPaymentMethod={selectedPaymentMethod}
+          setSelectedPaymentMethod={setSelectedPaymentMethod}
+          discount={discount}
+          setDiscount={setDiscount}
+          selectedVat={selectedVat}
+          setSelectedVat={setSelectedVat}
+          selectedMemberMain={selectedMemberMain}
+          setSelectedMemberMain={setSelectedMemberMain}
+          memberSearchQuery={memberSearchQuery}
+          setMemberSearchQuery={setMemberSearchQuery}
+          showMemberResults={showMemberResults}
+          setShowMemberResults={setShowMemberResults}
+          members={members}
+          sellWithoutMember={sellWithoutMember}
+          setSellWithoutMember={setSellWithoutMember}
+          setIsTempMemberModalOpen={() => setShowCreateTempMemberModal(true)}
+          filteredMembers={filteredMembers}
+          selectMember={selectMember}
+          subtotal={subtotal}
+          discountValue={discountValue}
+          discountAmount={discountAmount}
+          afterDiscount={afterDiscount}
+          vatAmount={vatAmount}
+          total={total}
+          handleCheckout={handleCheckout}
+          // WIDGETS TAB LOGIC - Widget system integration
+          isSidebarEditing={isSidebarEditing}
+          toggleSidebarEditing={toggleSidebarEditing}
+          rightSidebarWidgets={rightSidebarWidgets}
+          moveRightSidebarWidget={moveRightSidebarWidget}
+          removeRightSidebarWidget={removeRightSidebarWidget}
+          setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
+          communications={communications}
+          redirectToCommunication={redirectToCommunication}
+          todos={todos}
+          handleTaskComplete={handleTaskCompleteWrapper}
+          todoFilter={todoFilter}
+          setTodoFilter={setTodoFilter}
+          todoFilterOptions={todoFilterOptions}
+          isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
+          setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
+          openDropdownIndex={openDropdownIndex}
+          toggleDropdown={toggleDropdown}
+          handleEditTask={handleEditTask}
+          setTaskToCancel={setTaskToCancel}
+          setTaskToDelete={setTaskToDelete}
+          birthdays={birthdays}
+          isBirthdayToday={isBirthdayToday}
+          handleSendBirthdayMessage={handleSendBirthdayMessage}
+          customLinks={customLinks}
+          truncateUrl={truncateUrl}
+          appointments={appointments}
+          renderSpecialNoteIcon={renderSpecialNoteIcon}
+          handleDumbbellClick={handleDumbbellClick}
+          handleCheckIn={handleCheckInWrapper}
+          handleAppointmentOptionsModal={handleAppointmentOptionsModal}
+          selectedMemberType={selectedMemberType}
+          setSelectedMemberType={setSelectedMemberType}
+          memberTypes={memberTypes}
+          isChartDropdownOpen={isChartDropdownOpen}
+          setIsChartDropdownOpen={setIsChartDropdownOpen}
+          chartOptions={chartOptions}
+          chartSeries={chartSeries}
+          expiringContracts={expiringContracts}
+          getWidgetPlacementStatus={getWidgetPlacementStatus}
+          onSaveSpecialNote={handleSaveSpecialNoteWrapper}
+          // NOTIFICATIONS TAB LOGIC - Notification system
+          notifications={notifications}
+          hasUnreadNotifications={notifications?.length > 0}
+        />
+        
       {isRightSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden block cursor-pointer"
@@ -1265,17 +1580,241 @@ Payment Method: ${invoiceData.paymentMethod}
         ></div>
       )}
 
-      {/* History Modal */}
-      {showHistoryModal && (
-        <SalesJournalModal
-          salesHistory={salesHistory}
-          onClose={() => setShowHistoryModal(false)}
-          cancelSale={cancelSale}
-          downloadInvoice={downloadInvoice}
-          salesFilter={salesFilter}
-          setSalesFilter={setSalesFilter}
+       {/* Sidebar related modals */}
+       <TrainingPlanModal
+        isOpen={isTrainingPlanModalOpen}
+        onClose={() => setIsTrainingPlanModalOpen(false)}
+        user={selectedUserForTrainingPlan}
+        trainingPlans={mockTrainingPlans}
+        getDifficultyColor={getDifficultyColor}
+        getVideoById={getVideoById}
+      />
+
+      <AppointmentActionModalV2
+        isOpen={showAppointmentOptionsModal}
+        onClose={() => {
+          setShowAppointmentOptionsModal(false);
+          setSelectedAppointment(null);
+        }}
+        appointment={selectedAppointment}
+        isEventInPast={isEventInPast}
+        onEdit={() => {
+          setShowAppointmentOptionsModal(false);
+          setIsEditAppointmentModalOpen(true);
+        }}
+        onCancel={handleCancelAppointment}
+        onViewMember={handleViewMemberDetails}
+      />
+
+      <NotifyMemberModal
+        isOpen={isNotifyMemberOpen}
+        onClose={() => setIsNotifyMemberOpen(false)}
+        notifyAction={notifyAction}
+        actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
+        handleNotifyMember={handleNotifyMember}
+      />
+
+      {isEditAppointmentModalOpen && selectedAppointment && (
+        <EditAppointmentModalV2
+          selectedAppointment={selectedAppointment}
+          setSelectedAppointment={setSelectedAppointment}
+          appointmentTypes={appointmentTypes}
+          freeAppointments={freeAppointments}
+          handleAppointmentChange={(changes) => {
+            setSelectedAppointment({ ...selectedAppointment, ...changes });
+          }}
+          appointments={appointments}
+          setAppointments={setAppointments}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          onDelete={handleDeleteAppointmentWrapper}
+          onClose={() => {
+            setIsEditAppointmentModalOpen(false);
+            setSelectedAppointment(null);
+          }}
         />
       )}
+
+      <WidgetSelectionModal
+        isOpen={isRightWidgetModalOpen}
+        onClose={() => setIsRightWidgetModalOpen(false)}
+        onSelectWidget={handleAddRightSidebarWidget}
+        getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
+        widgetArea="sidebar"
+      />
+
+      <MemberOverviewModal
+        isOpen={isMemberOverviewModalOpen}
+        onClose={() => {
+          setIsMemberOverviewModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        handleCalendarFromOverview={handleCalendarFromOverview}
+        handleHistoryFromOverview={handleHistoryFromOverview}
+        handleCommunicationFromOverview={handleCommunicationFromOverview}
+        handleViewDetailedInfo={handleViewDetailedInfo}
+        handleEditFromOverview={handleEditFromOverview}
+      />
+
+      <AppointmentModal
+        show={showAppointmentModal}
+        member={selectedMember}
+        onClose={() => {
+          setShowAppointmentModal(false);
+          setSelectedMember(null);
+        }}
+        getMemberAppointments={getMemberAppointmentsWrapper}
+        appointmentTypes={appointmentTypes}
+        handleEditAppointment={handleEditAppointment}
+        handleCancelAppointment={handleCancelAppointment}
+        currentBillingPeriod={currentBillingPeriod}
+        memberContingentData={memberContingentData}
+        handleManageContingent={handleManageContingent}
+        handleCreateNewAppointment={handleCreateNewAppointment}
+      />
+
+      <HistoryModal
+        show={showHistoryModal}
+        onClose={() => {
+          setShowHistoryModal(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        historyTab={historyTab}
+        setHistoryTab={setHistoryTab}
+        memberHistory={memberHistory}
+      />
+
+      <MemberDetailsModal
+        isOpen={isMemberDetailsModalOpen}
+        onClose={() => {
+          setIsMemberDetailsModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        memberRelations={memberRelations}
+        DefaultAvatar={DefaultAvatar}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        redirectToContract={redirectToContract}
+      />
+
+      <ContingentModal
+        show={showContingentModal}
+        setShow={setShowContingentModal}
+        selectedMember={selectedMember}
+        getBillingPeriods={getBillingPeriodsWrapper}
+        selectedBillingPeriod={selectedBillingPeriod}
+        handleBillingPeriodChange={setSelectedBillingPeriod}
+        setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
+        tempContingent={tempContingent}
+        setTempContingent={setTempContingent}
+        currentBillingPeriod={currentBillingPeriod}
+        handleSaveContingent={handleSaveContingentWrapper}
+      />
+
+      <AddBillingPeriodModal
+        show={showAddBillingPeriodModal}
+        setShow={setShowAddBillingPeriodModal}
+        newBillingPeriod={newBillingPeriod}
+        setNewBillingPeriod={setNewBillingPeriod}
+        handleAddBillingPeriod={handleAddBillingPeriodWrapper}
+      />
+
+      <EditMemberModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        editModalTab={editModalTab}
+        setEditModalTab={setEditModalTab}
+        editForm={editForm}
+        handleInputChange={handleInputChange}
+        handleEditSubmit={handleEditSubmitWrapper}
+        editingRelations={editingRelations}
+        setEditingRelations={setEditingRelations}
+        newRelation={newRelation}
+        setNewRelation={setNewRelation}
+        availableMembersLeads={availableMembersLeads}
+        relationOptions={relationOptions}
+        handleAddRelation={handleAddRelationWrapper}
+        memberRelations={memberRelations}
+        handleDeleteRelation={handleDeleteRelationWrapper}
+        handleArchiveMember={handleArchiveMemberWrapper}
+        handleUnarchiveMember={handleUnarchiveMemberWrapper}
+      />
+
+      {isRightSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      {isEditTaskModalOpen && editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onClose={() => {
+            setIsEditTaskModalOpen(false);
+            setEditingTask(null);
+          }}
+          onUpdateTask={handleUpdateTaskWrapper}
+        />
+      )}
+
+      {taskToDelete && (
+        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this task? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteTaskWrapper(taskToDelete)}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {taskToCancel && (
+        <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToCancel(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                No
+              </button>
+              <button
+                onClick={() => handleCancelTaskWrapper(taskToCancel)}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+              >
+                Cancel Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <style jsx>{`
         @keyframes wobble {
           0%, 100% { transform: rotate(0deg); }
@@ -1299,6 +1838,7 @@ Payment Method: ${invoiceData.paymentMethod}
         }
       `}</style>
     </div>
+    </>
   )
 }
 

@@ -1,10 +1,26 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useCallback } from "react"
 import toast from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 import { AlertTriangle, Info } from "react-feather" // Import AlertTriangle and Info components
 import { CalendarIcon, Edit, X } from "lucide-react"
-import { appointmentsData, availableMembersLeadsNew, birthdaysData, communicationsData, customLinksData, expiringContractsData, memberContingentDataNew, memberRelationsData, memberTypesData, mockTrainingPlansNew, mockVideosNew, notificationData, todosData } from "../utils/user-panel-states/myarea-states"
+import {
+  appointmentsData,
+  availableMembersLeadsNew,
+  birthdaysData,
+  communicationsData,
+  customLinksData,
+  expiringContractsData,
+  memberContingentDataNew,
+  memberRelationsData,
+  memberTypesData,
+  mockTrainingPlansNew,
+  mockVideosNew,
+  notificationData,
+  todosData,
+} from "../utils/user-panel-states/myarea-states"
 
 export const useSidebarSystem = () => {
   const navigate = useNavigate()
@@ -18,26 +34,26 @@ export const useSidebarSystem = () => {
   const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
 
-  const [customLinks, setCustomLinks] = useState(customLinksData);
-    const [communications, setCommunications] = useState(communicationsData);
-    const [todos, setTodos] = useState(todosData);
-      const [birthdays, setBirthdays] = useState(birthdaysData);
-      const [expiringContracts, setExpiringContracts] = useState(expiringContractsData);
-      const [notifications, setNotifications] = useState(notificationData);
-       const [appointments, setAppointments] = useState(appointmentsData);
-        const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew);
-        const [memberRelations, setMemberRelations] = useState(memberRelationsData);
+  const [customLinks, setCustomLinks] = useState(customLinksData)
+  const [communications, setCommunications] = useState(communicationsData)
+  const [todos, setTodos] = useState(todosData)
+  const [birthdays, setBirthdays] = useState(birthdaysData)
+  const [expiringContracts, setExpiringContracts] = useState(expiringContractsData)
+  const [notifications, setNotifications] = useState(notificationData)
+  const [appointments, setAppointments] = useState(appointmentsData)
+  const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
+  const [memberRelations, setMemberRelations] = useState(memberRelationsData)
 
-          const memberTypes = memberTypesData;
-          const availableMembersLeads = availableMembersLeadsNew;
-          const mockTrainingPlans = mockTrainingPlansNew;
-          const mockVideos = mockVideosNew;
+  const memberTypes = memberTypesData
+  const availableMembersLeads = availableMembersLeadsNew
+  const mockTrainingPlans = mockTrainingPlansNew
+  const mockVideos = mockVideosNew
 
-          const appointmentTypes = [
-            { name: "Regular Training", duration: 60, color: "bg-blue-500" },
-            { name: "Consultation", duration: 30, color: "bg-green-500" },
-            { name: "Assessment", duration: 45, color: "bg-purple-500" },
-          ];
+  const appointmentTypes = [
+    { name: "Regular Training", duration: 60, color: "bg-blue-500" },
+    { name: "Consultation", duration: 30, color: "bg-green-500" },
+    { name: "Assessment", duration: 45, color: "bg-purple-500" },
+  ]
 
   // ===== TASK/TODO STATES =====
   const [editingTask, setEditingTask] = useState(null)
@@ -748,9 +764,6 @@ export const useSidebarSystem = () => {
       )
     },
     [activeNoteId, setActiveNoteId],
-
-   
-
   )
 
   const todoFilterOptions = [
@@ -758,7 +771,7 @@ export const useSidebarSystem = () => {
     { value: "ongoing", label: "Ongoing" },
     { value: "pending", label: "Pending" },
     { value: "completed", label: "Completed" },
-  ];
+  ]
 
   const relationOptions = {
     family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
@@ -766,7 +779,7 @@ export const useSidebarSystem = () => {
     relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
     work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
     other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
-  };
+  }
 
   // ===== RETURN ALL STATES AND FUNCTIONS =====
   return {
@@ -923,14 +936,25 @@ export const useSidebarSystem = () => {
     truncateUrl,
     renderSpecialNoteIcon,
 
-
     // new states
-    customLinks,setCustomLinks, communications, setCommunications,
-    todos, setTodos, expiringContracts, setExpiringContracts,
-    birthdays, setBirthdays, notifications, setNotifications,
-    appointments, setAppointments,
-    memberContingentData, setMemberContingentData,
-    memberRelations, setMemberRelations,
+    customLinks,
+    setCustomLinks,
+    communications,
+    setCommunications,
+    todos,
+    setTodos,
+    expiringContracts,
+    setExpiringContracts,
+    birthdays,
+    setBirthdays,
+    notifications,
+    setNotifications,
+    appointments,
+    setAppointments,
+    memberContingentData,
+    setMemberContingentData,
+    memberRelations,
+    setMemberRelations,
 
     memberTypes,
     availableMembersLeads,
@@ -939,6 +963,6 @@ export const useSidebarSystem = () => {
 
     todoFilterOptions,
     relationOptions,
-    appointmentTypes
+    appointmentTypes,
   }
 }
