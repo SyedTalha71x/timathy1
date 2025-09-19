@@ -4,7 +4,8 @@ import { X } from "lucide-react"
 
 const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypesMain, onSubmit, selectedDate }) => {
   const [blockData, setBlockData] = useState({
-    date: selectedDate ? new Date(selectedDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    startDate: selectedDate ? new Date(selectedDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    endDate: new Date().toISOString().split("T")[0],
     startTime: "09:00",
     endTime: "10:00",
     note: "",
@@ -16,7 +17,7 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypesMain, onSubmit
     if (selectedDate) {
       setBlockData((prev) => ({
         ...prev,
-        date: new Date(selectedDate).toISOString().split("T")[0],
+        startDate: new Date(selectedDate).toISOString().split("T")[0],
       }))
     }
   }, [selectedDate])
@@ -70,49 +71,59 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypesMain, onSubmit
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6 custom-scrollbar overflow-y-auto max-h-[70vh]">
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">Date</label>
-              <div className="relative">
+            {/* Start & End Date */}
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">Start Date</label>
                 <input
                   type="date"
-                  name="date"
-                  value={blockData.date}
+                  name="startDate"
+                  value={blockData.startDate}
                   onChange={handleChange}
-                  className="w-full bg-[#0D0D0D] white-calendar-icon text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  className="w-full bg-[#0D0D0D] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">End Date</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={blockData.endDate}
+                  onChange={handleChange}
+                  className="w-full bg-[#0D0D0D] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
                   required
                 />
               </div>
             </div>
 
+            {/* Start & End Time */}
             <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-white mb-2">Start Time</label>
-                <div className="relative">
-                  <input
-                    type="time"
-                    name="startTime"
-                    value={blockData.startTime}
-                    onChange={handleChange}
-                    className="w-full bg-[#0D0D0D] white-calendar-icon text-white rounded-xl px-4 py-3  text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                    required
-                  />
-                </div>
+                <input
+                  type="time"
+                  name="startTime"
+                  value={blockData.startTime}
+                  onChange={handleChange}
+                  className="w-full bg-[#0D0D0D] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-white mb-2">End Time</label>
-                <div className="relative">
-                  <input
-                    type="time"
-                    name="endTime"
-                    value={blockData.endTime}
-                    onChange={handleChange}
-                    className="w-full bg-[#0D0D0D] white-calendar-icon text-white rounded-xl px-4 py-3  text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                    required
-                  />
-                </div>
+                <input
+                  type="time"
+                  name="endTime"
+                  value={blockData.endTime}
+                  onChange={handleChange}
+                  className="w-full bg-[#0D0D0D] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                  required
+                />
               </div>
             </div>
 
+            {/* Resources */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">Resources to Block</label>
               <div className="space-y-2 bg-[#0D0D0D] p-4 rounded-xl">
@@ -152,6 +163,7 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypesMain, onSubmit
               </div>
             </div>
 
+            {/* Note */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">Note (Optional)</label>
               <textarea
@@ -159,11 +171,12 @@ const BlockAppointmentModal = ({ isOpen, onClose, appointmentTypesMain, onSubmit
                 value={blockData.note}
                 onChange={handleChange}
                 placeholder="Add a note about why this time is blocked"
-                className="w-full bg-[#0D0D0D]  text-white resize-none  rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[80px]"
+                className="w-full bg-[#0D0D0D] text-white resize-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF] min-h-[80px]"
               />
             </div>
           </div>
 
+          {/* Buttons */}
           <div className="flex flex-col-reverse sm:flex-row gap-2 pt-4 border-t border-gray-800">
             <button
               type="button"

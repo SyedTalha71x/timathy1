@@ -1145,38 +1145,40 @@ export default function Appointments() {
           </div>
         )}
         <BlockAppointmentModal
-          isOpen={isBlockModalOpen}
-          onClose={() => setIsBlockModalOpen(false)}
-          appointmentTypesMain={appointmentTypesMain}
-          selectedDate={selectedDate || new Date()}
-          onSubmit={(blockData) => {
-            const newBlock = {
-              id: appointmentsMain.length + 1,
-              name: "BLOCKED",
-              time: `${blockData.startTime} - ${blockData.endTime}`,
-              date: `${new Date(blockData.date).toLocaleString("en-US", {
-                weekday: "short",
-              })} | ${formatDateForDisplay(new Date(blockData.date))}`,
-              color: "bg-[#FF4D4F]",
-              startTime: blockData.startTime,
-              endTime: blockData.endTime,
-              type: "Blocked Time",
-              specialNote: {
-                text: blockData.note || "This time slot is blocked",
-                startDate: null,
-                endDate: null,
-                isImportant: true,
-              },
-              status: "blocked",
-              isBlocked: true,
-              isCancelled: false, // Default for new blocks
-              isPast: false, // Default for new blocks
-            }
-            setAppointmentsMain([...appointmentsMain, newBlock])
-            toast.success("Time slot blocked successfully")
-            setIsBlockModalOpen(false)
-          }}
-        />
+  isOpen={isBlockModalOpen}
+  onClose={() => setIsBlockModalOpen(false)}
+  appointmentTypesMain={appointmentTypesMain}
+  selectedDate={selectedDate || new Date()}
+  onSubmit={(blockData) => {
+    const newBlock = {
+      id: appointmentsMain.length + 1,
+      name: "BLOCKED",
+      time: `${blockData.startTime} - ${blockData.endTime}`,
+      date: `${new Date(blockData.startDate).toLocaleString("en-US", {
+        weekday: "short",
+      })} | ${formatDateForDisplay(new Date(blockData.startDate))} → ${formatDateForDisplay(new Date(blockData.endDate))}`,
+      color: "bg-[#FF4D4F]",
+      startTime: blockData.startTime,
+      endTime: blockData.endTime,
+      type: "Blocked Time",
+      specialNote: {
+        text: blockData.note || "This time slot is blocked",
+        startDate: blockData.startDate,
+        endDate: blockData.endDate,
+        isImportant: true,
+      },
+      status: "blocked",
+      isBlocked: true,
+      isCancelled: false,
+      isPast: false,
+    }
+
+    setAppointmentsMain([...appointmentsMain, newBlock])
+    toast.success("Time slot blocked successfully")
+    setIsBlockModalOpen(false)
+  }}
+/>
+
         <Toaster
           position="top-right"
           toastOptions={{

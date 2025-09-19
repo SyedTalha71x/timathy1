@@ -24,6 +24,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
 
 .navbar_h1{
   font-family: "Oxanium", serif;

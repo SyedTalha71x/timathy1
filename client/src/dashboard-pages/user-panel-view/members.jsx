@@ -79,6 +79,8 @@ export default function Members() {
   const [tempMemberModalTab, setTempMemberModalTab] = useState("details")
   // 
   const [editModalTabMain, setEditModalTabMain] = useState("details")
+  const [isDirectionDropdownOpen, setIsDirectionDropdownOpen] = useState(false)
+
 
   const [sortBy, setSortBy] = useState("alphabetical")
   const [sortDirection, setSortDirection] = useState("asc")
@@ -163,7 +165,7 @@ export default function Members() {
     setShowDocumentModal(true)
   }
 
-//  
+  //  
   const [editingRelationsMain, setEditingRelationsMain] = useState(false)
   // 
   const [newRelationMain, setNewRelationMain] = useState({
@@ -220,7 +222,7 @@ export default function Members() {
   })
 
   const [viewMode, setViewMode] = useState("list")
-  
+
   const getRelationsCount = (memberId) => {
     const relations = memberRelationsMain[memberId]
     if (!relations) return 0
@@ -373,12 +375,20 @@ export default function Members() {
       if (notePopoverRefMain.current && !notePopoverRefMain.current.contains(event.target)) {
         setActiveNoteIdMain(null)
       }
-    }
-    if (activeNoteIdMain !== null) {
-      document.addEventListener("mousedown", handleClickOutside)
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside)
+
+      // Fix the dropdown close logic
+      if (!event.target.closest(".sort-dropdown")) {
+        setIsSortDropdownOpen(false)
       }
+
+      if (!event.target.closest(".direction-dropdown")) {
+        setIsDirectionDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [activeNoteIdMain])
 
@@ -403,6 +413,7 @@ export default function Members() {
   const filteredAndSortedMembers = () => {
     let filtered = members.filter((member) => member.title.toLowerCase().includes(searchQuery.toLowerCase()))
 
+    // Apply filters
     if (filterStatus === "active") {
       filtered = filtered.filter((member) => member.isActive && !member.isArchived)
     } else if (filterStatus === "paused") {
@@ -417,6 +428,7 @@ export default function Members() {
       filtered = filtered.filter((member) => member.memberType === "temporary")
     }
 
+    // Apply sorting
     if (sortBy === "alphabetical") {
       filtered.sort((a, b) => {
         const comparison = a.title.localeCompare(b.title)
@@ -454,11 +466,27 @@ export default function Members() {
         return sortDirection === "asc" ? comparison : -comparison
       })
     } else if (sortBy === "expiring") {
+      // Sort members with contracts expiring first, then by expiration date
       filtered.sort((a, b) => {
-        if (!a.contractEnd) return 1
-        if (!b.contractEnd) return -1
-        const comparison = new Date(a.contractEnd) - new Date(b.contractEnd)
-        return sortDirection === "asc" ? comparison : -comparison
+        const aExpiring = isContractExpiringSoonMain(a.contractEnd)
+        const bExpiring = isContractExpiringSoonMain(b.contractEnd)
+
+        // If both are expiring or both are not expiring, sort by contract end date
+        if (aExpiring === bExpiring) {
+          if (!a.contractEnd && !b.contractEnd) return 0
+          if (!a.contractEnd) return sortDirection === "asc" ? 1 : -1
+          if (!b.contractEnd) return sortDirection === "asc" ? -1 : 1
+
+          const comparison = new Date(a.contractEnd) - new Date(b.contractEnd)
+          return sortDirection === "asc" ? comparison : -comparison
+        }
+
+        // Prioritize expiring contracts
+        if (sortDirection === "asc") {
+          return bExpiring ? 1 : -1
+        } else {
+          return aExpiring ? 1 : -1
+        }
       })
     }
 
@@ -1091,12 +1119,12 @@ export default function Members() {
     return trainingVideos.find((video) => video.id === id)
   }
 
-    
+
 
 
   return (
     <>
-     <style>
+      <style>
         {`
           @keyframes wobble {
             0%, 100% { transform: rotate(0deg); }
@@ -1192,55 +1220,7 @@ export default function Members() {
                 Filter
               </button>
 
-              {/* Sort Dropdown */}
-              <div className="relative sort-dropdown w-full sm:w-auto">
-                <button
-                  onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                  className="w-full sm:w-auto flex cursor-pointer items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
-                >
-                  <span className="truncate">
-                    Sort: {sortOptions.find((opt) => opt.id === sortBy)?.label}
-                    {sortDirection === "asc" ? " ↑" : " ↓"}
-                  </span>
-                  <ChevronDown
-                    size={16}
-                    className={`transform transition-transform flex-shrink-0 ${isSortDropdownOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
 
-                {isSortDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-full sm:w-64 rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
-                    {sortOptions.map((option) => (
-                      <div key={option.id}>
-                        <button
-                          onClick={() => {
-                            setSortBy(option.id)
-                            setSortDirection("asc")
-                            setIsSortDropdownOpen(false)
-                          }}
-                          className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${option.id === sortBy && sortDirection === "asc" ? "bg-black" : ""
-                            }`}
-                        >
-                          <span>{option.label}</span>
-                          <span className="text-gray-400">↑</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSortBy(option.id)
-                            setSortDirection("desc")
-                            setIsSortDropdownOpen(false)
-                          }}
-                          className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${option.id === sortBy && sortDirection === "desc" ? "bg-black" : ""
-                            }`}
-                        >
-                          <span>{option.label}</span>
-                          <span className="text-gray-400">↓</span>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               {/* Desktop View Mode (only visible on lg+) */}
               <div className="hidden lg:flex items-center gap-1 bg-black rounded-xl p-1">
@@ -1271,6 +1251,89 @@ export default function Members() {
                   className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
                 />
               </div>
+            </div>
+          </div>
+          <div className="flex justify-end items-center mb-4">
+
+
+
+            <div className="flex items-center justify-end gap-2  w-full ">
+              <div className="flex items-center gap-2">
+              <label htmlFor="sort" className="text-sm">Sort:</label>
+              <div className="relative sort-dropdown flex-1"> 
+                <button
+                  onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                  className="w-full flex cursor-pointer items-center justify-between gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
+                >
+                  <span className="truncate">
+                    {sortOptions.find((opt) => opt.id === sortBy)?.label}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`transform transition-transform flex-shrink-0 ${isSortDropdownOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {isSortDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-full rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => {
+                          setSortBy(option.id)
+                          setIsSortDropdownOpen(false)
+                        }}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === sortBy ? "bg-black" : ""
+                          }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="relative direction-dropdown md:w-[140px] w-full">
+                <button
+                  onClick={() => setIsDirectionDropdownOpen(!isDirectionDropdownOpen)}
+                  className="w-full flex cursor-pointer items-center justify-between gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black"
+                >
+                  <span className="truncate">
+                    {sortDirection === "asc" ? "Ascending" : "Descending"}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`transform transition-transform flex-shrink-0 ${isDirectionDropdownOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {isDirectionDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-full rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
+                    <button
+                      onClick={() => {
+                        setSortDirection("asc")
+                        setIsDirectionDropdownOpen(false)
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${sortDirection === "asc" ? "bg-black" : ""}`}
+                    >
+                      <span>Ascending</span>
+                      <span className="text-gray-400"></span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSortDirection("desc")
+                        setIsDirectionDropdownOpen(false)
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${sortDirection === "desc" ? "bg-black" : ""}`}
+                    >
+                      <span>Descending</span>
+                      <span className="text-gray-400"></span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              </div>
+             
             </div>
           </div>
 
@@ -1638,7 +1701,7 @@ export default function Members() {
               </div>
             )}
           </div>
-        
+
           <FilterModal
             isOpen={showFilterModal}
             onClose={() => setShowFilterModal(false)}
@@ -1799,10 +1862,10 @@ export default function Members() {
         onClose={() => setShowHistoryModalMain(false)}
       />
       <NotifyMemberModalMain open={isNotifyMemberOpenMain} action={notifyActionMain} onClose={() => setIsNotifyMemberOpenMain(false)} />
-   
-   {/* sidebar related modal  */}
 
-   <Sidebar
+      {/* sidebar related modal  */}
+
+      <Sidebar
         isRightSidebarOpen={isRightSidebarOpen}
         toggleRightSidebar={toggleRightSidebar}
         isSidebarEditing={isSidebarEditing}

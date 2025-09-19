@@ -65,7 +65,6 @@ export default function ContractList() {
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState("All Contracts")
-  const [selectedSort, setSelectedSort] = useState("Alphabetical (A-Z)") // Update 1: Changed initial state to "Alphabetical (A-Z)"
   const [contracts, setContracts] = useState(initialContracts)
   const [filteredContracts, setFilteredContracts] = useState(initialContracts)
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false)
@@ -85,10 +84,22 @@ export default function ContractList() {
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false)
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
 
+  const [sortDirection, setSortDirection] = useState("asc")
+  const [selectedSort, setSelectedSort] = useState("Alphabetical") // Changed from "Alphabetical (A-Z)" to "Alphabetical"
+
+
   const handleRenewContract = (contractId) => {
     setSelectedContract(contracts.find((contract) => contract.id === contractId))
     setIsRenewModalOpen(true)
   }
+
+  const sortOptions = [
+    "Alphabetical",
+    "Contract Type",
+    "Status",
+    "Expiring Soon",
+    "Recently Added",
+  ]
 
   useEffect(() => {
     let filtered = contracts
@@ -103,55 +114,49 @@ export default function ContractList() {
       filtered = filtered.filter((contract) => contract.memberName.toLowerCase().includes(searchTerm.toLowerCase()))
     }
 
+    // Apply sorting based on selectedSort and sortDirection
+    const sortMultiplier = sortDirection === "desc" ? -1 : 1;
+
     switch (selectedSort) {
       case "Alphabetical (A-Z)":
-        filtered = [...filtered].sort((a, b) => a.memberName.localeCompare(b.memberName))
-        break
       case "Alphabetical (Z-A)":
-        filtered = [...filtered].sort((a, b) => b.memberName.localeCompare(a.memberName))
+        filtered = [...filtered].sort((a, b) =>
+          sortMultiplier * a.memberName.localeCompare(b.memberName)
+        )
         break
       case "Contract Type (A-Z)":
-        filtered = [...filtered].sort((a, b) => a.contractType.localeCompare(b.contractType))
-        break
       case "Contract Type (Z-A)":
-        filtered = [...filtered].sort((a, b) => b.contractType.localeCompare(a.contractType))
+        filtered = [...filtered].sort((a, b) =>
+          sortMultiplier * a.contractType.localeCompare(b.contractType)
+        )
         break
       case "Status (A-Z)":
-        filtered = [...filtered].sort((a, b) => a.status.localeCompare(b.status))
-        break
       case "Status (Z-A)":
-        filtered = [...filtered].sort((a, b) => b.status.localeCompare(a.status))
+        filtered = [...filtered].sort((a, b) =>
+          sortMultiplier * a.status.localeCompare(b.status)
+        )
         break
       case "Expiring Soon":
-        filtered = [...filtered].sort((a, b) => new Date(a.endDate) - new Date(b.endDate))
+        filtered = [...filtered].sort((a, b) =>
+          sortMultiplier * (new Date(a.endDate) - new Date(b.endDate))
+        )
         break
       case "Recently Added":
-        filtered = [...filtered].sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
+        filtered = [...filtered].sort((a, b) =>
+          sortMultiplier * (new Date(b.startDate) - new Date(a.startDate))
+        )
         break
       default:
         // Default alphabetical sorting
-        filtered = [...filtered].sort((a, b) => a.memberName.localeCompare(b.memberName))
+        filtered = [...filtered].sort((a, b) =>
+          sortMultiplier * a.memberName.localeCompare(b.memberName)
+        )
         break
     }
 
     setFilteredContracts(filtered)
     setCurrentPage(1) // Reset to the first page when filter or sort changes
-  }, [selectedFilter, contracts, searchTerm, selectedSort])
-
-  const toggleContractDropdown = (index) => {
-    setOpenDropdownIndex(openDropdownIndex === index ? null : index)
-  }
-
-  const sortOptions = [
-    "Alphabetical (A-Z)",
-    "Alphabetical (Z-A)",
-    "Contract Type (A-Z)",
-    "Contract Type (Z-A)",
-    "Status (A-Z)",
-    "Status (Z-A)",
-    "Expiring Soon",
-    "Recently Added",
-  ]
+  }, [selectedFilter, contracts, searchTerm, selectedSort, sortDirection]) // Added sortDirection to dependencies
 
   const isContractExpired = (endDate) => {
     const today = new Date()
@@ -800,35 +805,9 @@ export default function ContractList() {
                 )}
               </div>
 
-              {/* Sort Dropdown */}
-              <div className="relative sort-dropdown flex-1 sm:flex-none sm:min-w-[200px]">
-                <button
-                  onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                  className="bg-black text-sm cursor-pointer text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full"
-                >
-                  <span className="truncate">Sort: {selectedSort}</span>
-                  <ArrowUpDown className="w-4 h-4 flex-shrink-0" />
-                </button>
-                {sortDropdownOpen && (
-                  <div className="absolute left-0 right-0 sm:right-auto sm:w-full text-sm mt-2 bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10 max-h-60 overflow-y-auto">
-                    {sortOptions.map((sortOption) => (
-                      <button
-                        key={sortOption}
-                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
-                        onClick={() => {
-                          setSelectedSort(sortOption)
-                          setSortDropdownOpen(false)
-                        }}
-                      >
-                        {sortOption}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+
             </div>
 
-            {/* Create Button and Menu */}
             <div className="flex gap-3 items-center">
               <button
                 onClick={handleAddContract}
@@ -847,8 +826,42 @@ export default function ContractList() {
             </div>
           </div>
         </div>
+        <div className="flex justify-end items-center mb-4">
+          <div className="flex items-center gap-1 flex-1 sm:flex-none sm:min-w-[200px]">
+            {/* Sort Field Dropdown */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="sort" className="text-sm text-gray-200  whitespace-nowrap">
+                Sort:
+              </label>              <select
+                id="sort-field"
+                value={selectedSort}
+                onChange={(e) => setSelectedSort(e.target.value)}
+                className="bg-black text-sm text-white px-4 py-2 rounded-xl border border-gray-800 w-full cursor-pointer"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* Search Bar */}
+            {/* Sort Direction Dropdown */}
+            <div className="w-[140px]">
+              <label htmlFor="sort-direction" className="sr-only">Sort Direction</label>
+              <select
+                id="sort-direction"
+                value={sortDirection}
+                onChange={(e) => setSortDirection(e.target.value)}
+                className="bg-black text-sm text-white px-4 py-2 rounded-xl border border-gray-800 w-full cursor-pointer"
+              >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-6 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
@@ -871,12 +884,12 @@ export default function ContractList() {
                 <div className="flex flex-col items-start justify-start">
                   <span
                     className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${contract.status === "Active"
-                        ? "bg-green-600 text-white"
-                        : contract.status === "Ongoing"
-                          ? "bg-gray-600 text-white"
-                          : contract.status === "Paused"
-                            ? "bg-yellow-600 text-white"
-                            : "bg-red-600 text-white"
+                      ? "bg-green-600 text-white"
+                      : contract.status === "Ongoing"
+                        ? "bg-gray-600 text-white"
+                        : contract.status === "Paused"
+                          ? "bg-yellow-600 text-white"
+                          : "bg-red-600 text-white"
                       }`}
                   >
                     {contract.status}
@@ -996,12 +1009,12 @@ export default function ContractList() {
                 <div className="flex justify-between items-start mb-3">
                   <span
                     className={`px-2 py-0.5 text-xs font-medium rounded-lg ${contract.status === "Active"
-                        ? "bg-green-600 text-white"
-                        : contract.status === "Ongoing"
-                          ? "bg-gray-600 text-white"
-                          : contract.status === "Paused"
-                            ? "bg-yellow-600 text-white"
-                            : "bg-red-600 text-white"
+                      ? "bg-green-600 text-white"
+                      : contract.status === "Ongoing"
+                        ? "bg-gray-600 text-white"
+                        : contract.status === "Paused"
+                          ? "bg-yellow-600 text-white"
+                          : "bg-red-600 text-white"
                       }`}
                   >
                     {contract.status}

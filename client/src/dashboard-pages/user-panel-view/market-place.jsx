@@ -57,6 +57,8 @@ export default function MarketplacePage() {
   const trainingVideos = trainingVideosData
 
   const [sortBy, setSortBy] = useState("name")
+  const [sortDirection, setSortDirection] = useState("asc") // new state
+
 
   const getFilteredProducts = () => {
     return marketplaceProducts.filter(
@@ -67,19 +69,40 @@ export default function MarketplacePage() {
     )
   }
 
-  const sortProducts = (products, field) => {
+
+
+  const sortProducts = (products, field, direction) => {
     return [...products].sort((a, b) => {
       let aValue = a[field]
       let bValue = b[field]
-
-      if (typeof aValue === "string") {
-        aValue = aValue.toLowerCase()
-        bValue = bValue.toLowerCase()
+  
+      // Special handling for price
+      if (field === "price") {
+        const parsePrice = (priceStr) =>
+          parseFloat(priceStr.replace("€", "").replace(",", ".").trim())
+        aValue = parsePrice(aValue)
+        bValue = parsePrice(bValue)
+      } else {
+        // Normalize strings
+        if (typeof aValue === "string") aValue = aValue.toLowerCase()
+        if (typeof bValue === "string") bValue = bValue.toLowerCase()
       }
-
-      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+  
+      // Handle comparison based on direction
+      if (direction === "asc") {
+        if (aValue < bValue) return -1
+        if (aValue > bValue) return 1
+      } else {
+        if (aValue > bValue) return -1
+        if (aValue < bValue) return 1
+      }
+      return 0
     })
   }
+
+  const filtered = getFilteredProducts()
+const sortedProducts = sortProducts(filtered, sortBy, sortDirection)
+  
 
   // Extract all states and functions from the hook
   const {
@@ -430,7 +453,7 @@ export default function MarketplacePage() {
 
   return (
     <>
- <style>
+      <style>
         {`
           @keyframes wobble {
             0%, 100% { transform: rotate(0deg); }
@@ -471,7 +494,7 @@ export default function MarketplacePage() {
           : 'mr-0' // No margin when closed
         }
     `}>
-        <div className="p-6">
+        <div className="md:p-6 p-3">
           <div className="flex justify-between items-center w-full">
 
             <h1 className="text-white oxanium_font text-xl mb-5 md:text-2xl">Marketplace</h1>
@@ -480,12 +503,12 @@ export default function MarketplacePage() {
               <IoIosMenu
                 onClick={toggleRightSidebar}
                 size={25}
-                className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+                className="cursor-pointer mb-6 text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
               />
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row gap-2 mb-8">
             <div className="relative flex-1">
               <input
                 type="search"
@@ -496,19 +519,37 @@ export default function MarketplacePage() {
               />
             </div>
 
+            {/* Sort by Field */}
+            <div className="flex items-center gap-2">
+
+
+              <label htmlFor="" className="text-sm">Sort:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="md:w-auto w-full cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+              >
+                <option value="name">Name</option>
+                <option value="price">Price</option>
+                <option value="brand">Brand</option>
+                <option value="articleNo">Article No.</option>
+              </select>
+            </div>
+
+            {/* Sort Direction */}
             <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+              value={sortDirection}
+              onChange={(e) => setSortDirection(e.target.value)}
+              className="md:w-auto w-full cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[140px]"
             >
-              <option value="name">Sort by Name</option>
-              <option value="price">Sort by Price</option>
-              <option value="brand">Sort by Brand</option>
-              <option value="articleNo">Sort by Article No.</option>
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
             </select>
           </div>
 
-          <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>          {sortProducts(getFilteredProducts(), sortBy).map((product) => (
+
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>          
+            {sortedProducts.map((product) => (
             <div key={product.id} className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative">
               <div className="relative w-full h-48 bg-white">
                 <img
