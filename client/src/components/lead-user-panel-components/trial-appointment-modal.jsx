@@ -1,23 +1,46 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { X, Edit, Trash2 } from "lucide-react"
 
 const TrialAppointmentModal = ({ isOpen, onClose, lead, onEditTrial, onDeleteTrial }) => {
-  const [trialAppointments, setTrialAppointments] = useState([])
-
-  useEffect(() => {
-    if (isOpen && lead) {
-      // Load trial appointments for this lead from localStorage
-      const storedAppointments = localStorage.getItem("trialAppointments")
-      if (storedAppointments) {
-        const appointments = JSON.parse(storedAppointments)
-        const leadAppointments = appointments.filter((apt) => apt.leadId === lead.id)
-        setTrialAppointments(leadAppointments)
-      }
-    }
-  }, [isOpen, lead])
+  const [trialAppointments, setTrialAppointments] = useState([
+    {
+      id: 1,
+      name: "Yolanda",
+      time: "09:00 - 09:30",
+      date: "2025-02-07", // ISO format rakhna best hai
+      color: "bg-[#4169E1]",
+      startTime: "09:00",
+      endTime: "09:30",
+      type: "Strength Training",
+      specialNote: { text: "Prefers morning sessions", startDate: null, endDate: null, isImportant: false },
+      status: "pending",
+      isTrial: false,
+      isCancelled: false,
+      isPast: true,
+      trialType: "Trial Training",
+      timeSlot: "09:00 - 09:30",
+    },
+    {
+      id: 2,
+      name: "Michael",
+      time: "10:00 - 10:45",
+      date: "2025-02-08",
+      color: "bg-[#32CD32]",
+      startTime: "10:00",
+      endTime: "10:45",
+      type: "Cardio Session",
+      specialNote: { text: "Bring own water bottle", startDate: null, endDate: null, isImportant: true },
+      status: "confirmed",
+      isTrial: true,
+      isCancelled: false,
+      isPast: false,
+      trialType: "Trial Cardio",
+      timeSlot: "10:00 - 10:45",
+    },
+  ])
 
   const handleEditTrial = (appointment) => {
     onEditTrial(appointment)
@@ -25,6 +48,7 @@ const TrialAppointmentModal = ({ isOpen, onClose, lead, onEditTrial, onDeleteTri
 
   const handleDeleteTrial = (appointmentId) => {
     onDeleteTrial(appointmentId)
+    setTrialAppointments((prev) => prev.filter((apt) => apt.id !== appointmentId))
   }
 
   if (!isOpen || !lead) return null

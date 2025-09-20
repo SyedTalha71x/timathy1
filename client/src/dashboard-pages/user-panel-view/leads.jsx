@@ -1,10 +1,9 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import React from "react"
 import { useState, useEffect, useRef } from "react"
-import {
-  Search,
-  Plus,
-} from "lucide-react"
+import { Search, Plus } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import { AddContractModal } from "../../components/lead-components/add-contract-modal"
 import AddLeadModal from "../../components/lead-user-panel-components/add-lead-modal"
@@ -22,7 +21,6 @@ import DeleteConfirmationModal from "../../components/lead-user-panel-components
 import Column from "../../components/lead-user-panel-components/column"
 import { hardcodedLeads, memberRelationsLeadNew } from "../../utils/user-panel-states/lead-states"
 
-
 // sidebar related imports
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
@@ -34,20 +32,16 @@ import MemberDetailsModal from "../../components/myarea-components/MemberDetails
 import HistoryModal from "../../components/myarea-components/HistoryModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import Sidebar from "../../components/central-sidebar"
-import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
-
-
-
 export default function LeadManagement() {
-  const sidebarSystem = useSidebarSystem();
+  const sidebarSystem = useSidebarSystem()
   const navigate = useNavigate()
   const [showHistoryModalLead, setShowHistoryModalLead] = useState(false)
 
@@ -144,6 +138,7 @@ export default function LeadManagement() {
         ...lead,
         source: "localStorage",
         columnId: lead.columnId || (lead.hasTrialTraining ? "trial" : lead.status || "passive"),
+        dragVersion: 0, // Initialize dragVersion
       }))
       combinedLeads = [...hardcodedLeads, ...parsedStoredLeads]
     }
@@ -214,6 +209,7 @@ export default function LeadManagement() {
       interestedIn: data.interestedIn || "", // Added
       birthday: data.birthday || null, // Added
       address: data.address || "", // Added
+      dragVersion: 0, // Initialize dragVersion
     }
     const updatedLeads = [...leads, newLead]
     setLeads(updatedLeads)
@@ -227,27 +223,27 @@ export default function LeadManagement() {
     const updatedLeads = leads.map((lead) =>
       lead.id === data.id
         ? {
-          ...lead,
-          firstName: data.firstName,
-          surname: data.surname,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-          trialPeriod: data.trialPeriod,
-          hasTrialTraining: data.hasTrialTraining,
-          avatar: data.avatar,
-          status: data.status || lead.status,
-          columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
-          specialNote: {
-            text: data.specialNote?.text || "",
-            isImportant: data.specialNote?.isImportant || false,
-            startDate: data.specialNote?.startDate || null,
-            endDate: data.specialNote?.endDate || null,
-          },
-          company: data.company || lead.company, // Added
-          interestedIn: data.interestedIn || lead.interestedIn, // Added
-          birthday: data.birthday || lead.birthday, // Added
-          address: data.address || lead.address, // Added
-        }
+            ...lead,
+            firstName: data.firstName,
+            surname: data.surname,
+            email: data.email,
+            phoneNumber: data.phoneNumber,
+            trialPeriod: data.trialPeriod,
+            hasTrialTraining: data.hasTrialTraining,
+            avatar: data.avatar,
+            status: data.status || lead.status,
+            columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+            specialNote: {
+              text: data.specialNote?.text || "",
+              isImportant: data.specialNote?.isImportant || false,
+              startDate: data.specialNote?.startDate || null,
+              endDate: data.specialNote?.endDate || null,
+            },
+            company: data.company || lead.company, // Added
+            interestedIn: data.interestedIn || lead.interestedIn, // Added
+            birthday: data.birthday || lead.birthday, // Added
+            address: data.address || lead.address, // Added
+          }
         : lead,
     )
     setLeads(updatedLeads)
@@ -291,6 +287,7 @@ export default function LeadManagement() {
     targetColumnId: "",
     onSave: null,
   })
+  const [specialNoteText, setSpecialNoteText] = useState("") // State for the textarea value
 
   const handleDragStop = (e, data, lead, sourceColumnId, index) => {
     const draggedElem = e.target
@@ -317,81 +314,90 @@ export default function LeadManagement() {
       }
     }
 
-    // If we found a target column and it's different from source
-    if (targetColumnId && targetColumnId !== sourceColumnId) {
-      const leadCards = targetColumnElement.querySelectorAll('[data-column-id="' + targetColumnId + '"] > div > div')
-      let targetIndex = -1
-      for (let i = 0; i < leadCards.length; i++) {
-        const cardRect = leadCards[i].getBoundingClientRect()
-        const cardCenterY = cardRect.top + cardRect.height / 2
-        if (draggedCenterY < cardCenterY) {
-          targetIndex = i
-          break
-        }
-      }
-
-      // If no target index found, append to the end
-      if (targetIndex === -1) {
-        targetIndex = leadCards.length
-      }
-
-      // Check if dragging TO trial column
-      if (targetColumnId === "trial") {
-        setDragConfirmation({
-          isOpen: true,
-          type: "toTrial",
-          lead,
-          sourceColumnId,
-          targetColumnId,
-          targetIndex,
-          onConfirm: () => {
-            setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
-            // Open trial training modal
-            setSelectedLead(lead)
-            setIsTrialModalOpen(true)
-          },
-          onCancel: () => {
-            setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
-            // Lead stays in original position - no action needed
-          },
-        })
-        return
-      }
-
-      // Check if dragging FROM trial column
-      if (sourceColumnId === "trial") {
-        setDragConfirmation({
-          isOpen: true,
-          type: "fromTrial",
-          lead,
-          sourceColumnId,
-          targetColumnId,
-          targetIndex,
-          onConfirm: () => {
-            setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
-            // Open special note modal
-            setSpecialNoteModal({
-              isOpen: true,
-              lead,
-              targetColumnId,
-              onSave: (specialNote) => {
-                // Move the lead with special note
-                moveLeadWithNote(lead, sourceColumnId, targetColumnId, targetIndex, specialNote)
-                setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))
-              },
-            })
-          },
-          onCancel: () => {
-            setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
-            // Lead stays in original position - no action needed
-          },
-        })
-        return
-      }
-
-      // Normal drag and drop for other columns
-      moveLeadToColumn(lead, sourceColumnId, targetColumnId, targetIndex)
+    if (!targetColumnId || targetColumnId === sourceColumnId) {
+      setLeads((prevLeads) =>
+        prevLeads.map((l) => (l.id === lead.id ? { ...l, dragVersion: (l.dragVersion || 0) + 1 } : l)),
+      )
+      return
     }
+
+    // If we found a target column and it's different from source
+    const leadCards = targetColumnElement.querySelectorAll('[data-column-id="' + targetColumnId + '"] > div > div')
+    let targetIndex = -1
+    for (let i = 0; i < leadCards.length; i++) {
+      const cardRect = leadCards[i].getBoundingClientRect()
+      const cardCenterY = cardRect.top + cardRect.height / 2
+      if (draggedCenterY < cardCenterY) {
+        targetIndex = i
+        break
+      }
+    }
+
+    // If no target index found, append to the end
+    if (targetIndex === -1) {
+      targetIndex = leadCards.length
+    }
+
+    // Check if dragging TO trial column
+    if (targetColumnId === "trial") {
+      setDragConfirmation({
+        isOpen: true,
+        type: "toTrial",
+        lead,
+        sourceColumnId,
+        targetColumnId,
+        targetIndex,
+        onConfirm: () => {
+          setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+          // Open trial training modal
+          setSelectedLead(lead)
+          setIsTrialModalOpen(true)
+        },
+        onCancel: () => {
+          setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+          setLeads((prevLeads) =>
+            prevLeads.map((l) => (l.id === lead.id ? { ...l, dragVersion: (l.dragVersion || 0) + 1 } : l)),
+          )
+        },
+      })
+      return
+    }
+
+    // Check if dragging FROM trial column
+    if (sourceColumnId === "trial") {
+      setDragConfirmation({
+        isOpen: true,
+        type: "fromTrial",
+        lead,
+        sourceColumnId,
+        targetColumnId,
+        targetIndex,
+        onConfirm: () => {
+          setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+          // Open special note modal
+          setSpecialNoteModal({
+            isOpen: true,
+            lead,
+            targetColumnId,
+            onSave: (specialNote) => {
+              // Move the lead with special note
+              moveLeadWithNote(lead, sourceColumnId, targetColumnId, targetIndex, specialNote)
+              setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))
+            },
+          })
+        },
+        onCancel: () => {
+          setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+          setLeads((prevLeads) =>
+            prevLeads.map((l) => (l.id === lead.id ? { ...l, dragVersion: (l.dragVersion || 0) + 1 } : l)),
+          )
+        },
+      })
+      return
+    }
+
+    // Normal drag and drop for other columns
+    moveLeadToColumn(lead, sourceColumnId, targetColumnId, targetIndex)
   }
 
   const moveLeadToColumn = (lead, sourceColumnId, targetColumnId, targetIndex) => {
@@ -410,6 +416,7 @@ export default function LeadManagement() {
       columnId: targetColumnId,
       hasTrialTraining: hasTrialTraining || leadToMove.hasTrialTraining,
       status: targetColumnId !== "trial" ? targetColumnId : leadToMove.status,
+      dragVersion: 0,
     }
 
     // Insert the lead at the target position
@@ -439,6 +446,7 @@ export default function LeadManagement() {
       columnId: targetColumnId,
       hasTrialTraining: false, // Remove trial training when moving from trial column
       status: targetColumnId,
+      dragVersion: 0,
       specialNote: {
         ...leadToMove.specialNote,
         text: specialNote,
@@ -462,13 +470,19 @@ export default function LeadManagement() {
 
   const handleTrialModalClose = () => {
     setIsTrialModalOpen(false)
-    // If there was a pending drag operation, complete it
-    if (dragConfirmation.lead && dragConfirmation.targetColumnId === "trial") {
-      moveLeadToColumn(
-        dragConfirmation.lead,
-        dragConfirmation.sourceColumnId,
-        dragConfirmation.targetColumnId,
-        dragConfirmation.targetIndex,
+    if (dragConfirmation.lead) {
+      setLeads((prevLeads) =>
+        prevLeads.map((l) => (l.id === dragConfirmation.lead.id ? { ...l, dragVersion: (l.dragVersion || 0) + 1 } : l)),
+      )
+    }
+  }
+
+  const handleSpecialNoteCancel = () => {
+    setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))
+    // Reset lead position when special note modal is canceled
+    if (specialNoteModal.lead) {
+      setLeads((prevLeads) =>
+        prevLeads.map((l) => (l.id === specialNoteModal.lead.id ? { ...l, dragVersion: (l.dragVersion || 0) + 1 } : l)),
       )
     }
   }
@@ -689,13 +703,25 @@ export default function LeadManagement() {
     truncateUrl,
     renderSpecialNoteIcon,
 
-    // new states 
-    customLinks, setCustomLinks, communications, setCommunications,
-    todos, setTodos, expiringContracts, setExpiringContracts,
-    birthdays, setBirthdays, notifications, setNotifications,
-    appointments, setAppointments,
-    memberContingentData, setMemberContingentData,
-    memberRelations, setMemberRelations,
+    // new states
+    customLinks,
+    setCustomLinks,
+    communications,
+    setCommunications,
+    todos,
+    setTodos,
+    expiringContracts,
+    setExpiringContracts,
+    birthdays,
+    setBirthdays,
+    notifications,
+    setNotifications,
+    appointments,
+    setAppointments,
+    memberContingentData,
+    setMemberContingentData,
+    memberRelations,
+    setMemberRelations,
 
     memberTypes,
     availableMembersLeads,
@@ -704,8 +730,8 @@ export default function LeadManagement() {
 
     todoFilterOptions,
     relationOptions,
-    appointmentTypes
-  } = sidebarSystem;
+    appointmentTypes,
+  } = sidebarSystem
 
   // more sidebar related functions
 
@@ -713,7 +739,7 @@ export default function LeadManagement() {
   const chartSeries = [
     { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
-  ];
+  ]
 
   const chartOptions = {
     chart: {
@@ -785,81 +811,80 @@ export default function LeadManagement() {
         series[seriesIndex][dataPointIndex] +
         "</span></div>",
     },
-  };
-
+  }
 
   // Wrapper functions to pass local state to hook functions
   const handleTaskCompleteWrapper = (taskId) => {
-    handleTaskComplete(taskId, todos, setTodos);
-  };
+    handleTaskComplete(taskId, todos, setTodos)
+  }
 
   const handleUpdateTaskWrapper = (updatedTask) => {
-    handleUpdateTask(updatedTask, setTodos);
-  };
+    handleUpdateTask(updatedTask, setTodos)
+  }
 
   const handleCancelTaskWrapper = (taskId) => {
-    handleCancelTask(taskId, setTodos);
-  };
+    handleCancelTask(taskId, setTodos)
+  }
 
   const handleDeleteTaskWrapper = (taskId) => {
-    handleDeleteTask(taskId, setTodos);
-  };
+    handleDeleteTask(taskId, setTodos)
+  }
 
   const handleEditNoteWrapper = (appointmentId, currentNote) => {
-    handleEditNote(appointmentId, currentNote, appointments);
-  };
+    handleEditNote(appointmentId, currentNote, appointments)
+  }
 
   const handleCheckInWrapper = (appointmentId) => {
-    handleCheckIn(appointmentId, appointments, setAppointments);
-  };
+    handleCheckIn(appointmentId, appointments, setAppointments)
+  }
 
   const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
-    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
-  };
+    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments)
+  }
 
   const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
-    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
-  };
+    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments)
+  }
 
   const handleDeleteAppointmentWrapper = (id) => {
-    handleDeleteAppointment(id, appointments, setAppointments);
-  };
+    handleDeleteAppointment(id, appointments, setAppointments)
+  }
 
   const getMemberAppointmentsWrapper = (memberId) => {
-    return getMemberAppointments(memberId, appointments);
-  };
+    return getMemberAppointments(memberId, appointments)
+  }
 
   const handleAddBillingPeriodWrapper = () => {
-    handleAddBillingPeriod(memberContingentData, setMemberContingentData);
-  };
+    handleAddBillingPeriod(memberContingentData, setMemberContingentData)
+  }
 
   const handleSaveContingentWrapper = () => {
-    handleSaveContingent(memberContingentData, setMemberContingentData);
-  };
+    handleSaveContingent(memberContingentData, setMemberContingentData)
+  }
 
   const handleEditSubmitWrapper = (e) => {
-    handleEditSubmit(e, appointments, setAppointments);
-  };
+    handleEditSubmit(e, appointments, setAppointments)
+  }
 
   const handleAddRelationWrapper = () => {
-    handleAddRelation(memberRelations, setMemberRelations);
-  };
+    handleAddRelation(memberRelations, setMemberRelations)
+  }
 
   const handleDeleteRelationWrapper = (category, relationId) => {
-    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations);
-  };
+    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations)
+  }
 
   const handleArchiveMemberWrapper = (memberId) => {
-    handleArchiveMember(memberId, appointments, setAppointments);
-  };
+    handleArchiveMember(memberId, appointments, setAppointments)
+  }
 
   const handleUnarchiveMemberWrapper = (memberId) => {
-    handleUnarchiveMember(memberId, appointments, setAppointments);
-  };
+    handleUnarchiveMember(memberId, appointments, setAppointments)
+  }
 
   const getBillingPeriodsWrapper = (memberId) => {
-    return getBillingPeriods(memberId, memberContingentData);
-  };
+    return getBillingPeriods(memberId, memberContingentData)
+  }
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
@@ -878,16 +903,15 @@ export default function LeadManagement() {
     return trainingVideos.find((video) => video.id === id)
   }
 
-
   return (
     <div
       className={`
       min-h-screen rounded-3xl p-6 bg-[#1C1C1C]
       transition-all duration-300 ease-in-out flex-1
-     
+
     `}
     >
-       <style>
+      <style>
         {`
           @keyframes wobble {
             0%, 100% { transform: rotate(0deg); }
@@ -985,7 +1009,7 @@ export default function LeadManagement() {
         ))}
       </div>
       <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
-     
+
       <EditLeadModal
         isVisible={isEditModalOpenLead}
         onClose={() => {
@@ -1084,13 +1108,13 @@ export default function LeadManagement() {
           leadData={
             selectedLead
               ? {
-                id: selectedLead.id,
-                name: `${selectedLead.firstName} ${selectedLead.surname}`,
-                email: selectedLead.email,
-                phone: selectedLead.phoneNumber,
-                company: selectedLead.company, // Ensure company is passed
-                interestedIn: selectedLead.interestedIn, // Ensure interestedIn is passed
-              }
+                  id: selectedLead.id,
+                  name: `${selectedLead.firstName} ${selectedLead.surname}`,
+                  email: selectedLead.email,
+                  phone: selectedLead.phoneNumber,
+                  company: selectedLead.company, // Ensure company is passed
+                  interestedIn: selectedLead.interestedIn, // Ensure interestedIn is passed
+                }
               : null
           }
         />
@@ -1149,29 +1173,28 @@ export default function LeadManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
           <div className="bg-[#1C1C1C] w-[95%] sm:w-[90%] md:w-[500px] max-w-lg rounded-xl p-4 sm:p-6">
             <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Add Special Note</h3>
-            <p className="text-gray-300 mb-3 sm:mb-4 text-sm sm:text-base">
-              Please enter the reason for moving {specialNoteModal.lead?.firstName}{" "}
-              {specialNoteModal.lead?.surname || ""} from Trial Training Arranged:
+            <p className="text-gray-300 mb-4 text-sm sm:text-base">
+              Please add a special note for {specialNoteModal.lead?.firstName} {specialNoteModal.lead?.surname}:
             </p>
             <textarea
-              id="specialNoteText"
-              className="w-full bg-[#101010] text-white rounded-lg p-3 mb-3 sm:mb-4 min-h-[80px] sm:min-h-[100px] resize-none outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-              placeholder="Enter reason for moving from trial training..."
+              className="w-full p-3 bg-gray-800 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none resize-none"
+              rows="4"
+              placeholder="Enter special note..."
+              onChange={(e) => setSpecialNoteText(e.target.value)}
+              value={specialNoteText}
             />
-            <div className="flex gap-2 sm:gap-3">
+            <div className="flex gap-2 sm:gap-3 mt-4">
               <button
-                onClick={() => setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))}
+                onClick={handleSpecialNoteCancel}
                 className="flex-1 px-3 sm:px-4 py-2 bg-gray-600 text-white text-sm sm:text-base rounded-lg hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => {
-                  const noteText = document.getElementById("specialNoteText").value
-                  if (noteText.trim()) {
-                    specialNoteModal.onSave(noteText.trim())
-                  } else {
-                    toast.error("Please enter a reason for moving the lead")
+                  if (specialNoteText.trim()) {
+                    specialNoteModal.onSave(specialNoteText)
+                    setSpecialNoteText("")
                   }
                 }}
                 className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition-colors"
@@ -1217,7 +1240,6 @@ export default function LeadManagement() {
         title="Delete Trial Appointment"
         message="Are you sure you want to delete this trial appointment? This action cannot be undone."
       />
-
 
       {/* Sidebar related modals and logic  */}
       <Sidebar
@@ -1278,11 +1300,8 @@ export default function LeadManagement() {
       />
 
       {isRightSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-10"
-          onClick={toggleRightSidebar}
-          aria-hidden="true"
-        ></div>)}
+        <div className="fixed inset-0 bg-black/50 z-10" onClick={toggleRightSidebar} aria-hidden="true"></div>
+      )}
 
       <TrainingPlanModal
         isOpen={isTrainingPlanModalOpen}
@@ -1296,14 +1315,14 @@ export default function LeadManagement() {
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}
         onClose={() => {
-          setShowAppointmentOptionsModal(false);
-          setSelectedAppointment(null);
+          setShowAppointmentOptionsModal(false)
+          setSelectedAppointment(null)
         }}
         appointment={selectedAppointment}
         isEventInPast={isEventInPast}
         onEdit={() => {
-          setShowAppointmentOptionsModal(false);
-          setIsEditAppointmentModalOpen(true);
+          setShowAppointmentOptionsModal(false)
+          setIsEditAppointmentModalOpen(true)
         }}
         onCancel={handleCancelAppointment}
         onViewMember={handleViewMemberDetails}
@@ -1324,7 +1343,7 @@ export default function LeadManagement() {
           appointmentTypes={appointmentTypes}
           freeAppointments={freeAppointments}
           handleAppointmentChange={(changes) => {
-            setSelectedAppointment({ ...selectedAppointment, ...changes });
+            setSelectedAppointment({ ...selectedAppointment, ...changes })
           }}
           appointments={appointments}
           setAppointments={setAppointments}
@@ -1332,8 +1351,8 @@ export default function LeadManagement() {
           setNotifyAction={setNotifyAction}
           onDelete={handleDeleteAppointmentWrapper}
           onClose={() => {
-            setIsEditAppointmentModalOpen(false);
-            setSelectedAppointment(null);
+            setIsEditAppointmentModalOpen(false)
+            setSelectedAppointment(null)
           }}
         />
       )}
@@ -1349,8 +1368,8 @@ export default function LeadManagement() {
       <MemberOverviewModal
         isOpen={isMemberOverviewModalOpen}
         onClose={() => {
-          setIsMemberOverviewModalOpen(false);
-          setSelectedMember(null);
+          setIsMemberOverviewModalOpen(false)
+          setSelectedMember(null)
         }}
         selectedMember={selectedMember}
         calculateAge={calculateAge}
@@ -1366,8 +1385,8 @@ export default function LeadManagement() {
         show={showAppointmentModal}
         member={selectedMember}
         onClose={() => {
-          setShowAppointmentModal(false);
-          setSelectedMember(null);
+          setShowAppointmentModal(false)
+          setSelectedMember(null)
         }}
         getMemberAppointments={getMemberAppointmentsWrapper}
         appointmentTypes={appointmentTypes}
@@ -1382,8 +1401,8 @@ export default function LeadManagement() {
       <HistoryModal
         show={showHistoryModal}
         onClose={() => {
-          setShowHistoryModal(false);
-          setSelectedMember(null);
+          setShowHistoryModal(false)
+          setSelectedMember(null)
         }}
         selectedMember={selectedMember}
         historyTab={historyTab}
@@ -1394,8 +1413,8 @@ export default function LeadManagement() {
       <MemberDetailsModal
         isOpen={isMemberDetailsModalOpen}
         onClose={() => {
-          setIsMemberDetailsModalOpen(false);
-          setSelectedMember(null);
+          setIsMemberDetailsModalOpen(false)
+          setSelectedMember(null)
         }}
         selectedMember={selectedMember}
         memberRelations={memberRelations}
@@ -1430,8 +1449,8 @@ export default function LeadManagement() {
       <EditMemberModal
         isOpen={isEditModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedMember(null);
+          setIsEditModalOpen(false)
+          setSelectedMember(null)
         }}
         selectedMember={selectedMember}
         editModalTab={editModalTab}
@@ -1452,19 +1471,14 @@ export default function LeadManagement() {
         handleUnarchiveMember={handleUnarchiveMemberWrapper}
       />
 
-      {isRightSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={closeSidebar}
-        />
-      )}
+      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
 
       {isEditTaskModalOpen && editingTask && (
         <EditTaskModal
           task={editingTask}
           onClose={() => {
-            setIsEditTaskModalOpen(false);
-            setEditingTask(null);
+            setIsEditTaskModalOpen(false)
+            setEditingTask(null)
           }}
           onUpdateTask={handleUpdateTaskWrapper}
         />
@@ -1517,7 +1531,6 @@ export default function LeadManagement() {
           </div>
         </div>
       )}
-
     </div>
   )
 }
