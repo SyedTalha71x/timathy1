@@ -70,29 +70,30 @@ const Column = ({
           </button>
         )}
       </div>
-      <div className="p-2 sm:p-3 flex-1 min-h-[250px] sm:min-h-[400px]">
-        {leads.map((lead, index) => (
-          <LeadCard
-            key={lead.id}
-            lead={lead}
-            onViewDetails={onViewDetails}
-            onAddTrial={onAddTrial}
-            onCreateContract={onCreateContract}
-            onEditLead={onEditLead}
-            onDeleteLead={onDeleteLead}
-            columnId={id}
-            onDragStop={(e, data, leadData, sourceColumnId, leadIndex) => {
-              setDraggingLeadId(null)
-              onDragStop(e, data, leadData, sourceColumnId, leadIndex)
-            }}
-            index={index}
-            memberRelationsLead={memberRelationsLead}
-            setShowHistoryModalLead={setShowHistoryModalLead}
-            setSelectedLead={setSelectedLead} // NOW PASSING setSelectedLead TO LeadCard
-            onManageTrialAppointments={onManageTrialAppointments}
-          />
-        ))}
-      </div>
+      <div className="p-2 sm:p-3 flex-1 min-h-[250px] sm:min-h-[400px] overflow-y-auto max-h-[60vh]">
+  {leads.map((lead, index) => (
+    <LeadCard
+      key={lead.id}
+      lead={lead}
+      onViewDetails={onViewDetails}
+      onAddTrial={onAddTrial}
+      onCreateContract={onCreateContract}
+      onEditLead={onEditLead}
+      onDeleteLead={onDeleteLead}
+      columnId={id}
+      onDragStop={(e, data, leadData, sourceColumnId, leadIndex) => {
+        setDraggingLeadId(null)
+        onDragStop(e, data, leadData, sourceColumnId, leadIndex)
+      }}
+      index={index}
+      memberRelationsLead={memberRelationsLead}
+      setShowHistoryModalLead={setShowHistoryModalLead}
+      setSelectedLead={setSelectedLead}
+      onManageTrialAppointments={onManageTrialAppointments}
+    />
+  ))}
+</div>
+
     </div>
   )
 }
