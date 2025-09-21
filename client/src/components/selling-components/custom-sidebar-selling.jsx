@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -32,6 +33,10 @@ import {
   Percent,
   Receipt,
   UserPlus,
+  Reply,
+  Camera,
+  ChevronUp,
+  Users,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
@@ -40,7 +45,143 @@ import StaffCheckInWidget from "../myarea-components/StaffWidgetCheckIn"
 import { SpecialNoteEditModal } from "../myarea-components/SpecialNoteEditModal"
 import ViewManagementModal from "../myarea-components/sidebar-components/ViewManagementModal"
 import { bulletinBoardData } from "../../utils/user-panel-states/myarea-states"
+import PersonImage from '../../../public/avatar3.png'
 
+const demoNotifications = {
+  memberChat: [
+    {
+      id: "mc1",
+      type: "member_chat",
+      senderName: "John Smith",
+      senderAvatar: PersonImage,
+      message: "Hey, can I reschedule my session for tomorrow?",
+      time: "2 min ago",
+      isRead: false,
+      chatId: "chat_001",
+    },
+    {
+      id: "mc2",
+      type: "member_chat",
+      senderName: "Sarah Johnson",
+      senderAvatar: PersonImage,
+      message: "Thanks for the workout plan! Really enjoying it.",
+      time: "15 min ago",
+      isRead: false,
+      chatId: "chat_002",
+    },
+    {
+      id: "mc3",
+      type: "member_chat",
+      senderName: "Mike Wilson",
+      senderAvatar: PersonImage,
+      message: "Is the gym open on Sunday?",
+      time: "1 hour ago",
+      isRead: true,
+      chatId: "chat_003",
+    },
+  ],
+  studioChat: [
+    {
+      id: "sc1",
+      type: "studio_chat",
+      senderName: "Alex (Trainer)",
+      senderAvatar: PersonImage,
+      message: "New member orientation scheduled for 3 PM",
+      time: "5 min ago",
+      isRead: false,
+      chatId: "studio_001",
+    },
+    {
+      id: "sc2",
+      type: "studio_chat",
+      senderName: "Emma (Manager)",
+      senderAvatar: PersonImage,
+      message: "Equipment maintenance completed",
+      time: "30 min ago",
+      isRead: false,
+      chatId: "studio_002",
+    },
+    {
+      id: "sc3",
+      type: "studio_chat",
+      senderName: "David (Receptionist)",
+      senderAvatar: PersonImage,
+      message: "Front desk coverage needed tomorrow",
+      time: "2 hours ago",
+      isRead: true,
+      chatId: "studio_003",
+    },
+  ],
+}
+const MessageReplyModal = ({ isOpen, onClose, message, onSendReply }) => {
+  const [replyText, setReplyText] = useState("")
+
+  const handleSendReply = () => {
+    if (replyText.trim()) {
+      onSendReply(message.chatId, replyText)
+      setReplyText("")
+      onClose()
+      toast.success("Reply sent successfully!")
+    }
+  }
+
+  if (!isOpen || !message) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#2F2F2F] rounded-xl w-full max-w-md">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex items-center gap-3">
+            <img
+              src={message.senderAvatar || "/placeholder.svg"}
+              alt={message.senderName}
+              className="w-8 h-8 rounded-full"
+            />
+            <div>
+              <h3 className="text-white font-medium text-sm">Reply to {message.senderName}</h3>
+              <p className="text-gray-400 text-xs">{message.type === "member_chat" ? "Member Chat" : "Studio Chat"}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Original Message */}
+        <div className="p-4 bg-black/30">
+          <p className="text-gray-300 text-sm italic">"{message.message}"</p>
+          <p className="text-gray-500 text-xs mt-1">{message.time}</p>
+        </div>
+
+        {/* Reply Input */}
+        <div className="p-4">
+          <textarea
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            placeholder="Type your reply..."
+            className="w-full bg-black rounded-lg p-3 text-white text-sm resize-none h-24 border border-gray-600 focus:border-blue-500 focus:outline-none"
+          />
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2 mt-3">
+            <button onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white text-sm">
+              Cancel
+            </button>
+            <button
+              onClick={handleSendReply}
+              disabled={!replyText.trim()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm flex items-center gap-2"
+            >
+              <Reply size={16} />
+              Send Reply
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 const ChartWithLocalState = ({
   selectedMemberType,
   setSelectedMemberType,
@@ -181,6 +322,16 @@ const SidebarAreaSelling = ({
   const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false)
   const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
 
+  const [memberChatCollapsed, setMemberChatCollapsed] = useState(false)
+    const [studioChatCollapsed, setStudioChatCollapsed] = useState(false)
+    const [notificationData, setNotificationData] = useState(demoNotifications)
+    const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
+    const [selectedMessage, setSelectedMessage] = useState(null)
+    const [collapsedSections, setCollapsedSections] = useState({
+      memberChat: false,
+      studioChat: false,
+    })
+
   const [sidebarBulletinFilter, setSidebarBulletinFilter] = useState("all")
 
   // Todo filter functions for widgets tab
@@ -316,6 +467,57 @@ const SidebarAreaSelling = ({
     [sidebarActiveNoteId, appointments],
   )
 
+    /**
+ * Handles opening the reply modal for a specific message
+ * This function sets the selected message and opens the reply modal
+ * @param {Object} message - The message object to reply to
+ */
+    const handleMessageClick = (message) => {
+      setSelectedMessage(message)
+      setIsReplyModalOpen(true)
+    }
+  
+    const handleSendReply = (chatId, replyText) => {
+      // Here you would typically send the reply to your backend
+      console.log(`Sending reply to chat ${chatId}: ${replyText}`)
+  
+      // Mark the original message as read
+      setNotificationData((prev) => ({
+        ...prev,
+        memberChat: prev.memberChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+        studioChat: prev.studioChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+      }))
+    }
+  
+    const toggleNotificationSection = (section) => {
+      setCollapsedSections((prev) => ({
+        ...prev,
+        [section]: !prev[section],
+      }))
+    }
+  
+    /**
+     * Marks a message as read when clicked
+     * @param {string} messageId - The ID of the message to mark as read
+     * @param {string} messageType - The type of message ('member_chat' or 'studio_chat')
+     */
+    const markMessageAsRead = (messageId, messageType) => {
+      const sectionKey = messageType === "member_chat" ? "memberChat" : "studioChat"
+      setNotificationData((prev) => ({
+        ...prev,
+        [sectionKey]: prev[sectionKey].map((msg) => (msg.id === messageId ? { ...msg, isRead: true } : msg)),
+      }))
+    }
+  
+    /**
+     * Gets the count of unread messages for a specific section
+     * @param {string} section - The section to count ('memberChat' or 'studioChat')
+     * @returns {number} The number of unread messages
+     */
+    const getUnreadCount = (section) => {
+      return notificationData[section].filter((msg) => !msg.isRead).length
+    }
+
   return (
     <>
       <aside
@@ -422,9 +624,9 @@ const SidebarAreaSelling = ({
               <Bell size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
 
-              {hasUnreadNotifications && (
+              {getUnreadCount("memberChat") + getUnreadCount("studioChat") > 0 && (
                 <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
-                  {notifications?.length || 0}
+                  {getUnreadCount("memberChat") + getUnreadCount("studioChat")}
                 </span>
               )}
             </button>
@@ -675,35 +877,150 @@ const SidebarAreaSelling = ({
 
           {/* NOTIFICATIONS TAB LOGIC - Notification Content */}
           {activeTab === "notifications" && (
-            <div className="space-y-3">
-              <h2 className="text-lg md:text-xl font-bold">Notifications</h2>
-              {notifications && notifications.length > 0 ? (
-                notifications.map((notification) => (
-                  <div key={notification.id} className="p-3 bg-black rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <Bell size={16} className="text-blue-400" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-sm font-medium text-white">{notification.title}</h3>
-                        <p className="text-xs text-zinc-400 mt-1">{notification.message}</p>
-                        <p className="text-xs mt-2 flex items-center gap-1 text-zinc-500">
-                          <Clock size={12} />
-                          {notification.time}
-                        </p>
-                      </div>
-                    </div>
+            <div className="space-y-4">
+              <h2 className="text-lg md:text-xl open_sans_font_700">Notifications</h2>
+
+              {/* Member Chat Section */}
+              <div className="bg-black rounded-xl overflow-hidden">
+                <button
+                  onClick={() => toggleNotificationSection("memberChat")}
+                  className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Users size={16} className="text-blue-400" />
+                    <h3 className="text-white font-medium text-sm">Member Chat</h3>
+                    {getUnreadCount("memberChat") > 0 && (
+                      <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+                        {getUnreadCount("memberChat")}
+                      </span>
+                    )}
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-6 text-zinc-400">
-                  <Bell size={40} className="mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">No notifications</p>
-                </div>
-              )}
+                  {collapsedSections.memberChat ? (
+                    <ChevronDown size={16} className="text-gray-400" />
+                  ) : (
+                    <ChevronUp size={16} className="text-gray-400" />
+                  )}
+                </button>
+
+                {!collapsedSections.memberChat && (
+                  <div className="border-t border-gray-700">
+                    {notificationData.memberChat.length > 0 ? (
+                      notificationData.memberChat.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-blue-900/20" : ""
+                            }`}
+                          onClick={() => {
+                            handleMessageClick(message)
+                            markMessageAsRead(message.id, message.type)
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={message.senderAvatar || "/placeholder.svg"}
+                              alt={message.senderName}
+                              className="w-8 h-8 rounded-full flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
+                                {!message.isRead && (
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                )}
+                              </div>
+                              <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-gray-500 text-xs flex items-center gap-1">
+                                  <Clock size={12} />
+                                  {message.time}
+                                </p>
+                                <Reply size={14} className="text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-400">
+                        <MessageCircle size={24} className="mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No member messages</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Studio Chat Section */}
+              <div className="bg-black rounded-xl overflow-hidden">
+                <button
+                  onClick={() => toggleNotificationSection("studioChat")}
+                  className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Camera size={16} className="text-green-400" />
+                    <h3 className="text-white font-medium text-sm">Studio Chat</h3>
+                    {getUnreadCount("studioChat") > 0 && (
+                      <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+                        {getUnreadCount("studioChat")}
+                      </span>
+                    )}
+                  </div>
+                  {collapsedSections.studioChat ? (
+                    <ChevronDown size={16} className="text-gray-400" />
+                  ) : (
+                    <ChevronUp size={16} className="text-gray-400" />
+                  )}
+                </button>
+
+                {!collapsedSections.studioChat && (
+                  <div className="border-t border-gray-700">
+                    {notificationData.studioChat.length > 0 ? (
+                      notificationData.studioChat.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-green-900/20" : ""
+                            }`}
+                          onClick={() => {
+                            handleMessageClick(message)
+                            markMessageAsRead(message.id, message.type)
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={message.senderAvatar || "/placeholder.svg"}
+                              alt={message.senderName}
+                              className="w-8 h-8 rounded-full flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
+                                {!message.isRead && (
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                )}
+                              </div>
+                              <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-gray-500 text-xs flex items-center gap-1">
+                                  <Clock size={12} />
+                                  {message.time}
+                                </p>
+                                <Reply size={14} className="text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-400">
+                        <MessageCircle size={24} className="mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No studio messages</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
-
           {/* WIDGETS TAB LOGIC - Widgets Content */}
           {activeTab === "widgets" && (
             <>
@@ -1143,6 +1460,16 @@ const SidebarAreaSelling = ({
           onSave={handleSaveSidebarSpecialNote}
         />
       )}
+
+<MessageReplyModal
+        isOpen={isReplyModalOpen}
+        onClose={() => {
+          setIsReplyModalOpen(false)
+          setSelectedMessage(null)
+        }}
+        message={selectedMessage}
+        onSendReply={handleSendReply}
+      />
 
       {/* View Management Modal for Widgets Tab */}
       <ViewManagementModal

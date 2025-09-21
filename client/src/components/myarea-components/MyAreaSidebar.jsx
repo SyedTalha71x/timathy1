@@ -1,3 +1,6 @@
+/* eslint-disable react/no-unescaped-entities */
+"use client"
+
 /* eslint-disable no-undef */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
@@ -21,6 +24,10 @@ import {
   AlertTriangle,
   Info,
   CalendarIcon,
+  ChevronUp,
+  Reply,
+  Users,
+  Camera,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
@@ -30,14 +37,82 @@ import RightSidebarWidget from "./sidebar-components/RightSidebarWidget"
 import ViewManagementModal from "./sidebar-components/ViewManagementModal"
 import { bulletinBoardData, memberTypesData } from "../../utils/user-panel-states/myarea-states"
 
+import PersonImage from '../../../public/avatar3.png'
+
+const demoNotifications = {
+  memberChat: [
+    {
+      id: "mc1",
+      type: "member_chat",
+      senderName: "John Smith",
+      senderAvatar: PersonImage,
+      message: "Hey, can I reschedule my session for tomorrow?",
+      time: "2 min ago",
+      isRead: false,
+      chatId: "chat_001",
+    },
+    {
+      id: "mc2",
+      type: "member_chat",
+      senderName: "Sarah Johnson",
+      senderAvatar: PersonImage,
+      message: "Thanks for the workout plan! Really enjoying it.",
+      time: "15 min ago",
+      isRead: false,
+      chatId: "chat_002",
+    },
+    {
+      id: "mc3",
+      type: "member_chat",
+      senderName: "Mike Wilson",
+      senderAvatar: PersonImage,
+      message: "Is the gym open on Sunday?",
+      time: "1 hour ago",
+      isRead: true,
+      chatId: "chat_003",
+    },
+  ],
+  studioChat: [
+    {
+      id: "sc1",
+      type: "studio_chat",
+      senderName: "Alex (Trainer)",
+      senderAvatar: PersonImage,
+      message: "New member orientation scheduled for 3 PM",
+      time: "5 min ago",
+      isRead: false,
+      chatId: "studio_001",
+    },
+    {
+      id: "sc2",
+      type: "studio_chat",
+      senderName: "Emma (Manager)",
+      senderAvatar: PersonImage,
+      message: "Equipment maintenance completed",
+      time: "30 min ago",
+      isRead: false,
+      chatId: "studio_002",
+    },
+    {
+      id: "sc3",
+      type: "studio_chat",
+      senderName: "David (Receptionist)",
+      senderAvatar: PersonImage,
+      message: "Front desk coverage needed tomorrow",
+      time: "2 hours ago",
+      isRead: true,
+      chatId: "studio_003",
+    },
+  ],
+}
 
 const ChartWithLocalState = () => {
-  const [selectedMemberType, setSelectedMemberType] = useState("All members");
-  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false);
-  const chartDropdownRef = useRef(null);
+  const [selectedMemberType, setSelectedMemberType] = useState("All members")
+  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
+  const chartDropdownRef = useRef(null)
 
   // Get the keys from the memberTypesData object for the dropdown
-  const memberTypeKeys = Object.keys(memberTypesData);
+  const memberTypeKeys = Object.keys(memberTypesData)
 
   const chartOptions = {
     chart: {
@@ -109,18 +184,18 @@ const ChartWithLocalState = () => {
         series[seriesIndex][dataPointIndex] +
         "</span></div>",
     },
-  };
+  }
 
   const chartSeries = [
     {
       name: "Comp1",
-      data: memberTypesData[selectedMemberType]?.data?.[0] || []
+      data: memberTypesData[selectedMemberType]?.data?.[0] || [],
     },
     {
       name: "Comp2",
-      data: memberTypesData[selectedMemberType]?.data?.[1] || []
+      data: memberTypesData[selectedMemberType]?.data?.[1] || [],
     },
-  ];
+  ]
 
   return (
     <>
@@ -139,8 +214,8 @@ const ChartWithLocalState = () => {
                 key={typeKey}
                 className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
                 onClick={() => {
-                  setSelectedMemberType(typeKey);
-                  setIsChartDropdownOpen(false);
+                  setSelectedMemberType(typeKey)
+                  setIsChartDropdownOpen(false)
                 }}
               >
                 {typeKey}
@@ -150,16 +225,82 @@ const ChartWithLocalState = () => {
         )}
       </div>
       <div className="w-full">
-        <Chart
-          options={chartOptions}
-          series={chartSeries}
-          type="line"
-          height={250}
-        />
+        <Chart options={chartOptions} series={chartSeries} type="line" height={250} />
       </div>
     </>
-  );
-};
+  )
+}
+
+const MessageReplyModal = ({ isOpen, onClose, message, onSendReply }) => {
+  const [replyText, setReplyText] = useState("")
+
+  const handleSendReply = () => {
+    if (replyText.trim()) {
+      onSendReply(message.chatId, replyText)
+      setReplyText("")
+      onClose()
+      toast.success("Reply sent successfully!")
+    }
+  }
+
+  if (!isOpen || !message) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#2F2F2F] rounded-xl w-full max-w-md">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex items-center gap-3">
+            <img
+              src={message.senderAvatar || "/placeholder.svg"}
+              alt={message.senderName}
+              className="w-8 h-8 rounded-full"
+            />
+            <div>
+              <h3 className="text-white font-medium text-sm">Reply to {message.senderName}</h3>
+              <p className="text-gray-400 text-xs">{message.type === "member_chat" ? "Member Chat" : "Studio Chat"}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Original Message */}
+        <div className="p-4 bg-black/30">
+          <p className="text-gray-300 text-sm italic">"{message.message}"</p>
+          <p className="text-gray-500 text-xs mt-1">{message.time}</p>
+        </div>
+
+        {/* Reply Input */}
+        <div className="p-4">
+          <textarea
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            placeholder="Type your reply..."
+            className="w-full bg-black rounded-lg p-3 text-white text-sm resize-none h-24 border border-gray-600 focus:border-blue-500 focus:outline-none"
+          />
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2 mt-3">
+            <button onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white text-sm">
+              Cancel
+            </button>
+            <button
+              onClick={handleSendReply}
+              disabled={!replyText.trim()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm flex items-center gap-2"
+            >
+              <Reply size={16} />
+              Send Reply
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const Sidebar = ({
   isRightSidebarOpen,
   toggleRightSidebar,
@@ -191,7 +332,7 @@ const Sidebar = ({
   onClose,
   hasUnreadNotifications,
   notifications,
-
+  onSaveSpecialNote, // Added prop for saving special notes
 }) => {
   const todoFilterDropdownRef = useRef(null)
   const chartDropdownRef = useRef(null)
@@ -206,8 +347,15 @@ const Sidebar = ({
   const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false)
   const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
 
-  const [sidebarBulletinFilter, setSidebarBulletinFilter] = useState("all");
+  const [sidebarBulletinFilter, setSidebarBulletinFilter] = useState("all")
 
+  const [notificationData, setNotificationData] = useState(demoNotifications)
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
+  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [collapsedSections, setCollapsedSections] = useState({
+    memberChat: false,
+    studioChat: false,
+  })
 
   // Local state for todo filtering
   const [todoFilter, setTodoFilter] = useState("all")
@@ -220,6 +368,57 @@ const Sidebar = ({
     { value: "pending", label: "Pending" },
     { value: "completed", label: "Completed" },
   ]
+
+  /**
+   * Handles opening the reply modal for a specific message
+   * This function sets the selected message and opens the reply modal
+   * @param {Object} message - The message object to reply to
+   */
+  const handleMessageClick = (message) => {
+    setSelectedMessage(message)
+    setIsReplyModalOpen(true)
+  }
+
+  const handleSendReply = (chatId, replyText) => {
+    // Here you would typically send the reply to your backend
+    console.log(`Sending reply to chat ${chatId}: ${replyText}`)
+
+    // Mark the original message as read
+    setNotificationData((prev) => ({
+      ...prev,
+      memberChat: prev.memberChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+      studioChat: prev.studioChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+    }))
+  }
+
+  const toggleNotificationSection = (section) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
+
+  /**
+   * Marks a message as read when clicked
+   * @param {string} messageId - The ID of the message to mark as read
+   * @param {string} messageType - The type of message ('member_chat' or 'studio_chat')
+   */
+  const markMessageAsRead = (messageId, messageType) => {
+    const sectionKey = messageType === "member_chat" ? "memberChat" : "studioChat"
+    setNotificationData((prev) => ({
+      ...prev,
+      [sectionKey]: prev[sectionKey].map((msg) => (msg.id === messageId ? { ...msg, isRead: true } : msg)),
+    }))
+  }
+
+  /**
+   * Gets the count of unread messages for a specific section
+   * @param {string} section - The section to count ('memberChat' or 'studioChat')
+   * @returns {number} The number of unread messages
+   */
+  const getUnreadCount = (section) => {
+    return notificationData[section].filter((msg) => !msg.isRead).length
+  }
 
   const getFilteredTodos = () => {
     switch (todoFilter) {
@@ -235,15 +434,15 @@ const Sidebar = ({
   }
 
   const handleSidebarBulletinFilterChange = (filter) => {
-    setSidebarBulletinFilter(filter);
-  };
+    setSidebarBulletinFilter(filter)
+  }
 
   const getSidebarFilteredBulletinPosts = () => {
     if (sidebarBulletinFilter === "all") {
-      return bulletinBoardData;
+      return bulletinBoardData
     }
-    return bulletinBoardData.filter(post => post.category === sidebarBulletinFilter);
-  };
+    return bulletinBoardData.filter((post) => post.category === sidebarBulletinFilter)
+  }
 
   const handleSidebarEditNote = (appointmentId, currentNote) => {
     const appointment = appointments.find((app) => app.id === appointmentId)
@@ -261,7 +460,7 @@ const Sidebar = ({
   // Add separate handler for saving sidebar special note
   const handleSaveSidebarSpecialNote = (appointmentId, updatedNote) => {
     // Call the parent's save function if passed as prop
-    if (typeof onSaveSpecialNote === 'function') {
+    if (typeof onSaveSpecialNote === "function") {
       onSaveSpecialNote(appointmentId, updatedNote)
     }
     toast.success("Special note updated successfully")
@@ -283,8 +482,9 @@ const Sidebar = ({
       return (
         <div className="relative">
           <div
-            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${
+              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
@@ -401,8 +601,9 @@ const Sidebar = ({
                 {activeTab === "widgets" && (
                   <button
                     onClick={toggleSidebarEditing}
-                    className={`p-1.5 sm:p-2 ${isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                      } rounded-lg flex items-center gap-1`}
+                    className={`p-1.5 sm:p-2 ${
+                      isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                    } rounded-lg flex items-center gap-1`}
                     title="Toggle Edit Mode"
                   >
                     {isSidebarEditing ? <Check size={14} /> : <Edit size={14} />}
@@ -423,8 +624,9 @@ const Sidebar = ({
           <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
             <button
               onClick={() => setActiveTab("widgets")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-                }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+              }`}
             >
               <Settings size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Widgets</span>
@@ -432,48 +634,166 @@ const Sidebar = ({
 
             <button
               onClick={() => setActiveTab("notifications")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-                }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
+                activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+              }`}
             >
               <Bell size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
 
-              {hasUnreadNotifications && (
+              {getUnreadCount("memberChat") + getUnreadCount("studioChat") > 0 && (
                 <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
-                  2
+                  {getUnreadCount("memberChat") + getUnreadCount("studioChat")}
                 </span>
               )}
             </button>
           </div>
 
-          {/* Notification Tab Content */}
           {activeTab === "notifications" && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <h2 className="text-lg md:text-xl open_sans_font_700">Notifications</h2>
-              {notifications && notifications.length > 0 ? (
-                notifications.map((notification) => (
-                  <div key={notification.id} className="p-3 bg-black rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <Bell size={16} className="text-blue-400" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-sm font-medium text-white">{notification.title}</h3>
-                        <p className="text-xs text-zinc-400 mt-1">{notification.message}</p>
-                        <p className="text-xs mt-2 flex items-center gap-1 text-zinc-500 open_sans_font">
-                          <Clock size={12} />
-                          {notification.time}
-                        </p>
-                      </div>
-                    </div>
+
+              {/* Member Chat Section */}
+              <div className="bg-black rounded-xl overflow-hidden">
+                <button
+                  onClick={() => toggleNotificationSection("memberChat")}
+                  className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Users size={16} className="text-blue-400" />
+                    <h3 className="text-white font-medium text-sm">Member Chat</h3>
+                    {getUnreadCount("memberChat") > 0 && (
+                      <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+                        {getUnreadCount("memberChat")}
+                      </span>
+                    )}
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-6 text-zinc-400">
-                  <Bell size={40} className="mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">No notifications</p>
-                </div>
-              )}
+                  {collapsedSections.memberChat ? (
+                    <ChevronDown size={16} className="text-gray-400" />
+                  ) : (
+                    <ChevronUp size={16} className="text-gray-400" />
+                  )}
+                </button>
+
+                {!collapsedSections.memberChat && (
+                  <div className="border-t border-gray-700">
+                    {notificationData.memberChat.length > 0 ? (
+                      notificationData.memberChat.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
+                            !message.isRead ? "bg-blue-900/20" : ""
+                          }`}
+                          onClick={() => {
+                            handleMessageClick(message)
+                            markMessageAsRead(message.id, message.type)
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={message.senderAvatar || "/placeholder.svg"}
+                              alt={message.senderName}
+                              className="w-8 h-8 rounded-full flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
+                                {!message.isRead && (
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                )}
+                              </div>
+                              <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-gray-500 text-xs flex items-center gap-1">
+                                  <Clock size={12} />
+                                  {message.time}
+                                </p>
+                                <Reply size={14} className="text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-400">
+                        <MessageCircle size={24} className="mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No member messages</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Studio Chat Section */}
+              <div className="bg-black rounded-xl overflow-hidden">
+                <button
+                  onClick={() => toggleNotificationSection("studioChat")}
+                  className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Camera size={16} className="text-green-400" />
+                    <h3 className="text-white font-medium text-sm">Studio Chat</h3>
+                    {getUnreadCount("studioChat") > 0 && (
+                      <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+                        {getUnreadCount("studioChat")}
+                      </span>
+                    )}
+                  </div>
+                  {collapsedSections.studioChat ? (
+                    <ChevronDown size={16} className="text-gray-400" />
+                  ) : (
+                    <ChevronUp size={16} className="text-gray-400" />
+                  )}
+                </button>
+
+                {!collapsedSections.studioChat && (
+                  <div className="border-t border-gray-700">
+                    {notificationData.studioChat.length > 0 ? (
+                      notificationData.studioChat.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
+                            !message.isRead ? "bg-green-900/20" : ""
+                          }`}
+                          onClick={() => {
+                            handleMessageClick(message)
+                            markMessageAsRead(message.id, message.type)
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={message.senderAvatar || "/placeholder.svg"}
+                              alt={message.senderName}
+                              className="w-8 h-8 rounded-full flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
+                                {!message.isRead && (
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                )}
+                              </div>
+                              <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-gray-500 text-xs flex items-center gap-1">
+                                  <Clock size={12} />
+                                  {message.time}
+                                </p>
+                                <Reply size={14} className="text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-400">
+                        <MessageCircle size={24} className="mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No studio messages</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -565,67 +885,69 @@ const Sidebar = ({
                           )}
                         </div>
                         <div className="space-y-3 open_sans_font">
-                          {getFilteredTodos().slice(0, 3).map((todo) => (
-                            <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
-                              <div className="flex items-center gap-2 flex-1">
-                                <input
-                                  type="checkbox"
-                                  checked={todo.completed}
-                                  onChange={() => handleTaskComplete(todo.id)}
-                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <div className="flex-1">
-                                  <h3
-                                    className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                          {getFilteredTodos()
+                            .slice(0, 3)
+                            .map((todo) => (
+                              <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
+                                <div className="flex items-center gap-2 flex-1">
+                                  <input
+                                    type="checkbox"
+                                    checked={todo.completed}
+                                    onChange={() => handleTaskComplete(todo.id)}
+                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                  />
+                                  <div className="flex-1">
+                                    <h3
+                                      className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                    >
+                                      {todo.title}
+                                    </h3>
+                                    <p className="text-xs open_sans_font text-zinc-400">
+                                      Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="relative">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      toggleDropdown(`todo-${todo.id}`)
+                                    }}
+                                    className="p-1 hover:bg-zinc-700 rounded"
                                   >
-                                    {todo.title}
-                                  </h3>
-                                  <p className="text-xs open_sans_font text-zinc-400">
-                                    Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                                  </p>
+                                    <MoreVertical size={16} />
+                                  </button>
+                                  {openDropdownIndex === `todo-${todo.id}` && (
+                                    <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                      <button
+                                        onClick={() => {
+                                          handleEditTask(todo)
+                                        }}
+                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                      >
+                                        Edit Task
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setTaskToCancel(todo.id)
+                                        }}
+                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                      >
+                                        Cancel Task
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setTaskToDelete(todo.id)
+                                        }}
+                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                      >
+                                        Delete Task
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                              <div className="relative">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    toggleDropdown(`todo-${todo.id}`)
-                                  }}
-                                  className="p-1 hover:bg-zinc-700 rounded"
-                                >
-                                  <MoreVertical size={16} />
-                                </button>
-                                {openDropdownIndex === `todo-${todo.id}` && (
-                                  <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                                    <button
-                                      onClick={() => {
-                                        handleEditTask(todo)
-                                      }}
-                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                                    >
-                                      Edit Task
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setTaskToCancel(todo.id)
-                                      }}
-                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                                    >
-                                      Cancel Task
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setTaskToDelete(todo.id)
-                                      }}
-                                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                                    >
-                                      Delete Task
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                            ))}
                           <Link
                             to={"/dashboard/to-do"}
                             className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
@@ -645,10 +967,11 @@ const Sidebar = ({
                           {birthdays.slice(0, 3).map((birthday) => (
                             <div
                               key={birthday.id}
-                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${isBirthdayToday(birthday.date)
+                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${
+                                isBirthdayToday(birthday.date)
                                   ? "bg-yellow-900/30 border border-yellow-600"
                                   : "bg-black"
-                                }`}
+                              }`}
                             >
                               <div className="flex items-center gap-2">
                                 <div>
@@ -761,10 +1084,11 @@ const Sidebar = ({
                                         e.stopPropagation()
                                         handleCheckIn(appointment.id)
                                       }}
-                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
+                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${
+                                        appointment.isCheckedIn
                                           ? " border border-white/50 text-white bg-transparent"
                                           : "bg-black text-white"
-                                        }`}
+                                      }`}
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                     </button>
@@ -860,18 +1184,20 @@ const Sidebar = ({
                         </div>
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 mt-2">
                           <div className="space-y-2">
-                            {getSidebarFilteredBulletinPosts().slice(0, 2).map((post) => (
-                              <div key={post.id} className="p-3 bg-black rounded-xl">
-                                <div className="flex justify-between items-start">
-                                  <h3 className="font-semibold text-sm">{post.title}</h3>
+                            {getSidebarFilteredBulletinPosts()
+                              .slice(0, 2)
+                              .map((post) => (
+                                <div key={post.id} className="p-3 bg-black rounded-xl">
+                                  <div className="flex justify-between items-start">
+                                    <h3 className="font-semibold text-sm">{post.title}</h3>
+                                  </div>
+                                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{post.content}</p>
+                                  <div className="flex justify-between items-center mt-2">
+                                    <span className="text-xs text-zinc-500 capitalize">{post.category}</span>
+                                    <span className="text-xs text-zinc-500">{post.date}</span>
+                                  </div>
                                 </div>
-                                <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{post.content}</p>
-                                <div className="flex justify-between items-center mt-2">
-                                  <span className="text-xs text-zinc-500 capitalize">{post.category}</span>
-                                  <span className="text-xs text-zinc-500">{post.date}</span>
-                                </div>
-                              </div>
-                            ))}
+                              ))}
                           </div>
                         </div>
                       </div>
@@ -894,6 +1220,16 @@ const Sidebar = ({
         </div>
       </aside>
 
+      <MessageReplyModal
+        isOpen={isReplyModalOpen}
+        onClose={() => {
+          setIsReplyModalOpen(false)
+          setSelectedMessage(null)
+        }}
+        message={selectedMessage}
+        onSendReply={handleSendReply}
+      />
+
       <ViewManagementModal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
@@ -902,7 +1238,7 @@ const Sidebar = ({
         currentView={currentView}
         setCurrentView={setCurrentView}
         sidebarWidgets={rightSidebarWidgets}
-        setSidebarWidgets={() => { }} // This might need to be adjusted based on your implementation
+        setSidebarWidgets={() => {}} // This might need to be adjusted based on your implementation
       />
     </>
   )

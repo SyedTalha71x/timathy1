@@ -1,11 +1,8 @@
 /* eslint-disable react/no-unescaped-entities */
 // central sidebar reference code for widgets 
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-undef */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-"use client"
-
 import { useState, useRef, useCallback } from "react"
 import { Link } from "react-router-dom"
 import Chart from "react-apexcharts"
@@ -30,8 +27,10 @@ import {
   Send,
   Users,
   Camera,
+  Reply,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
+import PersonImage from '../../public/avatar3.png'
 import Avatar from "../../public/gray-avatar-fotor-20250912192528.png"
 import RightSidebarWidget from "./myarea-components/sidebar-components/RightSidebarWidget"
 import { SpecialNoteEditModal } from "./myarea-components/SpecialNoteEditModal"
@@ -39,6 +38,72 @@ import StaffCheckInWidget from "./myarea-components/StaffWidgetCheckIn"
 import ViewManagementModal from "./myarea-components/sidebar-components/ViewManagementModal"
 import { bulletinBoardData, memberTypesData } from "../utils/user-panel-states/myarea-states"
 
+const demoNotifications = {
+  memberChat: [
+    {
+      id: "mc1",
+      type: "member_chat",
+      senderName: "John Smith",
+      senderAvatar: PersonImage,
+      message: "Hey, can I reschedule my session for tomorrow?",
+      time: "2 min ago",
+      isRead: false,
+      chatId: "chat_001",
+    },
+    {
+      id: "mc2",
+      type: "member_chat",
+      senderName: "Sarah Johnson",
+      senderAvatar: PersonImage,
+      message: "Thanks for the workout plan! Really enjoying it.",
+      time: "15 min ago",
+      isRead: false,
+      chatId: "chat_002",
+    },
+    {
+      id: "mc3",
+      type: "member_chat",
+      senderName: "Mike Wilson",
+      senderAvatar: PersonImage,
+      message: "Is the gym open on Sunday?",
+      time: "1 hour ago",
+      isRead: true,
+      chatId: "chat_003",
+    },
+  ],
+  studioChat: [
+    {
+      id: "sc1",
+      type: "studio_chat",
+      senderName: "Alex (Trainer)",
+      senderAvatar: PersonImage,
+      message: "New member orientation scheduled for 3 PM",
+      time: "5 min ago",
+      isRead: false,
+      chatId: "studio_001",
+    },
+    {
+      id: "sc2",
+      type: "studio_chat",
+      senderName: "Emma (Manager)",
+      senderAvatar: PersonImage,
+      message: "Equipment maintenance completed",
+      time: "30 min ago",
+      isRead: false,
+      chatId: "studio_002",
+    },
+    {
+      id: "sc3",
+      type: "studio_chat",
+      senderName: "David (Receptionist)",
+      senderAvatar: PersonImage,
+      message: "Front desk coverage needed tomorrow",
+      time: "2 hours ago",
+      isRead: true,
+      chatId: "studio_003",
+    },
+  ],
+}
 const ChartWithLocalState = () => {
   const [selectedMemberType, setSelectedMemberType] = useState("All members")
   const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
@@ -162,53 +227,45 @@ const ChartWithLocalState = () => {
     </>
   )
 }
-
-const ReplyModal = ({ isOpen, onClose, message, onSendReply }) => {
+const MessageReplyModal = ({ isOpen, onClose, message, onSendReply }) => {
   const [replyText, setReplyText] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSendReply = async () => {
-    if (!replyText.trim()) return
-
-    setIsLoading(true)
-    try {
-      await onSendReply(message.id, replyText)
+  const handleSendReply = () => {
+    if (replyText.trim()) {
+      onSendReply(message.chatId, replyText)
       setReplyText("")
-      toast.success("Reply sent successfully!")
       onClose()
-    } catch (error) {
-      toast.error("Failed to send reply")
-    } finally {
-      setIsLoading(false)
+      toast.success("Reply sent successfully!")
     }
   }
 
-  if (!isOpen) return null
+  if (!isOpen || !message) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#181818] rounded-xl border border-gray-700 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#2F2F2F] rounded-xl w-full max-w-md">
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <div className="flex items-center gap-3">
-            <img src={message?.avatar || Avatar} alt="User" className="w-8 h-8 rounded-full" />
+            <img
+              src={message.senderAvatar || "/placeholder.svg"}
+              alt={message.senderName}
+              className="w-8 h-8 rounded-full"
+            />
             <div>
-              <h3 className="text-white font-medium text-sm">Reply to {message?.name}</h3>
-              <p className="text-xs text-zinc-400">{message?.type === "member" ? "Member Chat" : "Studio Chat"}</p>
+              <h3 className="text-white font-medium text-sm">Reply to {message.senderName}</h3>
+              <p className="text-gray-400 text-xs">{message.type === "member_chat" ? "Member Chat" : "Studio Chat"}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white p-1">
-            <X size={16} />
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X size={20} />
           </button>
         </div>
 
         {/* Original Message */}
-        <div className="p-4 bg-black/30 border-b border-gray-700">
-          <p className="text-sm text-zinc-300 italic">"{message?.message}"</p>
-          <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
-            <Clock size={12} />
-            {message?.time}
-          </p>
+        <div className="p-4 bg-black/30">
+          <p className="text-gray-300 text-sm italic">"{message.message}"</p>
+          <p className="text-gray-500 text-xs mt-1">{message.time}</p>
         </div>
 
         {/* Reply Input */}
@@ -217,32 +274,21 @@ const ReplyModal = ({ isOpen, onClose, message, onSendReply }) => {
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
             placeholder="Type your reply..."
-            className="w-full bg-black rounded-lg p-3 text-white text-sm resize-none border border-gray-700 focus:border-blue-500 focus:outline-none"
-            rows={4}
-            disabled={isLoading}
+            className="w-full bg-black rounded-lg p-3 text-white text-sm resize-none h-24 border border-gray-600 focus:border-blue-500 focus:outline-none"
           />
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 mt-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-zinc-400 hover:text-white" disabled={isLoading}>
+            <button onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white text-sm">
               Cancel
             </button>
             <button
               onClick={handleSendReply}
-              disabled={!replyText.trim() || isLoading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg flex items-center gap-2"
+              disabled={!replyText.trim()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm flex items-center gap-2"
             >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send size={14} />
-                  Send Reply
-                </>
-              )}
+              <Reply size={16} />
+              Send Reply
             </button>
           </div>
         </div>
@@ -250,84 +296,6 @@ const ReplyModal = ({ isOpen, onClose, message, onSendReply }) => {
     </div>
   )
 }
-
-const CollapsibleNotificationSection = ({
-  title,
-  icon,
-  notifications,
-  isCollapsed,
-  onToggle,
-  onMessageClick,
-  unreadCount = 0,
-}) => {
-  return (
-    <div className="mb-4">
-      {/* Section Header - Collapsible */}
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-3 bg-black/50 rounded-lg hover:bg-black/70 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          {icon}
-          <span className="text-sm font-medium text-white">{title}</span>
-          {unreadCount > 0 && (
-            <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
-          )}
-        </div>
-        {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-      </button>
-
-      {/* Section Content - Collapsible */}
-      {!isCollapsed && (
-        <div className="mt-2 space-y-2">
-          {notifications && notifications.length > 0 ? (
-            notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className="p-3 bg-black rounded-xl hover:bg-zinc-900 transition-colors cursor-pointer"
-                onClick={() => onMessageClick(notification)}
-              >
-                <div className="flex items-start gap-3">
-                  <img src={notification.avatar || Avatar} alt="User" className="w-8 h-8 rounded-full flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-white truncate">
-                        {notification.name || notification.title}
-                      </h3>
-                      {!notification.isRead && <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>}
-                    </div>
-                    <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{notification.message}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-xs text-zinc-500 flex items-center gap-1">
-                        <Clock size={12} />
-                        {notification.time}
-                      </p>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onMessageClick(notification)
-                        }}
-                        className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"
-                      >
-                        <MessageCircle size={12} />
-                        Reply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-4 text-zinc-400">
-              <p className="text-sm">No {title.toLowerCase()} messages</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
 const Sidebar = ({
   isRightSidebarOpen,
   toggleRightSidebar,
@@ -359,7 +327,6 @@ const Sidebar = ({
   onClose,
   hasUnreadNotifications,
   notifications,
-  markMessageAsRead, // Added markMessageAsRead prop
   onSaveSpecialNote, // Added onSaveSpecialNote prop
 }) => {
   const todoFilterDropdownRef = useRef(null)
@@ -381,10 +348,17 @@ const Sidebar = ({
   const [todoFilter, setTodoFilter] = useState("all")
   const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
 
-  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
-  const [selectedMessage, setSelectedMessage] = useState(null)
+
   const [memberChatCollapsed, setMemberChatCollapsed] = useState(false)
   const [studioChatCollapsed, setStudioChatCollapsed] = useState(false)
+  const [notificationData, setNotificationData] = useState(demoNotifications)
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
+  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [collapsedSections, setCollapsedSections] = useState({
+    memberChat: false,
+    studioChat: false,
+  })
+
 
   // Todo filter options
   const todoFilterOptions = [
@@ -407,60 +381,7 @@ const Sidebar = ({
     }
   }
 
-  const getMemberChatNotifications = () => {
-    return (
-      notifications?.filter(
-        (notification) => notification.type === "member" || notification.category === "member_chat",
-      ) || []
-    )
-  }
 
-  const getStudioChatNotifications = () => {
-    return (
-      notifications?.filter(
-        (notification) => notification.type === "studio" || notification.category === "studio_chat",
-      ) || []
-    )
-  }
-
-  const getMemberChatUnreadCount = () => {
-    return getMemberChatNotifications().filter((n) => !n.isRead).length
-  }
-
-  const getStudioChatUnreadCount = () => {
-    return getStudioChatNotifications().filter((n) => !n.isRead).length
-  }
-
-  const handleMessageClick = (message) => {
-    setSelectedMessage(message)
-    setIsReplyModalOpen(true)
-
-    // Mark message as read when clicked
-    if (!message.isRead && typeof markMessageAsRead === "function") {
-      markMessageAsRead(message.id)
-    }
-  }
-
-  const handleSendReply = async (messageId, replyText) => {
-    // This is where you would integrate with your backend API
-    // Example implementation:
-    try {
-      // await sendReplyToMessage(messageId, replyText);
-      console.log("Sending reply to message:", messageId, "Reply:", replyText)
-
-      // You can add your API call here
-      // const response = await fetch('/api/messages/reply', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify({ messageId, reply: replyText })
-      // });
-
-      return Promise.resolve()
-    } catch (error) {
-      console.error("Failed to send reply:", error)
-      throw error
-    }
-  }
 
   const handleSidebarBulletinFilterChange = (filter) => {
     setSidebarBulletinFilter(filter)
@@ -509,9 +430,8 @@ const Sidebar = ({
       return (
         <div className="relative">
           <div
-            className={`${
-              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
@@ -581,6 +501,57 @@ const Sidebar = ({
     [sidebarActiveNoteId, appointments],
   )
 
+  /**
+ * Handles opening the reply modal for a specific message
+ * This function sets the selected message and opens the reply modal
+ * @param {Object} message - The message object to reply to
+ */
+  const handleMessageClick = (message) => {
+    setSelectedMessage(message)
+    setIsReplyModalOpen(true)
+  }
+
+  const handleSendReply = (chatId, replyText) => {
+    // Here you would typically send the reply to your backend
+    console.log(`Sending reply to chat ${chatId}: ${replyText}`)
+
+    // Mark the original message as read
+    setNotificationData((prev) => ({
+      ...prev,
+      memberChat: prev.memberChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+      studioChat: prev.studioChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+    }))
+  }
+
+  const toggleNotificationSection = (section) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
+
+  /**
+   * Marks a message as read when clicked
+   * @param {string} messageId - The ID of the message to mark as read
+   * @param {string} messageType - The type of message ('member_chat' or 'studio_chat')
+   */
+  const markMessageAsRead = (messageId, messageType) => {
+    const sectionKey = messageType === "member_chat" ? "memberChat" : "studioChat"
+    setNotificationData((prev) => ({
+      ...prev,
+      [sectionKey]: prev[sectionKey].map((msg) => (msg.id === messageId ? { ...msg, isRead: true } : msg)),
+    }))
+  }
+
+  /**
+   * Gets the count of unread messages for a specific section
+   * @param {string} section - The section to count ('memberChat' or 'studioChat')
+   * @returns {number} The number of unread messages
+   */
+  const getUnreadCount = (section) => {
+    return notificationData[section].filter((msg) => !msg.isRead).length
+  }
+
   return (
     <>
       <aside
@@ -627,9 +598,8 @@ const Sidebar = ({
                 {activeTab === "widgets" && (
                   <button
                     onClick={toggleSidebarEditing}
-                    className={`p-1.5 sm:p-2 ${
-                      isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                    } rounded-lg flex items-center gap-1`}
+                    className={`p-1.5 sm:p-2 ${isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                      } rounded-lg flex items-center gap-1`}
                     title="Toggle Edit Mode"
                   >
                     {isSidebarEditing ? <Check size={14} /> : <Edit size={14} />}
@@ -649,9 +619,8 @@ const Sidebar = ({
           <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
             <button
               onClick={() => setActiveTab("widgets")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+                }`}
             >
               <Settings size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Widgets</span>
@@ -659,67 +628,163 @@ const Sidebar = ({
 
             <button
               onClick={() => setActiveTab("notifications")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
-                activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+                }`}
             >
               <Bell size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
 
-              {hasUnreadNotifications && (
+              {getUnreadCount("memberChat") + getUnreadCount("studioChat") > 0 && (
                 <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
-                  {getMemberChatUnreadCount() + getStudioChatUnreadCount()}
+                  {getUnreadCount("memberChat") + getUnreadCount("studioChat")}
                 </span>
               )}
             </button>
           </div>
 
           {activeTab === "notifications" && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg md:text-xl open_sans_font_700">Notifications</h2>
-                {/* Optional: Add a "Mark all as read" button */}
+            <div className="space-y-4">
+              <h2 className="text-lg md:text-xl open_sans_font_700">Notifications</h2>
+
+              {/* Member Chat Section */}
+              <div className="bg-black rounded-xl overflow-hidden">
                 <button
-                  className="text-xs text-blue-400 hover:text-blue-300"
-                  onClick={() => {
-                    // Add logic to mark all notifications as read
-                    console.log("Mark all as read")
-                  }}
+                  onClick={() => toggleNotificationSection("memberChat")}
+                  className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
-                  Mark all read
+                  <div className="flex items-center gap-2">
+                    <Users size={16} className="text-blue-400" />
+                    <h3 className="text-white font-medium text-sm">Member Chat</h3>
+                    {getUnreadCount("memberChat") > 0 && (
+                      <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+                        {getUnreadCount("memberChat")}
+                      </span>
+                    )}
+                  </div>
+                  {collapsedSections.memberChat ? (
+                    <ChevronDown size={16} className="text-gray-400" />
+                  ) : (
+                    <ChevronUp size={16} className="text-gray-400" />
+                  )}
                 </button>
+
+                {!collapsedSections.memberChat && (
+                  <div className="border-t border-gray-700">
+                    {notificationData.memberChat.length > 0 ? (
+                      notificationData.memberChat.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-blue-900/20" : ""
+                            }`}
+                          onClick={() => {
+                            handleMessageClick(message)
+                            markMessageAsRead(message.id, message.type)
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={message.senderAvatar || "/placeholder.svg"}
+                              alt={message.senderName}
+                              className="w-8 h-8 rounded-full flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
+                                {!message.isRead && (
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                )}
+                              </div>
+                              <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-gray-500 text-xs flex items-center gap-1">
+                                  <Clock size={12} />
+                                  {message.time}
+                                </p>
+                                <Reply size={14} className="text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-400">
+                        <MessageCircle size={24} className="mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No member messages</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Member Chat Section - Collapsible */}
-              <CollapsibleNotificationSection
-                title="Member Chat"
-                icon={<Users size={16} className="text-green-400" />}
-                notifications={getMemberChatNotifications()}
-                isCollapsed={memberChatCollapsed}
-                onToggle={() => setMemberChatCollapsed(!memberChatCollapsed)}
-                onMessageClick={handleMessageClick}
-                unreadCount={getMemberChatUnreadCount()}
-              />
+              {/* Studio Chat Section */}
+              <div className="bg-black rounded-xl overflow-hidden">
+                <button
+                  onClick={() => toggleNotificationSection("studioChat")}
+                  className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Camera size={16} className="text-green-400" />
+                    <h3 className="text-white font-medium text-sm">Studio Chat</h3>
+                    {getUnreadCount("studioChat") > 0 && (
+                      <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+                        {getUnreadCount("studioChat")}
+                      </span>
+                    )}
+                  </div>
+                  {collapsedSections.studioChat ? (
+                    <ChevronDown size={16} className="text-gray-400" />
+                  ) : (
+                    <ChevronUp size={16} className="text-gray-400" />
+                  )}
+                </button>
 
-              {/* Studio Chat Section - Collapsible */}
-              <CollapsibleNotificationSection
-                title="Studio Chat"
-                icon={<Camera size={16} className="text-purple-400" />}
-                notifications={getStudioChatNotifications()}
-                isCollapsed={studioChatCollapsed}
-                onToggle={() => setStudioChatCollapsed(!studioChatCollapsed)}
-                onMessageClick={handleMessageClick}
-                unreadCount={getStudioChatUnreadCount()}
-              />
-
-              {/* Show empty state if no notifications */}
-              {(!notifications || notifications.length === 0) && (
-                <div className="text-center py-8 text-zinc-400">
-                  <Bell size={40} className="mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">No notifications</p>
-                  <p className="text-xs mt-1">New messages will appear here</p>
-                </div>
-              )}
+                {!collapsedSections.studioChat && (
+                  <div className="border-t border-gray-700">
+                    {notificationData.studioChat.length > 0 ? (
+                      notificationData.studioChat.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-green-900/20" : ""
+                            }`}
+                          onClick={() => {
+                            handleMessageClick(message)
+                            markMessageAsRead(message.id, message.type)
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={message.senderAvatar || "/placeholder.svg"}
+                              alt={message.senderName}
+                              className="w-8 h-8 rounded-full flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
+                                {!message.isRead && (
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                )}
+                              </div>
+                              <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-gray-500 text-xs flex items-center gap-1">
+                                  <Clock size={12} />
+                                  {message.time}
+                                </p>
+                                <Reply size={14} className="text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-400">
+                        <MessageCircle size={24} className="mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No studio messages</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -896,11 +961,10 @@ const Sidebar = ({
                           {birthdays.slice(0, 3).map((birthday) => (
                             <div
                               key={birthday.id}
-                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${
-                                isBirthdayToday(birthday.date)
+                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${isBirthdayToday(birthday.date)
                                   ? "bg-yellow-900/30 border border-yellow-600"
                                   : "bg-black"
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2">
                                 <div>
@@ -1013,11 +1077,10 @@ const Sidebar = ({
                                         e.stopPropagation()
                                         handleCheckIn(appointment.id)
                                       }}
-                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${
-                                        appointment.isCheckedIn
+                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
                                           ? " border border-white/50 text-white bg-transparent"
                                           : "bg-black text-white"
-                                      }`}
+                                        }`}
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                     </button>
@@ -1149,7 +1212,7 @@ const Sidebar = ({
         </div>
       </aside>
 
-      <ReplyModal
+      <MessageReplyModal
         isOpen={isReplyModalOpen}
         onClose={() => {
           setIsReplyModalOpen(false)
@@ -1167,7 +1230,7 @@ const Sidebar = ({
         currentView={currentView}
         setCurrentView={setCurrentView}
         sidebarWidgets={rightSidebarWidgets}
-        setSidebarWidgets={() => {}}
+        setSidebarWidgets={() => { }}
       />
     </>
   )
