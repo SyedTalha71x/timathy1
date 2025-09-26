@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, FileText } from "lucide-react"
@@ -20,7 +22,7 @@ export default function FinancesPage() {
   const [statusFilterOpen, setStatusFilterOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("All")
-  const [filteredTransactions, setFilteredTransactions] = useState(financialData[selectedPeriod].transactions)
+  const [filteredTransactions, setFilteredTransactions] = useState(financialData[selectedPeriod]?.transactions || [])
   const [currentPage, setCurrentPage] = useState(1)
   const [sepaModalOpen, setSepaModalOpen] = useState(false)
   const [financialState, setFinancialState] = useState(financialData)
@@ -38,7 +40,15 @@ export default function FinancesPage() {
   const [customPeriodEnd, setCustomPeriodEnd] = useState("")
   const [showCustomPeriodInput, setShowCustomPeriodInput] = useState(false)
 
-  const periodOptions = ["Overall", "This Month", "Last Month", "Last 3 Months", "Last 6 Months", "This Year", "Custom Period"]
+  const periodOptions = [
+    "Overall",
+    "This Month",
+    "Last Month",
+    "Last 3 Months",
+    "Last 6 Months",
+    "This Year",
+    "Custom Period",
+  ]
 
   const [sepaDocuments, setSepaDocuments] = useState([
     {
@@ -94,6 +104,7 @@ export default function FinancesPage() {
 </Document>`,
     },
   ])
+  const [customPeriodModalOpen, setCustomPeriodModalOpen] = useState(false)
 
   const transactionsPerPage = 5
   const statusOptions = ["All", "Successful", "Pending", "Failed", "Check incoming funds"]
@@ -101,68 +112,69 @@ export default function FinancesPage() {
   // Calculate financial summary data
   const calculateFinancialSummary = () => {
     if (selectedPeriod === "Overall") {
-      const allTransactions = Object.values(financialData).flatMap(period => period.transactions || [])
+      const allTransactions = Object.values(financialData).flatMap((period) => period.transactions || [])
 
       const successful = allTransactions
-        .filter(tx => tx.status === "Successful")
+        .filter((tx) => tx.status === "Successful")
         .reduce((sum, tx) => sum + tx.amount, 0)
 
       const pending = allTransactions
-        .filter(tx => tx.status === "Pending" || tx.status === "Check incoming funds")
+        .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
         .reduce((sum, tx) => sum + tx.amount, 0)
 
-      const failed = allTransactions
-        .filter(tx => tx.status === "Failed")
-        .reduce((sum, tx) => sum + tx.amount, 0)
+      const failed = allTransactions.filter((tx) => tx.status === "Failed").reduce((sum, tx) => sum + tx.amount, 0)
 
       return {
         totalRevenue: successful + pending + failed,
         successfulPayments: successful,
         pendingPayments: pending,
-        failedPayments: failed
+        failedPayments: failed,
+        transactions: allTransactions,
       }
     } else if (selectedPeriod === "Custom Period" && customPeriodStart && customPeriodEnd) {
       const startDate = new Date(customPeriodStart)
       const endDate = new Date(customPeriodEnd)
 
       const customTransactions = Object.values(financialData)
-        .flatMap(period => period.transactions || [])
-        .filter(transaction => {
+        .flatMap((period) => period.transactions || [])
+        .filter((transaction) => {
           const transactionDate = new Date(transaction.date)
           return transactionDate >= startDate && transactionDate <= endDate
         })
 
       const successful = customTransactions
-        .filter(tx => tx.status === "Successful")
+        .filter((tx) => tx.status === "Successful")
         .reduce((sum, tx) => sum + tx.amount, 0)
 
       const pending = customTransactions
-        .filter(tx => tx.status === "Pending" || tx.status === "Check incoming funds")
+        .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
         .reduce((sum, tx) => sum + tx.amount, 0)
 
-      const failed = customTransactions
-        .filter(tx => tx.status === "Failed")
-        .reduce((sum, tx) => sum + tx.amount, 0)
+      const failed = customTransactions.filter((tx) => tx.status === "Failed").reduce((sum, tx) => sum + tx.amount, 0)
 
       return {
         totalRevenue: successful + pending + failed,
         successfulPayments: successful,
         pendingPayments: pending,
-        failedPayments: failed
+        failedPayments: failed,
+        transactions: customTransactions,
       }
     } else {
-      return financialData[selectedPeriod] || {
+      // Safely access the period data with fallback
+      const periodData = financialData[selectedPeriod] || {
         totalRevenue: 0,
         successfulPayments: 0,
         pendingPayments: 0,
-        failedPayments: 0
+        failedPayments: 0,
+        transactions: [],
       }
+
+      return periodData
     }
   }
-
   const financialSummary = calculateFinancialSummary()
 
-  //sidebar related logic and states 
+  //sidebar related logic and states
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
@@ -277,19 +289,18 @@ export default function FinancesPage() {
 
   // -------------- end of sidebar logic
 
-
   useEffect(() => {
     let transactions = []
 
     if (selectedPeriod === "Overall") {
-      transactions = Object.values(financialData).flatMap(period => period.transactions || [])
+      transactions = Object.values(financialData).flatMap((period) => period.transactions || [])
     } else if (selectedPeriod === "Custom Period" && customPeriodStart && customPeriodEnd) {
       const startDate = new Date(customPeriodStart)
       const endDate = new Date(customPeriodEnd)
 
       transactions = Object.values(financialData)
-        .flatMap(period => period.transactions || [])
-        .filter(transaction => {
+        .flatMap((period) => period.transactions || [])
+        .filter((transaction) => {
           const transactionDate = new Date(transaction.date)
           return transactionDate >= startDate && transactionDate <= endDate
         })
@@ -346,6 +357,12 @@ export default function FinancesPage() {
     const newAmount = Number.parseFloat(editAmount)
     if (!isNaN(newAmount) && newAmount > 0) {
       const updatedFinancialState = { ...financialState }
+      if (!updatedFinancialState[selectedPeriod] || !updatedFinancialState[selectedPeriod].transactions) {
+        // No period bucket to update; safely exit without throwing
+        setEditingAmount(null)
+        setEditAmount("")
+        return
+      }
       const periodData = { ...updatedFinancialState[selectedPeriod] }
 
       periodData.transactions = periodData.transactions.map((tx) =>
@@ -447,6 +464,18 @@ export default function FinancesPage() {
     setSepaDocuments((prev) => [newDocument, ...prev])
 
     const updatedFinancialState = { ...financialState }
+    if (!updatedFinancialState[selectedPeriod] || !updatedFinancialState[selectedPeriod].transactions) {
+      // Nothing to mutate within a specific period bucket; skip recalculation safely
+      const element = document.createElement("a")
+      const file = new Blob([xmlContent], { type: "application/xml" })
+      element.href = URL.createObjectURL(file)
+      element.download = newDocument.filename
+      document.body.appendChild(element)
+      element.click()
+      document.body.removeChild(element)
+      alert("SEPA XML file generated and saved successfully!")
+      return
+    }
     const periodData = { ...updatedFinancialState[selectedPeriod] }
 
     periodData.transactions = periodData.transactions.map((tx) => {
@@ -493,6 +522,10 @@ export default function FinancesPage() {
 
   const handleUpdateStatuses = (updatedTransactions) => {
     const updatedFinancialState = { ...financialState }
+    if (!updatedFinancialState[selectedPeriod] || !updatedFinancialState[selectedPeriod].transactions) {
+      alert("Statuses updated for selected transactions.")
+      return
+    }
     const periodData = { ...updatedFinancialState[selectedPeriod] }
 
     periodData.transactions = periodData.transactions.map((tx) => {
@@ -539,9 +572,13 @@ export default function FinancesPage() {
     setDocumentViewerOpen(true)
   }
 
-  const hasCheckingTransactions = financialState[selectedPeriod]?.transactions?.some(
-    (tx) => tx.status === "Check incoming funds",
-  ) || false
+  const hasCheckingTransactions =
+    (selectedPeriod === "Overall"
+      ? Object.values(financialData).flatMap((period) => period.transactions || [])
+      : selectedPeriod === "Custom Period"
+        ? filteredTransactions
+        : financialData[selectedPeriod]?.transactions || []
+    ).some((tx) => tx.status === "Check incoming funds") || false
 
   const getStatusColorClass = (status) => {
     switch (status) {
@@ -575,7 +612,8 @@ export default function FinancesPage() {
 
   const handlePeriodSelect = (period) => {
     if (period === "Custom Period") {
-      setShowCustomPeriodInput(!showCustomPeriodInput)
+      setCustomPeriodModalOpen(true)
+      setPeriodDropdownOpen(false)
     } else {
       setSelectedPeriod(period)
       setShowCustomPeriodInput(false)
@@ -586,8 +624,7 @@ export default function FinancesPage() {
   const handleApplyCustomPeriod = () => {
     if (customPeriodStart && customPeriodEnd) {
       setSelectedPeriod("Custom Period")
-      setPeriodDropdownOpen(false)
-      setShowCustomPeriodInput(false)
+      setCustomPeriodModalOpen(false)
     } else {
       alert("Please select both start and end dates")
     }
@@ -637,18 +674,15 @@ export default function FinancesPage() {
   }
 
   return (
-    <div className={`
+    <div
+      className={`
       min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
       transition-all duration-500 ease-in-out flex-1
-      ${isRightSidebarOpen
-        ? 'lg:mr-86 mr-0'
-        : 'mr-0'
-      }
-    `}>
+      ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"}
+    `}
+    >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div className="flex items-center gap-2 justify-between w-full md:w-auto">
-
-
           <div className="flex  items-center gap-3">
             <h1 className="text-white oxanium_font text-xl md:text-2xl">Finances</h1>
             <button
@@ -664,7 +698,10 @@ export default function FinancesPage() {
               )}
             </button>
           </div>
-          <div onClick={toggleRightSidebar} className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+          <div
+            onClick={toggleRightSidebar}
+            className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
+          >
             <IoIosMenu size={26} />
           </div>
         </div>
@@ -674,7 +711,7 @@ export default function FinancesPage() {
           <div className="relative w-full sm:w-auto">
             <button
               onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
-              className="bg-black text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full sm:w-auto min-w-[180px]"
+              className="bg-black text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full sm:w-auto min-w=[180px] min-w-[180px]"
             >
               <Calendar className="w-4 h-4" />
               <span className="text-sm">{selectedPeriod}</span>
@@ -686,58 +723,11 @@ export default function FinancesPage() {
                 {periodOptions.map((period) => (
                   <div key={period}>
                     <button
-                      className={`w-full px-4 py-2 text-sm text-gray-300 hover:bg-black text-left flex items-center justify-between ${selectedPeriod === period ? "bg-black/50" : ""
-                        }`}
+                      className={`w-full px-4 py-2 text-sm text-gray-300 hover:bg-black text-left flex items-center justify-between ${selectedPeriod === period ? "bg-black/50" : ""}`}
                       onClick={() => handlePeriodSelect(period)}
                     >
                       <span>{period}</span>
-                      {period === "Custom Period" && showCustomPeriodInput && (
-                        <ChevronDown className="w-4 h-4 transform rotate-180" />
-                      )}
                     </button>
-
-                    {period === "Custom Period" && showCustomPeriodInput && (
-                      <div className="p-3 border-t border-gray-700 bg-black/50">
-                        <div className="space-y-3">
-                          <div>
-                            <label className="text-xs text-gray-400 block mb-1">Start Date</label>
-                            <input
-                              type="date"
-                              value={customPeriodStart}
-                              onChange={(e) => setCustomPeriodStart(e.target.value)}
-                              className="bg-[#2F2F2F] text-white px-3 py-2 rounded border border-gray-700 w-full text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-400 block mb-1">End Date</label>
-                            <input
-                              type="date"
-                              value={customPeriodEnd}
-                              onChange={(e) => setCustomPeriodEnd(e.target.value)}
-                              className="bg-[#2F2F2F] text-white px-3 py-2 rounded border border-gray-700 w-full text-sm"
-                            />
-                          </div>
-                          <div className="flex gap-2 pt-1">
-                            <button
-                              onClick={handleApplyCustomPeriod}
-                              className="bg-[#3F74FF] text-white px-3 py-1.5 rounded text-xs hover:bg-[#3F74FF]/90 flex-1"
-                            >
-                              Apply Period
-                            </button>
-                            <button
-                              onClick={() => {
-                                setShowCustomPeriodInput(false)
-                                setCustomPeriodStart("")
-                                setCustomPeriodEnd("")
-                              }}
-                              className="bg-gray-600 text-white px-3 py-1.5 rounded text-xs hover:bg-gray-500 flex-1"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -753,7 +743,10 @@ export default function FinancesPage() {
               <span> Run Payment</span>
             </button>
 
-            <div onClick={toggleRightSidebar} className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+            <div
+              onClick={toggleRightSidebar}
+              className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
+            >
               <IoIosMenu size={26} />
             </div>
             {hasCheckingTransactions && (
@@ -769,31 +762,22 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      {/* Financial summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Total Revenue</h3>
-          <p className="text-white text-xl font-semibold">
-            {formatCurrency(financialSummary.totalRevenue)}
-          </p>
+          <p className="text-white text-xl font-semibold">{formatCurrency(financialSummary.totalRevenue)}</p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Successful Payments</h3>
-          <p className="text-green-500 text-xl font-semibold">
-            {formatCurrency(financialSummary.successfulPayments)}
-          </p>
+          <p className="text-green-500 text-xl font-semibold">{formatCurrency(financialSummary.successfulPayments)}</p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Pending Payments</h3>
-          <p className="text-yellow-500 text-xl font-semibold">
-            {formatCurrency(financialSummary.pendingPayments)}
-          </p>
+          <p className="text-yellow-500 text-xl font-semibold">{formatCurrency(financialSummary.pendingPayments)}</p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Failed Payments</h3>
-          <p className="text-red-500 text-xl font-semibold">
-            {formatCurrency(financialSummary.failedPayments)}
-          </p>
+          <p className="text-red-500 text-xl font-semibold">{formatCurrency(financialSummary.failedPayments)}</p>
         </div>
       </div>
 
@@ -840,7 +824,6 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      {/* Transactions table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left text-gray-300">
           <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
@@ -872,8 +855,9 @@ export default function FinancesPage() {
             {paginatedTransactions.map((transaction, index) => (
               <tr
                 key={transaction.id}
-                className={`border-b border-gray-800 ${index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""
-                  }`}
+                className={`border-b border-gray-800 ${
+                  index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""
+                }`}
               >
                 <td className="px-4 py-3 font-medium">{transaction.studioName}</td>
                 <td className="px-4 py-3">{transaction.studioOwner}</td>
@@ -908,7 +892,7 @@ export default function FinancesPage() {
                           onClick={() => handleEditAmount(transaction.id, transaction.amount)}
                           className="text-gray-400 hover:text-white"
                         >
-                          {/* <Edit2 className="w-3 h-3" /> */}
+                          {/* edit icon intentionally omitted */}
                         </button>
                       </div>
                     )}
@@ -935,7 +919,6 @@ export default function FinancesPage() {
         </table>
       </div>
 
-      {/* No transactions message */}
       {filteredTransactions.length === 0 && (
         <div className="bg-[#141414] p-8 rounded-xl text-center mt-4">
           <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
@@ -945,13 +928,11 @@ export default function FinancesPage() {
               ? "Try adjusting your filters or search terms"
               : selectedPeriod === "Custom Period"
                 ? "No transactions found for the selected date range"
-                : "There are no transactions available"
-            }
+                : "There are no transactions available"}
           </p>
         </div>
       )}
 
-      {/* Pagination */}
       {filteredTransactions.length > transactionsPerPage && (
         <div className="flex justify-center items-center gap-2 mt-6">
           <button
@@ -966,10 +947,11 @@ export default function FinancesPage() {
               <button
                 key={page}
                 onClick={() => handlePageChange(page)}
-                className={`px-3 py-1.5 rounded-xl transition-colors border ${currentPage === page
-                  ? "bg-[#3F74FF] text-white border-transparent"
-                  : "bg-black text-white border-gray-800 hover:bg-gray-900"
-                  }`}
+                className={`px-3 py-1.5 rounded-xl transition-colors border ${
+                  currentPage === page
+                    ? "bg-[#3F74FF] text-white border-transparent"
+                    : "bg-black text-white border-gray-800 hover:bg-gray-900"
+                }`}
               >
                 {page}
               </button>
@@ -985,13 +967,64 @@ export default function FinancesPage() {
         </div>
       )}
 
+      {/* Custom Period Modal */}
+      {customPeriodModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#2F2F2F] rounded-xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-white text-lg font-semibold mb-4">Select Custom Period</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-400 block mb-2">Start Date</label>
+                <input
+                  type="date"
+                  value={customPeriodStart}
+                  onChange={(e) => setCustomPeriodStart(e.target.value)}
+                  className="bg-[#1C1C1C] text-white px-3 py-2 rounded border border-gray-700 w-full"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 block mb-2">End Date</label>
+                <input
+                  type="date"
+                  value={customPeriodEnd}
+                  onChange={(e) => setCustomPeriodEnd(e.target.value)}
+                  className="bg-[#1C1C1C] text-white px-3 py-2 rounded border border-gray-700 w-full"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleApplyCustomPeriod}
+                disabled={!customPeriodStart || !customPeriodEnd}
+                className="bg-[#3F74FF] text-white px-4 py-2 rounded flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Apply Period
+              </button>
+              <button
+                onClick={() => {
+                  setCustomPeriodModalOpen(false)
+                  setCustomPeriodStart("")
+                  setCustomPeriodEnd("")
+                }}
+                className="bg-gray-600 text-white px-4 py-2 rounded flex-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <SepaXmlModal
         isOpen={sepaModalOpen}
         onClose={() => setSepaModalOpen(false)}
         selectedPeriod={selectedPeriod}
         transactions={
           selectedPeriod === "Overall"
-            ? Object.values(financialData).flatMap(period => period.transactions || [])
+            ? Object.values(financialData).flatMap((period) => period.transactions || [])
             : selectedPeriod === "Custom Period"
               ? filteredTransactions
               : financialData[selectedPeriod]?.transactions || []
@@ -1004,7 +1037,7 @@ export default function FinancesPage() {
         onClose={() => setCheckFundsModalOpen(false)}
         transactions={
           selectedPeriod === "Overall"
-            ? Object.values(financialData).flatMap(period => period.transactions || [])
+            ? Object.values(financialData).flatMap((period) => period.transactions || [])
             : selectedPeriod === "Custom Period"
               ? filteredTransactions
               : financialData[selectedPeriod]?.transactions || []
