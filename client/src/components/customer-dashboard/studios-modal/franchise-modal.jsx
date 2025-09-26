@@ -351,7 +351,7 @@ const FranchiseModal = ({
                 <button
                   type="button"
                   onClick={handleArchive}
-                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white rounded-xl py-2 text-sm cursor-pointer"
+                  className="flex-1 bg-red-600  text-white rounded-xl py-2 text-sm cursor-pointer"
                 >
                   Archive Franchise
                 </button>

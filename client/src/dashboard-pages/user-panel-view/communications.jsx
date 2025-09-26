@@ -44,8 +44,8 @@ import { TbBrandGoogleAnalytics } from "react-icons/tb"
 import { MdOutlineHelpCenter } from "react-icons/md"
 
 
-import AddAppointmentModal from "../../components/appointments-components/add-appointment-modal"
-import SelectedAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import AddAppointmentModal from "../../components/user-panel-components/appointments-components/add-appointment-modal"
+import SelectedAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal"
 import EmailManagement from "../../components/communication-components/EmailManagement"
 import ContingentModal from "../../components/communication-components/ContingentModal"
 import CreateMessageModal from "../../components/communication-components/CreateMessageModal"

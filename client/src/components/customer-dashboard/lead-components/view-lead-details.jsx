@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 ""
 
 import { X } from "lucide-react"
@@ -21,18 +22,6 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
     })
   }
 
-  // Lead source options for reference
-  const leadSources = [
-    "Website",
-    "Google Ads",
-    "Social Media Ads",
-    "Email Campaign",
-    "Cold Call (Outbound)",
-    "Inbound Call",
-    "Event",
-    "Offline Advertising",
-    "Other",
-  ]
 
   // Get source color based on type
   const getSourceColor = (source) => {
@@ -81,9 +70,7 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
               <span className={`px-2 py-1 text-xs rounded-full ${getSourceColor(leadData.source)}`}>
                 {leadData.source || "N/A"}
               </span>
-              {leadData.source && leadSources.includes(leadData.source) && (
-                <span className="text-xs text-gray-500">(Verified Source)</span>
-              )}
+             
             </div>
           </div>
           <div>
@@ -110,16 +97,7 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
             <p className="text-gray-400">Status:</p>
             <p className="text-white">{leadData.status || "N/A"}</p>
           </div>
-          <div>
-            <p className="text-gray-400">Trial Training:</p>
-            <span
-              className={`px-2 py-1 text-xs rounded-full ${
-                leadData.hasTrialTraining ? "bg-green-900 text-green-300" : "bg-gray-900 text-gray-300"
-              }`}
-            >
-              {leadData.hasTrialTraining ? "Scheduled" : "Not Scheduled"}
-            </span>
-          </div>
+          
           <div className="md:col-span-2">
             <p className="text-gray-400">About:</p>
             <p className="text-white">{leadData.about || "N/A"}</p>
@@ -141,26 +119,6 @@ const ViewLeadDetailsModal = ({ leadData, onClose }) => {
               )}
             </p>
           </div>
-        </div>
-
-        {/* Lead Sources Reference Section */}
-        <div className="mt-6 pt-6 border-t border-gray-700">
-          <h4 className="text-white font-medium mb-3">Available Lead Sources:</h4>
-          <div className="flex flex-wrap gap-2">
-            {leadSources.map((source) => (
-              <span
-                key={source}
-                className={`px-2 py-1 text-xs rounded-full ${getSourceColor(source)} ${
-                  leadData.source === source ? "ring-2 ring-white" : ""
-                }`}
-              >
-                {source}
-              </span>
-            ))}
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
-            The highlighted source indicates where this lead originated from.
-          </p>
         </div>
       </div>
     </div>

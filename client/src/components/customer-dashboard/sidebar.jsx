@@ -16,10 +16,14 @@ import {
   ChevronLeft,
   ChevronRight,
   MenuIcon,
+  BadgeDollarSign,
 } from "lucide-react";
 import { RiContractLine, RiStockFill } from "react-icons/ri";
-import { MdOutlineLeaderboard } from "react-icons/md";
+import { MdOutlineHelpCenter, MdOutlineLeaderboard } from "react-icons/md";
 import { SiYoutubestudio } from "react-icons/si";
+import { CgGym } from "react-icons/cg";
+import { TbBrandGoogleAnalytics } from "react-icons/tb";
+import { FaCartPlus, FaPeopleLine } from "react-icons/fa6";
 
 
 const CustomerSidebar = () => {
@@ -94,7 +98,7 @@ const CustomerSidebar = () => {
 
   const handleEditProfile = () => {
     setIsDropdownOpen(false);
-    window.location.href = "/admin-dashboard/edit-profile";
+    window.location.href = "/admin-dashboard/configuration";
   };
 
   const handleLogout = () => {
@@ -122,38 +126,37 @@ const CustomerSidebar = () => {
       label: "Contract",
       to: "/admin-dashboard/contract",
     },
-    // {
-    //   icon: CheckSquare,
-    //   label: "Marketing",
-    //   to: "/dashboard/marketing",
-    // },
+
     {
-      icon: MdOutlineLeaderboard,
+      icon: FaPeopleLine,
       label: "Leads",
       to: "/admin-dashboard/leads",
     },
-    // {
-    //   icon: ShoppingCart,
-    //   label: "Selling",
-    //   to: "/dashboard/selling",
-    // },
+
     {
-      icon: RiStockFill,
+      icon: BadgeDollarSign,
       label: "Finances",
       to: "/admin-dashboard/finances",
     },
-    // { icon: MessageCircle, label: "Communication", to: "/admin-dashboard/communication" },
-
-    // {
-    //   icon: SiYoutubestudio,
-    //   label: "Studio Menu",
-    //   to: "/admin-dashboard/studio-menu",
-    // },
-    // {
-    //   icon: Calendar,
-    //   label: "Appointments",
-    //   to: "/admin-dashboard/appointment",
-    // },
+   
+        { icon: FaCartPlus, label: "Marketplace", to: "/admin-dashboard/marketplace" },
+    
+     {
+          icon: TbBrandGoogleAnalytics,
+          label: "Analytics",
+          to: "/admin-dashboard/analytics",
+        },
+     {
+          icon: MdOutlineHelpCenter,
+          label: "Manage Tickets",
+          to: "/admin-dashboard/tickets",
+        },
+     {
+          icon: CgGym,
+          label: "Training",
+          to: "/admin-dashboard/training-management",
+        },
+    
     {
       icon: Settings,
       label: "Configuration",
@@ -164,7 +167,7 @@ const CustomerSidebar = () => {
   return (
     <>
       {/* Mobile Top Nav */}
-      <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between md:hidden z-40">
+      <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between lg:hidden z-40">
         {isSidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -230,9 +233,9 @@ const CustomerSidebar = () => {
       <aside
         className={`
           fixed top-0  left-0 z-50 h-screen bg-[#111111] transition-all duration-500 ease-in-out overflow-hidden 
-          md:relative md:block
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-          ${isCollapsed ? "md:w-20" : "md:w-64 w-64"}
+         lg:relative lg:block 
+         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+         ${isCollapsed ? "lg:w-20" : "lg:w-64 w-64"}
         `}
       >
         <div className="absolute top-4 right-4 md:hidden">
@@ -266,7 +269,6 @@ const CustomerSidebar = () => {
                   alt="Profile"
                   className={`rounded-2xl ${isCollapsed ? "w-10 h-10" : "h-full w-full"}`}
                 />
-                <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 border-2 border-zinc-800 rounded-full"></span>
               </div>
 
               {isDropdownOpen && !isCollapsed && (
@@ -335,11 +337,7 @@ const CustomerSidebar = () => {
                           }
                         `}
                       />
-                      {isCollapsed && (
-                        <span className="absolute left-full ml-2 whitespace-nowrap bg-[#222222] text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 pointer-events-none">
-                          {item.label}
-                        </span>
-                      )}
+                     
                     </div>
                     {!isCollapsed && <span className="text-md">{item.label}</span>}
                   </button>

@@ -4,12 +4,18 @@ import React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Settings, Plus } from 'lucide-react'
 import Draggable from "react-draggable"
-import { AddLeadModal } from "../../components/customer-dashboard/add-lead-modal"
-import { EditLeadModal } from "../../components/customer-dashboard/studios-modal/edit-lead-modal"
-import ViewLeadDetailsModal from "../../components/customer-dashboard/view-lead-details"
-import { AddLeadContractModal } from "../../components/customer-dashboard/add-lead-contract-modal"
+import { AddLeadModal } from "../../components/customer-dashboard/lead-components/add-lead-modal"
+import ViewLeadDetailsModal from "../../components/customer-dashboard/lead-components/view-lead-details"
+import { AddLeadContractModal } from "../../components/customer-dashboard/lead-components/add-lead-contract-modal"
 import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+import { EditLeadModal } from "../../components/customer-dashboard/lead-components/edit-lead-modal"
+import { createPortal } from "react-dom"
+import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
+import Sidebar from "../../components/customer-dashboard/central-sidebar"
+import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
+import { IoIosMenu } from "react-icons/io"
 
 const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteLead, columnId, onDragStop, index }) => {
   const [isDragging, setIsDragging] = useState(false)
@@ -58,6 +64,8 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
     setIsDragging(false)
     onDragStop(e, data, lead, columnId, index)
   }
+  const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
+
 
   return (
     <Draggable
@@ -69,18 +77,30 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
     >
       <div
         ref={nodeRef}
-        className={`bg-[#1C1C1C] rounded-xl p-4 mb-3 cursor-grab min-h-[140px] ${isDragging ? "opacity-70 z-[9999] shadow-lg fixed" : "opacity-100"
+        className={`bg-[#1C1C1C] rounded-xl p-3 sm:p-4 mb-3 cursor-grab min-h-[120px] sm:min-h-[140px] ${isDragging ? "opacity-70 z-[9999] relative" : "opacity-100"
           }`}
+        style={{
+          zIndex: isDragging ? 9999 : "auto",
+          position: isDragging ? "absolute" : "static",
+
+        }}
+        data-lead-id={lead.id}
       >
         <div className="flex items-center mb-3 relative">
           {hasValidNote && (
             <div
-              className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-                } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer no-drag z-10`}
+              className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
+                } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
               onClick={(e) => {
                 e.stopPropagation()
+                const rect = e.currentTarget.getBoundingClientRect()
+                setNotePosition({
+                  top: rect.bottom + window.scrollY + 8, // thora neeche kholna
+                  left: rect.left + window.scrollX,      // same column ke left se align
+                })
                 setIsNoteOpen(!isNoteOpen)
               }}
+
             >
               {lead.specialNote.isImportant ? (
                 <AlertTriangle size={18} className="text-white" />
@@ -89,60 +109,62 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
               )}
             </div>
           )}
+          {isNoteOpen && hasValidNote &&
+            createPortal(
+              <div
+                ref={noteRef}
+                className="fixed w-64 sm:w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999] no-drag"
+                style={{
+                  top: notePosition.top,
+                  left: notePosition.left,
+                  position: "absolute",
+                }}
+              >
+                <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                  {lead.specialNote.isImportant ? (
+                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400">
+                      {lead.specialNote.isImportant ? "(Important)" : "(Unimportant)"}
+                    </div>
+                  </h4>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setIsNoteOpen(false)
+                    }}
+                    className="ml-auto text-gray-400 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="p-3">
+                  <p className="text-white text-sm leading-relaxed">{lead.specialNote.text}</p>
+                  {lead.specialNote.startDate && lead.specialNote.endDate ? (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <Calendar size={12} /> Valid from{" "}
+                        {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
+                        {new Date(lead.specialNote.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <Calendar size={12} /> Always valid
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>,
+              document.body
+            )
+          }
 
-          {isNoteOpen && hasValidNote && (
-            <div
-              ref={noteRef}
-              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[200] no-drag"
-            >
-              {/* Header section with icon and title */}
-              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {lead.specialNote.isImportant ? (
-                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                ) : (
-                  <Info className="text-blue-500 shrink-0" size={18} />
-                )}
-                <h4 className="text-white flex gap-1 items-center font-medium">
-                  <div>Special Note</div>
-                  <div className="text-sm text-gray-400">
-                    {lead.specialNote.isImportant ? "(Important)" : "(Unimportant)"}
-                  </div>
-                </h4>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setIsNoteOpen(false)
-                  }}
-                  className="ml-auto text-gray-400 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Note content */}
-              <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">{lead.specialNote.text}</p>
-
-                {/* Date validity section */}
-                {lead.specialNote.startDate && lead.specialNote.endDate ? (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <Calendar size={12} />
-                      Valid from {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
-                      {new Date(lead.specialNote.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <Calendar size={12} />
-                      Always valid
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           <div className="flex-1 mt-6">
             <h5 className="font-bold text-lg mb-1 text-white min-h-[28px]">{lead.studioName || "No Studio Name"}</h5>
@@ -161,18 +183,17 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
           >
             Create Contract
           </button>
-          <div className="relative">
+          <div className="absolute top-2 right-2">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-1 rounded-md cursor-pointer bg-black text-white no-drag"
             >
               <MoreVertical size={16} />
             </button>
-
             {isMenuOpen && (
               <div
                 ref={menuRef}
-                className="absolute bottom-5 right-5 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-60 w-40 "
+                className="absolute right-0 top-8 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-40 no-drag"
               >
                 <button
                   onClick={() => {
@@ -181,8 +202,7 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
                 >
-                  <Info size={14} />
-                  View Details
+                  <Info size={14} /> View Details
                 </button>
                 <button
                   onClick={() => {
@@ -191,18 +211,19 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
                 >
-                  <Edit size={14} />
-                  Edit
+                  <Edit size={14} /> Edit
                 </button>
+
                 <button
                   onClick={() => {
-                    onDeleteLead(lead.id)
+                    if (window.confirm(`Are you sure you want to delete ${lead.firstName} ${lead.surname}?`)) {
+                      onDeleteLead(lead.id)
+                    }
                     setIsMenuOpen(false)
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2"
                 >
-                  <Trash2 size={14} />
-                  Delete
+                  <Trash2 size={14} /> Delete
                 </button>
               </div>
             )}
@@ -213,7 +234,6 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
   )
 }
 
-// Column Component
 const Column = ({
   id,
   title,
@@ -264,7 +284,7 @@ const Column = ({
         )}
       </div>
 
-      <div className="p-3 flex-1 min-h-[400px]">
+      <div className="p-3 flex-1 min-h-[400px] overflow-y-auto">
         {leads.map((lead, index) => (
           <LeadCard
             key={lead.id}
@@ -283,7 +303,6 @@ const Column = ({
   )
 }
 
-// Edit Column Modal
 const EditColumnModal = ({ isVisible, onClose, column, onSave }) => {
   const [title, setTitle] = useState("")
   const [color, setColor] = useState("")
@@ -361,9 +380,7 @@ const EditColumnModal = ({ isVisible, onClose, column, onSave }) => {
   )
 }
 
-
-// Confirmation Modal
-const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
+const ConfirmationModalLeads = ({ isVisible, onClose, onConfirm, message }) => {
   if (!isVisible) return null
 
   return (
@@ -383,9 +400,7 @@ const ConfirmationModal = ({ isVisible, onClose, onConfirm, message }) => {
   )
 }
 
-// Main Lead Management Component
 export default function LeadManagement() {
-  // Initial columns - all in one line as requested
   const [columns, setColumns] = useState([
     { id: "active", title: "Active prospect", color: "#10b981" },
     { id: "passive", title: "Passive prospect", color: "#f59e0b" },
@@ -421,6 +436,123 @@ export default function LeadManagement() {
   const [leadToDeleteId, setLeadToDeleteId] = useState(null)
   const [isSourceConfigModalOpen, setIsSourceConfigModalOpen] = useState(false)
   const [leadSources, setLeadSources] = useState(defaultSources)
+
+  //sidebar related logic and states 
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
+  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
+  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
+  const [editingLink, setEditingLink] = useState(null)
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+
+  const [sidebarWidgets, setSidebarWidgets] = useState([
+    { id: "sidebar-chart", type: "chart", position: 0 },
+    { id: "sidebar-todo", type: "todo", position: 1 },
+    { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
+    { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review Design",
+      description: "Review the new dashboard design",
+      assignee: "Jack",
+      dueDate: "2024-12-15",
+      dueTime: "14:30",
+    },
+    {
+      id: 2,
+      title: "Team Meeting",
+      description: "Weekly team sync",
+      assignee: "Jack",
+      dueDate: "2024-12-16",
+      dueTime: "10:00",
+    },
+  ])
+
+  const memberTypes = {
+    "Studios Acquired": {
+      data: [
+        [30, 45, 60, 75, 90, 105, 120, 135, 150],
+        [25, 40, 55, 70, 85, 100, 115, 130, 145],
+      ],
+      growth: "12%",
+      title: "Studios Acquired",
+    },
+    Finance: {
+      data: [
+        [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000],
+        [45000, 55000, 70000, 80000, 90000, 105000, 120000, 135000, 155000],
+      ],
+      growth: "8%",
+      title: "Finance Statistics",
+    },
+    Leads: {
+      data: [
+        [120, 150, 180, 210, 240, 270, 300, 330, 360],
+        [100, 130, 160, 190, 220, 250, 280, 310, 340],
+      ],
+      growth: "15%",
+      title: "Leads Statistics",
+    },
+    Franchises: {
+      data: [
+        [120, 150, 180, 210, 240, 270, 300, 330, 360],
+        [100, 130, 160, 190, 220, 250, 280, 310, 340],
+      ],
+      growth: "10%",
+      title: "Franchises Acquired",
+    },
+  }
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: "link1",
+      url: "https://fitness-web-kappa.vercel.app/",
+      title: "Timathy Fitness Town",
+    },
+    { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
+    { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
+  ])
+
+  const [expiringContracts, setExpiringContracts] = useState([
+    {
+      id: 1,
+      title: "Oxygen Gym Membership",
+      expiryDate: "June 30, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 2,
+      title: "Timathy Fitness Equipment Lease",
+      expiryDate: "July 15, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 3,
+      title: "Studio Space Rental",
+      expiryDate: "August 5, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 4,
+      title: "Insurance Policy",
+      expiryDate: "September 10, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 5,
+      title: "Software License",
+      expiryDate: "October 20, 2025",
+      status: "Expiring Soon",
+    },
+  ])
+
+  // -------------- end of sidebar logic
+
+
 
   const columnRefs = useRef({})
 
@@ -676,7 +808,7 @@ export default function LeadManagement() {
         }
         : lead,
     )
-    
+
     setLeads(updatedLeads)
 
     // Only update localStorage with non-hardcoded leads
@@ -808,6 +940,49 @@ export default function LeadManagement() {
     )
   })
 
+  // continue sidebar logic
+  const updateCustomLink = (id, field, value) => {
+    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
+  }
+
+  const removeCustomLink = (id) => {
+    setConfirmationModal({ isOpen: true, linkId: id })
+  }
+
+  const handleAddSidebarWidget = (widgetType) => {
+    const newWidget = {
+      id: `sidebar-widget${Date.now()}`,
+      type: widgetType,
+      position: sidebarWidgets.length,
+    }
+    setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    setIsRightWidgetModalOpen(false)
+    toast.success(`${widgetType} widget has been added to sidebar Successfully`)
+  }
+
+  const confirmRemoveLink = () => {
+    if (confirmationModal.linkId) {
+      setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
+      toast.success("Website link removed successfully")
+    }
+    setConfirmationModal({ isOpen: false, linkId: null })
+  }
+
+  const getSidebarWidgetStatus = (widgetType) => {
+    // Check if widget exists in sidebar widgets
+    const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
+
+    if (existsInSidebar) {
+      return { canAdd: false, location: "sidebar" }
+    }
+
+    return { canAdd: true, location: null }
+  }
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
   return (
     <div className="container mx-auto md:p-4 p-1">
       <Toaster
@@ -821,18 +996,38 @@ export default function LeadManagement() {
         }}
       />
 
+      {isRightSidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40" onClick={() => { setIsRightSidebarOpen(false) }} />
+      )}
+
       <div className="flex gap-2 justify-between md:items-center items-start mb-6">
-        <h1 className="text-2xl text-white font-bold">Leads</h1>
+        <div className="flex justify-between items-center md:w-auto w-full">
+
+          <h1 className="text-2xl text-white font-bold">Leads</h1>
+          <div onClick={toggleRightSidebar} className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+            <IoIosMenu size={26} />
+          </div>
+        </div>
         <div className="flex gap-2">
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-[#FF843E] cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
-          >
-            <Plus size={18} />
-            <span className="open_sans_font">Create Lead</span>
-          </button>
-        </div>      </div>
+          <div className="flex items-center gap-2">
+
+
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#FF843E] cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
+            >
+              <Plus size={18} />
+              <span className="open_sans_font">Create Lead</span>
+            </button>
+            <div onClick={toggleRightSidebar} className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+              <IoIosMenu size={26} />
+            </div>
+          </div>
+
+        </div>
+
+      </div>
 
       <div className="mb-6 relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -846,7 +1041,7 @@ export default function LeadManagement() {
       </div>
 
       {/* All columns in one line as requested */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 md:grid-cols-2 gap-4">
         {columns.map((column) => (
           <Column
             key={column.id}
@@ -919,12 +1114,60 @@ export default function LeadManagement() {
       />
 
 
-      <ConfirmationModal
+      <ConfirmationModalLeads
         isVisible={isDeleteConfirmationModalOpen}
         onClose={() => setIsDeleteConfirmationModalOpen(false)}
         onConfirm={confirmDeleteLead}
         message="Are you sure you want to delete this lead?"
       />
+      {/* sidebar related modals */}
+
+      <Sidebar
+        isOpen={isRightSidebarOpen}
+        onClose={() => setIsRightSidebarOpen(false)}
+        widgets={sidebarWidgets}
+        setWidgets={setSidebarWidgets}
+        isEditing={isEditing}
+        todos={todos}
+        customLinks={customLinks}
+        setCustomLinks={setCustomLinks}
+        expiringContracts={expiringContracts}
+        selectedMemberType={selectedMemberType}
+        setSelectedMemberType={setSelectedMemberType}
+        memberTypes={memberTypes}
+        onAddWidget={() => setIsRightWidgetModalOpen(true)}
+        updateCustomLink={updateCustomLink}
+        removeCustomLink={removeCustomLink}
+        editingLink={editingLink}
+        setEditingLink={setEditingLink}
+        openDropdownIndex={openDropdownIndex}
+        setOpenDropdownIndex={setOpenDropdownIndex}
+      />
+
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
+        onConfirm={confirmRemoveLink}
+        title="Delete Website Link"
+        message="Are you sure you want to delete this website link? This action cannot be undone."
+      />
+
+      <WidgetSelectionModal
+        isOpen={isRightWidgetModalOpen}
+        onClose={() => setIsRightWidgetModalOpen(false)}
+        onSelectWidget={handleAddSidebarWidget}
+        getWidgetStatus={getSidebarWidgetStatus}
+        widgetArea="sidebar"
+      />
+
+      {editingLink && (
+        <WebsiteLinkModal
+          link={editingLink}
+          onClose={() => setEditingLink(null)}
+          updateCustomLink={updateCustomLink}
+          setCustomLinks={setCustomLinks}
+        />
+      )}
     </div>
   )
 }

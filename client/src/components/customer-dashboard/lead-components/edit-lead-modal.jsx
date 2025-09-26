@@ -1,11 +1,10 @@
-""
-
 /* eslint-disable react/prop-types */
-import { useState } from "react"
-import { X, Plus } from "lucide-react"
+
+import { useState, useEffect } from "react"
+import { X } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
-export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
+export function EditLeadModal({ isVisible, onClose, onSave, leadData, leadSources = [] }) {
   const [formData, setFormData] = useState({
     studioOwnerFirstName: "",
     studioOwnerLastName: "",
@@ -26,6 +25,32 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
     source: "",
   })
 
+  useEffect(() => {
+    if (leadData) {
+      // Map leadData to formData structure
+      setFormData({
+        studioOwnerFirstName: leadData.firstName || "",
+        studioOwnerLastName: leadData.surname || "",
+        email: leadData.email || "",
+        phone: leadData.phoneNumber || "",
+        street: leadData.street || "",
+        zipCode: leadData.zipCode || "",
+        city: leadData.city || "",
+        country: leadData.country || "",
+        website: leadData.website || "",
+        about: leadData.about || "",
+        studioName: leadData.studioName || "",
+        source: leadData.source || "",
+        // Extract note data from specialNote object
+        note: leadData.specialNote?.text || "",
+        noteStartDate: leadData.specialNote?.startDate || "",
+        noteEndDate: leadData.specialNote?.endDate || "",
+        noteImportance: leadData.specialNote?.isImportant ? "important" : "unimportant",
+        status: leadData.hasTrialTraining ? "trial" : leadData.status || "passive",
+      })
+    }
+  }, [leadData])
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     setFormData((prev) => ({
@@ -36,12 +61,13 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Map formData to the structure expected by the parent component
+    // Map formData back to the structure expected by the parent component
     const mappedData = {
+      ...leadData,
       firstName: formData.studioOwnerFirstName,
-      lastName: formData.studioOwnerLastName,
+      surname: formData.studioOwnerLastName,
       email: formData.email,
-      phone: formData.phone,
+      phoneNumber: formData.phone,
       street: formData.street,
       zipCode: formData.zipCode,
       city: formData.city,
@@ -57,11 +83,11 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
         isImportant: formData.noteImportance === "important",
       },
       hasTrialTraining: formData.status === "trial",
-      status: formData.status,
+      status: formData.status === "trial" ? leadData.status || "passive" : formData.status,
     }
 
     onSave(mappedData)
-    toast.success("Lead created successfully!")
+    toast.success("Lead updated successfully!")
     setTimeout(() => {
       onClose()
     }, 200)
@@ -84,7 +110,7 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl text-white font-bold">Create Lead</h2>
+            <h2 className="text-xl text-white font-bold">Edit Lead</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={24} />
             </button>
@@ -103,7 +129,7 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
               />
             </div>
 
-            <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-200 block mb-2">Studio Owner First Name</label>
                 <input
@@ -161,7 +187,6 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
                 required
                 className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
               >
-                <option value="">Select source</option>
                 {leadSources.map((source, index) => (
                   <option key={index} value={source}>
                     {source}
@@ -268,7 +293,7 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
                 name="note"
                 value={formData.note}
                 onChange={handleChange}
-                className="w-full bg-[#141414] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
+                className="w-full bg-[#141414] rounded-xl resize-none px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
                 placeholder="Enter special note..."
               />
 
@@ -302,7 +327,7 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
                 name="about"
                 value={formData.about}
                 onChange={handleChange}
-                className="w-full bg-[#141414] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                className="w-full bg-[#141414] rounded-xl px-4 resize-none py-2 text-white outline-none text-sm min-h-[100px]"
                 placeholder="Enter additional information about the lead..."
               />
             </div>
@@ -317,10 +342,9 @@ export function AddLeadModal({ isVisible, onClose, onSave, leadSources = [] }) {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl outline-none hover:bg-[#E64D2E] transition-colors duration-200 flex items-center gap-1"
+                className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl outline-none hover:bg-[#E64D2E] transition-colors duration-200"
               >
-                <Plus size={16} />
-                Create Lead
+                Save Changes
               </button>
             </div>
           </form>

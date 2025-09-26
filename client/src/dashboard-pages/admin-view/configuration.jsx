@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
 import {
@@ -29,6 +30,9 @@ import {
   EyeInvisibleOutlined,
   EyeTwoTone,
 } from "@ant-design/icons"
+import "../../custom-css/admin-configuration.css"
+import defaultLogoUrl from '../../../public/gray-avatar-fotor-20250912192528.png'
+
 
 const { Option } = Select
 const { TabPane } = Tabs
@@ -69,25 +73,173 @@ const saveButtonStyle = {
   fontSize: "14px",
 }
 
-const sectionHeaderStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "12px 16px",
-  backgroundColor: "#202020",
-  borderRadius: "8px",
-  marginBottom: "16px",
-  cursor: "default",
-}
 
 const tooltipStyle = {
   marginLeft: "8px",
   color: "rgba(255, 255, 255, 0.5)",
 }
 
+// Add this component above the ConfigurationPage component
+const RichTextEditor = ({ value, onChange, placeholder }) => {
+  const [activeFormat, setActiveFormat] = useState(null);
+  
+  const formats = [
+    { type: 'bold', icon: 'B', label: 'Bold' },
+    { type: 'italic', icon: 'I', label: 'Italic' },
+    { type: 'underline', icon: 'U', label: 'Underline' },
+    { type: 'heading', icon: 'H', label: 'Heading' },
+    { type: 'list', icon: '•', label: 'Bullet List' },
+  ];
+
+  const sizes = ['small', 'normal', 'large', 'xlarge'];
+
+  const applyFormat = (formatType) => {
+    const formatMap = {
+      bold: '<strong>selected text</strong>',
+      italic: '<em>selected text</em>',
+      underline: '<u>selected text</u>',
+      heading: '<h3>selected text</h3>',
+      list: '<ul><li>item</li></ul>'
+    };
+
+    const textArea = document.activeElement;
+    const start = textArea.selectionStart;
+    const end = textArea.selectionEnd;
+    const selectedText = value.substring(start, end);
+    
+    let newText = value;
+    
+    if (formatMap[formatType]) {
+      const formattedText = formatMap[formatType].replace('selected text', selectedText || 'text');
+      newText = value.substring(0, start) + formattedText + value.substring(end);
+    }
+    
+    onChange(newText);
+    setActiveFormat(null);
+  };
+
+  const changeTextSize = (size) => {
+    const sizeMap = {
+      small: '<small>selected text</small>',
+      normal: 'selected text',
+      large: '<big>selected text</big>',
+      xlarge: '<h2>selected text</h2>'
+    };
+
+    const textArea = document.activeElement;
+    const start = textArea.selectionStart;
+    const end = textArea.selectionEnd;
+    const selectedText = value.substring(start, end);
+    
+    let newText = value;
+    
+    if (sizeMap[size]) {
+      const sizedText = sizeMap[size].replace('selected text', selectedText || 'text');
+      newText = value.substring(0, start) + sizedText + value.substring(end);
+    }
+    
+    onChange(newText);
+  };
+
+  return (
+    <div className="rich-text-editor">
+      {/* Formatting Toolbar */}
+      <div className="flex flex-wrap gap-2 mb-3 p-3 bg-[#151515] rounded-lg border border-[#303030]">
+        <div className="flex items-center gap-1">
+          {formats.map((format) => (
+            <Tooltip key={format.type} title={format.label}>
+              <Button
+                type="text"
+                onClick={() => applyFormat(format.type)}
+                className="w-8 h-8 flex items-center justify-center text-white hover:bg-[#303030]"
+                style={buttonStyle}
+              >
+                {format.icon}
+              </Button>
+            </Tooltip>
+          ))}
+        </div>
+        
+        <Divider type="vertical" style={{ borderColor: '#303030', height: '24px' }} />
+        
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-gray-400 mr-2">Size:</span>
+          {sizes.map((size) => (
+            <Tooltip key={size} title={size.charAt(0).toUpperCase() + size.slice(1)}>
+              <Button
+                type="text"
+                onClick={() => changeTextSize(size)}
+                className="w-8 h-8 flex items-center justify-center text-xs text-white hover:bg-[#303030]"
+                style={buttonStyle}
+              >
+                A
+                {size === 'small' && <span className="text-[10px]">↓</span>}
+                {size === 'large' && <span className="text-[10px]">↑</span>}
+                {size === 'xlarge' && <span className="text-[10px]">↑↑</span>}
+              </Button>
+            </Tooltip>
+          ))}
+        </div>
+        
+        <Divider type="vertical" style={{ borderColor: '#303030', height: '24px' }} />
+        
+        <Tooltip title="Clear formatting">
+          <Button
+            type="text"
+            onClick={() => onChange(value.replace(/<[^>]*>/g, ''))}
+            className="w-8 h-8 flex items-center justify-center text-white hover:bg-[#303030]"
+            style={buttonStyle}
+          >
+            🗑️
+          </Button>
+        </Tooltip>
+      </div>
+
+      {/* Text Area */}
+      <TextArea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={8}
+        style={inputStyle}
+        placeholder={placeholder}
+        className="rich-text-area"
+      />
+      
+      {/* Preview Toggle */}
+      <div className="mt-2 flex justify-end">
+        <Tooltip title="Toggle HTML preview">
+          <Switch
+            checkedChildren="HTML"
+            unCheckedChildren="Text"
+            onChange={(checked) => {
+              if (!checked) {
+                // Convert HTML to plain text for editing
+                onChange(value.replace(/<[^>]*>/g, ''));
+              }
+            }}
+            size="small"
+          />
+        </Tooltip>
+      </div>
+      
+      {/* Formatting Help */}
+      <div className="mt-2 text-xs text-gray-500">
+        <span>Tip: Select text and click formatting buttons, or use shortcuts:</span>
+        <br />
+        <span className="text-gray-400">Ctrl+B (Bold), Ctrl+I (Italic), Ctrl+U (Underline)</span>
+      </div>
+    </div>
+  );
+};
+
 const ConfigurationPage = () => {
   const [currency, setCurrency] = useState("€")
   const [language, setLanguage] = useState("en")
+  const [logoUrl, setLogoUrl] = useState("") // New state to store logo URL
+  const [hasExistingPassword, sethasExistingPassword] = useState(false)
+  const [newLeadSource, setNewLeadSource] = useState("")
+
+
 
   // Opening hours and closing days
   const [closingDays, setClosingDays] = useState([])
@@ -275,17 +427,26 @@ const ConfigurationPage = () => {
   }
 
   // Lead sources handlers
-  const handleAddLeadSource = () => {
-    const newId = Math.max(...leadSources.map((s) => s.id), 0) + 1
-    setLeadSources([
-      ...leadSources,
-      {
-        id: newId,
-        name: "",
-        isActive: true,
-      },
-    ])
-  }
+const handleAddLeadSource = () => {
+  if (!newLeadSource.trim()) return;
+  
+  const newId = Math.max(...leadSources.map((s) => s.id), 0) + 1
+  setLeadSources([
+    ...leadSources,
+    {
+      id: newId,
+      name: newLeadSource.trim(),
+      description: "",
+      isActive: true,
+    },
+  ])
+  
+  setNewLeadSource(""); // Clear the input field
+  notification.success({
+    message: "Lead Source Added",
+    description: "New lead source has been successfully added.",
+  })
+}
 
   const handleUpdateLeadSource = (id, field, value) => {
     setLeadSources(leadSources.map((source) => (source.id === id ? { ...source, [field]: value } : source)))
@@ -299,6 +460,84 @@ const ConfigurationPage = () => {
     })
   }
 
+  const handleLogoUpload = (info) => {
+    if (info.file.status === "uploading") {
+      return
+    }
+
+    if (info.file.status === "done" || info.file) {
+      // Create a URL for the uploaded file to display it
+      if (info.file.originFileObj) {
+        const url = URL.createObjectURL(info.file.originFileObj)
+        setLogoUrl(url)
+      }
+      setLogo([info.file])
+      notification.success({ message: "Logo uploaded successfully" })
+    }
+
+    if (info.file.status === "removed") {
+      setLogoUrl("")
+      setLogo([])
+    }
+  }
+
+  // Add these helper functions to your component
+  const getPasswordStrength = (password) => {
+    if (!password) return 'None';
+    if (password.length < 8) return 'Weak';
+
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    const strengthFactors = [hasUpper, hasLower, hasNumbers, hasSpecial].filter(Boolean).length;
+
+    if (strengthFactors >= 4 && password.length >= 12) return 'Strong';
+    if (strengthFactors >= 3) return 'Good';
+    return 'Fair';
+  };
+
+  const getPasswordStrengthColor = (password) => {
+    const strength = getPasswordStrength(password);
+    switch (strength) {
+      case 'Strong': return 'bg-green-500';
+      case 'Good': return 'bg-blue-500';
+      case 'Fair': return 'bg-yellow-500';
+      case 'Weak': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getPasswordStrengthPercent = (password) => {
+    const strength = getPasswordStrength(password);
+    switch (strength) {
+      case 'Strong': return 100;
+      case 'Good': return 75;
+      case 'Fair': return 50;
+      case 'Weak': return 25;
+      default: return 0;
+    }
+  };
+
+  const isPasswordFormValid = () => {
+    const { currentPassword, newPassword, confirmPassword } = generalSettings.accountLogin;
+
+    // If user has existing password, current password is required
+    if (hasExistingPassword && !currentPassword) return false;
+
+    // New password must meet requirements
+    if (!newPassword || newPassword.length < 8) return false;
+
+    // Passwords must match
+    if (newPassword !== confirmPassword) return false;
+
+    return true;
+  };
+
+  
+
+
   return (
     <div className=" w-full mx-auto lg:p-10 p-5 rounded-3xl space-y-8 bg-[#181818] min-h-screen text-white">
       <h1 className="lg:text-3xl text-2xl font-bold oxanium_font">Admin Panel Configuration</h1>
@@ -306,30 +545,28 @@ const ConfigurationPage = () => {
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="General" key="1">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-            <Panel header="Legal Information" key="1" className="bg-[#202020]">
-              <div className="space-y-4">
-                <Form layout="vertical">
-                  <Form.Item label={<span className="text-white">Imprint</span>}>
-                    <TextArea
-                      value={generalSettings.imprint}
-                      onChange={(e) => handleUpdateGeneralSettings("imprint", e.target.value)}
-                      rows={6}
-                      style={inputStyle}
-                      placeholder="Enter your company's imprint information..."
-                    />
-                  </Form.Item>
-                  <Form.Item label={<span className="text-white">Privacy Policy</span>}>
-                    <TextArea
-                      value={generalSettings.privacyPolicy}
-                      onChange={(e) => handleUpdateGeneralSettings("privacyPolicy", e.target.value)}
-                      rows={8}
-                      style={inputStyle}
-                      placeholder="Enter your privacy policy..."
-                    />
-                  </Form.Item>
-                </Form>
-              </div>
-            </Panel>
+           
+<Panel header="Legal Information" key="1" className="bg-[#202020]">
+  <div className="space-y-6">
+    <Form layout="vertical">
+      <Form.Item label={<span className="text-white">Imprint</span>}>
+        <RichTextEditor
+          value={generalSettings.imprint}
+          onChange={(value) => handleUpdateGeneralSettings("imprint", value)}
+          placeholder="Enter your company's imprint information with formatting..."
+        />
+      </Form.Item>
+      
+      <Form.Item label={<span className="text-white">Privacy Policy</span>}>
+        <RichTextEditor
+          value={generalSettings.privacyPolicy}
+          onChange={(value) => handleUpdateGeneralSettings("privacyPolicy", value)}
+          placeholder="Enter your privacy policy with formatting..."
+        />
+      </Form.Item>
+    </Form>
+  </div>
+</Panel>
 
             <Panel header="Contact Information" key="2" className="bg-[#202020]">
               <div className="space-y-4">
@@ -382,6 +619,47 @@ const ConfigurationPage = () => {
             <Panel header="Account Management" key="3" className="bg-[#202020]">
               <div className="space-y-4">
                 <Form layout="vertical">
+                  {/* Logo Upload Section (unchanged) */}
+                  <div className="flex justify-center mb-8">
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="w-32 h-32 rounded-xl overflow-hidden shadow-lg">
+                        <img
+                          src={logoUrl || defaultLogoUrl}
+                          alt="Studio Logo"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = defaultLogoUrl;
+                          }}
+                        />
+                      </div>
+                      <Upload
+                        accept="image/*"
+                        maxCount={1}
+                        onChange={handleLogoUpload}
+                        fileList={logo}
+                        showUploadList={false}
+                      >
+                        <Button icon={<UploadOutlined />} style={buttonStyle}>
+                          {logo.length > 0 ? 'Change Logo' : 'Upload Logo'}
+                        </Button>
+                      </Upload>
+                      {logo.length > 0 && (
+                        <Button
+                          type="text"
+                          danger
+                          size="small"
+                          onClick={() => {
+                            setLogo([]);
+                            setLogoUrl('');
+                          }}
+                        >
+                          Remove Logo
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Email Section */}
                   <Form.Item label={<span className="text-white">Account Email</span>}>
                     <Input
                       value={generalSettings.accountLogin.email}
@@ -390,38 +668,104 @@ const ConfigurationPage = () => {
                       placeholder="admin@company.com"
                     />
                   </Form.Item>
+
                   <Divider style={{ borderColor: "#303030" }} />
-                  <h4 className="text-white font-medium">Change Password</h4>
-                  <Form.Item label={<span className="text-white">Current Password</span>}>
-                    <Password
-                      value={generalSettings.accountLogin.currentPassword}
-                      onChange={(e) => handleUpdateAccountLogin("currentPassword", e.target.value)}
-                      style={inputStyle}
-                      placeholder="Enter current password"
-                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                    />
-                  </Form.Item>
-                  <Form.Item label={<span className="text-white">New Password</span>}>
-                    <Password
-                      value={generalSettings.accountLogin.newPassword}
-                      onChange={(e) => handleUpdateAccountLogin("newPassword", e.target.value)}
-                      style={inputStyle}
-                      placeholder="Enter new password"
-                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                    />
-                  </Form.Item>
-                  <Form.Item label={<span className="text-white">Confirm New Password</span>}>
-                    <Password
-                      value={generalSettings.accountLogin.confirmPassword}
-                      onChange={(e) => handleUpdateAccountLogin("confirmPassword", e.target.value)}
-                      style={inputStyle}
-                      placeholder="Confirm new password"
-                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                    />
-                  </Form.Item>
-                  <Button onClick={handleChangePassword} style={saveButtonStyle}>
-                    Change Password
-                  </Button>
+
+                  {/* Improved Password Change Section */}
+                  <div className="password-change-section">
+                    <h4 className="text-white font-medium mb-4">Change Password</h4>
+
+                    {/* Only show current password if user has a password set */}
+                    {hasExistingPassword && (
+                      <Form.Item
+                        label={<span className="text-white">Current Password</span>}
+                        name="currentPassword"
+                        rules={[
+                          { required: true, message: 'Please enter your current password' }
+                        ]}
+                      >
+                        <Password
+                          value={generalSettings.accountLogin.currentPassword}
+                          onChange={(e) => handleUpdateAccountLogin("currentPassword", e.target.value)}
+                          style={inputStyle}
+                          placeholder="Enter current password"
+                          iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                        />
+                      </Form.Item>
+                    )}
+
+                    <Form.Item
+                      label={<span className="text-white">New Password</span>}
+                      name="newPassword"
+                      rules={[
+                        { required: true, message: 'Please enter a new password' },
+                        { min: 8, message: 'Password must be at least 8 characters' },
+                        {
+                          pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                          message: 'Must include uppercase, lowercase, and numbers'
+                        }
+                      ]}
+                    // help="Must be at least 8 characters with uppercase, lowercase, and numbers"
+                    >
+                      <Password
+                        value={generalSettings.accountLogin.newPassword}
+                        onChange={(e) => handleUpdateAccountLogin("newPassword", e.target.value)}
+                        style={inputStyle}
+                        placeholder="Enter new password"
+                        iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                        className="white-text"
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      label={<span className="text-white">Confirm New Password</span>}
+                      name="confirmPassword"
+                      dependencies={['newPassword']}
+                      rules={[
+                        { required: true, message: 'Please confirm your new password' },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (!value || getFieldValue('newPassword') === value) {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject(new Error('Passwords do not match'));
+                          },
+                        }),
+                      ]}
+                    >
+                      <Password
+                        value={generalSettings.accountLogin.confirmPassword}
+                        onChange={(e) => handleUpdateAccountLogin("confirmPassword", e.target.value)}
+                        style={inputStyle}
+                        placeholder="Confirm new password"
+                        iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                        className="white-text"
+                      />
+                    </Form.Item>
+
+                    {/* Password Strength Indicator */}
+                    <div className="password-strength mb-4">
+                      <div className="flex justify-between text-xs text-gray-400 mb-1">
+                        <span>Password Strength:</span>
+                        <span>{getPasswordStrength(generalSettings.accountLogin.newPassword)}</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full ${getPasswordStrengthColor(generalSettings.accountLogin.newPassword)}`}
+                          style={{ width: `${getPasswordStrengthPercent(generalSettings.accountLogin.newPassword)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={handleChangePassword}
+                      style={saveButtonStyle}
+                      disabled={!isPasswordFormValid()}
+                      className="w-auto "
+                    >
+                      Change Password
+                    </Button>
+                  </div>
                 </Form>
               </div>
             </Panel>
@@ -693,7 +1037,7 @@ const ConfigurationPage = () => {
                               }}
                               style={inputStyle}
                               precision={2}
-                              // addonAfter={currency}
+                            // addonAfter={currency}
                             />
                           </div>
                         </Form.Item>
@@ -892,39 +1236,61 @@ const ConfigurationPage = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg text-white font-medium">Manage Lead Sources</h3>
-                  <Button onClick={handleAddLeadSource} icon={<PlusOutlined />} style={saveButtonStyle}>
-                    Add Lead Source
-                  </Button>
                 </div>
 
-                {leadSources.map((source) => (
-                  <div key={source.id} className="flex items-center justify-between bg-[#252525] p-3 rounded-lg">
+                {/* Add New Lead Source Form */}
+                <div className="bg-[#1C1C1C] p-4 rounded-lg mb-4">
+                  <div className="flex gap-3 mb-3">
                     <Input
-                      value={source.name}
-                      onChange={(e) => handleUpdateLeadSource(source.id, "name", e.target.value)}
+                      value={newLeadSource}
+                      onChange={(e) => setNewLeadSource(e.target.value)}
+                      placeholder="Enter lead source name"
                       style={inputStyle}
-                      placeholder="Source name"
-                      className="mr-2"
+                      onPressEnter={() => {
+                        if (newLeadSource.trim()) {
+                          handleAddLeadSource();
+                        }
+                      }}
                     />
                     <Button
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => handleRemoveLeadSource(source.id)}
-                      style={buttonStyle}
+                      onClick={() => {
+                        if (newLeadSource.trim()) {
+                          handleAddLeadSource();
+                          setNewLeadSource(""); // Clear input after adding
+                        }
+                      }}
+                      style={saveButtonStyle}
+                      disabled={!newLeadSource.trim()}
                     >
-                      Remove
+                      Add Source
                     </Button>
                   </div>
-                ))}
+                </div>
 
-                {leadSources.length === 0 && (
-                  <div className="text-center py-8">
-                    <p className="text-gray-400 mb-4">No lead sources configured yet.</p>
-                    <Button onClick={handleAddLeadSource} icon={<PlusOutlined />} style={saveButtonStyle}>
-                      Add Your First Lead Source
-                    </Button>
-                  </div>
-                )}
+                {/* Lead Sources List */}
+                <div className="max-h-60 overflow-y-auto">
+                  {leadSources.length > 0 ? (
+                    <div className="space-y-2">
+                      {leadSources.map((source) => (
+                        <div key={source.id} className="flex justify-between items-center bg-[#1C1C1C] px-4 py-3 rounded-lg">
+                          <span className="text-white text-sm">{source.name}</span>
+                          <Button
+                            onClick={() => handleRemoveLeadSource(source.id)}
+                            danger
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            size="small"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 text-sm">No lead sources created yet</p>
+                      <p className="text-gray-500 text-xs mt-1">Add your first lead source above</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </Panel>
           </Collapse>
@@ -945,299 +1311,5 @@ const ConfigurationPage = () => {
     </div>
   )
 }
-
-const additionalStyles = `
-  /* Collapse Styles */
-  .ant-collapse {
-    background-color: #181818 !important;
-    border-color: #303030 !important;
-  }
-
-  .ant-collapse-header {
-    color: white !important;
-    background-color: #202020 !important;
-    padding: 12px 16px !important;
-    font-weight: 500 !important;
-  }
-
-  .ant-collapse-content {
-    background-color: #181818 !important;
-    border-color: #303030 !important;
-  }
-
-  .ant-collapse-item {
-    border-color: #303030 !important;
-    margin-bottom: 8px !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-  }
-
-  .ant-collapse-arrow {
-    color: white !important;
-  }
-
-  /* Checkbox Styles */
-  .ant-checkbox-wrapper {
-    color: white !important;
-  }
-
-  .ant-checkbox-checked .ant-checkbox-inner {
-    background-color: #FF843E !important;
-    border-color: #FF843E !important;
-  }
-
-  /* Radio Styles */
-  .ant-radio-wrapper {
-    color: white !important;
-  }
-
-  .ant-radio-checked .ant-radio-inner {
-    border-color: #FF843E !important;
-  }
-
-  .ant-radio-inner::after {
-    background-color: #FF843E !important;
-  }
-
-  /* Divider Styles */
-  .ant-divider {
-    border-color: #303030 !important;
-  }
-`
-
-const styleOverrides = `
-  /* Select Component Styles */
-  .ant-select {
-    background-color: #101010 !important;
-    color: white !important;
-  }
-
-  .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
-    border-color: #303030 !important;
-  }
-
-  .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
-    border-color: #303030 !important;
-    box-shadow: none !important;
-  }
-
-  .ant-select-selector {
-    background-color: #101010 !important;
-    border: none !important;
-    color: white !important;
-  }
-
-  .ant-select-arrow {
-    color: white !important;
-  }
-
-  .ant-select-selection-placeholder {
-    color: rgba(255, 255, 255, 0.3) !important;
-  }
-
-  .ant-select-multiple .ant-select-selection-item {
-    background-color: #1f1f1f !important;
-    border-color: #303030 !important;
-  }
-
-  .ant-select-item-option-content {
-    color: white !important;
-  }
-
-  .ant-select-dropdown {
-    background-color: #101010 !important;
-    border: 1px solid #303030 !important;
-    padding: 4px !important;
-  }
-
-  .ant-select-item {
-    color: white !important;
-    background-color: #101010 !important;
-  }
-
-  .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
-    background-color: #1f1f1f !important;
-    color: white !important;
-  }
-
-  .ant-select-item-option-active {
-    background-color: #1f1f1f !important;
-  }
-
-  .ant-select-item-option:hover {
-    background-color: #1f1f1f !important;
-  }
-
-  /* TimePicker Styles */
-  .ant-picker-dropdown {
-    background-color: #101010 !important;
-  }
-
-  .ant-picker-panel-container {
-    background-color: #101010 !important;
-    border: 1px solid #303030 !important;
-  }
-
-  .ant-picker-content th,
-  .ant-picker-content td {
-    color: white !important;
-  }
-
-  .ant-form-item-label > label {
-    color: white !important;
-  }
-
-  .ant-picker-header Button {
-    color: white !important;
-  }
-
-  .ant-picker-header {
-    border-bottom: 1px solid #303030 !important;
-  }
-
-  .ant-picker-cell {
-    color: rgba(255, 255, 255, 0.7) !important;
-  }
-
-  .ant-picker-cell-in-view {
-    color: white !important;
-  }
-
-  .ant-picker-cell-selected .ant-picker-cell-inner {
-    background-color: #1890ff !important;
-  }
-
-  .ant-picker-time-panel-column > li.ant-picker-time-panel-cell .ant-picker-time-panel-cell-inner {
-    color: white !important;
-  }
-
-  .ant-picker-time-panel {
-    border-left: 1px solid #303030 !important;
-  }
-
-  /* Input Number Styles */
-  .ant-input-number {
-    background-color: #101010 !important;
-    border: none !important;
-    color: white !important;
-  }
-
-  .ant-input-number-handler-wrap {
-    background-color: #181818 !important;
-    border-left: 1px solid #303030 !important;
-  }
-
-  .ant-input-number-handler-up-inner,
-  .ant-input-number-handler-down-inner {
-    color: white !important;
-  }
-
-  /* Notification Styles */
-  .ant-notification {
-    background-color: #101010 !important;
-    border: 1px solid #303030 !important;
-  }
-
-  .ant-notification-notice {
-    background-color: #101010 !important;
-  }
-
-  .ant-notification-notice-message {
-    color: white !important;
-  }
-
-  .ant-notification-notice-description {
-    color: rgba(255, 255, 255, 0.7) !important;
-  }
-
-  /* Placeholder Styles */
-  ::placeholder {
-    color: rgba(255, 255, 255, 0.3) !important;
-  }
-
-  /* Tab Styles */
-  .ant-tabs-tab {
-    color: rgba(255, 255, 255, 0.7) !important;
-  }
-
-  .ant-tabs-tab-active {
-    color: white !important;
-  }
-
-  .ant-tabs-ink-bar {
-    background: #FF843E !important;
-  }
-
-  /* Switch Styles */
-  .ant-switch {
-    background-color: rgba(255, 255, 255, 0.2) !important;
-  }
-
-  .ant-switch-checked {
-    background-color: #FF843E !important;
-  }
-
-  /* Upload Styles */
-  .ant-upload-list {
-    color: white !important;
-  }
-
-  .ant-upload-list-item {
-    border-color: #303030 !important;
-  }
-
-  .ant-upload-list-item-name {
-    color: white !important;
-  }
-
-  /* Collapse Styles */
-  .ant-collapse {
-    background-color: #181818 !important;
-    border-color: #303030 !important;
-  }
-
-  .ant-collapse-header {
-    color: white !important;
-  }
-
-  .ant-collapse-content {
-    background-color: #181818 !important;
-    border-color: #303030 !important;
-  }
-
-  /* Alert Styles */
-  .ant-alert {
-    background-color: #202020 !important;
-    border-color: #303030 !important;
-  }
-
-  .ant-alert-message {
-    color: white !important;
-  }
-
-  .ant-alert-description {
-    color: rgba(255, 255, 255, 0.7) !important;
-  }
-
-  /* Password Input Styles */
-  .ant-input-password {
-    background-color: #101010 !important;
-    border: none !important;
-    color: white !important;
-  }
-
-  .ant-input-password .ant-input {
-    background-color: #101010 !important;
-    color: white !important;
-  }
-
-  .ant-input-password .ant-input-suffix {
-    color: rgba(255, 255, 255, 0.5) !important;
-  }
-`
-
-const styleElement = document.createElement("style")
-styleElement.innerHTML = styleOverrides + additionalStyles
-document.head.appendChild(styleElement)
 
 export default ConfigurationPage

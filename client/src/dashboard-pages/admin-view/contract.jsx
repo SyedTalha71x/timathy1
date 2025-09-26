@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { MoreVertical, Plus, ChevronDown, ArrowUpDown, FileText } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -12,6 +11,11 @@ import { DocumentManagementModal } from "../../components/customer-dashboard/doc
 import { BonusTimeModal } from "../../components/customer-dashboard/bonus-time-modal"
 import { RenewContractModal } from "../../components/customer-dashboard/reniew-contract-modal"
 import { ChangeContractModal } from "../../components/customer-dashboard/change-contract-modal"
+import { IoIosMenu } from "react-icons/io"
+import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
+import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
+import Sidebar from "../../components/customer-dashboard/central-sidebar"
 
 const initialStudioContracts = [
   {
@@ -48,9 +52,9 @@ const initialStudioContracts = [
     contractType: "Premium",
     startDate: "2023-03-01",
     endDate: "2024-03-01",
-    status: "Inactive",
+    status: "Canceled",
     pauseReason: null,
-    cancelReason: null,
+    cancelReason: "Financial Reasons",
     isDigital: true,
     email: "bodyfitness@example.com",
     phone: "9876543210",
@@ -63,7 +67,7 @@ const initialStudioContracts = [
     contractType: "Bronze",
     startDate: "2023-03-01",
     endDate: "2024-03-01",
-    status: "Cancelled",
+    status: "Canceled",
     pauseReason: null,
     cancelReason: "Financial Reasons",
     isDigital: false,
@@ -87,41 +91,7 @@ const sampleLeads = [
     interestedIn: "Basic",
   },
 ]
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-  return (
-    <div className="flex justify-center items-center gap-2 mt-6">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="px-3 py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800"
-      >
-        Previous
-      </button>
-      <div className="flex gap-1">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-3 py-1.5 rounded-xl transition-colors border ${
-              currentPage === page
-                ? "bg-[#F27A30] text-white border-transparent"
-                : "bg-black text-white border-gray-800 hover:bg-gray-900"
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-      </div>
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="px-3 py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800"
-      >
-        Next
-      </button>
-    </div>
-  )
-}
+
 export default function ContractList() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isShowDetails, setIsShowDetails] = useState(false)
@@ -137,9 +107,7 @@ export default function ContractList() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
-  const contractsPerPage = 3
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
   const [selectedLead, setSelectedLead] = useState(null)
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
@@ -147,7 +115,122 @@ export default function ContractList() {
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false)
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false)
 
-  // Update filtered contracts when selectedFilter, contracts, or searchTerm change
+  //sidebar related logic and states 
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
+  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
+  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
+  const [editingLink, setEditingLink] = useState(null)
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+
+  const [sidebarWidgets, setSidebarWidgets] = useState([
+    { id: "sidebar-chart", type: "chart", position: 0 },
+    { id: "sidebar-todo", type: "todo", position: 1 },
+    { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
+    { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review Design",
+      description: "Review the new dashboard design",
+      assignee: "Jack",
+      dueDate: "2024-12-15",
+      dueTime: "14:30",
+    },
+    {
+      id: 2,
+      title: "Team Meeting",
+      description: "Weekly team sync",
+      assignee: "Jack",
+      dueDate: "2024-12-16",
+      dueTime: "10:00",
+    },
+  ])
+
+  const memberTypes = {
+    "Studios Acquired": {
+      data: [
+        [30, 45, 60, 75, 90, 105, 120, 135, 150],
+        [25, 40, 55, 70, 85, 100, 115, 130, 145],
+      ],
+      growth: "12%",
+      title: "Studios Acquired",
+    },
+    Finance: {
+      data: [
+        [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000],
+        [45000, 55000, 70000, 80000, 90000, 105000, 120000, 135000, 155000],
+      ],
+      growth: "8%",
+      title: "Finance Statistics",
+    },
+    Leads: {
+      data: [
+        [120, 150, 180, 210, 240, 270, 300, 330, 360],
+        [100, 130, 160, 190, 220, 250, 280, 310, 340],
+      ],
+      growth: "15%",
+      title: "Leads Statistics",
+    },
+    Franchises: {
+      data: [
+        [120, 150, 180, 210, 240, 270, 300, 330, 360],
+        [100, 130, 160, 190, 220, 250, 280, 310, 340],
+      ],
+      growth: "10%",
+      title: "Franchises Acquired",
+    },
+  }
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: "link1",
+      url: "https://fitness-web-kappa.vercel.app/",
+      title: "Timathy Fitness Town",
+    },
+    { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
+    { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
+  ])
+
+  const [expiringContracts, setExpiringContracts] = useState([
+    {
+      id: 1,
+      title: "Oxygen Gym Membership",
+      expiryDate: "June 30, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 2,
+      title: "Timathy Fitness Equipment Lease",
+      expiryDate: "July 15, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 3,
+      title: "Studio Space Rental",
+      expiryDate: "August 5, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 4,
+      title: "Insurance Policy",
+      expiryDate: "September 10, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 5,
+      title: "Software License",
+      expiryDate: "October 20, 2025",
+      status: "Expiring Soon",
+    },
+  ])
+
+  // -------------- end of sidebar logic
+
+
   useEffect(() => {
     let filtered = contracts
 
@@ -173,18 +256,7 @@ export default function ContractList() {
     }
 
     setFilteredContracts(filtered)
-    setCurrentPage(1) // Reset to the first page when filter or sort changes
   }, [selectedFilter, contracts, searchTerm, selectedSort])
-
-  const totalPages = Math.ceil(filteredContracts.length / contractsPerPage)
-  const startIndex = (currentPage - 1) * contractsPerPage
-  const paginatedContracts = filteredContracts.slice(startIndex, startIndex + contractsPerPage)
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page)
-    // Scroll to top of the contracts list
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -316,11 +388,11 @@ export default function ContractList() {
       const updatedContracts = contracts.map((contract) =>
         contract.id === selectedContract.id
           ? {
-              ...contract,
-              contractType: renewalData.contractType,
-              endDate: endDate.toISOString().split("T")[0],
-              status: "Active",
-            }
+            ...contract,
+            contractType: renewalData.contractType,
+            endDate: endDate.toISOString().split("T")[0],
+            status: "Active",
+          }
           : contract,
       )
       setContracts(updatedContracts)
@@ -335,16 +407,60 @@ export default function ContractList() {
       const updatedContracts = contracts.map((contract) =>
         contract.id === selectedContract.id
           ? {
-              ...contract,
-              contractType: changeData.newContractType,
-              // You might want to update other fields based on the change
-            }
+            ...contract,
+            contractType: changeData.newContractType,
+            // You might want to update other fields based on the change
+          }
           : contract,
       )
       setContracts(updatedContracts)
     }
     setSelectedContract(null)
     toast.success("Contract changed successfully")
+  }
+
+
+  // continue sidebar logic
+  const updateCustomLink = (id, field, value) => {
+    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
+  }
+
+  const removeCustomLink = (id) => {
+    setConfirmationModal({ isOpen: true, linkId: id })
+  }
+
+  const handleAddSidebarWidget = (widgetType) => {
+    const newWidget = {
+      id: `sidebar-widget${Date.now()}`,
+      type: widgetType,
+      position: sidebarWidgets.length,
+    }
+    setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    setIsRightWidgetModalOpen(false)
+    toast.success(`${widgetType} widget has been added to sidebar Successfully`)
+  }
+
+  const confirmRemoveLink = () => {
+    if (confirmationModal.linkId) {
+      setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
+      toast.success("Website link removed successfully")
+    }
+    setConfirmationModal({ isOpen: false, linkId: null })
+  }
+
+  const getSidebarWidgetStatus = (widgetType) => {
+    // Check if widget exists in sidebar widgets
+    const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
+
+    if (existsInSidebar) {
+      return { canAdd: false, location: "sidebar" }
+    }
+
+    return { canAdd: true, location: null }
+  }
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
   }
 
   return (
@@ -360,11 +476,25 @@ export default function ContractList() {
         }}
       />
 
-      <div className="bg-[#1C1C1C] p-6 rounded-3xl w-full">
+      <div className={`
+      min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
+      transition-all duration-500 ease-in-out flex-1
+      ${isRightSidebarOpen
+          ? 'lg:mr-86 mr-0'
+          : 'mr-0'
+        }
+    `}>
         <div className="flex flex-col sm:flex-row sm:justify-between justify-start items-start md:items-center mb-8">
-          <h2 className="text-white oxanium_font text-2xl mb-4 sm:mb-0 text-left">Contracts</h2>
+
+          <div className="flex justify-between md:mb-0 mb-4 items-center w-full md:w-auto">
+
+            <h2 className="text-white oxanium_font text-2xl  text-left">Contracts</h2>
+            <div onClick={toggleRightSidebar} className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+              <IoIosMenu size={26} />
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 w-full sm:w-auto">
-            {/* Filter Dropdown */}
             <div className="relative filter-dropdown w-full sm:w-auto">
               <button
                 onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
@@ -375,7 +505,7 @@ export default function ContractList() {
               </button>
               {filterDropdownOpen && (
                 <div className="absolute right-0 text-sm mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
-                  {["All Contracts", "Active", "Paused", "Inactive"].map((filter) => (
+                  {["All Contracts", "Active", "Paused", "Canceled"].map((filter) => (
                     <button
                       key={filter}
                       className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
@@ -418,8 +548,7 @@ export default function ContractList() {
               )}
             </div>
 
-            {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row gap-2 w-full items-center sm:w-auto">
               <button
                 onClick={handleAddContract}
                 className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
@@ -427,6 +556,10 @@ export default function ContractList() {
                 <Plus className="w-5 h-5" />
                 <span>Add Contract</span>
               </button>
+
+              <div onClick={toggleRightSidebar} className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+                <IoIosMenu size={26} />
+              </div>
             </div>
           </div>
         </div>
@@ -442,21 +575,19 @@ export default function ContractList() {
         </div>
 
         <div className="space-y-3">
-          {paginatedContracts.map((contract) => (
+          {filteredContracts.map((contract) => (
             <div
               key={contract.id}
               className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4"
             >
               <div className="flex flex-col items-start justify-start">
-                {/* Status Tag */}
                 <span
-                  className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${
-                    contract.status === "Active"
-                      ? "bg-green-600 text-white"
-                      : contract.status === "Paused"
-                        ? "bg-yellow-600 text-white"
-                        : "bg-red-600 text-white"
-                  }`}
+                  className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${contract.status === "Active"
+                    ? "bg-green-600 text-white"
+                    : contract.status === "Paused"
+                      ? "bg-yellow-600 text-white"
+                      : "bg-red-600 text-white"
+                    }`}
                 >
                   {contract.status}
                   {contract.pauseReason && ` (${contract.pauseReason})`}
@@ -540,18 +671,13 @@ export default function ContractList() {
             </div>
           ))}
 
-          {paginatedContracts.length === 0 && (
+          {filteredContracts.length === 0 && (
             <div className="bg-[#141414] p-6 rounded-xl text-center">
               <p className="text-gray-400">No contracts found matching your criteria.</p>
             </div>
           )}
-
-          {filteredContracts.length > contractsPerPage && (
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-          )}
         </div>
 
-        {/* Add Contract Modal */}
         {isModalOpen && (
           <AddContractModal
             onClose={() => {
@@ -563,7 +689,6 @@ export default function ContractList() {
           />
         )}
 
-        {/* View Details Modal */}
         {isShowDetails && selectedContract && (
           <ContractDetailsModal
             contract={selectedContract}
@@ -576,17 +701,14 @@ export default function ContractList() {
           />
         )}
 
-        {/* Pause Contract Modal */}
         {isPauseModalOpen && (
           <PauseContractModal onClose={() => setIsPauseModalOpen(false)} onSubmit={handlePauseReasonSubmit} />
         )}
 
-        {/* Cancel Contract Modal */}
         {isCancelModalOpen && (
           <CancelContractModal onClose={() => setIsCancelModalOpen(false)} onSubmit={handleCancelSubmit} />
         )}
 
-        {/* Edit Contract Modal */}
         {isEditModalOpen && selectedContract && (
           <EditContractModal
             contract={selectedContract}
@@ -595,7 +717,6 @@ export default function ContractList() {
           />
         )}
 
-        {/* Document Management Modal */}
         {isDocumentModalOpen && selectedContract && (
           <DocumentManagementModal
             contract={selectedContract}
@@ -606,7 +727,6 @@ export default function ContractList() {
           />
         )}
 
-        {/* Bonus Time Modal */}
         {isBonusTimeModalOpen && selectedContract && (
           <BonusTimeModal
             contract={selectedContract}
@@ -617,7 +737,6 @@ export default function ContractList() {
             }}
           />
         )}
-        {/* Renew Contract Modal */}
         {isRenewModalOpen && selectedContract && (
           <RenewContractModal
             contract={selectedContract}
@@ -626,12 +745,60 @@ export default function ContractList() {
           />
         )}
 
-        {/* Change Contract Modal */}
         {isChangeModalOpen && selectedContract && (
           <ChangeContractModal
             contract={selectedContract}
             onClose={() => setIsChangeModalOpen(false)}
             onSubmit={handleChangeSubmit}
+          />
+        )}
+
+        {/* sidebar related modals */}
+
+        <Sidebar
+          isOpen={isRightSidebarOpen}
+          onClose={() => setIsRightSidebarOpen(false)}
+          widgets={sidebarWidgets}
+          setWidgets={setSidebarWidgets}
+          isEditing={isEditing}
+          todos={todos}
+          customLinks={customLinks}
+          setCustomLinks={setCustomLinks}
+          expiringContracts={expiringContracts}
+          selectedMemberType={selectedMemberType}
+          setSelectedMemberType={setSelectedMemberType}
+          memberTypes={memberTypes}
+          onAddWidget={() => setIsRightWidgetModalOpen(true)}
+          updateCustomLink={updateCustomLink}
+          removeCustomLink={removeCustomLink}
+          editingLink={editingLink}
+          setEditingLink={setEditingLink}
+          openDropdownIndex={openDropdownIndex}
+          setOpenDropdownIndex={setOpenDropdownIndex}
+        />
+
+        <ConfirmationModal
+          isOpen={confirmationModal.isOpen}
+          onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
+          onConfirm={confirmRemoveLink}
+          title="Delete Website Link"
+          message="Are you sure you want to delete this website link? This action cannot be undone."
+        />
+
+        <WidgetSelectionModal
+          isOpen={isRightWidgetModalOpen}
+          onClose={() => setIsRightWidgetModalOpen(false)}
+          onSelectWidget={handleAddSidebarWidget}
+          getWidgetStatus={getSidebarWidgetStatus}
+          widgetArea="sidebar"
+        />
+
+        {editingLink && (
+          <WebsiteLinkModal
+            link={editingLink}
+            onClose={() => setEditingLink(null)}
+            updateCustomLink={updateCustomLink}
+            setCustomLinks={setCustomLinks}
           />
         )}
       </div>

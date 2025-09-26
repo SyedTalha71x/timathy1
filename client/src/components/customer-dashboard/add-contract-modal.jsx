@@ -172,7 +172,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     }
   }, [searchTerm])
 
-  // Pre-fill data if lead information is available
+  // Pre-fill data if lead information is available, but still show lead selection first
   useEffect(() => {
     if (leadData) {
       setContractData((prevData) => ({
@@ -190,7 +190,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
         telefonnummer: leadData.phone || "",
       }))
       setSearchTerm(`${leadData.firstName} ${leadData.lastName}`)
-      setShowLeadSelection(false)
+      // Don't automatically hide lead selection - user should still see it first
     }
   }, [leadData])
 
@@ -215,6 +215,26 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
       [name]: type === "checkbox" ? checked : value,
     })
   }
+
+  useEffect(() => {
+    if (leadData && leadData.id) {
+      setContractData((prevData) => ({
+        ...prevData,
+        studioName: leadData.company || "",
+        studioOwnerName: `${leadData.firstName || ''} ${leadData.lastName || ''}`.trim(),
+        fullName: `${leadData.firstName || ''} ${leadData.lastName || ''}`.trim(),
+        email: leadData.email || "",
+        phone: leadData.phone || "",
+        leadId: leadData.id || "",
+        rateType: leadData.interestedIn || "",
+        vorname: leadData.firstName || "",
+        nachname: leadData.lastName || "",
+        emailAdresse: leadData.email || "",
+        telefonnummer: leadData.phone || "",
+      }))
+      setSearchTerm(`${leadData.firstName || ''} ${leadData.lastName || ''}`.trim())
+    }
+  }, [leadData])
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0]
@@ -440,37 +460,37 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
               </div>
 
               <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Lead</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search for lead..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                    />
-                    {filteredLeads.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 bg-[#101010] mt-1 rounded-xl z-10 shadow-lg max-h-40 overflow-y-auto border border-gray-700">
-                        {filteredLeads.map((lead) => (
-                          <div
-                            key={lead.id}
-                            className="p-3 hover:bg-[#1a1a1a] text-white cursor-pointer border-b border-gray-800 last:border-b-0"
-                            onClick={() => handleLeadSelect(lead)}
-                          >
-                            <div className="font-medium">
-                              {lead.firstName} {lead.lastName}
-                            </div>
-                            <div className="text-sm text-gray-400">{lead.email}</div>
-                            <div className="text-xs text-gray-500">
-                              {lead.company} • Interested in: {lead.interestedIn}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+              <div className="space-y-1.5">
+  <label className="text-xs text-gray-200 block pl-1">Lead</label>
+  <div className="relative">
+    <input
+      type="text"
+      placeholder="Search for lead..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+    />
+    {filteredLeads.length > 0 && (
+      <div className="absolute top-full left-0 right-0 bg-[#101010] mt-1 rounded-xl z-10 shadow-lg max-h-40 overflow-y-auto border border-gray-700">
+        {filteredLeads.map((lead) => (
+          <div
+            key={lead.id}
+            className="p-3 hover:bg-[#1a1a1a] text-white cursor-pointer border-b border-gray-800 last:border-b-0"
+            onClick={() => handleLeadSelect(lead)}
+          >
+            <div className="font-medium">
+              {lead.firstName} {lead.lastName}
+            </div>
+            <div className="text-sm text-gray-400">{lead.email}</div>
+            <div className="text-xs text-gray-500">
+              {lead.company} • Interested in: {lead.interestedIn}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
 
                 <div className="text-center">
                   <button
@@ -485,12 +505,18 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
           ) : showFormView ? (
             <div>
               <div className="space-y-4 mb-4">
-              {contractData.leadId > 0 && contractData.fullName && (
+              {contractData.leadId && contractData.fullName && (
   <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
     <h4 className="text-white text-sm font-medium mb-2">Selected Lead</h4>
     <div className="text-sm text-gray-300">
       <p>
         <span className="text-gray-400">Name:</span> {contractData.fullName}
+      </p>
+      <p>
+        <span className="text-gray-400">Email:</span> {contractData.email}
+      </p>
+      <p>
+        <span className="text-gray-400">Phone:</span> {contractData.phone}
       </p>
     </div>
   </div>
@@ -561,7 +587,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                         className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                       />
                     </div>
-                    <div className="flex items-end">
+                    <div className="flex items-end mb-2">
                       <label className="flex items-center space-x-2 cursor-pointer">
                         <input
                           type="checkbox"

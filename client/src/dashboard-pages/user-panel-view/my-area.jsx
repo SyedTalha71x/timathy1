@@ -25,8 +25,8 @@ import {
 import { Toaster, toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
-import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
-import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import AppointmentActionModal from "../../components/user-panel-components/appointments-components/appointment-action-modal"
+import EditAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal"
 import EditTaskModal from "../../components/task-components/edit-task-modal"
 import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
 import StaffCheckInWidget from "../../components/myarea-components/StaffWidgetCheckIn"

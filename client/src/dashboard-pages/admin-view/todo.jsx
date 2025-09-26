@@ -1,148 +1,439 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react"
-import { X, Plus, Calendar, Tag, ChevronDown, Filter, Tags } from "lucide-react"
-import AddTaskModal from "../../components/customer-dashboard/add-task-model"
-import TaskItem from "../../components/customer-dashboard/task-item"
-import Notification from "../../components/notification"
-import { ColorPicker } from "antd"
+/* eslint-disable react/prop-types */
+import React, { useState, useRef, useEffect } from "react"
+import { Plus, Filter, X, Calendar, Tag, Users, Repeat, Check, ChevronDown, Clock, Bell } from "lucide-react"
+import toast, { Toaster } from "react-hot-toast"
+import Draggable from "react-draggable"
+
+import {
+  todosTaskData,
+  configuredTagsData,
+  availableAssigneesData,
+} from "../../utils/user-panel-states/todo-states"
+
+import RepeatTaskModal from '../../components/customer-dashboard/todo-components/repeat-task-modal'
+import DeleteModal from '../../components/customer-dashboard/todo-components/delete-task'
+import AssignModal from '../../components/customer-dashboard/todo-components/assign-modal'
+import TagsModal from '../../components/customer-dashboard/todo-components/edit-tags'
+import TaskItem from '../../components/customer-dashboard/todo-components/task-item'
+import EditTaskModal from "../../components/customer-dashboard/todo-components/edit-task-modal"
+import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
+import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
+import Sidebar from "../../components/customer-dashboard/central-sidebar"
+import { IoIosMenu } from "react-icons/io"
+
+
 
 export default function TodoApp() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
-  const [activeFilter, setActiveFilter] = useState("ongoing")
   const [sortOption, setSortOption] = useState("dueDate-asc")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
+  const [openDropdownTaskId, setOpenDropdownTaskId] = useState(null)
+
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState("")
+  const [selectedTime, setSelectedTime] = useState("")
+  const [selectedReminder, setSelectedReminder] = useState("")
+  const [selectedRepeat, setSelectedRepeat] = useState("")
+  const [customReminderValue, setCustomReminderValue] = useState("")
+  const [customReminderUnit, setCustomReminderUnit] = useState("Minutes")
+
+  const [isAssignDropdownOpen, setIsAssignDropdownOpen] = useState(false)
+  const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false)
+
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
   const [newTagName, setNewTagName] = useState("")
-  const [newTagColor, setNewTagColor] = useState("#FF5252")
-  const [allTags, setAllTags] = useState([
-    { id: 1, name: "Important", color: "#FF5252" },
-    { id: 2, name: "Urgent", color: "#FFD740" },
-    { id: 3, name: "Meeting", color: "#64FFDA" },
-    { id: 4, name: "Client", color: "#448AFF" },
-    { id: 5, name: "Onboarding", color: "#B388FF" },
-  ])
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Task 1",
-      description: "This is a short description for Task 1",
-      assignees: ["Jack"],
-      roles: "Trainer",
-      tags: ["Important", "Urgent"],
-      status: "ongoing",
-      category: "member",
-      dueDate: "2023-06-20",
-    },
-    {
-      id: 2,
-      title: "Task 2",
-      description: "This is a short description for Task 2",
-      assignees: ["Jane"],
-      roles: "Manager",
-      tags: ["Meeting"],
-      status: "ongoing",
-      category: "staff",
-      dueDate: "2023-06-25",
-    },
-    {
-      id: 3,
-      title: "Reply to client inquiry",
-      description: "Send response to client about pricing",
-      assignees: ["Sarah"],
-      roles: "Support",
-      tags: ["Client", "Important"],
-      status: "ongoing",
-      category: "staff",
-      dueDate: "2023-06-22",
-    },
-    {
-      id: 4,
-      title: "Schedule member onboarding",
-      description: "Set up onboarding session for new member",
-      assignees: ["Mike"],
-      roles: "Trainer",
-      tags: ["Onboarding"],
-      status: "completed",
-      category: "member",
-      dueDate: "2023-06-18",
-    },
-    {
-      id: 5,
-      title: "Staff meeting preparation",
-      description: "Prepare agenda for weekly staff meeting",
-      assignees: ["Alex"],
-      roles: "Manager",
-      tags: ["Meeting"],
-      status: "ongoing",
-      category: "staff",
-      dueDate: "2023-06-24",
-    },
+  const [newTagColor, setNewTagColor] = useState("#FFFFFF")
+
+  const [isEditModalOpenTask, setIsEditModalOpenTask] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState(null)
+
+  const [newTaskInput, setNewTaskInput] = useState("")
+  const [isRepeatModalOpen, setIsRepeatModalOpen] = useState(false)
+  const [selectedTaskForRepeat, setSelectedTaskForRepeat] = useState(null)
+
+  const [tasks, setTasks] = useState(todosTaskData)
+  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
+  const [availableAssignees] = useState(availableAssigneesData)
+
+  const [availableRoles] = useState(["Trainer", "Manager", "Developer", "Designer", "Admin", "Support"])
+
+  const [columns, setColumns] = useState([
+    { id: "ongoing", title: "Ongoing", color: "#f59e0b" },
+    { id: "completed", title: "Completed", color: "#10b981" },
+    { id: "canceled", title: "Canceled", color: "#ef4444" },
   ])
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "completed",
-      message: "Task 'Prepare weekly report' has been completed",
-    },
-    {
-      id: 2,
-      type: "ongoing",
-      message: "New task 'Client meeting' has been assigned to you",
-    },
-    {
-      id: 3,
-      type: "canceled",
-      message: "Task 'Review project proposal' has been canceled",
-    },
-  ])
+  const [assignModalTask, setAssignModalTask] = useState(null)
+  const [tagsModalTask, setTagsModalTask] = useState(null)
 
-  // Function to get tag color by name
-  const getTagColor = (tagName) => {
-    const tag = allTags.find((t) => t.name === tagName)
-    return tag ? tag.color : "#FFFFFF" // Default to white if tag not found
+
+  const columnRefs = useRef({})
+
+    //sidebar related logic and states 
+    const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
+    const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
+    const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
+    const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
+    const [editingLink, setEditingLink] = useState(null)
+    const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+  
+    const [sidebarWidgets, setSidebarWidgets] = useState([
+      { id: "sidebar-chart", type: "chart", position: 0 },
+      { id: "sidebar-todo", type: "todo", position: 1 },
+      { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
+      { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
+    ])
+  
+    const [todos, setTodos] = useState([
+      {
+        id: 1,
+        title: "Review Design",
+        description: "Review the new dashboard design",
+        assignee: "Jack",
+        dueDate: "2024-12-15",
+        dueTime: "14:30",
+      },
+      {
+        id: 2,
+        title: "Team Meeting",
+        description: "Weekly team sync",
+        assignee: "Jack",
+        dueDate: "2024-12-16",
+        dueTime: "10:00",
+      },
+    ])
+  
+    const memberTypes = {
+      "Studios Acquired": {
+        data: [
+          [30, 45, 60, 75, 90, 105, 120, 135, 150],
+          [25, 40, 55, 70, 85, 100, 115, 130, 145],
+        ],
+        growth: "12%",
+        title: "Studios Acquired",
+      },
+      Finance: {
+        data: [
+          [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000],
+          [45000, 55000, 70000, 80000, 90000, 105000, 120000, 135000, 155000],
+        ],
+        growth: "8%",
+        title: "Finance Statistics",
+      },
+      Leads: {
+        data: [
+          [120, 150, 180, 210, 240, 270, 300, 330, 360],
+          [100, 130, 160, 190, 220, 250, 280, 310, 340],
+        ],
+        growth: "15%",
+        title: "Leads Statistics",
+      },
+      Franchises: {
+        data: [
+          [120, 150, 180, 210, 240, 270, 300, 330, 360],
+          [100, 130, 160, 190, 220, 250, 280, 310, 340],
+        ],
+        growth: "10%",
+        title: "Franchises Acquired",
+      },
+    }
+  
+    const [customLinks, setCustomLinks] = useState([
+      {
+        id: "link1",
+        url: "https://fitness-web-kappa.vercel.app/",
+        title: "Timathy Fitness Town",
+      },
+      { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
+      { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
+    ])
+  
+    const [expiringContracts, setExpiringContracts] = useState([
+      {
+        id: 1,
+        title: "Oxygen Gym Membership",
+        expiryDate: "June 30, 2025",
+        status: "Expiring Soon",
+      },
+      {
+        id: 2,
+        title: "Timathy Fitness Equipment Lease",
+        expiryDate: "July 15, 2025",
+        status: "Expiring Soon",
+      },
+      {
+        id: 3,
+        title: "Studio Space Rental",
+        expiryDate: "August 5, 2025",
+        status: "Expiring Soon",
+      },
+      {
+        id: 4,
+        title: "Insurance Policy",
+        expiryDate: "September 10, 2025",
+        status: "Expiring Soon",
+      },
+      {
+        id: 5,
+        title: "Software License",
+        expiryDate: "October 20, 2025",
+        status: "Expiring Soon",
+      },
+    ])
+  
+    // -------------- end of sidebar logic
+  
+
+  const handleOpenTagsModal = (task) => {
+    setTagsModalTask(task)
   }
 
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (!event.target.closest(".status-dropdown")) {
-  //       setIsStatusDropdownOpen(false)
-  //     }
-  //     if (!event.target.closest(".sort-dropdown")) {
-  //       setIsSortDropdownOpen(false)
-  //     }
-  //     if (!event.target.closest(".tag-manager")) {
-  //       setIsTagManagerOpen(false)
-  //     }
-  //   }
+  useEffect(() => {
+    columns.forEach((column) => {
+      if (!columnRefs.current[column.id]) {
+        columnRefs.current[column.id] = React.createRef()
+      }
+    })
+  }, [columns])
 
-  //   document.addEventListener("mousedown", handleClickOutside)
-  //   return () => document.removeEventListener("mousedown", handleClickOutside)
-  // }, [])
-
-  const removeNotification = (id) => {
-    setNotifications(notifications.filter((n) => n.id !== id))
-  }
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".status-dropdown")) {
+        setIsStatusDropdownOpen(false)
+      }
+      if (!event.target.closest(".sort-dropdown")) {
+        setIsSortDropdownOpen(false)
+      }
+      if (!event.target.closest(".calendar-dropdown")) {
+        setIsCalendarOpen(false)
+      }
+      if (!event.target.closest(".assign-dropdown")) {
+        setIsAssignDropdownOpen(false)
+      }
+      if (!event.target.closest(".tag-dropdown")) {
+        setIsTagDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const handleTaskStatusChange = (taskId, newStatus) => {
-    setTasks(tasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)))
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId ? { ...task, status: newStatus, isPinned: false, dragVersion: 0 } : task,
+      ),
+    )
+    toast.success(`Task status changed to ${newStatus}!`)
   }
 
   const handleTaskUpdate = (updatedTask) => {
-    setTasks(tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)))
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => (task.id === updatedTask.id ? { ...updatedTask, dragVersion: 0 } : task)),
+    )
+    toast.success("Task updated successfully!")
   }
 
   const handleTaskRemove = (taskId) => {
-    setTasks(tasks.filter((task) => task.id !== taskId))
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId))
+    toast.success("Task deleted successfully!")
   }
 
-  const handleAddTask = (newTask) => {
-    setTasks([...tasks, newTask])
+  const handleAddTaskFromInput = () => {
+    if (newTaskInput.trim() !== "") {
+      const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
+      const newTask = {
+        id: newId,
+        title: newTaskInput,
+        tags: selectedTags.map((t) => t.name),
+        status: "ongoing",
+        category: "general",
+        dueDate: selectedDate,
+        dueTime: selectedTime,
+        isPinned: false,
+        dragVersion: 0,
+      }
+      setTasks((prevTasks) => [...prevTasks, newTask])
+      setNewTaskInput("")
+      setSelectedDate("")
+      setSelectedTime("")
+      setSelectedTags([])
+      toast.success("Task added successfully!")
+    }
   }
 
-  // Tag management functions
+  const handleTaskPinToggle = (taskId) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => (task.id === taskId ? { ...task, isPinned: !task.isPinned, dragVersion: 0 } : task)),
+    )
+    const taskName = tasks.find((t) => t.id === taskId)?.title || "Task"
+    toast.success(`${taskName} pin status updated!`)
+  }
+
+  const handleEditRequest = (task) => {
+    setSelectedTask(task)
+    setIsEditModalOpenTask(true)
+  }
+
+  const handleDeleteRequest = (taskId) => {
+    setSelectedTask(tasks.find((t) => t.id === taskId))
+    setIsDeleteModalOpen(true)
+  }
+
+  const confirmDeleteTask = () => {
+    if (selectedTask) {
+      handleTaskRemove(selectedTask.id)
+      setIsDeleteModalOpen(false)
+      setSelectedTask(null)
+    }
+  }
+
+  const handleDuplicateTask = (taskToDuplicate) => {
+    const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
+    setTasks((prevTasks) => [
+      ...prevTasks,
+      {
+        ...taskToDuplicate,
+        id: newId,
+        title: `${taskToDuplicate.title} (Copy)`,
+        isPinned: false,
+        dragVersion: 0,
+        status: "ongoing",
+      },
+    ])
+    toast.success("Task duplicated successfully!")
+  }
+
+  const handleRepeatRequest = (task) => {
+    setSelectedTaskForRepeat(task)
+    setIsRepeatModalOpen(true)
+  }
+
+  const handleRepeatTask = (taskToRepeat, repeatOptions) => {
+    try {
+      const generated = []
+      const currentIterationDate = new Date(taskToRepeat.dueDate)
+      let count = 0
+
+      while (count < 100) {
+        if (repeatOptions.endDate && currentIterationDate > new Date(repeatOptions.endDate)) {
+          break
+        }
+        if (repeatOptions.occurrences && count >= repeatOptions.occurrences) {
+          break
+        }
+
+        let shouldAdd = false
+        if (repeatOptions.frequency === "daily") {
+          shouldAdd = true
+        } else if (repeatOptions.frequency === "weekly") {
+          if (repeatOptions.repeatDays.includes(currentIterationDate.getDay())) {
+            shouldAdd = true
+          }
+        }
+
+        if (shouldAdd) {
+          const newId =
+            tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 + generated.length : 1 + generated.length
+          generated.push({
+            ...taskToRepeat,
+            id: newId,
+            dueDate: currentIterationDate.toISOString().split("T")[0],
+            isPinned: false,
+            dragVersion: 0,
+            status: "ongoing",
+          })
+          count++
+        }
+
+        if (repeatOptions.frequency === "daily") {
+          currentIterationDate.setDate(currentIterationDate.getDate() + 1)
+        } else if (repeatOptions.frequency === "weekly") {
+          currentIterationDate.setDate(currentIterationDate.getDate() + 7)
+        } else if (repeatOptions.frequency === "monthly") {
+          currentIterationDate.setMonth(currentIterationDate.getMonth() + 1)
+        } else {
+          currentIterationDate.setDate(currentIterationDate.getDate() + 1)
+        }
+      }
+
+      if (generated.length > 0) {
+        setTasks((prevTasks) => [...prevTasks, ...generated])
+        toast.success(`${generated.length} new tasks generated based on repeat settings!`)
+      } else {
+        toast.error("No tasks generated. Check repeat settings.")
+      }
+    } catch (error) {
+      toast.error("Error generating repeated tasks. Please try again.")
+      console.error("Repeat task error:", error)
+    }
+
+    setIsRepeatModalOpen(false)
+    setSelectedTaskForRepeat(null)
+  }
+
+  const handleDragStop = (e, data, task, sourceColumnId) => {
+    const draggedElem = e.target
+    const draggedRect = draggedElem.getBoundingClientRect()
+    const draggedCenterX = draggedRect.left + draggedRect.width / 2
+    const draggedCenterY = draggedRect.top + draggedRect.height / 2
+
+    let targetColumnId = null
+    for (const [columnId, columnRef] of Object.entries(columnRefs.current)) {
+      if (columnRef.current) {
+        const columnRect = columnRef.current.getBoundingClientRect()
+        if (
+          draggedCenterX >= columnRect.left &&
+          draggedCenterX <= columnRect.right &&
+          draggedCenterY >= columnRect.top &&
+          draggedCenterY <= columnRect.bottom
+        ) {
+          targetColumnId = columnId
+          break
+        }
+      }
+    }
+
+    setTasks((prevTasks) => {
+      const updatedTasks = prevTasks.map((t) => {
+        if (t.id === task.id) {
+          if (targetColumnId && targetColumnId !== sourceColumnId) {
+            toast.success(`Task moved to ${columns.find((c) => c.id === targetColumnId).title}`)
+            return { ...t, status: targetColumnId, isPinned: false, dragVersion: 0 }
+          } else {
+            return { ...t, dragVersion: t.dragVersion + 1 }
+          }
+        }
+        return t
+      })
+      return updatedTasks
+    })
+  }
+
+  const getSortedTasksForColumn = (columnId) => {
+    const columnTasks = tasks.filter((task) => task.status === columnId)
+    return [...columnTasks].sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1
+      if (!a.isPinned && b.isPinned) return 1
+
+      const [criteria, direction] = sortOption.split("-")
+      if (criteria === "dueDate") {
+        const dateA = new Date(a.dueDate)
+        const dateB = new Date(b.dueDate)
+        return direction === "asc" ? dateA - dateB : dateB - dateA
+      } else if (criteria === "tag") {
+        const tagA = a.tags && a.tags.length > 0 ? a.tags[0].toLowerCase() : ""
+        const tagB = b.tags && b.tags.length > 0 ? b.tags[0].toLowerCase() : ""
+        return direction === "asc" ? tagA.localeCompare(tagB) : tagB.localeCompare(tagA)
+      }
+      return 0
+    })
+  }
+
   const addTag = () => {
     if (newTagName.trim()) {
       const newTag = {
@@ -150,336 +441,812 @@ export default function TodoApp() {
         name: newTagName.trim(),
         color: newTagColor,
       }
-      setAllTags([...allTags, newTag])
+      setConfiguredTags([...configuredTags, newTag])
       setNewTagName("")
-      setNewTagColor("#FF5252") // Reset to default color
+      setNewTagColor("#FF5252")
+      toast.success("Tag added successfully!")
     }
   }
 
   const deleteTag = (tagId) => {
-    setAllTags(allTags.filter((tag) => tag.id !== tagId))
-    // Remove this tag from all tasks
+    setConfiguredTags(configuredTags.filter((tag) => tag.id !== tagId))
     setTasks(
       tasks.map((task) => ({
         ...task,
         tags: task.tags.filter((tag) => {
-          // Handle both string tags (for old format) and object tags
-          if (typeof tag === "string") {
-            const tagToDelete = allTags.find((t) => t.id === tagId)
-            return tag !== tagToDelete?.name
-          }
-          return tag.id !== tagId
+          const tagToDelete = configuredTags.find((t) => t.id === tagId)
+          return tag !== tagToDelete?.name
         }),
       })),
     )
+    toast.success("Tag deleted successfully!")
   }
 
-  // Filter tasks by status
-  const filteredTasks = tasks.filter((task) => task.status === activeFilter)
+  const CalendarPopup = () => {
+    const [currentDate, setCurrentDate] = useState(new Date())
+    const [tempDate, setTempDate] = useState(selectedDate)
+    const [tempTime, setTempTime] = useState(selectedTime)
+    const [tempReminder, setTempReminder] = useState(selectedReminder)
+    const [tempRepeat, setTempRepeat] = useState(selectedRepeat)
+    const [showCustomReminder, setShowCustomReminder] = useState(false)
+    const [customValue, setCustomValue] = useState(customReminderValue)
+    const [customUnit, setCustomUnit] = useState(customReminderUnit)
+    const [repeatEndType, setRepeatEndType] = useState("never")
+    const [repeatEndDate, setRepeatEndDate] = useState("")
+    const [repeatOccurrences, setRepeatOccurrences] = useState("")
 
-  // Sort tasks based on selected option
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
-    const [criteria, direction] = sortOption.split("-")
+    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-    if (criteria === "dueDate") {
-      const dateA = new Date(a.dueDate)
-      const dateB = new Date(b.dueDate)
-      return direction === "asc" ? dateA - dateB : dateB - dateA
-    } else if (criteria === "tag") {
-      // Sort by first tag alphabetically
-      const tagA = a.tags && a.tags.length > 0 ? a.tags[0].toLowerCase() : ""
-      const tagB = b.tags && b.tags.length > 0 ? b.tags[0].toLowerCase() : ""
-      return direction === "asc" ? tagA.localeCompare(tagB) : tagB.localeCompare(tagA)
+    const generateTimeOptions = () => {
+      const options = []
+      for (let hour = 0; hour < 24; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+          options.push(timeString)
+        }
+      }
+      return options
     }
-    return 0
-  })
 
-  return (
-    <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white text-base relative min-h-screen overflow-hidden">
-      <div className="flex-1 p-4 sm:p-6">
-        <div className="pb-16 sm:pb-24 lg:pb-36">
-          {/* Header with title, filter tabs, and add button */}
-          <div className="flex flex-col gap-4 mb-6">
-            <div className="flex md:justify-between md:flex-row flex-col justify-start  md:items-center items-start  gap-2">
-              <h1 className="text-2xl font-bold text-white">To-Do</h1>
+    const handleDateClick = (day) => {
+      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+      setTempDate(dateStr)
+    }
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setIsTagManagerOpen(true)}
-                  className="bg-[#2F2F2F] cursor-pointer text-white px-4 py-2.5 rounded-xl text-sm flex items-center gap-2"
-                >
-                  <Tags size={18} />
-                  <span className="open_sans_font">Manage Tags</span>
-                </button>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="bg-[#FF843E] cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
-                >
-                  <Plus size={18} />
-                  <span className="open_sans_font">Add task</span>
-                </button>
-              </div>
-            </div>
+    const handleTimeChange = (time) => {
+      setTempTime(time)
+      if (time && !tempReminder) {
+        setTempReminder("On time")
+      }
+    }
 
-            {/* Filter and Sort Controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              {/* Status Tabs */}
-              <div className="flex gap-1 items-center">
-                <button
-                  className={`md:px-4 px-2.5 py-2 text-sm ${
-                    activeFilter === "ongoing"
-                      ? "bg-white text-black"
-                      : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                  } rounded-xl`}
-                  onClick={() => setActiveFilter("ongoing")}
-                >
-                  Ongoing
-                </button>
-                <button
-                  className={`md:px-4 px-2.5 py-2 text-sm ${
-                    activeFilter === "completed"
-                      ? "bg-white text-black"
-                      : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                  } rounded-xl`}
-                  onClick={() => setActiveFilter("completed")}
-                >
-                  Completed
-                </button>
-                <button
-                  className={`md:px-4 px-2.5 py-2 text-sm ${
-                    activeFilter === "canceled"
-                      ? "bg-white text-black"
-                      : "text-gray-200 border border-slate-300 hover:bg-gray-800"
-                  } rounded-xl`}
-                  onClick={() => setActiveFilter("canceled")}
-                >
-                  Canceled
-                </button>
-              </div>
+    const handleReminderChange = (reminder) => {
+      setTempReminder(reminder)
+      if (reminder === "Custom") {
+        setShowCustomReminder(true)
+      } else {
+        setShowCustomReminder(false)
+      }
+    }
 
-              {/* Sort Dropdown */}
-              <div className="relative sort-dropdown">
-                <button
-                  onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#2F2F2F] rounded-xl text-sm"
-                >
-                  <Filter size={16} />
-                  <span>
-                    {sortOption === "dueDate-asc" && "Due Date (Earliest)"}
-                    {sortOption === "dueDate-desc" && "Due Date (Latest)"}
-                    {sortOption === "tag-asc" && "Tag (A-Z)"}
-                    {sortOption === "tag-desc" && "Tag (Z-A)"}
-                  </span>
-                  <ChevronDown size={16} />
-                </button>
+    const handleOK = () => {
+      setSelectedDate(tempDate)
+      setSelectedTime(tempTime)
+      setSelectedReminder(tempReminder)
+      setSelectedRepeat(tempRepeat)
+      if (showCustomReminder) {
+        setCustomReminderValue(customValue)
+        setCustomReminderUnit(customUnit)
+      }
+      setIsCalendarOpen(false)
+    }
 
-                {isSortDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-1 bg-[#2F2F2F] rounded-xl shadow-lg z-10 w-48">
-                    <div className="p-2">
-                      <h3 className="text-xs text-gray-400 px-3 py-1">Sort by Due Date</h3>
-                      <button
-                        onClick={() => {
-                          setSortOption("dueDate-asc")
-                          setIsSortDropdownOpen(false)
-                        }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
-                        }`}
-                      >
-                        <Calendar size={14} />
-                        <span>Earliest First</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSortOption("dueDate-desc")
-                          setIsSortDropdownOpen(false)
-                        }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
-                        }`}
-                      >
-                        <Calendar size={14} />
-                        <span>Latest First</span>
-                      </button>
+    const handleClear = () => {
+      setTempDate("")
+      setTempTime("")
+      setTempReminder("")
+      setTempRepeat("")
+      setSelectedDate("")
+      setSelectedTime("")
+      setSelectedReminder("")
+      setSelectedRepeat("")
+      setCustomReminderValue("")
+      setIsCalendarOpen(false)
+    }
 
-                      <h3 className="text-xs text-gray-400 px-3 py-1 mt-2">Sort by Tag</h3>
-                      <button
-                        onClick={() => {
-                          setSortOption("tag-asc")
-                          setIsSortDropdownOpen(false)
-                        }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
-                        }`}
-                      >
-                        <Tag size={14} />
-                        <span>A to Z</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSortOption("tag-desc")
-                          setIsSortDropdownOpen(false)
-                        }}
-                        className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                          sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
-                        }`}
-                      >
-                        <Tag size={14} />
-                        <span>Z to A</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-black rounded-xl open_sans_font p-3 mt-4">
-            {sortedTasks.length > 0 ? (
-              <div className="space-y-4">
-                {sortedTasks.map((task) => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onStatusChange={handleTaskStatusChange}
-                    onUpdate={handleTaskUpdate}
-                    onRemove={handleTaskRemove}
-                    getTagColor={getTagColor}
-                    allTags={allTags}
-                    onAddTag={(taskId, tagName) => {
-                      const updatedTasks = tasks.map((task) =>
-                        task.id === taskId ? { ...task, tags: [...(task.tags || []), tagName] } : task,
-                      )
-                      setTasks(updatedTasks)
-                    }}
-                    onRemoveTag={(taskId, tagToRemove) => {
-                      const updatedTasks = tasks.map((task) =>
-                        task.id === taskId ? { ...task, tags: task.tags.filter((tag) => tag !== tagToRemove) } : task,
-                      )
-                      setTasks(updatedTasks)
-                    }}
-                    onUpdateDueDate={(taskId, newDate, newTime) => {
-                      const updatedTasks = tasks.map((task) =>
-                        task.id === taskId ? { ...task, dueDate: newDate, dueTime: newTime } : task,
-                      )
-                      setTasks(updatedTasks)
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-gray-400 text-center py-8">No {activeFilter} tasks found</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={`fixed lg:static inset-y-0 right-0 w-[320px] bg-[#181818] p-6 transform transition-transform duration-500 ease-in-out ${
-          isNotificationOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-        } z-40`}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl oxanium_font text-white">Notification</h2>
-          <button onClick={() => setIsNotificationOpen(false)} className="lg:hidden text-gray-400 hover:text-white">
-            <X size={20} />
+    return (
+      <div className="absolute top-full lg:-left-70 -left-55 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-90 p-4 lg:w-84 w-70">
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
+            className="text-white hover:text-gray-300"
+          >
+            ←
+          </button>
+          <span className="text-white font-medium">
+            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          </span>
+          <button
+            onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
+            className="text-white hover:text-gray-300"
+          >
+            →
           </button>
         </div>
-        <div className="space-y-3">
-          {notifications.map((notification) => (
-            <Notification key={notification.id} notification={notification} onRemove={removeNotification} />
+
+        <div className="grid grid-cols-7 gap-1 mb-4">
+          {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
+            <div key={day} className="text-center text-gray-400 text-sm p-2">
+              {day}
+            </div>
           ))}
+          {Array.from({ length: firstDayOfMonth }).map((_, index) => (
+            <div key={index} className="p-2"></div>
+          ))}
+          {Array.from({ length: daysInMonth }).map((_, index) => {
+            const day = index + 1
+            const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+            const isSelected = tempDate === dateStr
+            return (
+              <button
+                key={day}
+                onClick={() => handleDateClick(day)}
+                className={`p-2 text-sm rounded hover:bg-gray-600 ${isSelected ? "bg-blue-600 text-white" : "text-white"
+                  }`}
+              >
+                {day}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-white">
+            <Clock size={16} className="text-gray-400" />
+            <span className="text-sm w-16">Time:</span>
+            <select
+              value={tempTime}
+              onChange={(e) => handleTimeChange(e.target.value)}
+              className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm flex-1"
+            >
+              <option value="">Select time</option>
+              {generateTimeOptions().map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 text-white">
+            <Bell size={16} className="text-gray-400" />
+            <span className="text-sm w-16">Reminder:</span>
+            <select
+              value={tempReminder}
+              onChange={(e) => handleReminderChange(e.target.value)}
+              className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm flex-1"
+            >
+              <option value="">None</option>
+              <option value="On time">On time</option>
+              <option value="5 minutes before">5 minutes before</option>
+              <option value="15 minutes before">15 minutes before</option>
+              <option value="30 minutes before">30 minutes before</option>
+              <option value="1 hour before">1 hour before</option>
+              <option value="1 day before">1 day before</option>
+              <option value="Custom">Custom</option>
+            </select>
+          </div>
+
+          {showCustomReminder && (
+            <div className="flex items-center gap-2 text-white ml-6">
+              <input
+                type="number"
+                value={customValue}
+                onChange={(e) => setCustomValue(e.target.value)}
+                className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm w-16"
+                placeholder="30"
+                min="1"
+              />
+              <select
+                value={customUnit}
+                onChange={(e) => setCustomUnit(e.target.value)}
+                className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm"
+              >
+                <option value="Minutes">Minutes</option>
+                <option value="Hours">Hours</option>
+                <option value="Days">Days</option>
+                <option value="Weeks">Weeks</option>
+              </select>
+              <span className="text-sm text-gray-400">ahead</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 text-white">
+            <Repeat size={16} className="text-gray-400" />
+            <span className="text-sm w-16">Repeat:</span>
+            <select
+              value={tempRepeat}
+              onChange={(e) => setTempRepeat(e.target.value)}
+              className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-sm flex-1"
+            >
+              <option value="">Never</option>
+              <option value="Daily">Daily</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Monthly">Monthly</option>
+            </select>
+          </div>
+
+          {tempRepeat && tempRepeat !== "" && (
+            <div className="ml-6 space-y-2">
+              <div className="text-sm text-gray-200">Ends:</div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="repeatEnd"
+                    value="never"
+                    checked={repeatEndType === "never"}
+                    onChange={() => setRepeatEndType("never")}
+                    className="form-radio h-3 w-3 text-[#FF843E]"
+                  />
+                  Never
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="repeatEnd"
+                    value="onDate"
+                    checked={repeatEndType === "onDate"}
+                    onChange={() => setRepeatEndType("onDate")}
+                    className="form-radio h-3 w-3 text-[#FF843E]"
+                  />
+                  On date:
+                  <input
+                    type="date"
+                    value={repeatEndDate}
+                    onChange={(e) => setRepeatEndDate(e.target.value)}
+                    onClick={() => setRepeatEndType("onDate")}
+                    className="bg-[#1C1C1C] text-white px-2 py-1 rounded text-xs ml-1"
+                  />
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="repeatEnd"
+                    value="after"
+                    checked={repeatEndType === "after"}
+                    onChange={() => setRepeatEndType("after")}
+                    className="form-radio h-3 w-3 text-[#FF843E]"
+                  />
+                  After
+                  <input
+                    type="number"
+                    value={repeatOccurrences}
+                    onChange={(e) => setRepeatOccurrences(e.target.value)}
+                    onClick={() => setRepeatEndType("after")}
+                    min="1"
+                    className="w-16 bg-[#1C1C1C] text-white px-2 py-1 rounded text-xs ml-1"
+                  />
+                  occurrences
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between mt-4">
+          <button onClick={handleClear} className="px-4 py-2 text-gray-300 hover:text-white text-sm">
+            Clear
+          </button>
+          <button onClick={handleOK} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+            OK
+          </button>
         </div>
       </div>
+    )
+  }
 
-      {/* Tag Manager Modal */}
-      {isTagManagerOpen && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 p-2 flex items-center justify-center z-50">
-          <div className="tag-manager bg-[#181818] rounded-xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Manage Tags</h2>
-              <button onClick={() => setIsTagManagerOpen(false)} className="text-gray-400 hover:text-white">
-                <X size={20} />
-              </button>
-            </div>
+  const Column = ({
+    id,
+    title,
+    color,
+    tasks,
+    onDragStop,
+    onTaskStatusChange,
+    onTaskUpdate,
+    onTaskPinToggle,
+    onTaskRemove,
+    columnRef,
+    onEditRequest,
+    onDeleteRequest,
+    onDuplicateRequest,
+    onRepeatRequest,
+  }) => {
+    const taskItemRefs = useRef({})
+    const [draggingTaskId, setDraggingTaskId] = useState(null)
 
-            <div className="mb-6">
-              <div className="flex flex-col gap-3 mb-4">
-                <input
-                  type="text"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                  placeholder="Enter tag name"
-                  className="w-full bg-[#1C1C1C] text-sm text-white px-4 py-2 rounded-lg"
-                />
-                <div className="flex text-sm items-center gap-3">
-                  <span>Color:</span>
-                  <ColorPicker
-                    value={newTagColor}
-                    onChange={(color) => setNewTagColor(color.toHexString())}
-                    showText
-                    className="custom-color-picker white-text"
-                    presets={[
-                      {                        
-                        colors: [
-                          "#FF5252",
-                          "#FFD740",
-                          "#64FFDA",
-                          "#448AFF",
-                          "#B388FF",
-                          "#FF80AB",
-                          "#000000",
-                          "#FFFFFF",
-                        ],
-                      },
-                    ]}
-                  />
-                </div>
-                <button
-                  onClick={addTag}
-                  className="bg-[#FF843E] text-white text-sm px-4 py-2 rounded-lg mt-2"
-                  disabled={!newTagName.trim()}
+    return (
+      <div
+        ref={columnRef}
+        id={`column-${id}`}
+        className="bg-[#141414] rounded-2xl overflow-visible h-full flex flex-col relative"
+        data-column-id={id}
+        style={{
+          zIndex: draggingTaskId ? 1 : "auto",
+        }}
+      >
+        <div className="p-3 flex justify-between items-center rounded-t-2xl" style={{ backgroundColor: `${color}20` }}>
+          <div className="flex items-center">
+            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
+            <h3 className="font-medium text-white text-sm">{title}</h3>
+          </div>
+        </div>
+        <div className="p-3 flex-1 min-h-[400px] relative">
+          {tasks.length > 0 ? (
+            tasks.map((task, index) => {
+              if (!taskItemRefs.current[task.id]) {
+                taskItemRefs.current[task.id] = React.createRef()
+              }
+              return (
+                <Draggable
+                  key={`${task.id}-${task.dragVersion}`}
+                  nodeRef={taskItemRefs.current[task.id]}
+                  onStart={() => setDraggingTaskId(task.id)}
+                  onStop={(e, data) => {
+                    setDraggingTaskId(null)
+                    onDragStop(e, data, task, id)
+                  }}
+                  cancel=".no-drag"
+                  defaultPosition={{ x: 0, y: 0 }}
                 >
-                  Add Tag
-                </button>
+                  <div
+                    ref={taskItemRefs.current[task.id]}
+                    className={`cursor-grab mb-3 ${draggingTaskId === task.id ? "z-[9999] relative" : ""}`}
+                    style={{
+                      zIndex: draggingTaskId === task.id ? 9999 : "auto",
+                      position: draggingTaskId === task.id ? "relative" : "static",
+                    }}
+                  >
+                    <TaskItem
+                      task={task}
+                      onStatusChange={onTaskStatusChange}
+                      onUpdate={onTaskUpdate}
+                      onPinToggle={onTaskPinToggle}
+                      onRemove={onTaskRemove}
+                      onEditRequest={onEditRequest}
+                      onDeleteRequest={onDeleteRequest}
+                      onDuplicateRequest={onDuplicateRequest}
+                      onRepeatRequest={onRepeatRequest}
+                      isDragging={draggingTaskId === task.id}
+                      openDropdownTaskId={openDropdownTaskId}
+                      setOpenDropdownTaskId={setOpenDropdownTaskId}
+                      configuredTags={configuredTags}
+                      onOpenTagsModal={handleOpenTagsModal}
+                    />
+                  </div>
+                </Draggable>
+              )
+            })
+          ) : (
+            <div className="text-gray-400 text-center py-8">No {title.toLowerCase()} tasks found</div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  const [selectedTags, setSelectedTags] = useState([])
+
+
+
+  // continue sidebar logic
+  const updateCustomLink = (id, field, value) => {
+    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
+  }
+
+  const removeCustomLink = (id) => {
+    setConfirmationModal({ isOpen: true, linkId: id })
+  }
+
+  const handleAddSidebarWidget = (widgetType) => {
+    const newWidget = {
+      id: `sidebar-widget${Date.now()}`,
+      type: widgetType,
+      position: sidebarWidgets.length,
+    }
+    setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    setIsRightWidgetModalOpen(false)
+    toast.success(`${widgetType} widget has been added to sidebar Successfully`)
+  }
+
+  const confirmRemoveLink = () => {
+    if (confirmationModal.linkId) {
+      setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
+      toast.success("Website link removed successfully")
+    }
+    setConfirmationModal({ isOpen: false, linkId: null })
+  }
+
+  const getSidebarWidgetStatus = (widgetType) => {
+    // Check if widget exists in sidebar widgets
+    const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
+
+    if (existsInSidebar) {
+      return { canAdd: false, location: "sidebar" }
+    }
+
+    return { canAdd: true, location: null }
+  }
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
+
+  return (
+    <>
+      <style>
+        {`
+          @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-1deg); }
+            30% { transform: rotate(1deg); }
+            45% { transform: rotate(-1deg); }
+            60% { transform: rotate(1deg); }
+            75% { transform: rotate(-1deg); }
+            90% { transform: rotate(1deg); }
+          }
+          .animate-wobble {
+            animation: wobble 0.5s ease-in-out infinite;
+          }
+          .dragging {
+            opacity: 0.5;
+            border: 2px dashed #fff;
+          }
+          .drag-over {
+            border: 2px dashed #888;
+          }
+        `}
+      </style>
+      <div
+        className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-visible ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"
+          }`}
+      >
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 2000,
+            style: {
+              background: "#333",
+              color: "#fff",
+            },
+          }}
+        />
+        <div className="flex-1 p-4 sm:p-6">
+          <div className="pb-16 sm:pb-24 lg:pb-36">
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex justify-between items-center gap-4 mb-6">
+                <h1 className="text-2xl font-bold text-white">To-Do</h1>
+                 <div onClick={toggleRightSidebar} className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+                            <IoIosMenu size={26}/>
+                          </div>
               </div>
 
-              <div className="max-h-60 overflow-y-auto text-sm">
-                {allTags.length > 0 ? (
-                  <div className="space-y-2">
-                    {allTags.map((tag) => (
-                      <div key={tag.id} className="flex justify-between items-center bg-[#1C1C1C] px-4 py-2 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="w-4 h-4 rounded-full" style={{ backgroundColor: tag.color }} />
-                          <span style={{ color: tag.color }}>{tag.name}</span>
-                        </div>
-                        <button onClick={() => deleteTag(tag.id)} className="text-red-400 hover:text-red-300">
-                          <X size={18} />
-                        </button>
-                      </div>
-                    ))}
+              <div className="flex flex-col md:flex-row gap-4 items-stretch">
+                <div className="relative flex items-center flex-grow bg-[#101010] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none">
+                  <Plus size={18} className="text-gray-400 mr-2" />
+                  <input
+                    type="text"
+                    placeholder="Add new task..."
+                    value={newTaskInput}
+                    onChange={(e) => setNewTaskInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleAddTaskFromInput()
+                      }
+                    }}
+                    className="flex-grow bg-transparent text-sm outline-none placeholder-gray-500"
+                  />
+
+                  <div className="relative calendar-dropdown">
+                    <button
+                      type="button"
+                      onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                      className="text-gray-400 hover:text-white ml-2 no-drag p-1"
+                      title="Set due date"
+                    >
+                      <Calendar size={18} />
+                    </button>
+                    {isCalendarOpen && <CalendarPopup />}
                   </div>
-                ) : (
-                  <p className="text-gray-400 text-center py-4 text-sm">No tags created yet</p>
-                )}
+
+                  <div className="relative tag-dropdown">
+                    {isTagDropdownOpen && (
+                      <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-48">
+                        <h4 className="text-white text-sm font-medium mb-2">Add Tags</h4>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {configuredTags.map((tag) => {
+                            const isSelected = selectedTags.find((t) => t.id === tag.id)
+                            return (
+                              <button
+                                key={tag.id}
+                                className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
+                                onClick={() => {
+                                  setIsTagDropdownOpen(false)
+                                }}
+                              >
+                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }}></div>
+                                {tag.name}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsTagManagerOpen(true)}
+                    className="bg-[#2F2F2F] text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap"
+                    title="Manage Tags"
+                  >
+                    <Tag size={16} />
+                  </button>
+
+                  <div className="relative sort-dropdown">
+                    <button
+                      onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                      className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+                    >
+                      <Filter size={16} />
+                      <span>
+                        {sortOption === "dueDate-asc" && "Due Date (Earliest)"}
+                        {sortOption === "dueDate-desc" && "Due Date (Latest)"}
+                        {sortOption === "tag-asc" && "Tag (A-Z)"}
+                        {sortOption === "tag-desc" && "Tag (Z-A)"}
+                      </span>
+                      <ChevronDown size={16} />
+                    </button>
+                    {isSortDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-1 bg-[#2F2F2F] rounded-xl shadow-lg z-10 w-48">
+                        <div className="p-2">
+                          <h3 className="text-xs text-gray-400 px-3 py-1">Sort by Due Date</h3>
+                          <button
+                            onClick={() => {
+                              setSortOption("dueDate-asc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Calendar size={14} />
+                            <span>Earliest First</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSortOption("dueDate-desc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Calendar size={14} />
+                            <span>Latest First</span>
+                          </button>
+                          <h3 className="text-xs text-gray-400 px-3 py-1 mt-2">Sort by Tag</h3>
+                          <button
+                            onClick={() => {
+                              setSortOption("tag-asc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Tag size={14} />
+                            <span>A to Z</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSortOption("tag-desc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Tag size={14} />
+                            <span>Z to A</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsTagManagerOpen(false)}
-                className="bg-[#FF843E] text-white px-6 py-2 text-sm rounded-lg"
-              >
-                Done
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 open_sans_font mt-4">
+              {columns.map((column) => (
+                <Column
+                  key={column.id}
+                  id={column.id}
+                  title={column.title}
+                  color={column.color}
+                  tasks={getSortedTasksForColumn(column.id)}
+                  onDragStop={handleDragStop}
+                  onTaskStatusChange={handleTaskStatusChange}
+                  onTaskUpdate={handleTaskUpdate}
+                  onTaskPinToggle={handleTaskPinToggle}
+                  onTaskRemove={handleTaskRemove}
+                  columnRef={columnRefs.current[column.id]}
+                  onEditRequest={handleEditRequest}
+                  onDeleteRequest={handleDeleteRequest}
+                  onDuplicateRequest={handleDuplicateTask}
+                  onRepeatRequest={handleRepeatRequest}
+                  availableAssignees={availableAssignees}
+                  availableRoles={availableRoles}
+                  configuredTags={configuredTags}
+                  openDropdownTaskId={openDropdownTaskId}
+                  setOpenDropdownTaskId={setOpenDropdownTaskId}
+                />
+              ))}
             </div>
           </div>
         </div>
-      )}
 
-      {isModalOpen && (
-        <AddTaskModal onClose={() => setIsModalOpen(false)} onAddTask={handleAddTask} allTags={allTags} />
-      )}
-    </div>
+        {isTagManagerOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#181818] rounded-xl p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-white">Manage Tags</h2>
+                <button onClick={() => setIsTagManagerOpen(false)} className="text-gray-400 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="mb-6">
+                <div className="flex flex-col gap-3 mb-4">
+                  <input
+                    type="text"
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    placeholder="Enter tag name"
+                    className="w-full bg-[#1C1C1C] text-sm text-white px-4 py-2 rounded-lg outline-none"
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-white text-sm">Color:</span>
+                    <input
+                      type="color"
+                      value={newTagColor}
+                      onChange={(e) => setNewTagColor(e.target.value)}
+                      className="w-8 h-8 rounded border-none bg-transparent cursor-pointer"
+                    />
+                    <span className="text-gray-300 text-sm">{newTagColor}</span>
+                  </div>
+                  <button
+                    onClick={addTag}
+                    className="bg-[#FF843E] text-white text-sm px-4 py-2 rounded-lg mt-2 hover:bg-[#FF843E]/90"
+                    disabled={!newTagName.trim()}
+                  >
+                    Add Tag
+                  </button>
+                </div>
+                <div className="max-h-60 overflow-y-auto text-sm">
+                  {configuredTags.length > 0 ? (
+                    <div className="space-y-2">
+                      {configuredTags.map((tag) => (
+                        <div key={tag.id} className="flex justify-between items-center bg-[#1C1C1C] px-4 py-2 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: tag.color }} />
+                            <span style={{ color: tag.color }}>{tag.name}</span>
+                          </div>
+                          <button onClick={() => deleteTag(tag.id)} className="text-red-400 hover:text-red-300">
+                            <X size={18} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-center py-4 text-sm">No tags created yet</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setIsTagManagerOpen(false)}
+                  className="bg-[#FF843E] text-white px-6 py-2 text-sm rounded-lg hover:bg-[#FF843E]/90"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isEditModalOpenTask && selectedTask && (
+          <EditTaskModal
+            taskToEdit={selectedTask}
+            onClose={() => {
+              setIsEditModalOpenTask(false)
+              setSelectedTask(null)
+            }}
+            onUpdateTask={handleTaskUpdate}
+            configuredTags={configuredTags}
+          />
+        )}
+
+        <DeleteModal
+          isOpen={isDeleteModalOpen}
+          task={selectedTask}
+          onCancel={() => {
+            setIsDeleteModalOpen(false)
+            setSelectedTask(null)
+          }}
+          onConfirm={confirmDeleteTask}
+        />
+
+        {isRepeatModalOpen && selectedTaskForRepeat && (
+          <RepeatTaskModal
+            task={selectedTaskForRepeat}
+            onClose={() => {
+              setIsRepeatModalOpen(false)
+              setSelectedTaskForRepeat(null)
+            }}
+            onRepeatTask={handleRepeatTask}
+          />
+        )}
+
+        {assignModalTask && (
+          <AssignModal
+            task={assignModalTask}
+            availableAssignees={availableAssignees}
+            availableRoles={availableRoles}
+            onClose={() => setAssignModalTask(null)}
+            onUpdate={handleTaskUpdate}
+          />
+        )}
+
+        {tagsModalTask && (
+          <TagsModal
+            task={tagsModalTask}
+            configuredTags={configuredTags}
+            onClose={() => setTagsModalTask(null)}
+            onUpdate={handleTaskUpdate}
+          />
+        )}
+
+          {/* sidebar related modals */}
+
+          <Sidebar
+          isOpen={isRightSidebarOpen}
+          onClose={() => setIsRightSidebarOpen(false)}
+          widgets={sidebarWidgets}
+          setWidgets={setSidebarWidgets}
+          isEditing={isEditing}
+          todos={todos}
+          customLinks={customLinks}
+          setCustomLinks={setCustomLinks}
+          expiringContracts={expiringContracts}
+          selectedMemberType={selectedMemberType}
+          setSelectedMemberType={setSelectedMemberType}
+          memberTypes={memberTypes}
+          onAddWidget={() => setIsRightWidgetModalOpen(true)}
+          updateCustomLink={updateCustomLink}
+          removeCustomLink={removeCustomLink}
+          editingLink={editingLink}
+          setEditingLink={setEditingLink}
+          openDropdownIndex={openDropdownIndex}
+          setOpenDropdownIndex={setOpenDropdownIndex}
+        />
+
+        <ConfirmationModal
+          isOpen={confirmationModal.isOpen}
+          onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
+          onConfirm={confirmRemoveLink}
+          title="Delete Website Link"
+          message="Are you sure you want to delete this website link? This action cannot be undone."
+        />
+
+        <WidgetSelectionModal
+          isOpen={isRightWidgetModalOpen}
+          onClose={() => setIsRightWidgetModalOpen(false)}
+          onSelectWidget={handleAddSidebarWidget}
+          getWidgetStatus={getSidebarWidgetStatus}
+          widgetArea="sidebar"
+        />
+
+        {editingLink && (
+          <WebsiteLinkModal
+            link={editingLink}
+            onClose={() => setEditingLink(null)}
+            updateCustomLink={updateCustomLink}
+            setCustomLinks={setCustomLinks}
+          />
+        )}
+      </div>
+    </>
   )
 }

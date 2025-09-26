@@ -1,471 +1,18 @@
-/* eslint-disable react/prop-types */
-
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
-import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X, FileText, Trash2, Eye } from "lucide-react"
+import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, FileText } from "lucide-react"
 import CheckFundsModal from "../../components/customer-dashboard/studios-modal/check-funds-modal"
 import SepaXmlModal from "../../components/customer-dashboard/studios-modal/sepa-xml-modal"
-
-const financialData = {
-  "This Month": {
-    totalRevenue: 12500,
-    pendingPayments: 1800,
-    failedPayments: 750,
-    successfulPayments: 9950,
-    transactions: [
-      {
-        id: "tx-001",
-        studioName: "Creative Studio A",
-        studioOwner: "John Doe",
-        date: "2023-05-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-002",
-        studioName: "Design Hub Pro",
-        studioOwner: "Jane Smith",
-        date: "2023-05-14",
-        amount: 200,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-003",
-        studioName: "Art Space Beta",
-        studioOwner: "Bob Johnson",
-        date: "2023-05-12",
-        amount: 150,
-        status: "Failed",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 120, description: "Standard studio space" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-      {
-        id: "tx-004",
-        studioName: "Media Works",
-        studioOwner: "Alice Williams",
-        date: "2023-05-10",
-        amount: 300,
-        status: "Pending",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Studio", cost: 200, description: "Large studio with premium equipment" },
-          { name: "Equipment Rental", cost: 50, description: "Specialized equipment rental" },
-          { name: "Technical Support", cost: 50, description: "Dedicated technical support" },
-        ],
-      },
-      {
-        id: "tx-005",
-        studioName: "Creative Lab",
-        studioOwner: "Charlie Brown",
-        date: "2023-05-08",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-    ],
-  },
-  "Last Month": {
-    totalRevenue: 11800,
-    pendingPayments: 1200,
-    failedPayments: 600,
-    successfulPayments: 10000,
-    transactions: [
-      {
-        id: "tx-101",
-        studioName: "Creative Studio A",
-        studioOwner: "John Doe",
-        date: "2023-04-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-102",
-        studioName: "Design Hub Pro",
-        studioOwner: "Jane Smith",
-        date: "2023-04-14",
-        amount: 200,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-103",
-        studioName: "Art Space Beta",
-        studioOwner: "Bob Johnson",
-        date: "2023-04-12",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 120, description: "Standard studio space" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-    ],
-  },
-  "Last 3 Months": {
-    totalRevenue: 35400,
-    pendingPayments: 3600,
-    failedPayments: 1800,
-    successfulPayments: 30000,
-    transactions: [
-      {
-        id: "tx-201",
-        studioName: "Creative Studio A",
-        studioOwner: "John Doe",
-        date: "2023-03-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-202",
-        studioName: "Design Hub Pro",
-        studioOwner: "Jane Smith",
-        date: "2023-02-14",
-        amount: 200,
-        status: "Failed",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-203",
-        studioName: "Art Space Beta",
-        studioOwner: "Bob Johnson",
-        date: "2023-01-12",
-        amount: 150,
-        status: "Pending",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 120, description: "Standard studio space" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-    ],
-  },
-  "Last 6 Months": {
-    totalRevenue: 70800,
-    pendingPayments: 7200,
-    failedPayments: 3600,
-    successfulPayments: 60000,
-    transactions: [
-      {
-        id: "tx-301",
-        studioName: "Creative Studio A",
-        studioOwner: "John Doe",
-        date: "2022-12-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-302",
-        studioName: "Design Hub Pro",
-        studioOwner: "Jane Smith",
-        date: "2022-11-14",
-        amount: 200,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-303",
-        studioName: "Art Space Beta",
-        studioOwner: "Bob Johnson",
-        date: "2022-10-12",
-        amount: 150,
-        status: "Failed",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 120, description: "Standard studio space" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-    ],
-  },
-  "This Year": {
-    totalRevenue: 141600,
-    pendingPayments: 14400,
-    failedPayments: 7200,
-    successfulPayments: 120000,
-    transactions: [
-      {
-        id: "tx-401",
-        studioName: "Creative Studio A",
-        studioOwner: "John Doe",
-        date: "2023-01-15",
-        amount: 150,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
-          { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
-          { name: "Utilities", cost: 20, description: "Electricity and internet" },
-        ],
-      },
-      {
-        id: "tx-402",
-        studioName: "Design Hub Pro",
-        studioOwner: "Jane Smith",
-        date: "2023-02-14",
-        amount: 200,
-        status: "Successful",
-        type: "Monthly Payment",
-        services: [
-          { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
-          { name: "Storage", cost: 25, description: "Additional storage space" },
-          { name: "Support Services", cost: 25, description: "Technical support and maintenance" },
-        ],
-      },
-      {
-        id: "tx-403",
-        studioName: "Art Space Beta",
-        studioOwner: "Bob Johnson",
-        date: "2023-03-12",
-        amount: 150,
-        status: "Pending",
-        type: "Monthly Payment",
-        services: [
-          { name: "Studio Rental", cost: 120, description: "Standard studio space" },
-          { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
-        ],
-      },
-    ],
-  },
-}
-const ServicesModal = ({ isOpen, onClose, services, studioName }) => {
-  if (!isOpen) return null
-
-  const totalCost = services.reduce((sum, service) => sum + service.cost, 0)
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-white text-lg font-medium">Services Breakdown</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-4 overflow-y-auto flex-grow">
-          <div className="mb-4">
-            <h3 className="text-white font-medium mb-2">{studioName}</h3>
-            <p className="text-gray-400 text-sm">Cost breakdown for this studio</p>
-          </div>
-
-          <div className="space-y-3">
-            {services.map((service, index) => (
-              <div key={index} className="bg-[#141414] p-3 rounded-lg">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-white font-medium">{service.name}</span>
-                  <span className="text-white font-semibold">${service.cost.toFixed(2)}</span>
-                </div>
-                <p className="text-gray-400 text-sm">{service.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-gray-800">
-            <div className="flex justify-between items-center">
-              <span className="text-white font-semibold">Total Amount</span>
-              <span className="text-white font-bold text-lg">${totalCost.toFixed(2)} USD</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDocument }) => {
-  if (!isOpen) return null
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-  }
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-blue-400" />
-            <h2 className="text-white text-lg font-medium">SEPA XML Documents</h2>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-4 overflow-y-auto flex-grow">
-          {documents.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400">No SEPA XML documents generated yet</p>
-              <p className="text-gray-500 text-sm mt-2">Generated XML files will appear here</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {documents.map((doc) => (
-                <div key={doc.id} className="bg-[#141414] p-4 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-blue-900/30 p-2 rounded-lg">
-                      <FileText className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-medium">{doc.filename}</h3>
-                      <div className="flex items-center gap-4 text-sm text-gray-400 mt-1">
-                        <span>Generated: {formatDate(doc.createdAt)}</span>
-                        <span>Size: {formatFileSize(doc.size)}</span>
-                        <span>Transactions: {doc.transactionCount}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => onViewDocument(doc)}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-                      title="View Document"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const element = document.createElement("a")
-                        const file = new Blob([doc.content], { type: "application/xml" })
-                        element.href = URL.createObjectURL(file)
-                        element.download = doc.filename
-                        document.body.appendChild(element)
-                        element.click()
-                        document.body.removeChild(element)
-                      }}
-                      className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded-lg transition-colors"
-                      title="Download"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => onDeleteDocument(doc.id)}
-                      className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-const DocumentViewerModal = ({ isOpen, onClose, document }) => {
-  if (!isOpen || !document) return null
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-blue-400" />
-            <h2 className="text-white text-lg font-medium">{document.filename}</h2>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-4 overflow-y-auto flex-grow">
-          <pre className="bg-[#0D1117] p-4 rounded-lg text-sm text-gray-300 overflow-x-auto whitespace-pre-wrap">
-            {document.content}
-          </pre>
-        </div>
-
-        <div className="p-4 border-t border-gray-800 flex justify-end">
-          <button
-            onClick={() => {
-              const element = document.createElement("a")
-              const file = new Blob([document.content], { type: "application/xml" })
-              element.href = URL.createObjectURL(file)
-              element.download = document.filename
-              document.body.appendChild(element)
-              element.click()
-              document.body.removeChild(element)
-            }}
-            className="bg-[#3F74FF] text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-[#3F74FF]/90 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Download
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+import { financialData } from "../../utils/admin-panel-states/finance-states"
+import ServicesModal from "../../components/customer-dashboard/services-modal"
+import DocumentsModal from "../../components/customer-dashboard/documents-modal"
+import DocumentViewerModal from "../../components/customer-dashboard/document-viewer-modal"
+import { IoIosMenu } from "react-icons/io"
+import toast from "react-hot-toast"
+import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
+import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
+import Sidebar from "../../components/customer-dashboard/central-sidebar"
 
 export default function FinancesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
@@ -486,8 +33,14 @@ export default function FinancesPage() {
   const [documentsModalOpen, setDocumentsModalOpen] = useState(false)
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState(null)
+
+  const [customPeriodStart, setCustomPeriodStart] = useState("")
+  const [customPeriodEnd, setCustomPeriodEnd] = useState("")
+  const [showCustomPeriodInput, setShowCustomPeriodInput] = useState(false)
+
+  const periodOptions = ["Overall", "This Month", "Last Month", "Last 3 Months", "Last 6 Months", "This Year", "Custom Period"]
+
   const [sepaDocuments, setSepaDocuments] = useState([
-    // Sample documents for demonstration
     {
       id: "doc-001",
       filename: "SEPA_Payment_2023-05-15.xml",
@@ -543,13 +96,208 @@ export default function FinancesPage() {
   ])
 
   const transactionsPerPage = 5
-
-  // Get all possible status values
   const statusOptions = ["All", "Successful", "Pending", "Failed", "Check incoming funds"]
 
+  // Calculate financial summary data
+  const calculateFinancialSummary = () => {
+    if (selectedPeriod === "Overall") {
+      const allTransactions = Object.values(financialData).flatMap(period => period.transactions || [])
+
+      const successful = allTransactions
+        .filter(tx => tx.status === "Successful")
+        .reduce((sum, tx) => sum + tx.amount, 0)
+
+      const pending = allTransactions
+        .filter(tx => tx.status === "Pending" || tx.status === "Check incoming funds")
+        .reduce((sum, tx) => sum + tx.amount, 0)
+
+      const failed = allTransactions
+        .filter(tx => tx.status === "Failed")
+        .reduce((sum, tx) => sum + tx.amount, 0)
+
+      return {
+        totalRevenue: successful + pending + failed,
+        successfulPayments: successful,
+        pendingPayments: pending,
+        failedPayments: failed
+      }
+    } else if (selectedPeriod === "Custom Period" && customPeriodStart && customPeriodEnd) {
+      const startDate = new Date(customPeriodStart)
+      const endDate = new Date(customPeriodEnd)
+
+      const customTransactions = Object.values(financialData)
+        .flatMap(period => period.transactions || [])
+        .filter(transaction => {
+          const transactionDate = new Date(transaction.date)
+          return transactionDate >= startDate && transactionDate <= endDate
+        })
+
+      const successful = customTransactions
+        .filter(tx => tx.status === "Successful")
+        .reduce((sum, tx) => sum + tx.amount, 0)
+
+      const pending = customTransactions
+        .filter(tx => tx.status === "Pending" || tx.status === "Check incoming funds")
+        .reduce((sum, tx) => sum + tx.amount, 0)
+
+      const failed = customTransactions
+        .filter(tx => tx.status === "Failed")
+        .reduce((sum, tx) => sum + tx.amount, 0)
+
+      return {
+        totalRevenue: successful + pending + failed,
+        successfulPayments: successful,
+        pendingPayments: pending,
+        failedPayments: failed
+      }
+    } else {
+      return financialData[selectedPeriod] || {
+        totalRevenue: 0,
+        successfulPayments: 0,
+        pendingPayments: 0,
+        failedPayments: 0
+      }
+    }
+  }
+
+  const financialSummary = calculateFinancialSummary()
+
+  //sidebar related logic and states 
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
+  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
+  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
+  const [editingLink, setEditingLink] = useState(null)
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+
+  const [sidebarWidgets, setSidebarWidgets] = useState([
+    { id: "sidebar-chart", type: "chart", position: 0 },
+    { id: "sidebar-todo", type: "todo", position: 1 },
+    { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
+    { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review Design",
+      description: "Review the new dashboard design",
+      assignee: "Jack",
+      dueDate: "2024-12-15",
+      dueTime: "14:30",
+    },
+    {
+      id: 2,
+      title: "Team Meeting",
+      description: "Weekly team sync",
+      assignee: "Jack",
+      dueDate: "2024-12-16",
+      dueTime: "10:00",
+    },
+  ])
+
+  const memberTypes = {
+    "Studios Acquired": {
+      data: [
+        [30, 45, 60, 75, 90, 105, 120, 135, 150],
+        [25, 40, 55, 70, 85, 100, 115, 130, 145],
+      ],
+      growth: "12%",
+      title: "Studios Acquired",
+    },
+    Finance: {
+      data: [
+        [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000],
+        [45000, 55000, 70000, 80000, 90000, 105000, 120000, 135000, 155000],
+      ],
+      growth: "8%",
+      title: "Finance Statistics",
+    },
+    Leads: {
+      data: [
+        [120, 150, 180, 210, 240, 270, 300, 330, 360],
+        [100, 130, 160, 190, 220, 250, 280, 310, 340],
+      ],
+      growth: "15%",
+      title: "Leads Statistics",
+    },
+    Franchises: {
+      data: [
+        [120, 150, 180, 210, 240, 270, 300, 330, 360],
+        [100, 130, 160, 190, 220, 250, 280, 310, 340],
+      ],
+      growth: "10%",
+      title: "Franchises Acquired",
+    },
+  }
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: "link1",
+      url: "https://fitness-web-kappa.vercel.app/",
+      title: "Timathy Fitness Town",
+    },
+    { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
+    { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
+  ])
+
+  const [expiringContracts, setExpiringContracts] = useState([
+    {
+      id: 1,
+      title: "Oxygen Gym Membership",
+      expiryDate: "June 30, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 2,
+      title: "Timathy Fitness Equipment Lease",
+      expiryDate: "July 15, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 3,
+      title: "Studio Space Rental",
+      expiryDate: "August 5, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 4,
+      title: "Insurance Policy",
+      expiryDate: "September 10, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 5,
+      title: "Software License",
+      expiryDate: "October 20, 2025",
+      status: "Expiring Soon",
+    },
+  ])
+
+  // -------------- end of sidebar logic
+
+
   useEffect(() => {
-    // Filter transactions based on search term and selected status
-    const filtered = financialData[selectedPeriod].transactions.filter((transaction) => {
+    let transactions = []
+
+    if (selectedPeriod === "Overall") {
+      transactions = Object.values(financialData).flatMap(period => period.transactions || [])
+    } else if (selectedPeriod === "Custom Period" && customPeriodStart && customPeriodEnd) {
+      const startDate = new Date(customPeriodStart)
+      const endDate = new Date(customPeriodEnd)
+
+      transactions = Object.values(financialData)
+        .flatMap(period => period.transactions || [])
+        .filter(transaction => {
+          const transactionDate = new Date(transaction.date)
+          return transactionDate >= startDate && transactionDate <= endDate
+        })
+    } else {
+      transactions = financialData[selectedPeriod]?.transactions || []
+    }
+
+    const filtered = transactions.filter((transaction) => {
       const matchesSearch =
         transaction.studioName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         transaction.studioOwner.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -560,9 +308,10 @@ export default function FinancesPage() {
 
       return matchesSearch && matchesStatus
     })
+
     setFilteredTransactions(filtered)
-    setCurrentPage(1) // Reset to first page when filter changes
-  }, [searchTerm, selectedPeriod, selectedStatus])
+    setCurrentPage(1)
+  }, [searchTerm, selectedPeriod, selectedStatus, customPeriodStart, customPeriodEnd])
 
   const totalPages = Math.ceil(filteredTransactions.length / transactionsPerPage)
   const startIndex = (currentPage - 1) * transactionsPerPage
@@ -596,7 +345,6 @@ export default function FinancesPage() {
   const handleSaveAmount = (transactionId) => {
     const newAmount = Number.parseFloat(editAmount)
     if (!isNaN(newAmount) && newAmount > 0) {
-      // Update the amount in the financial state
       const updatedFinancialState = { ...financialState }
       const periodData = { ...updatedFinancialState[selectedPeriod] }
 
@@ -604,7 +352,6 @@ export default function FinancesPage() {
         tx.id === transactionId ? { ...tx, amount: newAmount } : tx,
       )
 
-      // Recalculate summary data
       const successful = periodData.transactions
         .filter((tx) => tx.status === "Successful")
         .reduce((sum, tx) => sum + tx.amount, 0)
@@ -687,10 +434,7 @@ export default function FinancesPage() {
   }
 
   const handleGenerateXml = (selectedTransactions) => {
-    // Generate XML content
     const xmlContent = generateSepaXmlContent(selectedTransactions)
-
-    // Create new document
     const newDocument = {
       id: `doc-${Date.now()}`,
       filename: `SEPA_Payment_${new Date().toISOString().split("T")[0]}_${Date.now()}.xml`,
@@ -700,27 +444,23 @@ export default function FinancesPage() {
       content: xmlContent,
     }
 
-    // Add to documents list
     setSepaDocuments((prev) => [newDocument, ...prev])
 
-    // Update transaction statuses
     const updatedFinancialState = { ...financialState }
     const periodData = { ...updatedFinancialState[selectedPeriod] }
 
-    // Update transaction statuses to "Check incoming funds"
     periodData.transactions = periodData.transactions.map((tx) => {
       const selected = selectedTransactions.find((s) => s.id === tx.id)
       if (selected) {
         return {
           ...tx,
           status: "Check incoming funds",
-          amount: selected.amount, // Update amount if edited
+          amount: selected.amount,
         }
       }
       return tx
     })
 
-    // Recalculate summary data
     const successful = periodData.transactions
       .filter((tx) => tx.status === "Successful")
       .reduce((sum, tx) => sum + tx.amount, 0)
@@ -740,7 +480,6 @@ export default function FinancesPage() {
     updatedFinancialState[selectedPeriod] = periodData
     setFinancialState(updatedFinancialState)
 
-    // Download the file
     const element = document.createElement("a")
     const file = new Blob([xmlContent], { type: "application/xml" })
     element.href = URL.createObjectURL(file)
@@ -756,7 +495,6 @@ export default function FinancesPage() {
     const updatedFinancialState = { ...financialState }
     const periodData = { ...updatedFinancialState[selectedPeriod] }
 
-    // Update transaction statuses
     periodData.transactions = periodData.transactions.map((tx) => {
       const updated = updatedTransactions.find((u) => u.id === tx.id)
       if (updated) {
@@ -768,7 +506,6 @@ export default function FinancesPage() {
       return tx
     })
 
-    // Recalculate summary data
     const successful = periodData.transactions
       .filter((tx) => tx.status === "Successful")
       .reduce((sum, tx) => sum + tx.amount, 0)
@@ -802,46 +539,134 @@ export default function FinancesPage() {
     setDocumentViewerOpen(true)
   }
 
-  // Check if there are any transactions with "Check incoming funds" status
-  const hasCheckingTransactions = financialState[selectedPeriod].transactions.some(
+  const hasCheckingTransactions = financialState[selectedPeriod]?.transactions?.some(
     (tx) => tx.status === "Check incoming funds",
-  )
+  ) || false
 
-  // Get status color class based on status value
   const getStatusColorClass = (status) => {
     switch (status) {
       case "Successful":
-        return "bg-green-900/30 text-green-500"
+        return "bg-green-800/60 text-green-400"
       case "Pending":
-        return "bg-yellow-900/30 text-yellow-500"
+        return "bg-yellow-800/60 text-yellow-400"
       case "Check incoming funds":
-        return "bg-blue-900/30 text-blue-500"
+        return "bg-blue-800/60 text-blue-400"
       case "Failed":
-        return "bg-red-900/30 text-red-500"
+        return "bg-red-800/60 text-red-400"
       default:
-        return "bg-gray-900/30 text-gray-500"
+        return "bg-gray-800/60 text-gray-400"
     }
   }
 
+  const getStatusColorClassModified = (status) => {
+    switch (status) {
+      case "Successful":
+        return "bg-green-800/70"
+      case "Pending":
+        return "bg-yellow-800/70"
+      case "Check incoming funds":
+        return "bg-blue-800/70"
+      case "Failed":
+        return "bg-red-800/70"
+      default:
+        return "bg-gray-800/70"
+    }
+  }
+
+  const handlePeriodSelect = (period) => {
+    if (period === "Custom Period") {
+      setShowCustomPeriodInput(!showCustomPeriodInput)
+    } else {
+      setSelectedPeriod(period)
+      setShowCustomPeriodInput(false)
+      setPeriodDropdownOpen(false)
+    }
+  }
+
+  const handleApplyCustomPeriod = () => {
+    if (customPeriodStart && customPeriodEnd) {
+      setSelectedPeriod("Custom Period")
+      setPeriodDropdownOpen(false)
+      setShowCustomPeriodInput(false)
+    } else {
+      alert("Please select both start and end dates")
+    }
+  }
+
+  // continue sidebar logic
+  const updateCustomLink = (id, field, value) => {
+    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
+  }
+
+  const removeCustomLink = (id) => {
+    setConfirmationModal({ isOpen: true, linkId: id })
+  }
+
+  const handleAddSidebarWidget = (widgetType) => {
+    const newWidget = {
+      id: `sidebar-widget${Date.now()}`,
+      type: widgetType,
+      position: sidebarWidgets.length,
+    }
+    setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    setIsRightWidgetModalOpen(false)
+    toast.success(`${widgetType} widget has been added to sidebar Successfully`)
+  }
+
+  const confirmRemoveLink = () => {
+    if (confirmationModal.linkId) {
+      setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
+      toast.success("Website link removed successfully")
+    }
+    setConfirmationModal({ isOpen: false, linkId: null })
+  }
+
+  const getSidebarWidgetStatus = (widgetType) => {
+    // Check if widget exists in sidebar widgets
+    const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
+
+    if (existsInSidebar) {
+      return { canAdd: false, location: "sidebar" }
+    }
+
+    return { canAdd: true, location: null }
+  }
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen)
+  }
+
   return (
-    <div className="bg-[#1C1C1C] p-4 md:p-6 rounded-3xl w-full">
-      {/* Header with back button */}
+    <div className={`
+      min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
+      transition-all duration-500 ease-in-out flex-1
+      ${isRightSidebarOpen
+        ? 'lg:mr-86 mr-0'
+        : 'mr-0'
+      }
+    `}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-white oxanium_font text-xl md:text-2xl">Finances</h1>
-          {/* Documents Icon */}
-          <button
-            onClick={() => setDocumentsModalOpen(true)}
-            className="bg-[#2F2F2F] text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
-            title="View SEPA XML Documents"
-          >
-            <FileText className="w-5 h-5" />
-            {sepaDocuments.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#3F74FF] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {sepaDocuments.length}
-              </span>
-            )}
-          </button>
+        <div className="flex items-center gap-2 justify-between w-full md:w-auto">
+
+
+          <div className="flex  items-center gap-3">
+            <h1 className="text-white oxanium_font text-xl md:text-2xl">Finances</h1>
+            <button
+              onClick={() => setDocumentsModalOpen(true)}
+              className="bg-[#2F2F2F] text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
+              title="View SEPA XML Documents"
+            >
+              <FileText className="w-5 h-5" />
+              {sepaDocuments.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#3F74FF] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {sepaDocuments.length}
+                </span>
+              )}
+            </button>
+          </div>
+          <div onClick={toggleRightSidebar} className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+            <IoIosMenu size={26} />
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -855,27 +680,71 @@ export default function FinancesPage() {
               <span className="text-sm">{selectedPeriod}</span>
               <ChevronDown className="w-4 h-4" />
             </button>
+
             {periodDropdownOpen && (
-              <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg">
-                {Object.keys(financialState).map((period) => (
-                  <button
-                    key={period}
-                    className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black text-left"
-                    onClick={() => {
-                      setSelectedPeriod(period)
-                      setPeriodDropdownOpen(false)
-                    }}
-                  >
-                    {period}
-                  </button>
+              <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg max-h-80 overflow-y-auto">
+                {periodOptions.map((period) => (
+                  <div key={period}>
+                    <button
+                      className={`w-full px-4 py-2 text-sm text-gray-300 hover:bg-black text-left flex items-center justify-between ${selectedPeriod === period ? "bg-black/50" : ""
+                        }`}
+                      onClick={() => handlePeriodSelect(period)}
+                    >
+                      <span>{period}</span>
+                      {period === "Custom Period" && showCustomPeriodInput && (
+                        <ChevronDown className="w-4 h-4 transform rotate-180" />
+                      )}
+                    </button>
+
+                    {period === "Custom Period" && showCustomPeriodInput && (
+                      <div className="p-3 border-t border-gray-700 bg-black/50">
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-xs text-gray-400 block mb-1">Start Date</label>
+                            <input
+                              type="date"
+                              value={customPeriodStart}
+                              onChange={(e) => setCustomPeriodStart(e.target.value)}
+                              className="bg-[#2F2F2F] text-white px-3 py-2 rounded border border-gray-700 w-full text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-400 block mb-1">End Date</label>
+                            <input
+                              type="date"
+                              value={customPeriodEnd}
+                              onChange={(e) => setCustomPeriodEnd(e.target.value)}
+                              className="bg-[#2F2F2F] text-white px-3 py-2 rounded border border-gray-700 w-full text-sm"
+                            />
+                          </div>
+                          <div className="flex gap-2 pt-1">
+                            <button
+                              onClick={handleApplyCustomPeriod}
+                              className="bg-[#3F74FF] text-white px-3 py-1.5 rounded text-xs hover:bg-[#3F74FF]/90 flex-1"
+                            >
+                              Apply Period
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowCustomPeriodInput(false)
+                                setCustomPeriodStart("")
+                                setCustomPeriodEnd("")
+                              }}
+                              className="bg-gray-600 text-white px-3 py-1.5 rounded text-xs hover:bg-gray-500 flex-1"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Export button */}
-          <div className="flex gap-2 w-full sm:w-auto">
-            {/* SEPA XML button */}
+          <div className="flex gap-2 items-center w-full sm:w-auto">
             <button
               onClick={() => setSepaModalOpen(true)}
               className="bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
@@ -884,7 +753,9 @@ export default function FinancesPage() {
               <span> Run Payment</span>
             </button>
 
-            {/* Check Funds button - only show if there are transactions to check */}
+            <div onClick={toggleRightSidebar} className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+              <IoIosMenu size={26} />
+            </div>
             {hasCheckingTransactions && (
               <button
                 onClick={() => setCheckFundsModalOpen(true)}
@@ -903,25 +774,25 @@ export default function FinancesPage() {
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Total Revenue</h3>
           <p className="text-white text-xl font-semibold">
-            {formatCurrency(financialState[selectedPeriod].totalRevenue)}
+            {formatCurrency(financialSummary.totalRevenue)}
           </p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Successful Payments</h3>
           <p className="text-green-500 text-xl font-semibold">
-            {formatCurrency(financialState[selectedPeriod].successfulPayments)}
+            {formatCurrency(financialSummary.successfulPayments)}
           </p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Pending Payments</h3>
           <p className="text-yellow-500 text-xl font-semibold">
-            {formatCurrency(financialState[selectedPeriod].pendingPayments)}
+            {formatCurrency(financialSummary.pendingPayments)}
           </p>
         </div>
         <div className="bg-[#141414] p-4 rounded-xl">
           <h3 className="text-gray-400 text-sm mb-1">Failed Payments</h3>
           <p className="text-red-500 text-xl font-semibold">
-            {formatCurrency(financialState[selectedPeriod].failedPayments)}
+            {formatCurrency(financialSummary.failedPayments)}
           </p>
         </div>
       </div>
@@ -959,9 +830,9 @@ export default function FinancesPage() {
                   }}
                 >
                   {status !== "All" && (
-                    <span className={`inline-block w-3 h-3 rounded-full ${getStatusColorClass(status)}`}></span>
+                    <span className={`inline-block w-3 h-3 rounded-full ${getStatusColorClassModified(status)}`}></span>
                   )}
-                  <span className="text-gray-300">{status}</span>
+                  <span className="text-gray-100">{status}</span>
                 </button>
               ))}
             </div>
@@ -1001,9 +872,8 @@ export default function FinancesPage() {
             {paginatedTransactions.map((transaction, index) => (
               <tr
                 key={transaction.id}
-                className={`border-b border-gray-800 ${
-                  index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""
-                }`}
+                className={`border-b border-gray-800 ${index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""
+                  }`}
               >
                 <td className="px-4 py-3 font-medium">{transaction.studioName}</td>
                 <td className="px-4 py-3">{transaction.studioOwner}</td>
@@ -1054,15 +924,7 @@ export default function FinancesPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                      transaction.status === "Successful"
-                        ? "bg-green-900/30 text-green-500"
-                        : transaction.status === "Pending"
-                          ? "bg-yellow-900/30 text-yellow-500"
-                          : transaction.status === "Check incoming funds"
-                            ? "bg-blue-900/30 text-blue-500"
-                            : "bg-red-900/30 text-red-500"
-                    }`}
+                    className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColorClass(transaction.status)}`}
                   >
                     {transaction.status}
                   </span>
@@ -1075,8 +937,17 @@ export default function FinancesPage() {
 
       {/* No transactions message */}
       {filteredTransactions.length === 0 && (
-        <div className="bg-[#141414] p-6 rounded-xl text-center mt-4">
-          <p className="text-gray-400">No transactions found matching your criteria.</p>
+        <div className="bg-[#141414] p-8 rounded-xl text-center mt-4">
+          <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-400 text-lg mb-1">No transactions found</p>
+          <p className="text-gray-500 text-sm">
+            {searchTerm || selectedStatus !== "All" || (selectedPeriod !== "This Month" && selectedPeriod !== "Overall")
+              ? "Try adjusting your filters or search terms"
+              : selectedPeriod === "Custom Period"
+                ? "No transactions found for the selected date range"
+                : "There are no transactions available"
+            }
+          </p>
         </div>
       )}
 
@@ -1095,11 +966,10 @@ export default function FinancesPage() {
               <button
                 key={page}
                 onClick={() => handlePageChange(page)}
-                className={`px-3 py-1.5 rounded-xl transition-colors border ${
-                  currentPage === page
-                    ? "bg-[#3F74FF] text-white border-transparent"
-                    : "bg-black text-white border-gray-800 hover:bg-gray-900"
-                }`}
+                className={`px-3 py-1.5 rounded-xl transition-colors border ${currentPage === page
+                  ? "bg-[#3F74FF] text-white border-transparent"
+                  : "bg-black text-white border-gray-800 hover:bg-gray-900"
+                  }`}
               >
                 {page}
               </button>
@@ -1119,14 +989,26 @@ export default function FinancesPage() {
         isOpen={sepaModalOpen}
         onClose={() => setSepaModalOpen(false)}
         selectedPeriod={selectedPeriod}
-        transactions={financialState[selectedPeriod].transactions}
+        transactions={
+          selectedPeriod === "Overall"
+            ? Object.values(financialData).flatMap(period => period.transactions || [])
+            : selectedPeriod === "Custom Period"
+              ? filteredTransactions
+              : financialData[selectedPeriod]?.transactions || []
+        }
         onGenerateXml={handleGenerateXml}
       />
 
       <CheckFundsModal
         isOpen={checkFundsModalOpen}
         onClose={() => setCheckFundsModalOpen(false)}
-        transactions={financialState[selectedPeriod].transactions}
+        transactions={
+          selectedPeriod === "Overall"
+            ? Object.values(financialData).flatMap(period => period.transactions || [])
+            : selectedPeriod === "Custom Period"
+              ? filteredTransactions
+              : financialData[selectedPeriod]?.transactions || []
+        }
         onUpdateStatuses={handleUpdateStatuses}
       />
 
@@ -1150,6 +1032,55 @@ export default function FinancesPage() {
         onClose={() => setDocumentViewerOpen(false)}
         document={selectedDocument}
       />
+
+      {/* sidebar related modals */}
+
+      <Sidebar
+        isOpen={isRightSidebarOpen}
+        onClose={() => setIsRightSidebarOpen(false)}
+        widgets={sidebarWidgets}
+        setWidgets={setSidebarWidgets}
+        isEditing={isEditing}
+        todos={todos}
+        customLinks={customLinks}
+        setCustomLinks={setCustomLinks}
+        expiringContracts={expiringContracts}
+        selectedMemberType={selectedMemberType}
+        setSelectedMemberType={setSelectedMemberType}
+        memberTypes={memberTypes}
+        onAddWidget={() => setIsRightWidgetModalOpen(true)}
+        updateCustomLink={updateCustomLink}
+        removeCustomLink={removeCustomLink}
+        editingLink={editingLink}
+        setEditingLink={setEditingLink}
+        openDropdownIndex={openDropdownIndex}
+        setOpenDropdownIndex={setOpenDropdownIndex}
+      />
+
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
+        onConfirm={confirmRemoveLink}
+        title="Delete Website Link"
+        message="Are you sure you want to delete this website link? This action cannot be undone."
+      />
+
+      <WidgetSelectionModal
+        isOpen={isRightWidgetModalOpen}
+        onClose={() => setIsRightWidgetModalOpen(false)}
+        onSelectWidget={handleAddSidebarWidget}
+        getWidgetStatus={getSidebarWidgetStatus}
+        widgetArea="sidebar"
+      />
+
+      {editingLink && (
+        <WebsiteLinkModal
+          link={editingLink}
+          onClose={() => setEditingLink(null)}
+          updateCustomLink={updateCustomLink}
+          setCustomLinks={setCustomLinks}
+        />
+      )}
     </div>
   )
 }

@@ -25,9 +25,9 @@ import MemberDetailsModal from "../../components/myarea-components/MemberDetails
 import HistoryModal from "../../components/myarea-components/HistoryModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import EditAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
-import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
+import AppointmentActionModal from "../../components/user-panel-components/appointments-components/appointment-action-modal"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"

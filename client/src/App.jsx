@@ -42,6 +42,10 @@ import AdminTodo from './dashboard-pages/admin-view/todo'
 import AdminConfiguration from './dashboard-pages/admin-view/configuration'
 import AdminFinance from './dashboard-pages/admin-view/finance'
 import AdminContracts from './dashboard-pages/admin-view/contract'
+import AdminTrainingManagement from "./dashboard-pages/admin-view/training";
+import AdminTicketsSystem from "./dashboard-pages/admin-view/tickets";
+import AdminAnalytics from './dashboard-pages/admin-view/analytics'
+import AdminMarketPlace from './dashboard-pages/admin-view/marketplace'
 
 
 // Member View  
@@ -90,9 +94,6 @@ function App() {
           <Route path="market-place" element={<MarketPlace />} />
           <Route path="notes" element={<NotesApp />} />
           <Route path="bulletin-board" element={<BulletinBoard />} />
-
-
-
         </Route>
 
         <Route path="/admin-dashboard" element={<AdminDashboardLayout />}>
@@ -104,6 +105,10 @@ function App() {
           <Route path="leads" element={<AdminLeads />} />
           <Route path="finances" element={<AdminFinance />} />
           <Route path="studios" element={<Studios />} />
+          <Route path="training-management" element={<AdminTrainingManagement />} />
+          <Route path="tickets" element={<AdminTicketsSystem />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="marketplace" element={<AdminMarketPlace />} />
         </Route>
 
         <Route path="/member-view" element={<MemberViewLayout />}>

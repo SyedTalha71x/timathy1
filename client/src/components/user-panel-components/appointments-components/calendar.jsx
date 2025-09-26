@@ -6,11 +6,11 @@ import toast, { Toaster } from "react-hot-toast"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
-import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+import DefaultAvatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialTrainingModal from "./add-trial-training"
-import { membersData } from "../../utils/states"
+import { membersData } from "../../../utils/user-panel-states/appointment-states"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go";
 import EditAppointmentModalMain from "./selected-appointment-modal"
 

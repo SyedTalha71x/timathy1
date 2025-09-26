@@ -157,7 +157,7 @@ const FranchiseDetailsModal = ({
               <button
                 onClick={handleArchive}
                 className={`flex-1 ${
-                  franchise.isArchived ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"
+                  franchise.isArchived ? "bg-green-600 hover:bg-green-700" : "bg-red-600  "
                 } px-4 py-2 rounded-xl text-sm flex items-center justify-center gap-2`}
               >
                 {franchise.isArchived ? "Unarchive" : "Archive"} Franchise

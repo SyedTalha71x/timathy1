@@ -35,9 +35,9 @@ import { AiOutlineExclamation } from "react-icons/ai";
 
 import Sidebar from "../../components/central-sidebar"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
-import AppointmentActionModal from "../../components/appointments-components/appointment-action-modal"
+import AppointmentActionModal from "../../components/user-panel-components/appointments-components/appointment-action-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
-import EditAppointmentModal from "../../components/appointments-components/selected-appointment-modal"
+import EditAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
