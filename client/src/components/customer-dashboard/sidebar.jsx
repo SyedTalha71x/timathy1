@@ -19,7 +19,7 @@ import {
   BadgeDollarSign,
 } from "lucide-react";
 import { RiContractLine, RiStockFill } from "react-icons/ri";
-import { MdOutlineHelpCenter, MdOutlineLeaderboard } from "react-icons/md";
+import { MdEmail, MdOutlineHelpCenter, MdOutlineLeaderboard } from "react-icons/md";
 import { SiYoutubestudio } from "react-icons/si";
 import { CgGym } from "react-icons/cg";
 import { TbBrandGoogleAnalytics } from "react-icons/tb";
@@ -125,6 +125,11 @@ const CustomerSidebar = () => {
       icon: RiContractLine,
       label: "Contract",
       to: "/admin-dashboard/contract",
+    },
+    {
+      icon: MdEmail,
+      label: "Email",
+      to: "/admin-dashboard/email",
     },
 
     {

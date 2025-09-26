@@ -46,6 +46,7 @@ import AdminTrainingManagement from "./dashboard-pages/admin-view/training";
 import AdminTicketsSystem from "./dashboard-pages/admin-view/tickets";
 import AdminAnalytics from './dashboard-pages/admin-view/analytics'
 import AdminMarketPlace from './dashboard-pages/admin-view/marketplace'
+import AdminEmailManagement from './dashboard-pages/admin-view/email'
 
 
 // Member View  
@@ -109,6 +110,9 @@ function App() {
           <Route path="tickets" element={<AdminTicketsSystem />} />
           <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="marketplace" element={<AdminMarketPlace />} />
+          <Route path="email" element={<AdminEmailManagement />} />
+
+
         </Route>
 
         <Route path="/member-view" element={<MemberViewLayout />}>
