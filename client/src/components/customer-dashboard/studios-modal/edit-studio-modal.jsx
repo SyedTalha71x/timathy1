@@ -38,7 +38,7 @@ const iconBtn =
   "inline-flex items-center justify-center rounded-lg hover:bg-[#2a2a2a] p-2 text-gray-300 hover:text-white"
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-const BILLING_PERIODS = ["monthly", "quarterly", "yearly"]
+const BILLING_PERIODS = ["weekly", "monthly", "quarterly", "yearly", "annually"]
 
 const EditStudioModal = ({
   isOpen,
@@ -54,13 +54,7 @@ const EditStudioModal = ({
 
   if (!isOpen || !selectedStudio) return null
 
-  const handleOpeningHoursChange = (day, value) => {
-    setEditForm((prev) => ({
-      ...prev,
-      openingHours: { ...(prev.openingHours || {}), [day]: value },
-    }))
-  }
-
+  // helpers
   const setField = (field, value) => {
     setEditForm((prev) => ({ ...prev, [field]: value }))
   }
@@ -83,6 +77,13 @@ const EditStudioModal = ({
       list.splice(index, 1)
       return { ...prev, [key]: list }
     })
+  }
+
+  const handleOpeningHoursChange = (day, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      openingHours: { ...(prev.openingHours || {}), [day]: value },
+    }))
   }
 
   const onLogoChange = (e) => {
@@ -115,6 +116,20 @@ const EditStudioModal = ({
   const onSubmit = (e) => {
     e.preventDefault()
     handleEditSubmit?.(e)
+  }
+
+  const togglePermission = (index, perm) => {
+    const current = new Set(editForm.roles?.[index]?.permissions || [])
+    if (current.has(perm)) current.delete(perm)
+    else current.add(perm)
+    updateArrayItem("roles", index, { permissions: Array.from(current) })
+  }
+
+  const addPdfDocs = (files) => {
+    const list = Array.from(files || []).filter((f) => f.type === "application/pdf")
+    if (list.length === 0) return
+    setField("additionalDocs", [...(editForm.additionalDocs || []), ...list])
+    toast.success(`${list.length} document(s) added`)
   }
 
   return (
@@ -198,7 +213,7 @@ const EditStudioModal = ({
                     />
                   </div>
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Phone</label>
+                    <label className="text-sm text-gray-200 block mb-2">Phone No</label>
                     <input
                       type="tel"
                       name="phone"
@@ -283,7 +298,7 @@ const EditStudioModal = ({
                     </select>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="text-sm text-gray-200 block mb-2">Website</label>
+                    <label className="text-sm text-gray-200 block mb-2">Studio Website</label>
                     <input
                       type="text"
                       name="website"
@@ -298,10 +313,12 @@ const EditStudioModal = ({
               </Section>
 
               <Section title="Opening Hours">
+                {/* Labeled opening hours list */}
                 <div className="space-y-3">
                   {(editForm.openingHoursList || []).map((row, idx) => (
                     <div key={idx} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center">
                       <div className="sm:col-span-2">
+                        <label className="text-xs text-gray-300 block mb-1">Day</label>
                         <select
                           className={smallSelect}
                           value={row.day || ""}
@@ -316,6 +333,7 @@ const EditStudioModal = ({
                         </select>
                       </div>
                       <div>
+                        <label className="text-xs text-gray-300 block mb-1">Start Time</label>
                         <input
                           type="time"
                           className={smallInput}
@@ -324,6 +342,7 @@ const EditStudioModal = ({
                         />
                       </div>
                       <div>
+                        <label className="text-xs text-gray-300 block mb-1">End Time</label>
                         <input
                           type="time"
                           className={smallInput}
@@ -354,7 +373,7 @@ const EditStudioModal = ({
                   </button>
                 </div>
 
-                {/* Keep legacy per-day text inputs (from original modal) so existing data continues to work */}
+                {/* Legacy per-day text inputs kept for compatibility */}
                 <div className="border border-slate-700 rounded-xl p-4 mt-4">
                   <label className="text-sm text-gray-200 block mb-3 font-medium">Opening Hours (legacy per-day)</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -379,6 +398,7 @@ const EditStudioModal = ({
                   {(editForm.closingDaysList || []).map((row, idx) => (
                     <div key={idx} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center">
                       <div className="sm:col-span-2">
+                        <label className="text-xs text-gray-300 block mb-1">Date</label>
                         <input
                           type="date"
                           className={smallInput}
@@ -387,6 +407,7 @@ const EditStudioModal = ({
                         />
                       </div>
                       <div className="sm:col-span-2">
+                        <label className="text-xs text-gray-300 block mb-1">Description</label>
                         <input
                           type="text"
                           className={smallInput}
@@ -419,7 +440,7 @@ const EditStudioModal = ({
                   </button>
                 </div>
 
-                {/* Keep legacy single string for compatibility */}
+                {/* Legacy single string for compatibility */}
                 <div className="mt-4">
                   <label className="text-sm text-gray-200 block mb-2">Closing Days (legacy notes)</label>
                   <input
@@ -440,7 +461,7 @@ const EditStudioModal = ({
                     <input
                       type="date"
                       name="contractStart"
-                      value={editForm.contractStart}
+                      value={editForm.contractStart || ""}
                       onChange={handleInputChange}
                       className={smallInput}
                     />
@@ -450,7 +471,7 @@ const EditStudioModal = ({
                     <input
                       type="date"
                       name="contractEnd"
-                      value={editForm.contractEnd}
+                      value={editForm.contractEnd || ""}
                       onChange={handleInputChange}
                       className={smallInput}
                     />
@@ -462,7 +483,7 @@ const EditStudioModal = ({
                 <label className="text-sm text-gray-200 block mb-2">Studio Description</label>
                 <textarea
                   name="about"
-                  value={editForm.about}
+                  value={editForm.about || ""}
                   onChange={handleInputChange}
                   className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[120px]"
                   placeholder="Describe your studio, services, specialties, equipment, atmosphere, etc..."
@@ -484,9 +505,10 @@ const EditStudioModal = ({
                     />
                   </div>
 
+                  <label className="text-sm text-gray-200 block mb-2">Note</label>
                   <textarea
                     name="note"
-                    value={editForm.note}
+                    value={editForm.note || ""}
                     onChange={handleInputChange}
                     className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
                     placeholder="Enter internal note for this studio..."
@@ -498,7 +520,7 @@ const EditStudioModal = ({
                       <input
                         type="date"
                         name="noteStartDate"
-                        value={editForm.noteStartDate}
+                        value={editForm.noteStartDate || ""}
                         onChange={handleInputChange}
                         className={smallInput}
                       />
@@ -508,7 +530,7 @@ const EditStudioModal = ({
                       <input
                         type="date"
                         name="noteEndDate"
-                        value={editForm.noteEndDate}
+                        value={editForm.noteEndDate || ""}
                         onChange={handleInputChange}
                         className={smallInput}
                       />
@@ -545,56 +567,71 @@ const EditStudioModal = ({
                 <div className="space-y-4">
                   {(editForm.appointmentTypes || []).map((type, index) => (
                     <div key={index} className="flex flex-col gap-4 p-4 border border-[#303030] rounded-lg">
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                        <input
-                          placeholder="Appointment Type Name"
-                          value={type.name || ""}
-                          onChange={(e) => updateArrayItem("appointmentTypes", index, { name: e.target.value })}
-                          className={smallInput}
-                        />
-                        <input
-                          type="number"
-                          placeholder="Duration (min)"
-                          value={type.duration ?? 30}
-                          onChange={(e) =>
-                            updateArrayItem("appointmentTypes", index, { duration: Number(e.target.value || 0) })
-                          }
-                          className={smallNumber}
-                        />
-                        <input
-                          type="number"
-                          placeholder="Capacity"
-                          value={type.capacity ?? 1}
-                          onChange={(e) =>
-                            updateArrayItem("appointmentTypes", index, { capacity: Number(e.target.value || 0) })
-                          }
-                          className={smallNumber}
-                        />
-                        <input
-                          type="color"
-                          aria-label="Color"
-                          value={type.color || "#1890ff"}
-                          onChange={(e) => updateArrayItem("appointmentTypes", index, { color: e.target.value })}
-                          className="w-full h-10 bg-[#101010] rounded-xl p-1"
-                        />
-                        <div className="flex gap-2">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-start">
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Appointment Type Name</label>
+                          <input
+                            placeholder="Appointment Type Name"
+                            value={type.name || ""}
+                            onChange={(e) => updateArrayItem("appointmentTypes", index, { name: e.target.value })}
+                            className={smallInput}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Duration (minutes)</label>
                           <input
                             type="number"
-                            placeholder="Interval"
-                            value={type.interval ?? 30}
+                            placeholder="Duration (min)"
+                            value={type.duration ?? 30}
                             onChange={(e) =>
-                              updateArrayItem("appointmentTypes", index, { interval: Number(e.target.value || 0) })
+                              updateArrayItem("appointmentTypes", index, { duration: Number(e.target.value || 0) })
                             }
                             className={smallNumber}
                           />
-                          <button
-                            type="button"
-                            className={iconBtn + " flex-shrink-0"}
-                            onClick={() => removeArrayItem("appointmentTypes", index)}
-                            aria-label="Remove appointment type"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Capacity</label>
+                          <input
+                            type="number"
+                            placeholder="Capacity"
+                            value={type.capacity ?? 1}
+                            onChange={(e) =>
+                              updateArrayItem("appointmentTypes", index, { capacity: Number(e.target.value || 0) })
+                            }
+                            className={smallNumber}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Color</label>
+                          <input
+                            type="color"
+                            aria-label="Color"
+                            value={type.color || "#1890ff"}
+                            onChange={(e) => updateArrayItem("appointmentTypes", index, { color: e.target.value })}
+                            className="w-full h-10 bg-[#101010] rounded-xl p-1"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Interval (minutes)</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="number"
+                              placeholder="Interval"
+                              value={type.interval ?? 30}
+                              onChange={(e) =>
+                                updateArrayItem("appointmentTypes", index, { interval: Number(e.target.value || 0) })
+                              }
+                              className={smallNumber}
+                            />
+                            <button
+                              type="button"
+                              className={iconBtn + " flex-shrink-0"}
+                              onClick={() => removeArrayItem("appointmentTypes", index)}
+                              aria-label="Remove appointment type"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </div>
                       </div>
 
@@ -639,47 +676,213 @@ const EditStudioModal = ({
                 </div>
               </Section>
 
-              <Section title="Trial Training Settings">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Duration (minutes)</label>
-                    <input
-                      type="number"
-                      className={smallNumber}
-                      value={editForm.trialTraining?.duration ?? 60}
-                      onChange={(e) =>
-                        setField("trialTraining", {
-                          ...(editForm.trialTraining || {}),
-                          duration: Number(e.target.value || 0),
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Capacity</label>
-                    <input
-                      type="number"
-                      className={smallNumber}
-                      value={editForm.trialTraining?.capacity ?? 1}
-                      onChange={(e) =>
-                        setField("trialTraining", {
-                          ...(editForm.trialTraining || {}),
-                          capacity: Number(e.target.value || 0),
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Color</label>
-                    <input
-                      type="color"
-                      className="w-full h-10 bg-[#101010] rounded-xl p-1"
-                      value={editForm.trialTraining?.color || "#1890ff"}
-                      onChange={(e) =>
-                        setField("trialTraining", { ...(editForm.trialTraining || {}), color: e.target.value })
-                      }
-                    />
-                  </div>
+              {/* NEW: Staff Roles */}
+              <Section title="Staff Roles">
+                <div className="space-y-3">
+                  {(editForm.roles || []).map((role, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr,auto] gap-3 items-start">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Role Name</label>
+                        <input
+                          className={smallInput}
+                          placeholder="Role Name"
+                          value={role.name || ""}
+                          onChange={(e) => updateArrayItem("roles", idx, { name: e.target.value })}
+                        />
+                        <div className="mt-3 grid grid-cols-3 gap-2">
+                          {["read", "write", "delete"].map((perm) => (
+                            <label key={perm} className="inline-flex items-center gap-2 text-sm text-gray-200">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 accent-[#FF843E]"
+                                checked={(role.permissions || []).includes(perm)}
+                                onChange={() => togglePermission(idx, perm)}
+                              />
+                              {perm.charAt(0).toUpperCase() + perm.slice(1)}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex md:justify-end">
+                        <button
+                          type="button"
+                          className={iconBtn}
+                          aria-label="Remove role"
+                          onClick={() => removeArrayItem("roles", idx)}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className={smallBtnMuted}
+                    onClick={() => addArrayItem("roles", { name: "", permissions: [] })}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Plus size={16} /> Add Role
+                    </span>
+                  </button>
+                </div>
+              </Section>
+
+              {/* NEW: Lead Sources */}
+              <Section title="Lead Sources">
+                <div className="space-y-3">
+                  {(editForm.leadSources || []).map((src, idx) => (
+                    <div key={idx} className="grid grid-cols-[1fr,48px] gap-2 items-center">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Source Name</label>
+                        <input
+                          className={smallInput}
+                          placeholder="e.g., Website"
+                          value={src.name || ""}
+                          onChange={(e) => updateArrayItem("leadSources", idx, { name: e.target.value })}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className={iconBtn}
+                        aria-label="Remove source"
+                        onClick={() => removeArrayItem("leadSources", idx)}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className={smallBtnMuted}
+                    onClick={() => addArrayItem("leadSources", { name: "" })}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Plus size={16} /> Add Lead Source
+                    </span>
+                  </button>
+                </div>
+              </Section>
+
+              {/* NEW: TO-DO Tags */}
+              <Section title="TO-DO Tags">
+                <div className="space-y-3">
+                  {(editForm.tags || []).map((tag, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr,160px,48px] gap-2 items-center">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Tag Name</label>
+                        <input
+                          className={smallInput}
+                          placeholder="Tag Name"
+                          value={tag.name || ""}
+                          onChange={(e) => updateArrayItem("tags", idx, { name: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Color</label>
+                        <input
+                          type="color"
+                          className="w-full h-10 bg-[#101010] rounded-xl p-1"
+                          value={tag.color || "#1890ff"}
+                          onChange={(e) => updateArrayItem("tags", idx, { color: e.target.value })}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className={iconBtn}
+                        aria-label="Remove tag"
+                        onClick={() => removeArrayItem("tags", idx)}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className={smallBtnMuted}
+                    onClick={() => addArrayItem("tags", { name: "", color: "#1890ff" })}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Plus size={16} /> Add Tag
+                    </span>
+                  </button>
+                </div>
+              </Section>
+
+              {/* NEW: Finances (Currency + VAT Rates) */}
+              <Section title="Currency Settings">
+                <div className="grid grid-cols-1 md:grid-cols-[220px,1fr] gap-3 items-center">
+                  <label className="text-sm text-gray-200">Currency</label>
+                  <select
+                    className={smallSelect}
+                    value={editForm.currency || "€"}
+                    onChange={(e) => setField("currency", e.target.value)}
+                  >
+                    <option value="€">€ (Euro)</option>
+                    <option value="$">$ (US Dollar)</option>
+                    <option value="£">£ (British Pound)</option>
+                    <option value="¥">¥ (Japanese Yen)</option>
+                    <option value="Fr">Fr (Swiss Franc)</option>
+                    <option value="A$">A$ (Australian Dollar)</option>
+                    <option value="C$">C$ (Canadian Dollar)</option>
+                    <option value="kr">kr (Swedish Krona)</option>
+                  </select>
+                </div>
+              </Section>
+
+              <Section title="VAT Rates">
+                <div className="space-y-3">
+                  {(editForm.vatRates || []).map((rate, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr,180px,1fr,48px] gap-2 items-center">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">VAT Name</label>
+                        <input
+                          className={smallInput}
+                          placeholder="e.g., Standard"
+                          value={rate.name || ""}
+                          onChange={(e) => updateArrayItem("vatRates", idx, { name: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Rate (%)</label>
+                        <input
+                          type="number"
+                          className={smallNumber}
+                          min={0}
+                          max={100}
+                          value={rate.percentage ?? 0}
+                          onChange={(e) =>
+                            updateArrayItem("vatRates", idx, { percentage: Number(e.target.value || 0) })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Description</label>
+                        <input
+                          className={smallInput}
+                          placeholder="Optional"
+                          value={rate.description || ""}
+                          onChange={(e) => updateArrayItem("vatRates", idx, { description: e.target.value })}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className={iconBtn}
+                        aria-label="Remove VAT Rate"
+                        onClick={() => removeArrayItem("vatRates", idx)}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className={smallBtnMuted}
+                    onClick={() => addArrayItem("vatRates", { name: "", percentage: 0, description: "" })}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Plus size={16} /> Add VAT Rate
+                    </span>
+                  </button>
                 </div>
               </Section>
             </div>
@@ -693,89 +896,115 @@ const EditStudioModal = ({
                       key={idx}
                       className="grid grid-cols-1 md:grid-cols-6 gap-2 items-start border border-[#303030] p-3 rounded-lg"
                     >
-                      <input
-                        className={smallInput}
-                        placeholder="Name"
-                        value={row.name || ""}
-                        onChange={(e) => updateArrayItem("contractTypes", idx, { name: e.target.value })}
-                      />
-                      <input
-                        type="number"
-                        className={smallNumber}
-                        placeholder="Duration (months)"
-                        value={row.duration ?? 12}
-                        onChange={(e) =>
-                          updateArrayItem("contractTypes", idx, { duration: Number(e.target.value || 0) })
-                        }
-                      />
-                      <input
-                        type="number"
-                        className={smallNumber}
-                        placeholder="Cost"
-                        value={row.cost ?? 0}
-                        onChange={(e) => updateArrayItem("contractTypes", idx, { cost: Number(e.target.value || 0) })}
-                      />
-                      <select
-                        className={smallSelect}
-                        value={row.billingPeriod || "monthly"}
-                        onChange={(e) => updateArrayItem("contractTypes", idx, { billingPeriod: e.target.value })}
-                      >
-                        {BILLING_PERIODS.map((p) => (
-                          <option key={p} value={p}>
-                            {p}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        className={smallNumber}
-                        placeholder="User Capacity"
-                        value={row.userCapacity ?? 0}
-                        onChange={(e) =>
-                          updateArrayItem("contractTypes", idx, { userCapacity: Number(e.target.value || 0) })
-                        }
-                      />
-                      <div className="flex items-center gap-2">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Contract Name</label>
                         <input
-                          id={`auto-${idx}`}
-                          type="checkbox"
-                          checked={!!row.autoRenewal}
-                          onChange={(e) => updateArrayItem("contractTypes", idx, { autoRenewal: e.target.checked })}
-                          className="h-4 w-4 accent-[#FF843E]"
+                          className={smallInput}
+                          placeholder="Name"
+                          value={row.name || ""}
+                          onChange={(e) => updateArrayItem("contractTypes", idx, { name: e.target.value })}
                         />
-                        <label htmlFor={`auto-${idx}`} className="text-xs text-gray-300">
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Duration (months)</label>
+                        <input
+                          type="number"
+                          className={smallNumber}
+                          placeholder="Duration (months)"
+                          value={row.duration ?? 12}
+                          onChange={(e) =>
+                            updateArrayItem("contractTypes", idx, { duration: Number(e.target.value || 0) })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Cost</label>
+                        <input
+                          type="number"
+                          className={smallNumber}
+                          placeholder="Cost"
+                          value={row.cost ?? 0}
+                          onChange={(e) => updateArrayItem("contractTypes", idx, { cost: Number(e.target.value || 0) })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Billing Period</label>
+                        <select
+                          className={smallSelect}
+                          value={row.billingPeriod || "monthly"}
+                          onChange={(e) => updateArrayItem("contractTypes", idx, { billingPeriod: e.target.value })}
+                        >
+                          {BILLING_PERIODS.map((p) => (
+                            <option key={p} value={p}>
+                              {p}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">User Capacity</label>
+                        <input
+                          type="number"
+                          className={smallNumber}
+                          placeholder="User Capacity"
+                          value={row.userCapacity ?? 0}
+                          onChange={(e) =>
+                            updateArrayItem("contractTypes", idx, { userCapacity: Number(e.target.value || 0) })
+                          }
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <label className="inline-flex items-center gap-2 text-sm text-gray-200">
+                          <input
+                            id={`auto-${idx}`}
+                            type="checkbox"
+                            checked={!!row.autoRenewal}
+                            onChange={(e) => updateArrayItem("contractTypes", idx, { autoRenewal: e.target.checked })}
+                            className="h-4 w-4 accent-[#FF843E]"
+                          />
                           Auto renew
                         </label>
                       </div>
 
                       <div className="md:col-span-6 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <input
-                          type="number"
-                          className={smallNumber}
-                          placeholder="Renewal Period (months)"
-                          value={row.renewalPeriod ?? 1}
-                          onChange={(e) =>
-                            updateArrayItem("contractTypes", idx, { renewalPeriod: Number(e.target.value || 0) })
-                          }
-                        />
-                        <input
-                          type="number"
-                          className={smallNumber}
-                          placeholder="Renewal Price"
-                          value={row.renewalPrice ?? 0}
-                          onChange={(e) =>
-                            updateArrayItem("contractTypes", idx, { renewalPrice: Number(e.target.value || 0) })
-                          }
-                        />
-                        <input
-                          type="number"
-                          className={smallNumber}
-                          placeholder="Cancellation Period (days)"
-                          value={row.cancellationPeriod ?? 30}
-                          onChange={(e) =>
-                            updateArrayItem("contractTypes", idx, { cancellationPeriod: Number(e.target.value || 0) })
-                          }
-                        />
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Renewal Period (months)</label>
+                          <input
+                            type="number"
+                            className={smallNumber}
+                            placeholder="Renewal Period (months)"
+                            value={row.renewalPeriod ?? 1}
+                            onChange={(e) =>
+                              updateArrayItem("contractTypes", idx, { renewalPeriod: Number(e.target.value || 0) })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Renewal Price</label>
+                          <input
+                            type="number"
+                            className={smallNumber}
+                            placeholder="Renewal Price"
+                            value={row.renewalPrice ?? 0}
+                            onChange={(e) =>
+                              updateArrayItem("contractTypes", idx, { renewalPrice: Number(e.target.value || 0) })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Cancellation Period (days)</label>
+                          <input
+                            type="number"
+                            className={smallNumber}
+                            placeholder="Cancellation Period (days)"
+                            value={row.cancellationPeriod ?? 30}
+                            onChange={(e) =>
+                              updateArrayItem("contractTypes", idx, {
+                                cancellationPeriod: Number(e.target.value || 0),
+                              })
+                            }
+                          />
+                        </div>
                       </div>
 
                       <div className="md:col-span-6">
@@ -819,6 +1048,7 @@ const EditStudioModal = ({
                 <div className="space-y-3">
                   {(editForm.contractSections || []).map((sec, idx) => (
                     <div key={idx} className="space-y-2 border border-[#303030] p-3 rounded-lg">
+                      <label className="text-sm text-gray-200 block mb-2">Section Title</label>
                       <input
                         className={smallInput}
                         placeholder="Section Title"
@@ -851,6 +1081,7 @@ const EditStudioModal = ({
                           <Underline size={16} />
                         </button>
                       </div>
+                      <label className="text-sm text-gray-200 block mb-2">Content</label>
                       <textarea
                         id={`contract-content-${idx}`}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[120px]"
@@ -859,6 +1090,7 @@ const EditStudioModal = ({
                         onChange={(e) => updateArrayItem("contractSections", idx, { content: e.target.value })}
                       />
                       <div className="flex flex-wrap items-center gap-4">
+                        {/* Matching labels seen on configuration page */}
                         <label className="inline-flex items-center gap-2 text-sm text-gray-200">
                           <input
                             type="checkbox"
@@ -866,7 +1098,7 @@ const EditStudioModal = ({
                             onChange={(e) => updateArrayItem("contractSections", idx, { editable: e.target.checked })}
                             className="h-4 w-4 accent-[#FF843E]"
                           />
-                          Editable by member
+                          Signature needed
                         </label>
                         <label className="inline-flex items-center gap-2 text-sm text-gray-200">
                           <input
@@ -913,21 +1145,27 @@ const EditStudioModal = ({
                 <div className="space-y-3">
                   {(editForm.contractPauseReasons || []).map((row, idx) => (
                     <div key={idx} className="grid grid-cols-1 sm:grid-cols-[1fr,180px,48px] gap-2 items-center">
-                      <input
-                        className={smallInput}
-                        placeholder="Reason (e.g., Vacation)"
-                        value={row.name || ""}
-                        onChange={(e) => updateArrayItem("contractPauseReasons", idx, { name: e.target.value })}
-                      />
-                      <input
-                        type="number"
-                        className={smallNumber}
-                        placeholder="Max Days"
-                        value={row.maxDays ?? 30}
-                        onChange={(e) =>
-                          updateArrayItem("contractPauseReasons", idx, { maxDays: Number(e.target.value || 0) })
-                        }
-                      />
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Reason</label>
+                        <input
+                          className={smallInput}
+                          placeholder="Reason (e.g., Vacation)"
+                          value={row.name || ""}
+                          onChange={(e) => updateArrayItem("contractPauseReasons", idx, { name: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Max Days</label>
+                        <input
+                          type="number"
+                          className={smallNumber}
+                          placeholder="Max Days"
+                          value={row.maxDays ?? 30}
+                          onChange={(e) =>
+                            updateArrayItem("contractPauseReasons", idx, { maxDays: Number(e.target.value || 0) })
+                          }
+                        />
+                      </div>
                       <button
                         type="button"
                         className={iconBtn}
@@ -953,7 +1191,7 @@ const EditStudioModal = ({
               <Section title="Contract Settings">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Notice Period (days)</label>
+                    <label className="text-sm text-gray-200 block mb-2">Default Notice Period (days)</label>
                     <input
                       type="number"
                       className={smallNumber}
@@ -962,7 +1200,7 @@ const EditStudioModal = ({
                     />
                   </div>
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Extension Period (months)</label>
+                    <label className="text-sm text-gray-200 block mb-2">Default Extension Period (months)</label>
                     <input
                       type="number"
                       className={smallNumber}
@@ -970,6 +1208,41 @@ const EditStudioModal = ({
                       onChange={(e) => setField("extensionPeriod", Number(e.target.value || 0))}
                     />
                   </div>
+                </div>
+                {/* NEW: Allow Member Self-Cancellation */}
+                <div className="mt-3">
+                  <label className="inline-flex items-center gap-2 text-sm text-gray-200">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-[#FF843E]"
+                      checked={!!editForm.allowMemberSelfCancellation}
+                      onChange={(e) => setField("allowMemberSelfCancellation", e.target.checked)}
+                    />
+                    Allow Member Self-Cancellation
+                  </label>
+                </div>
+              </Section>
+
+              {/* NEW: Additional Documents */}
+              <Section title="Additional Documents">
+                <div className="space-y-3">
+                  <label className="text-sm text-gray-200 block mb-2">Upload PDF Documents</label>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    multiple
+                    onChange={(e) => addPdfDocs(e.target.files)}
+                    className="block w-full text-sm text-gray-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-[#303030] file:text-white hover:file:bg-[#3a3a3a]"
+                  />
+                  {(editForm.additionalDocs || []).length > 0 ? (
+                    <ul className="text-xs text-gray-300 list-disc pl-5">
+                      {(editForm.additionalDocs || []).map((f, i) => (
+                        <li key={i}>{f.name || `Document ${i + 1}`}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-gray-400">No documents uploaded.</p>
+                  )}
                 </div>
               </Section>
             </div>
@@ -994,7 +1267,7 @@ const EditStudioModal = ({
                       checked={!!editForm.chatNotifications}
                       onChange={(e) => setField("chatNotifications", e.target.checked)}
                     />
-                    Chat Notifications
+                    General Chat Notifications
                   </label>
                   <label className="inline-flex items-center gap-2 text-sm text-gray-200">
                     <input
@@ -1025,34 +1298,45 @@ const EditStudioModal = ({
                     onChange={(e) => setField("autoArchiveDuration", Number(e.target.value || 0))}
                   />
                 </div>
+              </Section>
 
-                <div className="mt-4">
-                  <label className="text-sm text-gray-200 block mb-2">Email Signature</label>
-                  <textarea
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                    value={editForm.emailSignature || "Best regards,\n{Studio_Name} Team"}
-                    onChange={(e) => setField("emailSignature", e.target.value)}
-                  />
-                </div>
+              <Section title="Email Signature">
+                <label className="text-sm text-gray-200 block mb-2">Default Email Signature</label>
+                <textarea
+                  className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                  value={editForm.emailSignature || "Best regards,\n{Studio_Name} Team"}
+                  onChange={(e) => setField("emailSignature", e.target.value)}
+                />
+                <p className="text-xs text-gray-400 mt-2">
+                  You can use variables like {"{Studio_Name}"} and {"{Member_Name}"} in your signature.
+                </p>
               </Section>
 
               <Section title="Appointment Notifications">
                 <div className="space-y-4">
                   {(editForm.appointmentNotifications || []).map((n, idx) => (
                     <div key={idx} className="border border-[#303030] p-3 rounded-lg space-y-2">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <input
-                          className={smallInput}
-                          placeholder="Type (e.g., booking)"
-                          value={n.type || ""}
-                          onChange={(e) => updateArrayItem("appointmentNotifications", idx, { type: e.target.value })}
-                        />
-                        <input
-                          className={smallInput}
-                          placeholder="Title"
-                          value={n.title || ""}
-                          onChange={(e) => updateArrayItem("appointmentNotifications", idx, { title: e.target.value })}
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Type</label>
+                          <input
+                            className={smallInput}
+                            placeholder="Type (e.g., booking)"
+                            value={n.type || ""}
+                            onChange={(e) => updateArrayItem("appointmentNotifications", idx, { type: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-200 block mb-2">Title</label>
+                          <input
+                            className={smallInput}
+                            placeholder="Title"
+                            value={n.title || ""}
+                            onChange={(e) =>
+                              updateArrayItem("appointmentNotifications", idx, { title: e.target.value })
+                            }
+                          />
+                        </div>
                         <label className="inline-flex items-center gap-2 text-sm text-gray-200">
                           <input
                             type="checkbox"
@@ -1065,11 +1349,13 @@ const EditStudioModal = ({
                           Enabled
                         </label>
                       </div>
+                      <label className="text-sm text-gray-200 block mb-2">Message</label>
                       <textarea
                         className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[80px]"
                         placeholder="Message with variables..."
                         value={n.message || ""}
                         onChange={(e) => updateArrayItem("appointmentNotifications", idx, { message: e.target.value })}
+                        id={`appointment-message-textarea-${idx}`}
                       />
                       <div className="flex flex-wrap items-center gap-4">
                         <label className="inline-flex items-center gap-2 text-sm text-gray-200">
@@ -1108,6 +1394,10 @@ const EditStudioModal = ({
                           <Trash2 size={18} />
                         </button>
                       </div>
+                      <p className="text-xs text-gray-400">
+                        Variables available: {"{Studio_Name}"}, {"{Member_Name}"}, {"{Appointment_Type}"},{" "}
+                        {"{Booked_Time}"}.
+                      </p>
                     </div>
                   ))}
                   <button
@@ -1134,18 +1424,25 @@ const EditStudioModal = ({
                 <div className="space-y-3">
                   {(editForm.broadcastMessages || []).map((m, idx) => (
                     <div key={idx} className="border border-[#303030] p-3 rounded-lg space-y-2">
-                      <input
-                        className={smallInput}
-                        placeholder="Title"
-                        value={m.title || ""}
-                        onChange={(e) => updateArrayItem("broadcastMessages", idx, { title: e.target.value })}
-                      />
-                      <textarea
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[80px]"
-                        placeholder="Message..."
-                        value={m.message || ""}
-                        onChange={(e) => updateArrayItem("broadcastMessages", idx, { message: e.target.value })}
-                      />
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Title</label>
+                        <input
+                          className={smallInput}
+                          placeholder="Title"
+                          value={m.title || ""}
+                          onChange={(e) => updateArrayItem("broadcastMessages", idx, { title: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Message</label>
+                        <textarea
+                          className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[80px]"
+                          placeholder="Message..."
+                          value={m.message || ""}
+                          onChange={(e) => updateArrayItem("broadcastMessages", idx, { message: e.target.value })}
+                          id={`broadcast-message-textarea-${idx}`}
+                        />
+                      </div>
                       <div className="flex flex-wrap items-center gap-4">
                         <label className="inline-flex items-center gap-2 text-sm text-gray-200">
                           <input
@@ -1198,53 +1495,132 @@ const EditStudioModal = ({
                 </div>
               </Section>
 
+              {/* NEW: Birthday Messages */}
+              <Section title="Birthday Messages">
+                <div className="space-y-3">
+                  <label className="inline-flex items-center gap-2 text-sm text-gray-200">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-[#FF843E]"
+                      checked={!!editForm.birthdayMessage?.enabled}
+                      onChange={(e) =>
+                        setField("birthdayMessage", {
+                          ...(editForm.birthdayMessage || {
+                            message: "Happy Birthday! 🎉 Best wishes from {Studio_Name}",
+                          }),
+                          enabled: e.target.checked,
+                        })
+                      }
+                    />
+                    Enable Birthday Messages
+                  </label>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Message Template</label>
+                    <textarea
+                      id="birthday-message-textarea"
+                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[80px]"
+                      value={editForm.birthdayMessage?.message || "Happy Birthday! 🎉 Best wishes from {Studio_Name}"}
+                      onChange={(e) =>
+                        setField("birthdayMessage", {
+                          ...(editForm.birthdayMessage || {}),
+                          message: e.target.value,
+                        })
+                      }
+                      disabled={!editForm.birthdayMessage?.enabled}
+                      placeholder="Use {Studio_Name} and {Member_Name} as placeholders"
+                    />
+                    <p className="text-xs text-gray-400 mt-2">
+                      Variables available: {"{Studio_Name}"} and {"{Member_Name}"}.
+                    </p>
+                  </div>
+                </div>
+              </Section>
+
+              {/* NEW: Default Broadcast Distribution */}
+              <Section title="Default Broadcast Distribution">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className="inline-flex items-center gap-2 text-sm text-gray-200">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-[#FF843E]"
+                      checked={!!editForm.broadcastEmail}
+                      onChange={(e) => setField("broadcastEmail", e.target.checked)}
+                    />
+                    Email
+                  </label>
+                  <label className="inline-flex items-center gap-2 text-sm text-gray-200">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-[#FF843E]"
+                      checked={!!editForm.broadcastChat}
+                      onChange={(e) => setField("broadcastChat", e.target.checked)}
+                    />
+                    Chat Notification
+                  </label>
+                </div>
+              </Section>
+
               <Section title="Email Configuration">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input
-                    className={smallInput}
-                    placeholder="SMTP Server"
-                    value={editForm.emailConfig?.smtpServer || ""}
-                    onChange={(e) =>
-                      setField("emailConfig", { ...(editForm.emailConfig || {}), smtpServer: e.target.value })
-                    }
-                  />
-                  <input
-                    type="number"
-                    className={smallNumber}
-                    placeholder="SMTP Port"
-                    value={editForm.emailConfig?.smtpPort ?? 587}
-                    onChange={(e) =>
-                      setField("emailConfig", {
-                        ...(editForm.emailConfig || {}),
-                        smtpPort: Number(e.target.value || 0),
-                      })
-                    }
-                  />
-                  <input
-                    className={smallInput}
-                    placeholder="SMTP User"
-                    value={editForm.emailConfig?.smtpUser || ""}
-                    onChange={(e) =>
-                      setField("emailConfig", { ...(editForm.emailConfig || {}), smtpUser: e.target.value })
-                    }
-                  />
-                  <input
-                    className={smallInput}
-                    placeholder="SMTP Pass"
-                    type="password"
-                    value={editForm.emailConfig?.smtpPass || ""}
-                    onChange={(e) =>
-                      setField("emailConfig", { ...(editForm.emailConfig || {}), smtpPass: e.target.value })
-                    }
-                  />
-                  <input
-                    className={smallInput}
-                    placeholder="Sender Name"
-                    value={editForm.emailConfig?.senderName || ""}
-                    onChange={(e) =>
-                      setField("emailConfig", { ...(editForm.emailConfig || {}), senderName: e.target.value })
-                    }
-                  />
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">SMTP Server</label>
+                    <input
+                      className={smallInput}
+                      placeholder="smtp.example.com"
+                      value={editForm.emailConfig?.smtpServer || ""}
+                      onChange={(e) =>
+                        setField("emailConfig", { ...(editForm.emailConfig || {}), smtpServer: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">SMTP Port</label>
+                    <input
+                      type="number"
+                      className={smallNumber}
+                      placeholder="587"
+                      value={editForm.emailConfig?.smtpPort ?? 587}
+                      onChange={(e) =>
+                        setField("emailConfig", {
+                          ...(editForm.emailConfig || {}),
+                          smtpPort: Number(e.target.value || 0),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Email Address (Username)</label>
+                    <input
+                      className={smallInput}
+                      placeholder="studio@example.com"
+                      value={editForm.emailConfig?.smtpUser || ""}
+                      onChange={(e) =>
+                        setField("emailConfig", { ...(editForm.emailConfig || {}), smtpUser: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Password</label>
+                    <input
+                      className={smallInput}
+                      type="password"
+                      value={editForm.emailConfig?.smtpPass || ""}
+                      onChange={(e) =>
+                        setField("emailConfig", { ...(editForm.emailConfig || {}), smtpPass: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Default Sender Name</label>
+                    <input
+                      className={smallInput}
+                      placeholder="Your Studio Name"
+                      value={editForm.emailConfig?.senderName || ""}
+                      onChange={(e) =>
+                        setField("emailConfig", { ...(editForm.emailConfig || {}), senderName: e.target.value })
+                      }
+                    />
+                  </div>
                   <label className="inline-flex items-center gap-2 text-sm text-gray-200">
                     <input
                       type="checkbox"
@@ -1254,7 +1630,7 @@ const EditStudioModal = ({
                         setField("emailConfig", { ...(editForm.emailConfig || {}), useSSL: e.target.checked })
                       }
                     />
-                    Use SSL
+                    Use SSL/TLS
                   </label>
                 </div>
               </Section>

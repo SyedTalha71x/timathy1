@@ -144,22 +144,21 @@ export default function Studios() {
       sunday: "",
     },
     closingDays: "",
-
-    // new fields for parity with configuration page
+  
     // branding
     logoUrl: "",
     logoFile: null,
-
+  
     // studio data enhancements
     openingHoursList: [], // [{ day, startTime, endTime }]
     closingDaysList: [], // [{ date, description }]
-
+  
     // resources
     maxCapacity: 10,
     appointmentTypes: [], // [{ name, duration, capacity, color, interval, images }]
-
+  
     trialTraining: { name: "Trial Training", duration: 60, capacity: 1, color: "#1890ff" },
-
+  
     // contracts
     contractTypes: [], // [{ name, duration, cost, billingPeriod, userCapacity, autoRenewal, renewalPeriod, renewalPrice, cancellationPeriod }]
     contractSections: [
@@ -174,7 +173,7 @@ export default function Studios() {
     ],
     noticePeriod: 30,
     extensionPeriod: 12,
-
+  
     // communication
     autoArchiveDuration: 30,
     emailNotifications: true,
@@ -193,7 +192,8 @@ export default function Studios() {
       {
         type: "cancellation",
         title: "Appointment Cancellation",
-        message: "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
+        message:
+          "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
         sendVia: ["email", "platform"],
         enabled: true,
       },
@@ -206,7 +206,7 @@ export default function Studios() {
       },
     ],
     broadcastMessages: [],
-
+  
     emailConfig: {
       smtpServer: "",
       smtpPort: 587,
@@ -217,7 +217,7 @@ export default function Studios() {
       smtpUser: "",
       smtpPass: "",
     },
-
+  
     // appearance
     appearance: {
       theme: "dark",
@@ -225,7 +225,59 @@ export default function Studios() {
       secondaryColor: "#1890ff",
       allowUserThemeToggle: true,
     },
-  })
+  
+    // =========================
+    // Parity with Configuration
+    // =========================
+  
+    // <NEW> Roles/permissions available in configuration
+    roles: [
+      // Example: { name: "Admin", permissions: ["manage_users", "edit_contracts", "view_reports"] }
+    ],
+  
+    // <NEW> Lead sources used for reporting and filtering
+    leadSources: [
+      // Example: "Instagram", "Google Ads", "Walk-in"
+    ],
+  
+    // <NEW> TODO/Task tags to categorize tasks
+    todoTags: [
+      // Example: "Follow-up", "Payment Pending", "Urgent"
+    ],
+  
+    // <NEW> Currency and VAT rates for billing/contract pricing
+    currency: "EUR",
+    vatRates: [
+      // Example defaults
+      { name: "Standard", rate: 19 },
+      { name: "Reduced", rate: 7 },
+    ],
+  
+    // <NEW> Additional contract documents appended to contracts
+    additionalContractDocuments: [
+      // Example: { title: "Privacy Policy", url: "" } or { title: "House Rules", file: File }
+    ],
+  
+    // <NEW> Automated birthday greetings
+    birthdayMessages: {
+      enabled: false,
+      subject: "Happy Birthday from {Studio_Name}",
+      message:
+        "Dear {Member_Name},\nWishing you a wonderful birthday! Your {Studio_Name} family celebrates you today.",
+      sendVia: ["email"], // ["email", "platform"]
+      sendTime: "09:00", // HH:mm
+    },
+  
+    // <NEW> Default broadcast distribution (audience & channels)
+    defaultBroadcastDistribution: {
+      audience: "all-members", // e.g., "all-members", "active-only", "frozen-only", "staff"
+      channels: ["platform"], // ["platform", "email"]
+      allowReplies: true,
+    },
+  
+    // <NEW> Allow members to self-cancel their memberships according to contract rules
+    allowMemberSelfCancellation: false,
+  });
 
   const [franchiseForm, setFranchiseForm] = useState({
     name: "",
