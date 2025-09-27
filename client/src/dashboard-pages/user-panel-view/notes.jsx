@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
-import CreateNoteModal from "../../components/notes-components/CreateNoteModal"
-import EditNoteModal from "../../components/notes-components/EditNoteModal"
-import DeleteConfirmModal from "../../components/notes-components/DeleteConfirmModal"
+import CreateNoteModal from "../../components/user-panel-components/notes-components/CreateNoteModal"
+import EditNoteModal from "../../components/user-panel-components/notes-components/EditNoteModal"
+import DeleteConfirmModal from "../../components/user-panel-components/notes-components/DeleteConfirmModal"
 import { demoNotes } from "../../utils/user-panel-states/notes-states"
 import { Toaster } from "react-hot-toast"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
@@ -10,7 +10,7 @@ import { IoIosMenu } from "react-icons/io"
 
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 
-import EditTaskModal from "../../components/task-components/edit-task-modal"
+import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
 import ContingentModal from "../../components/myarea-components/ContigentModal"
@@ -18,9 +18,7 @@ import MemberDetailsModal from "../../components/myarea-components/MemberDetails
 import HistoryModal from "../../components/myarea-components/HistoryModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import EditAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
-import AppointmentActionModal from "../../components/user-panel-components/appointments-components/appointment-action-modal"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import Sidebar from "../../components/central-sidebar"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'

@@ -3,10 +3,11 @@
 import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { IoIosMenu } from 'react-icons/io';
-import WebsiteLinkModal from '../../components/customer-dashboard/myarea-components/website-link-modal';
-import WidgetSelectionModal from '../../components/customer-dashboard/myarea-components/widgets';
-import ConfirmationModal from '../../components/customer-dashboard/myarea-components/confirmation-modal';
-import Sidebar from '../../components/customer-dashboard/central-sidebar';
+
+import WebsiteLinkModal from '../../components/admin-dashboard-components/myarea-components/website-link-modal';
+import WidgetSelectionModal from '../../components/admin-dashboard-components/myarea-components/widgets';
+import ConfirmationModal from '../../components/admin-dashboard-components/myarea-components/confirmation-modal';
+import Sidebar from '../../components/admin-dashboard-components/central-sidebar';
 
 const Marketplace = () => {
   const sampleProducts = [

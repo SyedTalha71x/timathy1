@@ -5,16 +5,12 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "../../custom-css/marketing-table-style.css";
 import { useNavigate } from "react-router-dom";
-import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import Rectangle1 from "../../../public/Rectangle 1.png"
 import { IoIosMenu } from "react-icons/io";
-import { appointmentsData, availableMembersLeadsNew, birthdaysData, communicationsData, customLinksData, expiringContractsData, memberContingentDataNew, memberRelationsData, memberTypesData, mockTrainingPlansNew, mockVideosNew, notificationData, todosData } from "../../utils/user-panel-states/myarea-states";
 import toast, { Toaster } from "react-hot-toast";
+
 import Sidebar from "../../components/central-sidebar";
-import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal";
-import AppointmentActionModal from "../../components/user-panel-components/appointments-components/appointment-action-modal";
+import MemberOverviewModal from "../../components/user-panel-components/communication-components/MemberOverviewModal";
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal";
-import EditAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal";
 import { WidgetSelectionModal } from "../../components/widget-selection-modal";
 import EditMemberModal from "../../components/myarea-components/EditMemberModal";
 import ContingentModal from "../../components/myarea-components/ContigentModal";
@@ -23,9 +19,9 @@ import AddBillingPeriodModal from "../../components/myarea-components/AddBilling
 import AppointmentModal from "../../components/myarea-components/AppointmentModal";
 import HistoryModal from "../../components/myarea-components/HistoryModal";
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
-import EditTaskModal from "../../components/task-components/edit-task-modal";
+import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal";
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal";
-import { useSidebarSystem } from "../../hooks/useSidebarSystem"; // Import the custom hook
+import { useSidebarSystem } from "../../hooks/useSidebarSystem"; 
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal";
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal";
 

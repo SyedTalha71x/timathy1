@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, X, Download, Users, Calendar } from "lucide-
 import { useState } from "react"
 import toast from "react-hot-toast"
 import VacationCalendarModal from "./vacation-calendar-modal"
-import { exportToExcel } from "../../utils/excelExport"
+import { exportToExcel } from "../../../utils/excelExport"
 
 function StaffPlanningModal({ staffMembers, onClose }) {
   const [selectedStaff, setSelectedStaff] = useState(null)

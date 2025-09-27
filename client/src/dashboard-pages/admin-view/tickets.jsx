@@ -1,6 +1,4 @@
 /* eslint-disable no-unused-vars */
-/* eslint-disable no-case-declarations */
-/* eslint-disable react/prop-types */
 import { useState, useRef } from "react"
 import {
     X,
@@ -20,15 +18,15 @@ import {
     Download,
     RefreshCw
 } from "lucide-react"
-import AdminTicketView from "../../components/customer-dashboard/tickets-component/admin-ticket-view-modal"
 import toast from "react-hot-toast"
-import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
-import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
-import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
-import Sidebar from "../../components/customer-dashboard/central-sidebar"
 import { IoIosMenu } from "react-icons/io"
 
-// Sample admin tickets data
+import AdminTicketView from "../../components/admin-dashboard-components/tickets-component/admin-ticket-view-modal"
+import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
+import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
+import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
+
 const adminTickets = [
     {
         id: 1,
@@ -193,7 +191,6 @@ const adminTickets = [
         tags: ["billing", "refund", "duplicate-charge"]
     }
 ]
-
 
 const AdminTicketsSystem = () => {
     const [tickets, setTickets] = useState(adminTickets)

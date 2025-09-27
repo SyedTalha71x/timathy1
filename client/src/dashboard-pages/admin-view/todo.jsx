@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react"
 import { Plus, Filter, X, Calendar, Tag, Users, Repeat, Check, ChevronDown, Clock, Bell } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import Draggable from "react-draggable"
+import { IoIosMenu } from "react-icons/io"
 
 import {
   todosTaskData,
@@ -11,17 +12,16 @@ import {
   availableAssigneesData,
 } from "../../utils/user-panel-states/todo-states"
 
-import RepeatTaskModal from '../../components/customer-dashboard/todo-components/repeat-task-modal'
-import DeleteModal from '../../components/customer-dashboard/todo-components/delete-task'
-import AssignModal from '../../components/customer-dashboard/todo-components/assign-modal'
-import TagsModal from '../../components/customer-dashboard/todo-components/edit-tags'
-import TaskItem from '../../components/customer-dashboard/todo-components/task-item'
-import EditTaskModal from "../../components/customer-dashboard/todo-components/edit-task-modal"
-import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
-import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
-import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
-import Sidebar from "../../components/customer-dashboard/central-sidebar"
-import { IoIosMenu } from "react-icons/io"
+import RepeatTaskModal from '../../components/admin-dashboard-components/todo-components/repeat-task-modal'
+import DeleteModal from '../../components/admin-dashboard-components/todo-components/delete-task'
+import AssignModal from '../../components/admin-dashboard-components/todo-components/assign-modal'
+import TagsModal from '../../components/admin-dashboard-components/todo-components/edit-tags'
+import TaskItem from '../../components/admin-dashboard-components/todo-components/task-item'
+import EditTaskModal from "../../components/admin-dashboard-components/todo-components/edit-task-modal"
+import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
+import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
+import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
 
 
 

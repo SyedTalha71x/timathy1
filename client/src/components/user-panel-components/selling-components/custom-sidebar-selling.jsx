@@ -1,8 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-"use client"
-
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-undef */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useCallback } from "react"
@@ -39,13 +36,13 @@ import {
   Users,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
-import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import RightSidebarWidget from "../myarea-components/sidebar-components/RightSidebarWidget"
-import StaffCheckInWidget from "../myarea-components/StaffWidgetCheckIn"
-import { SpecialNoteEditModal } from "../myarea-components/SpecialNoteEditModal"
-import ViewManagementModal from "../myarea-components/sidebar-components/ViewManagementModal"
-import { bulletinBoardData } from "../../utils/user-panel-states/myarea-states"
-import PersonImage from '../../../public/avatar3.png'
+import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
+import RightSidebarWidget from "../../myarea-components/sidebar-components/RightSidebarWidget"
+import StaffCheckInWidget from "../../myarea-components/StaffWidgetCheckIn"
+import { SpecialNoteEditModal } from "../../myarea-components/SpecialNoteEditModal"
+import ViewManagementModal from "../../myarea-components/sidebar-components/ViewManagementModal"
+import { bulletinBoardData } from "../../../utils/user-panel-states/myarea-states"
+import PersonImage from '../../../../public/avatar3.png'
 
 const demoNotifications = {
   memberChat: [

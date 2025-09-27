@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
 import { Outlet } from "react-router-dom";  
-import Sidebar from '../components/member-view-components/sidebar'
+import Sidebar from '../components/member-panel-components/sidebar'
 
 
-const MemberViewLayout = () => {
+const MemberDashboardLayout = () => {
   return (
     <div className="bg-[#111111] min-h-screen">
       <div className="flex flex-col md:flex-row h-full">
@@ -17,4 +17,4 @@ const MemberViewLayout = () => {
   );
 };
 
-export default MemberViewLayout;
+export default MemberDashboardLayout;

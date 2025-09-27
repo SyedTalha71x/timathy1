@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
 import {
   Mail,
@@ -21,12 +20,12 @@ import {
 } from "lucide-react"
 import { IoIosMenu } from "react-icons/io"
 import toast from "react-hot-toast"
-import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
-import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
-import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
-import Sidebar from "../../components/customer-dashboard/central-sidebar"
 
-// Sample data
+import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
+import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
+import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
+
 const emailListNew = {
   inbox: [
     {
@@ -106,7 +105,6 @@ const emailListNew = {
   trash: [],
 }
 
-// Sample email templates
 const emailTemplates = [
   {
     id: 1,
@@ -128,7 +126,6 @@ const emailTemplates = [
   }
 ]
 
-// Sample members for recipient search
 const members = [
   { id: 1, name: "John Doe", email: "john@example.com", logo: null },
   { id: 2, name: "Jane Smith", email: "jane@example.com", logo: null },
@@ -639,7 +636,6 @@ const EmailManagementPage = () => {
       `}>
       <div className="">
         <div className="">
-          {/* Header */}
           <div className=" border-b border-gray-700">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">

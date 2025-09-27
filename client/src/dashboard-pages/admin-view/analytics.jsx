@@ -1,14 +1,13 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { Users, DollarSign, Target, TrendingUp } from "lucide-react";
 import { IoIosMenu } from "react-icons/io";
-import Sidebar from "../../components/customer-dashboard/central-sidebar";
-import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal";
-import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets";
+import Sidebar from "../../components/admin-dashboard-components/central-sidebar";
+import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal";
+import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets";
 import toast from "react-hot-toast";
-import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal";
+import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal";
 
 export default function Analytics() {
   const [selectedMetric, setSelectedMetric] = useState("Studios Acquired");

@@ -5,7 +5,7 @@
 import { X } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
-import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 
 function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   const [activeTab, setActiveTab] = useState("details")

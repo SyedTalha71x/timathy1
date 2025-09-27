@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from '../components/customer-dashboard/sidebar'
+import Sidebar from '../components/admin-dashboard-components/sidebar'
 
 
 const AdminDashboardLayout = () => {

@@ -6,8 +6,7 @@ import Login from './pages/login';
 import Register from './pages/register'
 import Profile from './pages/profile'
 
-
-// User Panel View Dashboard
+// User Panel Dashboard
 import Dashboardlayout from "./layouts/dashboard-layout";
 import MyArea from './dashboard-pages/user-panel-view/my-area'
 import ProfileDashboard from './dashboard-pages/user-panel-view/profile'
@@ -49,14 +48,14 @@ import AdminMarketPlace from './dashboard-pages/admin-view/marketplace'
 import AdminEmailManagement from './dashboard-pages/admin-view/email'
 
 
-// Member View  
+// Member Dashboard  
 import MemberAppointments from './dashboard-pages/member-view/appointment'
 import MemberCommuncation from './dashboard-pages/member-view/communication'
 import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
 import MemberSettings from './dashboard-pages/member-view/configuration'
-import MemberViewLayout from "./layouts/member-view-layout";
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
+import MemberDashboardLayout from "./layouts/member-dashboard-layout";
 
 function App() {
   const location = useLocation();
@@ -115,7 +114,7 @@ function App() {
 
         </Route>
 
-        <Route path="/member-view" element={<MemberViewLayout />}>
+        <Route path="/member-view" element={<MemberDashboardLayout />}>
           <Route path="appointment" element={<MemberAppointments />} />
           <Route path="communication" element={<MemberCommuncation />} />
           <Route path="studio-menu" element={<MemberStudioMenu />} />

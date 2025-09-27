@@ -2,7 +2,7 @@
 // refernce trial modal
 import { Search, X, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import AddLeadModal from "../../lead-user-panel-components/add-lead-modal"
+import AddLeadModal from "../lead-user-panel-components/add-lead-modal"
 
 const TrialTrainingModal = ({
   isOpen,

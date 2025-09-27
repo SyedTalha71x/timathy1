@@ -1,21 +1,23 @@
-import React from "react"
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
+import React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Search, X, AlertTriangle, Info, Calendar, MoreVertical, Edit, Trash2, Settings, Plus } from 'lucide-react'
-import Draggable from "react-draggable"
-import { AddLeadModal } from "../../components/customer-dashboard/lead-components/add-lead-modal"
-import ViewLeadDetailsModal from "../../components/customer-dashboard/lead-components/view-lead-details"
-import { AddLeadContractModal } from "../../components/customer-dashboard/lead-components/add-lead-contract-modal"
 import toast, { Toaster } from "react-hot-toast"
+import Draggable from "react-draggable"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import { EditLeadModal } from "../../components/customer-dashboard/lead-components/edit-lead-modal"
 import { createPortal } from "react-dom"
-import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
-import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
-import Sidebar from "../../components/customer-dashboard/central-sidebar"
-import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
+import { AddLeadModal } from "../../components/admin-dashboard-components/lead-components/add-lead-modal"
 import { IoIosMenu } from "react-icons/io"
+
+
+import ViewLeadDetailsModal from "../../components/admin-dashboard-components/lead-components/view-lead-details"
+import { AddLeadContractModal } from "../../components/admin-dashboard-components/lead-components/add-lead-contract-modal"
+import { EditLeadModal } from "../../components/admin-dashboard-components/lead-components/edit-lead-modal"
+import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
+import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
+import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
 
 const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteLead, columnId, onDragStop, index }) => {
   const [isDragging, setIsDragging] = useState(false)

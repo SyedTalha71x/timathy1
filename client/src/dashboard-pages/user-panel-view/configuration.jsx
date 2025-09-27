@@ -38,7 +38,7 @@ import {
   ItalicOutlined,
   UnderlineOutlined,
 } from "@ant-design/icons"
-import VariablePicker from "../../components/variable-picker" // Assuming VariablePicker is in components folder
+import VariablePicker from "../../components/variable-picker" 
 import defaultLogoUrl from '../../../public/gray-avatar-fotor-20250912192528.png'
 import "../../custom-css/user-panel-configuration.css"
 

@@ -1,20 +1,20 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, FileText } from "lucide-react"
-import CheckFundsModal from "../../components/customer-dashboard/studios-modal/check-funds-modal"
-import SepaXmlModal from "../../components/customer-dashboard/studios-modal/sepa-xml-modal"
-import { financialData } from "../../utils/admin-panel-states/finance-states"
-import ServicesModal from "../../components/customer-dashboard/services-modal"
-import DocumentsModal from "../../components/customer-dashboard/documents-modal"
-import DocumentViewerModal from "../../components/customer-dashboard/document-viewer-modal"
-import { IoIosMenu } from "react-icons/io"
 import toast from "react-hot-toast"
-import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
-import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
-import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
-import Sidebar from "../../components/customer-dashboard/central-sidebar"
+import { IoIosMenu } from "react-icons/io"
+
+import { financialData } from "../../utils/admin-panel-states/finance-states"
+import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
+
+import CheckFundsModal from "../../components/admin-dashboard-components/studios-modal/check-funds-modal"
+import SepaXmlModal from "../../components/admin-dashboard-components/studios-modal/sepa-xml-modal"
+import ServicesModal from "../../components/admin-dashboard-components/finance-components/services-modal"
+import DocumentsModal from "../../components/admin-dashboard-components/finance-components/documents-modal"
+import DocumentViewerModal from "../../components/admin-dashboard-components/finance-components/document-viewer-modal"
+import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
+import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
 
 export default function FinancesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")

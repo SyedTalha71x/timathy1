@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 
 // sidebar related import
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
-import EditTaskModal from "../../components/task-components/edit-task-modal"
+import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"

@@ -5,12 +5,9 @@ import { useState, useRef, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
 import {
-    BarChart3,
     MoreVertical,
     X,
     ChevronDown,
-    Edit,
-    Check,
     ArrowDown,
     ArrowUp,
     Plus,

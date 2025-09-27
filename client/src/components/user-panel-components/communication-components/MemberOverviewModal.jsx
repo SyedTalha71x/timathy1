@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { X, Cake, Calendar as CalendarIcon, History, MessageCircle, Eye } from "lucide-react"
-import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+import DefaultAvatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 export default function MemberOverviewModal({
   isOpen,
   onClose,

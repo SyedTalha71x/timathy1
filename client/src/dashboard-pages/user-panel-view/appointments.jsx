@@ -17,21 +17,23 @@ import {
 import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { IoIosMenu } from "react-icons/io"
+import { useNavigate } from "react-router-dom"
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+
+import { useSidebarSystem } from "../../hooks/useSidebarSystem"
+import { trainingVideosData } from "../../utils/user-panel-states/training-states"
+import { appointmentsData as initialAppointmentsData } from "../../utils/user-panel-states/appointment-states"
+
 import TrialTrainingModal from "../../components/user-panel-components/appointments-components/add-trial-training"
 import AddAppointmentModal from "../../components/user-panel-components/appointments-components/add-appointment-modal"
 import MiniCalendar from "../../components/user-panel-components/appointments-components/mini-calender"
 import BlockAppointmentModal from "../../components/user-panel-components/appointments-components/block-appointment-modal"
-import { appointmentsData as initialAppointmentsData } from "../../utils/user-panel-states/appointment-states"
 import Calendar from "../../components/user-panel-components/appointments-components/calendar"
-import { useNavigate } from "react-router-dom"
-import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import AppointmentActionModal from "../../components/user-panel-components/appointments-components/appointment-action-modal"
-import { useSidebarSystem } from "../../hooks/useSidebarSystem"
-import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 
 
 // sidebar related import
-import EditTaskModal from "../../components/task-components/edit-task-modal"
+import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
 import ContingentModal from "../../components/myarea-components/ContigentModal"
@@ -50,33 +52,32 @@ import EditAppointmentModalV2 from "../../components/myarea-components/EditAppoi
 
 
 export default function Appointments() {
-  const navigate = useNavigate()
   const sidebarSystem = useSidebarSystem();
   const trainingVideos = trainingVideosData
-  // ----
+  
   const [appointmentsMain, setAppointmentsMain] = useState(initialAppointmentsData)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [selectedDate, setSelectedDate] = useState(null)
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
-  // ----
+  
   const [selectedAppointmentMain, setSelectedAppointmentMain] = useState(null)
-  // ----
+  
   const [activeNoteIdMain, setActiveNoteIdMain] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
-  // ----
+  
   const [selectedMemberMain, setSelectedMemberMain] = useState(null)
-  // ----
+  
   const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
-  // ----
+  
   const [notifyActionMain, setNotifyActionMain] = useState("")
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
-  // ----
+  
   const [showAppointmentOptionsModalMain, setshowAppointmentOptionsModalMain] = useState(false)
-  // ----
+  
   const [isEditAppointmentModalOpenMain, setisEditAppointmentModalOpenMain] = useState(false)
 
   // FIXED: Added collapsible states for filters and upcoming appointments
@@ -94,14 +95,14 @@ export default function Appointments() {
     "Past Appointments": true,
   })
 
-  // ----
+  
   const [freeAppointmentsMain, setFreeAppointmentsMain] = useState([
     { id: "free1", date: "2025-01-03", time: "10:00" },
     { id: "free2", date: "2025-01-03", time: "11:00" },
     { id: "free3", date: "2025-01-03", time: "14:00" },
   ])
 
-  // ----
+  
   const [appointmentTypesMain, setAppointmentTypesMain] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
     { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
@@ -116,7 +117,7 @@ export default function Appointments() {
     applyFilters()
   }, [appointmentsMain, selectedDate, searchQuery, appointmentFilters])
 
-  // ----
+  
   const notePopoverRefMain = useRef(null)
 
   useEffect(() => {
@@ -241,7 +242,7 @@ export default function Appointments() {
     setAppointmentsMain([...appointmentsMain, newTrial])
     toast.success("Trial training booked successfully")
   }
-  // ----
+  
   const handleCheckInMain = (appointmentId) => {
     setAppointmentsMain((prevAppointments) =>
       prevAppointments.map((appointment) =>
@@ -254,7 +255,7 @@ export default function Appointments() {
         : "Member check in successfully",
     )
   }
-  // ----
+  
   const handleNotifyMemberMain = (shouldNotify) => {
     setIsNotifyMemberOpenMain(false)
     if (shouldNotify) {
@@ -272,13 +273,13 @@ export default function Appointments() {
       setSelectedMemberMain(foundMember ? foundMember.name : null)
     }
   }
-  // ----
+  
   const handleDeleteAppointmentMain = (appointmentId) => {
     setAppointmentsMain((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
     setSelectedAppointmentMain(null)
     toast.success("Appointment deleted successfully")
   }
-  // ----
+  
   const handleCancelAppointmentMain = (appointmentId) => {
     // New function to handle cancellation (status change)
     const updatedAppointments = appointmentsMain.map((app) =>
@@ -292,13 +293,13 @@ export default function Appointments() {
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed)
   }
-  // ----
+  
   const handleAppointmentOptionsModalMain = (appointment) => {
     setSelectedAppointmentMain(appointment)
     setshowAppointmentOptionsModalMain(true)
     setisEditAppointmentModalOpenMain(false) // Ensure edit modal is closed
   }
-  // ----
+  
   const renderSpecialNoteIconMain = useCallback(
     (specialNote, memberId) => {
       if (!specialNote?.text) return null

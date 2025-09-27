@@ -16,10 +16,11 @@ import {
   ExternalLink,
 } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
-import WidgetSelectionModal from '../../components/customer-dashboard/myarea-components/widgets'
-import Sidebar from '../../components/customer-dashboard/myarea-components/myarea-sidebar'
-import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
-import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
+
+import WidgetSelectionModal from '../../components/admin-dashboard-components/myarea-components/widgets'
+import Sidebar from '../../components/admin-dashboard-components/myarea-components/myarea-sidebar'
+import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
+import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
 
 const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
   const ref = useRef(null)

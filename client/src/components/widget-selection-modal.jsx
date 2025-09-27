@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 import { BarChart3, Calendar, Users, Link, MessageSquare, CheckSquare, Gift, Clipboard } from "lucide-react"

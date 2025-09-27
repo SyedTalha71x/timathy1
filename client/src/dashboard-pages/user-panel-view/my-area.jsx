@@ -25,14 +25,13 @@ import {
 import { Toaster, toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
-import AppointmentActionModal from "../../components/user-panel-components/appointments-components/appointment-action-modal"
-import EditAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal"
-import EditTaskModal from "../../components/task-components/edit-task-modal"
+
+import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
 import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
 import StaffCheckInWidget from "../../components/myarea-components/StaffWidgetCheckIn"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
-import MemberOverviewModal from "../../components/communication-components/MemberOverviewModal"
+import MemberOverviewModal from "../../components/user-panel-components/communication-components/MemberOverviewModal"
 import ContingentModal from "../../components/myarea-components/ContigentModal"
 import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"

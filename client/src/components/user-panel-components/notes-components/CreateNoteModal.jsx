@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Modal from "./Modal"
 
-/* eslint-disable no-unused-vars */
 function CreateNoteModal({ isOpen, onClose, onSave }) {
   const [newNote, setNewNote] = useState({ title: "", content: "" })
 

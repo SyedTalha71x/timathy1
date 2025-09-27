@@ -2,13 +2,13 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useRef, useEffect } from "react"
 import { Plus, Filter, X, Calendar, Tag, Users, Repeat, Check, ChevronDown, Clock, Bell } from "lucide-react"
-import EditTaskModal from "../../components/task-components/edit-task-modal"
+import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
 import { IoIosMenu } from "react-icons/io"
 import toast, { Toaster } from "react-hot-toast"
-import RepeatTaskModal from "../../components/task-components/repeat-task-modal"
-import TaskItem from "../../components/task-components/task-item"
-import AssignModal from "../../components/task-components/assign-modal"
-import TagsModal from "../../components/task-components/edit-tags"
+import RepeatTaskModal from "../../components/user-panel-components/task-components/repeat-task-modal"
+import TaskItem from "../../components/user-panel-components/task-components/task-item"
+import AssignModal from "../../components/user-panel-components/task-components/assign-modal"
+import TagsModal from "../../components/user-panel-components/task-components/edit-tags"
 import Draggable from "react-draggable"
 
 import {
@@ -16,7 +16,7 @@ import {
   configuredTagsData,
   availableAssigneesData,
 } from "../../utils/user-panel-states/todo-states"
-import DeleteModal from "../../components/task-components/delete-task"
+import DeleteModal from "../../components/user-panel-components/task-components/delete-task"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import Sidebar from "../../components/central-sidebar"

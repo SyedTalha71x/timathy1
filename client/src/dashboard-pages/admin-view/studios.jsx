@@ -1,11 +1,4 @@
 /* eslint-disable no-unused-vars */
-"use client"
-
-// 1) "Archived Studios" -> "Inactive Studios" in filter label,
-// 2) Add sort by Studio Member Count high/low,
-// 3) Replace "Franchise" tag with green "Active" or red "Archived" tag in franchise overview.
-// No other behavior or styling is modified.
-
 import { useEffect, useRef, useState } from "react"
 import {
   X,
@@ -26,17 +19,6 @@ import {
   HistoryIcon,
 } from "lucide-react"
 
-import DefaultStudioImage from "../../../public/default-avatar.avif"
-import toast, { Toaster } from "react-hot-toast"
-import { RiContractFill } from "react-icons/ri"
-import FranchiseModal from "../../components/customer-dashboard/studios-modal/franchise-modal"
-import AssignStudioModal from "../../components/customer-dashboard/studios-modal/assign-studios-modal"
-import StudioManagementModal from "../../components/customer-dashboard/studios-modal/studio-management-modal"
-import FranchiseDetailsModal from "../../components/customer-dashboard/studios-modal/franchise-details-modal"
-
-import EditMemberModal from "../../components/customer-dashboard/studios-modal/edit-member-modal"
-import EditStaffModal from "../../components/customer-dashboard/studios-modal/edit-staff-modal"
-import StudioDetailsModal from "../../components/customer-dashboard/studios-modal/studios-detail-modal"
 import {
   FranchiseData,
   studioContractsData,
@@ -46,18 +28,32 @@ import {
   studioStaffData,
   studioStatsData,
 } from "../../utils/admin-panel-states/states"
-import EditStudioModal from "../../components/customer-dashboard/studios-modal/edit-studio-modal"
-import ContractsModal from "../../components/customer-dashboard/studios-modal/contract-modal"
-import AddStaffModal from "../../components/customer-dashboard/studios-modal/add-staff-modal"
-import { ViewStaffModal } from "../../components/customer-dashboard/studios-modal/view-staff-details"
-import MemberDetailsModal from "../../components/customer-dashboard/studios-modal/members-detail"
-import ContractDetailsModal from "../../components/customer-dashboard/studios-modal/contract-details"
-import StudioHistoryModalMain from "../../components/customer-dashboard/studios-modal/studio-history"
+
+import DefaultStudioImage from "../../../public/default-avatar.avif"
+import toast, { Toaster } from "react-hot-toast"
+import { RiContractFill } from "react-icons/ri"
 import { IoIosMenu } from "react-icons/io"
-import WebsiteLinkModal from "../../components/customer-dashboard/myarea-components/website-link-modal"
-import WidgetSelectionModal from "../../components/customer-dashboard/myarea-components/widgets"
-import ConfirmationModal from "../../components/customer-dashboard/myarea-components/confirmation-modal"
-import Sidebar from "../../components/customer-dashboard/central-sidebar"
+
+import FranchiseModal from "../../components/admin-dashboard-components/studios-modal/franchise-modal"
+import AssignStudioModal from "../../components/admin-dashboard-components/studios-modal/assign-studios-modal"
+import StudioManagementModal from "../../components/admin-dashboard-components/studios-modal/studio-management-modal"
+import FranchiseDetailsModal from "../../components/admin-dashboard-components/studios-modal/franchise-details-modal"
+
+import EditMemberModal from "../../components/admin-dashboard-components/studios-modal/edit-member-modal"
+import EditStaffModal from "../../components/admin-dashboard-components/studios-modal/edit-staff-modal"
+import StudioDetailsModal from "../../components/admin-dashboard-components/studios-modal/studios-detail-modal"
+
+import EditStudioModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-modal"
+import ContractsModal from "../../components/admin-dashboard-components/studios-modal/contract-modal"
+import AddStaffModal from "../../components/admin-dashboard-components/studios-modal/add-staff-modal"
+import { ViewStaffModal } from "../../components/admin-dashboard-components/studios-modal/view-staff-details"
+import MemberDetailsModal from "../../components/admin-dashboard-components/studios-modal/members-detail"
+import ContractDetailsModal from "../../components/admin-dashboard-components/studios-modal/contract-details"
+import StudioHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/studio-history"
+import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
+import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
+import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
+import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
 
 export default function Studios() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
