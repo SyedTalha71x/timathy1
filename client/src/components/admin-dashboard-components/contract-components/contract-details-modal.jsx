@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import { X, Printer, Download, User } from "lucide-react"
 import { useState } from "react"
-import Contract1 from "../../../public/contract1.png"
+import Contract1 from "../../../../public/contract1.png"
 
 export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
   const [showContractImage, setShowContractImage] = useState(false)
