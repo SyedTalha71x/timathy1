@@ -251,10 +251,10 @@
   margin-left: 0 !important;
 }
 
-.ant-tabs-tab:hover {
+/* .ant-tabs-tab:hover {
   color: #ffffff !important;
   background-color: rgba(255, 255, 255, 0.05) !important;
-}
+} */
 
 .ant-tabs-tab-active {
   background-color: #196be6 !important;

@@ -53,11 +53,11 @@ const Sidebar = () => {
   const [isMembersOpen, setisMembersOpen] = useState(false)
 
   const languages = [
-    { code: "en", name: "English", flag: "🇺🇸" },
-    { code: "de", name: "German", flag: "🇩🇪" },
-    { code: "fr", name: "French", flag: "🇫🇷" },
-    { code: "es", name: "Spanish", flag: "🇪🇸" },
-    { code: "it", name: "Italian", flag: "🇮🇹" },
+    { code: "en", name: "English", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Flag_of_the_United_States.png/1024px-Flag_of_the_United_States.png" },
+    { code: "de", name: "German", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" },
+    { code: "fr", name: "French", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/1280px-Flag_of_France.svg.png" },
+    { code: "es", name: "Spanish", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Flag_of_Spain.svg/1280px-Flag_of_Spain.svg.png" },
+    { code: "it", name: "Italian", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
   ]
 
   const studioName = "Studio One"
@@ -206,7 +206,11 @@ const Sidebar = () => {
     <>
       <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between lg:hidden z-40">
         {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={toggleSidebar} />}
+       
         <div className="flex items-center gap-3">
+        <div className=" bg-orange-500 p-4 rounded-md">
+          <img src="/Orgagym white.svg" className="h-10 w-10" alt="Orgagym Logo" />
+        </div>
           <button
             onClick={toggleSidebar}
             className="p-2 rounded-lg text-white hover:bg-zinc-700"
@@ -216,6 +220,7 @@ const Sidebar = () => {
           </button>
         </div>
         <div className="flex gap-1 items-center">
+       
           <div className="relative mr-2">
             <button
               onClick={toggleLanguageDropdown}
@@ -235,7 +240,7 @@ const Sidebar = () => {
                         selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
                       }`}
                     >
-                      <span className="text-base">{language.flag}</span>
+                     <img src={language.flag} className="h- rounded-sm w-8"/>
                       <span>{language.name}</span>
                     </button>
                   ))}
@@ -248,43 +253,61 @@ const Sidebar = () => {
             <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
           </div>
           {isDropdownOpen && (
-            <div className="absolute right-5 top-13 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
-              <div className="py-2" role="menu">
-                <button
-                  onClick={handleEditProfile}
-                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                >
-                  Edit Profile
-                </button>
-                <hr className="border-zinc-600 my-1" />
-                <button
-                  onClick={handlePrivacyPolicy}
-                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                >
-                  Privacy Policy
-                </button>
-                <button
-                  onClick={handleTermsOfUse}
-                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                >
-                  Terms & Conditions
-                </button>
-                <button
-                  onClick={handleChangelog}
-                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                >
-                  Changelog
-                </button>
-                <hr className="border-zinc-600 my-1" />
-                <button
-                  onClick={handleLogout}
-                  className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          )}
+  <div className="absolute right-5 top-13 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+    <div className="p-2">
+      <div className="flex flex-col">
+        {/* Trainer Name and Role */}
+        <div className="flex flex-col">
+          <h2 className="font-semibold text-white text-sm leading-tight">{fullName}</h2>
+          <span className="text-zinc-400 text-xs font-medium">{role}</span>
+        </div>
+
+        {/* Studio Name */}
+        <div className="flex items-center mt-2 gap-1 bg-black py-1 px-3 rounded-md w-fit">
+          <Building2 size={14} className="text-white" />
+          <p className="text-xs font-medium text-white">{studioName}</p>
+        </div>
+      </div>
+    </div>
+
+    {/* Menu Items */}
+    <div className="py-2" role="menu">
+      <button
+        onClick={handleEditProfile}
+        className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+      >
+        Edit Profile
+      </button>
+      <hr className="border-zinc-600 my-1" />
+      <button
+        onClick={handlePrivacyPolicy}
+        className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+      >
+        Privacy Policy
+      </button>
+      <button
+        onClick={handleTermsOfUse}
+        className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+      >
+        Terms & Conditions
+      </button>
+      <button
+        onClick={handleChangelog}
+        className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+      >
+        Changelog
+      </button>
+      <hr className="border-zinc-600 my-1" />
+      <button
+        onClick={handleLogout}
+        className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+      >
+        Logout
+      </button>
+    </div>
+  </div>
+)}
+
         </div>
       </div>
 
@@ -360,9 +383,8 @@ const Sidebar = () => {
     )}
   </div>
 
-  {/* Dropdown Menu (same as before) */}
   {isDropdownOpen && !isCollapsed && (
-    <div className="absolute right-10 top-25 w-46 bg-[#222222]/40 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+    <div className="absolute right-26 top-25 w-46 bg-[#222222]/40 backdrop-blur-3xl rounded-lg shadow-lg z-50">
       <div className="py-2" role="menu">
         <button
           onClick={handleEditProfile}
@@ -435,7 +457,8 @@ const Sidebar = () => {
                     selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
                   }`}
                 >
-                  <span className="text-base">{language.flag}</span>
+                                       <img src={language.flag} className="h- rounded-sm w-8"/>
+
                   <span>{language.name}</span>
                 </button>
               ))}

@@ -1123,120 +1123,141 @@ const [memberQRCodeUrl, setMemberQRCodeUrl] = useState("")
               </Collapse>
             </Panel>
             <Panel header="Staff Management" key="2" className="bg-[#202020]">
-              <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-                <Panel header="General Settings" key="2" className="bg-[#252525]">
-                  <div className="space-y-4">
-                    <Form.Item>
-                      <div className="flex items-center">
-                        <label className="text-white w-38">Default Vacation Days</label>
-                        <InputNumber
-                          min={0}
-                          max={365}
-                          value={defaultVacationDays}
-                          onChange={(value) => setDefaultVacationDays(value || 0)}
-                          style={inputStyle}
-                          className="white-text"
-                        />
-                      </div>
-                    </Form.Item>
-                  </div>
-                </Panel>
-                <Panel header="Staff Roles" key="1" className="bg-[#252525]">
-                  <div className="space-y-4">
-                    {roles.map((role, index) => (
-                      <div key={index} className="flex flex-wrap gap-4 items-center">
-                        <Input
-                          placeholder="Role Name"
-                          value={role.name}
-                          onChange={(e) => {
-                            const updatedRoles = [...roles]
-                            updatedRoles[index].name = e.target.value
-                            setRoles(updatedRoles)
-                          }}
-                          className="!w-full md:!w-32 lg:!w-90 !py-3.5"
-                          style={inputStyle}
-                        />
+  <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+    <Panel header="General Settings" key="2" className="bg-[#252525]">
+      <div className="space-y-4">
+        <Form.Item>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <label className="text-white sm:w-38">Default Vacation Days</label>
+            <InputNumber
+              min={0}
+              max={365}
+              value={defaultVacationDays}
+              onChange={(value) => setDefaultVacationDays(value || 0)}
+              style={inputStyle}
+              className="white-text"
+            />
+          </div>
+        </Form.Item>
+      </div>
+    </Panel>
+    <Panel header="Staff Roles" key="1" className="bg-[#252525]">
+      <div className="space-y-4">
+        {roles.map((role, index) => (
+          <div key={index} className="flex flex-col gap-4 p-3 border border-[#303030] rounded-lg">
+            {/* Role Name and Color Row */}
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <Input
+                placeholder="Role Name"
+                value={role.name}
+                onChange={(e) => {
+                  const updatedRoles = [...roles]
+                  updatedRoles[index].name = e.target.value
+                  setRoles(updatedRoles)
+                }}
+                className="!w-full sm:!w-48 !py-3.5"
+                style={inputStyle}
+              />
 
-                        {/* Add Color Picker for Role */}
-                        <div className="flex items-center">
-                          <ColorPicker
-                            value={role.color}
-                            onChange={(color) => {
-                              const updatedRoles = [...roles]
-                              updatedRoles[index].color = color
-                              setRoles(updatedRoles)
-                            }}
-                          />
-                          <Tooltip title="Role display color">
-                            <InfoCircleOutlined style={tooltipStyle} />
-                          </Tooltip>
-                        </div>
+              {/* Color Picker */}
+              <div className="flex items-center gap-2">
+                <ColorPicker
+                  value={role.color}
+                  onChange={(color) => {
+                    const updatedRoles = [...roles]
+                    updatedRoles[index].color = color
+                    setRoles(updatedRoles)
+                  }}
+                />
+                <Tooltip title="Role display color">
+                  <InfoCircleOutlined style={tooltipStyle} />
+                </Tooltip>
+              </div>
 
-                        {/* </CHANGE> replace the permissions <Select> with a dual-list <Transfer> UI (Excel-ribbon style) */}
-                                                {/* </CHANGE> replace the permissions <Select> with a dual-list <Transfer> UI (Excel-ribbon style) */}
-                                                <div className="flex-1">
-                          <Transfer
-                            dataSource={PERMISSION_DATA}
-                            targetKeys={role.permissions}
-                            onChange={(nextTargetKeys) => {
-                              const updatedRoles = [...roles]
-                              updatedRoles[index].permissions = nextTargetKeys
-                              setRoles(updatedRoles)
-                            }}
-                            render={(item) => (
-                              <span style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", color: "#ffffff" }}>
-                                <span style={{ display: "inline-flex", alignItems: "center", width: 20 }}>
-                                  {GROUP_ICONS[item.iconName]}
-                                </span>
-                                <span
-                                  style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ffffff" }}
-                                >
-                                  {item.title}
-                                </span>
-                                <Tag color="blue" style={{ marginLeft: 8 }}>
-                                  {item.group}
-                                </Tag>
-                              </span>
-                            )}
-                            titles={["Available", "Assigned"]}
-                            showSearch
-                            filterOption={(inputValue, item) =>
-                              item.title.toLowerCase().includes(inputValue.toLowerCase()) ||
-                              item.group.toLowerCase().includes(inputValue.toLowerCase())
-                            }
-                            listStyle={{
-                              width: 320,
-                              height: 320,
-                            }}
-                            className="!w-full"
-                          />
-                        </div>
-                        {/* </CHANGE> */}
+              {/* Remove Button */}
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => setRoles(roles.filter((_, i) => i !== index))}
+                className="w-full sm:w-auto mt-2 sm:mt-0"
+                style={buttonStyle}
+              >
+                Remove
+              </Button>
+            </div>
 
-                        <Button
-                          danger
-                          icon={<DeleteOutlined />}
-                          onClick={() => setRoles(roles.filter((_, i) => i !== index))}
-                          className="w-full sm:w-auto"
-                          style={buttonStyle}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      type="dashed"
-                      onClick={handleAddRole}
-                      icon={<PlusOutlined />}
-                      className="w-full sm:w-auto"
-                      style={buttonStyle}
+            {/* Permissions Transfer - Responsive */}
+            <div className="w-full">
+              <Transfer
+                dataSource={PERMISSION_DATA}
+                targetKeys={role.permissions}
+                onChange={(nextTargetKeys) => {
+                  const updatedRoles = [...roles]
+                  updatedRoles[index].permissions = nextTargetKeys
+                  setRoles(updatedRoles)
+                }}
+                render={(item) => (
+                  <span style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 8, 
+                    width: "100%", 
+                    color: "#ffffff",
+                    fontSize: "12px",
+                    padding: "4px 0"
+                  }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", width: 16 }}>
+                      {GROUP_ICONS[item.iconName]}
+                    </span>
+                    <span
+                      style={{ 
+                        flex: 1, 
+                        overflow: "hidden", 
+                        textOverflow: "ellipsis", 
+                        whiteSpace: "nowrap", 
+                        color: "#ffffff" 
+                      }}
                     >
-                      Add Role
-                    </Button>
-                  </div>
-                </Panel>
-              </Collapse>
-            </Panel>
+                      {item.title}
+                    </span>
+                    <Tag color="blue" style={{ marginLeft: 4, fontSize: "10px", padding: "0 4px" }}>
+                      {item.group}
+                    </Tag>
+                  </span>
+                )}
+                titles={["Available Permissions", "Assigned Permissions"]}
+                showSearch
+                filterOption={(inputValue, item) =>
+                  item.title.toLowerCase().includes(inputValue.toLowerCase()) ||
+                  item.group.toLowerCase().includes(inputValue.toLowerCase())
+                }
+                listStyle={{
+                  width: "100%",
+                  height: 280,
+                }}
+                className="!w-full responsive-transfer"
+                operations={["Assign", "Remove"]}
+                selectAllLabels={[
+                  (selectedCount, totalCount) => `Available ${selectedCount}/${totalCount}`,
+                  (selectedCount, totalCount) => `Assigned ${selectedCount}/${totalCount}`
+                ]}
+              />
+            </div>
+          </div>
+        ))}
+        <Button
+          type="dashed"
+          onClick={handleAddRole}
+          icon={<PlusOutlined />}
+          className="w-full sm:w-auto"
+          style={buttonStyle}
+        >
+          Add Role
+        </Button>
+      </div>
+    </Panel>
+  </Collapse>
+</Panel>
             <Panel header="Member Management" key="4" className="bg-[#202020]">
   <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
     <Panel header="QR Code Check-In" key="1" className="bg-[#252525]">

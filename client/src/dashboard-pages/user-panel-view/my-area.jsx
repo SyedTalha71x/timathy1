@@ -1355,31 +1355,35 @@ export default function MyArea() {
                       widgets={widgets}
                     >
                       {widget.type === "expiringContracts" && (
-                        <div className="space-y-3 p-4 rounded-xl max-h-[340px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
-                          <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">Expiring Contracts</h2>
-                          </div>
-                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                            <div className="grid grid-cols-1 gap-3">
-                              {expiringContracts.map((contract) => (
-                                <Link to={"/dashboard/contract"} key={contract.id}>
-                                  <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <h3 className="text-sm font-medium">{contract.title}</h3>
-                                        <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
-                                      </div>
-                                      <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400">
-                                        {contract.status}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
+  <div className="space-y-3 p-4 rounded-xl max-h-[340px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
+    <div className="flex justify-between items-center flex-shrink-0">
+      <h2 className="text-lg font-semibold">Expiring Contracts</h2>
+    </div>
+    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+      <div className="grid grid-cols-1 gap-3">
+        {expiringContracts.map((contract) => (
+          <Link to={"/dashboard/contract"} key={contract.id}>
+            <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-medium break-words line-clamp-2">
+                    {contract.title}
+                  </h3>
+                  <p className="text-xs mt-1 text-zinc-400 whitespace-nowrap overflow-hidden text-ellipsis">
+                    Expires: {contract.expiryDate}
+                  </p>
+                </div>
+                <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap flex-shrink-0">
+                  {contract.status}
+                </span>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
                       {widget.type === "appointments" && (
                         <div className="space-y-3 p-4 rounded-xl md:h-[340px] h-auto bg-[#2F2F2F]">
                           <div className="flex justify-between items-center">
