@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
-import { X } from "lucide-react"
-import { BarChart3, Calendar, Users, Link, MessageSquare, CheckSquare, Gift, Clipboard } from "lucide-react"
+import { FileText, X } from "lucide-react"
+import { BarChart3, Calendar, Users, Link, CheckSquare, Gift, Clipboard } from "lucide-react"
 
 export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus, widgetArea = "dashboard" }) {
   if (!isOpen) return null
@@ -37,12 +37,6 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       icon: Link,
     },
     {
-      id: "communications",
-      name: "Communications",
-      description: "Recent messages and communications",
-      icon: MessageSquare,
-    },
-    {
       id: "todo",
       name: "To-Do",
       description: "Task management and to-do items",
@@ -59,6 +53,12 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       name: "Bulletin Board",
       description: "View bulletin board posts for staff and members",
       icon: Clipboard,
+    },
+    {
+      id: "notes",
+      name: "Notes",
+      description: "Create and manage personal notes",
+      icon: FileText,
     },
   ]
 
@@ -81,12 +81,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       description: "Quick access to important websites",
       icon: Link,
     },
-    {
-      id: "communications",
-      name: "Communications",
-      description: "Recent messages and communications",
-      icon: MessageSquare,
-    },
+   
     {
       id: "chart",
       name: "Analytics Chart",
@@ -116,6 +111,12 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       name: "Bulletin Board",
       description: "View bulletin board posts for staff and members",
       icon: Clipboard,
+    },
+    {
+      id: "notes",
+      name: "Notes",
+      description: "Create and manage personal notes",
+      icon: FileText,
     },
   ]
 

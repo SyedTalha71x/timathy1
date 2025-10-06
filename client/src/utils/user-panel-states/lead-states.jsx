@@ -12,6 +12,7 @@ export const hardcodedLeads = [
       avatar: Avatar,
       source: "Social Media Ads",
       status: "active",
+      gender: "male",
       about: "Software Engineer",
       createdAt: "2025-01-15T10:30:00Z",
       specialNote: {
@@ -37,6 +38,7 @@ export const hardcodedLeads = [
       trialPeriod: "Trial Period",
       hasTrialTraining: false,
       avatar: Avatar,
+      gender: "female",
       source: "Google Ads",
       status: "passive",
       createdAt: "2025-01-20T14:45:00Z",
@@ -65,6 +67,7 @@ export const hardcodedLeads = [
       avatar: Avatar,
       source: "Email Campaign",
       status: "trial",
+      gender: "male",
       createdAt: "2025-01-25T09:15:00Z",
       specialNote: {
         text: "Former athlete, looking for high-intensity workouts.",
@@ -91,6 +94,7 @@ export const hardcodedLeads = [
       avatar: Avatar,
       source: "Website",
       status: "uninterested",
+      gender: "female",
       createdAt: "2025-02-01T11:20:00Z",
       specialNote: {
         text: "Requested follow-up in 3 months - not ready to commit now.",

@@ -18,6 +18,7 @@ export const staffMemberDataNew = [
       city: "Anytown",
       vacationEntitlement: 30,
       birthday: "1990-05-10",
+      gender: "female"
     },
     {
       id: 2,
@@ -35,6 +36,7 @@ export const staffMemberDataNew = [
       city: "Othertown",
       vacationEntitlement: 25,
       birthday: "1992-11-20",
+      gender: "male"
     },
     {
       id: 3,
@@ -52,5 +54,6 @@ export const staffMemberDataNew = [
       city: "Othertown",
       vacationEntitlement: 15,
       birthday: "1992-11-27",
+         gender: "male"
     },
   ]

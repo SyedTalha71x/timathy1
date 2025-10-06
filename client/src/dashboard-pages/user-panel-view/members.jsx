@@ -35,7 +35,6 @@ import ContingentModalMain from "../../components/user-panel-components/members-
 import ViewDetailsModal from "../../components/user-panel-components/members-components/ViewDetailsModal"
 import AppointmentModalMain from "../../components/user-panel-components/members-components/AppointmentModal"
 import FilterModal from "../../components/user-panel-components/members-components/FilterModal"
-import TrainingPlansModal from "../../components/user-panel-components/members-components/TrainingPlanModal"
 import { MemberDocumentModal } from "../../components/user-panel-components/members-components/MemberDocumentModal"
 import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain } from "../../utils/user-panel-states/members-states"
 import AddAppointmentModal from "../../components/user-panel-components/members-components/AddAppointmentModal"
@@ -63,6 +62,9 @@ import EditAppointmentModalV2 from "../../components/myarea-components/EditAppoi
 
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
+import ChatPopup from "../../components/user-panel-components/members-components/ChatPopup"
+import TrainingPlansModalMain from "../../components/user-panel-components/members-components/TrainingPlanModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 export default function Members() {
 
@@ -81,6 +83,12 @@ export default function Members() {
   // 
   const [editModalTabMain, setEditModalTabMain] = useState("details")
   const [isDirectionDropdownOpen, setIsDirectionDropdownOpen] = useState(false)
+  const [viewDetailsInitialTab, setViewDetailsInitialTab] = useState("details")
+
+  const [chatPopup, setChatPopup] = useState({
+    isOpen: false,
+    member: null
+  });
 
 
   const [sortBy, setSortBy] = useState("alphabetical")
@@ -99,6 +107,10 @@ export default function Members() {
   const [memberTypeFilter, setMemberTypeFilter] = useState("all")
   const [archivedFilter, setArchivedFilter] = useState("active")
   const [filterStatus, setFilterStatus] = useState("all")
+
+
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null)
+
 
   // 
   const [showAppointmentModalMain, setShowAppointmentModalMain] = useState(false)
@@ -189,6 +201,7 @@ export default function Members() {
     img: null,
     city: "",
     dateOfBirth: "",
+    gender: "",
     about: "",
     note: "",
     noteStartDate: "",
@@ -211,6 +224,7 @@ export default function Members() {
     phone: "",
     street: "",
     zipCode: "",
+    gender: "",
     city: "",
     dateOfBirth: "",
     about: "",
@@ -238,6 +252,12 @@ export default function Members() {
 
   const [memberHistoryMain, setMemberHistoryMain] = useState(memberHistoryMainData)
 
+  const getActiveFiltersText = () => {
+    const statusText = filterOptions.find(opt => opt.id === filterStatus)?.label.split(' (')[0] || 'All Members';
+    const typeText = memberTypeFilter === 'all' ? 'All Types' : 
+                     memberTypeFilter === 'full' ? 'Full Members' : 'Temporary Members';
+    return `${statusText} & ${typeText}`;
+  };
 
 
   useEffect(() => {
@@ -503,7 +523,7 @@ export default function Members() {
 
   const handleViewDetails = (member) => {
     setSelectedMemberMain(member)
-    setActiveTab("details")
+    setViewDetailsInitialTab("details")
     setIsViewDetailsModalOpen(true)
   }
 
@@ -539,10 +559,10 @@ export default function Members() {
     }
   }
 
-  const [showTrainingPlansModal, setShowTrainingPlansModal] = useState(false)
-  const [selectedMemberForTrainingPlans, setSelectedMemberForTrainingPlans] = useState(null)
-  const [memberTrainingPlans, setMemberTrainingPlans] = useState({})
-  const [availableTrainingPlans, setAvailableTrainingPlans] = useState([
+  const [showTrainingPlansModalMain, setShowTrainingPlansModalMain] = useState(false)
+  const [selectedMemberForTrainingPlansMain, setSelectedMemberForTrainingPlansMain] = useState(null)
+  const [memberTrainingPlansMain, setMemberTrainingPlansMain] = useState({})
+  const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
     {
       id: 1,
       name: "Beginner Full Body",
@@ -578,20 +598,20 @@ export default function Members() {
     setShowAppointmentModalMain(true)
   }
 
-  const handleTrainingPlansClick = (member) => {
-    setSelectedMemberForTrainingPlans(member)
-    setShowTrainingPlansModal(true)
+  const handleTrainingPlansClickMain = (member) => {
+    setSelectedMemberForTrainingPlansMain(member)
+    setShowTrainingPlansModalMain(true)
   }
 
-  const handleAssignTrainingPlan = (memberId, planId) => {
-    const plan = availableTrainingPlans.find((p) => p.id === Number.parseInt(planId))
+  const handleAssignTrainingPlanMain = (memberId, planId) => {
+    const plan = availableTrainingPlansMain.find((p) => p.id === Number.parseInt(planId))
     if (plan) {
       const assignedPlan = {
         ...plan,
         assignedDate: new Date().toLocaleDateString(),
       }
 
-      setMemberTrainingPlans((prev) => ({
+      setMemberTrainingPlansMain((prev) => ({
         ...prev,
         [memberId]: [...(prev[memberId] || []), assignedPlan],
       }))
@@ -600,8 +620,8 @@ export default function Members() {
     }
   }
 
-  const handleRemoveTrainingPlan = (memberId, planId) => {
-    setMemberTrainingPlans((prev) => ({
+  const handleRemoveTrainingPlanMain = (memberId, planId) => {
+    setMemberTrainingPlansMain((prev) => ({
       ...prev,
       [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId),
     }))
@@ -697,13 +717,18 @@ export default function Members() {
   }
 
   // 
-  const handleDeleteAppointmentMain = (id) => {
-    setAppointmentsMain(appointmentsMain.filter((app) => app.id !== id))
-    setSelectedAppointmentDataMain(null)
-    setShowSelectedAppointmentModalMain(false)
-    setIsNotifyMemberOpenMain(true)
-    setNotifyActionMain("delete")
-  }
+const handleDeleteAppointmentMain = (id) => {
+  setAppointmentToDelete(id)
+}
+
+const confirmDeleteAppointment = () => {
+  setAppointmentsMain(appointmentsMain.filter((app) => app.id !== appointmentToDelete))
+  setSelectedAppointmentDataMain(null)
+  setShowSelectedAppointmentModalMain(false)
+  setIsNotifyMemberOpenMain(true)
+  setNotifyActionMain("delete")
+  setAppointmentToDelete(null)
+}
   const toggleViewMode = () => {
     setViewMode(viewMode === "grid" ? "list" : "grid")
   }
@@ -723,14 +748,22 @@ export default function Members() {
   }
 
   const handleChatClick = (member) => {
-    window.location.href = `/dashboard/communication`
-  }
+    setChatPopup({
+      isOpen: true,
+      member: member
+    });
+  };
+
+  const handleOpenFullMessenger = (member) => {
+    setChatPopup({ isOpen: false, member: null });
+    window.location.href = `/dashboard/communication`;
+  };
 
   const handleRelationClick = (member) => {
     setSelectedMemberMain(member)
-    setActiveTab("relations")
+    setViewDetailsInitialTab("relations")
     setIsViewDetailsModalOpen(true)
-  }
+  } 
 
   // 
   const handleAddRelationMain = () => {
@@ -946,7 +979,12 @@ export default function Members() {
 
     todoFilterOptions,
     relationOptions,
-    appointmentTypes
+    appointmentTypes,
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem;
 
   // more sidebar related functions
@@ -1214,12 +1252,16 @@ export default function Members() {
 
               {/* Filter */}
               <button
-                onClick={() => setShowFilterModal(true)}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
-              >
-                <Filter size={16} />
-                Filter
-              </button>
+  onClick={() => setShowFilterModal(true)}
+  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
+>
+  <Filter size={16} />
+  <span className="truncate">
+    {(filterStatus !== 'all' || memberTypeFilter !== 'all') 
+      ? getActiveFiltersText() 
+      : 'Filter'}
+  </span>
+</button>
 
 
 
@@ -1384,7 +1426,7 @@ export default function Members() {
                         {activeNoteIdMain === member.id && (
                           <div
                             ref={notePopoverRefMain}
-                            className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+                            className="absolute left-6 top-4 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
                           >
                             <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                               {member.noteImportance === "important" ? (
@@ -1395,7 +1437,7 @@ export default function Members() {
                               <h4 className="text-white flex gap-1 items-center font-medium">
                                 <div>Special Note</div>
                                 <div className="text-sm text-gray-400">
-                                  {member.noteImportance === "important" ? "(Important)" : "(Unimportant Note)"}
+                                  {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
                                 </div>
                               </h4>
                               <button
@@ -1505,7 +1547,7 @@ export default function Members() {
                           <Calendar size={16} />
                         </button>
                         <button
-                          onClick={() => handleTrainingPlansClick(member)}
+                          onClick={() => handleTrainingPlansClickMain(member)}
                           className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                           title="Training Plans"
                         >
@@ -1638,7 +1680,7 @@ export default function Members() {
                             <Calendar size={16} />
                           </button>
                           <button
-                            onClick={() => handleTrainingPlansClick(member)}
+                            onClick={() => handleTrainingPlansClickMain(member)}
                             className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                             title="Training Plans"
                           >
@@ -1758,6 +1800,31 @@ export default function Members() {
         </div>
       </div>
 
+      {appointmentToDelete && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000000]">
+    <div className="bg-[#181818] text-white rounded-xl p-6 max-w-md mx-4">
+      <h3 className="text-lg font-semibold mb-4">Delete Appointment</h3>
+      <p className="text-gray-300 mb-6">
+        Are you sure you want to delete this appointment? This action cannot be undone.
+      </p>
+      <div className="flex gap-3 justify-end">
+        <button
+          onClick={() => setAppointmentToDelete(null)}
+          className="px-4 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={confirmDeleteAppointment}
+          className="px-4 py-2 bg-red-600 text-sm text-white rounded-xl hover:bg-red-700"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       <ViewDetailsModal
         isOpen={isViewDetailsModalOpen}
         onClose={() => {
@@ -1772,6 +1839,7 @@ export default function Members() {
         handleEditMember={handleEditMember}
         setEditModalTabMain={setEditModalTabMain}
         DefaultAvatar1={DefaultAvatar1}
+        initialTab={viewDetailsInitialTab} 
       />
       <AppointmentModalMain
         isOpen={showAppointmentModalMain}
@@ -1842,17 +1910,17 @@ export default function Members() {
         onClose={() => setShowAddBillingPeriodModalMain(false)}
         onAdd={handleAddBillingPeriodMain}
       />
-      <TrainingPlansModal
-        isOpen={showTrainingPlansModal}
+      <TrainingPlansModalMain
+        isOpen={showTrainingPlansModalMain}
         onClose={() => {
-          setShowTrainingPlansModal(false)
-          setSelectedMemberForTrainingPlans(null)
+          setShowTrainingPlansModalMain(false)
+          setSelectedMemberForTrainingPlansMain(null)
         }}
-        selectedMember={selectedMemberForTrainingPlans}
-        memberTrainingPlans={memberTrainingPlans[selectedMemberForTrainingPlans?.id] || []}
-        availableTrainingPlans={availableTrainingPlans}
-        onAssignPlan={handleAssignTrainingPlan}
-        onRemovePlan={handleRemoveTrainingPlan}
+        selectedMemberMain={selectedMemberForTrainingPlansMain}
+        memberTrainingPlansMain={memberTrainingPlansMain[selectedMemberForTrainingPlansMain?.id] || []}
+        availableTrainingPlansMain={availableTrainingPlansMain}
+        onAssignPlanMain={handleAssignTrainingPlanMain}
+        onRemovePlanMain={handleRemoveTrainingPlanMain}
       />
       <HistoryModalMain
         show={showHistoryModalMain}
@@ -1864,6 +1932,15 @@ export default function Members() {
       />
       <NotifyMemberModalMain open={isNotifyMemberOpenMain} action={notifyActionMain} onClose={() => setIsNotifyMemberOpenMain(false)} />
 
+
+      {chatPopup.isOpen && chatPopup.member && (
+          <ChatPopup
+            member={chatPopup.member}
+            isOpen={chatPopup.isOpen}
+            onClose={() => setChatPopup({ isOpen: false, member: null })}
+            onOpenFullMessenger={() => handleOpenFullMessenger(chatPopup.member)}
+          />
+        )}
       {/* sidebar related modal  */}
 
       <Sidebar
@@ -1924,14 +2001,18 @@ export default function Members() {
       />
 
       {/* Sidebar related modals */}
-      <TrainingPlanModal
-        isOpen={isTrainingPlanModalOpen}
-        onClose={() => setIsTrainingPlanModalOpen(false)}
-        user={selectedUserForTrainingPlan}
-        trainingPlans={mockTrainingPlans}
-        getDifficultyColor={getDifficultyColor}
-        getVideoById={getVideoById}
-      />
+      <TrainingPlansModal
+                                  isOpen={isTrainingPlanModalOpen}
+                                  onClose={() => {
+                                    setIsTrainingPlanModalOpen(false)
+                                    setSelectedUserForTrainingPlan(null)
+                                  }}
+                                  selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+                                  memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                                  availableTrainingPlans={availableTrainingPlans}
+                                  onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+                                  onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+                                />
 
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}

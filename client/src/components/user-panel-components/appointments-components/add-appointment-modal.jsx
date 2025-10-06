@@ -287,8 +287,8 @@ const AddAppointmentModal = ({
           </div>
         </div>
 
-        <div className="px-6 pb-6">
-          <div className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]">
+        <div className="px-2 pb-6">
+          <div className="space-y-4 custom-scrollbar p-3 overflow-y-auto max-h-[50vh]">
             
             {/* Details Tab */}
             {activeTab === "details" && (

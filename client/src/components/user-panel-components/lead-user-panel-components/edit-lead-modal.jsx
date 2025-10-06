@@ -34,6 +34,7 @@ const EditLeadModal = ({
     note: "",
     noteImportance: "unimportant",
     noteStartDate: "",
+    gender: "",
     noteEndDate: "",
     source: "",
     street: "",
@@ -89,6 +90,7 @@ const EditLeadModal = ({
         noteStartDate: leadData.specialNote?.startDate || "",
         noteEndDate: leadData.specialNote?.endDate || "",
         source: leadData.source || "",
+        gender: leadData.gender || "",
         street: leadData.street || "",
         zipCode: leadData.zipCode || "",
         city: leadData.city || "",
@@ -244,7 +246,7 @@ const EditLeadModal = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="max-h-[60vh] overflow-y-auto custom-scrollbar space-y-4">
+          <div className="max-h-[50vh] overflow-y-auto custom-scrollbar space-y-4">
             
             {/* Details Tab */}
             {activeTab === "details" && (
@@ -292,6 +294,19 @@ const EditLeadModal = ({
                     className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     required
                   />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Gender</label>
+                  <select
+                    name="gender"
+                    value={formData.gender || ""}
+                    onChange={(e) => updateFormData("gender", e.target.value)}
+                    className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

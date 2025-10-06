@@ -386,9 +386,9 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
                           <>
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                               <p className="text-white font-medium truncate">{doc.name}</p>
-                              <span className={`text-xs px-2 py-0.5 rounded-full bg-gray-800 ${getCategoryColor(doc.category)}`}>
+                              {/* <span className={`text-xs px-2 py-0.5 rounded-full bg-gray-800 ${getCategoryColor(doc.category)}`}>
                                 {getCategoryLabel(doc.category)}
-                              </span>
+                              </span> */}
                             </div>
                             <p className="text-xs text-gray-400">
                               {doc.size} • Uploaded on {doc.uploadDate}

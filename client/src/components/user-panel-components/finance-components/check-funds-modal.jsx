@@ -8,18 +8,23 @@ const CheckFundsModal = ({
   transactions,
   onUpdateStatuses,
 }) => {
+  const [transactionStatuses, setTransactionStatuses] = useState({});
   const [selectedTransactions, setSelectedTransactions] = useState({});
-  const [newStatus, setNewStatus] = useState("Successful");
 
   useEffect(() => {
     // Initialize with all transactions that have "Check incoming funds" status
     const initialSelected = {};
+    const initialStatuses = {};
+    
     transactions.forEach((tx) => {
       if (tx.status === "Check incoming funds") {
         initialSelected[tx.id] = true;
+        initialStatuses[tx.id] = "Successful"; // Default status
       }
     });
+    
     setSelectedTransactions(initialSelected);
+    setTransactionStatuses(initialStatuses);
   }, [transactions]);
 
   const handleToggleTransaction = (id) => {
@@ -29,13 +34,20 @@ const CheckFundsModal = ({
     }));
   };
 
+  const handleUpdateStatus = (id, status) => {
+    setTransactionStatuses((prev) => ({
+      ...prev,
+      [id]: status,
+    }));
+  };
+
   const handleUpdateStatuses = () => {
     const txToUpdate = Object.keys(selectedTransactions)
       .filter((id) => selectedTransactions[id])
       .map((id) => transactions.find((tx) => tx.id === id))
       .map((tx) => ({
         ...tx,
-        status: newStatus,
+        status: transactionStatuses[tx.id] || "Successful",
       }));
 
     onUpdateStatuses(txToUpdate);
@@ -44,12 +56,20 @@ const CheckFundsModal = ({
 
   const handleSelectAll = (selected) => {
     const newSelected = {};
+    const newStatuses = { ...transactionStatuses };
+    
     transactions
       .filter((tx) => tx.status === "Check incoming funds")
       .forEach((tx) => {
         newSelected[tx.id] = selected;
+        // Only set default status if we're selecting and it doesn't have one yet
+        if (selected && !newStatuses[tx.id]) {
+          newStatuses[tx.id] = "Successful";
+        }
       });
+    
     setSelectedTransactions(newSelected);
+    setTransactionStatuses(newStatuses);
   };
 
   // Helper function to get status display with appropriate styling
@@ -58,14 +78,15 @@ const CheckFundsModal = ({
     const currentStatus = transaction.status === "Check incoming funds" ? "Pending" : transaction.status;
     
     if (isSelected && transaction.status === "Check incoming funds") {
-      // Show the new status for selected transactions
-      const statusClass = newStatus === "Successful" 
-        ? "text-green-400 bg-green-900/20 px-2 py-1 rounded-lg text-xs"
-        : "text-red-400 bg-red-900/20 px-2 py-1 rounded-lg text-xs";
+      // Show the individual status for selected transactions
+      const individualStatus = transactionStatuses[transaction.id] || "Successful";
+      const statusClass = individualStatus === "Successful" 
+        ? "text-green-400 bg-green-900/20 px-2 w-20 py-1 rounded-lg text-xs"
+        : "text-red-400 bg-red-900/20 px-2 py-1 w-20 rounded-lg text-xs";
       
       return (
         <span className={statusClass}>
-          {newStatus}
+          {individualStatus}
         </span>
       );
     }
@@ -83,6 +104,40 @@ const CheckFundsModal = ({
       <span className={statusClass}>
         {currentStatus}
       </span>
+    );
+  };
+
+  // Get status buttons for individual transaction
+  const getStatusButtons = (transaction) => {
+    if (!selectedTransactions[transaction.id] || transaction.status !== "Check incoming funds") {
+      return null;
+    }
+
+    const currentStatus = transactionStatuses[transaction.id] || "Successful";
+    
+    return (
+      <div className="flex gap-1 mt-1">
+        <button
+          onClick={() => handleUpdateStatus(transaction.id, "Successful")}
+          className={`px-2 py-1 rounded text-xs ${
+            currentStatus === "Successful"
+              ? "bg-green-900/50 text-green-400"
+              : "bg-[#141414] text-gray-300 hover:bg-black"
+          }`}
+        >
+          Successful
+        </button>
+        <button
+          onClick={() => handleUpdateStatus(transaction.id, "Failed")}
+          className={`px-2 py-1 rounded text-xs ${
+            currentStatus === "Failed"
+              ? "bg-red-900/50 text-red-400"
+              : "bg-[#141414] text-gray-300 hover:bg-black"
+          }`}
+        >
+          Failed
+        </button>
+      </div>
     );
   };
 
@@ -123,32 +178,6 @@ const CheckFundsModal = ({
                     onClick={() => handleSelectAll(false)}
                   >
                     Deselect All
-                  </button>
-                </div>
-              </div>
-
-              <div className="mb-4 flex items-center gap-4">
-                <span className="text-gray-300">Set selected to:</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setNewStatus("Successful")}
-                    className={`px-3 py-1 rounded-lg text-sm ${
-                      newStatus === "Successful"
-                        ? "bg-green-900/50 text-green-400"
-                        : "bg-[#141414] text-gray-300"
-                    }`}
-                  >
-                    Successful
-                  </button>
-                  <button
-                    onClick={() => setNewStatus("Failed")}
-                    className={`px-3 py-1 rounded-lg text-sm ${
-                      newStatus === "Failed"
-                        ? "bg-red-900/50 text-red-400"
-                        : "bg-[#141414] text-gray-300"
-                    }`}
-                  >
-                    Failed
                   </button>
                 </div>
               </div>
@@ -198,7 +227,10 @@ const CheckFundsModal = ({
                           {new Date(tx.date).toLocaleDateString()}
                         </td>
                         <td className="px-3 py-2">
-                          {getStatusDisplay(tx)}
+                          <div className="flex flex-col gap-1">
+                            {getStatusDisplay(tx)}
+                            {getStatusButtons(tx)}
+                          </div>
                         </td>
                         <td className="px-3 py-2 text-right">
                           {new Intl.NumberFormat("en-US", {

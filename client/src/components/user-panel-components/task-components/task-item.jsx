@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
@@ -189,9 +187,9 @@ export default function TaskItem({
         setShowCalendar(false)
       }
       // Only close edit mode if clicking outside the entire task item
-      if (editButtonsRef.current && 
-          !editButtonsRef.current.contains(event.target) &&
-          !event.target.closest('.edit-mode-toggle')) {
+      if (editButtonsRef.current &&
+        !editButtonsRef.current.contains(event.target) &&
+        !event.target.closest('.edit-mode-toggle')) {
         setIsEditMode(false)
       }
     }
@@ -204,15 +202,13 @@ export default function TaskItem({
 
   return (
     <div
-      className={`rounded-2xl p-4 transition-all duration-300 ease-in-out relative ${
-        isDragging ? "opacity-90 z-[9999] shadow-2xl" : "opacity-100"
-      } ${
-        isCompleted
+      className={`rounded-2xl p-4 transition-all duration-300 ease-in-out relative ${isDragging ? "opacity-90 z-[9999] shadow-2xl" : "opacity-100"
+        } ${isCompleted
           ? "bg-[#1c1c1c] text-gray-500"
           : isCanceled
             ? "bg-[#1a1a1a] text-gray-600 italic line-through"
             : "bg-[#161616] text-white"
-      } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
+        } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
       style={{
         position: isDragging ? "relative" : "static",
         zIndex: isDragging ? 9999 : "auto",
@@ -237,9 +233,8 @@ export default function TaskItem({
                   type="checkbox"
                   checked={isCompleted}
                   onChange={() => handleStatusChange(isCompleted ? "ongoing" : "completed")}
-                  className={`form-checkbox h-4 w-4 cursor-pointer text-[#FF843E] rounded-full border-gray-300 focus:ring-[#FF843E] no-drag transition-all duration-200 ${
-                    isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
-                  }`}
+                  className={`form-checkbox h-4 w-4 cursor-pointer text-[#FF843E] rounded-full border-gray-300 focus:ring-[#FF843E] no-drag transition-all duration-200 ${isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
+                    }`}
                 />
                 {isCheckboxAnimating && (
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -256,17 +251,19 @@ export default function TaskItem({
                 )}
               </div>
             )}
-            <div className="flex-grow">
+            <div className="flex-grow min-w-0">
               <h3
-                className={`font-medium text-sm break-words whitespace-normal no-drag ${
-                  isCompleted || isCanceled ? "" : "cursor-pointer hover:text-gray-300 transition-colors"
-                } ${
-                  !isDragging && !isCompleted && !isCanceled
+                className={`font-medium text-sm break-words whitespace-normal word-wrap-break-word no-drag ${isCompleted || isCanceled ? "" : "cursor-pointer hover:text-gray-300 transition-colors"
+                  } ${!isDragging && !isCompleted && !isCanceled
                     ? "hover:bg-gray-800 hover:bg-opacity-30 rounded px-1 py-0.5 -mx-1 -my-0.5"
                     : ""
-                }`}
+                  }`}
                 onClick={!isCompleted && !isCanceled ? handleEditTask : undefined}
                 title={!isCompleted && !isCanceled ? "Click to edit task" : ""}
+                style={{
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word'
+                }}
               >
                 {task.title}
                 {task.isPinned && (
@@ -279,11 +276,11 @@ export default function TaskItem({
               </h3>
             </div>
           </div>
-          
+
           {/* Edit/Close button */}
           {!isDragging && (
-            <button 
-              onClick={toggleEditMode} 
+            <button
+              onClick={toggleEditMode}
               className="p-1 no-drag text-gray-400 hover:text-white transition-colors edit-mode-toggle"
             >
               {isEditMode ? <X size={18} /> : <Edit size={18} />}
@@ -292,39 +289,40 @@ export default function TaskItem({
         </div>
 
         {/* Tags */}
-        {task.tags && task.tags.length > 0 && (
-          <div className="relative ml-7">
-            <div className="flex flex-wrap gap-1.5">
-              {task.tags?.map(
-                (tag, index) =>
-                  tag && (
-                    <span
-                      key={index}
-                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag ${
-                        isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "text-white"
-                      }`}
-                      style={{
-                        backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag),
-                      }}
-                      onClick={handleTagsClick}
-                    >
-                      <Tag size={10} />
-                      {tag}
-                    </span>
-                  ),
-              )}
-            </div>
-          </div>
-        )}
+{task.tags && task.tags.length > 0 && (
+  <div className="relative ml-7">
+    <div className="flex flex-wrap gap-1.5">
+      {task.tags?.map(
+        (tag, index) =>
+          tag && (
+            <span
+              key={index}
+              className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag ${
+                isCompleted || isCanceled 
+                  ? "bg-[#2b2b2b] text-gray-500" 
+                  : "text-white"
+              }`}
+              style={{
+                backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag),
+              }}
+              onClick={handleTagsClick}
+            >
+              <Tag size={10} />
+              {tag}
+            </span>
+          ),
+      )}
+    </div>
+  </div>
+)}
 
         {/* Assignees and Date */}
         <div className="flex flex-col items-center flex-wrap justify-center gap-2 mt-2 lg:flex-row lg:justify-center">
           {(task.assignees?.length > 0 || task.roles?.length > 0) && (
             <div className="relative">
               <div
-                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer no-drag ${
-                  isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer no-drag ${isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
+                  }`}
                 onClick={handleAssignClick}
               >
                 <Users size={12} />
@@ -334,9 +332,8 @@ export default function TaskItem({
           )}
           <div className="relative">
             <div
-              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag ${
-                isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag ${isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
+                }`}
             >
               <Calendar size={12} />
               <span className="whitespace-nowrap">{formatDateTime()}</span>
@@ -347,7 +344,7 @@ export default function TaskItem({
 
         {/* Edit buttons panel - shown when in edit mode */}
         {isEditMode && !isDragging && (
-          <div 
+          <div
             ref={editButtonsRef}
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 pt-3 mt-2 border-t border-gray-700 no-drag"
           >

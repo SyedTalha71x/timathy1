@@ -42,6 +42,7 @@ import EditTaskModal from "../../components/user-panel-components/task-component
 import HistoryModal from "../../components/myarea-components/HistoryModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 export default function Training() {
   const [activeTab, setActiveTab] = useState("videos")
@@ -260,7 +261,12 @@ export default function Training() {
   
       todoFilterOptions,
       relationOptions,
-      appointmentTypes
+      appointmentTypes,
+
+      handleAssignTrainingPlan,
+      handleRemoveTrainingPlan,
+      memberTrainingPlans,
+      setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
     } = sidebarSystem;
 
   // Filter videos based on category and search
@@ -721,48 +727,7 @@ export default function Training() {
                     className="w-full bg-[#161616] pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700 outline-none"
                   />
                 </div>
-                {/* <div className="relative">
-                  <button
-                    onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                    className="md:w-auto w-full text-white flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
-                  >
-                    <Filter size={16} />
-                    <span className="truncate">
-                      {categories.find((cat) => cat.id === selectedCategory)?.name || "All Exercises"}
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={`transform transition-transform ${isFilterDropdownOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  {isFilterDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-full sm:w-64 bg-[#2F2F2F] rounded-xl shadow-lg z-50 border border-gray-700">
-                      <button
-                        onClick={() => {
-                          setSelectedCategory("all")
-                          setIsFilterDropdownOpen(false)
-                        }}
-                        className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${selectedCategory === "all" ? "bg-[#3F3F3F]" : ""
-                          }`}
-                      >
-                        <span className="text-white">All Exercises</span>
-                      </button>
-                      {categories.map((category) => (
-                        <button
-                          key={category.id}
-                          onClick={() => {
-                            setSelectedCategory(category.id)
-                            setIsFilterDropdownOpen(false)
-                          }}
-                          className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${selectedCategory === category.id ? "bg-[#3F3F3F]" : ""
-                            }`}
-                        >
-                          <span className="text-white">{category.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div> */}
+               
               </div>
 
               {/* Category Pills */}
@@ -781,7 +746,7 @@ export default function Training() {
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
                     className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategory === category.id
-                        ? `${category.color} text-white`
+                        ? `bg-blue-600 text-white`
                         : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                       }`}
                   >
@@ -1849,14 +1814,18 @@ export default function Training() {
         />
 
         {/* Sidebar related modals */}
-        <TrainingPlanModal
-          isOpen={isTrainingPlanModalOpen}
-          onClose={() => setIsTrainingPlanModalOpen(false)}
-          user={selectedUserForTrainingPlan}
-          trainingPlans={mockTrainingPlans}
-          getDifficultyColor={getDifficultyColor}
-          getVideoById={getVideoById}
-        />
+        <TrainingPlansModal
+                  isOpen={isTrainingPlanModalOpen}
+                  onClose={() => {
+                    setIsTrainingPlanModalOpen(false)
+                    setSelectedUserForTrainingPlan(null)
+                  }}
+                  selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+                  memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                  availableTrainingPlans={availableTrainingPlans}
+                  onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+                  onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+                />
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}

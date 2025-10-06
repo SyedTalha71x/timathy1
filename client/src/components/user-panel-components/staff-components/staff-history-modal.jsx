@@ -5,7 +5,6 @@ import { useState } from "react"
 function StaffHistoryModal({ staff, onClose }) {
   const [activeTab, setActiveTab] = useState("general")
 
-  // Dummy history data
   const generalChanges = [
     {
       id: 1,

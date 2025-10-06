@@ -1,10 +1,9 @@
-"use client"
-
 /* eslint-disable react/prop-types */
 import { AlertTriangle, Calendar, CalendarIcon, Edit, Info, MoreVertical, Trash2, Users, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { MdHistory } from "react-icons/md"
 import Draggable from "react-draggable"
+import { createPortal } from "react-dom"
 
 const LeadCard = ({
   lead,
@@ -23,6 +22,8 @@ const LeadCard = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false)
   const [isNoteOpen, setIsNoteOpen] = useState(false)
+  const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
+
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const noteRef = useRef(null)
@@ -85,26 +86,30 @@ const LeadCard = ({
     >
       <div
         ref={nodeRef}
-        className={`bg-[#1C1C1C] rounded-xl p-3 sm:p-4 mb-3 cursor-grab min-h-[120px] sm:min-h-[140px] ${
-          isDragging ? "opacity-70 z-[9999] relative" : "opacity-100"
-        }`}
+        className={`bg-[#1C1C1C] rounded-xl p-3 sm:p-4 mb-3 cursor-grab min-h-[120px] sm:min-h-[140px] ${isDragging ? "opacity-70 z-[9999] relative" : "opacity-100"
+          }`}
         style={{
           zIndex: isDragging ? 9999 : "auto",
           position: isDragging ? "absolute" : "static",
-        
+
         }}
         data-lead-id={lead.id}
       >
         <div className="flex items-center mb-2 sm:mb-3 relative">
           {hasValidNote && (
             <div
-              className={`absolute -top-2 -left-2 ${
-                lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
+              className={`absolute -top-2 -left-2 ${lead.specialNote.isImportant ? "bg-red-500 " : "bg-blue-500 "
+                } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer no-drag`} // Added no-drag to prevent drag initiation
               onClick={(e) => {
                 e.stopPropagation()
+                const rect = e.currentTarget.getBoundingClientRect()
+                setNotePosition({
+                  top: rect.bottom + window.scrollY + 8, // thora neeche kholna
+                  left: rect.left + window.scrollX,      // same column ke left se align
+                })
                 setIsNoteOpen(!isNoteOpen)
               }}
+
             >
               {lead.specialNote.isImportant ? (
                 <AlertTriangle size={18} className="text-white" />
@@ -113,52 +118,61 @@ const LeadCard = ({
               )}
             </div>
           )}
-          {isNoteOpen && hasValidNote && (
-            <div
-              ref={noteRef}
-              className="absolute left-0 top-6 w-64 sm:w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[200] no-drag"
-            >
-              <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {lead.specialNote.isImportant ? (
-                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                ) : (
-                  <Info className="text-blue-500 shrink-0" size={18} />
-                )}
-                <h4 className="text-white flex gap-1 items-center font-medium">
-                  <div>Special Note</div>
-                  <div className="text-sm text-gray-400">
-                    {lead.specialNote.isImportant ? "(Important)" : "(Unimportant)"}
-                  </div>
-                </h4>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setIsNoteOpen(false)
-                  }}
-                  className="ml-auto text-gray-400 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">{lead.specialNote.text}</p>
-                {lead.specialNote.startDate && lead.specialNote.endDate ? (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <Calendar size={12} /> Valid from {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
-                      {new Date(lead.specialNote.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <Calendar size={12} /> Always valid
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          {isNoteOpen && hasValidNote &&
+            createPortal(
+              <div
+                ref={noteRef}
+                className="fixed w-64 sm:w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999] no-drag"
+                style={{
+                  top: notePosition.top,
+                  left: notePosition.left,
+                  position: "absolute",
+                }}
+              >
+                <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                  {lead.specialNote.isImportant ? (
+                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400">
+                      {lead.specialNote.isImportant ? "(Important)" : "(Unimportant)"}
+                    </div>
+                  </h4>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setIsNoteOpen(false)
+                    }}
+                    className="ml-auto text-gray-400 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="p-3">
+                  <p className="text-white text-sm leading-relaxed">{lead.specialNote.text}</p>
+                  {lead.specialNote.startDate && lead.specialNote.endDate ? (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <Calendar size={12} /> Valid from{" "}
+                        {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
+                        {new Date(lead.specialNote.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <Calendar size={12} /> Always valid
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>,
+              document.body
+            )
+          }
           <div className="flex-1 mt-6">
             <h4 className="font-medium text-white text-lg mb-1">{`${lead.firstName} ${lead.surname}`}</h4>
             <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>

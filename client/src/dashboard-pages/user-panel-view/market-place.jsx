@@ -25,6 +25,7 @@ import { MemberOverviewModal } from "../../components/myarea-components/MemberOv
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import { Toaster } from "react-hot-toast"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 
 const marketplaceProducts = [
@@ -274,7 +275,12 @@ const sortedProducts = sortProducts(filtered, sortBy, sortDirection)
 
     todoFilterOptions,
     relationOptions,
-    appointmentTypes
+    appointmentTypes,
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem;
 
   // more sidebar related functions
@@ -644,14 +650,18 @@ const sortedProducts = sortProducts(filtered, sortBy, sortDirection)
       />
 
       {/* Sidebar related modals */}
-      <TrainingPlanModal
-        isOpen={isTrainingPlanModalOpen}
-        onClose={() => setIsTrainingPlanModalOpen(false)}
-        user={selectedUserForTrainingPlan}
-        trainingPlans={mockTrainingPlans}
-        getDifficultyColor={getDifficultyColor}
-        getVideoById={getVideoById}
-      />
+      <TrainingPlansModal
+                           isOpen={isTrainingPlanModalOpen}
+                           onClose={() => {
+                             setIsTrainingPlanModalOpen(false)
+                             setSelectedUserForTrainingPlan(null)
+                           }}
+                           selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+                           memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                           availableTrainingPlans={availableTrainingPlans}
+                           onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+                           onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+                         />
 
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}

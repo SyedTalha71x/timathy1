@@ -34,15 +34,18 @@ import {
   Camera,
   ChevronUp,
   Users,
+  Building2,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 import RightSidebarWidget from "../../myarea-components/sidebar-components/RightSidebarWidget"
-import StaffCheckInWidget from "../../myarea-components/StaffWidgetCheckIn"
+import StaffCheckInWidget from "../../myarea-components/widjets/StaffWidgetCheckIn"
 import { SpecialNoteEditModal } from "../../myarea-components/SpecialNoteEditModal"
 import ViewManagementModal from "../../myarea-components/sidebar-components/ViewManagementModal"
 import { bulletinBoardData } from "../../../utils/user-panel-states/myarea-states"
 import PersonImage from '../../../../public/avatar3.png'
+import NotesWidget from "../../myarea-components/widjets/NotesWidjets"
+import BulletinBoardWidget from "../../myarea-components/widjets/BulletinBoardWidget"
 
 const demoNotifications = {
   memberChat: [
@@ -258,6 +261,7 @@ const SidebarAreaSelling = ({
   vatAmount,
   total,
   handleCheckout,
+  updateItemVatRate,
 
   // WIDGETS TAB LOGIC - Widget system props
   isSidebarEditing,
@@ -319,25 +323,22 @@ const SidebarAreaSelling = ({
   const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false)
   const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
 
-  const [memberChatCollapsed, setMemberChatCollapsed] = useState(false)
-    const [studioChatCollapsed, setStudioChatCollapsed] = useState(false)
-    const [notificationData, setNotificationData] = useState(demoNotifications)
-    const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
-    const [selectedMessage, setSelectedMessage] = useState(null)
-    const [collapsedSections, setCollapsedSections] = useState({
-      memberChat: false,
-      studioChat: false,
-    })
+  const [notificationData, setNotificationData] = useState(demoNotifications)
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
+  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [collapsedSections, setCollapsedSections] = useState({
+    memberChat: false,
+    studioChat: false,
+  })
 
   const [sidebarBulletinFilter, setSidebarBulletinFilter] = useState("all")
 
-  // Todo filter functions for widgets tab
   const getFilteredTodos = () => {
     switch (todoFilter) {
       case "ongoing":
         return todos.filter((todo) => todo.status === "ongoing")
-      case "pending":
-        return todos.filter((todo) => todo.status === "pending")
+      case "canceled":
+        return todos.filter((todo) => todo.status === "canceled")
       case "completed":
         return todos.filter((todo) => todo.status === "completed")
       default:
@@ -392,9 +393,8 @@ const SidebarAreaSelling = ({
       return (
         <div className="relative">
           <div
-            className={`${
-              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
@@ -464,56 +464,57 @@ const SidebarAreaSelling = ({
     [sidebarActiveNoteId, appointments],
   )
 
-    /**
- * Handles opening the reply modal for a specific message
- * This function sets the selected message and opens the reply modal
- * @param {Object} message - The message object to reply to
- */
-    const handleMessageClick = (message) => {
-      setSelectedMessage(message)
-      setIsReplyModalOpen(true)
-    }
-  
-    const handleSendReply = (chatId, replyText) => {
-      // Here you would typically send the reply to your backend
-      console.log(`Sending reply to chat ${chatId}: ${replyText}`)
-  
-      // Mark the original message as read
-      setNotificationData((prev) => ({
-        ...prev,
-        memberChat: prev.memberChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
-        studioChat: prev.studioChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
-      }))
-    }
-  
-    const toggleNotificationSection = (section) => {
-      setCollapsedSections((prev) => ({
-        ...prev,
-        [section]: !prev[section],
-      }))
-    }
-  
-    /**
-     * Marks a message as read when clicked
-     * @param {string} messageId - The ID of the message to mark as read
-     * @param {string} messageType - The type of message ('member_chat' or 'studio_chat')
-     */
-    const markMessageAsRead = (messageId, messageType) => {
-      const sectionKey = messageType === "member_chat" ? "memberChat" : "studioChat"
-      setNotificationData((prev) => ({
-        ...prev,
-        [sectionKey]: prev[sectionKey].map((msg) => (msg.id === messageId ? { ...msg, isRead: true } : msg)),
-      }))
-    }
-  
-    /**
-     * Gets the count of unread messages for a specific section
-     * @param {string} section - The section to count ('memberChat' or 'studioChat')
-     * @returns {number} The number of unread messages
-     */
-    const getUnreadCount = (section) => {
-      return notificationData[section].filter((msg) => !msg.isRead).length
-    }
+  /**
+* Handles opening the reply modal for a specific message
+* This function sets the selected message and opens the reply modal
+* @param {Object} message - The message object to reply to
+*/
+  const handleMessageClick = (message) => {
+    setSelectedMessage(message)
+    setIsReplyModalOpen(true)
+  }
+
+  const handleSendReply = (chatId, replyText) => {
+    // Here you would typically send the reply to your backend
+    console.log(`Sending reply to chat ${chatId}: ${replyText}`)
+
+    // Mark the original message as read
+    setNotificationData((prev) => ({
+      ...prev,
+      memberChat: prev.memberChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+      studioChat: prev.studioChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+    }))
+  }
+
+  const toggleNotificationSection = (section) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
+
+  /**
+   * Marks a message as read when clicked
+   * @param {string} messageId - The ID of the message to mark as read
+   * @param {string} messageType - The type of message ('member_chat' or 'studio_chat')
+   */
+  const markMessageAsRead = (messageId, messageType) => {
+    const sectionKey = messageType === "member_chat" ? "memberChat" : "studioChat"
+    setNotificationData((prev) => ({
+      ...prev,
+      [sectionKey]: prev[sectionKey].map((msg) => (msg.id === messageId ? { ...msg, isRead: true } : msg)),
+    }))
+  }
+
+  /**
+   * Gets the count of unread messages for a specific section
+   * @param {string} section - The section to count ('memberChat' or 'studioChat')
+   * @returns {number} The number of unread messages
+   */
+  const getUnreadCount = (section) => {
+    return notificationData[section].filter((msg) => !msg.isRead).length
+  }
+
 
   return (
     <>
@@ -531,24 +532,21 @@ const SidebarAreaSelling = ({
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <h2 className="text-base sm:text-lg font-semibold text-white truncate">Selling Sidebar</h2>
-                  {currentView && (
-                    <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
-                      {currentView.name}
-                    </span>
-                  )}
+                
                 </div>
               </div>
               <div></div>
               <div className="flex items-center gap-1 sm:gap-2">
                 {/* WIDGETS TAB LOGIC - View management and widget controls */}
                 {!isSidebarEditing && activeTab === "widgets" && (
-                  <button
-                    onClick={() => setIsViewModalOpen(true)}
-                    className="p-1.5 sm:p-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
-                    title="Manage Sidebar Views"
-                  >
-                    <Eye size={14} />
-                  </button>
+                   <button
+                   onClick={() => setIsViewModalOpen(true)}
+                   className="p-1.5 sm:p-2 flex items-center gap-2 text-sm bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                   title="Manage Sidebar Views"
+                 >
+                   <Eye size={14} />
+                   {currentView ? currentView.name : ""}
+                 </button>
                 )}
                 {activeTab === "widgets" && isSidebarEditing && (
                   <button
@@ -562,9 +560,8 @@ const SidebarAreaSelling = ({
                 {activeTab === "widgets" && (
                   <button
                     onClick={toggleSidebarEditing}
-                    className={`p-1.5 sm:p-2 ${
-                      isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                    } rounded-lg flex items-center gap-1`}
+                    className={`p-1.5 sm:p-2 ${isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                      } rounded-lg flex items-center gap-1`}
                     title="Toggle Edit Mode"
                   >
                     {isSidebarEditing ? <Check size={14} /> : <Edit size={14} />}
@@ -587,14 +584,13 @@ const SidebarAreaSelling = ({
             {/* SHOPPING TAB LOGIC - Shopping cart tab */}
             <button
               onClick={() => setActiveTab("shopping")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
-                activeTab === "shopping" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "shopping" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+                }`}
             >
               <ShoppingCart size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Shopping</span>
               {cart?.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
                 </span>
               )}
@@ -603,9 +599,8 @@ const SidebarAreaSelling = ({
             {/* WIDGETS TAB LOGIC - Widgets management tab */}
             <button
               onClick={() => setActiveTab("widgets")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+                }`}
             >
               <Settings size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Widgets</span>
@@ -614,9 +609,8 @@ const SidebarAreaSelling = ({
             {/* NOTIFICATIONS TAB LOGIC - Notifications tab */}
             <button
               onClick={() => setActiveTab("notifications")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
-                activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+                }`}
             >
               <Bell size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
@@ -724,9 +718,15 @@ const SidebarAreaSelling = ({
                             <span className="text-xs bg-gray-600 px-2 py-1 rounded">
                               {item.type === "service" ? "Service" : "Product"}
                             </span>
-                            {item.vatRate && (
-                              <span className="text-xs bg-blue-600 px-2 py-1 rounded">VAT: {item.vatRate}%</span>
-                            )}
+                            <select
+                              value={item.vatRate}
+                              onChange={(e) => updateItemVatRate(item.id, Number(e.target.value))}
+                              className="text-xs bg-blue-600 px-2 py-1 rounded cursor-pointer outline-none hover:bg-blue-700 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <option value={19}>VAT: 19%</option>
+                              <option value={7}>VAT: 7%</option>
+                            </select>
                           </div>
                         </div>
                       </div>
@@ -770,25 +770,24 @@ const SidebarAreaSelling = ({
                           "Card",
                           ...(!sellWithoutMember &&
                             selectedMemberMain &&
-                          members.find((m) => m.id === selectedMemberMain)?.type !== "Temporary Member"
+                            members.find((m) => m.id === selectedMemberMain)?.type !== "Temporary Member"
                             ? ["Direct Debit"]
                             : []),
                         ].map((method) => (
                           <button
                             key={method}
                             onClick={() => setSelectedPaymentMethod(method)}
-                            className={`py-2 px-3 text-sm rounded-lg border ${
-                              selectedPaymentMethod === method
+                            className={`py-2 px-3 text-sm rounded-lg border ${selectedPaymentMethod === method
                                 ? "border-[#3F74FF] bg-[#3F74FF]/20"
                                 : "border-[#333333] hover:bg-[#101010]"
-                            }`}
+                              }`}
                           >
                             {method}
                           </button>
                         ))}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       <div>
                         <label className="text-sm text-gray-200 block mb-2">Discount (%)</label>
                         <input
@@ -804,17 +803,7 @@ const SidebarAreaSelling = ({
                           className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                         />
                       </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">VAT (%)</label>
-                        <select
-                          value={selectedVat}
-                          onChange={(e) => setSelectedVat(Number(e.target.value))}
-                          className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                        >
-                          <option value="19">19%</option>
-                          <option value="7">7%</option>
-                        </select>
-                      </div>
+
                     </div>
                   </div>
 
@@ -837,7 +826,7 @@ const SidebarAreaSelling = ({
                       <span>Total:</span>
                       <span>${total.toFixed(2)}</span>
                     </div>
-                    
+
                   </div>
 
                   {/* Member/No member indicator */}
@@ -884,7 +873,7 @@ const SidebarAreaSelling = ({
                   className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Users size={16} className="text-blue-400" />
+                    <User size={16} className="inline mr-2" />
                     <h3 className="text-white font-medium text-sm">Member Chat</h3>
                     {getUnreadCount("memberChat") > 0 && (
                       <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
@@ -954,7 +943,7 @@ const SidebarAreaSelling = ({
                   className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Camera size={16} className="text-green-400" />
+                    <Building2 size={16} className="inline mr-2" />
                     <h3 className="text-white font-medium text-sm">Studio Chat</h3>
                     {getUnreadCount("studioChat") > 0 && (
                       <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
@@ -1032,156 +1021,129 @@ const SidebarAreaSelling = ({
                     moveRightSidebarWidget={moveRightSidebarWidget}
                     removeRightSidebarWidget={removeRightSidebarWidget}
                   >
-                    {/* Communications Widget */}
-                    {widget.type === "communications" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl font-bold cursor-pointer">Communications</h2>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="space-y-2">
-                            {communications?.slice(0, 2).map((comm) => (
-                              <div
-                                onClick={redirectToCommunication}
-                                key={comm.id}
-                                className="p-2 cursor-pointer bg-black rounded-xl"
-                              >
-                                <div className="flex items-center gap-2 mb-1">
-                                  <img
-                                    src={comm.avatar || "/placeholder.svg"}
-                                    alt="User"
-                                    className="rounded-full h-8 w-8"
-                                  />
-                                  <div>
-                                    <h3 className="text-sm">{comm.name}</h3>
-                                  </div>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-zinc-400">{comm.message}</p>
-                                  <p className="text-xs mt-1 flex gap-1 items-center text-zinc-400">
-                                    <Clock size={12} />
-                                    {comm.time}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                            <Link
-                              to={"/dashboard/communication"}
-                              className="text-sm text-white flex justify-center items-center text-center hover:underline"
-                            >
-                              See all
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Todo Widget */}
                     {widget.type === "todo" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl font-bold cursor-pointer">To-Do</h2>
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">To-Do</h2>
                         </div>
+
                         <div className="relative mb-3" ref={todoFilterDropdownRef}>
                           <button
                             onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
                             className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
                           >
-                            {todoFilterOptions?.find((option) => option.value === todoFilter)?.label}
+                            {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
                             <ChevronDown className="w-4 h-4" />
                           </button>
                           {isTodoFilterDropdownOpen && (
                             <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
-                              {todoFilterOptions?.map((option) => (
+                              {todoFilterOptions.map((option) => (
                                 <button
                                   key={option.value}
-                                  className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                  className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
                                   onClick={() => {
                                     setTodoFilter(option.value)
                                     setIsTodoFilterDropdownOpen(false)
                                   }}
                                 >
+                                  {option.color && (
+                                    <div
+                                      className="w-2 h-2 rounded-full"
+                                      style={{ backgroundColor: option.color }}
+                                    />
+                                  )}
                                   {option.label}
                                 </button>
                               ))}
                             </div>
                           )}
                         </div>
-                        <div className="space-y-3">
-                          {getFilteredTodos()
-                            ?.slice(0, 3)
-                            .map((todo) => (
-                              <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
-                                <div className="flex items-center gap-2 flex-1">
-                                  <input
-                                    type="checkbox"
-                                    checked={todo.completed}
-                                    onChange={() => handleTaskComplete(todo.id)}
-                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                  />
-                                  <div className="flex-1">
-                                    <h3
-                                      className={`font-semibold text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
-                                    >
-                                      {todo.title}
-                                    </h3>
-                                    <p className="text-xs text-zinc-400">
-                                      Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="relative">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      toggleDropdown(`todo-${todo.id}`)
-                                    }}
-                                    className="p-1 hover:bg-zinc-700 rounded"
-                                  >
-                                    <MoreVertical size={16} />
-                                  </button>
-                                  {openDropdownIndex === `todo-${todo.id}` && (
-                                    <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                                      <button
-                                        onClick={() => {
-                                          handleEditTask(todo)
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                                      >
-                                        Edit Task
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          setTaskToCancel(todo.id)
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                                      >
-                                        Cancel Task
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          setTaskToDelete(todo.id)
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                                      >
-                                        Delete Task
-                                      </button>
+
+                        {/* Todo Items */}
+                        <div className="space-y-3 open_sans_font">
+                          {getFilteredTodos().length > 0 ? (
+                            <>
+                              {getFilteredTodos()
+                                .slice(0, 3)
+                                .map((todo) => (
+                                  <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <input
+                                        type="checkbox"
+                                        checked={todo.completed}
+                                        onChange={() => handleTaskComplete(todo.id)}
+                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                      />
+                                      <div className="flex-1">
+                                        <h3
+                                          className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                        >
+                                          {todo.title}
+                                        </h3>
+                                        <p className="text-xs open_sans_font text-zinc-400">
+                                          Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                        </p>
+                                      </div>
                                     </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          <Link
-                            to={"/dashboard/to-do"}
-                            className="text-sm text-white flex justify-center items-center text-center hover:underline"
-                          >
-                            See all
-                          </Link>
+                                    <div className="relative">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          toggleDropdown(`todo-${todo.id}`)
+                                        }}
+                                        className="p-1 hover:bg-zinc-700 rounded"
+                                      >
+                                        <MoreVertical size={16} />
+                                      </button>
+                                      {openDropdownIndex === `todo-${todo.id}` && (
+                                        <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                          <button
+                                            onClick={() => {
+                                              handleEditTask(todo)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                          >
+                                            Edit Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToCancel(todo.id)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                          >
+                                            Cancel Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToDelete(todo.id)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                          >
+                                            Delete Task
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              <Link
+                                to={"/dashboard/to-do"}
+                                className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
+                              >
+                                See all
+                              </Link>
+                            </>
+                          ) : (
+                            <div className="text-center py-4 text-gray-400">
+                              <p className="text-sm">No tasks in this category</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
 
-                    {/* Birthday Widget */}
                     {widget.type === "birthday" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
@@ -1191,11 +1153,10 @@ const SidebarAreaSelling = ({
                           {birthdays?.slice(0, 3).map((birthday) => (
                             <div
                               key={birthday.id}
-                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${
-                                isBirthdayToday(birthday.date)
+                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${isBirthdayToday(birthday.date)
                                   ? "bg-yellow-900/30 border border-yellow-600"
                                   : "bg-black"
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2">
                                 <div>
@@ -1231,7 +1192,6 @@ const SidebarAreaSelling = ({
                       </div>
                     )}
 
-                    {/* Website Links Widget */}
                     {widget.type === "websiteLinks" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
@@ -1261,7 +1221,6 @@ const SidebarAreaSelling = ({
                       </div>
                     )}
 
-                    {/* Appointments Widget */}
                     {widget.type === "appointments" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
@@ -1274,9 +1233,16 @@ const SidebarAreaSelling = ({
                                 key={appointment.id}
                                 className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
                               >
-                                <div className="absolute p-2 top-0 left-0 z-10 flex flex-col gap-1">
+                                <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                                   {renderSidebarSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                                  <div
+                                    className="cursor-pointer rounded transition-colors"
+                                    onClick={(e) => handleDumbbellClick(appointment, e)}
+                                  >
+                                    <Dumbbell size={16} />
+                                  </div>
                                 </div>
+
                                 <div
                                   className="flex flex-col items-center justify-between gap-2 cursor-pointer"
                                   onClick={() => {
@@ -1308,20 +1274,14 @@ const SidebarAreaSelling = ({
                                         e.stopPropagation()
                                         handleCheckIn(appointment.id)
                                       }}
-                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${
-                                        appointment.isCheckedIn
+                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
                                           ? " border border-white/50 text-white bg-transparent"
                                           : "bg-black text-white"
-                                      }`}
+                                        }`}
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                     </button>
-                                    <div
-                                      className="cursor-pointer rounded transition-colors"
-                                      onClick={(e) => handleDumbbellClick(appointment, e)}
-                                    >
-                                      <Dumbbell size={16} />
-                                    </div>
+
                                   </div>
                                 </div>
                               </div>
@@ -1338,11 +1298,10 @@ const SidebarAreaSelling = ({
                       </div>
                     )}
 
-                    {/* Chart Widget */}
                     {widget.type === "chart" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl font-bold cursor-pointer">Chart</h2>
+                          <h2 className="text-lg md:text-xl font-bold cursor-pointer">Analytics Chart</h2>
                         </div>
                         <div className="p-4 bg-black rounded-xl">
                           <ChartWithLocalState
@@ -1358,7 +1317,6 @@ const SidebarAreaSelling = ({
                       </div>
                     )}
 
-                    {/* Expiring Contracts Widget */}
                     {widget.type === "expiringContracts" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-3">
@@ -1389,45 +1347,9 @@ const SidebarAreaSelling = ({
                       </div>
                     )}
 
-                    {/* Bulletin Board Widget */}
-                    {widget.type === "bulletinBoard" && (
-                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-auto flex flex-col">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">Bulletin Board</h2>
-                        </div>
-                        <div className="relative">
-                          <select
-                            value={sidebarBulletinFilter}
-                            onChange={(e) => handleSidebarBulletinFilterChange(e.target.value)}
-                            className="w-full p-2 bg-black rounded-xl text-white text-sm"
-                          >
-                            <option value="all">All Posts</option>
-                            <option value="staff">Staff Only</option>
-                            <option value="members">Members Only</option>
-                          </select>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 mt-2">
-                          <div className="space-y-2">
-                            {getSidebarFilteredBulletinPosts()
-                              ?.slice(0, 2)
-                              .map((post) => (
-                                <div key={post.id} className="p-3 bg-black rounded-xl">
-                                  <div className="flex justify-between items-start">
-                                    <h3 className="font-semibold text-sm">{post.title}</h3>
-                                  </div>
-                                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{post.content}</p>
-                                  <div className="flex justify-between items-center mt-2">
-                                    <span className="text-xs text-zinc-500 capitalize">{post.category}</span>
-                                    <span className="text-xs text-zinc-500">{post.date}</span>
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
+                    
 
-                    {/* Staff Check-in Widget */}
                     {widget.type === "staffCheckIn" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
@@ -1438,6 +1360,8 @@ const SidebarAreaSelling = ({
                         </div>
                       </div>
                     )}
+
+                    {widget.type === "notes" && <NotesWidget />}
                   </RightSidebarWidget>
                 ))}
             </>
@@ -1458,7 +1382,7 @@ const SidebarAreaSelling = ({
         />
       )}
 
-<MessageReplyModal
+      <MessageReplyModal
         isOpen={isReplyModalOpen}
         onClose={() => {
           setIsReplyModalOpen(false)
@@ -1477,7 +1401,7 @@ const SidebarAreaSelling = ({
         currentView={currentView}
         setCurrentView={setCurrentView}
         sidebarWidgets={rightSidebarWidgets}
-        setSidebarWidgets={() => {}} // This might need to be adjusted based on your implementation
+        setSidebarWidgets={() => { }} // This might need to be adjusted based on your implementation
       />
     </>
   )

@@ -36,42 +36,42 @@ export default function ContingentModalMain({
           </div>
 
           {/* Billing Period Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-400 mb-3">
-              Select Billing Period
-            </label>
-            <div className="space-y-2">
-              {selectedMemberForAppointmentsMain &&
-                getBillingPeriodsMain(selectedMemberForAppointmentsMain.id).map(
-                  (period) => (
-                    <button
-                      key={period.id}
-                      onClick={() => handleBillingPeriodChange(period.id)}
-                      className={`w-full text-left p-3 rounded-xl border transition-colors ${
-                        selectedBillingPeriodMain === period.id
-                          ? "bg-blue-600/20 border-blue-500 text-blue-300"
-                          : "bg-[#222222] border-gray-600 text-gray-300 hover:bg-[#2A2A2A]"
-                      }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{period.label}</span>
-                        <span className="text-sm">
-                          {period.data.used}/{period.data.total}
-                        </span>
-                      </div>
-                    </button>
-                  )
-                )}
+<div className="mb-6">
+  <label className="block text-sm font-medium text-gray-400 mb-3">
+    Select Billing Period
+  </label>
+  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+    {selectedMemberForAppointmentsMain &&
+      getBillingPeriodsMain(selectedMemberForAppointmentsMain.id).map(
+        (period) => (
+          <button
+            key={period.id}
+            onClick={() => handleBillingPeriodChange(period.id)}
+            className={`w-full text-left p-3 rounded-xl border transition-colors ${
+              selectedBillingPeriodMain === period.id
+                ? "bg-blue-600/20 border-blue-500 text-blue-300"
+                : "bg-[#222222] border-gray-600 text-gray-300 hover:bg-[#2A2A2A]"
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <span className="font-medium">{period.label}</span>
+              <span className="text-sm">
+                {period.data.used}/{period.data.total}
+              </span>
             </div>
-            {/* Add New Billing Period */}
-            <button
-              onClick={() => setShowAddBillingPeriodModalMain(true)}
-              className="w-full mt-3 p-3 border-2 border-dashed border-gray-600 rounded-xl text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center gap-2"
-            >
-              <Plus size={16} />
-              Add Future Billing Period
-            </button>
-          </div>
+          </button>
+        )
+      )}
+  </div>
+  {/* Add New Billing Period */}
+  <button
+    onClick={() => setShowAddBillingPeriodModalMain(true)}
+    className="w-full mt-3 p-3 border-2 border-dashed border-gray-600 rounded-xl text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center gap-2"
+  >
+    <Plus size={16} />
+    Add Future Billing Period
+  </button>
+</div>
 
           {/* Contingent Management */}
           <div className="space-y-4">
@@ -147,25 +147,7 @@ export default function ContingentModalMain({
               </div>
             </div>
 
-            {/* Info Boxes */}
-            {selectedBillingPeriodMain === "current" && (
-              <div className="p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-xl">
-                <p className="text-yellow-200 text-sm flex items-center gap-2">
-                  <Lock size={14} />
-                  Total appointments are locked for the current billing period.
-                  You can only edit used appointments.
-                </p>
-              </div>
-            )}
-            {selectedBillingPeriodMain !== "current" && (
-              <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
-                <p className="text-blue-200 text-sm flex items-center gap-2">
-                  <Info size={14} />
-                  You can edit both used and total appointments for future
-                  billing periods.
-                </p>
-              </div>
-            )}
+           
           </div>
 
           {/* Actions */}

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/no-unescaped-entities */
@@ -49,35 +50,42 @@ import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import { createPortal } from "react-dom"
 
+
+const SpecialNotePortal = ({ children, isOpen }) => {
+  if (!isOpen) return null;
+  return createPortal(children, document.body);
+};
 
 export default function Appointments() {
   const sidebarSystem = useSidebarSystem();
   const trainingVideos = trainingVideosData
-  
+
   const [appointmentsMain, setAppointmentsMain] = useState(initialAppointmentsData)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [selectedDate, setSelectedDate] = useState(null)
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
-  
+
   const [selectedAppointmentMain, setSelectedAppointmentMain] = useState(null)
-  
+
   const [activeNoteIdMain, setActiveNoteIdMain] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
-  
+
   const [selectedMemberMain, setSelectedMemberMain] = useState(null)
-  
+
   const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
-  
+
   const [notifyActionMain, setNotifyActionMain] = useState("")
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
-  
+
   const [showAppointmentOptionsModalMain, setshowAppointmentOptionsModalMain] = useState(false)
-  
+
   const [isEditAppointmentModalOpenMain, setisEditAppointmentModalOpenMain] = useState(false)
 
   // FIXED: Added collapsible states for filters and upcoming appointments
@@ -95,14 +103,14 @@ export default function Appointments() {
     "Past Appointments": true,
   })
 
-  
+
   const [freeAppointmentsMain, setFreeAppointmentsMain] = useState([
     { id: "free1", date: "2025-01-03", time: "10:00" },
     { id: "free2", date: "2025-01-03", time: "11:00" },
     { id: "free3", date: "2025-01-03", time: "14:00" },
   ])
 
-  
+
   const [appointmentTypesMain, setAppointmentTypesMain] = useState([
     { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
     { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
@@ -117,7 +125,7 @@ export default function Appointments() {
     applyFilters()
   }, [appointmentsMain, selectedDate, searchQuery, appointmentFilters])
 
-  
+
   const notePopoverRefMain = useRef(null)
 
   useEffect(() => {
@@ -242,7 +250,7 @@ export default function Appointments() {
     setAppointmentsMain([...appointmentsMain, newTrial])
     toast.success("Trial training booked successfully")
   }
-  
+
   const handleCheckInMain = (appointmentId) => {
     setAppointmentsMain((prevAppointments) =>
       prevAppointments.map((appointment) =>
@@ -255,7 +263,7 @@ export default function Appointments() {
         : "Member check in successfully",
     )
   }
-  
+
   const handleNotifyMemberMain = (shouldNotify) => {
     setIsNotifyMemberOpenMain(false)
     if (shouldNotify) {
@@ -273,13 +281,13 @@ export default function Appointments() {
       setSelectedMemberMain(foundMember ? foundMember.name : null)
     }
   }
-  
+
   const handleDeleteAppointmentMain = (appointmentId) => {
     setAppointmentsMain((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
     setSelectedAppointmentMain(null)
     toast.success("Appointment deleted successfully")
   }
-  
+
   const handleCancelAppointmentMain = (appointmentId) => {
     // New function to handle cancellation (status change)
     const updatedAppointments = appointmentsMain.map((app) =>
@@ -293,13 +301,13 @@ export default function Appointments() {
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed)
   }
-  
+
   const handleAppointmentOptionsModalMain = (appointment) => {
     setSelectedAppointmentMain(appointment)
     setshowAppointmentOptionsModalMain(true)
     setisEditAppointmentModalOpenMain(false) // Ensure edit modal is closed
   }
-  
+
   const renderSpecialNoteIconMain = useCallback(
     (specialNote, memberId) => {
       if (!specialNote?.text) return null
@@ -307,15 +315,16 @@ export default function Appointments() {
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
-
+  
       const handleNoteClick = (e) => {
         e.stopPropagation()
         setActiveNoteIdMain(activeNoteIdMain === memberId ? null : memberId)
       }
-
+  
       return (
         <div className="relative">
           <div
+            id={`note-trigger-${memberId}`}
             className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
               } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
@@ -326,10 +335,40 @@ export default function Appointments() {
               <Info size={18} className="text-white" />
             )}
           </div>
-          {activeNoteIdMain === memberId && (
+          <SpecialNotePortal isOpen={activeNoteIdMain === memberId}>
             <div
               ref={notePopoverRefMain}
-              className="absolute left-0 top-6 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
+              className="fixed w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[9999]"
+              style={{
+                top: (() => {
+                  const trigger = document.getElementById(`note-trigger-${memberId}`);
+                  if (!trigger) return '50%';
+                  const rect = trigger.getBoundingClientRect();
+                  const spaceBelow = window.innerHeight - rect.bottom;
+                  const popoverHeight = 200; // approximate height
+                  
+                  // If not enough space below, show above
+                  if (spaceBelow < popoverHeight && rect.top > popoverHeight) {
+                    return `${rect.top - popoverHeight - 8}px`;
+                  }
+                  return `${rect.bottom + 8}px`;
+                })(),
+                left: (() => {
+                  const trigger = document.getElementById(`note-trigger-${memberId}`);
+                  if (!trigger) return '50%';
+                  const rect = trigger.getBoundingClientRect();
+                  const popoverWidth = 288; // w-72 = 288px
+                  
+                  // Keep within viewport
+                  let left = rect.left;
+                  if (left + popoverWidth > window.innerWidth) {
+                    left = window.innerWidth - popoverWidth - 16;
+                  }
+                  if (left < 16) left = 16;
+                  
+                  return `${left}px`;
+                })(),
+              }}
             >
               <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                 {specialNote.isImportant === "important" ? (
@@ -371,7 +410,7 @@ export default function Appointments() {
                 )}
               </div>
             </div>
-          )}
+          </SpecialNotePortal>
         </div>
       )
     },
@@ -549,7 +588,12 @@ export default function Appointments() {
 
     todoFilterOptions,
     relationOptions,
-    appointmentTypes
+    appointmentTypes,
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem;
 
   // more sidebar related functions
@@ -706,24 +750,6 @@ export default function Appointments() {
     return getBillingPeriods(memberId, memberContingentData);
   };
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-600"
-      case "Intermediate":
-        return "bg-yellow-600"
-      case "Advanced":
-        return "bg-red-600"
-      default:
-        return "bg-gray-600"
-    }
-  }
-
-  const getVideoById = (id) => {
-    return trainingVideos.find((video) => video.id === id)
-  }
-
-
 
 
 
@@ -804,7 +830,7 @@ export default function Appointments() {
                   onClick={() => setIsTrialModalOpen(true)}
                   className="w-full sm:w-auto bg-[#3F74FF] text-white px-4 py-2 rounded-xl lg:text-sm text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-1"
                 >
-                  <span>+</span> Add Trial Training
+                  <span>+</span> Book Trial Training
                 </button>
                 <button
                   onClick={() => setIsBlockModalOpen(true)}
@@ -835,8 +861,8 @@ export default function Appointments() {
             <div className="flex lg:flex-row flex-col gap-6 relative">
               <div
                 className={`transition-all duration-500 ease-in-out ${isSidebarCollapsed
-                    ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0"
-                    : "lg:w-[320px] lg:opacity-100" // Fixed width for large screens only
+                  ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0"
+                  : "lg:w-[320px] lg:opacity-100" // Fixed width for large screens only
                   } w-full md:w-full flex flex-col gap-6`} // Full width on tablet and mobile
               >
                 <div className="w-full">
@@ -870,16 +896,16 @@ export default function Appointments() {
                       </button>
                     </div>
                     {!isUpcomingCollapsed && (
-                      <div className="space-y-2 custom-scrollbar overflow-y-auto max-h-[300px] w-full">
+                      <div className="space-y-2 custom-scrollbar overflow-y-auto  max-h-[400px] w-full">
                         {filteredAppointments.length > 0 ? (
                           filteredAppointments.map((appointment, index) => (
                             <div
                               key={appointment.id}
                               className={`${appointment.isCancelled
-                                  ? "bg-gray-700 cancelled-appointment-bg"
-                                  : appointment.isPast && !appointment.isCancelled
-                                    ? "bg-gray-800 opacity-50"
-                                    : appointment.color
+                                ? "bg-gray-700 cancelled-appointment-bg"
+                                : appointment.isPast && !appointment.isCancelled
+                                  ? "bg-gray-800 opacity-50"
+                                  : appointment.color
                                 } rounded-xl cursor-pointer p-2 relative w-full`}
                               onClick={() => {
                                 handleAppointmentOptionsModalMain(appointment)
@@ -888,7 +914,7 @@ export default function Appointments() {
                               <div className="absolute p-1 top-0 left-0 z-10">
                                 {renderSpecialNoteIconMain(appointment.specialNote, appointment.id)}
                               </div>
-                              <div className="flex flex-col items-center justify-between gap-2 cursor-pointer">
+                              <div className="flex flex-col mr-16 items-center justify-between gap-2 cursor-pointer">
                                 <div className="flex items-center gap-2 ml-4 relative w-full justify-center">
                                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative">
                                     <img
@@ -898,7 +924,7 @@ export default function Appointments() {
                                     />
                                   </div>
                                   <div className="text-white text-left">
-                                    <p className="font-semibold text-sm">{appointment.name}</p>
+                                    <p className="font-semibold text-sm">{appointment.name} {appointment.lastName}</p>
                                     <p className="text-xs flex gap-1 items-center opacity-80">
                                       <Clock size={12} />
                                       {appointment.time} | {appointment.date?.split("|")[0]}
@@ -920,8 +946,8 @@ export default function Appointments() {
                                     handleCheckInMain(appointment.id)
                                   }}
                                   className={`px-2 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                      ? "border border-white/50 text-white bg-transparent"
-                                      : "bg-black text-white"
+                                    ? "border border-white/50 text-white bg-transparent"
+                                    : "bg-black text-white"
                                     }`}
                                 >
                                   {appointment.isCheckedIn ? "Checked In" : "Check In"}
@@ -990,11 +1016,9 @@ export default function Appointments() {
                             onChange={() => handleFilterChange("Blocked Time Slots")}
                             className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                           />
-                          <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                           <span className="text-white text-xs">Blocked Time Slots</span>
                         </label>
 
-                        <div className="border-t border-gray-600 my-2"></div>
 
                         <label className="flex items-center gap-2 cursor-pointer w-full">
                           <input
@@ -1006,7 +1030,6 @@ export default function Appointments() {
                           <span className="text-white text-xs">Cancelled Appointments</span>
                         </label>
 
-                        <div className="border-t border-gray-600 my-2"></div>
 
                         <label className="flex items-center gap-2 cursor-pointer w-full">
                           <input
@@ -1145,39 +1168,39 @@ export default function Appointments() {
           </div>
         )}
         <BlockAppointmentModal
-  isOpen={isBlockModalOpen}
-  onClose={() => setIsBlockModalOpen(false)}
-  appointmentTypesMain={appointmentTypesMain}
-  selectedDate={selectedDate || new Date()}
-  onSubmit={(blockData) => {
-    const newBlock = {
-      id: appointmentsMain.length + 1,
-      name: "BLOCKED",
-      time: `${blockData.startTime} - ${blockData.endTime}`,
-      date: `${new Date(blockData.startDate).toLocaleString("en-US", {
-        weekday: "short",
-      })} | ${formatDateForDisplay(new Date(blockData.startDate))} → ${formatDateForDisplay(new Date(blockData.endDate))}`,
-      color: "bg-[#FF4D4F]",
-      startTime: blockData.startTime,
-      endTime: blockData.endTime,
-      type: "Blocked Time",
-      specialNote: {
-        text: blockData.note || "This time slot is blocked",
-        startDate: blockData.startDate,
-        endDate: blockData.endDate,
-        isImportant: true,
-      },
-      status: "blocked",
-      isBlocked: true,
-      isCancelled: false,
-      isPast: false,
-    }
+          isOpen={isBlockModalOpen}
+          onClose={() => setIsBlockModalOpen(false)}
+          appointmentTypesMain={appointmentTypesMain}
+          selectedDate={selectedDate || new Date()}
+          onSubmit={(blockData) => {
+            const newBlock = {
+              id: appointmentsMain.length + 1,
+              name: "BLOCKED",
+              time: `${blockData.startTime} - ${blockData.endTime}`,
+              date: `${new Date(blockData.startDate).toLocaleString("en-US", {
+                weekday: "short",
+              })} | ${formatDateForDisplay(new Date(blockData.startDate))} → ${formatDateForDisplay(new Date(blockData.endDate))}`,
+              color: "bg-[#FF4D4F]",
+              startTime: blockData.startTime,
+              endTime: blockData.endTime,
+              type: "Blocked Time",
+              specialNote: {
+                text: blockData.note || "This time slot is blocked",
+                startDate: blockData.startDate,
+                endDate: blockData.endDate,
+                isImportant: true,
+              },
+              status: "blocked",
+              isBlocked: true,
+              isCancelled: false,
+              isPast: false,
+            }
 
-    setAppointmentsMain([...appointmentsMain, newBlock])
-    toast.success("Time slot blocked successfully")
-    setIsBlockModalOpen(false)
-  }}
-/>
+            setAppointmentsMain([...appointmentsMain, newBlock])
+            toast.success("Time slot blocked successfully")
+            setIsBlockModalOpen(false)
+          }}
+        />
 
         <Toaster
           position="top-right"
@@ -1217,7 +1240,6 @@ export default function Appointments() {
           moveRightSidebarWidget={moveRightSidebarWidget}
           removeRightSidebarWidget={removeRightSidebarWidget}
           setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
-          communications={communications}
           redirectToCommunication={redirectToCommunication}
           todos={todos}
           handleTaskComplete={handleTaskCompleteWrapper}
@@ -1266,13 +1288,17 @@ export default function Appointments() {
         />
 
         {/* Sidebar related modals */}
-        <TrainingPlanModal
+        <TrainingPlansModal
           isOpen={isTrainingPlanModalOpen}
-          onClose={() => setIsTrainingPlanModalOpen(false)}
-          user={selectedUserForTrainingPlan}
-          trainingPlans={mockTrainingPlans}
-          getDifficultyColor={getDifficultyColor}
-          getVideoById={getVideoById}
+          onClose={() => {
+            setIsTrainingPlanModalOpen(false)
+            setSelectedUserForTrainingPlan(null)
+          }}
+          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+          availableTrainingPlans={availableTrainingPlans}
+          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
         />
 
         <AppointmentActionModalV2

@@ -314,7 +314,7 @@ const TrialTrainingModal = ({
                     <button
                       type="button"
                       onClick={() => setIsAddLeadModalOpen(true)}
-                      className="mt-2 w-full flex items-center justify-center text-sm gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+                      className="mt-2 w-full flex items-center justify-center text-sm gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl  transition-colors"
                     >
                       Create New Lead
                     </button>

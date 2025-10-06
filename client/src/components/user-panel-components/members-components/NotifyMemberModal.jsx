@@ -14,7 +14,7 @@ export default function NotifyMemberModalMain({ open, action, onClose }) {
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-medium text-white">Notify Member</h2>
-            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+            <button onClick={onClose} className="p-2 hover:bg-zinc-700 text-white rounded-lg">
               <X size={16} />
             </button>
           </div>

@@ -41,6 +41,7 @@ import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 export default function ActivityMonitor() {
   const sidebarSystem = useSidebarSystem();
@@ -322,7 +323,12 @@ export default function ActivityMonitor() {
 
     todoFilterOptions,
     relationOptions,
-    appointmentTypes
+    appointmentTypes,
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem;
 
   // more sidebar related functions
@@ -1111,14 +1117,18 @@ export default function ActivityMonitor() {
       />
 
       {/* Sidebar related modals */}
-      <TrainingPlanModal
-        isOpen={isTrainingPlanModalOpen}
-        onClose={() => setIsTrainingPlanModalOpen(false)}
-        user={selectedUserForTrainingPlan}
-        trainingPlans={mockTrainingPlans}
-        getDifficultyColor={getDifficultyColor}
-        getVideoById={getVideoById}
-      />
+      <TrainingPlansModal
+                             isOpen={isTrainingPlanModalOpen}
+                             onClose={() => {
+                               setIsTrainingPlanModalOpen(false)
+                               setSelectedUserForTrainingPlan(null)
+                             }}
+                             selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+                             memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                             availableTrainingPlans={availableTrainingPlans}
+                             onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+                             onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+                           />
 
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}

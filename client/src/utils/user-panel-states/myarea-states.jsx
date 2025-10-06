@@ -230,7 +230,7 @@ export const todosData = [
         assignees: ["Sarah"],
         roles: "Manager",
         tags: ["Review"],
-        status: "pending",
+        status: "canceled",
         category: "staff",
         dueDate: "2025-01-20",
         isPinned: false,

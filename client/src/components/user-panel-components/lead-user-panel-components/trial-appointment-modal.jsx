@@ -2,15 +2,22 @@
 /* eslint-disable react/prop-types */
 
 import { useState } from "react"
-import { X, Edit, Trash2 } from "lucide-react"
+import { X, Edit, Trash2, Plus } from "lucide-react"
 
-const TrialAppointmentModal = ({ isOpen, onClose, lead, onEditTrial, onDeleteTrial }) => {
+const TrialAppointmentModal = ({ 
+  isOpen, 
+  onClose, 
+  lead, 
+  onEditTrial, 
+  onDeleteTrial, 
+  onCreateNewTrial // Add this prop
+}) => {
   const [trialAppointments, setTrialAppointments] = useState([
     {
       id: 1,
       name: "Yolanda",
       time: "09:00 - 09:30",
-      date: "2025-02-07", // ISO format rakhna best hai
+      date: "2025-02-07",
       color: "bg-[#4169E1]",
       startTime: "09:00",
       endTime: "09:30",
@@ -51,6 +58,10 @@ const TrialAppointmentModal = ({ isOpen, onClose, lead, onEditTrial, onDeleteTri
     setTrialAppointments((prev) => prev.filter((apt) => apt.id !== appointmentId))
   }
 
+  const handleCreateNewTrial = () => {
+    onCreateNewTrial(lead)
+  }
+
   if (!isOpen || !lead) return null
 
   return (
@@ -65,6 +76,8 @@ const TrialAppointmentModal = ({ isOpen, onClose, lead, onEditTrial, onDeleteTri
               <X size={16} />
             </button>
           </div>
+
+       
 
           <div className="space-y-3 mb-4">
             <h3 className="text-sm font-medium text-gray-400">Trial Appointments</h3>
@@ -110,6 +123,16 @@ const TrialAppointmentModal = ({ isOpen, onClose, lead, onEditTrial, onDeleteTri
                 No trial appointments scheduled
               </div>
             )}
+          </div>  
+             {/* Create New Trial Appointment Button */}
+             <div className="mb-4">
+            <button
+              onClick={handleCreateNewTrial}
+              className="w-full bg-blue-600 text-sm hover:bg-blue-700 text-white py-2 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
+            >
+              <Plus size={16} />
+              Create New Trial Appointment
+            </button>
           </div>
         </div>
       </div>

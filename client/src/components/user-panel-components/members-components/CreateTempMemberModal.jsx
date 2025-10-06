@@ -22,6 +22,38 @@ const CreateTempMemberModal = ({
 }) => {
   if (!show) return null
 
+  const handleFormSubmit = (e) => {
+    e.preventDefault()
+    
+    // Validate required fields from details section
+    if (!tempMemberForm.firstName || !tempMemberForm.firstName.trim()) {
+      toast.error("First Name is required")
+      setTempMemberModalTab("details")
+      return
+    }
+    
+    if (!tempMemberForm.lastName || !tempMemberForm.lastName.trim()) {
+      toast.error("Last Name is required")
+      setTempMemberModalTab("details")
+      return
+    }
+    
+    if (!tempMemberForm.email || !tempMemberForm.email.trim()) {
+      toast.error("Email is required")
+      setTempMemberModalTab("details")
+      return
+    }
+    
+    if (!tempMemberForm.phone || !tempMemberForm.phone.trim()) {
+      toast.error("Phone is required")
+      setTempMemberModalTab("details")
+      return
+    }
+    
+    // If validation passes, proceed with creation
+    handleCreateTempMember(e)
+  }
+
   return (
     <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
@@ -83,7 +115,7 @@ const CreateTempMemberModal = ({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleCreateTempMember} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]">
+          <form onSubmit={handleFormSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]">
             {/* ---- Tab: DETAILS ---- */}
             {tempMemberModalTab === "details" && (
               <>
@@ -116,7 +148,9 @@ const CreateTempMemberModal = ({
                 {/* Name Fields */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">First Name</label>
+                    <label className="text-sm text-gray-200 block mb-2">
+                      First Name <span className="text-red-400">*</span>
+                    </label>
                     <input
                       type="text"
                       name="firstName"
@@ -127,7 +161,9 @@ const CreateTempMemberModal = ({
                     />
                   </div>
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Last Name</label>
+                    <label className="text-sm text-gray-200 block mb-2">
+                      Last Name <span className="text-red-400">*</span>
+                    </label>
                     <input
                       type="text"
                       name="lastName"
@@ -141,7 +177,9 @@ const CreateTempMemberModal = ({
 
                 {/* Email */}
                 <div>
-                  <label className="text-sm text-gray-200 block mb-2">Email *</label>
+                  <label className="text-sm text-gray-200 block mb-2">
+                    Email <span className="text-red-400">*</span>
+                  </label>
                   <input
                     type="email"
                     name="email"
@@ -154,7 +192,9 @@ const CreateTempMemberModal = ({
 
                 {/* Phone */}
                 <div>
-                  <label className="text-sm text-gray-200 block mb-2">Phone *</label>
+                  <label className="text-sm text-gray-200 block mb-2">
+                    Phone <span className="text-red-400">*</span>
+                  </label>
                   <input
                     type="tel"
                     name="phone"
@@ -163,6 +203,20 @@ const CreateTempMemberModal = ({
                     className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Gender</label>
+                  <select
+                    name="gender"
+                    value={tempMemberForm.gender || ""}
+                    onChange={handleTempMemberInputChange}
+                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
 
                 {/* Country */}
@@ -503,7 +557,7 @@ const CreateTempMemberModal = ({
             )}
 
             {/* Submit */}
-            <button type="submit" className="w-full bg-gray-700 text-white rounded-xl py-2 text-sm cursor-pointer">
+            <button type="submit" className="w-full bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-2 text-sm cursor-pointer transition-colors">
               Create Temporary Member
             </button>
           </form>

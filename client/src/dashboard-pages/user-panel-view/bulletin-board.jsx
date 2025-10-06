@@ -25,6 +25,7 @@ import Sidebar from "../../components/central-sidebar"
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 const BulletinBoard = () => {
   const sidebarSystem = useSidebarSystem();
@@ -48,6 +49,7 @@ const BulletinBoard = () => {
   const [selectedPost, setSelectedPost] = useState(null)
   const [filterVisibility, setFilterVisibility] = useState("All")
   const [filterStatus, setFilterStatus] = useState("All")
+  const [viewingPost, setViewingPost] = useState(null)
 
   const [formData, setFormData] = useState({
     title: "",
@@ -56,24 +58,39 @@ const BulletinBoard = () => {
     status: "Active",
   })
 
+  const [createFormData, setCreateFormData] = useState({
+    title: "",
+    content: "",
+    visibility: "Members",
+    status: "Active",
+  })
+  
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    content: "",
+    visibility: "Members",
+    status: "Active",
+  })
+
+ 
   const handleCreatePost = () => {
-    if (formData.title.trim() && formData.content.trim()) {
+    if (createFormData.title.trim() && createFormData.content.trim()) {
       const newPost = {
         id: Date.now(),
-        ...formData,
+        ...createFormData,
         author: "Current User",
         createdAt: new Date().toLocaleDateString(),
         createdBy: "current-user",
       }
       setPosts([newPost, ...posts])
-      setFormData({ title: "", content: "", visibility: "Members", status: "Active" })
+      setCreateFormData({ title: "", content: "", visibility: "Members", status: "Active" })
       setShowCreateModal(false)
     }
   }
 
   const handleEditPost = () => {
-    if (formData.title.trim() && formData.content.trim()) {
-      setPosts(posts.map((post) => (post.id === selectedPost.id ? { ...post, ...formData } : post)))
+    if (editFormData.title.trim() && editFormData.content.trim()) {
+      setPosts(posts.map((post) => (post.id === selectedPost.id ? { ...post, ...editFormData } : post)))
       setShowEditModal(false)
       setSelectedPost(null)
     }
@@ -87,7 +104,7 @@ const BulletinBoard = () => {
 
   const openEditModal = (post) => {
     setSelectedPost(post)
-    setFormData({
+    setEditFormData({
       title: post.title,
       content: post.content,
       visibility: post.visibility,
@@ -129,7 +146,6 @@ const BulletinBoard = () => {
 
   // Extract all states and functions from the hook
   const {
-    // States
     isRightSidebarOpen,
     isSidebarEditing,
     isRightWidgetModalOpen,
@@ -179,8 +195,6 @@ const BulletinBoard = () => {
     widgets,
     rightSidebarWidgets,
     notePopoverRef,
-
-    // Setters
     setIsRightSidebarOpen,
     setIsSidebarEditing,
     setIsRightWidgetModalOpen,
@@ -229,8 +243,6 @@ const BulletinBoard = () => {
     setEditForm,
     setWidgets,
     setRightSidebarWidgets,
-
-    // Functions
     toggleRightSidebar,
     closeSidebar,
     toggleSidebarEditing,
@@ -281,28 +293,25 @@ const BulletinBoard = () => {
     handleUnarchiveMember,
     truncateUrl,
     renderSpecialNoteIcon,
-
-    // new states 
     customLinks, setCustomLinks, communications, setCommunications,
     todos, setTodos, expiringContracts, setExpiringContracts,
     birthdays, setBirthdays, notifications, setNotifications,
     appointments, setAppointments,
     memberContingentData, setMemberContingentData,
     memberRelations, setMemberRelations,
-
     memberTypes,
     availableMembersLeads,
     mockTrainingPlans,
     mockVideos,
-
     todoFilterOptions,
     relationOptions,
-    appointmentTypes
+    appointmentTypes,
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem;
 
-  // more sidebar related functions
-
-  // Chart configuration
   const chartSeries = [
     { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
@@ -380,8 +389,6 @@ const BulletinBoard = () => {
     },
   };
 
-
-  // Wrapper functions to pass local state to hook functions
   const handleTaskCompleteWrapper = (taskId) => {
     handleTaskComplete(taskId, todos, setTodos);
   };
@@ -510,23 +517,17 @@ const BulletinBoard = () => {
       <div className={`
           min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3
           transition-all duration-500 ease-in-out flex-1
-          ${isRightSidebarOpen
-          ? 'lg:mr-86 mr-0' // Adjust right margin when sidebar is open on larger screens
-          : 'mr-0' // No margin when closed
-        }
+          ${isRightSidebarOpen ? 'lg:mr-86 mr-0' : 'mr-0'}
         `}>
         <div className="">
           <div className="">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-4">
-
                 <div>
                   <h1 className="text-2xl font-bold text-white">Bulletin Board</h1>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-
-
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="bg-orange-500 text-sm cursor-pointer text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
@@ -556,7 +557,6 @@ const BulletinBoard = () => {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -589,26 +589,17 @@ const BulletinBoard = () => {
             </div>
           </div>
 
-          <div
-            className={`grid grid-cols-1 md:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-3"
-              } gap-6`}
-          >
-
+          <div className={`grid grid-cols-1 md:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-3"} gap-6`}>
             {filteredPosts.map((post) => (
               <div
                 key={post.id}
-                className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-6 hover:shadow-xl hover:border-gray-700 transition-all duration-200"
+                className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-6 hover:shadow-xl hover:border-gray-700 transition-all duration-200 h-64 flex flex-col"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-4 flex-shrink-0">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white mb-2 text-balance">{post.title}</h3>
+                    <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">{post.title}</h3>
                     <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${post.status === "Active"
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : "bg-gray-500/10 text-gray-400 border border-gray-500/20"
-                          }`}
-                      >
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${post.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-gray-500/10 text-gray-400 border border-gray-500/20"}`}>
                         {post.status}
                       </span>
                       <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-medium">
@@ -618,47 +609,50 @@ const BulletinBoard = () => {
                   </div>
                 </div>
 
-                {/* Post Content */}
-                <p className="text-gray-300 mb-4 text-sm text-pretty leading-relaxed">{post.content}</p>
+                <div className="flex-1 overflow-hidden mb-4">
+                  <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">{post.content}</p>
+                </div>
 
-                {/* Post Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-800">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-800 flex-shrink-0">
                   <div className="text-xs text-gray-500">
                     <p className="font-medium text-gray-400">By {post.author}</p>
                     <p>{post.createdAt}</p>
                   </div>
-                  {post.createdBy === "current-user" && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openEditModal(post)}
-                        className="text-blue-400 hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-gray-800"
-                        title="Edit post"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(post)}
-                        className="text-red-400 hover:text-red-300 transition-colors p-2 rounded-lg hover:bg-gray-800"
-                        title="Delete post"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setViewingPost(post)}
+                      className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
+                      title="View full post"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+
+                    {post.createdBy === "current-user" && (
+                      <>
+                        <button
+                          onClick={() => openEditModal(post)}
+                          className="text-blue-400 hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-gray-800"
+                          title="Edit post"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(post)}
+                          className="text-red-400 hover:text-red-300 transition-colors p-2 rounded-lg hover:bg-gray-800"
+                          title="Delete post"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -692,152 +686,181 @@ const BulletinBoard = () => {
         </div>
 
         <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create New Post">
-          <div className="space-y-4">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
+              placeholder="Enter post title..."
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
+            <textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              rows={6}
+              className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm resize-none"
+              placeholder="Write your post content here..."
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              <label className="block text-sm font-medium text-gray-300 mb-2">Visibility</label>
+              <select
+                value={formData.visibility}
+                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
                 className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-                placeholder="Enter post title..."
-              />
+              >
+                <option value="Members">Members</option>
+                <option value="Staff">Staff</option>
+              </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
-              <textarea
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                rows={6}
-                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm resize-none"
-                placeholder="Write your post content here..."
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Visibility</label>
-                <select
-                  value={formData.visibility}
-                  onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
-                  className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-                >
-                  <option value="Members">Members</option>
-                  <option value="Staff">Staff</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-3 pt-4">
-
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="flex-1 bg-gray-600 text-sm cursor-pointer hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+              <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreatePost}
-                className="flex-1 bg-blue-600 text-sm cursor-pointer  text-white py-3 px-4 rounded-lg font-medium transition-colors"
-              >
-                Create Post
-              </button>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
             </div>
           </div>
-        </Modal>
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={() => setShowCreateModal(false)}
+              className="flex-1 bg-gray-600 text-sm cursor-pointer hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreatePost}
+              className="flex-1 bg-blue-600 text-sm cursor-pointer hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Create Post
+            </button>
+          </div>
+        </div>
+      </Modal>
 
-        <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Post">
-          <div className="space-y-4">
+      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Post">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
+            <textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              rows={6}
+              className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm resize-none"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              <label className="block text-sm font-medium text-gray-300 mb-2">Visibility</label>
+              <select
+                value={formData.visibility}
+                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
                 className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-              />
+              >
+                <option value="Members">Members</option>
+                <option value="Staff">Staff</option>
+              </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
-              <textarea
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                rows={6}
-                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm resize-none"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Visibility</label>
-                <select
-                  value={formData.visibility}
-                  onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
-                  className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-                >
-                  <option value="Members">Members</option>
-                  <option value="Staff">Staff</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-3 pt-4">
-
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="flex-1 bg-gray-600 text-sm cursor-pointer hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+              <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleEditPost}
-                className="flex-1 bg-blue-600 text-sm cursor-pointer text-white py-3 px-4 rounded-lg font-medium transition-colors"
-              >
-                Save Changes
-              </button>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
             </div>
           </div>
-        </Modal>
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={() => setShowEditModal(false)}
+              className="flex-1 bg-gray-600 text-sm cursor-pointer hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleEditPost}
+              className="flex-1 bg-blue-600 text-sm cursor-pointer hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </Modal>
 
-        <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Delete Post">
+      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Delete Post">
+        <div className="space-y-4">
+          <div className="text-center">
+            <p className="text-gray-300 mb-4">
+              Do you really want to delete "{selectedPost?.title}"? This action cannot be undone.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              className="flex-1 text-sm cursor-pointer bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeletePost}
+              className="flex-1 text-sm cursor-pointer bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Delete Post
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+        <Modal isOpen={!!viewingPost} onClose={() => setViewingPost(null)} title={viewingPost?.title || "Post"}>
           <div className="space-y-4">
-            <div className="text-center">
-
-              <p className="text-gray-300 mb-4">
-                Do you really want to delete "{selectedPost?.title}"? This action cannot be undone.
-              </p>
+            <div className="flex items-center gap-2 mb-4">
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${viewingPost?.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-gray-500/10 text-gray-400 border border-gray-500/20"}`}>
+                {viewingPost?.status}
+              </span>
+              <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-medium">
+                {viewingPost?.visibility}
+              </span>
             </div>
-            <div className="flex gap-3">
 
+            <div className="bg-[#181818] rounded-lg p-4 max-h-96 overflow-y-auto">
+              <p className="text-gray-300 whitespace-pre-wrap">{viewingPost?.content}</p>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+              <div className="text-sm text-gray-400">
+                <p>By {viewingPost?.author}</p>
+                <p>Created on {viewingPost?.createdAt}</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4">
               <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 text-sm cursor-pointer bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+                onClick={() => setViewingPost(null)}
+                className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-6 rounded-lg font-medium transition-colors"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeletePost}
-                className="flex-1 text-sm cursor-pointer bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-              >
-                Delete Post
+                Close
               </button>
             </div>
           </div>
@@ -900,14 +923,17 @@ const BulletinBoard = () => {
           notifications={notifications}
         />
 
-        {/* Sidebar related modals */}
-        <TrainingPlanModal
+        <TrainingPlansModal
           isOpen={isTrainingPlanModalOpen}
-          onClose={() => setIsTrainingPlanModalOpen(false)}
-          user={selectedUserForTrainingPlan}
-          trainingPlans={mockTrainingPlans}
-          getDifficultyColor={getDifficultyColor}
-          getVideoById={getVideoById}
+          onClose={() => {
+            setIsTrainingPlanModalOpen(false)
+            setSelectedUserForTrainingPlan(null)
+          }}
+          selectedMember={selectedUserForTrainingPlan}
+          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+          availableTrainingPlans={availableTrainingPlans}
+          onAssignPlan={handleAssignTrainingPlan}
+          onRemovePlan={handleRemoveTrainingPlan}
         />
 
         <AppointmentActionModalV2

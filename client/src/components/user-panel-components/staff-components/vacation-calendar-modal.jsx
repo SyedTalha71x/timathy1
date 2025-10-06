@@ -1,10 +1,17 @@
-
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { Calendar, ChevronLeft, ChevronRight, X, History, Eye } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
+
+// helper to format date to YYYY-MM-DD using local time (avoids timezone off-by-one)
+function formatLocalYMD(date) {
+  if (!date) return ""
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
 
 function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = false }) {
   const [startDate, setStartDate] = useState("")
@@ -12,7 +19,6 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
   const [showCalendar, setShowCalendar] = useState(true)
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
-  const [vacationRequests, setVacationRequests] = useState([])
   const [showRequestForm, setShowRequestForm] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [showVacationJournal, setShowVacationJournal] = useState(false)
@@ -70,8 +76,8 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
 
   const calculateVacationDays = () => {
     if (!startDate || !endDate) return 0
-    const start = new Date(startDate)
-    const end = new Date(endDate)
+    const start = new Date(startDate + "T00:00:00") // ensure local midnight
+    const end = new Date(endDate + "T00:00:00")
     const diffTime = Math.abs(end - start)
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
@@ -88,8 +94,8 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
     const newVacation = {
       id: bookedVacations.length + 1,
       staffId: staffMember.id,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate: new Date(startDate + "T00:00:00"),
+      endDate: new Date(endDate + "T00:00:00"),
       status: "pending",
       requestDate: new Date(),
       reason: "Vacation request",
@@ -103,13 +109,14 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
 
   const handleDateClick = (date) => {
     setSelectedDate(date)
+    const ymd = formatLocalYMD(date)
     if (!startDate) {
-      setStartDate(date.toISOString().split("T")[0])
-    } else if (!endDate && date >= new Date(startDate)) {
-      setEndDate(date.toISOString().split("T")[0])
+      setStartDate(ymd)
+    } else if (!endDate && new Date(ymd + "T00:00:00") >= new Date(startDate + "T00:00:00")) {
+      setEndDate(ymd)
       setShowRequestForm(true)
     } else {
-      setStartDate(date.toISOString().split("T")[0])
+      setStartDate(ymd)
       setEndDate("")
     }
   }
@@ -163,7 +170,7 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
 
   const formatDateName = (dateStr) => {
     if (!dateStr) return ""
-    const date = new Date(dateStr)
+    const date = new Date(dateStr + "T00:00:00")
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       month: "long",
@@ -445,9 +452,9 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
                   const hasMyApproved = myApprovedBookings.length > 0
                   const hasColleagueBookings = colleagueBookings.length > 0
                   const isClosing = isClosingDay(day)
-                  const isSelected =
-                    (startDate && day.toISOString().split("T")[0] === startDate) ||
-                    (endDate && day.toISOString().split("T")[0] === endDate)
+
+                  const dayStr = formatLocalYMD(day)
+                  const isSelected = (startDate && dayStr === startDate) || (endDate && dayStr === endDate)
 
                   return (
                     <div

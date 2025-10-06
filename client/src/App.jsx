@@ -30,6 +30,7 @@ import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
 import MarketPlace from './dashboard-pages/user-panel-view/market-place'
 import NotesApp from "./dashboard-pages/user-panel-view/notes";
 import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
+import MembersCheckIn from './dashboard-pages/user-panel-view/members-checkin'
 
 
 // Admin Dashboard
@@ -56,11 +57,20 @@ import MemberSettings from './dashboard-pages/member-view/configuration'
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
 import MemberDashboardLayout from "./layouts/member-dashboard-layout";
+// import { useEffect } from "react";
+// import { startModalWatcher } from "./utils/fixModals";
 
 function App() {
+
+
+  
   const location = useLocation();
   const isAuthOrDashboardPage = ["/login", "/register", "/profile"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
 
+  // useEffect(() => {
+  //   const observer = startModalWatcher();
+  //   return () => observer.disconnect();
+  // }, []);
   return (
     <>
       {!isAuthOrDashboardPage && <Header />}
@@ -94,6 +104,8 @@ function App() {
           <Route path="market-place" element={<MarketPlace />} />
           <Route path="notes" element={<NotesApp />} />
           <Route path="bulletin-board" element={<BulletinBoard />} />
+          <Route path="members-checkin" element={<MembersCheckIn />} />
+
         </Route>
 
         <Route path="/admin-dashboard" element={<AdminDashboardLayout />}>

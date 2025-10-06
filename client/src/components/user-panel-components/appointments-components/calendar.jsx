@@ -1,18 +1,31 @@
+"use client"
+
 /* eslint-disable react/no-unknown-property */ /* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */ /* eslint-disable react/no-unescaped-entities */
 import FullCalendar from "@fullcalendar/react"
-import { Edit, User, X, FileText, CalendarIcon, History, MessageCircle, Eye, Info, Edit3, Trash2 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
 import toast, { Toaster } from "react-hot-toast"
+import { useEffect, useRef, useState } from "react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
-import DefaultAvatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
+import { GoArrowLeft, GoArrowRight } from "react-icons/go"
+
+import { membersData } from "../../../utils/user-panel-states/appointment-states"
+
 import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialTrainingModal from "./add-trial-training"
-import { membersData } from "../../../utils/user-panel-states/appointment-states"
-import { GoArrowLeft, GoArrowRight } from "react-icons/go";
 import EditAppointmentModalMain from "./selected-appointment-modal"
+import MemberOverviewModal from "./calendar-components/MemberOverviewModal"
+import MemberDetailsModal from "./calendar-components/MemberDetailsModal"
+import AppointmentModal from "./calendar-components/AppointmentModal"
+import ContingentModal from "./calendar-components/ContingentModal"
+import HistoryModal from "./calendar-components/HistoryModal"
+import TypeSelectionModal from "./calendar-components/TypeSelectionModal"
+// </CHANGE> ensure imports resolve to our local modals (paths may differ from original)
+
+import AppointmentActionModal from "./calendar-components/AppointmentActionModal"
+import NotifyMemberModal from "./calendar-components/NotifyMemberModal"
+import EditBlockedSlotModal from "./calendar-components/EditBlockTimeSlot"
 
 
 export default function Calendar({
@@ -40,6 +53,7 @@ export default function Calendar({
   const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
   const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
   const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [showListView, setShowListView] = useState(false)
   const [historyTab, setHistoryTab] = useState("general")
 
   // Tooltip states
@@ -86,7 +100,6 @@ export default function Calendar({
     { name: "Assessment", color: "bg-red-600", duration: 90 },
   ])
 
-  // Enhanced appointments data for members - Updated with more current appointments
   const [memberAppointments, setMemberAppointments] = useState([
     {
       id: 1,
@@ -167,7 +180,6 @@ export default function Calendar({
     },
   ])
 
-  // History data for members
   const [memberHistory, setMemberHistory] = useState({
     1: {
       general: [
@@ -267,10 +279,8 @@ export default function Calendar({
     18: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
   })
 
-  // Sample member data - in real app, this would come from props or API
   const [members] = useState(membersData)
 
-  // Also update the memberRelations to include data for these new members
   const [memberRelations] = useState({
     1: {
       family: [
@@ -317,6 +327,10 @@ export default function Calendar({
     18: { family: [], friendship: [], relationship: [], work: [], other: [] },
   })
 
+  // </CHANGE> add state for editing blocked slot
+  const [isEditBlockedModalOpen, setIsEditBlockedModalOpen] = useState(false)
+  const [blockedEditData, setBlockedEditData] = useState(null)
+
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, "0")
     const month = String(date.getMonth() + 1).padStart(2, "0")
@@ -347,6 +361,32 @@ export default function Calendar({
       calendarApi.changeView("timeGridDay", selectedDate)
     }
   }, [selectedDate])
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth
+      setIsMobile(width < 640)
+
+      if (width < 480) {
+        setScreenSize("mobile")
+        // Force daily view on mobile
+        if (calendarRef.current) {
+          const calendarApi = calendarRef.current.getApi()
+          if (calendarApi.view.type !== "timeGridDay") {
+            calendarApi.changeView("timeGridDay")
+          }
+        }
+      } else if (width < 640) {
+        setScreenSize("tablet")
+      } else {
+        setScreenSize("desktop")
+      }
+    }
+
+    checkScreenSize()
+    window.addEventListener("resize", checkScreenSize)
+    return () => window.removeEventListener("resize", checkScreenSize)
+  }, [])
 
   // Function to show tooltip
   const showTooltip = (event, mouseEvent) => {
@@ -388,7 +428,6 @@ export default function Calendar({
     })
   }
 
-  
   useEffect(() => {
     let resizeObserver
 
@@ -582,35 +621,41 @@ export default function Calendar({
     }
   }
 
-  // Modified handleNotifyMember to handle rollback for drag/drop
+  // Around line 370-395, replace the handleNotifyMember function:
+  // </CHANGE> replace handleNotifyMember to apply move on Yes and revert on No
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
+
     if (pendingEventInfo) {
       if (shouldNotify) {
-        // User confirmed, apply the change
+        // Apply the change
         const { event } = pendingEventInfo
         const duration = event.end - event.start
         const updatedAppointments = appointmentsMain.map((appointment) => {
           if (appointment.id === Number(event.id)) {
             return {
               ...appointment,
-              startTime: event.start.toTimeString().split(" ")[0],
-              endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0],
+              startTime: event.start.toTimeString().split(" ")[0].substring(0, 5),
+              endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0].substring(0, 5),
               date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
             }
           }
           return appointment
         })
         setAppointmentsMain(updatedAppointments)
-        toast.success("Appointment updated successfully and member notified!")
+        toast.success(shouldNotify ? "Appointment updated and member notified!" : "Appointment updated")
       } else {
-        // User cancelled, revert the event visually
+        // Revert
         pendingEventInfo.revert()
-        toast.error("Appointment move cancelled.")
+        toast.success("Appointment change cancelled")
       }
-      setPendingEventInfo(null) // Clear pending info
+      setPendingEventInfo(null)
+    } else if (notifyAction === "cancel" && selectedAppointment) {
+      // Cancellation confirmation path
+      if (shouldNotify !== null) {
+        actuallyHandleCancelAppointment(shouldNotify)
+      }
     } else {
-      // This part handles notifications for other actions (e.g., cancellation from modal)
       if (shouldNotify) {
         toast.success("Member notified successfully!")
       }
@@ -643,10 +688,18 @@ export default function Calendar({
       onEventClick(clickInfo)
     }
   }
+  // </CHANGE> branch edit flow for blocked vs normal
   const handleEditAppointment = () => {
     setIsAppointmentActionModalOpen(false)
 
-    // Convert the selected appointment to the format expected by SelectedAppointmentModal
+    if (selectedAppointment?.isBlocked || selectedAppointment?.type === "Blocked Time") {
+      // Open blocked edit modal
+      setBlockedEditData({ ...selectedAppointment })
+      setIsEditBlockedModalOpen(true)
+      return
+    }
+
+    // Convert for normal edit modal
     const appointmentForModal = {
       id: selectedAppointment.id,
       name: selectedAppointment.name,
@@ -664,13 +717,28 @@ export default function Calendar({
         endDate: "",
       },
     }
-
     setSelectedAppointmentData(appointmentForModal)
     setShowSelectedAppointmentModal(true)
   }
 
-  // Modified handleCancelAppointment to update status instead of setting eventInfo for deletion
+  // </CHANGE> add delete handler for blocked slots with confirmation
+  const handleDeleteBlockedSlot = () => {
+    if (!selectedAppointment) return
+    const ok = window.confirm("Are you sure you want to delete this blocked time slot?")
+    if (!ok) return
+    const filtered = appointmentsMain.filter((a) => a.id !== selectedAppointment.id)
+    setAppointmentsMain(filtered)
+    setSelectedAppointment(null)
+    setIsAppointmentActionModalOpen(false)
+    toast.success("Blocked time slot deleted")
+  }
+
+  // </CHANGE> branch cancel flow for blocked vs normal
   const handleCancelAppointment = () => {
+    if (selectedAppointment?.isBlocked || selectedAppointment?.type === "Blocked Time") {
+      handleDeleteBlockedSlot()
+      return
+    }
     setIsAppointmentActionModalOpen(false)
     setNotifyAction("cancel")
     if (selectedAppointment) {
@@ -926,11 +994,11 @@ export default function Calendar({
           textColor = "#bbbbbb"
           opacity = 0.6
         } else if (isPastEvent) {
-          // Enhanced styling for past appointments (more transparent/faded)
-          backgroundColor = "#2a2a2a"
+          // Enhanced styling for past appointments (darker and more opaque)
+          backgroundColor = "#1a1a1a"
           borderColor = "#2a2a2a"
-          textColor = "#666666"
-          opacity = 0.25 // Much more transparent
+          textColor = "#555555"
+          opacity = 0.4 // More opaque/less transparent
         } else if (viewMode === "free") {
           // When showing free slots, other appointments are heavily grayed out
           backgroundColor = "#2a2a2a"
@@ -1008,7 +1076,6 @@ export default function Calendar({
 
   return (
     <>
-      {/* Tooltip */}
       {tooltip.show && tooltip.content && (
         <div
           className="fixed z-[9999] bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600 max-w-xs pointer-events-none tooltip-container"
@@ -1079,7 +1146,9 @@ export default function Calendar({
                         }, 100)
                       }
                     }}
-                    className="px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-700 bg-gray-600 transition-colors text-xs sm:text-sm"
+                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${
+                      calendarRef.current?.getApi()?.view?.type === "dayGridMonth" ? "bg-gray-500" : "bg-gray-600"
+                    }`}
                   >
                     Month
                   </button>
@@ -1093,7 +1162,9 @@ export default function Calendar({
                         }, 100)
                       }
                     }}
-                    className="px-2 py-1.5 sm:px-3 sm:py-2 text-white bg-gray-600 border-r border-slate-200/20 cursor-pointer hover:bg-gray-700 transition-colors text-xs sm:text-sm"
+                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${
+                      calendarRef.current?.getApi()?.view?.type === "timeGridWeek" ? "bg-gray-500" : "bg-gray-600"
+                    }`}
                   >
                     Week
                   </button>
@@ -1107,20 +1178,11 @@ export default function Calendar({
                         }, 100)
                       }
                     }}
-                    className="px-2 py-1.5 sm:px-3 sm:py-2 text-white bg-gray-600 cursor-pointer hover:bg-gray-700 transition-colors text-xs sm:text-sm"
+                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${
+                      calendarRef.current?.getApi()?.view?.type === "timeGridDay" ? "bg-gray-500" : "bg-gray-600"
+                    }`}
                   >
                     Day
-                  </button>
-                </div>
-                <div className=" items-center gap-1 md:hidden inline sm:gap-2 flex-shrink-0">
-                  <button
-                    onClick={generateFreeDates}
-                    className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-                      }`}
-                    aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
-                  >
-                    <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
-                    <span className="sm:hidden">{viewMode === "all" ? "Free" : "All"}</span>
                   </button>
                 </div>
               </div>
@@ -1133,168 +1195,443 @@ export default function Calendar({
               </div>
 
               {/* RIGHT: View toggle and Free Slots */}
-              <div className=" items-center gap-1 md:inline hidden sm:gap-2 flex-shrink-0">
+              <div className=" items-center gap-1 md:inline  sm:gap-2 flex-shrink-0">
                 <button
                   onClick={generateFreeDates}
-                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-green-600" : "bg-green-600 hover:bg-gray-600"
-                    }`}
+                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${
+                    viewMode === "all" ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-500 hover:bg-gray-600"
+                  }`}
                   aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
                 >
                   <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
-                  <span className="sm:hidden">{viewMode === "all" ? "Free" : "All"}</span>
+                  <span className="sm:hidden">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
                 </button>
+                {/* {isMobile && (
+                  <button
+                    onClick={() => setShowListView(!showListView)}
+                    className="p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 bg-gray-600 hover:bg-gray-500"
+                  >
+                    {showListView ? "Calendar" : "List"}
+                  </button>
+                )} */}
               </div>
             </div>
           </div>
 
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
-            initialDate={selectedDate || "2025-02-03"}
-            events={calendarEvents}
-            height={isMobile ? "calc(100vh - 200px)" : "930px"} // Dynamic height for mobile
-            selectable={true}
-            headerToolbar={false}
-            editable={true}
-            eventDrop={handleEventDrop}
-            slotMinTime="08:00:00"
-            slotMaxTime="19:00:00"
-            allDaySlot={false}
-            nowIndicator={true}
-            slotDuration="00:30:00"
-            firstDay={1}
-            eventClick={handleEventClick}
-            eventResize={handleEventResize}
-            select={handleDateSelect}
-            dayMaxEvents={false}
-            eventMaxStack={10}
-            // Responsive day header format
-            dayHeaderContent={(args) => {
-              const date = new Date(args.date)
-              const isSmallScreen = window.innerWidth < 1024 // Changed to include tablets
-              const weekday = date.toLocaleDateString("en-US", {
-                weekday: isSmallScreen ? "short" : "long",
-              })
-              const day = date.getDate()
+          {isMobile && showListView ? (
+            <div className="bg-white p-4 overflow-y-auto" style={{ height: "calc(100vh - 200px)" }}>
+              <h3 className="text-lg font-semibold mb-4">
+                {new Date(currentDate).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </h3>
+              <div className="space-y-2">
+                {filteredAppointments
+                  .filter((apt) => {
+                    const dateParts = apt.date?.split("|") || []
+                    if (dateParts.length < 2) return false
+                    const datePart = dateParts[1].trim()
+                    const formattedCurrentDate = formatDate(new Date(currentDate))
+                    return datePart === formattedCurrentDate
+                  })
+                  .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                  .map((apt) => (
+                    <div
+                      key={apt.id}
+                      onClick={() => {
+                        setSelectedAppointment(apt)
+                        setIsAppointmentActionModalOpen(true)
+                      }}
+                      className={`p-3 rounded-lg border cursor-pointer ${
+                        apt.isPast ? "bg-gray-100 opacity-60" : "bg-white"
+                      } ${apt.isCancelled ? "border-red-300" : "border-gray-200"}`}
+                      style={{
+                        borderLeft: `4px solid ${apt.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"}`,
+                      }}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-semibold text-sm">{apt.name}</div>
+                          <div className="text-xs text-gray-600">{apt.type}</div>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {apt.startTime} - {apt.endTime}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                {filteredAppointments.filter((apt) => {
+                  const dateParts = apt.date?.split("|") || []
+                  if (dateParts.length < 2) return false
+                  const datePart = dateParts[1].trim()
+                  const formattedCurrentDate = formatDate(new Date(currentDate))
+                  return datePart === formattedCurrentDate
+                }).length === 0 && <div className="text-center text-gray-500 py-8">No appointments for this day</div>}
+              </div>
+            </div>
+          ) : (
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="timeGridWeek"
+              initialDate={selectedDate || "2025-02-03"}
+              events={calendarEvents}
+              height={isMobile ? "calc(100vh - 200px)" : "930px"} // Dynamic height for mobile
+              selectable={true}
+              headerToolbar={false}
+              editable={true}
+              eventDrop={handleEventDrop}
+              slotMinTime="08:00:00"
+              slotMaxTime="19:00:00"
+              allDaySlot={false}
+              nowIndicator={true}
+              slotDuration="00:30:00"
+              firstDay={1}
+              eventClick={handleEventClick}
+              eventResize={handleEventResize}
+              select={handleDateSelect}
+              eventDragStart={(info) => {
+                // Hide tooltip when drag starts
+                hideTooltip()
+              }}
+              eventDragStop={(info) => {
+                hideTooltip()
+                // Tooltip will be shown again on mouse enter if needed
+              }}
+              eventResizeStart={(info) => {
+                // Hide tooltip when resize starts
+                hideTooltip()
+              }}
+              dayMaxEvents={false}
+              eventMaxStack={10}
+              // Responsive day header format
+              dayHeaderContent={(args) => {
+                const date = new Date(args.date)
+                const isSmallScreen = window.innerWidth < 1024 // Changed to include tablets
+                const weekday = date.toLocaleDateString("en-US", {
+                  weekday: isSmallScreen ? "short" : "long",
+                })
+                const day = date.getDate()
 
-              // Remove comma and show date below day name
-              if (isSmallScreen) {
-                return (
-                  <div style={{ textAlign: "center", lineHeight: "1.2" }}>
-                    <div>{weekday.substr(0, 3)}</div>
-                    <div>{day}</div>
-                  </div>
-                )
-              } else {
-                return (
-                  <div style={{ textAlign: "center", lineHeight: "1.2" }}>
-                    <div>{weekday}</div>
-                    <div>{day}</div>
-                  </div>
-                )
-              }
-            }}
-            // CUSTOM STYLING for current day highlight
-            dayCellClassNames={(date) => {
-              const today = new Date()
-              const cellDate = new Date(date.date)
+                // Remove comma and show date below day name
+                if (isSmallScreen) {
+                  return (
+                    <div style={{ textAlign: "center", lineHeight: "1.2" }}>
+                      <div>{weekday.substr(0, 3)}</div>
+                      <div>{day}</div>
+                    </div>
+                  )
+                } else {
+                  return (
+                    <div style={{ textAlign: "center", lineHeight: "1.2" }}>
+                      <div>{weekday}</div>
+                      <div>{day}</div>
+                    </div>
+                  )
+                }
+              }}
+              // CUSTOM STYLING for current day highlight
+              dayCellClassNames={(date) => {
+                const today = new Date()
+                const cellDate = new Date(date.date)
 
-              if (cellDate.toDateString() === today.toDateString()) {
-                return ["fc-day-today-custom"]
-              }
-              return []
-            }}
-            // EVENT MOUSE ENTER/LEAVE for tooltip
-            eventMouseEnter={(info) => {
-              showTooltip(info.event, info.jsEvent)
-            }}
-            eventMouseLeave={() => {
-              hideTooltip()
-            }}
-            eventContent={(eventInfo) => (
-              <div
-                className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
-                  } ${eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""
-                  } ${eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
-                    ? "blocked-event-content blocked-appointment-bg"
-                    : ""
-                  } ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                    ? "opacity-20"
-                    : ""
-                  } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
-                    ? " shadow-lg transform scale-105"
-                    : ""
-                  }`}
-              >
+                if (cellDate.toDateString() === today.toDateString()) {
+                  return ["fc-day-today-custom"]
+                }
+                return []
+              }}
+              // EVENT MOUSE ENTER/LEAVE for tooltip
+              eventMouseEnter={(info) => {
+                showTooltip(info.event, info.jsEvent)
+              }}
+              eventMouseLeave={() => {
+                hideTooltip()
+              }}
+              eventContent={(eventInfo) => (
                 <div
-                  className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${eventInfo.event.extendedProps.isPast
-                      ? "text-gray-500"
-                      : eventInfo.event.extendedProps.isCancelled
-                        ? "text-gray-300"
-                        : eventInfo.event.extendedProps.isBlocked ||
-                          eventInfo.event.extendedProps.appointment?.isBlocked
-                          ? "text-red-200"
-                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                            ? "text-gray-600"
-                            : eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
-                              ? "text-white font-bold"
+                  className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${
+                    eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
+                  } ${
+                    eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""
+                  } ${
+                    eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                      ? "blocked-event-content blocked-appointment-bg"
+                      : ""
+                  } ${
+                    eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                      ? "opacity-20"
+                      : ""
+                  } ${
+                    eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                      ? " shadow-lg transform scale-105"
+                      : ""
+                  }`}
+                >
+                  <div
+                    className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${
+                      eventInfo.event.extendedProps.isPast
+                        ? "text-gray-500"
+                        : eventInfo.event.extendedProps.isCancelled
+                          ? "text-gray-300"
+                          : eventInfo.event.extendedProps.isBlocked ||
+                              eventInfo.event.extendedProps.appointment?.isBlocked
+                            ? "text-red-200" // Remove the emoji from here
+                            : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                              ? "text-gray-600"
+                              : eventInfo.event.extendedProps.isFree &&
+                                  eventInfo.event.extendedProps.viewMode === "free"
+                                ? "text-white font-bold"
+                                : ""
+                    }`}
+                  >
+                    {eventInfo.event.extendedProps.isCancelled
+                      ? `${eventInfo.event.title}`
+                      : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                        ? `${eventInfo.event.title}` // Remove emoji from here
+                        : eventInfo.event.extendedProps.isPast
+                          ? `${eventInfo.event.title}`
+                          : eventInfo.event.title}
+                  </div>
+                  <div
+                    className={`text-[8px] sm:text-xs opacity-90 truncate ${
+                      eventInfo.event.extendedProps.isPast
+                        ? "text-gray-600"
+                        : eventInfo.event.extendedProps.isCancelled
+                          ? "text-gray-400"
+                          : eventInfo.event.extendedProps.isBlocked ||
+                              eventInfo.event.extendedProps.appointment?.isBlocked
+                            ? "text-red-300"
+                            : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                              ? "text-gray-600"
                               : ""
                     }`}
-                >
-                  {eventInfo.event.extendedProps.isCancelled
-                    ? `${eventInfo.event.title}`
-                    : eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
-                      ? `🚫 ${eventInfo.event.title}`
-                      : eventInfo.event.extendedProps.isPast
-                        ? `${eventInfo.event.title}`
-                        : eventInfo.event.title}
+                  >
+                    {eventInfo.event.extendedProps.type || "Available"}
+                  </div>
+                  <div className="text-[8px] sm:text-xs mt-0.5 sm:mt-1">{eventInfo.timeText}</div>
                 </div>
-                <div
-                  className={`text-[8px] sm:text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast
-                      ? "text-gray-600"
-                      : eventInfo.event.extendedProps.isCancelled
-                        ? "text-gray-400"
-                        : eventInfo.event.extendedProps.isBlocked ||
-                          eventInfo.event.extendedProps.appointment?.isBlocked
-                          ? "text-red-300"
-                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                            ? "text-gray-600"
-                            : ""
-                    }`}
-                >
-                  {eventInfo.event.extendedProps.type || "Available"}
-                </div>
-                <div className="text-[8px] sm:text-xs mt-0.5 sm:mt-1">{eventInfo.timeText}</div>
-              </div>
-            )}
-            eventClassNames={(eventInfo) => {
-              const classes = []
-              if (eventInfo.event.extendedProps.isPast) {
-                classes.push("past-event")
-              }
-              if (eventInfo.event.extendedProps.isCancelled) {
-                classes.push("cancelled-event")
-              }
-              if (eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked) {
-                classes.push("blocked-event")
-              }
-              if (eventInfo.event.extendedProps.isFree) {
-                classes.push("free-slot-event cursor-pointer")
-                if (eventInfo.event.extendedProps.viewMode === "free") {
-                  classes.push("prominent-free-slot")
+              )}
+              eventClassNames={(eventInfo) => {
+                const classes = []
+                if (eventInfo.event.extendedProps.isPast) {
+                  classes.push("past-event")
                 }
-              }
-              return classes.join(" ")
-            }}
-          />
+                if (eventInfo.event.extendedProps.isCancelled) {
+                  classes.push("cancelled-event")
+                }
+                if (eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked) {
+                  classes.push("blocked-event")
+                }
+                if (eventInfo.event.extendedProps.isFree) {
+                  classes.push("free-slot-event cursor-pointer")
+                  if (eventInfo.event.extendedProps.viewMode === "free") {
+                    classes.push("prominent-free-slot")
+                  }
+                }
+                return classes.join(" ")
+              }}
+            />
+          )}
         </div>
       </div>
 
-      <style jsx global>{`
-       /* Replace the existing style block in your component with this updated version */
+      <MemberOverviewModal
+        isOpen={isMemberOverviewModalOpen}
+        selectedMember={selectedMember}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        handleCalendarFromOverview={handleCalendarFromOverview}
+        handleHistoryFromOverview={handleHistoryFromOverview}
+        handleCommunicationFromOverview={handleCommunicationFromOverview}
+        handleViewDetailedInfo={handleViewDetailedInfo}
+        handleEditFromOverview={handleEditFromOverview}
+        setIsMemberOverviewModalOpen={setIsMemberOverviewModalOpen}
+        setSelectedMember={setSelectedMember}
+      />
+      <MemberDetailsModal
+        isOpen={isMemberDetailsModalOpen}
+        selectedMember={selectedMember}
+        setIsOpen={setIsMemberDetailsModalOpen}
+        setSelectedMember={setSelectedMember}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        redirectToContract={redirectToContract}
+        memberRelations={memberRelations}
+      />
+      <AppointmentModal
+        showModal={showAppointmentModal}
+        selectedMember={selectedMemberForAppointments}
+        setShowModal={setShowAppointmentModal}
+        setSelectedMember={setSelectedMemberForAppointments}
+        getMemberAppointments={getMemberAppointments}
+        appointmentTypesMain={appointmentTypesMain}
+        handleEditAppointmentFromModal={handleEditAppointmentFromModal}
+        handleDeleteAppointment={handleDeleteAppointment}
+        currentBillingPeriod={currentBillingPeriod}
+        memberContingent={memberContingent}
+        handleManageContingent={handleManageContingent}
+        handleCreateNewAppointment={handleCreateNewAppointment}
+      />
+      <ContingentModal
+        showContingentModal={showContingentModal}
+        setShowContingentModal={setShowContingentModal}
+        currentBillingPeriod={currentBillingPeriod}
+        tempContingent={tempContingent}
+        setTempContingent={setTempContingent}
+        handleSaveContingent={handleSaveContingent}
+      />
+      <HistoryModal
+        showHistoryModal={showHistoryModal}
+        setShowHistoryModal={setShowHistoryModal}
+        selectedMember={selectedMember}
+        historyTab={historyTab}
+        setHistoryTab={setHistoryTab}
+        memberHistory={memberHistory}
+      />
+      {/* Add Appointment Modal */}
+      {showAddAppointmentModal && (
+        <AddAppointmentModal
+          isOpen={showAddAppointmentModal}
+          onClose={() => setShowAddAppointmentModal(false)}
+          appointmentTypesMain={appointmentTypesMain}
+          onSubmit={handleAddAppointmentSubmit}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          freeAppointments={freeAppointments}
+        />
+      )}
+      {isAppointmentModalOpen && (
+        <AddAppointmentModal
+          isOpen={isAppointmentModalOpen}
+          onClose={() => setIsAppointmentModalOpen(false)}
+          appointmentTypesMain={appointmentTypesMain}
+          onSubmit={handleAppointmentSubmit}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+        />
+      )}
+      <TrialTrainingModal
+        isOpen={isTrialModalOpen}
+        onClose={() => setIsTrialModalOpen(false)}
+        freeAppointments={freeAppointments}
+        onSubmit={handleTrialSubmit}
+      />
+      <BlockAppointmentModal
+        isOpen={isBlockModalOpen}
+        onClose={() => setIsBlockModalOpen(false)}
+        appointmentTypesMain={appointmentTypesMain}
+        selectedDate={selectedDate || new Date()}
+        onSubmit={(blockData) => {
+          const newBlock = {
+            id: appointmentsMain.length + 1,
+            name: "BLOCKED",
+            time: `${blockData.startTime} - ${blockData.endTime}`,
+            date: `${new Date(blockData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(
+              new Date(blockData.date),
+            )}`,
+            color: "bg-[#FF4D4F]",
+            startTime: blockData.startTime,
+            endTime: blockData.endTime,
+            type: "Blocked Time",
+            specialNote: {
+              text: blockData.note || "This time slot is blocked",
+              startDate: null,
+              endDate: null,
+              isImportant: true,
+            },
+            status: "blocked",
+            isBlocked: true,
+            isCancelled: false, // Default for new blocks
+            isPast: false, // Default for new blocks
+          }
+          setAppointmentsMain([...appointmentsMain, newBlock])
+          toast.success("Time slot blocked successfully")
+          setIsBlockModalOpen(false)
+        }}
+      />
+      <TypeSelectionModal
+        isOpen={isTypeSelectionOpen}
+        onClose={() => setIsTypeSelectionOpen(false)}
+        onSelect={handleTypeSelection}
+      />
+      <AppointmentActionModal
+        isOpen={isAppointmentActionModalOpen}
+        appointment={selectedAppointment}
+        onClose={() => setIsAppointmentActionModalOpen(false)}
+        onEdit={handleEditAppointment}
+        onCancel={handleCancelAppointment}
+        onViewMember={handleViewMemberDetails}
+      />
+      <NotifyMemberModal
+        isOpen={isNotifyMemberOpen}
+        onClose={() => setIsNotifyMemberOpen(false)}
+        notifyAction={notifyAction}
+        pendingEventInfo={pendingEventInfo}
+        actuallyHandleCancelAppointment={actuallyHandleCancelAppointment}
+        handleNotifyMember={handleNotifyMember}
+        setPendingEventInfo={setPendingEventInfo}
+      />
+      {/* </CHANGE> render the blocked edit modal and handle submit to update the slot */}
+      {isEditBlockedModalOpen && blockedEditData && (
+        <EditBlockedSlotModal
+          isOpen={isEditBlockedModalOpen}
+          onClose={() => setIsEditBlockedModalOpen(false)}
+          initialBlock={blockedEditData}
+          appointmentTypesMain={appointmentTypesMain}
+          onSubmit={(blockData) => {
+            // Update selected blocked appointment in appointmentsMain
+            const newDateString = `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(new Date(blockData.startDate))}`
+            const updated = appointmentsMain.map((apt) => {
+              if (apt.id === blockedEditData.id) {
+                return {
+                  ...apt,
+                  // keep name/color/type markers
+                  startTime: blockData.startTime,
+                  endTime: blockData.endTime,
+                  date: newDateString,
+                  specialNote: {
+                    ...(apt.specialNote || {}),
+                    text: blockData.note || apt.specialNote?.text || "",
+                    isImportant: apt.specialNote?.isImportant ?? true,
+                  },
+                }
+              }
+              return apt
+            })
+            setAppointmentsMain(updated)
+            setIsEditBlockedModalOpen(false)
+            setBlockedEditData(null)
+            toast.success("Blocked time slot updated")
+          }}
+        />
+      )}
+      {showSelectedAppointmentModal && selectedAppointmentData && (
+        <EditAppointmentModalMain
+          selectedAppointmentMain={selectedAppointmentData}
+          setSelectedAppointmentMain={setSelectedAppointmentData}
+          appointmentTypesMain={appointmentTypesMain}
+          freeAppointmentsMain={freeAppointments}
+          handleAppointmentChange={(changes) => {
+            setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })
+          }}
+          appointmentsMain={appointmentsMain}
+          setAppointmentsMain={setAppointmentsMain}
+          setIsNotifyMemberOpenMain={setIsNotifyMemberOpen}
+          setNotifyActionMain={setNotifyAction}
+          onDelete={handleDeleteAppointment}
+        />
+      )}
 
-/* RESET AND BASE STYLES */
+      
+      <Toaster position="top-right" />
+
+      <style jsx>{`
+
+      /* RESET AND BASE STYLES */
 :global(.fc) {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: white;
@@ -1824,6 +2161,16 @@ export default function Calendar({
   text-overflow: ellipsis !important;
 }
 
+:global(.fc-event.past-event) {
+  opacity: 0.4 !important;
+  filter: brightness(0.6) !important;
+}
+
+:global(.fc-event.past-event .fc-event-title),
+:global(.fc-event.past-event .fc-event-time) {
+  color: #555555 !important;
+}
+
 :global(.fc-event-time) {
   font-weight: 400 !important;
   opacity: 0.9 !important;
@@ -1933,919 +2280,7 @@ export default function Calendar({
     background: #94a3b8;
   }
 }
-      `}</style>
-      {/* Member Overview Modal - ENHANCED */}
-      {isMemberOverviewModalOpen && selectedMember && (
-  <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] overflow-y-auto">
-    <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl mx-4 my-8 relative">
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex flex-col md:items-center md:justify-between bg-[#161616] rounded-xl p-4 md:p-6 mb-6 relative">
-          
-          {/* Profile Section */}
-          <div className="flex flex-col sm:items-center gap-4 w-full md:w-auto">
-            <img
-              src={selectedMember.image || DefaultAvatar}
-              alt="Profile"
-              className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover"
-            />
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-white text-lg md:text-xl font-semibold">
-                  {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)})
-                </h2>
-                <span
-                  className={`px-3 py-1 text-xs rounded-full font-medium ${
-                    selectedMember.isActive
-                      ? "bg-green-900 text-green-300"
-                      : "bg-red-900 text-red-300"
-                  }`}
-                >
-                  {selectedMember.isActive ? "Active" : "Inactive"}
-                </span>
-              </div>
-              <p className="text-gray-400 text-sm mt-1">
-                Contract: {selectedMember.contractStart} -{" "}
-                <span
-                  className={
-                    isContractExpiringSoon(selectedMember.contractEnd)
-                      ? "text-red-500"
-                      : ""
-                  }
-                >
-                  {selectedMember.contractEnd}
-                </span>
-              </p>
-            </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-2 mt-6    w-full md:w-auto justify-start md:justify-end">
-            <button
-              onClick={handleCalendarFromOverview}
-              className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-blue-500 hover:text-blue-400"
-              title="View Calendar"
-            >
-              <CalendarIcon size={18} />
-            </button>
-            <button
-              onClick={handleHistoryFromOverview}
-              className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-purple-500 hover:text-purple-400"
-              title="View History"
-            >
-              <History size={18} />
-            </button>
-            <button
-              onClick={handleCommunicationFromOverview}
-              className="p-2 md:p-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-green-500 hover:text-green-400"
-              title="Communication"
-            >
-              <MessageCircle size={18} />
-            </button>
-            <button
-              onClick={handleViewDetailedInfo}
-              className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
-            >
-              <Eye size={14} /> View Details
-            </button>
-            <button
-              onClick={handleEditFromOverview}
-              className="px-3 md:px-4 py-2 md:py-3 bg-black rounded-xl border border-slate-600 hover:border-slate-400 text-gray-200 hover:text-white"
-            >
-              Edit
-            </button>
-          </div>
-
-          {/* Close Icon (absolute top-right corner) */}
-          <button
-            onClick={() => {
-              setIsMemberOverviewModalOpen(false)
-              setSelectedMember(null)
-            }}
-            className="absolute top-3 right-3 p-2 text-gray-400 hover:text-white"
-          >
-            <X size={20} />
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-      {/* Member Details Modal with Tabs - EXISTING */}
-      {isMemberDetailsModalOpen && selectedMember && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">Member Details</h2>
-                <button
-                  onClick={() => {
-                    setIsMemberDetailsModalOpen(false)
-                    setSelectedMember(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  {" "}
-                  <X size={20} className="cursor-pointer" />{" "}
-                </button>
-              </div>
-              {/* Tab Navigation */}
-              <div className="flex border-b border-gray-700 mb-6">
-                <button
-                  onClick={() => setActiveTab("details")}
-                  className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
-                    ? "text-blue-400 border-b-2 border-blue-400"
-                    : "text-gray-400 hover:text-white"
-                    }`}
-                >
-                  {" "}
-                  Details{" "}
-                </button>
-                <button
-                  onClick={() => setActiveTab("relations")}
-                  className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
-                    ? "text-blue-400 border-b-2 border-blue-400"
-                    : "text-gray-400 hover:text-white"
-                    }`}
-                >
-                  {" "}
-                  Relations{" "}
-                </button>
-              </div>
-              {/* Tab Content */}
-              {activeTab === "details" && (
-                <div className="space-y-4 text-white">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={selectedMember.image || DefaultAvatar}
-                      alt="Profile"
-                      className="w-24 h-24 rounded-full object-cover"
-                    />
-                    <div>
-                      <h3 className="text-xl font-semibold">
-                        {" "}
-                        {selectedMember.title} ({calculateAge(selectedMember.dateOfBirth)}){" "}
-                      </h3>
-                      <p className="text-gray-400">
-                        {" "}
-                        Contract: {selectedMember.contractStart} -{" "}
-                        <span className={isContractExpiringSoon(selectedMember.contractEnd) ? "text-red-500" : ""}>
-                          {" "}
-                          {selectedMember.contractEnd}{" "}
-                        </span>{" "}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-400">Email</p>
-                      <p>{selectedMember.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Phone</p>
-                      <p>{selectedMember.phone}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Address</p>
-                    <p>{`${selectedMember.street}, ${selectedMember.zipCode} ${selectedMember.city}`}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-400">Date of Birth</p>
-                      <p>
-                        {" "}
-                        {selectedMember.dateOfBirth} (Age: {calculateAge(selectedMember.dateOfBirth)}){" "}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Join Date</p>
-                      <p>{selectedMember.joinDate}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">About</p>
-                    <p>{selectedMember.about}</p>
-                  </div>
-                  {selectedMember.note && (
-                    <div>
-                      <p className="text-sm text-gray-400">Special Note</p>
-                      <p>{selectedMember.note}</p>
-                      <p className="text-sm text-gray-400 mt-2">
-                        {" "}
-                        Note Period: {selectedMember.noteStartDate} to {selectedMember.noteEndDate}{" "}
-                      </p>
-                      <p className="text-sm text-gray-400">Importance: {selectedMember.noteImportance}</p>
-                    </div>
-                  )}
-                  <div className="flex justify-end gap-4 mt-6">
-                    <button
-                      onClick={redirectToContract}
-                      className="flex items-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
-                    >
-                      {" "}
-                      <FileText size={16} /> View Contract{" "}
-                    </button>
-                  </div>
-                </div>
-              )}
-              {activeTab === "relations" && (
-                <div className="space-y-6 max-h-[60vh] overflow-y-auto">
-                  {/* Relations Tree Visualization */}
-                  <div className="bg-[#161616] rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4 text-center">Relationship Tree</h3>
-                    <div className="flex flex-col items-center space-y-8">
-                      {/* Central Member */}
-                      <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
-                        {" "}
-                        {selectedMember.title}{" "}
-                      </div>
-                      {/* Connection Lines and Categories */}
-                      <div className="relative w-full">
-                        {/* Horizontal line */}
-                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
-                        {/* Category sections */}
-                        <div className="grid grid-cols-5 gap-4 pt-8">
-                          {Object.entries(memberRelations[selectedMember.id] || {}).map(([category, relations]) => (
-                            <div key={category} className="flex flex-col items-center space-y-4">
-                              {/* Vertical line */}
-                              <div className="w-0.5 h-8 bg-gray-600"></div>
-                              {/* Category header */}
-                              <div
-                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
-                                  ? "bg-yellow-600 text-yellow-100"
-                                  : category === "friendship"
-                                    ? "bg-green-600 text-green-100"
-                                    : category === "relationship"
-                                      ? "bg-red-600 text-red-100"
-                                      : category === "work"
-                                        ? "bg-blue-600 text-blue-100"
-                                        : "bg-gray-600 text-gray-100"
-                                  }`}
-                              >
-                                {" "}
-                                {category}{" "}
-                              </div>
-                              {/* Relations in this category */}
-                              <div className="space-y-2">
-                                {relations.map((relation) => (
-                                  <div
-                                    key={relation.id}
-                                    className="bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px]"
-                                  >
-                                    <div className="text-white text-sm font-medium">{relation.name}</div>
-                                    <div className="text-gray-400 text-xs">({relation.relation})</div>
-                                  </div>
-                                ))}
-                                {relations.length === 0 && (
-                                  <div className="text-gray-500 text-xs text-center">No relations</div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Enhanced Appointment Modal from Members Component */}
-      {showAppointmentModal && selectedMemberForAppointments && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-white">{selectedMemberForAppointments.title}'s Appointments</h2>
-                <button
-                  onClick={() => {
-                    setShowAppointmentModal(false)
-                    setSelectedMemberForAppointments(null)
-                  }}
-                  className="p-2 hover:bg-zinc-700 text-white rounded-lg"
-                >
-                  {" "}
-                  <X size={16} />{" "}
-                </button>
-              </div>
-              <div className="space-y-3 mb-4">
-                <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
-                {getMemberAppointments(selectedMemberForAppointments.id).length > 0 ? (
-                  getMemberAppointments(selectedMemberForAppointments.id).map((appointment) => {
-                    const appointmentType = appointmentTypesMain.find((type) => type.name === appointment.type)
-                    const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
-                    return (
-                      <div
-                        key={appointment.id}
-                        className={`${backgroundColor} rounded-xl p-3 hover:opacity-90 transition-colors cursor-pointer`}
-                        onClick={() => handleEditAppointmentFromModal(appointment)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-sm text-white">{appointment.title}</p>
-                            <div>
-                              <p className="text-sm text-white/70">
-                                {" "}
-                                {new Date(appointment.date).toLocaleString([], {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                })}{" "}
-                              </p>
-                              <p className="text-xs text-white/70">
-                                {" "}
-                                {new Date(appointment.date).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}{" "}
-                                -{" "}
-                                {new Date(
-                                  new Date(appointment.date).getTime() + (appointmentType?.duration || 30) * 60000,
-                                ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{" "}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleEditAppointmentFromModal(appointment)
-                              }}
-                              className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
-                            >
-                              {" "}
-                              <Edit3 size={14} />{" "}
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDeleteAppointment(appointment.id)
-                              }}
-                              className="p-1.5 bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] rounded-full"
-                            >
-                              {" "}
-                              <Trash2 size={14} />{" "}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })
-                ) : (
-                  <div className="text-center py-4 text-gray-400 bg-[#222222] rounded-xl">
-                    {" "}
-                    No appointments scheduled{" "}
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
-                <div className="text-sm text-gray-300">
-                  {" "}
-                  Contingent ({currentBillingPeriod}): {memberContingent[selectedMemberForAppointments.id]?.used || 0} /{" "}
-                  {memberContingent[selectedMemberForAppointments.id]?.total || 0}{" "}
-                </div>
-                <button
-                  onClick={() => handleManageContingent(selectedMemberForAppointments.id)}
-                  className="flex items-center gap-1 bg-gray-700 text-white hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
-                >
-                  {" "}
-                  <Edit3 size={16} /> Manage{" "}
-                </button>
-              </div>
-              <button
-                onClick={handleCreateNewAppointment}
-                className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
-              >
-                {" "}
-                Create New Appointment{" "}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Contingent Management Modal */}
-      {showContingentModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-white">Manage Appointment Contingent</h2>
-                <button
-                  onClick={() => setShowContingentModal(false)}
-                  className="p-2 hover:bg-zinc-700 text-white rounded-lg"
-                >
-                  {" "}
-                  <X size={16} />{" "}
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    {" "}
-                    Billing Period: {currentBillingPeriod}{" "}
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <label className="block text-sm text-gray-400 mb-1">Used Appointments</label>
-                      <input
-                        type="number"
-                        min={0}
-                        max={tempContingent.total}
-                        value={tempContingent.used}
-                        onChange={(e) =>
-                          setTempContingent({ ...tempContingent, used: Number.parseInt(e.target.value) })
-                        }
-                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-sm text-gray-400 mb-1">Total Appointments</label>
-                      <input
-                        type="number"
-                        min={tempContingent.used}
-                        value={tempContingent.total}
-                        onChange={(e) =>
-                          setTempContingent({ ...tempContingent, total: Number.parseInt(e.target.value) })
-                        }
-                        className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
-                      />
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">
-                    {" "}
-                    Remaining: {tempContingent.total - tempContingent.used} appointments{" "}
-                  </p>
-                  <div className="mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-xl">
-                    <p className="text-blue-200 text-sm">
-                      {" "}
-                      <Info className="inline mr-1" size={14} /> You can edit the contingent for future billing periods
-                      here.{" "}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button
-                    onClick={() => setShowContingentModal(false)}
-                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm"
-                  >
-                    {" "}
-                    Cancel{" "}
-                  </button>
-                  <button
-                    onClick={handleSaveContingent}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
-                  >
-                    {" "}
-                    Save Changes{" "}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* History Modal */}
-      {showHistoryModal && selectedMember && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex text-white justify-between items-center mb-6">
-                <h2 className="text-lg font-medium">{selectedMember.title} - History & Changelog</h2>
-                <button onClick={() => setShowHistoryModal(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
-                  {" "}
-                  <X size={16} />{" "}
-                </button>
-              </div>
-              {/* History Tab Navigation */}
-              <div className="flex border-b border-gray-700 mb-6 overflow-x-auto">
-                {[
-                  { id: "general", label: "General Changes" },
-                  { id: "checkins", label: "Check-ins & Check-outs" },
-                  { id: "appointments", label: "Past Appointments" },
-                  { id: "finance", label: "Finance Transactions" },
-                  { id: "contracts", label: "Contract Changes" },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setHistoryTab(tab.id)}
-                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${historyTab === tab.id
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-gray-400 hover:text-white"
-                      }`}
-                  >
-                    {" "}
-                    {tab.label}{" "}
-                  </button>
-                ))}
-              </div>
-              {/* History Content */}
-              <div className="space-y-4">
-                {historyTab === "general" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">General Changes</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.general?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-white font-medium">{item.action}</p>
-                              <p className="text-gray-400 text-sm mt-1">{item.details}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-gray-400 text-sm">{item.date}</p>
-                              <p className="text-gray-500 text-xs">by {item.user}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No general changes recorded</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "checkins" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">Check-ins & Check-outs History</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.checkins?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-3 h-3 rounded-full ${item.type === "Check-in" ? "bg-green-500" : "bg-red-500"}`}
-                              ></div>
-                              <div>
-                                <p className="text-white font-medium">{item.type}</p>
-                                <p className="text-gray-400 text-sm">{item.location}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-gray-400 text-sm">
-                                {" "}
-                                {new Date(item.date).toLocaleDateString()} at {new Date(
-                                  item.date,
-                                ).toLocaleTimeString()}{" "}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No check-in/check-out history</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "appointments" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">Past Appointments History</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.appointments?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-white font-medium">{item.title}</p>
-                              <p className="text-gray-400 text-sm">with {item.trainer}</p>
-                              <span
-                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
-                                  ? "bg-green-900 text-green-300"
-                                  : "bg-yellow-900 text-yellow-300"
-                                  }`}
-                              >
-                                {" "}
-                                {item.status}{" "}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-gray-400 text-sm">
-                                {" "}
-                                {new Date(item.date).toLocaleDateString()} at {new Date(
-                                  item.date,
-                                ).toLocaleTimeString()}{" "}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No past appointments</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "finance" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">Finance Transactions History</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.finance?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-white font-medium">{item.type}</p>
-                              <p className="text-gray-400 text-sm">{item.description}</p>
-                              <span
-                                className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${item.status === "completed"
-                                  ? "bg-green-900 text-green-300"
-                                  : "bg-yellow-900 text-yellow-300"
-                                  }`}
-                              >
-                                {" "}
-                                {item.status}{" "}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-green-400 font-semibold">{item.amount}</p>
-                              <p className="text-gray-400 text-sm">{item.date}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No financial transactions</p>}
-                    </div>
-                  </div>
-                )}
-                {historyTab === "contracts" && (
-                  <div>
-                    <h3 className="text-md font-semibold text-white mb-4">Contract Changes History</h3>
-                    <div className="space-y-3">
-                      {memberHistory[selectedMember.id]?.contracts?.map((item) => (
-                        <div key={item.id} className="bg-[#222222] rounded-xl p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-white font-medium">{item.action}</p>
-                              <p className="text-gray-400 text-sm mt-1">{item.details}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-gray-400 text-sm">{item.date}</p>
-                              <p className="text-gray-500 text-xs">by {item.user}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )) || <p className="text-gray-400">No contract changes</p>}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Add Appointment Modal */}
-      {showAddAppointmentModal && (
-        <AddAppointmentModal
-          isOpen={showAddAppointmentModal}
-          onClose={() => setShowAddAppointmentModal(false)}
-          appointmentTypesMain={appointmentTypesMain}
-          onSubmit={handleAddAppointmentSubmit}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
-          freeAppointments={freeAppointments}
-        />
-      )}
-      {isAppointmentModalOpen && (
-        <AddAppointmentModal
-          isOpen={isAppointmentModalOpen}
-          onClose={() => setIsAppointmentModalOpen(false)}
-          appointmentTypesMain={appointmentTypesMain}
-          onSubmit={handleAppointmentSubmit}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
-        />
-      )}
-      <TrialTrainingModal
-        isOpen={isTrialModalOpen}
-        onClose={() => setIsTrialModalOpen(false)}
-        freeAppointments={freeAppointments}
-        onSubmit={handleTrialSubmit}
-      />
-      <BlockAppointmentModal
-        isOpen={isBlockModalOpen}
-        onClose={() => setIsBlockModalOpen(false)}
-        appointmentTypesMain={appointmentTypesMain}
-        selectedDate={selectedDate || new Date()}
-        onSubmit={(blockData) => {
-          const newBlock = {
-            id: appointmentsMain.length + 1,
-            name: "BLOCKED",
-            time: `${blockData.startTime} - ${blockData.endTime}`,
-            date: `${new Date(blockData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(
-              new Date(blockData.date),
-            )}`,
-            color: "bg-[#FF4D4F]",
-            startTime: blockData.startTime,
-            endTime: blockData.endTime,
-            type: "Blocked Time",
-            specialNote: {
-              text: blockData.note || "This time slot is blocked",
-              startDate: null,
-              endDate: null,
-              isImportant: true,
-            },
-            status: "blocked",
-            isBlocked: true,
-            isCancelled: false, // Default for new blocks
-            isPast: false, // Default for new blocks
-          }
-          setAppointmentsMain([...appointmentsMain, newBlock])
-          toast.success("Time slot blocked successfully")
-          setIsBlockModalOpen(false)
-        }}
-      />
-      {isTypeSelectionOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsTypeSelectionOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Select Event Type</h2>
-              <button
-                onClick={() => setIsTypeSelectionOpen(false)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                {" "}
-                <X size={20} />{" "}
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <button
-                onClick={() => handleTypeSelection("trial")}
-                className="w-full px-5 py-3 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 cursor-pointer transition-colors"
-              >
-                {" "}
-                Trial Planning{" "}
-              </button>
-              <button
-                onClick={() => handleTypeSelection("appointment")}
-                className="w-full px-5 py-3 bg-[#FF843E] text-sm font-medium text-white rounded-xl hover:bg-orange-700 cursor-pointer transition-colors"
-              >
-                {" "}
-                Appointment{" "}
-              </button>
-              <button
-                onClick={() => handleTypeSelection("block")}
-                className="w-full px-5 py-3 bg-[#FF4D4F] text-sm font-medium text-white rounded-xl hover:bg-red-700 cursor-pointer transition-colors"
-              >
-                {" "}
-                Block Time{" "}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {isAppointmentActionModalOpen && selectedAppointment && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsAppointmentActionModalOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Appointment Options</h2>
-              <button
-                onClick={() => setIsAppointmentActionModalOpen(false)}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                {" "}
-                <X size={20} />{" "}
-              </button>
-            </div>
-            <div className="p-6 space-y-2">
-              <div className="mb-4">
-                <h3 className="text-white font-medium">{selectedAppointment.name}</h3>
-                <p className="text-gray-400 text-sm">{selectedAppointment.type}</p>
-                <p className="text-gray-400 text-sm">
-                  {" "}
-                  {selectedAppointment.date && selectedAppointment.date.split("|")[1]} •{selectedAppointment.startTime}{" "}
-                  - {selectedAppointment.endTime}{" "}
-                </p>
-                {selectedAppointment.isPast &&
-                  <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
-                {selectedAppointment.isCancelled &&
-                  <p className="text-red-500 text-sm mt-2">This appointment is cancelled</p>}
-              </div>
-              <button
-                onClick={handleEditAppointment}
-                className="w-full px-5 py-3 bg-[#3F74FF] hover:bg-[#3F74FF]/90 cursor-pointer text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center"
-              >
-                {" "}
-                <Edit className="mr-2" size={16} /> Edit Appointment{" "}
-              </button>
-              <button
-                onClick={handleCancelAppointment}
-                className="w-full px-5 py-3 bg-red-600 hover:bg-red-700 cursor-pointer text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center"
-              >
-                {" "}
-                <X className="mr-2" size={16} /> Cancel Appointment{" "}
-              </button>
-              <button
-                onClick={handleViewMemberDetails}
-                className="w-full px-5 py-3 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 cursor-pointer transition-colors flex items-center justify-center"
-              >
-                {" "}
-                <User className="mr-2" size={16} /> View Member{" "}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {isNotifyMemberOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
-          onClick={() => setIsNotifyMemberOpen(false)}
-        >
-          <div
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
-              <button
-                onClick={() => {
-                  // If user closes modal with X, it's a "No, Don't Notify" action
-                  if (notifyAction === "cancel") {
-                    // If it was a cancellation, the status is already updated. No rollback needed here.
-                    // This is just for the notification prompt.
-                  } else if (pendingEventInfo) {
-                    // For drag/drop or resize, revert if not confirmed
-                    pendingEventInfo.revert()
-                    toast.error("Action cancelled.")
-                  }
-                  setIsNotifyMemberOpen(false)
-                  setPendingEventInfo(null) // Clear pending info
-                }}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
-              >
-                {" "}
-                <X size={20} />{" "}
-              </button>
-            </div>
-            <div className="p-6">
-              <p className="text-white text-sm">
-                {" "}
-                Do you want to notify the member about this{" "}
-                {notifyAction === "change"
-                  ? "change"
-                  : notifyAction === "cancel"
-                    ? "cancellation"
-                    : notifyAction === "delete"
-                      ? "deletion"
-                      : "booking"}{" "}
-                ?{" "}
-              </p>
-            </div>
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-              <button
-                onClick={() => {
-                  if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(true) // Confirm cancellation and notify
-                  } else {
-                    handleNotifyMember(true) // Confirm other changes and notify
-                  }
-                  setIsNotifyMemberOpen(false)
-                }}
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-              >
-                {" "}
-                Yes, Notify Member{" "}
-              </button>
-              <button
-                onClick={() => {
-                  if (notifyAction === "cancel") {
-                    actuallyHandleCancelAppointment(false) // Confirm cancellation without notifying
-                  } else {
-                    handleNotifyMember(false) // Cancel other changes and don't notify (triggers revert)
-                  }
-                  setIsNotifyMemberOpen(false)
-                }}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
-              >
-                {" "}
-                No, Don't Notify{" "}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* New Selected Appointment Modal */}
-      {showSelectedAppointmentModal && selectedAppointmentData && (
-        <EditAppointmentModalMain
-        selectedAppointmentMain={selectedAppointmentData}
-          setSelectedAppointmentMain={setSelectedAppointmentData}
-          appointmentTypesMain={appointmentTypesMain}
-          freeAppointmentsMain={freeAppointments}
-          handleAppointmentChange={(changes) => {
-            setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })
-          }}
-          appointmentsMain={appointmentsMain}
-          setAppointmentsMain={setAppointmentsMain}
-          setIsNotifyMemberOpenMain={setIsNotifyMemberOpen}
-          setNotifyActionMain={setNotifyAction}
-          onDelete={handleDeleteAppointment}
-        />
-      )}
-      <Toaster position="top-right" />
-
-      <style jsx>{`
         .cancelled-appointment-bg {
           background-image: linear-gradient(
             -45deg,
@@ -2859,8 +2294,22 @@ export default function Calendar({
           );
           background-size: 10px 10px;
         }
+
+        .blocked-appointment-bg {
+  background-image: linear-gradient(
+    -45deg,
+    rgba(255, 0, 0, 0.1) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 0, 0, 0.1) 50%,
+    rgba(255, 0, 0, 0.1) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 10px 10px;
+  background-color: #dc2626; // red-600
+}
       `}</style>
     </>
   )
 }
-

@@ -9,7 +9,6 @@ const ArchiveModal = ({ showArchive, setShowArchive, archivedChats, handleRestor
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4">
       <div className="bg-[#181818] rounded-xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-lg">
-        {/* Header */}
         <div className="sticky top-0 bg-[#181818] z-10 p-4 border-b border-zinc-800 flex justify-between items-center">
           <h2 className="text-base sm:text-lg font-medium flex items-center gap-2">
             <Archive className="w-5 h-5" />
@@ -23,7 +22,6 @@ const ArchiveModal = ({ showArchive, setShowArchive, archivedChats, handleRestor
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-4 space-y-2">
           {archivedChats.length === 0 ? (
             <div className="text-center py-8 text-gray-400">

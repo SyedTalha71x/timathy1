@@ -117,15 +117,15 @@ export const emailTemplatesNew = [
 export const appointmentNotificationTypesNew = {
     confirmation: {
         enabled: true,
-        template: "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}. Best wishes from {Studio_Name}!",
+        template: "Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been booked for {Booked_Time}. Best wishes from {Studio_Name}!",
     },
     cancellation: {
         enabled: true,
-        template: "Hello {Member_Name}, your {Appointment_Type} has been cancelled. Please contact {Studio_Name} for rescheduling.",
+        template: "Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been cancelled. Please contact {Studio_Name} for rescheduling.",
     },
     rescheduled: {
         enabled: true,
-        template: "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}. Thank you, {Studio_Name}!",
+        template: "Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}. Thank you, {Studio_Name}!",
     },
 };
 

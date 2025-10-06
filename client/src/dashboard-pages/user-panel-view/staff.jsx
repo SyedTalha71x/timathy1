@@ -1,7 +1,8 @@
+/* eslint-disable react/prop-types */
 
 /* eslint-disable no-unused-vars */
 import { useState, createContext } from "react"
-import { X, Calendar, Users, History, MessageCircle, Grid3X3, List } from "lucide-react"
+import { X, Calendar, Users, History, MessageCircle, Grid3X3, List, FileText } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import AddStaffModal from "../../components/user-panel-components/staff-components/add-staff-modal"
 import EditStaffModal from "../../components/user-panel-components/staff-components/edit-staff-modal"
@@ -31,9 +32,33 @@ import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import { StafffDocumentManagementModal } from "../../components/user-panel-components/staff-components/document-management-modal"
+import ChatPopup from "../../components/user-panel-components/staff-components/chat-popup"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 
 const StaffContext = createContext(null)
+
+const RoleTag = ({ role }) => {
+  return (
+    <div className="inline-flex items-center gap-1 bg-red-600 text-white px-2 py-1 rounded-md text-xs font-medium">
+      <svg
+        className="w-3 h-3"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+        />
+      </svg>
+      <span>{role}</span>
+    </div>
+  );
+};
 export default function StaffManagement() {
   const sidebarSystem = useSidebarSystem();
   const [isShowDetails, setIsShowDetails] = useState(false)
@@ -48,6 +73,15 @@ export default function StaffManagement() {
   const [selectedStaffForHistory, setSelectedStaffForHistory] = useState(null)
   const [viewMode, setViewMode] = useState("grid")
 
+  const [showDocumentModal, setShowDocumentModal] = useState(false)
+  const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
+
+  const [chatPopup, setChatPopup] = useState({
+    isOpen: false,
+    staff: null
+  });
+
+
   const trainingVideos = trainingVideosData
   const [staffMembers, setStaffMembers] = useState(staffMemberDataNew)
 
@@ -60,6 +94,12 @@ export default function StaffManagement() {
     setStaffToRemove(staff)
     setIsRemoveModalOpen(true)
   }
+
+  const handleDocumentClick = (member) => {
+    setSelectedMemberForDocuments(member)
+    setShowDocumentModal(true)
+  }
+
 
   const confirmRemoveStaff = () => {
     setStaffMembers(staffMembers.filter((member) => member.id !== staffToRemove.id))
@@ -80,8 +120,17 @@ export default function StaffManagement() {
   }
 
   const handleChatClick = (staff) => {
-    window.location.href = `/dashboard/communication`
-  }
+    setChatPopup({
+      isOpen: true,
+      staff: staff
+    });
+  };
+
+  const handleOpenFullMessenger = (staff) => {
+    setChatPopup({ isOpen: false, staff: null });
+    window.location.href = `/dashboard/communication`;
+  };
+
 
   const toggleViewMode = () => {
     setViewMode(viewMode === "grid" ? "list" : "grid")
@@ -258,7 +307,12 @@ export default function StaffManagement() {
 
     todoFilterOptions,
     relationOptions,
-    appointmentTypes
+    appointmentTypes,
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem;
 
   // more sidebar related functions
@@ -489,8 +543,8 @@ export default function StaffManagement() {
                     <button
                       onClick={toggleViewMode}
                       className={`p-2 rounded-lg transition-colors ${viewMode === "grid"
-                          ? "bg-[#FF843E] text-white"
-                          : "text-gray-400 hover:text-white"
+                        ? "bg-[#FF843E] text-white"
+                        : "text-gray-400 hover:text-white"
                         }`}
                       title="Grid View"
                     >
@@ -499,8 +553,8 @@ export default function StaffManagement() {
                     <button
                       onClick={toggleViewMode}
                       className={`p-2 rounded-lg transition-colors ${viewMode === "list"
-                          ? "bg-[#FF843E] text-white"
-                          : "text-gray-400 hover:text-white"
+                        ? "bg-[#FF843E] text-white"
+                        : "text-gray-400 hover:text-white"
                         }`}
                       title="List View"
                     >
@@ -533,7 +587,7 @@ export default function StaffManagement() {
                   className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center justify-center gap-2 w-full lg:w-auto"
                 >
                   <Calendar className="h-4 w-4" />
-                 {!isRightSidebarOpen && <span className="hidden sm:inline">Vacation Calendar</span>}
+                  {!isRightSidebarOpen && <span className="hidden sm:inline">Vacation Calendar</span>}
                   <span className="sm:hidden">Vacation</span>
                 </button>
 
@@ -587,33 +641,14 @@ export default function StaffManagement() {
                     />
                   </div>
 
-                  <div
-                    className={`${viewMode === "list" ? "flex-1 min-w-0" : "w-full"
-                      }`}
-                  >
-                    <h3
-                      className={`text-white font-medium text-base sm:text-lg mb-1 ${viewMode === "list"
-                        ? "text-center sm:text-left"
-                        : "text-center"
-                        }`}
-                    >
+                  <div className={`${viewMode === "list" ? "flex-1 min-w-0" : "w-full"}`}>
+                    <h3 className={`text-white font-medium text-base sm:text-lg mb-1 ${viewMode === "list" ? "text-center sm:text-left" : "text-center"}`}>
                       {staff.firstName} {staff.lastName}
                     </h3>
-                    <p
-                      className={`text-gray-400 text-xs sm:text-sm mb-2 ${viewMode === "list"
-                        ? "text-center sm:text-left"
-                        : "text-center"
-                        }`}
-                    >
-                      {staff.role}
-                    </p>
-                    <p
-                      className={`text-gray-400 text-xs sm:text-sm ${viewMode === "grid" ? "mb-4" : "mb-3"
-                        } ${viewMode === "list"
-                          ? "text-center sm:text-left"
-                          : "text-center"
-                        }`}
-                    >
+                    <div className={`mb-2 ${viewMode === "list" ? "text-center sm:text-left" : "text-center"}`}>
+                      <RoleTag role={staff.role} />
+                    </div>
+                    <p className={`text-gray-400 text-xs sm:text-sm ${viewMode === "grid" ? "mb-4" : "mb-3"} ${viewMode === "list" ? "text-center sm:text-left" : "text-center"}`}>
                       {staff.description}
                     </p>
                   </div>
@@ -642,6 +677,13 @@ export default function StaffManagement() {
                         className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center flex-1 sm:flex-none sm:w-12"
                       >
                         <MessageCircle size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDocumentClick(staff)}
+                        className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                        title="Document Management"
+                      >
+                        <FileText size={16} />
                       </button>
                     </div>
                   </div>
@@ -743,6 +785,27 @@ export default function StaffManagement() {
           />
         )}
 
+        <StafffDocumentManagementModal
+          member={selectedMemberForDocuments}
+          isOpen={showDocumentModal}
+          onClose={() => {
+            setShowDocumentModal(false)
+            setSelectedMemberForDocuments(null)
+          }}
+
+
+
+        />
+
+        {chatPopup.isOpen && chatPopup.staff && (
+          <ChatPopup
+            staff={chatPopup.staff}
+            isOpen={chatPopup.isOpen}
+            onClose={() => setChatPopup({ isOpen: false, staff: null })}
+            onOpenFullMessenger={() => handleOpenFullMessenger(chatPopup.staff)}
+          />
+        )}
+
 
         {/* sidebar related stuff */}
 
@@ -804,14 +867,18 @@ export default function StaffManagement() {
         />
 
         {/* Sidebar related modals */}
-        <TrainingPlanModal
-          isOpen={isTrainingPlanModalOpen}
-          onClose={() => setIsTrainingPlanModalOpen(false)}
-          user={selectedUserForTrainingPlan}
-          trainingPlans={mockTrainingPlans}
-          getDifficultyColor={getDifficultyColor}
-          getVideoById={getVideoById}
-        />
+         <TrainingPlansModal
+                                          isOpen={isTrainingPlanModalOpen}
+                                          onClose={() => {
+                                            setIsTrainingPlanModalOpen(false)
+                                            setSelectedUserForTrainingPlan(null)
+                                          }}
+                                          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+                                          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                                          availableTrainingPlans={availableTrainingPlans}
+                                          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+                                          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+                                        />
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}

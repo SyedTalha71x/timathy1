@@ -35,7 +35,6 @@ export const useSidebarSystem = () => {
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
 
   const [customLinks, setCustomLinks] = useState(customLinksData)
-  const [communications, setCommunications] = useState(communicationsData)
   const [todos, setTodos] = useState(todosData)
   const [birthdays, setBirthdays] = useState(birthdaysData)
   const [expiringContracts, setExpiringContracts] = useState(expiringContractsData)
@@ -149,6 +148,8 @@ export const useSidebarSystem = () => {
     { id: "todo", type: "todo", position: 6 },
     { id: "birthday", type: "birthday", position: 7 },
     { id: "bulletinBoard", type: "bulletinBoard", position: 8 },
+    { id: "notes", type: "notes", position: 9 },
+
   ])
 
   const [rightSidebarWidgets, setRightSidebarWidgets] = useState([
@@ -161,6 +162,40 @@ export const useSidebarSystem = () => {
     { id: "sidebarExpiringContracts", type: "expiringContracts", position: 6 },
     { id: "bulletinBoard", type: "bulletinBoard", position: 7 },
     { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 8 },
+    { id: "notes", type: "notes", position: 9 },
+  ])
+
+  // Training Plans States
+  const [memberTrainingPlans, setMemberTrainingPlans] = useState({})
+  const [availableTrainingPlans, setAvailableTrainingPlans] = useState([
+    {
+      id: 1,
+      name: "Beginner Full Body",
+      description: "Complete full body workout for beginners",
+      duration: "4 weeks",
+      difficulty: "Beginner",
+    },
+    {
+      id: 2,
+      name: "Advanced Strength Training",
+      description: "High intensity strength building program",
+      duration: "8 weeks",
+      difficulty: "Advanced",
+    },
+    {
+      id: 3,
+      name: "Weight Loss Circuit",
+      description: "Fat burning circuit training program",
+      duration: "6 weeks",
+      difficulty: "Intermediate",
+    },
+    {
+      id: 4,
+      name: "Muscle Building Split",
+      description: "Targeted muscle building program",
+      duration: "12 weeks",
+      difficulty: "Intermediate",
+    },
   ])
 
   // ===== REFS =====
@@ -767,10 +802,10 @@ export const useSidebarSystem = () => {
   )
 
   const todoFilterOptions = [
-    { value: "all", label: "All" },
-    { value: "ongoing", label: "Ongoing" },
-    { value: "pending", label: "Pending" },
-    { value: "completed", label: "Completed" },
+    { value: "all", label: "All Tasks" },
+    { value: "ongoing", label: "Ongoing", color: "#f59e0b" },
+    { value: "completed", label: "Completed", color: "#10b981" },
+    { value: "canceled", label: "Canceled", color: "#ef4444" },
   ]
 
   const relationOptions = {
@@ -779,6 +814,34 @@ export const useSidebarSystem = () => {
     relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
     work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
     other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+  }
+
+  // Functions related to adding training plan
+
+  const handleAssignTrainingPlan = (memberId, planId) => {
+    const plan = availableTrainingPlans.find((p) => p.id === Number.parseInt(planId))
+    if (plan) {
+      const assignedPlan = {
+        ...plan,
+        assignedDate: new Date().toLocaleDateString(),
+      }
+
+      setMemberTrainingPlans((prev) => ({
+        ...prev,
+        [memberId]: [...(prev[memberId] || []), assignedPlan],
+      }))
+
+      toast.success(`Training plan "${plan.name}" assigned successfully!`)
+    }
+  }
+
+  const handleRemoveTrainingPlan = (memberId, planId) => {
+    setMemberTrainingPlans((prev) => ({
+      ...prev,
+      [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId),
+    }))
+
+    toast.success("Training plan removed successfully!")
   }
 
   // ===== RETURN ALL STATES AND FUNCTIONS =====
@@ -939,8 +1002,6 @@ export const useSidebarSystem = () => {
     // new states
     customLinks,
     setCustomLinks,
-    communications,
-    setCommunications,
     todos,
     setTodos,
     expiringContracts,
@@ -964,5 +1025,12 @@ export const useSidebarSystem = () => {
     todoFilterOptions,
     relationOptions,
     appointmentTypes,
+
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
+
   }
 }

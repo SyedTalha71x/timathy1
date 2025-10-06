@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import { Checkbox, Row } from "antd"
+import { Checkbox, Row, Transfer } from "antd"
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
@@ -23,6 +23,7 @@ import {
   Radio,
   Space,
   Divider,
+  Tag, // Added import for Tag
 } from "antd"
 import dayjs from "dayjs"
 import {
@@ -37,16 +38,33 @@ import {
   BoldOutlined,
   ItalicOutlined,
   UnderlineOutlined,
+  MailOutlined, // Added import for MailOutlined
+  MessageOutlined, // Added import for MessageOutlined
+  FileSearchOutlined, // Added import for FileSearchOutlined
+  CheckSquareOutlined, // Added import for CheckSquareOutlined
+  FileTextOutlined, // Added import for FileTextOutlined
+  TeamOutlined, // Added import for TeamOutlined
+  UserAddOutlined, // Added import for UserAddOutlined
+  FileProtectOutlined, // Added import for FileProtectOutlined
+  ShoppingCartOutlined, // Added import for ShoppingCartOutlined
+  DollarOutlined, // Added import for DollarOutlined
+  ReadOutlined, // Added import for ReadOutlined
+  LineChartOutlined, // Added import for LineChartOutlined
 } from "@ant-design/icons"
-import VariablePicker from "../../components/variable-picker" 
-import defaultLogoUrl from '../../../public/gray-avatar-fotor-20250912192528.png'
+import VariablePicker from "../../components/variable-picker"
+import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import "../../custom-css/user-panel-configuration.css"
+import { PERMISSION_GROUPS } from "../../utils/user-panel-states/configuration-states"
+import { QRCode, Typography } from "antd"
+import { QrcodeOutlined, ImportOutlined } from "@ant-design/icons"
+
+const { Title } = Typography
+
 
 const { Option } = Select
 const { TabPane } = Tabs
 const { TextArea } = Input
 const { Panel } = Collapse
-const { RangePicker } = DatePicker
 
 const inputStyle = {
   backgroundColor: "#101010",
@@ -76,24 +94,41 @@ const saveButtonStyle = {
   outline: "none",
   fontSize: "14px",
 }
-const sectionHeaderStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "12px 16px",
-  backgroundColor: "#202020",
-  borderRadius: "8px",
-  marginBottom: "16px",
-  cursor: "default",
-}
+
 const tooltipStyle = {
   marginLeft: "8px",
   color: "rgba(255, 255, 255, 0.5)",
 }
 
+// Map icon name to actual component
+const GROUP_ICONS = {
+  CalendarOutlined: <CalendarOutlined />,
+  MailOutlined: <MailOutlined />,
+  MessageOutlined: <MessageOutlined />,
+  FileSearchOutlined: <FileSearchOutlined />,
+  CheckSquareOutlined: <CheckSquareOutlined />,
+  FileTextOutlined: <FileTextOutlined />,
+  TeamOutlined: <TeamOutlined />,
+  UserAddOutlined: <UserAddOutlined />,
+  FileProtectOutlined: <FileProtectOutlined />,
+  ShoppingCartOutlined: <ShoppingCartOutlined />,
+  DollarOutlined: <DollarOutlined />,
+  ReadOutlined: <ReadOutlined />,
+  LineChartOutlined: <LineChartOutlined />,
+  SettingOutlined: <SettingOutlined />,
+}
+
+const PERMISSION_DATA = PERMISSION_GROUPS.flatMap((g) =>
+  g.items.map((perm) => ({
+    key: perm, // Transfer uses key for selection
+    title: perm, // shown in search
+    group: g.group, // custom field for rendering
+    iconName: g.icon,
+  })),
+)
+
 const ConfigurationPage = () => {
-  // Add near other state variables
-  const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(true);
+  const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(true)
 
   // Basic studio information
   const [studioName, setStudioName] = useState("")
@@ -106,18 +141,20 @@ const ConfigurationPage = () => {
   const [studioEmail, setStudioEmail] = useState("")
   const [studioWebsite, setStudioWebsite] = useState("")
   const [currency, setCurrency] = useState("€")
+
   // Opening hours and closing days
   const [openingHours, setOpeningHours] = useState([])
   const [closingDays, setClosingDays] = useState([])
   const [publicHolidays, setPublicHolidays] = useState([])
   const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
+
   // Other studio settings
   const [logo, setLogo] = useState([])
-  const [logoUrl, setLogoUrl] = useState("") // New state to store logo URL
+  const [logoUrl, setLogoUrl] = useState("")
   const [roles, setRoles] = useState([])
-  const [appointmentTypes, setAppointmentTypes] = useState([]) // Added images array to each type
+  const [appointmentTypes, setAppointmentTypes] = useState([])
   const [tags, setTags] = useState([])
-  const [contractStatuses, setContractStatuses] = useState([])
+
   // Countries for selection with currency
   const [countries, setCountries] = useState([
     { code: "AT", name: "Austria", currency: "€" },
@@ -164,14 +201,13 @@ const ConfigurationPage = () => {
   const [noticePeriod, setNoticePeriod] = useState(30)
   const [extensionPeriod, setExtensionPeriod] = useState(12)
   const [additionalDocs, setAdditionalDocs] = useState([])
-  const [holidaysDialogVisible, setHolidaysDialogVisible] = useState(false)
+
+  const [defaultVacationDays, setDefaultVacationDays] = useState(20)
 
   // Communication Configuration States (updated and new)
   const [autoArchiveDuration, setAutoArchiveDuration] = useState(30)
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [chatNotifications, setChatNotifications] = useState(true)
-  const [studioChatNotifications, setStudioChatNotifications] = useState(true)
-  const [memberChatNotifications, setMemberChatNotifications] = useState(true)
   const [emailSignature, setEmailSignature] = useState("Best regards,\n{Studio_Name} Team")
   const [broadcastEmail, setBroadcastEmail] = useState(true)
   const [broadcastChat, setBroadcastChat] = useState(true)
@@ -180,6 +216,7 @@ const ConfigurationPage = () => {
     enabled: false,
     message: "Happy Birthday! 🎉 Best wishes from {Studio_Name}",
   })
+
   const [trialTraining, setTrialTraining] = useState({
     name: "Trial Training",
     duration: 60,
@@ -226,7 +263,6 @@ const ConfigurationPage = () => {
     smtpUser: "", // Added from reference
     smtpPass: "", // Added from reference
   })
-  const [leadProspectCategories, setLeadProspectCategories] = useState([])
   const [vatRates, setVatRates] = useState([
     { name: "Standard", percentage: 19, description: "Standard VAT rate" },
     {
@@ -240,18 +276,23 @@ const ConfigurationPage = () => {
     theme: "dark",
     primaryColor: "#FF843E",
     secondaryColor: "#1890ff",
-    allowUserThemeToggle: true,
+    allowStaffThemeToggle: true,
+    allowMemberThemeToggle: true
   })
 
   // Lead Sources (new state)
   const [leadSources, setLeadSources] = useState([
-    { id: 1, name: "Website" },
-    { id: 2, name: "Referral" },
+    { id: 1, name: "Website", color: "blue" },
+    { id: 2, name: "Referral", color: "blue" },
   ])
   const nextLeadSourceId = useRef(leadSources.length > 0 ? Math.max(...leadSources.map((s) => s.id)) + 1 : 1)
 
+  const [vatNumber, setVatNumber] = useState("")
+  const [bankName, setBankName] = useState("")
 
-  // Fetch public holidays when country changes
+  const [allowMemberQRCheckIn, setAllowMemberQRCheckIn] = useState(false)
+const [memberQRCodeUrl, setMemberQRCodeUrl] = useState("")
+
   useEffect(() => {
     if (studioCountry) {
       fetchPublicHolidays(studioCountry)
@@ -263,7 +304,6 @@ const ConfigurationPage = () => {
     }
   }, [studioCountry])
 
-  // Function to fetch public holidays based on country
   const fetchPublicHolidays = async (countryCode) => {
     if (!countryCode) return
     setIsLoadingHolidays(true)
@@ -297,7 +337,6 @@ const ConfigurationPage = () => {
     }
   }
 
-  // Function to add public holidays to closing days
   const addPublicHolidaysToClosingDays = (holidaysToProcess = publicHolidays) => {
     if (holidaysToProcess.length === 0) {
       notification.warning({
@@ -328,12 +367,6 @@ const ConfigurationPage = () => {
     })
   }
 
-  const renderSectionHeader = (title) => (
-    <div style={sectionHeaderStyle}>
-      <h3 className="text-lg font-medium m-0">{title}</h3>
-    </div>
-  )
-
   const handleAddVatRate = () => {
     setVatRates([...vatRates, { name: "", percentage: 0, description: "" }])
   }
@@ -357,7 +390,15 @@ const ConfigurationPage = () => {
   }
 
   const handleAddRole = () => {
-    setRoles([...roles, { name: "", permissions: [] }])
+    setRoles([
+      ...roles,
+      {
+        name: "",
+        permissions: [],
+        color: "#1890ff", // Add default color
+        defaultVacationDays: 20, // Add default vacation days
+      },
+    ])
   }
 
   const handleAddAppointmentType = () => {
@@ -376,10 +417,6 @@ const ConfigurationPage = () => {
 
   const handleAddTag = () => {
     setTags([...tags, { name: "", color: "#1890ff" }])
-  }
-
-  const handleAddContractStatus = () => {
-    setContractStatuses([...contractStatuses, { name: "" }])
   }
 
   const handleAddContractPauseReason = () => {
@@ -486,20 +523,12 @@ const ConfigurationPage = () => {
     setAppointmentTypes(updatedTypes)
   }
 
-  const handleViewBlankContract = () => {
-    console.log("check handle view blank contract")
-  }
-
   const testEmailConnection = () => {
     console.log("Test Email connection", emailConfig)
     notification.info({
       message: "Test Connection",
       description: "Attempting to connect to SMTP server...",
     })
-  }
-
-  const handleAddLeadProspectCategory = () => {
-    setLeadProspectCategories([...leadProspectCategories, { name: "", circleColor: "#1890ff" }])
   }
 
   const handleAddBroadcastMessage = () => {
@@ -583,24 +612,21 @@ const ConfigurationPage = () => {
   }
 
   return (
-    <div className=" w-full mx-auto lg:p-10 p-5 rounded-3xl space-y-8 bg-[#181818] min-h-screen text-white">
+    <div className=" w-full mx-auto lg:p-6 p-5 rounded-3xl space-y-8 bg-[#181818] min-h-screen text-white">
       <h1 className="lg:text-3xl text-2xl font-bold oxanium_font">Studio Configuration</h1>
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="Studio Data" key="1">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
             <Panel header="Studio Information" key="1" className="bg-[#202020]">
               <Form layout="vertical" className="space-y-4">
-
                 <div className="flex justify-center mb-8">
                   <div className="flex flex-col items-center space-y-4">
                     <div className="w-32 h-32 rounded-xl overflow-hidden  shadow-lg">
                       <img
-                        src={logoUrl || defaultLogoUrl}
+                        src={logoUrl || DefaultAvatar}
                         alt="Studio Logo"
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.src = defaultLogoUrl;
-                        }}
+
                       />
                     </div>
                     <Upload
@@ -611,7 +637,7 @@ const ConfigurationPage = () => {
                       showUploadList={false}
                     >
                       <Button icon={<UploadOutlined />} style={buttonStyle}>
-                        {logo.length > 0 ? 'Change Logo' : 'Upload Logo'}
+                        {logo.length > 0 ? "Change Logo" : "Upload Logo"}
                       </Button>
                     </Upload>
                     {logo.length > 0 && (
@@ -620,8 +646,8 @@ const ConfigurationPage = () => {
                         danger
                         size="small"
                         onClick={() => {
-                          setLogo([]);
-                          setLogoUrl('');
+                          setLogo([])
+                          setLogoUrl("")
                         }}
                       >
                         Remove Logo
@@ -638,7 +664,7 @@ const ConfigurationPage = () => {
                       onChange={(e) => setStudioName(e.target.value)}
                       placeholder="Enter studio name"
                       style={inputStyle}
-                      maxLength={50}   // 👈 Limit characters
+                      maxLength={50} // 👈 Limit characters
                     />
                   </Form.Item>
                   <Form.Item label={<span className="text-white">Studio Operator</span>}>
@@ -662,13 +688,13 @@ const ConfigurationPage = () => {
                       value={studioPhoneNo}
                       onChange={(e) => {
                         // Extra safety: strip non-digits if pasted
-                        const onlyDigits = e.target.value.replace(/\D/g, "");
-                        setStudioPhoneNo(onlyDigits);
+                        const onlyDigits = e.target.value.replace(/\D/g, "")
+                        setStudioPhoneNo(onlyDigits)
                       }}
                       onKeyPress={(e) => {
                         // Block typing anything except digits
                         if (!/[0-9]/.test(e.key)) {
-                          e.preventDefault();
+                          e.preventDefault()
                         }
                       }}
                       placeholder="Enter phone no"
@@ -737,7 +763,7 @@ const ConfigurationPage = () => {
                     >
                       {countries.map((country) => (
                         <Option key={country.code} value={country.code}>
-                          {country.name} ({country.currency})
+                          {country.name}
                         </Option>
                       ))}
                     </Select>
@@ -938,9 +964,7 @@ const ConfigurationPage = () => {
                             <Input
                               placeholder="Appointment Type Name"
                               value={type.name}
-                              onChange={(e) =>
-                                handleUpdateAppointmentType(index, "name", e.target.value)
-                              }
+                              onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
                               className="!w-full md:!w-32 lg:!w-90 !py-3.5 white-text"
                               style={inputStyle}
                             />
@@ -1100,6 +1124,23 @@ const ConfigurationPage = () => {
             </Panel>
             <Panel header="Staff Management" key="2" className="bg-[#202020]">
               <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+                <Panel header="General Settings" key="2" className="bg-[#252525]">
+                  <div className="space-y-4">
+                    <Form.Item>
+                      <div className="flex items-center">
+                        <label className="text-white w-38">Default Vacation Days</label>
+                        <InputNumber
+                          min={0}
+                          max={365}
+                          value={defaultVacationDays}
+                          onChange={(value) => setDefaultVacationDays(value || 0)}
+                          style={inputStyle}
+                          className="white-text"
+                        />
+                      </div>
+                    </Form.Item>
+                  </div>
+                </Panel>
                 <Panel header="Staff Roles" key="1" className="bg-[#252525]">
                   <div className="space-y-4">
                     {roles.map((role, index) => (
@@ -1115,22 +1156,63 @@ const ConfigurationPage = () => {
                           className="!w-full md:!w-32 lg:!w-90 !py-3.5"
                           style={inputStyle}
                         />
-                        <Select
-                          mode="multiple"
-                          placeholder="Select Permissions"
-                          value={role.permissions}
-                          onChange={(value) => {
-                            const updatedRoles = [...roles]
-                            updatedRoles[index].permissions = value
-                            setRoles(updatedRoles)
-                          }}
-                          className="!w-full !rounded-lg md:!w-32 lg:!w-90 !py-2.5 sm:flex-1"
-                          style={selectStyle}
-                        >
-                          <Option value="read">Read</Option>
-                          <Option value="write">Write</Option>
-                          <Option value="delete">Delete</Option>
-                        </Select>
+
+                        {/* Add Color Picker for Role */}
+                        <div className="flex items-center">
+                          <ColorPicker
+                            value={role.color}
+                            onChange={(color) => {
+                              const updatedRoles = [...roles]
+                              updatedRoles[index].color = color
+                              setRoles(updatedRoles)
+                            }}
+                          />
+                          <Tooltip title="Role display color">
+                            <InfoCircleOutlined style={tooltipStyle} />
+                          </Tooltip>
+                        </div>
+
+                        {/* </CHANGE> replace the permissions <Select> with a dual-list <Transfer> UI (Excel-ribbon style) */}
+                                                {/* </CHANGE> replace the permissions <Select> with a dual-list <Transfer> UI (Excel-ribbon style) */}
+                                                <div className="flex-1">
+                          <Transfer
+                            dataSource={PERMISSION_DATA}
+                            targetKeys={role.permissions}
+                            onChange={(nextTargetKeys) => {
+                              const updatedRoles = [...roles]
+                              updatedRoles[index].permissions = nextTargetKeys
+                              setRoles(updatedRoles)
+                            }}
+                            render={(item) => (
+                              <span style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", color: "#ffffff" }}>
+                                <span style={{ display: "inline-flex", alignItems: "center", width: 20 }}>
+                                  {GROUP_ICONS[item.iconName]}
+                                </span>
+                                <span
+                                  style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ffffff" }}
+                                >
+                                  {item.title}
+                                </span>
+                                <Tag color="blue" style={{ marginLeft: 8 }}>
+                                  {item.group}
+                                </Tag>
+                              </span>
+                            )}
+                            titles={["Available", "Assigned"]}
+                            showSearch
+                            filterOption={(inputValue, item) =>
+                              item.title.toLowerCase().includes(inputValue.toLowerCase()) ||
+                              item.group.toLowerCase().includes(inputValue.toLowerCase())
+                            }
+                            listStyle={{
+                              width: 320,
+                              height: 320,
+                            }}
+                            className="!w-full"
+                          />
+                        </div>
+                        {/* </CHANGE> */}
+
                         <Button
                           danger
                           icon={<DeleteOutlined />}
@@ -1155,6 +1237,88 @@ const ConfigurationPage = () => {
                 </Panel>
               </Collapse>
             </Panel>
+            <Panel header="Member Management" key="4" className="bg-[#202020]">
+  <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+    <Panel header="QR Code Check-In" key="1" className="bg-[#252525]">
+      <div className="space-y-6">
+        <Form.Item>
+          <div className="flex items-center">
+            <label className="text-white mr-4">Allow Member Check-In with QR-Code</label>
+            <Switch 
+              checked={allowMemberQRCheckIn} 
+              onChange={setAllowMemberQRCheckIn} 
+            />
+          </div>
+        </Form.Item>
+        
+        {allowMemberQRCheckIn && (
+          <div className="space-y-6 p-4 border border-[#303030] rounded-lg">
+            <div className="flex flex-col items-center space-y-4">
+              <h1  className="text-white text-center text-xl">
+                Member Check-In QR Code
+              </h1>
+              
+              {/* QR Code Display */}
+              <div className="p-4 bg-white rounded-lg">
+                <QRCode 
+                  value={memberQRCodeUrl || "https://your-studio-app.com/member-checkin"}
+                  size={200}
+                  level="H"
+                />
+              </div>
+              
+              {/* Studio Logo under QR Code */}
+              {logoUrl && (
+                <div className="w-24 h-24 rounded-lg overflow-hidden border border-[#303030]">
+                  <img
+                    src={logoUrl}
+                    alt="Studio Logo"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
+              {/* Action Buttons */}
+              <div className="flex gap-4">
+                <Button 
+                  type="primary" 
+                  icon={<SaveOutlined />}
+                  style={saveButtonStyle}
+                  onClick={() => {
+                    // Handle save QR code functionality
+                    notification.success({
+                      message: "QR Code Saved",
+                      description: "QR code settings have been saved successfully."
+                    })
+                  }}
+                >
+                  Save QR Settings
+                </Button>
+                
+                <Button 
+                  icon={<QrcodeOutlined />}
+                  style={buttonStyle}
+                  onClick={() => {
+                    // Handle print functionality
+                    window.print()
+                  }}
+                >
+                  Print QR Code
+                </Button>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-gray-400 text-sm">
+                  Members can scan this QR code to check in for appointments
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </Panel>
+  </Collapse>
+</Panel>
             <Panel header="Lead Sources" key="3" className="bg-[#202020]">
               <div className="space-y-4">
                 <div className="flex justify-between items-center mb-4">
@@ -1163,14 +1327,22 @@ const ConfigurationPage = () => {
                     Add Lead Source
                   </Button>
                 </div>
-                {leadSources.map((source) => (
-                  <div key={source.id} className="flex items-center justify-between bg-[#252525] p-3 rounded-lg">
+                {leadSources.map((source, index) => (
+                  <div key={source.id} className="flex flex-wrap gap-4 items-center">
                     <Input
                       value={source.name}
                       onChange={(e) => handleUpdateLeadSource(source.id, "name", e.target.value)}
                       style={inputStyle}
                       placeholder="Source name"
-                      className="mr-2"
+                      className="!w-full md:!w-32 lg:!w-90 !py-3"
+                    />
+                    <ColorPicker
+                      value={source.color}
+                      onChange={(color) => {
+                        const updatedTags = [...tags]
+                        updatedTags[index].color = color
+                        setTags(updatedTags)
+                      }}
                     />
                     <Button
                       danger
@@ -1194,7 +1366,7 @@ const ConfigurationPage = () => {
             </Panel>
             <Panel header="TO-DO" key="4" className="bg-[#202020]">
               <div className="space-y-4">
-                <h3 className="text-lg text-white font-medium">TO-DO Tags</h3>
+                <h3 className="text-lg text-white font-medium">To-Do Tags</h3>
                 {tags.map((tag, index) => (
                   <div key={index} className="flex flex-wrap gap-4 items-center">
                     <Input
@@ -1255,10 +1427,7 @@ const ConfigurationPage = () => {
                       </div>
                     }
                   >
-                    <Switch
-                      checked={allowMemberSelfCancellation}
-                      onChange={setAllowMemberSelfCancellation}
-                    />
+                    <Switch checked={allowMemberSelfCancellation} onChange={setAllowMemberSelfCancellation} />
                   </Form.Item>
                   <Form.Item label={<span className="text-white">Default Notice Period (days)</span>}>
                     <InputNumber
@@ -1374,9 +1543,9 @@ const ConfigurationPage = () => {
                           <Switch
                             checked={type.autoRenewal || false}
                             onChange={(checked) => {
-                              const updated = [...contractTypes];
-                              updated[index].autoRenewal = checked;
-                              setContractTypes(updated);
+                              const updated = [...contractTypes]
+                              updated[index].autoRenewal = checked
+                              setContractTypes(updated)
                             }}
                           />
                         </Form.Item>
@@ -1388,21 +1557,21 @@ const ConfigurationPage = () => {
                                 min={1}
                                 value={type.renewalPeriod || 1}
                                 onChange={(value) => {
-                                  const updated = [...contractTypes];
-                                  updated[index].renewalPeriod = value || 1;
-                                  setContractTypes(updated);
+                                  const updated = [...contractTypes]
+                                  updated[index].renewalPeriod = value || 1
+                                  setContractTypes(updated)
                                 }}
                                 style={inputStyle}
                                 className="white-text"
                               />
                             </Form.Item>
-                            <Form.Item label={<span className="text-white">Renewal Price</span>}>
+                            <Form.Item label={<span className="text-white">Price after Renewal</span>}>
                               <InputNumber
                                 value={type.renewalPrice || 0}
                                 onChange={(value) => {
-                                  const updated = [...contractTypes];
-                                  updated[index].renewalPrice = value || 0;
-                                  setContractTypes(updated);
+                                  const updated = [...contractTypes]
+                                  updated[index].renewalPrice = value || 0
+                                  setContractTypes(updated)
                                 }}
                                 style={inputStyle}
                                 className="white-text"
@@ -1418,9 +1587,9 @@ const ConfigurationPage = () => {
                             min={0}
                             value={type.cancellationPeriod || 30}
                             onChange={(value) => {
-                              const updated = [...contractTypes];
-                              updated[index].cancellationPeriod = value || 30;
-                              setContractTypes(updated);
+                              const updated = [...contractTypes]
+                              updated[index].cancellationPeriod = value || 30
+                              setContractTypes(updated)
                             }}
                             style={inputStyle}
                             className="white-text"
@@ -1443,7 +1612,7 @@ const ConfigurationPage = () => {
                 </Button>
               </div>
             </Panel>
-            <Panel header="Contract Sections" key="2" className="bg-[#202020]">
+            <Panel header="Contract Form" key="2" className="bg-[#202020]">
               <div className="space-y-4">
                 {contractSections.map((section, index) => (
                   <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
@@ -1609,25 +1778,13 @@ const ConfigurationPage = () => {
                       className="white-text"
                     />
                   </Form.Item>
-                  <Form.Item label={<span className="text-white">Notifications</span>}>
+                  <Form.Item label={<span className="text-white">Send Member Notifications via</span>}>
                     <Space direction="vertical">
                       <Checkbox checked={emailNotifications} onChange={(e) => setEmailNotifications(e.target.checked)}>
                         Email Notifications
                       </Checkbox>
                       <Checkbox checked={chatNotifications} onChange={(e) => setChatNotifications(e.target.checked)}>
-                        General Chat Notifications
-                      </Checkbox>
-                      <Checkbox
-                        checked={studioChatNotifications}
-                        onChange={(e) => setStudioChatNotifications(e.target.checked)}
-                      >
-                        Studio Chat Notifications
-                      </Checkbox>
-                      <Checkbox
-                        checked={memberChatNotifications}
-                        onChange={(e) => setMemberChatNotifications(e.target.checked)}
-                      >
-                        Member Chat Notifications
+                        App Notifications
                       </Checkbox>
                     </Space>
                   </Form.Item>
@@ -1822,7 +1979,7 @@ const ConfigurationPage = () => {
             <Panel header="Birthday Messages" key="4" className="bg-[#202020]">
               <div className="space-y-4">
                 <Form layout="vertical">
-                  <Form.Item label={<span className="text-white">Enable Birthday Messages</span>}>
+                  <Form.Item label={<span className="text-white">Enable Automatic Birthday Messages</span>}>
                     <Switch
                       checked={birthdayMessage.enabled}
                       onChange={(checked) =>
@@ -1833,62 +1990,62 @@ const ConfigurationPage = () => {
                       }
                     />
                   </Form.Item>
-                  <Form.Item
-                    label={
-                      <div className="flex items-center">
-                        <span className="text-white">Message Template</span>
-                        <Tooltip title="Available variables: {Studio_Name}, {Member_Name}">
-                          <InfoCircleOutlined style={tooltipStyle} />
-                        </Tooltip>
-                      </div>
-                    }
-                  >
-                    {/* Variable picker for Birthday Messages */}
-                    <VariablePicker
-                      variables={[
-                        { label: "Studio Name", value: "{Studio_Name}" },
-                        { label: "Member Name", value: "{Member_Name}" },
-                      ]}
-                      onInsert={(variable) => {
-                        const textarea = document.getElementById("birthday-message-textarea")
-                        if (textarea) {
-                          const start = textarea.selectionStart
-                          const end = textarea.selectionEnd
-                          const text = birthdayMessage.message
-                          const newText = text.substring(0, start) + variable + text.substring(end)
+                  {birthdayMessage.enabled && (
+                    <Form.Item
+                      label={
+                        <div className="flex items-center">
+                          <span className="text-white">Message Template</span>
+                          <Tooltip title="Available variables: {Studio_Name}, {Member_First_Name}, {Member_Last_Name}">
+                            <InfoCircleOutlined style={tooltipStyle} />
+                          </Tooltip>
+                        </div>
+                      }
+                    >
+                      <VariablePicker
+                        variables={[
+                          { label: "Studio Name", value: "{Studio_Name}" },
+                          { label: "Member First Name", value: "{Member_First_Name}" },
+                          { label: "Member Last Name", value: "{Member_Last_Name}" },
+                        ]}
+                        onInsert={(variable) => {
+                          const textarea = document.getElementById("birthday-message-textarea")
+                          if (textarea) {
+                            const start = textarea.selectionStart
+                            const end = textarea.selectionEnd
+                            const text = birthdayMessage.message
+                            const newText = text.substring(0, start) + variable + text.substring(end)
+                            setBirthdayMessage({
+                              ...birthdayMessage,
+                              message: newText,
+                            })
+                            setTimeout(() => {
+                              textarea.focus()
+                              textarea.setSelectionRange(start + variable.length, start + variable.length)
+                            }, 0)
+                          } else {
+                            setBirthdayMessage({
+                              ...birthdayMessage,
+                              message: birthdayMessage.message + variable,
+                            })
+                          }
+                        }}
+                      />
+                      <TextArea
+                        id="birthday-message-textarea"
+                        value={birthdayMessage.message}
+                        onChange={(e) =>
                           setBirthdayMessage({
                             ...birthdayMessage,
-                            message: newText,
-                          })
-                          // Focus and set cursor position after the inserted variable
-                          setTimeout(() => {
-                            textarea.focus()
-                            textarea.setSelectionRange(start + variable.length, start + variable.length)
-                          }, 0)
-                        } else {
-                          setBirthdayMessage({
-                            ...birthdayMessage,
-                            message: birthdayMessage.message + variable,
+                            message: e.target.value,
                           })
                         }
-                      }}
-                    />
-                    <TextArea
-                      id="birthday-message-textarea"
-                      value={birthdayMessage.message}
-                      onChange={(e) =>
-                        setBirthdayMessage({
-                          ...birthdayMessage,
-                          message: e.target.value,
-                        })
-                      }
-                      className="resize-none"
-                      rows={4}
-                      style={inputStyle}
-                      placeholder="Use {Studio_Name} and {Member_Name} as placeholders"
-                      disabled={!birthdayMessage.enabled}
-                    />
-                  </Form.Item>
+                        className="resize-none"
+                        rows={4}
+                        style={inputStyle}
+                        placeholder="Use {Studio_Name}, {Member_First_Name}, and {Member_Last_Name} as placeholders"
+                      />
+                    </Form.Item>
+                  )}
                 </Form>
               </div>
             </Panel>
@@ -1919,7 +2076,8 @@ const ConfigurationPage = () => {
                           <VariablePicker
                             variables={[
                               { label: "Studio Name", value: "{Studio_Name}" },
-                              { label: "Member Name", value: "{Member_Name}" },
+                              { label: "Member First Name", value: "{Member_First_Name}" },
+                              { label: "Member Last Name", value: "{Member_Last_Name}" },
                             ]}
                             onInsert={(variable) => {
                               const textarea = document.getElementById(`broadcast-message-textarea-${index}`)
@@ -1946,16 +2104,6 @@ const ConfigurationPage = () => {
                             onChange={(e) => handleUpdateBroadcastMessage(index, "message", e.target.value)}
                             rows={4}
                             style={inputStyle}
-                          />
-                        </Form.Item>
-                        <Form.Item label={<span className="text-white">Send Via</span>}>
-                          <Checkbox.Group
-                            options={[
-                              { label: "Email", value: "email" },
-                              { label: "Platform Chat", value: "platform" },
-                            ]}
-                            value={message.sendVia}
-                            onChange={(values) => handleUpdateBroadcastMessage(index, "sendVia", values)}
                           />
                         </Form.Item>
                       </Form>
@@ -2007,7 +2155,8 @@ const ConfigurationPage = () => {
                           <VariablePicker
                             variables={[
                               { label: "Studio Name", value: "{Studio_Name}" },
-                              { label: "Member Name", value: "{Member_Name}" },
+                              { label: "Member First Name", value: "{Member_First_Name}" },
+                              { label: "Member Last Name", value: "{Member_Last_Name}" },
                               { label: "Appointment Type", value: "{Appointment_Type}" },
                               { label: "Booked Time", value: "{Booked_Time}" },
                             ]}
@@ -2061,10 +2210,10 @@ const ConfigurationPage = () => {
                   <Form.Item label={<span className="text-white">Default Broadcast Distribution</span>}>
                     <Space direction="vertical">
                       <Checkbox checked={broadcastEmail} onChange={(e) => setBroadcastEmail(e.target.checked)}>
-                        Email
+                        Email Notification
                       </Checkbox>
                       <Checkbox checked={broadcastChat} onChange={(e) => setBroadcastChat(e.target.checked)}>
-                        Chat Notification
+                        App Notification
                       </Checkbox>
                     </Space>
                   </Form.Item>
@@ -2209,6 +2358,30 @@ const ConfigurationPage = () => {
                 </p>
               </div>
             </Panel>
+            <Panel header="Payment Settings" key="3" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">VAT Number</span>}>
+                    <Input
+                      value={vatNumber}
+                      onChange={(e) => setVatNumber(e.target.value)}
+                      placeholder="Enter VAT number"
+                      style={inputStyle}
+                      maxLength={30}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Bank Name</span>}>
+                    <Input
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      placeholder="Enter bank name"
+                      style={inputStyle}
+                      maxLength={50}
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
           </Collapse>
         </TabPane>
         <TabPane tab="Appearance" key="6">
@@ -2237,10 +2410,16 @@ const ConfigurationPage = () => {
                       </Space>
                     </Radio.Group>
                   </Form.Item>
-                  <Form.Item label={<span className="text-white">Allow Users to Toggle Theme</span>}>
+                  <Form.Item label={<span className="text-white">Allow Staff to Toggle Theme</span>}>
                     <Switch
-                      checked={appearance.allowUserThemeToggle}
-                      onChange={(checked) => setAppearance({ ...appearance, allowUserThemeToggle: checked })}
+                      checked={appearance.allowStaffThemeToggle}
+                      onChange={(checked) => setAppearance({ ...appearance, allowStaffThemeToggle: checked })}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Allow Member to Toggle Theme</span>}>
+                    <Switch
+                      checked={appearance.allowMemberThemeToggle}
+                      onChange={(checked) => setAppearance({ ...appearance, allowMemberThemeToggle: checked })}
                     />
                   </Form.Item>
                   <Divider style={{ borderColor: "#303030" }} />
@@ -2334,6 +2513,142 @@ const ConfigurationPage = () => {
             </Panel>
           </Collapse>
         </TabPane>
+        {/* Add this TabPane with other TabPanes in the main Tabs component */}
+<TabPane 
+  tab={
+    <span>
+      Importing
+    </span>
+  } 
+  key="7"
+>
+  <Collapse defaultActiveKey={["1"]} className="bg-[#181818] text-white border-[#303030]">
+    <Panel header="Data Import" key="1" className="bg-[#202020]">
+      <div className="space-y-6">
+        <Alert
+          message="Import Data from Other Platforms"
+          description="You can import your existing data from other fitness studio platforms. This will help you migrate all important files like member data, contracts, leads, and more."
+          type="info"
+          showIcon
+          style={{ backgroundColor: "#202020", border: "1px solid #303030" }}
+        />
+        
+        <div className="grid grid-cols-1 mt-5 md:grid-cols-2 gap-6">
+          {/* Member Data Import */}
+          <div className="p-4 border border-[#303030] rounded-lg">
+            <h1  className="text-white mb-4 text-xl">
+              <TeamOutlined className="mr-2" />
+              Member Data
+            </h1>
+            <p className="text-gray-400 mb-4">
+              Import member profiles, contact information, and membership details
+            </p>
+            <Upload
+              accept=".csv,.xlsx,.xls"
+              beforeUpload={(file) => {
+                // Handle member data import
+                notification.info({
+                  message: "Member Data Import",
+                  description: `Preparing to import ${file.name}`
+                })
+                return false // Prevent actual upload for demo
+              }}
+            >
+              <Button icon={<UploadOutlined />} style={buttonStyle}>
+                Upload Member Data
+              </Button>
+            </Upload>
+          </div>
+
+          <div className="p-4 border border-[#303030] rounded-lg">
+            <h2  className="text-white mb-4 text-xl">
+              <FileProtectOutlined className="mr-2" />
+              Contracts
+            </h2>
+            <p className="text-gray-400 mb-4">
+              Import contract templates, terms, and existing member contracts
+            </p>
+            <Upload
+              accept=".pdf,.doc,.docx,.csv"
+              beforeUpload={(file) => {
+                notification.info({
+                  message: "Contracts Import",
+                  description: `Preparing to import ${file.name}`
+                })
+                return false
+              }}
+            >
+              <Button icon={<UploadOutlined />} style={buttonStyle}>
+                Upload Contracts
+              </Button>
+            </Upload>
+          </div>
+
+          <div className="p-4 border border-[#303030] rounded-lg">
+            <h1  className="text-white mb-4 text-xl">
+              <UserAddOutlined className="mr-2" />
+              Leads
+            </h1>
+            <p className="text-gray-400 mb-4">
+              Import lead information, contact details, and lead sources
+            </p>
+            <Upload
+              accept=".csv,.xlsx,.xls"
+              beforeUpload={(file) => {
+                notification.info({
+                  message: "Leads Import",
+                  description: `Preparing to import ${file.name}`
+                })
+                return false
+              }}
+            >
+              <Button icon={<UploadOutlined />} style={buttonStyle}>
+                Upload Leads
+              </Button>
+            </Upload>
+          </div>
+
+          <div className="p-4 border border-[#303030] rounded-lg">
+            <h1 className="text-white mb-4 text-xl">
+              <FileTextOutlined className="mr-2" />
+              Additional Files
+            </h1>
+            <p className="text-gray-400 mb-4">
+              Import other important documents and studio data
+            </p>
+            <Upload
+              accept=".pdf,.doc,.docx,.xlsx,.csv,.zip"
+              beforeUpload={(file) => {
+                notification.info({
+                  message: "Additional Files Import",
+                  description: `Preparing to import ${file.name}`
+                })
+                return false
+              }}
+            >
+              <Button icon={<UploadOutlined />} style={buttonStyle}>
+                Upload Additional Files
+              </Button>
+            </Upload>
+          </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-[#252525] rounded-lg">
+          <h1  className="text-white mb-2 text-xl">
+            Import Instructions
+          </h1>
+          <ul className="text-gray-400 list-disc list-inside space-y-2">
+            <li>Ensure your files are in supported formats (CSV, Excel, PDF, Word)</li>
+            <li>Backup your current data before importing</li>
+            <li>Large imports may take several minutes to process</li>
+            <li>Review imported data for accuracy after completion</li>
+            <li>Contact support if you encounter any issues during import</li>
+          </ul>
+        </div>
+      </div>
+    </Panel>
+  </Collapse>
+</TabPane>
       </Tabs>
       <div className="flex justify-end mt-4">
         <Button
@@ -2349,6 +2664,5 @@ const ConfigurationPage = () => {
     </div>
   )
 }
-
 
 export default ConfigurationPage

@@ -28,15 +28,19 @@ import {
   Users,
   Camera,
   Reply,
+  Building2,
+  User,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import PersonImage from '../../public/avatar3.png'
 import Avatar from "../../public/gray-avatar-fotor-20250912192528.png"
 import RightSidebarWidget from "./myarea-components/sidebar-components/RightSidebarWidget"
 import { SpecialNoteEditModal } from "./myarea-components/SpecialNoteEditModal"
-import StaffCheckInWidget from "./myarea-components/StaffWidgetCheckIn"
+import StaffCheckInWidget from "./myarea-components/widjets/StaffWidgetCheckIn"
 import ViewManagementModal from "./myarea-components/sidebar-components/ViewManagementModal"
 import { bulletinBoardData, memberTypesData } from "../utils/user-panel-states/myarea-states"
+import NotesWidget from "./myarea-components/widjets/NotesWidjets"
+import BulletinBoardWidget from "./myarea-components/widjets/BulletinBoardWidget"
 
 const demoNotifications = {
   memberChat: [
@@ -305,8 +309,6 @@ const Sidebar = ({
   moveRightSidebarWidget,
   removeRightSidebarWidget,
   setIsRightWidgetModalOpen,
-  communications,
-  redirectToCommunication,
   todos,
   handleTaskComplete,
   openDropdownIndex,
@@ -363,17 +365,17 @@ const Sidebar = ({
   // Todo filter options
   const todoFilterOptions = [
     { value: "all", label: "All Tasks" },
-    { value: "ongoing", label: "Ongoing" },
-    { value: "pending", label: "Pending" },
-    { value: "completed", label: "Completed" },
+    { value: "ongoing", label: "Ongoing", color: "#f59e0b" },
+    { value: "completed", label: "Completed", color: "#10b981" },
+    { value: "canceled", label: "Canceled", color: "#ef4444" },
   ]
 
   const getFilteredTodos = () => {
     switch (todoFilter) {
       case "ongoing":
         return todos.filter((todo) => todo.status === "ongoing")
-      case "pending":
-        return todos.filter((todo) => todo.status === "pending")
+      case "canceled":
+        return todos.filter((todo) => todo.status === "canceled")
       case "completed":
         return todos.filter((todo) => todo.status === "completed")
       default:
@@ -562,17 +564,11 @@ const Sidebar = ({
           `}
       >
         <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto h-full">
-          {/* Header with close button and add widget button */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center justify-between w-full mb-3 sm:mb-4">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <h2 className="text-base sm:text-lg font-semibold text-white truncate">Sidebar</h2>
-                  {currentView && (
-                    <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
-                      {currentView.name}
-                    </span>
-                  )}
                 </div>
               </div>
               <div></div>
@@ -580,10 +576,11 @@ const Sidebar = ({
                 {!isSidebarEditing && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
-                    className="p-1.5 sm:p-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                    className="p-1.5 sm:p-2 flex items-center gap-2 text-sm bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
                     title="Manage Sidebar Views"
                   >
                     <Eye size={14} />
+                    {currentView ? currentView.name : ""}
                   </button>
                 )}
                 {activeTab === "widgets" && isSidebarEditing && (
@@ -653,7 +650,7 @@ const Sidebar = ({
                   className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Users size={16} className="text-blue-400" />
+                  <User size={16} className="inline mr-2" />
                     <h3 className="text-white font-medium text-sm">Member Chat</h3>
                     {getUnreadCount("memberChat") > 0 && (
                       <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
@@ -723,7 +720,7 @@ const Sidebar = ({
                   className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Camera size={16} className="text-green-400" />
+                  <Building2 size={16} className="inline mr-2" />
                     <h3 className="text-white font-medium text-sm">Studio Chat</h3>
                     {getUnreadCount("studioChat") > 0 && (
                       <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
@@ -802,56 +799,14 @@ const Sidebar = ({
                     moveRightSidebarWidget={moveRightSidebarWidget}
                     removeRightSidebarWidget={removeRightSidebarWidget}
                   >
-                    {/* ... existing widget code remains the same ... */}
-                    {widget.type === "communications" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Communications</h2>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="space-y-2">
-                            {communications.slice(0, 2).map((comm) => (
-                              <div
-                                onClick={redirectToCommunication}
-                                key={comm.id}
-                                className="p-2 cursor-pointer bg-black rounded-xl"
-                              >
-                                <div className="flex items-center gap-2 mb-1">
-                                  <img
-                                    src={comm.avatar || "/placeholder.svg"}
-                                    alt="User"
-                                    className="rounded-full h-8 w-8"
-                                  />
-                                  <div>
-                                    <h3 className="open_sans_font text-sm">{comm.name}</h3>
-                                  </div>
-                                </div>
-                                <div>
-                                  <p className="text-xs open_sans_font text-zinc-400">{comm.message}</p>
-                                  <p className="text-xs mt-1 flex gap-1 items-center open_sans_font text-zinc-400">
-                                    <Clock size={12} />
-                                    {comm.time}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                            <Link
-                              to={"/dashboard/communication"}
-                              className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                            >
-                              See all
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                  
 
-                    {/* ... rest of the existing widget code remains unchanged ... */}
-                    {widget.type === "todo" && (
+                  {widget.type === "todo" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
                           <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">To-Do</h2>
                         </div>
+
                         <div className="relative mb-3" ref={todoFilterDropdownRef}>
                           <button
                             onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
@@ -865,88 +820,104 @@ const Sidebar = ({
                               {todoFilterOptions.map((option) => (
                                 <button
                                   key={option.value}
-                                  className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                  className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
                                   onClick={() => {
                                     setTodoFilter(option.value)
                                     setIsTodoFilterDropdownOpen(false)
                                   }}
                                 >
+                                  {option.color && (
+                                    <div
+                                      className="w-2 h-2 rounded-full"
+                                      style={{ backgroundColor: option.color }}
+                                    />
+                                  )}
                                   {option.label}
                                 </button>
                               ))}
                             </div>
                           )}
                         </div>
+
+                        {/* Todo Items */}
                         <div className="space-y-3 open_sans_font">
-                          {getFilteredTodos()
-                            .slice(0, 3)
-                            .map((todo) => (
-                              <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
-                                <div className="flex items-center gap-2 flex-1">
-                                  <input
-                                    type="checkbox"
-                                    checked={todo.completed}
-                                    onChange={() => handleTaskComplete(todo.id)}
-                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                  />
-                                  <div className="flex-1">
-                                    <h3
-                                      className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
-                                    >
-                                      {todo.title}
-                                    </h3>
-                                    <p className="text-xs open_sans_font text-zinc-400">
-                                      Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="relative">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      toggleDropdown(`todo-${todo.id}`)
-                                    }}
-                                    className="p-1 hover:bg-zinc-700 rounded"
-                                  >
-                                    <MoreVertical size={16} />
-                                  </button>
-                                  {openDropdownIndex === `todo-${todo.id}` && (
-                                    <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                                      <button
-                                        onClick={() => {
-                                          handleEditTask(todo)
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                                      >
-                                        Edit Task
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          setTaskToCancel(todo.id)
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                                      >
-                                        Cancel Task
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          setTaskToDelete(todo.id)
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                                      >
-                                        Delete Task
-                                      </button>
+                          {getFilteredTodos().length > 0 ? (
+                            <>
+                              {getFilteredTodos()
+                                .slice(0, 3)
+                                .map((todo) => (
+                                  <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <input
+                                        type="checkbox"
+                                        checked={todo.completed}
+                                        onChange={() => handleTaskComplete(todo.id)}
+                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                      />
+                                      <div className="flex-1">
+                                        <h3
+                                          className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                        >
+                                          {todo.title}
+                                        </h3>
+                                        <p className="text-xs open_sans_font text-zinc-400">
+                                          Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                        </p>
+                                      </div>
                                     </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          <Link
-                            to={"/dashboard/to-do"}
-                            className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                          >
-                            See all
-                          </Link>
+                                    <div className="relative">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          toggleDropdown(`todo-${todo.id}`)
+                                        }}
+                                        className="p-1 hover:bg-zinc-700 rounded"
+                                      >
+                                        <MoreVertical size={16} />
+                                      </button>
+                                      {openDropdownIndex === `todo-${todo.id}` && (
+                                        <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                          <button
+                                            onClick={() => {
+                                              handleEditTask(todo)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                          >
+                                            Edit Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToCancel(todo.id)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                          >
+                                            Cancel Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToDelete(todo.id)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                          >
+                                            Delete Task
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              <Link
+                                to={"/dashboard/to-do"}
+                                className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
+                              >
+                                See all
+                              </Link>
+                            </>
+                          ) : (
+                            <div className="text-center py-4 text-gray-400">
+                              <p className="text-sm">No tasks in this category</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -1043,9 +1014,16 @@ const Sidebar = ({
                                 key={appointment.id}
                                 className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
                               >
-                                <div className="absolute p-2 top-0 left-0 z-10 flex flex-col gap-1">
+                                <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                                   {renderSidebarSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                                  <div
+                                    className="cursor-pointer rounded transition-colors"
+                                    onClick={(e) => handleDumbbellClick(appointment, e)}
+                                  >
+                                    <Dumbbell size={16} />
+                                  </div>
                                 </div>
+
                                 <div
                                   className="flex flex-col items-center justify-between gap-2 cursor-pointer"
                                   onClick={() => {
@@ -1084,12 +1062,7 @@ const Sidebar = ({
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                     </button>
-                                    <div
-                                      className="cursor-pointer rounded transition-colors"
-                                      onClick={(e) => handleDumbbellClick(appointment, e)}
-                                    >
-                                      <Dumbbell size={16} />
-                                    </div>
+                                  
                                   </div>
                                 </div>
                               </div>
@@ -1121,7 +1094,7 @@ const Sidebar = ({
                     {widget.type === "chart" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Chart</h2>
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Analytics Chart</h2>
                         </div>
                         <div className="p-4 bg-black rounded-xl">
                           <ChartWithLocalState />
@@ -1158,42 +1131,8 @@ const Sidebar = ({
                       </div>
                     )}
 
-                    {widget.type === "bulletinBoard" && (
-                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-auto flex flex-col">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">Bulletin Board</h2>
-                        </div>
-                        <div className="relative">
-                          <select
-                            value={sidebarBulletinFilter}
-                            onChange={(e) => handleSidebarBulletinFilterChange(e.target.value)}
-                            className="w-full p-2 bg-black rounded-xl text-white text-sm"
-                          >
-                            <option value="all">All Posts</option>
-                            <option value="staff">Staff Only</option>
-                            <option value="members">Members Only</option>
-                          </select>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 mt-2">
-                          <div className="space-y-2">
-                            {getSidebarFilteredBulletinPosts()
-                              .slice(0, 2)
-                              .map((post) => (
-                                <div key={post.id} className="p-3 bg-black rounded-xl">
-                                  <div className="flex justify-between items-start">
-                                    <h3 className="font-semibold text-sm">{post.title}</h3>
-                                  </div>
-                                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{post.content}</p>
-                                  <div className="flex justify-between items-center mt-2">
-                                    <span className="text-xs text-zinc-500 capitalize">{post.category}</span>
-                                    <span className="text-xs text-zinc-500">{post.date}</span>
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
+                    
 
                     {widget.type === "staffCheckIn" && (
                       <div className="mb-6">
@@ -1205,6 +1144,7 @@ const Sidebar = ({
                         </div>
                       </div>
                     )}
+                     {widget.type === "notes" && <NotesWidget />}
                   </RightSidebarWidget>
                 ))}
             </>

@@ -17,6 +17,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     phone: "",
     role: "",
     about: "",
+    gender: "",
     img: null,
     username: "",
     userId: "",
@@ -125,6 +126,19 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
               required
             />
           </div>
+          <div>
+  <label className="text-sm text-gray-200 block mb-2">Gender</label>
+  <select
+    name="gender"
+    value={newStaff.gender || ""}
+    onChange={handleInputChange}
+    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+    required
+  >
+    <option value="male">Male</option>
+    <option value="female">Female</option>
+  </select>
+</div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-gray-200 block mb-2">Email</label>

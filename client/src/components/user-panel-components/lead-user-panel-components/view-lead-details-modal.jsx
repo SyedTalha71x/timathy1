@@ -98,6 +98,10 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
                   <p>{leadData.phoneNumber}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-gray-400">Gender</p>
+                  <p>{leadData.gender}</p>
+                </div>
+                <div>
                   <p className="text-sm text-gray-400">Street & ZIP Code</p>
                   <p>{leadData.address}</p>
                 </div>
@@ -150,7 +154,7 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
                       <Info className="text-blue-500" size={20} />
                     )}
                     <p className="font-medium">
-                      {leadData.specialNote.isImportant ? "Important Note" : "General Note"}
+                      {leadData.specialNote.isImportant ? "Important Note" : "Unimportant Note"}
                     </p>
                   </div>
                   <p className="text-sm leading-relaxed">{leadData.specialNote.text}</p>

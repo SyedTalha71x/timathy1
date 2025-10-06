@@ -15,6 +15,7 @@ import {
   Move,
   ExternalLink,
   History,
+  Search,
 } from "lucide-react"
 import ProductImage from "../../../public/default-avatar.avif"
 import { RiServiceFill } from "react-icons/ri"
@@ -44,6 +45,7 @@ import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 function App() {
   const sidebarSystem = useSidebarSystem()
@@ -585,6 +587,14 @@ Payment Method: ${invoiceData.paymentMethod}
     )
   }
 
+  const updateItemVatRate = (itemId, newVatRate) => {
+    setCart(cart.map(item => 
+      item.id === itemId 
+        ? { ...item, vatRate: newVatRate }
+        : item
+    ));
+  };
+
   // Extract all states and functions from the hook
   const {
     // States
@@ -768,6 +778,11 @@ Payment Method: ${invoiceData.paymentMethod}
     todoFilterOptions,
     relationOptions,
     appointmentTypes,
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem
 
   // more sidebar related functions
@@ -1005,198 +1020,215 @@ Payment Method: ${invoiceData.paymentMethod}
         />
         {/* Edit/Add Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
-            <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-white text-lg open_sans_font_700">
-                    {modalMode === "add"
-                      ? `Add ${activeTab === "services" ? "Service" : "Product"}`
-                      : `Edit ${activeTab === "services" ? "Service" : "Product"}`}
-                  </h2>
-                  <button onClick={closeModal} className="text-gray-400 hover:text-white transition-colors">
-                    <X size={20} />
-                  </button>
+  <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
+    <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-white text-lg open_sans_font_700">
+            {modalMode === "add"
+              ? `Add ${activeTab === "services" ? "Service" : "Product"}`
+              : `Edit ${activeTab === "services" ? "Service" : "Product"}`}
+          </h2>
+          <button
+            onClick={closeModal}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleSubmit()
+          }}
+          className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]"
+        >
+          {/* Upload Image */}
+          <div className="flex flex-col items-start">
+            <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
+              {selectedImage || currentProduct?.image ? (
+                <img
+                  src={selectedImage || currentProduct?.image || ProductImage}
+                  alt={activeTab === "services" ? "Service" : "Product"}
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium text-center p-2">
+                  {currentProduct?.name || "New Item"}
                 </div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    handleSubmit()
-                  }}
-                  className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]"
+              )}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="product-image-upload"
+              ref={fileInputRef}
+            />
+            <label
+              htmlFor="product-image-upload"
+              className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
+            >
+              Upload picture
+            </label>
+          </div>
+
+          {/* Name */}
+          <div>
+            <label className="text-sm text-gray-200 block mb-2">
+              {activeTab === "services" ? "Service" : "Product"} name *
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChangeMain}
+              placeholder={`Enter ${activeTab === "services" ? "service" : "product"} name`}
+              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              required
+            />
+          </div>
+
+          {/* Price + VAT for services | Price + Article for products */}
+          {activeTab === "services" ? (
+            <div className="grid grid-cols-2 gap-4">
+              {/* Price */}
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">Price *</label>
+                <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
+                  <span className="px-3 text-white text-sm">€</span>
+                  <input
+                    type="text"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleInputChangeMain}
+                    placeholder="0.00"
+                    className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
+                    required
+                  />
+                </div>
+              </div>
+              {/* VAT */}
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
+                <select
+                  name="vatRate"
+                  value={formData.vatRate}
+                  onChange={handleInputChangeMain}
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                 >
-                  <div className="flex flex-col items-start">
-                    <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
-                      {selectedImage || currentProduct?.image ? (
-                        <img
-                          src={selectedImage || currentProduct?.image || ProductImage}
-                          alt={activeTab === "services" ? "Service" : "Product"}
-                          width={96}
-                          height={96}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium text-center p-2">
-                          {currentProduct?.name || "New Item"}
-                        </div>
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="product-image-upload"
-                      ref={fileInputRef}
-                    />
-                    <label
-                      htmlFor="product-image-upload"
-                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
-                    >
-                      Upload picture
-                    </label>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      {activeTab === "services" ? "Service" : "Product"} name *
-                    </label>
+                  <option value="7">7%</option>
+                  <option value="19">19%</option>
+                </select>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Price + Article */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Price *</label>
+                  <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
+                    <span className="px-3 text-white text-sm">€</span>
                     <input
                       type="text"
-                      name="name"
-                      value={formData.name}
+                      name="price"
+                      value={formData.price}
                       onChange={handleInputChangeMain}
-                      placeholder={`Enter ${activeTab === "services" ? "service" : "product"} name`}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      placeholder="0.00"
+                      className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
                       required
                     />
                   </div>
-                  <div className={"grid grid-cols-2 gap-4"}>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Price *</label>
-                      <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                        <span className="px-3 text-white text-sm">€</span>
-                        <input
-                          type="text"
-                          name="price"
-                          value={formData.price}
-                          onChange={handleInputChangeMain}
-                          placeholder="0.00"
-                          className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
-                          required
-                        />
-                      </div>
-                    </div>
-                    {activeTab === "products" && (
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Article Number</label>
-                        <input
-                          type="text"
-                          name="articalNo"
-                          value={formData.articalNo}
-                          onChange={handleInputChangeMain}
-                          placeholder="Enter article no"
-                          className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
-                      <select
-                        name="vatRate"
-                        value={formData.vatRate}
-                        onChange={handleInputChangeMain}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      >
-                        <option value="0">0%</option>
-                        <option value="7">7%</option>
-                        <option value="19">19%</option>
-                        <option value="custom">Custom</option>
-                      </select>
-                    </div>
-                    {formData.vatRate === "custom" && (
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Custom VAT Rate</label>
-                        <input
-                          type="number"
-                          name="customVatRate"
-                          value={formData.customVatRate || ""}
-                          onChange={handleInputChangeMain}
-                          placeholder="Enter VAT rate"
-                          min="0"
-                          max="100"
-                          className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="vatSelectable"
-                      name="vatSelectable"
-                      checked={formData.vatSelectable}
-                      onChange={handleInputChangeMain}
-                      className="rounded border-gray-300 text-[#3F74FF] focus:ring-[#3F74FF] focus:ring-2"
-                    />
-                    <label htmlFor="vatSelectable" className="text-sm text-gray-200">
-                      Allow VAT rate selection during checkout
-                    </label>
-                  </div>
-                  {activeTab === "products" && (
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Brand</label>
-                      <input
-                        type="text"
-                        name="brandName"
-                        value={formData.brandName}
-                        onChange={handleInputChangeMain}
-                        placeholder="Enter brand name"
-                        className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-gray-400 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      />
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Link (Optional)</label>
-                    <input
-                      type="url"
-                      name="link"
-                      value={formData.link}
-                      onChange={handleInputChangeMain}
-                      placeholder="https://example.com"
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                  </div>
-                  <div className="flex flex-row gap-3 pt-2">
-                    <button
-                      type="submit"
-                      className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={closeModal}
-                      className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-sm text-white rounded-xl border border-[#333333] hover:bg-[#101010] transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Article Number</label>
+                  <input
+                    type="text"
+                    name="articalNo"
+                    value={formData.articalNo}
+                    onChange={handleInputChangeMain}
+                    placeholder="Enter article no"
+                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  />
+                </div>
               </div>
+
+              {/* VAT Rate below */}
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
+                <select
+                  name="vatRate"
+                  value={formData.vatRate}
+                  onChange={handleInputChangeMain}
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                >
+                  <option value="7">7%</option>
+                  <option value="19">19%</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          {/* Brand for products */}
+          {activeTab === "products" && (
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Brand</label>
+              <input
+                type="text"
+                name="brandName"
+                value={formData.brandName}
+                onChange={handleInputChangeMain}
+                placeholder="Enter brand name"
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-gray-400 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              />
             </div>
+          )}
+
+          {/* Link */}
+          <div>
+            <label className="text-sm text-gray-200 block mb-2">Link (Optional)</label>
+            <input
+              type="url"
+              name="link"
+              value={formData.link}
+              onChange={handleInputChangeMain}
+              placeholder="https://example.com"
+              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+            />
           </div>
-        )}
+
+          {/* Buttons */}
+          <div className="flex flex-row gap-3 pt-2">
+            <button
+              type="submit"
+              className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={closeModal}
+              className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-sm text-white rounded-xl border border-[#333333] hover:bg-[#101010] transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+)}
+
+
         <main className="flex-1 min-w-0">
           <div className="p-4 md:p-8">
-            {/* Main Header Row */}
             <div className="flex items-center justify-between gap-3 mb-6">
-              {/* Left side - Title and Tab Buttons */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <h1 className="text-xl md:text-2xl font-bold oxanium_font whitespace-nowrap">Selling</h1>
-                {/* Tab Buttons */}
                 <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
                   <button
                     onClick={() => setActiveTab("products")}
@@ -1218,10 +1250,10 @@ Payment Method: ${invoiceData.paymentMethod}
                 <div>
                   <button
                     onClick={() => setShowHistoryModalMain(true)}
-                    className="text-white md:w-12 w-full  bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                    className="text-white md:w-13 w-full  bg-black rounded-xl border border-slate-600 p-2 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                     title="View Sales Journal"
                   >
-                    <History size={25} />
+                    <History size={18} />
                   </button>
                 </div>
                 <div>
@@ -1254,7 +1286,7 @@ Payment Method: ${invoiceData.paymentMethod}
                 >
                   <IoIosMenu size={25} />
                   {cart.length > 0 && (
-                    <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center absolute -top-1 -right-1">
+                    <span className="bg-orange-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center absolute -top-1 -right-1">
                       {cart.reduce((sum, item) => sum + item.quantity, 0)}
                     </span>
                   )}
@@ -1293,15 +1325,16 @@ Payment Method: ${invoiceData.paymentMethod}
             </div>
 
             <div className="flex gap-2 items-center mb-4">
-              <div className="relative flex-1">
-                <input
-                  type="search"
-                  placeholder={`Search by name${activeTab === "products" ? ", brand or article number..." : ""}...`}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-[#181818] text-white rounded-xl px-4 py-2 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
-                />
-              </div>
+            <div className="relative flex-1">
+  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+  <input
+    type="search"
+    placeholder={`Search by name${activeTab === "products" ? ", brand or article number..." : ""}...`}
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="bg-[#181818] text-white rounded-xl pl-10 pr-4 py-2 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+  />
+</div>
               <button
                 onClick={openAddModal}
                 className="flex items-center justify-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 whitespace-nowrap"
@@ -1354,133 +1387,113 @@ Payment Method: ${invoiceData.paymentMethod}
               </div>
             )}
 
-            <div
-              className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 
+<div
+  className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 
   ${isRightSidebarOpen ? "lg:grid-cols-3 xl:grid-cols-3" : "lg:grid-cols-4 xl:grid-cols-5"} 
   gap-3`}
-            >
-              {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
-                <div
-                  key={item.id}
-                  className={`w-full bg-[#181818] rounded-2xl overflow-visible relative draggable-item ${isEditModeActive ? "animate-wobble" : ""
-                    }`}
-                  draggable={isEditModeActive}
-                  onDragStart={(e) => handleDragStart(e, item, index)}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, index)}
-                  onDragEnd={handleDragEnd}
-                >
-                  {isEditModeActive && (
-                    <div className="absolute top-2 left-2 z-10 bg-black/70 rounded-lg p-1 flex flex-col gap-1">
-                      <button
-                        onClick={() => moveItem(index, "left", activeTab === "services")}
-                        className="p-1.5 rounded-md hover:bg-[#333333] text-white"
-                        title="Move Left"
-                      >
-                        <ArrowLeft size={16} />
-                      </button>
-                      <button
-                        onClick={() => moveItem(index, "right", activeTab === "services")}
-                        className="p-1.5 rounded-md hover:bg-[#333333] text-white"
-                        title="Move Right"
-                      >
-                        <ArrowRight size={16} />
-                      </button>
-                    </div>
-                  )}
-                  {isEditModeActive && (
-                    <div className="absolute top-2 right-2 z-10 bg-[#3F74FF] text-white rounded-full p-1.5">
-                      <Move size={16} />
-                    </div>
-                  )}
-                  <div className="relative w-full h-48 overflow-hidden rounded-t-2xl">
-                    {item.image ? (
-                      <img
-                        src={item.image || "/placeholder.svg"}
-                        alt={item.name}
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium text-center p-4">
-                        {item.name}
-                      </div>
-                    )}
-                    {!isEditModeActive && (
-                      <button
-                        onClick={() => addToCart(item)}
-                        className="absolute bottom-3 right-3 bg-blue-800 cursor-pointer hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
-                        aria-label="Add to cart"
-                      >
-                        <ShoppingBasket size={16} />
-                      </button>
-                    )}
-                    {item.link && !isEditModeActive && (
-                      <button
-                        onClick={() => window.open(item.link, "_blank")}
-                        className="absolute bottom-3 left-3 cursor-pointer bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
-                        aria-label="Open link"
-                      >
-                        <ExternalLink size={16} />
-                      </button>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <div className="">
-                      <h3 className="text-base font-medium mb-1 oxanium_font truncate">{item.name}</h3>
-                      {activeTab === "products" && item.brandName && (
-                        <p className="text-xs text-slate-200 mb-1 open_sans_font">{item.brandName}</p>
-                      )}
-                      {activeTab === "products" && item.articalNo && (
-                        <p className="text-xs text-slate-400 mb-1 open_sans_font">Art. No: {item.articalNo}</p>
-                      )}
-                      <p className="text-lg font-bold text-white mb-2">${item.price.toFixed(2)}</p>
-                    </div>
-                    {isEditModeActive && (
-                      <div className="mt-2 relative">
-                        {" "}
-                        {/* Added relative positioning here */}
-                        <div className="flex justify-end items-center">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setOpenDropdownId(openDropdownId === item.id ? null : item.id)
-                            }}
-                            className="bg-black text-white rounded-xl py-1.5 px-3 border border-slate-600 text-sm cursor-pointer"
-                          >
-                            <MoreVertical size={16} />
-                          </button>
-                          {openDropdownId === item.id && (
-                            <div className="absolute top-full right-0 mt-1 w-36 bg-[#101010] rounded-xl shadow-lg z-[60] border border-[#333333] dropdown-container">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  openEditModal(item)
-                                  setOpenDropdownId(null)
-                                }}
-                                className="w-full text-left px-4 py-2 text-sm hover:bg-[#181818] transition-colors rounded-t-xl"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  openDeleteModal(item)
-                                  setOpenDropdownId(null)
-                                }}
-                                className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#181818] transition-colors rounded-b-xl"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+>
+  {sortItems(getFilteredItems(), sortBy, sortDirection).map((item, index) => (
+    <div
+      key={item.id}
+      className={`w-full bg-[#181818] rounded-2xl overflow-visible relative draggable-item ${
+        isEditModeActive ? "animate-wobble" : ""
+      }`}
+      draggable={isEditModeActive}
+      onDragStart={(e) => handleDragStart(e, item, index)}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={(e) => handleDrop(e, index)}
+      onDragEnd={handleDragEnd}
+    >
+      {isEditModeActive && (
+        <div className="absolute top-2 left-2 z-10 bg-black/70 rounded-lg p-1 flex flex-col gap-1">
+          <button
+            onClick={() => moveItem(index, "left", activeTab === "services")}
+            className="p-1.5 rounded-md hover:bg-[#333333] text-white"
+            title="Move Left"
+          >
+            <ArrowLeft size={16} />
+          </button>
+          <button
+            onClick={() => moveItem(index, "right", activeTab === "services")}
+            className="p-1.5 rounded-md hover:bg-[#333333] text-white"
+            title="Move Right"
+          >
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      )}
+      {isEditModeActive && (
+        <div className="absolute top-2 right-2 z-10 bg-[#3F74FF] text-white rounded-full p-1.5">
+          <Move size={16} />
+        </div>
+      )}
+
+      {/* IMAGE / BLUE BOX */}
+<div className="relative w-full h-48 overflow-hidden rounded-t-2xl">
+  {item.image ? (
+    <img
+      src={item.image || "/placeholder.svg"}
+      alt={item.name}
+      className="object-cover w-full h-full"
+    />
+  ) : (
+    <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-center p-4">
+    <p className="whitespace-normal break-words break-all leading-snug text-center text-[clamp(0.75rem,2vw,1.25rem)]">
+      {item.name}
+    </p>
+  </div>
+  )}
+
+  {!isEditModeActive && (
+    <button
+      onClick={() => addToCart(item)}
+      className="absolute bottom-3 right-3 bg-blue-800 cursor-pointer hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
+      aria-label="Add to cart"
+    >
+      <ShoppingBasket size={16} />
+    </button>
+  )}
+  {item.link && !isEditModeActive && (
+    <button
+      onClick={() => window.open(item.link, "_blank")}
+      className="absolute bottom-3 left-3 cursor-pointer bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+      aria-label="Open link"
+    >
+      <ExternalLink size={16} />
+    </button>
+  )}
+</div>
+
+{/* CONTENT */}
+<div className="p-3">
+  <div>
+    <h3 className="text-base font-medium mb-1 oxanium_font whitespace-normal break-words">
+      {item.name}
+    </h3>
+
+    {activeTab === "products" && item.brandName && (
+      <p className="text-xs text-slate-200 mb-1 open_sans_font whitespace-normal break-words">
+        {item.brandName}
+      </p>
+    )}
+
+    {activeTab === "products" && item.articalNo && (
+      <p className="text-xs text-slate-400 mb-1 open_sans_font whitespace-normal break-words">
+        Art. No: {item.articalNo}
+      </p>
+    )}
+
+    <p className="text-lg font-bold text-white mb-2 whitespace-normal break-words">
+      ${item.price.toFixed(2)}
+    </p>
+  </div>
+</div>
+
+    </div>
+  ))}
+</div>
+
           </div>
         </main>
 
@@ -1573,6 +1586,7 @@ Payment Method: ${invoiceData.paymentMethod}
           // NOTIFICATIONS TAB LOGIC - Notification system
           notifications={notifications}
           hasUnreadNotifications={notifications?.length > 0}
+          updateItemVatRate={updateItemVatRate}
         />
 
         {isRightSidebarOpen && (
@@ -1583,14 +1597,18 @@ Payment Method: ${invoiceData.paymentMethod}
         )}
 
         {/* Sidebar related modals */}
-        <TrainingPlanModal
-          isOpen={isTrainingPlanModalOpen}
-          onClose={() => setIsTrainingPlanModalOpen(false)}
-          user={selectedUserForTrainingPlan}
-          trainingPlans={mockTrainingPlans}
-          getDifficultyColor={getDifficultyColor}
-          getVideoById={getVideoById}
-        />
+         <TrainingPlansModal
+                        isOpen={isTrainingPlanModalOpen}
+                        onClose={() => {
+                          setIsTrainingPlanModalOpen(false)
+                          setSelectedUserForTrainingPlan(null)
+                        }}
+                        selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+                        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                        availableTrainingPlans={availableTrainingPlans}
+                        onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+                        onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+                      />
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}

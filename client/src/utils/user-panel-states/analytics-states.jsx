@@ -85,3 +85,29 @@ export const analyticsData = {
       { name: "Kate Wilson", source: "Walk-in", interest: "Nutrition", score: 88 },
     ],
   }
+
+  export const appointmentsData = {
+    totals: {
+      bookings: 9,
+      checkIns: 3,
+      cancellations: 4,
+      lateCancellations: 0,
+      noShows: 0,
+    },
+    monthlyBreakdown: [
+      { month: "Feb", bookings: 0, checkIns: 0, cancellations: 0, lateCancellations: 0, noShows: 0 },
+      { month: "Apr", bookings: 8, checkIns: 7, cancellations: 1, lateCancellations: 0, noShows: 0 },
+      { month: "Jun", bookings: 5, checkIns: 4, cancellations: 1, lateCancellations: 0, noShows: 0 },
+      { month: "Aug", bookings: 3, checkIns: 2, cancellations: 1, lateCancellations: 0, noShows: 0 },
+      { month: "Oct", bookings: 2, checkIns: 1, cancellations: 1, lateCancellations: 0, noShows: 0 },
+      { month: "Dec", bookings: 1, checkIns: 0, cancellations: 0, lateCancellations: 0, noShows: 0 },
+    ],
+    popularTimes: [
+      { time: "8:00 AM", count: 1 },
+      { time: "10:00 AM", count: 4 },
+      { time: "12:00 PM", count: 4 },
+      { time: "2:00 PM", count: 3 },
+      { time: "4:00 PM", count: 2 },
+      { time: "6:00 PM", count: 1 },
+    ],
+  }

@@ -62,24 +62,22 @@ import EmailModal from "../../components/user-panel-components/communication-com
 
 import { memberContingentDataNew } from "../../utils/user-panel-states/myarea-states"
 import { appointmentNotificationTypesNew, appointmentsNew, companyChatListNew, emailListNew, emailTemplatesNew, memberChatListNew, memberHistoryNew, memberRelationsNew, membersNew, preConfiguredMessagesNew, settingsNew, staffChatListNew } from "../../utils/user-panel-states/communication-states"
+import SidebarMenu from "../../components/user-panel-components/communication-components/Sidebar"
+import BroadcastModal from "../../components/user-panel-components/communication-components/BroadcastModal"
+import ShowAppointmentModal from "../../components/user-panel-components/communication-components/ShowAppointmentsModal"
 
 export default function Communications() {
   const [isMessagesOpen, setIsMessagesOpen] = useState(true)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [showChatDropdown, setShowChatDropdown] = useState(false)
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [chatType, setChatType] = useState("member")
   const [activeScreen, setActiveScreen] = useState("chat") // 'chat', 'send-message', 'email-frontend', 'email-view'
-  const [selectedMembers, setSelectedMembers] = useState([])
   const [messageText, setMessageText] = useState("")
   const [selectedChat, setSelectedChat] = useState(null)
   const [messages, setMessages] = useState([])
   const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
-  const [selectedRecipients, setSelectedRecipients] = useState([])
-  const [selectAll, setSelectAll] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const [showMediaUpload, setShowMediaUpload] = useState(false)
   const [chatList, setChatList] = useState([])
   const [archivedChats, setArchivedChats] = useState([])
   const [searchMember, setSearchMember] = useState("")
@@ -90,9 +88,8 @@ export default function Communications() {
   const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null)
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
   const [showDraftModal, setShowDraftModal] = useState(false)
-  const [originalEmailData, setOriginalEmailData] = useState({ to: "", subject: "", body: "" })
   const [showSidebar, setShowSidebar] = useState(false)
-  const [settingsTab, setSettingsTab] = useState("notifications") // 'notifications' or 'setup'
+  const [settingsTab, setSettingsTab] = useState("notifications")
   const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState(appointmentNotificationTypesNew)
   const [unreadMessagesCount, setUnreadMessagesCount] = useState({
     member: 0,
@@ -152,16 +149,18 @@ export default function Communications() {
   const [newMessage, setNewMessage] = useState({ title: "", message: "", folderId: 1 })
   const [showContingentModal, setShowContingentModal] = useState(false)
   const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
-  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 }) // For contingent modal
-  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current") // For contingent modal
-  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false) // For contingent modal
-  const [newBillingPeriod, setNewBillingPeriod] = useState("") // For contingent modal
+
+  // States for contigent modal 
+  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
+  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current") 
+  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false) 
+  const [newBillingPeriod, setNewBillingPeriod] = useState("") 
   const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
 
   const [isMemberOverviewModalOpen, setIsMemberOverviewModalOpen] = useState(false)
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState(null)
-  const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details") // 'details', 'relations'
+  const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details") 
   const [showHistoryModal, setShowHistoryModal] = useState(false)
 
   const dropdownRef = useRef(null)
@@ -172,7 +171,6 @@ export default function Communications() {
   const messagesEndRef = useRef(null)
   const chatMenuRef = useRef(null)
   const notePopoverRef = useRef(null)
-  // Add refs for notification textarea
 
   const staffChatList = staffChatListNew
   const memberChatList = memberChatListNew
@@ -189,25 +187,40 @@ export default function Communications() {
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
 
-  const menuItems = [
-    { icon: Home, label: "My Area", to: "/dashboard/my-area" },
-    { icon: CiMonitor, label: "Activity Monitor", to: "/dashboard/activity-monitor" },
-    { icon: Calendar, label: "Appointments", to: "/dashboard/appointments" },
-    { icon: MessageCircle, label: "Communication", to: "/dashboard/communication" },
-    { icon: CheckSquare, label: "To-Do", to: "/dashboard/to-do" },
-    { icon: Users, label: "Members", to: "/dashboard/members" },
-    { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
-    { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
-    { icon: RiContractLine, label: "Contracts", to: "/dashboard/contract" },
-    { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
-    { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
-    { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
-    { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
-    { icon: CgGym, label: "Training", to: "/dashboard/training" },
-    { icon: TbBrandGoogleAnalytics, label: "Analytics", to: "/dashboard/analytics" },
-    { icon: MdOutlineHelpCenter, label: "Help Center", to: "/dashboard/help-center" },
-    { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
-  ]
+  useEffect(() => {
+    setSettings((prev) => ({
+      ...prev,
+      birthdaySendApp: typeof prev.birthdaySendApp === "boolean" ? prev.birthdaySendApp : false,
+      birthdaySendEmail: typeof prev.birthdaySendEmail === "boolean" ? prev.birthdaySendEmail : false,
+    }))
+    setAppointmentNotificationTypes((prev) => ({
+      ...prev,
+      confirmation: {
+        ...(prev.confirmation || {}),
+        sendApp: typeof prev.confirmation?.sendApp === "boolean" ? prev.confirmation.sendApp : false,
+        sendEmail: typeof prev.confirmation?.sendEmail === "boolean" ? prev.confirmation.sendEmail : false,
+      },
+      cancellation: {
+        ...(prev.cancellation || {}),
+        sendApp: typeof prev.cancellation?.sendApp === "boolean" ? prev.cancellation.sendApp : false,
+        sendEmail: typeof prev.cancellation?.sendEmail === "boolean" ? prev.cancellation.sendEmail : false,
+      },
+      rescheduled: {
+        ...(prev.rescheduled || {}),
+        sendApp: typeof prev.rescheduled?.sendApp === "boolean" ? prev.rescheduled.sendApp : false,
+        sendEmail: typeof prev.rescheduled?.sendEmail === "boolean" ? prev.rescheduled.sendEmail : false,
+      },
+      reminder: {
+        ...(prev.reminder || {}),
+        enabled: typeof prev.reminder?.enabled === "boolean" ? prev.reminder.enabled : false,
+        template: typeof prev.reminder?.template === "string" ? prev.reminder.template : "",
+        hoursBefore: typeof prev.reminder?.hoursBefore === "number" ? prev.reminder.hoursBefore : 24,
+        sendApp: typeof prev.reminder?.sendApp === "boolean" ? prev.reminder.sendApp : false,
+        sendEmail: typeof prev.reminder?.sendEmail === "boolean" ? prev.reminder.sendEmail : false,
+      },
+    }))
+  }, [])
+
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -272,14 +285,15 @@ export default function Communications() {
       company: companyUnread,
       email: emailUnread,
     })
-  }, [chatList, archivedChats, emailList]) // Add emailList to dependencies
+  }, [chatList, archivedChats, emailList]) 
 
 
   const handleEmailManagementClose = () => {
-    setShowEmailFrontend(false)
-    setActiveScreen("chat")
-
+    setShowEmailFrontend(false)    
+    setIsMessagesOpen(true)
+        setChatType("member")
   }
+
   const handleTemplateSelect = (template) => {
     setSelectedEmailTemplate(template)
     setEmailData({
@@ -372,25 +386,31 @@ export default function Communications() {
     ) // Set unread count to 1 for simplicity
     setShowChatMenu(null)
   }
+
   const handleViewMember = (chatId, e) => {
-    if (e) e.stopPropagation() // Stop propagation if event object exists
+    if (e) e.stopPropagation()
+    
+    if (chatType === "company") {
+      return
+    }
+    
     let member = members.find((m) => m.id === chatId)
     if (!member) {
-      // If it's a chat, try to find the corresponding member
       const chat = chatList.find((c) => c.id === chatId) || archivedChats.find((c) => c.id === chatId)
       if (chat) {
-        member = members.find((m) => m.name === chat.name) // Assuming name matches for simplicity
+        member = members.find((m) => m.name === chat.name)
       }
     }
     if (member) {
       setSelectedMember(member)
-      setIsMemberOverviewModalOpen(true) // Open the overview modal
-      setIsMessagesOpen(false) // Close sidebar on mobile
+      setIsMemberOverviewModalOpen(true)
+      setIsMessagesOpen(false)
     } else {
       alert("Member details not found.")
     }
-    setShowChatMenu(null) // Close chat menu if opened from there
+    setShowChatMenu(null)
   }
+
   const handleSendMessage = () => {
     if (!messageText.trim() || !selectedChat) return
     const newMessage = {
@@ -432,6 +452,7 @@ export default function Communications() {
       setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "read" } : msg)))
     }, 3000)
   }
+
   const handleReaction = (messageId, reaction) => {
     setMessageReactions((prev) => ({
       ...prev,
@@ -521,58 +542,47 @@ export default function Communications() {
     setShowAddAppointmentModal(true)
     setShowAppointmentModal(false)
   }
-  const handleMemberSelect = (member) => {
-    setSelectedRecipients((prev) => (prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]))
-  }
-  const handleSelectAll = () => {
-    const newSelectAll = !selectAll
-    setSelectAll(newSelectAll)
-    if (newSelectAll) {
-      const filteredList = [...chatList, ...archivedChats].filter(
-        (chat) => searchMember === "" || chat.name.toLowerCase().includes(searchMember.toLowerCase()),
-      )
-      setSelectedRecipients(filteredList)
-    } else {
-      setSelectedRecipients([])
-    }
-  }
   const handleEmojiSelect = (emoji) => {
     setMessageText((prevText) => prevText + emoji.native)
     setShowEmojiPicker(false)
   }
 
-  const handleBroadcast = () => {
-    if (!selectedMessage) {
-      alert("Please select a message to broadcast")
-      return
+  const handleBroadcast = (broadcastData) => {
+    const { message, recipients, settings } = broadcastData;
+    
+    if (!message) {
+      alert("Please select a message to broadcast");
+      return;
     }
-    if (selectedRecipients.length === 0) {
-      alert("Please select at least one recipient")
-      return
+    
+    if (recipients.length === 0) {
+      alert("Please select at least one recipient");
+      return;
     }
-    // Add message to selected folder
-    if (selectedFolder) {
-      setBroadcastFolders((prev) =>
-        prev.map((folder) =>
-          folder.id === selectedFolder.id ? { ...folder, messages: [...folder.messages, selectedMessage] } : folder,
-        ),
-      )
-    }
-    console.log("Broadcasting message to recipients:", selectedRecipients)
-    console.log("Broadcast title:", selectedMessage.title)
-    console.log("Broadcast message:", selectedMessage.message)
-    console.log("Distribution methods:", { email: settings.broadcastEmail, chat: settings.broadcastChat })
+  
+    // Add message to selected folder (if you want to track this)
+    // if (selectedFolder) {
+    //   setBroadcastFolders((prev) =>
+    //     prev.map((folder) =>
+    //       folder.id === selectedFolder.id ? { ...folder, messages: [...folder.messages, message] } : folder,
+    //     ),
+    //   )
+    // }
+  
+    console.log("Broadcasting message to recipients:", recipients);
+    console.log("Broadcast title:", message.title);
+    console.log("Broadcast message:", message.message);
+    
     alert(
-      `Broadcast sent to ${selectedRecipients.length} recipients via ${settings.broadcastEmail && settings.broadcastChat
+      `Broadcast sent to ${recipients.length} recipients via ${settings.broadcastEmail && settings.broadcastChat
         ? "Email and Chat"
         : settings.broadcastEmail
           ? "Email"
           : "Chat"
       }`,
-    )
-    setSelectedMessage(null)
-    setSelectedRecipients([])
-    setActiveScreen("chat")
+    );
+    
+    setActiveScreen("chat");
   }
   const handleCreateMessage = () => {
     setShowCreateMessageModal(true)
@@ -598,14 +608,18 @@ export default function Communications() {
     setShowCreateMessageModal(false)
     setNewMessage({ title: "", message: "", folderId: 1 })
   }
+
   const handleChatSelect = (chat) => {
     setSelectedChat(chat)
     setMessages(chat.messages || [])
-    setIsMessagesOpen(false) // Close sidebar on mobile
-    setActiveScreen("chat") // Ensure we are on the chat screen
-    // Mark chat as read when opened
-    setChatList((prevList) => prevList.map((c) => (c.id === chat.id ? { ...c, isRead: true, unreadCount: 0 } : c)))
+    setIsMessagesOpen(false)
+    setActiveScreen("chat")
+    // Only mark as read if not studio chat (or adjust as needed)
+    if (chatType !== "company") {
+      setChatList((prevList) => prevList.map((c) => (c.id === chat.id ? { ...c, isRead: true, unreadCount: 0 } : c)))
+    }
   }
+
   const handleCancelAppointment = (id) => {
     setSelectedAppointmentData(appointments.find((app) => app.id === id))
     setIsNotifyMemberOpen(true)
@@ -694,16 +708,7 @@ export default function Communications() {
     }
     return periods
   }
-  const handleBillingPeriodChange = (periodId) => {
-    setSelectedBillingPeriod(periodId)
-    const memberId = selectedChat?.id
-    const memberData = memberContingentData[memberId]
-    if (periodId === "current") {
-      setTempContingent(memberData.current)
-    } else {
-      setTempContingent(memberData.future[periodId] || { used: 0, total: 0 })
-    }
-  }
+ 
   const handleAddBillingPeriod = () => {
     if (newBillingPeriod.trim() && selectedChat) {
       const updatedContingent = { ...memberContingentData }
@@ -795,46 +800,8 @@ export default function Communications() {
 
   return (
     <div className="relative flex lg:min-h-[92vh]   h-auto bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
-      {showSidebar && (
-        <div
-          className="fixed inset-0 bg-black/30 z-50"
-          onClick={() => setShowSidebar(false)}
-        >
-          <div
-            className={`fixed left-0 top-0 h-full w-80 bg-[#111111] shadow-xl transform transition-transform duration-500 ease-in-out ${showSidebar ? "translate-x-0" : "-translate-x-full"
-              }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-4 ">
-              <div className="flex items-center justify-end">
-                <button
-                  onClick={() => setShowSidebar(false)}
-                  className="p-2 hover:bg-gray-700 rounded-lg"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+     <SidebarMenu showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
 
-            <div className="p-2 space-y-2 text-sm custom-scrollbar max-h-[83vh] overflow-y-auto ">
-              {menuItems.map((item, index) => {
-                const Icon = item.icon
-                return (
-                  <Link
-                    key={index}
-                    to={item.to}
-                    className="flex items-center gap-3 px-4 py-3 tyext-sm text-gray-300 hover:bg-gray-700 rounded-lg transition"
-                    onClick={() => setShowSidebar(false)}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
 
       {isMessagesOpen && (
@@ -860,7 +827,7 @@ export default function Communications() {
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <h1 className="text-2xl font-bold">Communications</h1>
+              <h1 className="text-2xl font-bold">Messenger</h1>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -958,7 +925,9 @@ export default function Communications() {
                       className="rounded-full cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleViewMember(chat.id, e)
+                        if (chatType !== "company") {
+                          handleViewMember(chat.id, e)
+                        }
                       }}
                     />
                     {chat.isBirthday && (
@@ -1009,7 +978,7 @@ export default function Communications() {
                 if (chat.type === "separator") {
                   return (
                     <div key="separator" className="border-t border-gray-600 my-2 mx-4">
-                      <div className="text-xs text-gray-500 text-center py-2">Employee Chats</div>
+                      <div className="text-xs text-gray-500 text-center py-2">Staff Chats</div>
                     </div>
                   )
                 }
@@ -1165,7 +1134,11 @@ export default function Communications() {
                     width={48}
                     height={48}
                     className="rounded-full cursor-pointer"
-                    onClick={(e) => handleViewMember(selectedChat.id, e)}
+                    onClick={(e) => {
+                      if (chatType !== "company") {
+                        handleViewMember(selectedChat.id, e)
+                      }
+                    }}
                   />
                   {selectedChat.isBirthday && (
                     <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
@@ -1175,8 +1148,11 @@ export default function Communications() {
                 </div>
                 <span
                   className="font-medium cursor-pointer hover:text-blue-400"
-                  onClick={(e) => handleViewMember(selectedChat.id, e)}
-
+                  onClick={(e) => {
+                    if (chatType !== "company") {
+                      handleViewMember(selectedChat.id, e)
+                    }
+                  }}
                 >
                   {selectedChat.name}
                 </span>
@@ -1193,15 +1169,15 @@ export default function Communications() {
                 )}
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto max-h-[70vh] custom-scrollbar p-4 space-y-4">
               {messages.map((message) => (
                 <div key={message.id} className={`flex gap-3 ${message.sender === "You" ? "justify-end" : ""} group`}>
                   <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""}`}>
                     <div
                       className={`rounded-xl p-4 text-sm max-w-md relative ${message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
-                        } ${message.isUnread ? "border-2 border-yellow-500" : ""}`}
+                        } `}
                     >
-                      <p>{message.content}</p>
+                      <p style={{ whiteSpace: 'pre-wrap' }}>{message.content}</p>
                       {/* Message actions */}
                       <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
                         <button
@@ -1243,7 +1219,7 @@ export default function Communications() {
                           })}
                         </div>
                       )}
-                    </div>
+                    </div>{message.isUnread ? "border-2 border-yellow-500" : ""}
                     <div className="flex items-center gap-1 text-sm text-gray-400">
                       <span>{message.time}</span>
                       {message.sender === "You" && getMessageStatusIcon(message.status)}
@@ -1317,365 +1293,44 @@ export default function Communications() {
           </>
         )}
         {activeScreen === "send-message" && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[999999] overflow-y-auto">
-            <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-medium">New Broadcast</h2>
-                  <button onClick={() => setActiveScreen("chat")} className="p-2 hover:bg-zinc-700 rounded-lg">
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="space-y-4">
-                  {/* Folder Selection */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-400">Message Folder</label>
-                      <button
-                        onClick={() => setShowFolderModal(true)}
-                        className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
-                      >
-                        <FolderPlus className="w-4 h-4" />
-                        New Folder
-                      </button>
-                    </div>
-                    <select
-                      value={selectedFolder?.id || (broadcastFolders.length > 0 ? broadcastFolders[0].id : "")}
-                      onChange={(e) =>
-                        setSelectedFolder(broadcastFolders.find((f) => f.id === Number.parseInt(e.target.value)))
-                      }
-                      className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
-                    >
-                      <option value="">Select folder...</option>
-                      {broadcastFolders.map((folder) => (
-                        <option key={folder.id} value={folder.id}>
-                          {folder.name} ({folder.messages.length} messages)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">
-                      Select Pre-configured Message
-                    </label>
-                    <div className="bg-[#222222] rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                      {preConfiguredMessages
-                        .filter((msg) => !selectedFolder || msg.folderId === selectedFolder.id)
-                        .map((msg) => (
-                          <div
-                            key={msg.id}
-                            onClick={() => setSelectedMessage(msg)}
-                            className={`p-3 cursor-pointer hover:bg-[#2F2F2F] ${selectedMessage?.id === msg.id ? "bg-[#2F2F2F] border-l-4 border-blue-500" : ""
-                              }`}
-                          >
-                            <p className="font-medium text-sm">{msg.title}</p>
-                            <p className="text-xs text-gray-400 truncate">{msg.message}</p>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <button
-                      onClick={handleCreateMessage}
-                      className="w-full py-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2"
-                    >
-                      Create New Template
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={() => {
-                        setShowRecipientDropdown(!showRecipientDropdown)
-                        if (!showRecipientDropdown) {
-                          setSearchMember("")
-                        }
-                      }}
-                      className="w-full py-3 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
-                    >
-                      Select Recipients
-                    </button>
-                    {showRecipientDropdown && (
-                      <div
-                        ref={recipientDropdownRef}
-                        className="absolute left-0 right-0 mt-2 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-50 max-h-[250px] overflow-y-auto custom-scrollbar"
-                      >
-                        <div className="p-2 border-b border-gray-800">
-                          <div className="relative mb-2">
-                            <input
-                              type="text"
-                              value={searchMember}
-                              onChange={(e) => setSearchMember(e.target.value)}
-                              className="w-full bg-[#222222] text-white rounded-xl pl-10 pr-4 py-2 text-sm"
-                              placeholder="Search members..."
-                              autoFocus
-                            />
-                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                          </div>
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-sm text-gray-300">Select all</span>
-                            <input
-                              type="checkbox"
-                              checked={selectAll}
-                              onChange={handleSelectAll}
-                              className="rounded border-gray-600 bg-transparent"
-                            />
-                          </div>
-                        </div>
-                        {[...chatList, ...archivedChats]
-                          .filter(
-                            (chat) =>
-                              searchMember === "" || chat.name.toLowerCase().includes(searchMember.toLowerCase()),
-                          )
-                          .map((chat, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center justify-between p-2 hover:bg-[#2F2F2F] cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2">
-                                <img
-                                  src={chat.logo || "/placeholder.svg"}
-                                  alt={chat.name}
-                                  className="h-8 w-8 rounded-full"
-                                />
-                                <span className="text-sm text-gray-300">{chat.name}</span>
-                              </div>
-                              <input
-                                type="checkbox"
-                                checked={selectedRecipients.includes(chat)}
-                                onChange={() => handleMemberSelect(chat)}
-                                className="rounded border-gray-600 bg-transparent"
-                              />
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    {selectedRecipients.map((recipient, i) => (
-                      <div key={i} className="flex items-center justify-between bg-[#222222] rounded-xl p-3">
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={recipient.logo || "/placeholder.svg"}
-                            alt={recipient.name}
-                            className="h-8 w-8 rounded-full"
-                          />
-                          <span className="text-sm text-gray-300">{recipient.name}</span>
-                        </div>
-                        <button
-                          className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center"
-                          onClick={() => handleMemberSelect(recipient)}
-                        >
-                          <X className="h-4 w-4 text-white" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Broadcast Distribution Options */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-400">Distribution Methods</label>
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={settings.broadcastEmail}
-                          onChange={(e) => setSettings({ ...settings, broadcastEmail: e.target.checked })}
-                          className="rounded border-gray-600 bg-transparent"
-                        />
-                        <span className="text-sm text-gray-300">Email</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={settings.broadcastChat}
-                          onChange={(e) => setSettings({ ...settings, broadcastChat: e.target.checked })}
-                          className="rounded border-gray-600 bg-transparent"
-                        />
-                        <span className="text-sm text-gray-300">Chat Notification</span>
-                      </label>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleBroadcast}
-                    className={`w-full py-3 ${selectedMessage &&
-                      selectedRecipients.length > 0 &&
-                      (settings.broadcastEmail || settings.broadcastChat)
-                      ? "bg-[#FF843E] text-sm hover:bg-orange-600"
-                      : "bg-gray-600"
-                      } text-white text-sm rounded-xl`}
-                    disabled={
-                      !selectedMessage ||
-                      selectedRecipients.length === 0 ||
-                      (!settings.broadcastEmail && !settings.broadcastChat)
-                    }
-                  >
-                    Send Broadcast
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <BroadcastModal
+          onClose={() => setActiveScreen("chat")}
+          broadcastFolders={broadcastFolders}
+          preConfiguredMessages={preConfiguredMessages}
+          chatList={chatList}
+          archivedChats={archivedChats}
+          settings={settings}
+          setSettings={setSettings}
+          setShowFolderModal={setShowFolderModal}
+          onBroadcast={handleBroadcast}
+          onCreateMessage={handleCreateMessage}
+        />
         )}
       </div>
 
-      {/* Appointment Modal */}
-      {showAppointmentModal && selectedMember && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium">{selectedMember.name}'s Appointments</h2>
-                <button
-                  onClick={() => {
-                    setShowAppointmentModal(false)
-                    setSelectedMember(null)
-                  }}
-                  className="p-2 hover:bg-zinc-700 rounded-lg"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="space-y-3 mb-4">
-                <h3 className="text-sm font-medium text-gray-400">Upcoming Appointments</h3>
-                {getMemberAppointments(selectedMember.id).length > 0 ? (
-                  getMemberAppointments(selectedMember.id).map((appointment) => {
-                    const appointmentType = appointmentTypes.find((type) => type.name === appointment.type)
-                    const backgroundColor = appointmentType ? appointmentType.color : "bg-gray-700"
-                    return (
-                      <div
-                        key={appointment.id}
-                        className={`${backgroundColor} rounded-xl p-3 hover:opacity-90 transition-colors cursor-pointer`}
-                        onClick={() => handleEditAppointment(appointment)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-sm text-white">{appointment.title}</p>
-                            <div>
-                              <p className="text-sm text-white/70">
-                                {new Date(appointment.date).toLocaleString([], {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                })}
-                              </p>
-                              <p className="text-xs text-white/70">
-                                {new Date(appointment.date).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}{" "}
-                                -{" "}
-                                {new Date(
-                                  new Date(appointment.date).getTime() + (appointmentType?.duration || 30) * 60000,
-                                ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleEditAppointment(appointment)
-                              }}
-                              className="p-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-full"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="lucide lucide-pencil"
-                              >
-                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                                <path d="m15 5 4 4" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleCancelAppointment(appointment.id)
-                              }}
-                              className="p-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-full"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="lucide lucide-trash-2"
-                              >
-                                <path d="M3 6h18" />
-                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                                <line x1="10" x2="10" y1="11" y2="17" />
-                                <line x1="14" x2="14" y1="11" y2="17" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })
-                ) : (
-                  <div className="text-center py-4 text-gray-400 bg-[#222222] rounded-xl">
-                    No appointments scheduled
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center justify-between py-3 px-2 border-t border-gray-700 mb-4">
-                <div className="text-sm text-gray-300">
-                  Contingent ({currentBillingPeriod}): {memberContingentData[selectedMember.id]?.current?.used || 0} /{" "}
-                  {memberContingentData[selectedMember.id]?.current?.total || 0}
-                </div>
-                <button
-                  onClick={handleManageContingent}
-                  className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                  </svg>
-                  Manage
-                </button>
-              </div>
-              <button
-                onClick={handleCreateNewAppointment}
-                className="w-full py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl flex items-center justify-center gap-2"
-              >
-                Create New Appointment
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ShowAppointmentModal
+        show={showAppointmentModal}
+        member={selectedMember}
+        appointmentTypes={appointmentTypes}
+        getMemberAppointments={getMemberAppointments}
+        handleEditAppointment={handleEditAppointment}
+        handleCancelAppointment={handleCancelAppointment}
+        handleManageContingent={handleManageContingent}
+        handleCreateNewAppointment={handleCreateNewAppointment}
+        currentBillingPeriod={currentBillingPeriod}
+        memberContingentData={memberContingentData}
+        onClose={() => {
+          setShowAppointmentModal(false)
+          setSelectedMember(null)
+        }}
+      />
 
       <EmailManagement
         isOpen={showEmailFrontend}
         onClose={handleEmailManagementClose}
         onOpenSendEmail={() => setShowEmailModal(true)}
         onOpenSettings={() => setShowSettings(true)}
-        onOpenBroadcast={() => setActiveScreen("send-message")} // Add this line
+        onOpenBroadcast={() => setActiveScreen("send-message")} 
         initialEmailList={emailList}
       />
       <SettingsModal

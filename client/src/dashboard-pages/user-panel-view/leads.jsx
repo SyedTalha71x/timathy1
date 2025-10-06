@@ -39,6 +39,8 @@ import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import { LeadSpecialNoteModal } from "../../components/user-panel-components/lead-user-panel-components/special-note-modal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 export default function LeadManagement() {
   const sidebarSystem = useSidebarSystem()
@@ -85,6 +87,12 @@ export default function LeadManagement() {
 
   const columnRefs = useRef({})
   const trainingVideos = trainingVideosData
+
+  const handleCreateNewTrial = (lead) => {
+    setSelectedLead(lead)
+    setIsTrialAppointmentModalOpen(false) // Close the appointments modal
+    setIsTrialModalOpen(true) // Open the add trial modal
+  }
 
   // Main Lead related Relations functions
   const handleAddRelationLead = () => {
@@ -223,27 +231,27 @@ export default function LeadManagement() {
     const updatedLeads = leads.map((lead) =>
       lead.id === data.id
         ? {
-            ...lead,
-            firstName: data.firstName,
-            surname: data.surname,
-            email: data.email,
-            phoneNumber: data.phoneNumber,
-            trialPeriod: data.trialPeriod,
-            hasTrialTraining: data.hasTrialTraining,
-            avatar: data.avatar,
-            status: data.status || lead.status,
-            columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
-            specialNote: {
-              text: data.specialNote?.text || "",
-              isImportant: data.specialNote?.isImportant || false,
-              startDate: data.specialNote?.startDate || null,
-              endDate: data.specialNote?.endDate || null,
-            },
-            company: data.company || lead.company, // Added
-            interestedIn: data.interestedIn || lead.interestedIn, // Added
-            birthday: data.birthday || lead.birthday, // Added
-            address: data.address || lead.address, // Added
-          }
+          ...lead,
+          firstName: data.firstName,
+          surname: data.surname,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+          trialPeriod: data.trialPeriod,
+          hasTrialTraining: data.hasTrialTraining,
+          avatar: data.avatar,
+          status: data.status || lead.status,
+          columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+          specialNote: {
+            text: data.specialNote?.text || "",
+            isImportant: data.specialNote?.isImportant || false,
+            startDate: data.specialNote?.startDate || null,
+            endDate: data.specialNote?.endDate || null,
+          },
+          company: data.company || lead.company, // Added
+          interestedIn: data.interestedIn || lead.interestedIn, // Added
+          birthday: data.birthday || lead.birthday, // Added
+          address: data.address || lead.address, // Added
+        }
         : lead,
     )
     setLeads(updatedLeads)
@@ -287,6 +295,7 @@ export default function LeadManagement() {
     targetColumnId: "",
     onSave: null,
   })
+
   const [specialNoteText, setSpecialNoteText] = useState("") // State for the textarea value
 
   const handleDragStop = (e, data, lead, sourceColumnId, index) => {
@@ -379,9 +388,9 @@ export default function LeadManagement() {
             isOpen: true,
             lead,
             targetColumnId,
-            onSave: (specialNote) => {
+            onSave: (specialNoteData) => {
               // Move the lead with special note
-              moveLeadWithNote(lead, sourceColumnId, targetColumnId, targetIndex, specialNote)
+              moveLeadWithNote(lead, sourceColumnId, targetColumnId, targetIndex, specialNoteData)
               setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))
             },
           })
@@ -396,7 +405,6 @@ export default function LeadManagement() {
       return
     }
 
-    // Normal drag and drop for other columns
     moveLeadToColumn(lead, sourceColumnId, targetColumnId, targetIndex)
   }
 
@@ -448,11 +456,10 @@ export default function LeadManagement() {
       status: targetColumnId,
       dragVersion: 0,
       specialNote: {
-        ...leadToMove.specialNote,
-        text: specialNote,
-        isImportant: true,
-        startDate: new Date().toISOString().split("T")[0],
-        endDate: null,
+        text: specialNote.text,
+        isImportant: specialNote.isImportant,
+        startDate: specialNote.startDate,
+        endDate: specialNote.endDate,
       },
     }
 
@@ -467,6 +474,7 @@ export default function LeadManagement() {
     localStorage.setItem("leads", JSON.stringify(localStorageLeads))
     toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title} with note`)
   }
+
 
   const handleTrialModalClose = () => {
     setIsTrialModalOpen(false)
@@ -731,6 +739,11 @@ export default function LeadManagement() {
     todoFilterOptions,
     relationOptions,
     appointmentTypes,
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem
 
   // more sidebar related functions
@@ -886,23 +899,6 @@ export default function LeadManagement() {
     return getBillingPeriods(memberId, memberContingentData)
   }
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-600"
-      case "Intermediate":
-        return "bg-yellow-600"
-      case "Advanced":
-        return "bg-red-600"
-      default:
-        return "bg-gray-600"
-    }
-  }
-
-  const getVideoById = (id) => {
-    return trainingVideos.find((video) => video.id === id)
-  }
-
   return (
     <div
       className={`
@@ -962,7 +958,7 @@ export default function LeadManagement() {
             className="bg-orange-500 hover:bg-[#E64D2E] text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 flex-1 sm:flex-none justify-center"
           >
             <Plus size={14} className="sm:w-4 sm:h-4" />
-            <span className="md:inline hidden">Create Lead</span>
+            <span className="inline">Create Lead</span>
             {/* <span className="xs:hidden">Add</span> */}
           </button>
           <div className="sm:block hidden">
@@ -1108,13 +1104,13 @@ export default function LeadManagement() {
           leadData={
             selectedLead
               ? {
-                  id: selectedLead.id,
-                  name: `${selectedLead.firstName} ${selectedLead.surname}`,
-                  email: selectedLead.email,
-                  phone: selectedLead.phoneNumber,
-                  company: selectedLead.company, // Ensure company is passed
-                  interestedIn: selectedLead.interestedIn, // Ensure interestedIn is passed
-                }
+                id: selectedLead.id,
+                name: `${selectedLead.firstName} ${selectedLead.surname}`,
+                email: selectedLead.email,
+                phone: selectedLead.phoneNumber,
+                company: selectedLead.company, // Ensure company is passed
+                interestedIn: selectedLead.interestedIn, // Ensure interestedIn is passed
+              }
               : null
           }
         />
@@ -1168,43 +1164,15 @@ export default function LeadManagement() {
         </div>
       )}
 
-      {/* Special note modal for moving from trial column */}
-      {specialNoteModal.isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-          <div className="bg-[#1C1C1C] w-[95%] sm:w-[90%] md:w-[500px] max-w-lg rounded-xl p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Add Special Note</h3>
-            <p className="text-gray-300 mb-4 text-sm sm:text-base">
-              Please add a special note for {specialNoteModal.lead?.firstName} {specialNoteModal.lead?.surname}:
-            </p>
-            <textarea
-              className="w-full p-3 bg-gray-800 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none resize-none"
-              rows="4"
-              placeholder="Enter special note..."
-              onChange={(e) => setSpecialNoteText(e.target.value)}
-              value={specialNoteText}
-            />
-            <div className="flex gap-2 sm:gap-3 mt-4">
-              <button
-                onClick={handleSpecialNoteCancel}
-                className="flex-1 px-3 sm:px-4 py-2 bg-gray-600 text-white text-sm sm:text-base rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (specialNoteText.trim()) {
-                    specialNoteModal.onSave(specialNoteText)
-                    setSpecialNoteText("")
-                  }
-                }}
-                className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Save & Move
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
+
+      <LeadSpecialNoteModal
+        isOpen={specialNoteModal.isOpen}
+        onClose={handleSpecialNoteCancel}
+        lead={specialNoteModal.lead}
+        onSave={specialNoteModal.onSave}
+        targetColumnId={specialNoteModal.targetColumnId}
+      />
 
       <TrialAppointmentModal
         isOpen={isTrialAppointmentModalOpen}
@@ -1215,6 +1183,7 @@ export default function LeadManagement() {
         lead={selectedLead}
         onEditTrial={handleEditTrialAppointment}
         onDeleteTrial={handleDeleteTrialAppointment}
+        onCreateNewTrial={handleCreateNewTrial} // Add this prop
       />
 
       <EditTrialModal
@@ -1303,13 +1272,17 @@ export default function LeadManagement() {
         <div className="fixed inset-0 bg-black/50 z-10" onClick={toggleRightSidebar} aria-hidden="true"></div>
       )}
 
-      <TrainingPlanModal
+      <TrainingPlansModal
         isOpen={isTrainingPlanModalOpen}
-        onClose={() => setIsTrainingPlanModalOpen(false)}
-        user={selectedUserForTrainingPlan}
-        trainingPlans={mockTrainingPlans}
-        getDifficultyColor={getDifficultyColor}
-        getVideoById={getVideoById}
+        onClose={() => {
+          setIsTrainingPlanModalOpen(false)
+          setSelectedUserForTrainingPlan(null)
+        }}
+        selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+        availableTrainingPlans={availableTrainingPlans}
+        onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+        onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
       />
 
       <AppointmentActionModalV2

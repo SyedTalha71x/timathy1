@@ -1,5 +1,3 @@
-"use client"
-
 import { Lock } from "lucide-react"
 import LeadCard from "./lead-card"
 import { useState } from "react"
@@ -70,7 +68,15 @@ const Column = ({
           </button>
         )}
       </div>
-      <div className="p-2 sm:p-3 flex-1 min-h-[250px] sm:min-h-[400px] overflow-y-auto max-h-[60vh]">
+      <div
+  className="
+    p-2 sm:p-3 flex-1  custom-scrollbar
+    min-h-[250px] sm:min-h-[400px] 
+    lg:min-h-[700px]   // ✅ ensures taller column on large screens
+    overflow-y-auto 
+    max-h-[75vh]       // ✅ increases max height so more leads show
+  "
+>
   {leads.map((lead, index) => (
     <LeadCard
       key={lead.id}
@@ -93,6 +99,7 @@ const Column = ({
     />
   ))}
 </div>
+
 
     </div>
   )

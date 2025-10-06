@@ -11,6 +11,9 @@ import AssignModal from "../../components/user-panel-components/task-components/
 import TagsModal from "../../components/user-panel-components/task-components/edit-tags"
 import Draggable from "react-draggable"
 
+import { UserCheck, Briefcase } from "lucide-react"
+
+
 import {
   todosTaskData,
   configuredTagsData,
@@ -34,6 +37,7 @@ import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 
 export default function TodoApp() {
@@ -71,6 +75,9 @@ export default function TodoApp() {
   const [availableAssignees] = useState(availableAssigneesData)
 
   const [availableRoles] = useState(["Trainer", "Manager", "Developer", "Designer", "Admin", "Support"])
+
+  const [repeatConfigs, setRepeatConfigs] = useState({});
+
 
   const trainingVideos = trainingVideosData
 
@@ -123,14 +130,57 @@ export default function TodoApp() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  // Add this useEffect to handle task completion and create repeat tasks
+useEffect(() => {
+  const now = new Date();
+  let shouldUpdateRepeatConfigs = false;
+  const updatedRepeatConfigs = { ...repeatConfigs };
+
+  Object.entries(repeatConfigs).forEach(([taskId, config]) => {
+    const task = tasks.find(t => t.id === parseInt(taskId));
+    
+    // Skip if task doesn't exist or isn't completed
+    if (!task || task.status !== "completed") return;
+    
+    // Check if we need to create a repeat task
+    const lastCompleted = config.lastCompletedDate ? new Date(config.lastCompletedDate) : null;
+    const taskCompletedDate = new Date(task.updatedAt || now); // Use task update time or current time
+    
+    // Only create repeat if:
+    // 1. We haven't created one for this completion yet, AND
+    // 2. The task was completed after the last repeat creation
+    if (!lastCompleted || lastCompleted < taskCompletedDate) {
+      createNextRepeatTask(config, task);
+      
+      // Update the last completed date to prevent infinite loops
+      updatedRepeatConfigs[taskId] = {
+        ...config,
+        lastCompletedDate: taskCompletedDate.toISOString()
+      };
+      shouldUpdateRepeatConfigs = true;
+    }
+  });
+
+  if (shouldUpdateRepeatConfigs) {
+    setRepeatConfigs(updatedRepeatConfigs);
+  }
+}, [tasks]); // Only depend on tasks, not repeatConfigs
+
   const handleTaskStatusChange = (taskId, newStatus) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus, isPinned: false, dragVersion: 0 } : task,
+        task.id === taskId ? { 
+          ...task, 
+          status: newStatus, 
+          isPinned: false, 
+          dragVersion: 0,
+          updatedAt: new Date().toISOString() // Add this line
+        } : task,
       ),
-    )
-    toast.success(`Task status changed to ${newStatus}!`)
-  }
+    );
+    
+    toast.success(`Task status changed to ${newStatus}!`);
+  };
 
   const handleTaskUpdate = (updatedTask) => {
     setTasks((prevTasks) =>
@@ -149,7 +199,7 @@ export default function TodoApp() {
       const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
       const newTask = {
         id: newId,
-        title: newTaskInput,
+        title: newTaskInput.trim(), // This will preserve line breaks
         assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
         roles: selectedRoles,
         tags: selectedTags.map((t) => t.name),
@@ -170,6 +220,67 @@ export default function TodoApp() {
       toast.success("Task added successfully!")
     }
   }
+
+  const createNextRepeatTask = (config, completedTask) => {
+    const { originalTask, repeatOptions } = config;
+  
+    try {
+      const currentIterationDate = new Date(completedTask.dueDate);
+  
+      // Calculate next occurrence based on repeat frequency
+      if (repeatOptions.frequency === "daily") {
+        currentIterationDate.setDate(currentIterationDate.getDate() + 1);
+      } else if (repeatOptions.frequency === "weekly") {
+        currentIterationDate.setDate(currentIterationDate.getDate() + 7);
+      } else if (repeatOptions.frequency === "monthly") {
+        currentIterationDate.setMonth(currentIterationDate.getMonth() + 1);
+      }
+  
+      // Check if we should create the task based on end conditions
+      let shouldCreate = true;
+  
+      if (repeatOptions.endDate && currentIterationDate > new Date(repeatOptions.endDate)) {
+        shouldCreate = false;
+      }
+  
+      if (repeatOptions.occurrences) {
+        const occurrencesCount = Object.values(repeatConfigs).filter(
+          config => config.originalTask.id === originalTask.id
+        ).length;
+        if (occurrencesCount >= repeatOptions.occurrences) {
+          shouldCreate = false;
+        }
+      }
+  
+      // Check if this repeat task already exists to prevent duplicates
+      const newDueDate = currentIterationDate.toISOString().split('T')[0];
+      const taskAlreadyExists = tasks.some(t => 
+        t.title === originalTask.title && 
+        t.dueDate === newDueDate &&
+        t.status === "ongoing"
+      );
+  
+      if (shouldCreate && !taskAlreadyExists) {
+        const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+        const newTask = {
+          ...originalTask,
+          id: newId,
+          dueDate: newDueDate,
+          isPinned: false,
+          dragVersion: 0,
+          status: "ongoing",
+          title: originalTask.title, // Remove "(Copy)" from title
+          createdAt: new Date().toISOString()
+        };
+  
+        setTasks(prevTasks => [...prevTasks, newTask]);
+        toast.success(`New repeat task created for ${originalTask.title}`);
+      }
+    } catch (error) {
+      console.error("Error creating repeat task:", error);
+      toast.error("Error creating repeat task");
+    }
+  };
 
   const handleTaskPinToggle = (taskId) => {
     setTasks((prevTasks) =>
@@ -220,66 +331,24 @@ export default function TodoApp() {
 
   const handleRepeatTask = (taskToRepeat, repeatOptions) => {
     try {
-      const generated = []
-      const currentIterationDate = new Date(taskToRepeat.dueDate)
-      let count = 0
-
-      while (count < 100) {
-        if (repeatOptions.endDate && currentIterationDate > new Date(repeatOptions.endDate)) {
-          break
+      setRepeatConfigs(prev => ({
+        ...prev,
+        [taskToRepeat.id]: {
+          originalTask: taskToRepeat,
+          repeatOptions: repeatOptions,
+          lastCompletedDate: null
         }
-        if (repeatOptions.occurrences && count >= repeatOptions.occurrences) {
-          break
-        }
+      }));
 
-        let shouldAdd = false
-        if (repeatOptions.frequency === "daily") {
-          shouldAdd = true
-        } else if (repeatOptions.frequency === "weekly") {
-          if (repeatOptions.repeatDays.includes(currentIterationDate.getDay())) {
-            shouldAdd = true
-          }
-        }
-
-        if (shouldAdd) {
-          const newId =
-            tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 + generated.length : 1 + generated.length
-          generated.push({
-            ...taskToRepeat,
-            id: newId,
-            dueDate: currentIterationDate.toISOString().split("T")[0],
-            isPinned: false,
-            dragVersion: 0,
-            status: "ongoing",
-          })
-          count++
-        }
-
-        if (repeatOptions.frequency === "daily") {
-          currentIterationDate.setDate(currentIterationDate.getDate() + 1)
-        } else if (repeatOptions.frequency === "weekly") {
-          currentIterationDate.setDate(currentIterationDate.getDate() + 7)
-        } else if (repeatOptions.frequency === "monthly") {
-          currentIterationDate.setMonth(currentIterationDate.getMonth() + 1)
-        } else {
-          currentIterationDate.setDate(currentIterationDate.getDate() + 1)
-        }
-      }
-
-      if (generated.length > 0) {
-        setTasks((prevTasks) => [...prevTasks, ...generated])
-        toast.success(`${generated.length} new tasks generated based on repeat settings!`)
-      } else {
-        toast.error("No tasks generated. Check repeat settings.")
-      }
+      toast.success("Repeat settings saved! New tasks will be created when this task is completed.");
     } catch (error) {
-      toast.error("Error generating repeated tasks. Please try again.")
-      console.error("Repeat task error:", error)
+      toast.error("Error setting up repeat task. Please try again.");
+      console.error("Repeat task error:", error);
     }
 
-    setIsRepeatModalOpen(false)
-    setSelectedTaskForRepeat(null)
-  }
+    setIsRepeatModalOpen(false);
+    setSelectedTaskForRepeat(null);
+  };
 
   const handleDragStop = (e, data, task, sourceColumnId) => {
     const draggedElem = e.target
@@ -478,9 +547,8 @@ export default function TodoApp() {
               <button
                 key={day}
                 onClick={() => handleDateClick(day)}
-                className={`p-2 text-sm rounded hover:bg-gray-600 ${
-                  isSelected ? "bg-blue-600 text-white" : "text-white"
-                }`}
+                className={`p-2 text-sm rounded hover:bg-gray-600 ${isSelected ? "bg-blue-600 text-white" : "text-white"
+                  }`}
               >
                 {day}
               </button>
@@ -764,353 +832,358 @@ export default function TodoApp() {
     })
   }
 
-      // Extract all states and functions from the hook
-      const {
-        // States
-        isRightSidebarOpen,
-        isSidebarEditing,
-        isRightWidgetModalOpen,
-        openDropdownIndex,
-        selectedMemberType,
-        isChartDropdownOpen,
-        isWidgetModalOpen,
-        editingTask,
-        todoFilter,
-        isEditTaskModalOpen,
-        isTodoFilterDropdownOpen,
-        taskToCancel,
-        taskToDelete,
-        isBirthdayMessageModalOpen,
-        selectedBirthdayPerson,
-        birthdayMessage,
-        activeNoteId,
-        isSpecialNoteModalOpen,
-        selectedAppointmentForNote,
-        isTrainingPlanModalOpen,
-        selectedUserForTrainingPlan,
-        selectedAppointment,
-        isEditAppointmentModalOpen,
-        showAppointmentOptionsModal,
-        showAppointmentModal,
-        freeAppointments,
-        selectedMember,
-        isMemberOverviewModalOpen,
-        isMemberDetailsModalOpen,
-        activeMemberDetailsTab,
-        isEditModalOpen,
-        editModalTab,
-        isNotifyMemberOpen,
-        notifyAction,
-        showHistoryModal,
-        historyTab,
-        memberHistory,
-        currentBillingPeriod,
-        tempContingent,
-        selectedBillingPeriod,
-        showAddBillingPeriodModal,
-        newBillingPeriod,
-        showContingentModal,
-        editingRelations,
-        newRelation,
-        editForm,
-        widgets,
-        rightSidebarWidgets,
-        notePopoverRef,
-    
-        // Setters
-        setIsRightSidebarOpen,
-        setIsSidebarEditing,
-        setIsRightWidgetModalOpen,
-        setOpenDropdownIndex,
-        setSelectedMemberType,
-        setIsChartDropdownOpen,
-        setIsWidgetModalOpen,
-        setEditingTask,
-        setTodoFilter,
-        setIsEditTaskModalOpen,
-        setIsTodoFilterDropdownOpen,
-        setTaskToCancel,
-        setTaskToDelete,
-        setIsBirthdayMessageModalOpen,
-        setSelectedBirthdayPerson,
-        setBirthdayMessage,
-        setActiveNoteId,
-        setIsSpecialNoteModalOpen,
-        setSelectedAppointmentForNote,
-        setIsTrainingPlanModalOpen,
-        setSelectedUserForTrainingPlan,
-        setSelectedAppointment,
-        setIsEditAppointmentModalOpen,
-        setShowAppointmentOptionsModal,
-        setShowAppointmentModal,
-        setFreeAppointments,
-        setSelectedMember,
-        setIsMemberOverviewModalOpen,
-        setIsMemberDetailsModalOpen,
-        setActiveMemberDetailsTab,
-        setIsEditModalOpen,
-        setEditModalTab,
-        setIsNotifyMemberOpen,
-        setNotifyAction,
-        setShowHistoryModal,
-        setHistoryTab,
-        setMemberHistory,
-        setCurrentBillingPeriod,
-        setTempContingent,
-        setSelectedBillingPeriod,
-        setShowAddBillingPeriodModal,
-        setNewBillingPeriod,
-        setShowContingentModal,
-        setEditingRelations,
-        setNewRelation,
-        setEditForm,
-        setWidgets,
-        setRightSidebarWidgets,
-    
-        // Functions
-        toggleRightSidebar,
-        closeSidebar,
-        toggleSidebarEditing,
-        toggleDropdown,
-        redirectToCommunication,
-        moveRightSidebarWidget,
-        removeRightSidebarWidget,
-        getWidgetPlacementStatus,
-        handleAddRightSidebarWidget,
-        handleTaskComplete,
-        handleEditTask,
-        handleUpdateTask,
-        handleCancelTask,
-        handleDeleteTask,
-        isBirthdayToday,
-        handleSendBirthdayMessage,
-        handleEditNote,
-        handleDumbbellClick,
-        handleCheckIn,
-        handleAppointmentOptionsModal,
-        handleSaveSpecialNote,
-        isEventInPast,
-        handleCancelAppointment,
-        actuallyHandleCancelAppointment,
-        handleDeleteAppointment,
-        handleEditAppointment,
-        handleCreateNewAppointment,
-        handleViewMemberDetails,
-        handleNotifyMember,
-        calculateAge,
-        isContractExpiringSoon,
-        redirectToContract,
-        handleCalendarFromOverview,
-        handleHistoryFromOverview,
-        handleCommunicationFromOverview,
-        handleViewDetailedInfo,
-        handleEditFromOverview,
-        getMemberAppointments,
-        handleManageContingent,
-        getBillingPeriods,
-        handleAddBillingPeriod,
-        handleSaveContingent,
-        handleInputChange,
-        handleEditSubmit,
-        handleAddRelation,
-        handleDeleteRelation,
-        handleArchiveMember,
-        handleUnarchiveMember,
-        truncateUrl,
-        renderSpecialNoteIcon,
-    
-        // new states 
-        customLinks, setCustomLinks, communications, setCommunications,
-        todos, setTodos, expiringContracts, setExpiringContracts,
-        birthdays, setBirthdays, notifications, setNotifications,
-        appointments, setAppointments,
-        memberContingentData, setMemberContingentData,
-        memberRelations, setMemberRelations,
-    
-        memberTypes,
-        availableMembersLeads,
-        mockTrainingPlans,
-        mockVideos,
-    
-        todoFilterOptions,
-        relationOptions,
-        appointmentTypes
-      } = sidebarSystem;
-    
-      // more sidebar related functions
-    
-      // Chart configuration
-      const chartSeries = [
-        { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
-        { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
-      ];
-    
-      const chartOptions = {
-        chart: {
-          type: "line",
-          height: 180,
-          toolbar: { show: false },
-          background: "transparent",
-          fontFamily: "Inter, sans-serif",
-        },
-        colors: ["#FF6B1A", "#2E5BFF"],
-        stroke: { curve: "smooth", width: 4, opacity: 1 },
-        markers: {
-          size: 1,
-          strokeWidth: 0,
-          hover: { size: 6 },
-        },
-        xaxis: {
-          categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-          labels: { style: { colors: "#999999", fontSize: "12px" } },
-          axisBorder: { show: false },
-          axisTicks: { show: false },
-        },
-        yaxis: {
-          min: 0,
-          max: 600,
-          tickAmount: 6,
-          labels: {
-            style: { colors: "#999999", fontSize: "12px" },
-            formatter: (value) => Math.round(value),
-          },
-        },
-        grid: {
-          show: true,
-          borderColor: "#333333",
-          position: "back",
-          xaxis: { lines: { show: true } },
-          yaxis: { lines: { show: true } },
-          row: { opacity: 0.1 },
-          column: { opacity: 0.1 },
-        },
-        legend: {
-          show: true,
-          position: "top",
-          horizontalAlign: "right",
-          offsetY: -30,
-          offsetX: -10,
-          labels: { colors: "#ffffff" },
-          itemMargin: { horizontal: 5 },
-        },
-        title: {
-          text: memberTypes[selectedMemberType].title,
-          align: "left",
-          style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
-        },
-        subtitle: {
-          text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
-          align: "left",
-          style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
-        },
-        tooltip: {
-          theme: "dark",
-          style: {
-            fontSize: "12px",
-            fontFamily: "Inter, sans-serif",
-          },
-          custom: ({ series, seriesIndex, dataPointIndex, w }) =>
-            '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
-            '<span style="color: black;">' +
-            series[seriesIndex][dataPointIndex] +
-            "</span></div>",
-        },
-      };
-    
-    
-      // Wrapper functions to pass local state to hook functions
-      const handleTaskCompleteWrapper = (taskId) => {
-        handleTaskComplete(taskId, todos, setTodos);
-      };
-    
-      const handleUpdateTaskWrapper = (updatedTask) => {
-        handleUpdateTask(updatedTask, setTodos);
-      };
-    
-      const handleCancelTaskWrapper = (taskId) => {
-        handleCancelTask(taskId, setTodos);
-      };
-    
-      const handleDeleteTaskWrapper = (taskId) => {
-        handleDeleteTask(taskId, setTodos);
-      };
-    
-      const handleEditNoteWrapper = (appointmentId, currentNote) => {
-        handleEditNote(appointmentId, currentNote, appointments);
-      };
-    
-      const handleCheckInWrapper = (appointmentId) => {
-        handleCheckIn(appointmentId, appointments, setAppointments);
-      };
-    
-      const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
-        handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
-      };
-    
-      const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
-        actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
-      };
-    
-      const handleDeleteAppointmentWrapper = (id) => {
-        handleDeleteAppointment(id, appointments, setAppointments);
-      };
-    
-      const getMemberAppointmentsWrapper = (memberId) => {
-        return getMemberAppointments(memberId, appointments);
-      };
-    
-      const handleAddBillingPeriodWrapper = () => {
-        handleAddBillingPeriod(memberContingentData, setMemberContingentData);
-      };
-    
-      const handleSaveContingentWrapper = () => {
-        handleSaveContingent(memberContingentData, setMemberContingentData);
-      };
-    
-      const handleEditSubmitWrapper = (e) => {
-        handleEditSubmit(e, appointments, setAppointments);
-      };
-    
-      const handleAddRelationWrapper = () => {
-        handleAddRelation(memberRelations, setMemberRelations);
-      };
-    
-      const handleDeleteRelationWrapper = (category, relationId) => {
-        handleDeleteRelation(category, relationId, memberRelations, setMemberRelations);
-      };
-    
-      const handleArchiveMemberWrapper = (memberId) => {
-        handleArchiveMember(memberId, appointments, setAppointments);
-      };
-    
-      const handleUnarchiveMemberWrapper = (memberId) => {
-        handleUnarchiveMember(memberId, appointments, setAppointments);
-      };
-    
-      const getBillingPeriodsWrapper = (memberId) => {
-        return getBillingPeriods(memberId, memberContingentData);
-      };
-    
-      const getDifficultyColor = (difficulty) => {
-        switch (difficulty) {
-          case "Beginner":
-            return "bg-green-600"
-          case "Intermediate":
-            return "bg-yellow-600"
-          case "Advanced":
-            return "bg-red-600"
-          default:
-            return "bg-gray-600"
-        }
-      }
-    
-      const getVideoById = (id) => {
-        return trainingVideos.find((video) => video.id === id)
-      }
+  // Extract all states and functions from the hook
+  const {
+    // States
+    isRightSidebarOpen,
+    isSidebarEditing,
+    isRightWidgetModalOpen,
+    openDropdownIndex,
+    selectedMemberType,
+    isChartDropdownOpen,
+    isWidgetModalOpen,
+    editingTask,
+    todoFilter,
+    isEditTaskModalOpen,
+    isTodoFilterDropdownOpen,
+    taskToCancel,
+    taskToDelete,
+    isBirthdayMessageModalOpen,
+    selectedBirthdayPerson,
+    birthdayMessage,
+    activeNoteId,
+    isSpecialNoteModalOpen,
+    selectedAppointmentForNote,
+    isTrainingPlanModalOpen,
+    selectedUserForTrainingPlan,
+    selectedAppointment,
+    isEditAppointmentModalOpen,
+    showAppointmentOptionsModal,
+    showAppointmentModal,
+    freeAppointments,
+    selectedMember,
+    isMemberOverviewModalOpen,
+    isMemberDetailsModalOpen,
+    activeMemberDetailsTab,
+    isEditModalOpen,
+    editModalTab,
+    isNotifyMemberOpen,
+    notifyAction,
+    showHistoryModal,
+    historyTab,
+    memberHistory,
+    currentBillingPeriod,
+    tempContingent,
+    selectedBillingPeriod,
+    showAddBillingPeriodModal,
+    newBillingPeriod,
+    showContingentModal,
+    editingRelations,
+    newRelation,
+    editForm,
+    widgets,
+    rightSidebarWidgets,
+    notePopoverRef,
+
+    // Setters
+    setIsRightSidebarOpen,
+    setIsSidebarEditing,
+    setIsRightWidgetModalOpen,
+    setOpenDropdownIndex,
+    setSelectedMemberType,
+    setIsChartDropdownOpen,
+    setIsWidgetModalOpen,
+    setEditingTask,
+    setTodoFilter,
+    setIsEditTaskModalOpen,
+    setIsTodoFilterDropdownOpen,
+    setTaskToCancel,
+    setTaskToDelete,
+    setIsBirthdayMessageModalOpen,
+    setSelectedBirthdayPerson,
+    setBirthdayMessage,
+    setActiveNoteId,
+    setIsSpecialNoteModalOpen,
+    setSelectedAppointmentForNote,
+    setIsTrainingPlanModalOpen,
+    setSelectedUserForTrainingPlan,
+    setSelectedAppointment,
+    setIsEditAppointmentModalOpen,
+    setShowAppointmentOptionsModal,
+    setShowAppointmentModal,
+    setFreeAppointments,
+    setSelectedMember,
+    setIsMemberOverviewModalOpen,
+    setIsMemberDetailsModalOpen,
+    setActiveMemberDetailsTab,
+    setIsEditModalOpen,
+    setEditModalTab,
+    setIsNotifyMemberOpen,
+    setNotifyAction,
+    setShowHistoryModal,
+    setHistoryTab,
+    setMemberHistory,
+    setCurrentBillingPeriod,
+    setTempContingent,
+    setSelectedBillingPeriod,
+    setShowAddBillingPeriodModal,
+    setNewBillingPeriod,
+    setShowContingentModal,
+    setEditingRelations,
+    setNewRelation,
+    setEditForm,
+    setWidgets,
+    setRightSidebarWidgets,
+
+    // Functions
+    toggleRightSidebar,
+    closeSidebar,
+    toggleSidebarEditing,
+    toggleDropdown,
+    redirectToCommunication,
+    moveRightSidebarWidget,
+    removeRightSidebarWidget,
+    getWidgetPlacementStatus,
+    handleAddRightSidebarWidget,
+    handleTaskComplete,
+    handleEditTask,
+    handleUpdateTask,
+    handleCancelTask,
+    handleDeleteTask,
+    isBirthdayToday,
+    handleSendBirthdayMessage,
+    handleEditNote,
+    handleDumbbellClick,
+    handleCheckIn,
+    handleAppointmentOptionsModal,
+    handleSaveSpecialNote,
+    isEventInPast,
+    handleCancelAppointment,
+    actuallyHandleCancelAppointment,
+    handleDeleteAppointment,
+    handleEditAppointment,
+    handleCreateNewAppointment,
+    handleViewMemberDetails,
+    handleNotifyMember,
+    calculateAge,
+    isContractExpiringSoon,
+    redirectToContract,
+    handleCalendarFromOverview,
+    handleHistoryFromOverview,
+    handleCommunicationFromOverview,
+    handleViewDetailedInfo,
+    handleEditFromOverview,
+    getMemberAppointments,
+    handleManageContingent,
+    getBillingPeriods,
+    handleAddBillingPeriod,
+    handleSaveContingent,
+    handleInputChange,
+    handleEditSubmit,
+    handleAddRelation,
+    handleDeleteRelation,
+    handleArchiveMember,
+    handleUnarchiveMember,
+    truncateUrl,
+    renderSpecialNoteIcon,
+
+    // new states 
+    customLinks, setCustomLinks, communications, setCommunications,
+    todos, setTodos, expiringContracts, setExpiringContracts,
+    birthdays, setBirthdays, notifications, setNotifications,
+    appointments, setAppointments,
+    memberContingentData, setMemberContingentData,
+    memberRelations, setMemberRelations,
+
+    memberTypes,
+    availableMembersLeads,
+    mockTrainingPlans,
+    mockVideos,
+
+    todoFilterOptions,
+    relationOptions,
+    appointmentTypes,
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
+  } = sidebarSystem;
+
+  // more sidebar related functions
+
+  // Chart configuration
+  const chartSeries = [
+    { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
+    { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
+  ];
+
+  const chartOptions = {
+    chart: {
+      type: "line",
+      height: 180,
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
+    },
+    colors: ["#FF6B1A", "#2E5BFF"],
+    stroke: { curve: "smooth", width: 4, opacity: 1 },
+    markers: {
+      size: 1,
+      strokeWidth: 0,
+      hover: { size: 6 },
+    },
+    xaxis: {
+      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      labels: { style: { colors: "#999999", fontSize: "12px" } },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      min: 0,
+      max: 600,
+      tickAmount: 6,
+      labels: {
+        style: { colors: "#999999", fontSize: "12px" },
+        formatter: (value) => Math.round(value),
+      },
+    },
+    grid: {
+      show: true,
+      borderColor: "#333333",
+      position: "back",
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: true } },
+      row: { opacity: 0.1 },
+      column: { opacity: 0.1 },
+    },
+    legend: {
+      show: true,
+      position: "top",
+      horizontalAlign: "right",
+      offsetY: -30,
+      offsetX: -10,
+      labels: { colors: "#ffffff" },
+      itemMargin: { horizontal: 5 },
+    },
+    title: {
+      text: memberTypes[selectedMemberType].title,
+      align: "left",
+      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
+    },
+    subtitle: {
+      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
+      align: "left",
+      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
+    },
+    tooltip: {
+      theme: "dark",
+      style: {
+        fontSize: "12px",
+        fontFamily: "Inter, sans-serif",
+      },
+      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
+        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
+        '<span style="color: black;">' +
+        series[seriesIndex][dataPointIndex] +
+        "</span></div>",
+    },
+  };
+
+
+  // Wrapper functions to pass local state to hook functions
+  const handleTaskCompleteWrapper = (taskId) => {
+    handleTaskComplete(taskId, todos, setTodos);
+  };
+
+  const handleUpdateTaskWrapper = (updatedTask) => {
+    handleUpdateTask(updatedTask, setTodos);
+  };
+
+  const handleCancelTaskWrapper = (taskId) => {
+    handleCancelTask(taskId, setTodos);
+  };
+
+  const handleDeleteTaskWrapper = (taskId) => {
+    handleDeleteTask(taskId, setTodos);
+  };
+
+  const handleEditNoteWrapper = (appointmentId, currentNote) => {
+    handleEditNote(appointmentId, currentNote, appointments);
+  };
+
+  const handleCheckInWrapper = (appointmentId) => {
+    handleCheckIn(appointmentId, appointments, setAppointments);
+  };
+
+  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
+    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
+  };
+
+  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
+    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
+  };
+
+  const handleDeleteAppointmentWrapper = (id) => {
+    handleDeleteAppointment(id, appointments, setAppointments);
+  };
+
+  const getMemberAppointmentsWrapper = (memberId) => {
+    return getMemberAppointments(memberId, appointments);
+  };
+
+  const handleAddBillingPeriodWrapper = () => {
+    handleAddBillingPeriod(memberContingentData, setMemberContingentData);
+  };
+
+  const handleSaveContingentWrapper = () => {
+    handleSaveContingent(memberContingentData, setMemberContingentData);
+  };
+
+  const handleEditSubmitWrapper = (e) => {
+    handleEditSubmit(e, appointments, setAppointments);
+  };
+
+  const handleAddRelationWrapper = () => {
+    handleAddRelation(memberRelations, setMemberRelations);
+  };
+
+  const handleDeleteRelationWrapper = (category, relationId) => {
+    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations);
+  };
+
+  const handleArchiveMemberWrapper = (memberId) => {
+    handleArchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const handleUnarchiveMemberWrapper = (memberId) => {
+    handleUnarchiveMember(memberId, appointments, setAppointments);
+  };
+
+  const getBillingPeriodsWrapper = (memberId) => {
+    return getBillingPeriods(memberId, memberContingentData);
+  };
+
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case "Beginner":
+        return "bg-green-600"
+      case "Intermediate":
+        return "bg-yellow-600"
+      case "Advanced":
+        return "bg-red-600"
+      default:
+        return "bg-gray-600"
+    }
+  }
+
+  const getVideoById = (id) => {
+    return trainingVideos.find((video) => video.id === id)
+  }
 
   return (
     <>
-     <style>
+      <style>
         {`
           @keyframes wobble {
             0%, 100% { transform: rotate(0deg); }
@@ -1133,437 +1206,473 @@ export default function TodoApp() {
           }
         `}
       </style>
-    <div
-      className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-visible ${
-        isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"
-      }`}
-    >
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
-      <div className="flex-1 p-4 sm:p-6">
-        <div className="pb-16 sm:pb-24 lg:pb-36">
-          <div className="flex flex-col gap-4 mb-6">
-            <div className="flex justify-between items-center gap-4 mb-6">
-              <h1 className="text-2xl font-bold text-white">To-Do</h1>
-              <div className="flex items-center justify-end">
-                <IoIosMenu
-                  onClick={toggleRightSidebar}
-                  size={28}
-                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md p-1"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-4 items-stretch">
-              <div className="relative flex items-center flex-grow bg-[#101010] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none">
-                <Plus size={18} className="text-gray-400 mr-2" />
-                <input
-                  type="text"
-                  placeholder="Add new task..."
-                  value={newTaskInput}
-                  onChange={(e) => setNewTaskInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleAddTaskFromInput()
-                    }
-                  }}
-                  className="flex-grow bg-transparent text-sm outline-none placeholder-gray-500"
-                />
-
-                <div className="relative calendar-dropdown">
-                  <button
-                    type="button"
-                    onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                    className="text-gray-400 hover:text-white ml-2 no-drag p-1"
-                    title="Set due date"
-                  >
-                    <Calendar size={18} />
-                  </button>
-                  {isCalendarOpen && <CalendarPopup />}
-                </div>
-
-                <div className="relative tag-dropdown">
-                  {isTagDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-48">
-                      <h4 className="text-white text-sm font-medium mb-2">Add Tags</h4>
-                      <div className="space-y-1 max-h-32 overflow-y-auto">
-                        {configuredTags.map((tag) => {
-                          const isSelected = selectedTags.find((t) => t.id === tag.id)
-                          return (
-                            <button
-                              key={tag.id}
-                              className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
-                              onClick={() => {
-                                setIsTagDropdownOpen(false)
-                              }}
-                            >
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }}></div>
-                              {tag.name}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="relative assign-dropdown">
-                  <button
-                    type="button"
-                    onClick={() => setIsAssignDropdownOpen(!isAssignDropdownOpen)}
-                    className="text-gray-400 hover:text-white ml-2 no-drag p-1"
-                    title="Assign task"
-                  >
-                    <ChevronDown size={18} />
-                  </button>
-                  {isAssignDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-64 max-h-80 overflow-y-auto">
-                      <div className="space-y-4">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setAssignmentMode("staff")}
-                            className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
-                              assignmentMode === "staff"
-                                ? "bg-[#FF843E] text-white"
-                                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                            }`}
-                          >
-                            to Staff
-                          </button>
-                          <button
-                            onClick={() => setAssignmentMode("roles")}
-                            className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
-                              assignmentMode === "roles"
-                                ? "bg-[#FF843E] text-white"
-                                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                            }`}
-                          >
-                            to Roles
-                          </button>
-                        </div>
-
-                        {assignmentMode === "staff" && (
-                          <div>
-                            <h4 className="text-white text-sm font-medium mb-2">Assign to Staff</h4>
-                            <div className="space-y-1 max-h-32 overflow-y-auto">
-                              {availableAssignees.map((assignee) => {
-                                const isSelected = selectedAssignees.find((a) => a.id === assignee.id)
-                                return (
-                                  <button
-                                    key={assignee.id}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
-                                    onClick={() => toggleAssignee(assignee)}
-                                  >
-                                    <Users size={14} />
-                                    <span className="flex-1">
-                                      {assignee.firstName} {assignee.lastName}
-                                    </span>
-                                    {isSelected && <Check size={14} className="text-green-400" />}
-                                  </button>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {assignmentMode === "roles" && (
-                          <div>
-                            <h4 className="text-white text-sm font-medium mb-2">Assign to Roles</h4>
-                            <div className="space-y-1 max-h-32 overflow-y-auto">
-                              {availableRoles.map((role) => {
-                                const isSelected = selectedRoles.includes(role)
-                                return (
-                                  <button
-                                    key={role}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
-                                    onClick={() => toggleRole(role)}
-                                  >
-                                    <Users size={14} />
-                                    <span className="flex-1">{role}</span>
-                                    {isSelected && <Check size={14} className="text-green-400" />}
-                                  </button>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        <div>
-                          <h4 className="text-white text-sm font-medium mb-2">Add Tags</h4>
-                          <div className="space-y-1 max-h-32 overflow-y-auto">
-                            {configuredTags.map((tag) => {
-                              const isSelected = selectedTags.find((t) => t.id === tag.id)
-                              return (
-                                <button
-                                  key={tag.id}
-                                  className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
-                                  onClick={() => toggleTag(tag)}
-                                >
-                                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }}></div>
-                                  <span className="flex-1">{tag.name}</span>
-                                  {isSelected && <Check size={14} className="text-green-400" />}
-                                </button>
-                              )
-                            })}
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => setIsAssignDropdownOpen(false)}
-                          className="w-full px-3 py-2 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700"
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setIsTagManagerOpen(true)}
-                  className="bg-[#2F2F2F] text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap"
-                  title="Manage Tags"
-                >
-                  <Tag size={16} />
-                </button>
-
-                <div className="relative sort-dropdown">
-                  <button
-                    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                    className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
-                  >
-                    <Filter size={16} />
-                    <span>
-                      {sortOption === "dueDate-asc" && "Due Date (Earliest)"}
-                      {sortOption === "dueDate-desc" && "Due Date (Latest)"}
-                      {sortOption === "tag-asc" && "Tag (A-Z)"}
-                      {sortOption === "tag-desc" && "Tag (Z-A)"}
-                    </span>
-                    <ChevronDown size={16} />
-                  </button>
-                  {isSortDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-1 bg-[#2F2F2F] rounded-xl shadow-lg z-10 w-48">
-                      <div className="p-2">
-                        <h3 className="text-xs text-gray-400 px-3 py-1">Sort by Due Date</h3>
-                        <button
-                          onClick={() => {
-                            setSortOption("dueDate-asc")
-                            setIsSortDropdownOpen(false)
-                          }}
-                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                            sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
-                          }`}
-                        >
-                          <Calendar size={14} />
-                          <span>Earliest First</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSortOption("dueDate-desc")
-                            setIsSortDropdownOpen(false)
-                          }}
-                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                            sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
-                          }`}
-                        >
-                          <Calendar size={14} />
-                          <span>Latest First</span>
-                        </button>
-                        <h3 className="text-xs text-gray-400 px-3 py-1 mt-2">Sort by Tag</h3>
-                        <button
-                          onClick={() => {
-                            setSortOption("tag-asc")
-                            setIsSortDropdownOpen(false)
-                          }}
-                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                            sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
-                          }`}
-                        >
-                          <Tag size={14} />
-                          <span>A to Z</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSortOption("tag-desc")
-                            setIsSortDropdownOpen(false)
-                          }}
-                          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-                            sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
-                          }`}
-                        >
-                          <Tag size={14} />
-                          <span>Z to A</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 open_sans_font mt-4">
-            {columns.map((column) => (
-              <Column
-                key={column.id}
-                id={column.id}
-                title={column.title}
-                color={column.color}
-                tasks={getSortedTasksForColumn(column.id)}
-                onDragStop={handleDragStop}
-                onTaskStatusChange={handleTaskStatusChange}
-                onTaskUpdate={handleTaskUpdate}
-                onTaskPinToggle={handleTaskPinToggle}
-                onTaskRemove={handleTaskRemove}
-                columnRef={columnRefs.current[column.id]}
-                onEditRequest={handleEditRequest}
-                onDeleteRequest={handleDeleteRequest}
-                onDuplicateRequest={handleDuplicateTask}
-                onRepeatRequest={handleRepeatRequest}
-                availableAssignees={availableAssignees}
-                availableRoles={availableRoles}
-                configuredTags={configuredTags}
-                openDropdownTaskId={openDropdownTaskId}
-                setOpenDropdownTaskId={setOpenDropdownTaskId}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {isTagManagerOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#181818] rounded-xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">Manage Tags</h2>
-              <button onClick={() => setIsTagManagerOpen(false)} className="text-gray-400 hover:text-white">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="mb-6">
-              <div className="flex flex-col gap-3 mb-4">
-                <input
-                  type="text"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                  placeholder="Enter tag name"
-                  className="w-full bg-[#1C1C1C] text-sm text-white px-4 py-2 rounded-lg outline-none"
-                />
-                <div className="flex items-center gap-3">
-                  <span className="text-white text-sm">Color:</span>
-                  <input
-                    type="color"
-                    value={newTagColor}
-                    onChange={(e) => setNewTagColor(e.target.value)}
-                    className="w-8 h-8 rounded border-none bg-transparent cursor-pointer"
+      <div
+        className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-visible ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"
+          }`}
+      >
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 2000,
+            style: {
+              background: "#333",
+              color: "#fff",
+            },
+          }}
+        />
+        <div className="flex-1 p-4 sm:p-6">
+          <div className="pb-16 sm:pb-24 lg:pb-36">
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex justify-between items-center gap-4 mb-6">
+                <h1 className="text-2xl font-bold text-white">To-Do</h1>
+                <div className="flex items-center justify-end">
+                  <IoIosMenu
+                    onClick={toggleRightSidebar}
+                    size={28}
+                    className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md p-1"
                   />
-                  <span className="text-gray-300 text-sm">{newTagColor}</span>
                 </div>
-                <button
-                  onClick={addTag}
-                  className="bg-[#FF843E] text-white text-sm px-4 py-2 rounded-lg mt-2 hover:bg-[#FF843E]/90"
-                  disabled={!newTagName.trim()}
-                >
-                  Add Tag
-                </button>
               </div>
-              <div className="max-h-60 overflow-y-auto text-sm">
-                {configuredTags.length > 0 ? (
-                  <div className="space-y-2">
-                    {configuredTags.map((tag) => (
-                      <div key={tag.id} className="flex justify-between items-center bg-[#1C1C1C] px-4 py-2 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="w-4 h-4 rounded-full" style={{ backgroundColor: tag.color }} />
-                          <span style={{ color: tag.color }}>{tag.name}</span>
-                        </div>
-                        <button onClick={() => deleteTag(tag.id)} className="text-red-400 hover:text-red-300">
-                          <X size={18} />
-                        </button>
-                      </div>
-                    ))}
+
+              <div className="flex flex-col md:flex-row gap-4 items-stretch">
+                <div className="relative flex items-start flex-grow bg-[#101010] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none min-h-[44px]">
+                  <Plus size={18} className="text-gray-400 mr-2 mt-1  flex-shrink-0" />
+                  <textarea
+                    placeholder="Add new task"
+                    value={newTaskInput}
+                    onChange={(e) => {
+                      // Limit to 4 lines maximum
+                      const lines = e.target.value.split('\n');
+                      if (lines.length <= 4) {
+                        setNewTaskInput(e.target.value);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (e.shiftKey) {
+                          // Allow new line with Shift+Enter
+                          e.preventDefault();
+                          const cursorPosition = e.target.selectionStart;
+                          const newValue = newTaskInput.substring(0, cursorPosition) + '\n' + newTaskInput.substring(cursorPosition);
+                          const lines = newValue.split('\n');
+                          if (lines.length <= 4) {
+                            setNewTaskInput(newValue);
+                          }
+                        } else {
+                          // Submit task with Enter alone
+                          e.preventDefault();
+                          handleAddTaskFromInput();
+                        }
+                      }
+                    }}
+                    className="flex-grow bg-transparent mt-0.5 text-sm outline-none placeholder-gray-500 resize-none overflow-hidden"
+                    rows={1}
+                    style={{
+                      minHeight: '20px',
+                      maxHeight: '80px', // Approximately 4 lines
+                      height: 'auto',
+                    }}
+                    ref={(textarea) => {
+                      if (textarea) {
+                        // Auto-resize textarea
+                        textarea.style.height = 'auto';
+                        textarea.style.height = Math.min(textarea.scrollHeight, 80) + 'px';
+                      }
+                    }}
+                  />
+
+                  <div className="relative calendar-dropdown">
+                    <button
+                      type="button"
+                      onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                      className="text-gray-400 hover:text-white ml-2 no-drag p-1"
+                      title="Set due date"
+                    >
+                      <Calendar size={18} />
+                    </button>
+                    {isCalendarOpen && <CalendarPopup />}
                   </div>
-                ) : (
-                  <p className="text-gray-400 text-center py-4 text-sm">No tags created yet</p>
-                )}
+
+                  <div className="relative tag-dropdown">
+                    {isTagDropdownOpen && (
+                      <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-48">
+                        <h4 className="text-white text-sm font-medium mb-2">Add Tags</h4>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {configuredTags.map((tag) => {
+                            const isSelected = selectedTags.find((t) => t.id === tag.id)
+                            return (
+                              <button
+                                key={tag.id}
+                                className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
+                                onClick={() => {
+                                  setIsTagDropdownOpen(false)
+                                }}
+                              >
+                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }}></div>
+                                {tag.name}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="relative assign-dropdown">
+                    <button
+                      type="button"
+                      onClick={() => setIsAssignDropdownOpen(!isAssignDropdownOpen)}
+                      className="text-gray-400 hover:text-white ml-2 no-drag p-1"
+                      title="Assign task"
+                    >
+                      <ChevronDown size={18} />
+                    </button>
+                    {isAssignDropdownOpen && (
+                      <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-64 max-h-80 overflow-y-auto">
+                        <div className="space-y-4">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setAssignmentMode("staff")}
+                              className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${assignmentMode === "staff"
+                                ? "bg-[#FF843E] text-white"
+                                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                }`}
+                            >
+                              to Staff
+                            </button>
+                            <button
+                              onClick={() => setAssignmentMode("roles")}
+                              className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${assignmentMode === "roles"
+                                ? "bg-[#FF843E] text-white"
+                                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                }`}
+                            >
+                              to Roles
+                            </button>
+                          </div>
+
+                          {assignmentMode === "staff" && (
+                            <div>
+                              <h4 className="text-white text-sm font-medium mb-2">Assign to Staff</h4>
+                              <div className="space-y-1 max-h-32 overflow-y-auto">
+                                {availableAssignees.map((assignee) => {
+                                  const isSelected = selectedAssignees.find((a) => a.id === assignee.id)
+                                  return (
+                                    <button
+                                      key={assignee.id}
+                                      className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
+                                      onClick={() => toggleAssignee(assignee)}
+                                    >
+                                      <UserCheck size={14} />
+                                      <span className="flex-1">
+                                        {assignee.firstName} {assignee.lastName}
+                                      </span>
+                                      {isSelected && <Check size={14} className="text-green-400" />}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {assignmentMode === "roles" && (
+                            <div>
+                              <h4 className="text-white text-sm font-medium mb-2">Assign to Roles</h4>
+                              <div className="space-y-1 max-h-32 overflow-y-auto">
+                                {availableRoles.map((role) => {
+                                  const isSelected = selectedRoles.includes(role)
+                                  return (
+                                    <button
+                                      key={role}
+                                      className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
+                                      onClick={() => toggleRole(role)}
+                                    >
+                                      <Briefcase size={14} />
+                                      <span className="flex-1">{role}</span>
+                                      {isSelected && <Check size={14} className="text-green-400" />}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          <div>
+                            <h4 className="text-white text-sm font-medium mb-2">Add Tags</h4>
+                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                              {configuredTags.map((tag) => {
+                                const isSelected = selectedTags.find((t) => t.id === tag.id)
+                                return (
+                                  <button
+                                    key={tag.id}
+                                    className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
+                                    onClick={() => toggleTag(tag)}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className="px-2 py-1 rounded-md text-xs flex items-center gap-1 text-white"
+                                        style={{ backgroundColor: tag.color }}
+                                      >
+                                        <Tag size={10} />
+                                        {tag.name}
+                                      </span>
+                                    </div>
+                                    {isSelected && <Check size={14} className="text-green-400" />}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => setIsAssignDropdownOpen(false)}
+                            className="w-full px-3 py-2 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsTagManagerOpen(true)}
+                    className="bg-[#2F2F2F] text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap"
+                    title="Manage Tags"
+                  >
+                    <Tag size={16} />
+                  </button>
+
+                  <div className="relative sort-dropdown">
+                    <button
+                      onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                      className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+                    >
+                      <Filter size={16} />
+                      <span>
+                        {sortOption === "dueDate-asc" && "Due Date (Earliest)"}
+                        {sortOption === "dueDate-desc" && "Due Date (Latest)"}
+                        {sortOption === "tag-asc" && "Tag (A-Z)"}
+                        {sortOption === "tag-desc" && "Tag (Z-A)"}
+                      </span>
+                      <ChevronDown size={16} />
+                    </button>
+                    {isSortDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-1 bg-[#2F2F2F] rounded-xl shadow-lg z-10 w-48">
+                        <div className="p-2">
+                          <h3 className="text-xs text-gray-400 px-3 py-1">Sort by Due Date</h3>
+                          <button
+                            onClick={() => {
+                              setSortOption("dueDate-asc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Calendar size={14} />
+                            <span>Earliest First</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSortOption("dueDate-desc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Calendar size={14} />
+                            <span>Latest First</span>
+                          </button>
+                          <h3 className="text-xs text-gray-400 px-3 py-1 mt-2">Sort by Tag</h3>
+                          <button
+                            onClick={() => {
+                              setSortOption("tag-asc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Tag size={14} />
+                            <span>A to Z</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSortOption("tag-desc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Tag size={14} />
+                            <span>Z to A</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsTagManagerOpen(false)}
-                className="bg-[#FF843E] text-white px-6 py-2 text-sm rounded-lg hover:bg-[#FF843E]/90"
-              >
-                Done
-              </button>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 open_sans_font mt-4">
+              {columns.map((column) => (
+                <Column
+                  key={column.id}
+                  id={column.id}
+                  title={column.title}
+                  color={column.color}
+                  tasks={getSortedTasksForColumn(column.id)}
+                  onDragStop={handleDragStop}
+                  onTaskStatusChange={handleTaskStatusChange}
+                  onTaskUpdate={handleTaskUpdate}
+                  onTaskPinToggle={handleTaskPinToggle}
+                  onTaskRemove={handleTaskRemove}
+                  columnRef={columnRefs.current[column.id]}
+                  onEditRequest={handleEditRequest}
+                  onDeleteRequest={handleDeleteRequest}
+                  onDuplicateRequest={handleDuplicateTask}
+                  onRepeatRequest={handleRepeatRequest}
+                  availableAssignees={availableAssignees}
+                  availableRoles={availableRoles}
+                  configuredTags={configuredTags}
+                  openDropdownTaskId={openDropdownTaskId}
+                  setOpenDropdownTaskId={setOpenDropdownTaskId}
+                />
+              ))}
             </div>
           </div>
         </div>
-      )}
 
-      {isEditModalOpenTask && selectedTask && (
-        <EditTaskModal
-          taskToEdit={selectedTask}
-          onClose={() => {
-            setIsEditModalOpenTask(false)
+        {isTagManagerOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#181818] rounded-xl p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-white">Manage Tags</h2>
+                <button onClick={() => setIsTagManagerOpen(false)} className="text-gray-400 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="mb-6">
+                <div className="flex flex-col gap-3 mb-4">
+                  <input
+                    type="text"
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    placeholder="Enter tag name"
+                    className="w-full bg-[#1C1C1C] text-sm text-white px-4 py-2 rounded-lg outline-none"
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-white text-sm">Color:</span>
+                    <input
+                      type="color"
+                      value={newTagColor}
+                      onChange={(e) => setNewTagColor(e.target.value)}
+                      className="w-8 h-8 rounded border-none bg-transparent cursor-pointer"
+                    />
+                    <span className="text-gray-300 text-sm">{newTagColor}</span>
+                  </div>
+                  <button
+                    onClick={addTag}
+                    className="bg-[#FF843E] text-white text-sm px-4 py-2 rounded-lg mt-2 hover:bg-[#FF843E]/90"
+                    disabled={!newTagName.trim()}
+                  >
+                    Add Tag
+                  </button>
+                </div>
+                <div className="max-h-60 overflow-y-auto text-sm">
+                  {configuredTags.length > 0 ? (
+                    <div className="space-y-2">
+                      {configuredTags.map((tag) => (
+                        <div key={tag.id} className="flex justify-between items-center bg-[#1C1C1C] px-4 py-2 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="px-2 py-1 rounded-md text-xs flex items-center gap-1 text-white"
+                              style={{ backgroundColor: tag.color }}
+                            >
+                              <Tag size={10} />
+                              {tag.name}
+                            </span>
+                          </div>
+                          <button onClick={() => deleteTag(tag.id)} className="text-red-400 hover:text-red-300">
+                            <X size={18} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-center py-4 text-sm">No tags created yet</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setIsTagManagerOpen(false)}
+                  className="bg-[#FF843E] text-white px-6 py-2 text-sm rounded-lg hover:bg-[#FF843E]/90"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isEditModalOpenTask && selectedTask && (
+          <EditTaskModal
+            taskToEdit={selectedTask}
+            onClose={() => {
+              setIsEditModalOpenTask(false)
+              setSelectedTask(null)
+            }}
+            onUpdateTask={handleTaskUpdate}
+            configuredTags={configuredTags}
+          />
+        )}
+
+        <DeleteModal
+          isOpen={isDeleteModalOpen}
+          task={selectedTask}
+          onCancel={() => {
+            setIsDeleteModalOpen(false)
             setSelectedTask(null)
           }}
-          onUpdateTask={handleTaskUpdate}
-          configuredTags={configuredTags}
+          onConfirm={confirmDeleteTask}
         />
-      )}
 
-      <DeleteModal
-        isOpen={isDeleteModalOpen}
-        task={selectedTask}
-        onCancel={() => {
-          setIsDeleteModalOpen(false)
-          setSelectedTask(null)
-        }}
-        onConfirm={confirmDeleteTask}
-      />
+        {isRepeatModalOpen && selectedTaskForRepeat && (
+          <RepeatTaskModal
+            task={selectedTaskForRepeat}
+            onClose={() => {
+              setIsRepeatModalOpen(false)
+              setSelectedTaskForRepeat(null)
+            }}
+            onRepeatTask={handleRepeatTask}
+          />
+        )}
 
-      {isRepeatModalOpen && selectedTaskForRepeat && (
-        <RepeatTaskModal
-          task={selectedTaskForRepeat}
-          onClose={() => {
-            setIsRepeatModalOpen(false)
-            setSelectedTaskForRepeat(null)
-          }}
-          onRepeatTask={handleRepeatTask}
-        />
-      )}
+        {assignModalTask && (
+          <AssignModal
+            task={assignModalTask}
+            availableAssignees={availableAssignees}
+            availableRoles={availableRoles}
+            onClose={() => setAssignModalTask(null)}
+            onUpdate={handleTaskUpdate}
+          />
+        )}
 
-      {assignModalTask && (
-        <AssignModal
-          task={assignModalTask}
-          availableAssignees={availableAssignees}
-          availableRoles={availableRoles}
-          onClose={() => setAssignModalTask(null)}
-          onUpdate={handleTaskUpdate}
-        />
-      )}
-
-      {tagsModalTask && (
-        <TagsModal
-          task={tagsModalTask}
-          configuredTags={configuredTags}
-          onClose={() => setTagsModalTask(null)}
-          onUpdate={handleTaskUpdate}
-        />
-      )}
+        {tagsModalTask && (
+          <TagsModal
+            task={tagsModalTask}
+            configuredTags={configuredTags}
+            onClose={() => setTagsModalTask(null)}
+            onUpdate={handleTaskUpdate}
+          />
+        )}
 
 
-      {/* sidebar related modals */}
-      <Sidebar
+        {/* sidebar related modals */}
+        <Sidebar
           isRightSidebarOpen={isRightSidebarOpen}
           toggleRightSidebar={toggleRightSidebar}
           isSidebarEditing={isSidebarEditing}
@@ -1621,14 +1730,19 @@ export default function TodoApp() {
         />
 
         {/* Sidebar related modals */}
-        <TrainingPlanModal
-          isOpen={isTrainingPlanModalOpen}
-          onClose={() => setIsTrainingPlanModalOpen(false)}
-          user={selectedUserForTrainingPlan}
-          trainingPlans={mockTrainingPlans}
-          getDifficultyColor={getDifficultyColor}
-          getVideoById={getVideoById}
-        />
+       <TrainingPlansModal
+                                                isOpen={isTrainingPlanModalOpen}
+                                                onClose={() => {
+                                                  setIsTrainingPlanModalOpen(false)
+                                                  setSelectedUserForTrainingPlan(null)
+                                                }}
+                                                selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+                                                memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                                                availableTrainingPlans={availableTrainingPlans}
+                                                onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+                                                onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+                                              />
+      
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}
@@ -1854,7 +1968,7 @@ export default function TodoApp() {
             </div>
           </div>
         )}
-    </div>
+      </div>
     </>
   )
 }

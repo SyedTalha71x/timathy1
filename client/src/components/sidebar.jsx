@@ -22,9 +22,12 @@ import {
   ChevronRight,
   Globe,
   ClipboardList,
+  Building2,
 } from "lucide-react"
 import { RiContractLine } from "react-icons/ri"
 import { CiMonitor } from "react-icons/ci"
+import { IoIosCheckmarkCircleOutline } from "react-icons/io";
+
 import { FaUsers } from "react-icons/fa6"
 
 import { TbBrandGoogleAnalytics } from "react-icons/tb"
@@ -47,6 +50,7 @@ const Sidebar = () => {
   const [isChangelogModalOpen, setIsChangelogModalOpen] = useState(false)
 
   const [isProductivityHubOpen, setIsProductivityHubOpen] = useState(false)
+  const [isMembersOpen, setisMembersOpen] = useState(false)
 
   const languages = [
     { code: "en", name: "English", flag: "🇺🇸" },
@@ -69,6 +73,7 @@ const Sidebar = () => {
   const toggleLanguageDropdown = () => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
   const toggleCommunication = () => setIsCommunicationOpen(!isCommunicationOpen)
   const toggleProductivityHub = () => setIsProductivityHubOpen(!isProductivityHubOpen)
+  const toggleMembers = () => setisMembersOpen(!isMembersOpen)
 
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language.name)
@@ -117,11 +122,6 @@ const Sidebar = () => {
     window.location.href = "/login"
   }
 
-  const closeAllModals = () => {
-    setIsTermsModalOpen(false)
-    setIsPrivacyModalOpen(false)
-    setIsChangelogModalOpen(false)
-  }
 
   const menuItems = [
     { icon: Home, label: "My Area", to: "/dashboard/my-area" },
@@ -136,8 +136,8 @@ const Sidebar = () => {
       to: "/dashboard/communication",
       hasSubmenu: true,
       submenu: [
-        { label: "Messages", to: "/dashboard/communication" },
-        { label: "Bulletin Board", to: "/dashboard/bulletin-board" },
+        { label: "Messenger", to: "/dashboard/communication", icon: MessageCircle },
+        { label: "Bulletin Board", to: "/dashboard/bulletin-board", icon: ClipboardList },
       ],
     },
     {
@@ -146,12 +146,17 @@ const Sidebar = () => {
       to: "#",
       hasSubmenu: true,
       submenu: [
-        { label: "Activity Monitor", to: "/dashboard/activity-monitor" },
-        { label: "To-Do", to: "/dashboard/to-do" },
-        { label: "Notes", to: "/dashboard/notes" },
+        { label: "Activity Monitor", to: "/dashboard/activity-monitor", icon: CiMonitor },
+        { label: "To-Do", to: "/dashboard/to-do", icon: CheckSquare },
+        { label: "Notes", to: "/dashboard/notes", icon: ClipboardList },
       ],
     },
-    { icon: Users, label: "Members", to: "/dashboard/members" },
+    { icon: Users, label: "Manage Members", to: "#",  hasSubmenu: true,
+      submenu: [
+        { label: "Members", to: "/dashboard/members", icon: Users },
+        { label: "Check In", to: "/dashboard/members-checkin", icon: IoIosCheckmarkCircleOutline },
+      ],
+     },
     { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
     { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
     { icon: RiContractLine, label: "Contracts", to: "/dashboard/contract" },
@@ -284,217 +289,322 @@ const Sidebar = () => {
       </div>
 
       <aside
-        className={`
-          fixed top-0 left-0 z-50 h-screen bg-[#111111] transition-all duration-500 overflow-hidden 
-          lg:relative lg:block
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          ${isCollapsed ? "lg:w-20" : "lg:w-64 w-64"}
-        `}
-      >
-        <div
-          className="hidden lg:block absolute right-0 top-20 bg-[#222222] rounded-full p-2 cursor-pointer z-50"
-          onClick={toggleCollapse}
-        >
-          {isCollapsed ? (
-            <ChevronRight size={20} className="text-white" />
-          ) : (
-            <ChevronLeft size={20} className="text-white" />
-          )}
+  className={`
+    fixed top-0 left-0 z-50 h-screen   bg-[#111111] transition-all duration-500 overflow-hidden 
+    lg:relative lg:block
+    ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+    ${isCollapsed ? "lg:w-20" : "lg:w-75 w-64"}
+  `}
+>
+  <div className="flex flex-col h-full overflow-hidden">
+    {/* Logo Section */}
+    <div className="hidden lg:block">
+      <div className={`flex ${isCollapsed ? "justify-center" : "justify-center"} items-center w-full`}>
+        {isCollapsed ? (
+          <div className="w-full bg-orange-500 flex items-center justify-center p-4">
+          <img src="/Orgagym white.svg" className="h-auto w-auto max-w-full" alt="Orgagym Logo" />
+        </div>
+        ) : (
+          <div className="w-full bg-orange-500 flex items-center justify-center p-4">
+            <img src="/Orgagym white.svg" className="h-20 w-auto max-w-full" alt="Orgagym Logo" />
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Profile Section with Collapse Button */}
+<div className="p-4 hidden lg:block relative">
+  <div
+    className={`flex ${
+      isCollapsed ? "justify-center" : "items-center"
+    } gap-4`}
+  >
+    {/* Collapse Button */}
+    {!isCollapsed && (
+      <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 bg-[#222222] rounded-full p-2 cursor-pointer z-50">
+        <ChevronLeft size={20} className="text-white" onClick={toggleCollapse} />
+      </div>
+    )}
+
+    {/* Profile Picture */}
+    <div className="cursor-pointer flex-shrink-0">
+      <img
+        onClick={isCollapsed ? null : toggleDropdown}
+        src="/gray-avatar-fotor-20250912192528.png"
+        alt="Profile"
+        className={`rounded-2xl ${isCollapsed ? "w-10 h-10" : "h-20 w-20"}`}
+      />
+    </div>
+
+    {/* Info Section (only visible when expanded) */}
+    {!isCollapsed && (
+      <div className="flex flex-col">
+        <div className="flex items-center gap-1">
+          <h2 className="font-bold text-white text-md">{fullName}</h2>
+          <span className="font-bold text-zinc-400">•</span>
+          <span className="text-zinc-400 font-semibold text-md">{role}</span>
         </div>
 
-        <div className="flex flex-col h-full overflow-hidden mt-5">
-          <div className="p-4 hidden lg:block">
-            <div className={`flex ${isCollapsed ? "justify-center" : "flex-col text-center"} items-center gap-3`}>
-              <div className="cursor-pointer">
-                <img
-                  onClick={isCollapsed ? null : toggleDropdown}
-                  src="/gray-avatar-fotor-20250912192528.png"
-                  alt="Profile"
-                  className={`rounded-2xl ${isCollapsed ? "w-10 h-10" : "h-20 w-20"}`}
-                />
-              </div>
+        <div className="flex items-center mt-1 gap-2 bg-black py-1.5 px-4 rounded-md w-fit">
+          <p className="text-sm font-bold text-white">{studioName}</p>
+          <Building2 size={16} className="text-white" />
+        </div>
+      </div>
+    )}
 
-              {isDropdownOpen && !isCollapsed && (
-                <div className="absolute right-5 top-30 w-46 bg-[#222222]/40 backdrop-blur-3xl rounded-lg shadow-lg z-50">
-                  <div className="py-2" role="menu">
-                    <button
-                      onClick={handleEditProfile}
-                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
-                    >
-                      Edit Profile
-                    </button>
-                    <hr className="border-zinc-600 my-1" />
-                    <button
-                      onClick={handlePrivacyPolicy}
-                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
-                    >
-                      Privacy Policy
-                    </button>
-                    <button
-                      onClick={handleTermsOfUse}
-                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
-                    >
-                      Terms & Conditions
-                    </button>
-                    <button
-                      onClick={handleChangelog}
-                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
-                    >
-                      Changelog
-                    </button>
-                    <hr className="border-zinc-600 my-1" />
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              )}
+    {/* Right arrow if collapsed */}
+    {isCollapsed && (
+      <div className="absolute -right-2 top-1/3 transform -translate-y-1/2 bg-[#222222] rounded-full p-2 cursor-pointer z-50">
+        <ChevronRight size={20} className="text-white" onClick={toggleCollapse} />
+      </div>
+    )}
+  </div>
 
-              {!isCollapsed && (
-                <div className="flex flex-col gap-0.5 text-center">
-                  <p className="text-md  open_sans_font_700 text-white">{studioName}</p>
-                  <h2 className="font-bold text-white flex items-center justify-center gap-1">
-                    {fullName}
-                    <span className="font-bold text-zinc-400">•</span>
-                    <span className="text-zinc-400">{role}</span>
-                  </h2>
-                </div>
-              )}
+  {/* Dropdown Menu (same as before) */}
+  {isDropdownOpen && !isCollapsed && (
+    <div className="absolute right-10 top-25 w-46 bg-[#222222]/40 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+      <div className="py-2" role="menu">
+        <button
+          onClick={handleEditProfile}
+          className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
+        >
+          Edit Profile
+        </button>
+        <hr className="border-zinc-600 my-1" />
+        <button
+          onClick={handlePrivacyPolicy}
+          className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
+        >
+          Privacy Policy
+        </button>
+        <button
+          onClick={handleTermsOfUse}
+          className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
+        >
+          Terms & Conditions
+        </button>
+        <button
+          onClick={handleChangelog}
+          className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
+        >
+          Changelog
+        </button>
+        <hr className="border-zinc-600 my-1" />
+        <button
+          onClick={handleLogout}
+          className="block w-full px-4 py-2 text-sm cursor-pointer text-white hover:bg-zinc-700 text-left"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
+
+
+    {/* Language Selection */}
+    <div className="px-4 py-3 hidden lg:block">
+      <div className="relative">
+        <button
+          onClick={toggleLanguageDropdown}
+          className={`flex items-center gap-3 text-sm px-3 py-2 open_sans_font text-zinc-300 hover:text-white w-full ${
+            isCollapsed ? "justify-center" : "text-left border border-zinc-700 rounded-lg hover:bg-zinc-800/50"
+          } transition-all duration-300`}
+        >
+          <Globe size={20} className="text-zinc-400" />
+          {!isCollapsed && (
+            <div className="flex items-center justify-between w-full">
+              <span>{selectedLanguage}</span>
+              <ChevronRight 
+                size={16} 
+                className={`transition-transform ${isLanguageDropdownOpen ? "rotate-90" : ""}`} 
+              />
+            </div>
+          )}
+        </button>
+
+        {isLanguageDropdownOpen && !isCollapsed && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-[#222222] border border-zinc-700 rounded-lg shadow-lg z-50">
+            <div className="py-2">
+              {languages.map((language) => (
+                <button
+                  key={language.code}
+                  onClick={() => handleLanguageSelect(language)}
+                  className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 ${
+                    selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
+                  }`}
+                >
+                  <span className="text-base">{language.flag}</span>
+                  <span>{language.name}</span>
+                </button>
+              ))}
             </div>
           </div>
+        )}
+      </div>
+    </div>
 
-          <nav className="flex-1 overflow-y-auto custom-scrollbar">
-            <ul className="space-y-2 p-4">
-              {menuItems.map((item) => {
-                if (item.hasSubmenu) {
-                  return (
-                    <li key={item.label}>
-                      <button
-                        onClick={() => {
-                          if (item.label === "Communication") toggleCommunication()
-                          if (item.label === "Productivity Hub") toggleProductivityHub()
-                        }}
-                        className={`
-                          flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
-                          ${isCollapsed ? "justify-center" : "text-left"}
-                          group transition-all duration-500 
-                          ${
-                            location.pathname.startsWith(item.to) && item.to !== "#"
+    {/* Navigation */}
+    <nav className="flex-1 overflow-y-auto custom-scrollbar">
+      <ul className="space-y-2 p-4">
+        {menuItems.map((item) => {
+          if (item.hasSubmenu) {
+            return (
+              <li key={item.label}>
+                <button
+                  onClick={() => {
+                    if (item.label === "Communication") toggleCommunication();
+                    if (item.label === "Manage Members") toggleMembers();
+                    if (item.label === "Productivity Hub")
+                      toggleProductivityHub();
+                  }}
+                  className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full ${
+                    isCollapsed ? "justify-center" : "text-left"
+                  } group transition-all duration-500 ${
+                    location.pathname.startsWith(item.to) && item.to !== "#"
+                      ? `text-white ${
+                          !isCollapsed &&
+                          "border-l-2 border-white pl-3"
+                        }`
+                      : `hover:text-white ${
+                          !isCollapsed &&
+                          "hover:border-l-2 hover:border-white hover:pl-3"
+                        }`
+                  }`}
+                >
+                  <div className="relative">
+                    <item.icon
+                      size={24}
+                      className={`cursor-pointer ${
+                        location.pathname.startsWith(item.to) && item.to !== "#"
+                          ? "text-white"
+                          : "text-zinc-400 group-hover:text-white"
+                      }`}
+                    />
+                    {item.label === "Communication" && unreadMessages > 0 && (
+                      <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                        {unreadMessages}
+                      </span>
+                    )}
+                  </div>
+                  {!isCollapsed && (
+                    <div className="flex items-center justify-between w-full">
+                      <span>{item.label}</span>
+                      <ChevronRight
+                        size={16}
+                        className={`transition-transform ${
+                          (item.label === "Communication" &&
+                            isCommunicationOpen) || (item.label === "Manage Members" && isMembersOpen) ||
+                          (item.label === "Productivity Hub" &&
+                            isProductivityHubOpen)
+                            ? "rotate-90"
+                            : ""
+                        }`}
+                      />
+                    </div>
+                  )}
+                </button>
+
+                {/* Submenu */}
+                {((item.label === "Communication" && isCommunicationOpen) || 
+                  (item.label === "Manage Members" && isMembersOpen) ||
+                  (item.label === "Productivity Hub" && isProductivityHubOpen)) && (
+                  <ul className={`${isCollapsed ? 'ml-0' : 'ml-2'} mt-1 space-y-2`}>
+                    {item.submenu.map((subItem) => (
+                      <li key={subItem.label}>
+                        <button
+                          onClick={() => handleNavigation(subItem.to)}
+                          className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full group transition-all duration-500 ${
+                            isCollapsed ? "justify-center" : "text-left"
+                          } ${
+                            location.pathname === subItem.to
                               ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
                               : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
-                          }
-                        `}
-                      >
-                        <div className="relative">
-                          <item.icon
-                            size={24}
-                            className={`cursor-pointer ${
-                              location.pathname.startsWith(item.to) && item.to !== "#"
-                                ? "text-white"
-                                : "text-zinc-400 group-hover:text-white"
-                            }`}
-                          />
-                          {item.label === "Communication" && unreadMessages > 0 && (
-                            <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
-                              {unreadMessages}
-                            </span>
-                          )}
-                        </div>
-                        {!isCollapsed && (
-                          <div className="flex items-center justify-between w-full">
-                            <span>{item.label}</span>
-                            <ChevronRight
-                              size={16}
-                              className={`transition-transform ${
-                                (item.label === "Communication" && isCommunicationOpen) ||
-                                (item.label === "Productivity Hub" && isProductivityHubOpen)
-                                  ? "rotate-90"
-                                  : ""
+                          }`}
+                        >
+                          <div className="relative flex items-center gap-3">
+                            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                            <subItem.icon
+                              size={20}
+                              className={`cursor-pointer ${
+                                location.pathname === subItem.to
+                                  ? "text-white"
+                                  : "text-zinc-400 group-hover:text-white"
                               }`}
                             />
+                            {subItem.label === "Messenger" && (
+                              <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                {unreadMessages}
+                              </span>
+                            )}
                           </div>
-                        )}
-                      </button>
+                          {!isCollapsed && <span>{subItem.label}</span>}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          }
 
-                      {/* Submenu items */}
-                      {!isCollapsed &&
-                        ((item.label === "Communication" && isCommunicationOpen) ||
-                          (item.label === "Productivity Hub" && isProductivityHubOpen)) && (
-                          <ul className="ml-8 mt-1 space-y-2">
-                            {item.submenu.map((subItem) => (
-                              <li key={subItem.label}>
-                                <button
-                                  onClick={() => handleNavigation(subItem.to)}
-                                  className={`
-                                    flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full text-left
-                                    group transition-all duration-500 
-                                    ${
-                                      location.pathname === subItem.to
-                                        ? `text-white border-l-2 border-white pl-3`
-                                        : `hover:text-white hover:border-l-2 hover:border-white hover:pl-3`
-                                    }
-                                  `}
-                                >
-                                  {subItem.label}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                    </li>
-                  )
-                }
+          return (
+            <li key={item.label}>
+              <button
+                onClick={() => handleNavigation(item.to)}
+                className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full ${
+                  isCollapsed ? "justify-center" : "text-left"
+                } group transition-all duration-500 ${
+                  location.pathname === item.to
+                    ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
+                    : `hover:text-white ${
+                        !isCollapsed &&
+                        "hover:border-l-2 hover:border-white hover:pl-3"
+                      }`
+                }`}
+              >
+                <div className="relative">
+                  <item.icon
+                    size={24}
+                    className={`cursor-pointer ${
+                      location.pathname === item.to
+                        ? "text-white"
+                        : "text-zinc-400 group-hover:text-white"
+                    }`}
+                  />
+                </div>
+                {!isCollapsed && <span>{item.label}</span>}
+              </button>
 
-                return (
-                  <li key={item.label}>
-                    <button
-                      onClick={() => handleNavigation(item.to)}
-                      className={`
-                        flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
-                        ${isCollapsed ? "justify-center" : "text-left"}
-                        group transition-all duration-500 
-                        ${
-                          location.pathname === item.to
-                            ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
-                            : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
-                        }
-                      `}
-                    >
-                      <div className="relative">
-                        <item.icon
-                          size={24}
-                          className={`cursor-pointer ${
-                            location.pathname === item.to ? "text-white" : "text-zinc-400 group-hover:text-white"
-                          }`}
-                        />
-                      </div>
-                      {!isCollapsed && <span>{item.label}</span>}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </nav>
+              {/* Divider after Analytics */}
+              {item.label === "Analytics" && (
+                <hr className="border-zinc-700 my-2" />
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
 
-          <div className="p-4 mt-auto">
-            <button
-              onClick={redirectToHome}
-              className={`
-                flex items-center gap-3 px-4 py-2 open_sans_font text-zinc-400 hover:text-white w-full
-                ${isCollapsed ? "justify-center" : "text-left"}
-                ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"} 
-                transition-all duration-300
-              `}
-            >
-              <LogOut size={20} />
-              {!isCollapsed && <span>Logout</span>}
-            </button>
-          </div>
-        </div>
-      </aside>
+    {/* Logout */}
+    <div className="p-4 mt-auto">
+      <button
+        onClick={redirectToHome}
+        className={`flex items-center gap-3 px-4 py-2 open_sans_font text-zinc-400 hover:text-white w-full ${
+          isCollapsed ? "justify-center" : "text-left"
+        } ${
+          !isCollapsed &&
+          "hover:border-l-2 hover:border-white hover:pl-3"
+        } transition-all duration-300`}
+      >
+        <LogOut size={20} />
+        {!isCollapsed && <span>Logout</span>}
+      </button>
+    </div>
+  </div>
+</aside>
+
 
       <Modal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} title="Terms & Conditions">
         <div className="text-zinc-300 space-y-6">

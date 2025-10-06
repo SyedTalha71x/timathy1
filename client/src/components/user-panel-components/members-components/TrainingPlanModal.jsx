@@ -5,14 +5,14 @@
 import { useState } from "react"
 import { X, Plus, Trash2, Dumbbell } from "lucide-react"
 
-export default function TrainingPlansModal({
+export default function TrainingPlansModalMain({
   isOpen,
   onClose,
-  selectedMember,
-  memberTrainingPlans = [],
-  availableTrainingPlans = [],
-  onAssignPlan,
-  onRemovePlan,
+  selectedMemberMain,
+  memberTrainingPlansMain = [],
+  availableTrainingPlansMain = [],
+  onAssignPlanMain,
+  onRemovePlanMain,
 }) {
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [selectedPlanToAssign, setSelectedPlanToAssign] = useState("")
@@ -20,16 +20,16 @@ export default function TrainingPlansModal({
   if (!isOpen) return null
 
   const handleAssignPlan = () => {
-    if (selectedPlanToAssign && onAssignPlan) {
-      onAssignPlan(selectedMember.id, selectedPlanToAssign)
+    if (selectedPlanToAssign && onAssignPlanMain) {
+      onAssignPlanMain(selectedMemberMain.id, selectedPlanToAssign)
       setSelectedPlanToAssign("")
       setShowAssignModal(false)
     }
   }
 
   const handleRemovePlan = (planId) => {
-    if (onRemovePlan) {
-      onRemovePlan(selectedMember.id, planId)
+    if (onRemovePlanMain) {
+      onRemovePlanMain(selectedMemberMain.id, planId)
     }
   }
 
@@ -42,7 +42,7 @@ export default function TrainingPlansModal({
             <Dumbbell className="text-blue-400" size={24} />
             <div>
               <h2 className="text-xl font-semibold text-white">Training Plans</h2>
-              <p className="text-gray-400 text-sm">{selectedMember?.name || "Member"}</p>
+              <p className="text-gray-400 text-sm">{selectedMemberMain?.name || "Member"}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
@@ -65,9 +65,9 @@ export default function TrainingPlansModal({
               </button>
             </div>
 
-            {memberTrainingPlans.length > 0 ? (
+            {memberTrainingPlansMain.length > 0 ? (
               <div className="space-y-3">
-                {memberTrainingPlans.map((plan) => (
+                {memberTrainingPlansMain.map((plan) => (
                   <div key={plan.id} className="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
                     <div>
                       <h4 className="text-white font-medium">{plan.name}</h4>
@@ -116,7 +116,7 @@ export default function TrainingPlansModal({
                   className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="">Choose a plan...</option>
-                  {availableTrainingPlans.map((plan) => (
+                  {availableTrainingPlansMain.map((plan) => (
                     <option key={plan.id} value={plan.id}>
                       {plan.name} - {plan.difficulty}
                     </option>

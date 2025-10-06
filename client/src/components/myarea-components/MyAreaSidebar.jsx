@@ -1,7 +1,4 @@
 /* eslint-disable react/no-unescaped-entities */
-"use client"
-
-/* eslint-disable no-undef */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useCallback } from "react"
@@ -28,16 +25,20 @@ import {
   Reply,
   Users,
   Camera,
+  User,
+  Building2,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import StaffCheckInWidget from "./StaffWidgetCheckIn"
+import StaffCheckInWidget from "./widjets/StaffWidgetCheckIn"
 import { SpecialNoteEditModal } from "./SpecialNoteEditModal"
 import RightSidebarWidget from "./sidebar-components/RightSidebarWidget"
 import ViewManagementModal from "./sidebar-components/ViewManagementModal"
 import { bulletinBoardData, memberTypesData } from "../../utils/user-panel-states/myarea-states"
 
 import PersonImage from '../../../public/avatar3.png'
+import BulletinBoardWidget from "./widjets/BulletinBoardWidget"
+import NotesWidget from "./widjets/NotesWidjets"
 
 const demoNotifications = {
   memberChat: [
@@ -310,8 +311,6 @@ const Sidebar = ({
   moveRightSidebarWidget,
   removeRightSidebarWidget,
   setIsRightWidgetModalOpen,
-  communications,
-  redirectToCommunication,
   todos,
   handleTaskComplete,
   openDropdownIndex,
@@ -361,14 +360,12 @@ const Sidebar = ({
   const [todoFilter, setTodoFilter] = useState("all")
   const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
 
-  // Todo filter options
   const todoFilterOptions = [
     { value: "all", label: "All Tasks" },
-    { value: "ongoing", label: "Ongoing" },
-    { value: "pending", label: "Pending" },
-    { value: "completed", label: "Completed" },
+    { value: "ongoing", label: "Ongoing", color: "#f59e0b" },
+    { value: "completed", label: "Completed", color: "#10b981" },
+    { value: "canceled", label: "Canceled", color: "#ef4444" },
   ]
-
   /**
    * Handles opening the reply modal for a specific message
    * This function sets the selected message and opens the reply modal
@@ -424,8 +421,8 @@ const Sidebar = ({
     switch (todoFilter) {
       case "ongoing":
         return todos.filter((todo) => todo.status === "ongoing")
-      case "pending":
-        return todos.filter((todo) => todo.status === "pending")
+      case "canceled":
+        return todos.filter((todo) => todo.status === "canceled")
       case "completed":
         return todos.filter((todo) => todo.status === "completed")
       default:
@@ -482,9 +479,8 @@ const Sidebar = ({
       return (
         <div className="relative">
           <div
-            className={`${
-              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
             onClick={handleNoteClick}
           >
             {specialNote.isImportant ? (
@@ -558,24 +554,19 @@ const Sidebar = ({
     <>
       <aside
         className={`
-          fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 lg:w-80 bg-[#181818]
+          fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 lg:w-84 bg-[#181818]
           transform transition-transform duration-500 ease-in-out
           ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
           lg:relative lg:translate-x-0
         `}
       >
-        <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto h-full">
-          {/* Header with close button and add widget button */}
+        <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto max-h-[200vh]">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center justify-between w-full mb-3 sm:mb-4">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <h2 className="text-base sm:text-lg font-semibold text-white truncate">Sidebar</h2>
-                  {currentView && (
-                    <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
-                      {currentView.name}
-                    </span>
-                  )}
+                 
                 </div>
               </div>
               <div></div>
@@ -583,10 +574,11 @@ const Sidebar = ({
                 {!isSidebarEditing && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
-                    className="p-1.5 sm:p-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                    className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
                     title="Manage Sidebar Views"
                   >
                     <Eye size={14} />
+                    {currentView ? currentView.name : ""}
                   </button>
                 )}
                 {activeTab === "widgets" && isSidebarEditing && (
@@ -601,9 +593,8 @@ const Sidebar = ({
                 {activeTab === "widgets" && (
                   <button
                     onClick={toggleSidebarEditing}
-                    className={`p-1.5 sm:p-2 ${
-                      isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                    } rounded-lg flex items-center gap-1`}
+                    className={`p-1.5 sm:p-2 ${isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                      } rounded-lg flex items-center gap-1`}
                     title="Toggle Edit Mode"
                   >
                     {isSidebarEditing ? <Check size={14} /> : <Edit size={14} />}
@@ -624,9 +615,8 @@ const Sidebar = ({
           <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
             <button
               onClick={() => setActiveTab("widgets")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+                }`}
             >
               <Settings size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Widgets</span>
@@ -634,9 +624,8 @@ const Sidebar = ({
 
             <button
               onClick={() => setActiveTab("notifications")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
-                activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+                }`}
             >
               <Bell size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
@@ -660,7 +649,7 @@ const Sidebar = ({
                   className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Users size={16} className="text-blue-400" />
+                  <User size={16} className="inline mr-2" />
                     <h3 className="text-white font-medium text-sm">Member Chat</h3>
                     {getUnreadCount("memberChat") > 0 && (
                       <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
@@ -681,9 +670,8 @@ const Sidebar = ({
                       notificationData.memberChat.map((message) => (
                         <div
                           key={message.id}
-                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
-                            !message.isRead ? "bg-blue-900/20" : ""
-                          }`}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-blue-900/20" : ""
+                            }`}
                           onClick={() => {
                             handleMessageClick(message)
                             markMessageAsRead(message.id, message.type)
@@ -731,7 +719,7 @@ const Sidebar = ({
                   className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Camera size={16} className="text-green-400" />
+                    <Building2 size={16} className="inline mr-2" />
                     <h3 className="text-white font-medium text-sm">Studio Chat</h3>
                     {getUnreadCount("studioChat") > 0 && (
                       <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
@@ -752,9 +740,8 @@ const Sidebar = ({
                       notificationData.studioChat.map((message) => (
                         <div
                           key={message.id}
-                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
-                            !message.isRead ? "bg-green-900/20" : ""
-                          }`}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-green-900/20" : ""
+                            }`}
                           onClick={() => {
                             handleMessageClick(message)
                             markMessageAsRead(message.id, message.type)
@@ -811,54 +798,13 @@ const Sidebar = ({
                     moveRightSidebarWidget={moveRightSidebarWidget}
                     removeRightSidebarWidget={removeRightSidebarWidget}
                   >
-                    {widget.type === "communications" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Communications</h2>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="space-y-2">
-                            {communications.slice(0, 2).map((comm) => (
-                              <div
-                                onClick={redirectToCommunication}
-                                key={comm.id}
-                                className="p-2 cursor-pointer bg-black rounded-xl"
-                              >
-                                <div className="flex items-center gap-2 mb-1">
-                                  <img
-                                    src={comm.avatar || "/placeholder.svg"}
-                                    alt="User"
-                                    className="rounded-full h-8 w-8"
-                                  />
-                                  <div>
-                                    <h3 className="open_sans_font text-sm">{comm.name}</h3>
-                                  </div>
-                                </div>
-                                <div>
-                                  <p className="text-xs open_sans_font text-zinc-400">{comm.message}</p>
-                                  <p className="text-xs mt-1 flex gap-1 items-center open_sans_font text-zinc-400">
-                                    <Clock size={12} />
-                                    {comm.time}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                            <Link
-                              to={"/dashboard/communication"}
-                              className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                            >
-                              See all
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     {widget.type === "todo" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
                           <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">To-Do</h2>
                         </div>
+
                         <div className="relative mb-3" ref={todoFilterDropdownRef}>
                           <button
                             onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
@@ -872,88 +818,104 @@ const Sidebar = ({
                               {todoFilterOptions.map((option) => (
                                 <button
                                   key={option.value}
-                                  className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                  className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
                                   onClick={() => {
                                     setTodoFilter(option.value)
                                     setIsTodoFilterDropdownOpen(false)
                                   }}
                                 >
+                                  {option.color && (
+                                    <div
+                                      className="w-2 h-2 rounded-full"
+                                      style={{ backgroundColor: option.color }}
+                                    />
+                                  )}
                                   {option.label}
                                 </button>
                               ))}
                             </div>
                           )}
                         </div>
+
+                        {/* Todo Items */}
                         <div className="space-y-3 open_sans_font">
-                          {getFilteredTodos()
-                            .slice(0, 3)
-                            .map((todo) => (
-                              <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
-                                <div className="flex items-center gap-2 flex-1">
-                                  <input
-                                    type="checkbox"
-                                    checked={todo.completed}
-                                    onChange={() => handleTaskComplete(todo.id)}
-                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                  />
-                                  <div className="flex-1">
-                                    <h3
-                                      className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
-                                    >
-                                      {todo.title}
-                                    </h3>
-                                    <p className="text-xs open_sans_font text-zinc-400">
-                                      Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="relative">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      toggleDropdown(`todo-${todo.id}`)
-                                    }}
-                                    className="p-1 hover:bg-zinc-700 rounded"
-                                  >
-                                    <MoreVertical size={16} />
-                                  </button>
-                                  {openDropdownIndex === `todo-${todo.id}` && (
-                                    <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                                      <button
-                                        onClick={() => {
-                                          handleEditTask(todo)
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                                      >
-                                        Edit Task
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          setTaskToCancel(todo.id)
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                                      >
-                                        Cancel Task
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          setTaskToDelete(todo.id)
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                                      >
-                                        Delete Task
-                                      </button>
+                          {getFilteredTodos().length > 0 ? (
+                            <>
+                              {getFilteredTodos()
+                                .slice(0, 3)
+                                .map((todo) => (
+                                  <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <input
+                                        type="checkbox"
+                                        checked={todo.completed}
+                                        onChange={() => handleTaskComplete(todo.id)}
+                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                      />
+                                      <div className="flex-1">
+                                        <h3
+                                          className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                        >
+                                          {todo.title}
+                                        </h3>
+                                        <p className="text-xs open_sans_font text-zinc-400">
+                                          Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                        </p>
+                                      </div>
                                     </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          <Link
-                            to={"/dashboard/to-do"}
-                            className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                          >
-                            See all
-                          </Link>
+                                    <div className="relative">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          toggleDropdown(`todo-${todo.id}`)
+                                        }}
+                                        className="p-1 hover:bg-zinc-700 rounded"
+                                      >
+                                        <MoreVertical size={16} />
+                                      </button>
+                                      {openDropdownIndex === `todo-${todo.id}` && (
+                                        <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                          <button
+                                            onClick={() => {
+                                              handleEditTask(todo)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                          >
+                                            Edit Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToCancel(todo.id)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                          >
+                                            Cancel Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToDelete(todo.id)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                          >
+                                            Delete Task
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              <Link
+                                to={"/dashboard/to-do"}
+                                className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
+                              >
+                                See all
+                              </Link>
+                            </>
+                          ) : (
+                            <div className="text-center py-4 text-gray-400">
+                              <p className="text-sm">No tasks in this category</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -967,11 +929,10 @@ const Sidebar = ({
                           {birthdays.slice(0, 3).map((birthday) => (
                             <div
                               key={birthday.id}
-                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${
-                                isBirthdayToday(birthday.date)
-                                  ? "bg-yellow-900/30 border border-yellow-600"
-                                  : "bg-black"
-                              }`}
+                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${isBirthdayToday(birthday.date)
+                                ? "bg-yellow-900/30 border border-yellow-600"
+                                : "bg-black"
+                                }`}
                             >
                               <div className="flex items-center gap-2">
                                 <div>
@@ -1037,29 +998,35 @@ const Sidebar = ({
                     )}
 
                     {widget.type === "appointments" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">
-                            Upcoming Appointments
-                          </h2>
+                      <div className="space-y-3 p-4 rounded-xl md:h-[340px] h-auto bg-[#2F2F2F]">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
                         </div>
                         <div className="space-y-2 max-h-[25vh] overflow-y-auto custom-scrollbar pr-1">
                           {appointments.length > 0 ? (
-                            appointments.slice(0, 2).map((appointment, index) => (
+                            appointments.map((appointment, index) => (
                               <div
                                 key={appointment.id}
                                 className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
                               >
-                                <div className="absolute p-2 top-0 left-0 z-10 flex flex-col gap-1">
+                                {/* Icons container with fixed positioning and proper spacing */}
+                                <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                                   {renderSidebarSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                                  <div
+                                    className="cursor-pointer rounded transition-colors"
+                                    onClick={(e) => handleDumbbellClick(appointment, e)}
+                                  >
+                                    <Dumbbell size={16} />
+                                  </div>
                                 </div>
+
                                 <div
-                                  className="flex flex-col items-center justify-between gap-2 cursor-pointer"
+                                  className="flex flex-col items-center justify-between gap-2 cursor-pointer pl-8"
                                   onClick={() => {
                                     handleAppointmentOptionsModal(appointment)
                                   }}
                                 >
-                                  <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
+                                  <div className="flex items-center gap-2 relative w-full justify-center">
                                     <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
                                       <img
                                         src={Avatar || "/placeholder.svg"}
@@ -1067,8 +1034,8 @@ const Sidebar = ({
                                         className="w-full h-full rounded-full"
                                       />
                                     </div>
-                                    <div className="text-white text-left">
-                                      <p className="font-semibold text-sm">{appointment.name}</p>
+                                    <div className="text-white text-left flex-1">
+                                      <p className="font-semibold">{appointment.name} {appointment.lastName || ""}</p>
                                       <p className="text-xs flex gap-1 items-center opacity-80">
                                         <Clock size={14} />
                                         {appointment.time} | {appointment.date.split("|")[0]}
@@ -1078,35 +1045,28 @@ const Sidebar = ({
                                       </p>
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 w-full justify-center">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
                                         handleCheckIn(appointment.id)
                                       }}
-                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${
-                                        appointment.isCheckedIn
-                                          ? " border border-white/50 text-white bg-transparent"
-                                          : "bg-black text-white"
-                                      }`}
+                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
+                                        ? "border border-white/50 text-white bg-transparent"
+                                        : "bg-black text-white"
+                                        }`}
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                     </button>
-                                    <div
-                                      className="cursor-pointer rounded transition-colors"
-                                      onClick={(e) => handleDumbbellClick(appointment, e)}
-                                    >
-                                      <Dumbbell size={16} />
-                                    </div>
                                   </div>
                                 </div>
                               </div>
                             ))
                           ) : (
-                            <p className="text-white text-center text-sm">No appointments scheduled.</p>
+                            <p className="text-white text-center">No appointments scheduled for this date.</p>
                           )}
                         </div>
-                        <div className="flex justify-center mt-2">
+                        <div className="flex justify-center">
                           <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
                             See all
                           </Link>
@@ -1129,7 +1089,7 @@ const Sidebar = ({
                     {widget.type === "chart" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Chart</h2>
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Analytics Chart</h2>
                         </div>
                         <div className="p-4 bg-black rounded-xl">
                           <ChartWithLocalState />
@@ -1166,42 +1126,12 @@ const Sidebar = ({
                       </div>
                     )}
 
-                    {widget.type === "bulletinBoard" && (
-                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-auto flex flex-col">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">Bulletin Board</h2>
-                        </div>
-                        <div className="relative">
-                          <select
-                            value={sidebarBulletinFilter}
-                            onChange={(e) => handleSidebarBulletinFilterChange(e.target.value)}
-                            className="w-full p-2 bg-black rounded-xl text-white text-sm"
-                          >
-                            <option value="all">All Posts</option>
-                            <option value="staff">Staff Only</option>
-                            <option value="members">Members Only</option>
-                          </select>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 mt-2">
-                          <div className="space-y-2">
-                            {getSidebarFilteredBulletinPosts()
-                              .slice(0, 2)
-                              .map((post) => (
-                                <div key={post.id} className="p-3 bg-black rounded-xl">
-                                  <div className="flex justify-between items-start">
-                                    <h3 className="font-semibold text-sm">{post.title}</h3>
-                                  </div>
-                                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{post.content}</p>
-                                  <div className="flex justify-between items-center mt-2">
-                                    <span className="text-xs text-zinc-500 capitalize">{post.category}</span>
-                                    <span className="text-xs text-zinc-500">{post.date}</span>
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+{widget.type === "bulletinBoard" && <BulletinBoardWidget />}
+
+
+                   
+                                          {widget.type === "notes" && <NotesWidget />}
+
 
                     {widget.type === "staffCheckIn" && (
                       <div className="mb-6">
@@ -1238,7 +1168,7 @@ const Sidebar = ({
         currentView={currentView}
         setCurrentView={setCurrentView}
         sidebarWidgets={rightSidebarWidgets}
-        setSidebarWidgets={() => {}} // This might need to be adjusted based on your implementation
+        setSidebarWidgets={() => { }} // This might need to be adjusted based on your implementation
       />
     </>
   )

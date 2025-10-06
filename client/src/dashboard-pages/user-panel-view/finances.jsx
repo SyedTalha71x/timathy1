@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 import { useState, useEffect } from "react"
-import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X, FileText, Eye, Trash2 } from "lucide-react"
+import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, X, FileText, Eye, Trash2, Search } from "lucide-react"
 import CheckFundsModal from "../../components/user-panel-components/finance-components/check-funds-modal"
 import SepaXmlModal from "../../components/user-panel-components/finance-components/sepa-xml-modal"
 import { financialData } from "../../utils/user-panel-states/finance-states"
@@ -32,6 +32,7 @@ import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 
 export default function FinancesPage() {
@@ -468,7 +469,12 @@ export default function FinancesPage() {
   
       todoFilterOptions,
       relationOptions,
-      appointmentTypes
+      appointmentTypes,
+
+      handleAssignTrainingPlan,
+      handleRemoveTrainingPlan,
+      memberTrainingPlans,
+      setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
     } = sidebarSystem;
 
      // more sidebar related functions
@@ -853,7 +859,7 @@ export default function FinancesPage() {
                 }`}
               >
                 <Download className="w-4 h-4" />
-                <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Export CSV</span>
+                <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Export Excel</span>
               </button>
               <button
                 onClick={() => setSepaModalOpen(true)}
@@ -919,59 +925,61 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-3 md:mb-4">
-        {/* Search input */}
-        <div className="flex-grow">
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-black text-white px-3 md:px-4 py-2 md:py-2.5 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#3F74FF] text-sm"
-          />
-        </div>
-        {/* Status filter */}
-        <div className="relative">
-          <button
-            onClick={() => setStatusFilterOpen(!statusFilterOpen)}
-            className={`bg-black text-white px-3 md:px-4 py-2 md:py-2.5 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full sm:w-auto text-sm ${
-              isRightSidebarOpen 
-                ? 'min-w-[140px] md:min-w-[140px] lg:min-w-[140px]'
-                : 'min-w-[140px] md:min-w-[160px] lg:min-w-[180px]'
-            }`}
-          >
-            <Filter className="w-3 h-3 md:w-4 md:h-4" />
-            <span className="text-xs md:text-sm">Status: {selectedStatus}</span>
-            <ChevronDown className="w-3 h-3 md:w-4 md:h-4" />
-          </button>
-          {statusFilterOpen && (
-            <div className="absolute right-0 z-10 mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg">
-              {statusOptions.map((status) => (
-                <button
-                  key={status}
-                  className={`w-full px-3 md:px-4 py-2 text-xs md:text-sm text-left flex items-center space-x-2 hover:bg-black ${
-                    selectedStatus === status ? "bg-black/50" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedStatus(status)
-                    setStatusFilterOpen(false)
-                  }}
-                >
-                  {status !== "All" && (
-                    <span
-                      className={`inline-block w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${getStatusColorClass(status)}`}
-                    ></span>
-                  )}
-                  <span className="text-gray-300">{status}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mb-3 md:mb-4">
+  {/* Search input */}
+  <div className="relative flex-1">
+    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+    <input
+      type="search"
+      placeholder="Search Transactions"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="h-11 bg-[#181818] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] leading-none"
+    />
+  </div>
 
-      {/* Table with horizontal scroll when sidebar is open */}
-      <div className={`${isRightSidebarOpen ? 'overflow-x-auto' : 'overflow-x-auto'}`}>
+  {/* Status filter */}
+  <div className="relative w-full sm:w-auto">
+    <button
+      onClick={() => setStatusFilterOpen(!statusFilterOpen)}
+      className={`h-11 bg-black text-white rounded-xl border border-gray-800 flex items-center justify-between gap-2 px-3 sm:px-4 w-full sm:w-auto text-sm leading-none ${
+        isRightSidebarOpen ? 'min-w-[140px]' : 'min-w-[140px] md:min-w-[160px] lg:min-w-[180px]'
+      }`}
+    >
+      <Filter className="w-4 h-4" />
+      <span className="text-xs md:text-sm">Status: {selectedStatus}</span>
+      <ChevronDown className="w-4 h-4" />
+    </button>
+
+    {statusFilterOpen && (
+      <div className="absolute right-0 z-10 mt-2 w-[220px] bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg">
+        {statusOptions.map((status) => (
+          <button
+            key={status}
+            className={`w-full px-3 md:px-4 py-2 text-xs md:text-sm text-left flex items-center space-x-2 hover:bg-black ${
+              selectedStatus === status ? "bg-black/50" : ""
+            }`}
+            onClick={() => {
+              setSelectedStatus(status)
+              setStatusFilterOpen(false)
+            }}
+          >
+            {status !== "All" && (
+              <span
+                className={`inline-block w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${getStatusColorClass(status)}`}
+              />
+            )}
+            <span className="text-gray-300">{status}</span>
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+
+
+
+        <div className={`${isRightSidebarOpen ? 'overflow-x-auto' : 'overflow-x-auto'}`}>
         <div className={isRightSidebarOpen ? 'min-w-[700px]' : 'min-w-[600px]'}>
           <table className="w-full text-sm text-left text-gray-300">
             <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
@@ -1179,14 +1187,18 @@ export default function FinancesPage() {
         />
 
         {/* Sidebar related modals */}
-        <TrainingPlanModal
-          isOpen={isTrainingPlanModalOpen}
-          onClose={() => setIsTrainingPlanModalOpen(false)}
-          user={selectedUserForTrainingPlan}
-          trainingPlans={mockTrainingPlans}
-          getDifficultyColor={getDifficultyColor}
-          getVideoById={getVideoById}
-        />
+          <TrainingPlansModal
+                       isOpen={isTrainingPlanModalOpen}
+                       onClose={() => {
+                         setIsTrainingPlanModalOpen(false)
+                         setSelectedUserForTrainingPlan(null)
+                       }}
+                       selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+                       memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                       availableTrainingPlans={availableTrainingPlans}
+                       onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+                       onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+                     />
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}

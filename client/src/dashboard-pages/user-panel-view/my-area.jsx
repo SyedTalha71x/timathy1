@@ -21,6 +21,7 @@ import {
   MessageCircle,
   Dumbbell,
   FileText,
+  Eye,
 } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
@@ -28,7 +29,7 @@ import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
 import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
-import StaffCheckInWidget from "../../components/myarea-components/StaffWidgetCheckIn"
+import StaffCheckInWidget from "../../components/myarea-components/widjets/StaffWidgetCheckIn"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
 import MemberOverviewModal from "../../components/user-panel-components/communication-components/MemberOverviewModal"
@@ -48,6 +49,9 @@ import NotifyMemberModal from "../../components/myarea-components/NotifyMemberMo
 import BirthdayMessageModal from "../../components/myarea-components/BirthdayMessageModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import NotesWidget from "../../components/myarea-components/widjets/NotesWidjets"
+import BulletinBoardWidget from "../../components/myarea-components/widjets/BulletinBoardWidget"
 
 
 export default function MyArea() {
@@ -164,28 +168,27 @@ export default function MyArea() {
     { id: "appointments", type: "appointments", position: 2 },
     { id: "staffCheckIn", type: "staffCheckIn", position: 3 },
     { id: "websiteLink", type: "websiteLink", position: 4 },
-    { id: "communications", type: "communications", position: 5 },
-    { id: "todo", type: "todo", position: 6 },
-    { id: "birthday", type: "birthday", position: 7 },
-    { id: "bulletinBoard", type: "bulletinBoard", position: 8 }, // Add this line
+    { id: "todo", type: "todo", position: 5 },
+    { id: "birthday", type: "birthday", position: 6 },
+    { id: "bulletinBoard", type: "bulletinBoard", position: 7 }, // Add this line
+    { id: "notes", type: "notes", position: 8 },
   ])
 
   // Add right sidebar widgets state
   const [rightSidebarWidgets, setRightSidebarWidgets] = useState([
-    { id: "communications", type: "communications", position: 0 },
-    { id: "todo", type: "todo", position: 1 },
-    { id: "birthday", type: "birthday", position: 2 },
-    { id: "websiteLinks", type: "websiteLinks", position: 3 },
-    { id: "sidebarAppointments", type: "appointments", position: 4 },
-    { id: "sidebarChart", type: "chart", position: 5 },
-    { id: "sidebarExpiringContracts", type: "expiringContracts", position: 6 },
-    { id: "bulletinBoard", type: "bulletinBoard", position: 7 }, // Add this line
+    { id: "todo", type: "todo", position: 0 },
+    { id: "birthday", type: "birthday", position: 1 },
+    { id: "websiteLinks", type: "websiteLinks", position: 2 },
+    { id: "sidebarAppointments", type: "appointments", position: 3 },
+    { id: "sidebarChart", type: "chart", position: 4 },
+    { id: "sidebarExpiringContracts", type: "expiringContracts", position: 5 },
+    { id: "bulletinBoard", type: "bulletinBoard", position: 6 }, // Add this line
 
-    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 8 },
+    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 7 },
+    { id: "notes", type: "notes", position: 8 },
   ])
 
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
-  const redirectToCommunication = () => navigate("/dashboard/communication")
   const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   const toggleEditing = () => setIsEditing(!isEditing)
   const toggleSidebarEditing = () => setIsSidebarEditing(!isSidebarEditing) // Toggle sidebar edit mode
@@ -209,6 +212,38 @@ export default function MyArea() {
 
 
   const notePopoverRef = useRef(null)
+
+  const [memberTrainingPlans, setMemberTrainingPlans] = useState({})
+  const [availableTrainingPlans, setAvailableTrainingPlans] = useState([
+    {
+      id: 1,
+      name: "Beginner Full Body",
+      description: "Complete full body workout for beginners",
+      duration: "4 weeks",
+      difficulty: "Beginner",
+    },
+    {
+      id: 2,
+      name: "Advanced Strength Training",
+      description: "High intensity strength building program",
+      duration: "8 weeks",
+      difficulty: "Advanced",
+    },
+    {
+      id: 3,
+      name: "Weight Loss Circuit",
+      description: "Fat burning circuit training program",
+      duration: "6 weeks",
+      difficulty: "Intermediate",
+    },
+    {
+      id: 4,
+      name: "Muscle Building Split",
+      description: "Targeted muscle building program",
+      duration: "12 weeks",
+      difficulty: "Intermediate",
+    },
+  ])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -291,6 +326,32 @@ export default function MyArea() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
+
+  const handleAssignTrainingPlan = (memberId, planId) => {
+    const plan = availableTrainingPlans.find((p) => p.id === Number.parseInt(planId))
+    if (plan) {
+      const assignedPlan = {
+        ...plan,
+        assignedDate: new Date().toLocaleDateString(),
+      }
+
+      setMemberTrainingPlans((prev) => ({
+        ...prev,
+        [memberId]: [...(prev[memberId] || []), assignedPlan],
+      }))
+
+      toast.success(`Training plan "${plan.name}" assigned successfully!`)
+    }
+  }
+
+  const handleRemoveTrainingPlan = (memberId, planId) => {
+    setMemberTrainingPlans((prev) => ({
+      ...prev,
+      [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId),
+    }))
+
+    toast.success("Training plan removed successfully!")
+  }
 
 
 
@@ -607,8 +668,8 @@ export default function MyArea() {
     switch (todoFilter) {
       case "ongoing":
         return todos.filter((todo) => todo.status === "ongoing")
-      case "pending":
-        return todos.filter((todo) => todo.status === "pending")
+      case "canceled":
+        return todos.filter((todo) => todo.status === "canceled")
       case "completed":
         return todos.filter((todo) => todo.status === "completed")
       default:
@@ -1126,10 +1187,10 @@ export default function MyArea() {
   }
 
   const todoFilterOptions = [
-    { value: "all", label: "All" },
-    { value: "ongoing", label: "Ongoing" },
-    { value: "pending", label: "Pending" },
-    { value: "completed", label: "Completed" },
+    { value: "all", label: "All Tasks" },
+    { value: "ongoing", label: "Ongoing", color: "#f59e0b" },
+    { value: "completed", label: "Completed", color: "#10b981" },
+    { value: "canceled", label: "Canceled", color: "#ef4444" },
   ]
 
   const handleDumbbellClick = (appointment, e) => {
@@ -1138,24 +1199,8 @@ export default function MyArea() {
     setIsTrainingPlanModalOpen(true)
   }
 
-  const getVideoById = (videoId) => {
-    return mockVideos.find((video) => video.id === videoId)
-  }
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty?.toLowerCase()) {
-      case "beginner":
-        return "bg-green-600"
-      case "intermediate":
-        return "bg-yellow-600"
-      case "advanced":
-        return "bg-red-600"
-      default:
-        return "bg-gray-600"
-    }
-  }
 
-  const filteredTodos = getFilteredTodos()
   return (
     <>
       <style>
@@ -1202,11 +1247,7 @@ export default function MyArea() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl font-bold">My Area</h1>
-                  {currentView && (
-                    <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs whitespace-nowrap">
-                      {currentView.name}
-                    </span>
-                  )}
+
                 </div>
 
                 {/* Menu Icon → visible on mobile and medium screens */}
@@ -1225,7 +1266,7 @@ export default function MyArea() {
                     onClick={() => setIsViewModalOpen(true)}
                     className="px-4 py-2 bg-zinc-700 md:w-auto w-full text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
                   >
-                    <Settings size={16} />
+                    <Eye size={16} />
                     {currentView ? currentView.name : "Standard View"}
                   </button>
                 )}
@@ -1351,18 +1392,24 @@ export default function MyArea() {
                                   key={appointment.id}
                                   className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
                                 >
-                                  <div></div>
-                                  <div className="absolute p-2 top-0 left-0 z-10 flex flex-col gap-1">
+                                  {/* Icons container with fixed positioning and proper spacing */}
+                                  <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                                     {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                                    <div
+                                      className="cursor-pointer rounded transition-colors"
+                                      onClick={(e) => handleDumbbellClick(appointment, e)}
+                                    >
+                                      <Dumbbell size={16} />
+                                    </div>
                                   </div>
 
                                   <div
-                                    className="flex flex-col items-center justify-between gap-2 cursor-pointer"
+                                    className="flex flex-col items-center justify-between gap-2 cursor-pointer pl-8"
                                     onClick={() => {
                                       handleAppointmentOptionsModal(appointment)
                                     }}
                                   >
-                                    <div className="flex items-center gap-2 ml-5 relative w-full justify-center">
+                                    <div className="flex items-center gap-2 relative w-full justify-center">
                                       <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
                                         <img
                                           src={Avatar || "/placeholder.svg"}
@@ -1370,8 +1417,8 @@ export default function MyArea() {
                                           className="w-full h-full rounded-full"
                                         />
                                       </div>
-                                      <div className="text-white text-left">
-                                        <p className="font-semibold">{appointment.name}</p>
+                                      <div className="text-white text-left flex-1">
+                                        <p className="font-semibold">{appointment.name} {appointment.lastName || ""}</p>
                                         <p className="text-xs flex gap-1 items-center opacity-80">
                                           <Clock size={14} />
                                           {appointment.time} | {appointment.date.split("|")[0]}
@@ -1381,25 +1428,19 @@ export default function MyArea() {
                                         </p>
                                       </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 w-full justify-center">
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation()
                                           handleCheckIn(appointment.id)
                                         }}
                                         className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                          ? " border border-white/50 text-white bg-transparent"
+                                          ? "border border-white/50 text-white bg-transparent"
                                           : "bg-black text-white"
                                           }`}
                                       >
                                         {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                       </button>
-                                      <div
-                                        className="cursor-pointer rounded  transition-colors"
-                                        onClick={(e) => handleDumbbellClick(appointment, e)}
-                                      >
-                                        <Dumbbell size={16} />
-                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -1489,71 +1530,36 @@ export default function MyArea() {
                           </button>
                         </div>
                       )}
-                      {widget.type === "communications" && (
-                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-                          <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">Communications</h2>
-                          </div>
-                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                            <div className="space-y-2">
-                              {communications.slice(0, 3).map((comm) => (
-                                <div
-                                  onClick={redirectToCommunication}
-                                  key={comm.id}
-                                  className="p-3 cursor-pointer bg-black rounded-xl"
-                                >
-                                  <div className="flex items-center gap-3 mb-2">
-                                    <img
-                                      src={comm.avatar || "/placeholder.svg"}
-                                      alt="User"
-                                      className="rounded-full h-10 w-10"
-                                    />
-                                    <div>
-                                      <h3 className="text-sm font-medium">{comm.name}</h3>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-zinc-400 mb-1">{comm.message}</p>
-                                    <p className="text-xs flex gap-1 items-center text-zinc-400">
-                                      <Clock size={12} />
-                                      {comm.time}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex justify-center">
-                            <Link to={"/dashboard/communication"} className="text-sm text-white hover:underline">
-                              See all
-                            </Link>
-                          </div>
-                        </div>
-                      )}
                       {widget.type === "todo" && (
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">To-Do</h2>
                           </div>
-                          <div className="relative mb-3" ref={todoFilterDropdownRef}>
+                          <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
                             <button
                               onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
-                              className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
+                              className="flex  justify-between items-center w-full gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
                             >
                               {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
                               <ChevronDown className="w-4 h-4" />
                             </button>
                             {isTodoFilterDropdownOpen && (
-                              <div className="absolute z-10 mt-2 w-32 bg-[#2F2F2F] rounded-xl shadow-lg">
+                              <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
                                 {todoFilterOptions.map((option) => (
                                   <button
                                     key={option.value}
-                                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
+                                    className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
                                     onClick={() => {
                                       setTodoFilter(option.value)
                                       setIsTodoFilterDropdownOpen(false)
                                     }}
                                   >
+                                    {option.color && (
+                                      <div
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ backgroundColor: option.color }}
+                                      />
+                                    )}
                                     {option.label}
                                   </button>
                                 ))}
@@ -1689,40 +1695,9 @@ export default function MyArea() {
                           </div>
                         </div>
                       )}
-                      {widget.type === "bulletinBoard" && (
-  <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-    <div className="flex justify-between items-center">
-      <h2 className="text-lg font-semibold">Bulletin Board</h2>
-    </div>
-    <div className="relative">
-      <select 
-        value={bulletinFilter}
-        onChange={(e) => handleBulletinFilterChange(e.target.value)}
-        className="w-full p-2 bg-black rounded-xl text-white text-sm"
-      >
-        <option value="all">All Posts</option>
-        <option value="staff">Staff Only</option>
-        <option value="members">Members Only</option>
-      </select>
-    </div>
-    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 mt-2">
-      <div className="space-y-2">
-        {getFilteredBulletinPosts().map((post) => (
-          <div key={post.id} className="p-3 bg-black rounded-xl">
-            <div className="flex justify-between items-start">
-              <h3 className="font-semibold text-sm">{post.title}</h3>
-            </div>
-            <p className="text-xs text-zinc-400 mt-1">{post.content}</p>
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-xs text-zinc-500 capitalize">{post.category}</span>
-              <span className="text-xs text-zinc-500">{post.date}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
+                      {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
+                      
+                      {widget.type === "notes" && <NotesWidget />}
                     </DraggableWidget>
                   ))}
               </div>
@@ -1787,7 +1762,6 @@ export default function MyArea() {
           removeRightSidebarWidget={removeRightSidebarWidget}
           setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
           communications={communications}
-          redirectToCommunication={redirectToCommunication}
           todos={todos}
           handleTaskComplete={handleTaskComplete}
           todoFilter={todoFilter}
@@ -1933,13 +1907,17 @@ export default function MyArea() {
           />
         )}
 
-        <TrainingPlanModal
+        <TrainingPlansModal
           isOpen={isTrainingPlanModalOpen}
-          onClose={() => setIsTrainingPlanModalOpen(false)}
-          user={selectedUserForTrainingPlan}
-          trainingPlans={mockTrainingPlans}
-          getDifficultyColor={getDifficultyColor}
-          getVideoById={getVideoById}
+          onClose={() => {
+            setIsTrainingPlanModalOpen(false)
+            setSelectedUserForTrainingPlan(null)
+          }}
+          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+          availableTrainingPlans={availableTrainingPlans}
+          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
         />
 
         <SpecialNoteEditModal

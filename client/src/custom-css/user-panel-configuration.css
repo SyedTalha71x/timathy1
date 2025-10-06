@@ -22,6 +22,7 @@
 .ant-collapse-arrow {
   color: white !important;
 }
+
 /* Checkbox Styles */
 .ant-checkbox-wrapper {
   color: white !important;
@@ -30,6 +31,7 @@
   background-color: #ff843e !important;
   border-color: #ff843e !important;
 }
+
 /* Radio Styles */
 .ant-radio-wrapper {
   color: white !important;
@@ -40,12 +42,14 @@
 .ant-radio-inner::after {
   background-color: #ff843e !important;
 }
+
 /* Divider Styles */
 .ant-divider {
   border-color: #303030 !important;
 }
 
-  .ant-select {
+/* Select Styles */
+.ant-select {
   background-color: #101010 !important;
   color: white !important;
 }
@@ -96,6 +100,7 @@
 .ant-select-item-option:hover {
   background-color: #1f1f1f !important;
 }
+
 /* TimePicker Styles */
 .ant-picker-dropdown {
   background-color: #101010 !important;
@@ -134,6 +139,7 @@
 .ant-picker-time-panel {
   border-left: 1px solid #303030 !important;
 }
+
 /* Input Number Styles */
 .ant-input-number {
   background-color: #101010 !important;
@@ -148,6 +154,7 @@
 .ant-input-number-handler-down-inner {
   color: white !important;
 }
+
 /* Notification Styles */
 .ant-notification {
   background-color: #101010 !important;
@@ -162,20 +169,12 @@
 .ant-notification-notice-description {
   color: rgba(255, 255, 255, 0.7) !important;
 }
+
 /* Placeholder Styles */
 ::placeholder {
   color: rgba(255, 255, 255, 0.3) !important;
 }
-/* Tab Styles */
-.ant-tabs-tab {
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-.ant-tabs-tab-active {
-  color: white !important;
-}
-.ant-tabs-ink-bar {
-  background: #ff843e !important;
-}
+
 /* Switch Styles */
 .ant-switch {
   background-color: rgba(255, 255, 255, 0.2) !important;
@@ -183,6 +182,7 @@
 .ant-switch-checked {
   background-color: #ff843e !important;
 }
+
 /* Upload Styles */
 .ant-upload-list {
   color: white !important;
@@ -193,18 +193,7 @@
 .ant-upload-list-item-name {
   color: white !important;
 }
-/* Collapse Styles */
-.ant-collapse {
-  background-color: #181818 !important;
-  border-color: #303030 !important;
-}
-.ant-collapse-header {
-  color: white !important;
-}
-.ant-collapse-content {
-  background-color: #181818 !important;
-  border-color: #303030 !important;
-}
+
 /* Alert Styles */
 .ant-alert {
   background-color: #202020 !important;
@@ -216,9 +205,10 @@
 .ant-alert-description {
   color: rgba(255, 255, 255, 0.7) !important;
 }
+
 /* Prose for rich text preview */
 .prose {
-  color: white; /* Default text color for prose */
+  color: white;
 }
 .prose strong {
   font-weight: bold;
@@ -231,4 +221,58 @@
 }
 .prose-invert {
   color: white;
+}
+
+/* Tab Styles - Fixed */
+.ant-tabs-nav {
+  margin-bottom: 10px !important;
+  background-color: transparent !important;
+}
+
+.ant-tabs-nav-wrap {
+  background-color: transparent !important;
+}
+
+.ant-tabs-nav-list {
+  background-color: transparent !important;
+  gap: 0 !important;
+}
+
+.ant-tabs-tab {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 8px 8px 0 0 !important;
+  padding: 8px 20px !important;
+  margin: 0 !important;
+  color: #888888 !important;
+}
+
+.ant-tabs-tab + .ant-tabs-tab {
+  margin-left: 0 !important;
+}
+
+.ant-tabs-tab:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.ant-tabs-tab-active {
+  background-color: #196be6 !important;
+  color: #ffffff !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+.ant-tabs-tab-btn {
+  color: inherit !important;
+}
+
+.ant-tabs-ink-bar {
+  display: none !important;
+}
+
+.ant-tabs-content-holder {
+  background-color: transparent !important;
 }

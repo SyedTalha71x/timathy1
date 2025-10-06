@@ -50,6 +50,7 @@ import { trainingVideosData } from "../../utils/user-panel-states/training-state
 import { contractHistory, initialContracts, sampleLeads } from "../../utils/user-panel-states/contract-states"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
 
 
@@ -514,7 +515,12 @@ export default function ContractList() {
 
     todoFilterOptions,
     relationOptions,
-    appointmentTypes
+    appointmentTypes,
+
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem;
 
   // more sidebar related functions
@@ -1082,19 +1088,24 @@ export default function ContractList() {
                   </div>
                 )}
 
-                <div className="space-y-2 mb-4">
-                  <h3 className="text-white font-medium text-lg">{contract.memberName}</h3>
-                  <p className="text-gray-400 text-sm">{contract.contractType}</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-gray-400 text-sm">
-                      {contract.startDate} - {contract.endDate}
-                    </p>
-                    {isContractExpired(contract.endDate) && contract.status === "Active" && (
-                      <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
-                    )}
-                  </div>
-                  <p className="text-gray-400 text-sm">{contract.isDigital ? "Digital" : "Analog"}</p>
-                </div>
+<div className="mb-4 flex flex-col gap-1.5">
+  <h3 className="text-white font-medium text-lg leading-tight">{contract.memberName}</h3>
+  <p className="text-gray-400 text-sm leading-snug">{contract.contractType}</p>
+
+  <div className="flex items-center gap-2">
+    <p className="text-gray-400 text-sm leading-snug">
+      {contract.startDate} - {contract.endDate}
+    </p>
+    {isContractExpired(contract.endDate) && contract.status === "Active" && (
+      <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
+    )}
+  </div>
+
+  <p className="text-gray-400 text-sm leading-snug">
+    {contract.isDigital ? "Digital" : "Analog"}
+  </p>
+</div>
+
 
                 <div className="flex flex-col gap-2">
                   <button
@@ -1290,14 +1301,18 @@ export default function ContractList() {
       />
 
       {/* Sidebar related modals */}
-      <TrainingPlanModal
-        isOpen={isTrainingPlanModalOpen}
-        onClose={() => setIsTrainingPlanModalOpen(false)}
-        user={selectedUserForTrainingPlan}
-        trainingPlans={mockTrainingPlans}
-        getDifficultyColor={getDifficultyColor}
-        getVideoById={getVideoById}
-      />
+       <TrainingPlansModal
+                isOpen={isTrainingPlanModalOpen}
+                onClose={() => {
+                  setIsTrainingPlanModalOpen(false)
+                  setSelectedUserForTrainingPlan(null)
+                }}
+                selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+                memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                availableTrainingPlans={availableTrainingPlans}
+                onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+                onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+              />
 
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}

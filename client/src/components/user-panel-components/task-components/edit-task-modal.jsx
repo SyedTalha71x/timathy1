@@ -116,7 +116,7 @@ const EditTaskModal = ({ onClose, onUpdateTask, configuredTags = [], taskToEdit 
             className="space-y-4 max-h-[calc(90vh-120px)] overflow-y-auto custom-scrollbar pr-2"
           >
             <div>
-              <label className="text-sm text-gray-200">Task Title</label>
+              <label className="text-sm text-gray-200">Task Description</label>
               <input
                 type="text"
                 value={editedTask.title}

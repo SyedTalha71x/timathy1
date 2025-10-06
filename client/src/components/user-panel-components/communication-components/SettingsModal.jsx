@@ -1,40 +1,58 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 
-import React, { useState, useRef } from 'react';
-import { Settings, X, Mail, Send, Search } from 'lucide-react';
+import { useRef } from "react"
+import { Settings, X, Info } from "lucide-react"
 
-const SettingsModal = ({ 
-  showSettings, 
-  setShowSettings, 
-  settings, 
-  setSettings, 
-  settingsTab, 
+const SettingsModal = ({
+  showSettings,
+  setShowSettings,
+  settings,
+  setSettings,
+  settingsTab,
   setSettingsTab,
   appointmentNotificationTypes,
   setAppointmentNotificationTypes,
-  handleSaveSettings 
+  handleSaveSettings,
 }) => {
-  const birthdayTextareaRef = useRef(null);
-  const confirmationTextareaRef = useRef(null);
-  const cancellationTextareaRef = useRef(null);
-  const rescheduledTextareaRef = useRef(null);
+  const birthdayTextareaRef = useRef(null)
+  const confirmationTextareaRef = useRef(null)
+  const cancellationTextareaRef = useRef(null)
+  const rescheduledTextareaRef = useRef(null)
+  const reminderTextareaRef = useRef(null)
 
   const insertVariable = (variable, textareaRef, currentValue, setValue) => {
     if (textareaRef.current) {
-      const textarea = textareaRef.current;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const newValue = currentValue.substring(0, start) + `{${variable}}` + currentValue.substring(end);
-      setValue(newValue);
+      const textarea = textareaRef.current
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const newValue = currentValue.substring(0, start) + `{${variable}}` + currentValue.substring(end)
+      setValue(newValue)
       setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + variable.length + 2, start + variable.length + 2);
-      }, 0);
+        textarea.focus()
+        textarea.setSelectionRange(start + variable.length + 2, start + variable.length + 2)
+      }, 0)
     }
-  };
+  }
 
-  if (!showSettings) return null;
+  if (!showSettings) return null
+
+  const bool = (v, d = false) => (typeof v === "boolean" ? v : d)
+
+  const getType = (key) => {
+    const t = appointmentNotificationTypes?.[key] || {}
+    return {
+      enabled: bool(t.enabled, false),
+      template: t.template || "",
+      sendApp: bool(t.sendApp, false),
+      sendEmail: bool(t.sendEmail, false),
+      hoursBefore: typeof t.hoursBefore === "number" ? t.hoursBefore : 24,
+    }
+  }
+
+  const conf = getType("confirmation")
+  const canc = getType("cancellation")
+  const resch = getType("rescheduled")
+  const reminder = getType("reminder")
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -43,7 +61,7 @@ const SettingsModal = ({
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-medium flex items-center gap-2">
               <Settings className="w-5 h-5" />
-              Communication Settings
+              Messenger Settings
             </h2>
             <button onClick={() => setShowSettings(false)} className="p-2 hover:bg-zinc-700 rounded-lg">
               <X size={16} />
@@ -73,60 +91,55 @@ const SettingsModal = ({
             {settingsTab === "notifications" && (
               <>
                 <div>
-                  <h3 className="text-md font-medium text-gray-300 mb-3">Client Notifications</h3>
-                  <div className="space-y-2 pl-4 border-l-2 border-blue-500">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={settings.emailNotifications}
-                        onChange={(e) => setSettings({ ...settings, emailNotifications: e.target.checked })}
-                        className="rounded border-gray-600 bg-transparent"
-                      />
-                      <span className="text-sm text-gray-300">Email Notifications</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={settings.studioChatNotifications}
-                        onChange={(e) => setSettings({ ...settings, studioChatNotifications: e.target.checked })}
-                        className="rounded border-gray-600 bg-transparent"
-                      />
-                      <span className="text-sm text-gray-300">Studio Chat Notifications</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={settings.memberChatNotifications}
-                        onChange={(e) => setSettings({ ...settings, memberChatNotifications: e.target.checked })}
-                        className="rounded border-gray-600 bg-transparent"
-                      />
-                      <span className="text-sm text-gray-300">Member Chat Notifications</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
                   <h3 className="text-md font-medium text-gray-300 mb-3">Member Notifications</h3>
                   <div className="space-y-4 pl-4 border-l-2 border-green-500">
+                    {/* Birthday Message */}
                     <div>
                       <label className="flex items-center gap-2 mb-2">
                         <input
                           type="checkbox"
-                          checked={settings.birthdayMessageEnabled}
+                          checked={bool(settings?.birthdayMessageEnabled, false)}
                           onChange={(e) => setSettings({ ...settings, birthdayMessageEnabled: e.target.checked })}
                           className="rounded border-gray-600 bg-transparent"
                         />
-                        <span className="text-sm text-gray-300">Birthday Messages</span>
+                        <span className="text-sm text-gray-300">Send automatic Birthday Messages</span>
                       </label>
-                      {settings.birthdayMessageEnabled && (
+                      {bool(settings?.birthdayMessageEnabled, false) && (
                         <div className="ml-6">
-                          <div className="flex gap-2 mb-2">
+                          <div className="flex items-center gap-4 mb-3">
+                            <div className="flex items-center gap-2">
+                              <input
+                                id="birthday-send-app"
+                                type="checkbox"
+                                checked={bool(settings?.birthdaySendApp, false)}
+                                onChange={(e) => setSettings({ ...settings, birthdaySendApp: e.target.checked })}
+                                className="rounded border-gray-600 bg-transparent"
+                              />
+                              <label htmlFor="birthday-send-app" className="text-sm">
+                                App Notification
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                id="birthday-send-email"
+                                type="checkbox"
+                                checked={bool(settings?.birthdaySendEmail, false)}
+                                onChange={(e) => setSettings({ ...settings, birthdaySendEmail: e.target.checked })}
+                                className="rounded border-gray-600 bg-transparent"
+                              />
+                              <label htmlFor="birthday-send-email" className="text-sm">
+                                E-Mail
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 mb-2 flex-wrap">
                             <button
                               onClick={() =>
                                 insertVariable(
                                   "Studio_Name",
                                   birthdayTextareaRef,
-                                  settings.birthdayMessageTemplate,
+                                  settings.birthdayMessageTemplate || "",
                                   (value) => setSettings({ ...settings, birthdayMessageTemplate: value }),
                                 )
                               }
@@ -137,33 +150,47 @@ const SettingsModal = ({
                             <button
                               onClick={() =>
                                 insertVariable(
-                                  "Member_Name",
+                                  "Member_First_Name",
                                   birthdayTextareaRef,
-                                  settings.birthdayMessageTemplate,
+                                  settings.birthdayMessageTemplate || "",
                                   (value) => setSettings({ ...settings, birthdayMessageTemplate: value }),
                                 )
                               }
                               className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
                             >
-                              Member Name
+                              Member First Name
+                            </button>
+                            <button
+                              onClick={() =>
+                                insertVariable(
+                                  "Member_Last_Name",
+                                  birthdayTextareaRef,
+                                  settings.birthdayMessageTemplate || "",
+                                  (value) => setSettings({ ...settings, birthdayMessageTemplate: value }),
+                                )
+                              }
+                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                            >
+                              Member Last Name
                             </button>
                           </div>
                           <textarea
                             ref={birthdayTextareaRef}
-                            value={settings.birthdayMessageTemplate}
+                            value={settings.birthdayMessageTemplate || ""}
                             onChange={(e) => setSettings({ ...settings, birthdayMessageTemplate: e.target.value })}
                             className="w-full bg-[#222222] resize-none text-white rounded-xl px-4 py-2 text-sm h-20"
-                            placeholder="Happy Birthday, {Member_Name}! Best wishes from {Studio_Name}!"
+                            placeholder="Happy Birthday, {Member_First_Name} {Member_Last_Name}! Best wishes from {Studio_Name}!"
                           />
                         </div>
                       )}
                     </div>
 
+                    {/* Appointment Notifications */}
                     <div>
                       <label className="flex items-center gap-2 mb-2">
                         <input
                           type="checkbox"
-                          checked={settings.appointmentNotificationEnabled}
+                          checked={bool(settings?.appointmentNotificationEnabled, false)}
                           onChange={(e) =>
                             setSettings({ ...settings, appointmentNotificationEnabled: e.target.checked })
                           }
@@ -171,36 +198,75 @@ const SettingsModal = ({
                         />
                         <span className="text-sm text-gray-300">Appointment Notifications</span>
                       </label>
-                      {settings.appointmentNotificationEnabled && (
+
+                      {bool(settings?.appointmentNotificationEnabled, false) && (
                         <div className="ml-6 space-y-4">
+                          {/* Confirmation */}
                           <div>
                             <div className="flex items-center gap-2 mb-2">
                               <input
                                 type="checkbox"
-                                checked={appointmentNotificationTypes.confirmation.enabled}
+                                checked={conf.enabled}
                                 onChange={(e) =>
                                   setAppointmentNotificationTypes((prev) => ({
                                     ...prev,
-                                    confirmation: { ...prev.confirmation, enabled: e.target.checked },
+                                    confirmation: { ...(prev.confirmation || {}), enabled: e.target.checked },
                                   }))
                                 }
                                 className="rounded border-gray-600 bg-transparent"
                               />
                               <span className="text-sm font-medium">Appointment Confirmation</span>
                             </div>
-                            {appointmentNotificationTypes.confirmation.enabled && (
+                            {conf.enabled && (
                               <div className="ml-6">
+                                <div className="flex items-center gap-4 mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      id="conf-send-app"
+                                      type="checkbox"
+                                      checked={conf.sendApp}
+                                      onChange={(e) =>
+                                        setAppointmentNotificationTypes((prev) => ({
+                                          ...prev,
+                                          confirmation: { ...(prev.confirmation || {}), sendApp: e.target.checked },
+                                        }))
+                                      }
+                                      className="rounded border-gray-600 bg-transparent"
+                                    />
+                                    <label htmlFor="conf-send-app" className="text-sm">
+                                      App Notification
+                                    </label>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      id="conf-send-email"
+                                      type="checkbox"
+                                      checked={conf.sendEmail}
+                                      onChange={(e) =>
+                                        setAppointmentNotificationTypes((prev) => ({
+                                          ...prev,
+                                          confirmation: { ...(prev.confirmation || {}), sendEmail: e.target.checked },
+                                        }))
+                                      }
+                                      className="rounded border-gray-600 bg-transparent"
+                                    />
+                                    <label htmlFor="conf-send-email" className="text-sm">
+                                      E-Mail
+                                    </label>
+                                  </div>
+                                </div>
+
                                 <div className="flex gap-2 mb-2 flex-wrap">
                                   <button
                                     onClick={() =>
                                       insertVariable(
                                         "Studio_Name",
                                         confirmationTextareaRef,
-                                        appointmentNotificationTypes.confirmation.template,
+                                        appointmentNotificationTypes?.confirmation?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            confirmation: { ...prev.confirmation, template: value },
+                                            confirmation: { ...(prev.confirmation || {}), template: value },
                                           })),
                                       )
                                     }
@@ -211,30 +277,47 @@ const SettingsModal = ({
                                   <button
                                     onClick={() =>
                                       insertVariable(
-                                        "Member_Name",
+                                        "Member_First_Name",
                                         confirmationTextareaRef,
-                                        appointmentNotificationTypes.confirmation.template,
+                                        appointmentNotificationTypes?.confirmation?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            confirmation: { ...prev.confirmation, template: value },
+                                            confirmation: { ...(prev.confirmation || {}), template: value },
                                           })),
                                       )
                                     }
                                     className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
                                   >
-                                    Member Name
+                                    Member First Name
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      insertVariable(
+                                        "Member_Last_Name",
+                                        confirmationTextareaRef,
+                                        appointmentNotificationTypes?.confirmation?.template || "",
+                                        (value) =>
+                                          setAppointmentNotificationTypes((prev) => ({
+                                            ...prev,
+                                            confirmation: { ...(prev.confirmation || {}), template: value },
+                                          })),
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                  >
+                                    Member Last Name
                                   </button>
                                   <button
                                     onClick={() =>
                                       insertVariable(
                                         "Appointment_Type",
                                         confirmationTextareaRef,
-                                        appointmentNotificationTypes.confirmation.template,
+                                        appointmentNotificationTypes?.confirmation?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            confirmation: { ...prev.confirmation, template: value },
+                                            confirmation: { ...(prev.confirmation || {}), template: value },
                                           })),
                                       )
                                     }
@@ -247,11 +330,11 @@ const SettingsModal = ({
                                       insertVariable(
                                         "Booked_Time",
                                         confirmationTextareaRef,
-                                        appointmentNotificationTypes.confirmation.template,
+                                        appointmentNotificationTypes?.confirmation?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            confirmation: { ...prev.confirmation, template: value },
+                                            confirmation: { ...(prev.confirmation || {}), template: value },
                                           })),
                                       )
                                     }
@@ -262,48 +345,86 @@ const SettingsModal = ({
                                 </div>
                                 <textarea
                                   ref={confirmationTextareaRef}
-                                  value={appointmentNotificationTypes.confirmation.template}
+                                  value={appointmentNotificationTypes?.confirmation?.template || ""}
                                   onChange={(e) =>
                                     setAppointmentNotificationTypes((prev) => ({
                                       ...prev,
-                                      confirmation: { ...prev.confirmation, template: e.target.value },
+                                      confirmation: { ...(prev.confirmation || {}), template: e.target.value },
                                     }))
                                   }
                                   className="w-full bg-[#222222] resize-none text-white rounded-xl px-4 py-2 text-sm h-20"
-                                  placeholder="Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}."
+                                  placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been booked for {Booked_Time}."
                                 />
                               </div>
                             )}
                           </div>
 
+                          {/* Cancellation */}
                           <div>
                             <div className="flex items-center gap-2 mb-2">
                               <input
                                 type="checkbox"
-                                checked={appointmentNotificationTypes.cancellation.enabled}
+                                checked={canc.enabled}
                                 onChange={(e) =>
                                   setAppointmentNotificationTypes((prev) => ({
                                     ...prev,
-                                    cancellation: { ...prev.cancellation, enabled: e.target.checked },
+                                    cancellation: { ...(prev.cancellation || {}), enabled: e.target.checked },
                                   }))
                                 }
                                 className="rounded border-gray-600 bg-transparent"
                               />
                               <span className="text-sm font-medium">Appointment Cancellation</span>
                             </div>
-                            {appointmentNotificationTypes.cancellation.enabled && (
+                            {canc.enabled && (
                               <div className="ml-6">
+                                <div className="flex items-center gap-4 mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      id="canc-send-app"
+                                      type="checkbox"
+                                      checked={canc.sendApp}
+                                      onChange={(e) =>
+                                        setAppointmentNotificationTypes((prev) => ({
+                                          ...prev,
+                                          cancellation: { ...(prev.cancellation || {}), sendApp: e.target.checked },
+                                        }))
+                                      }
+                                      className="rounded border-gray-600 bg-transparent"
+                                    />
+                                    <label htmlFor="canc-send-app" className="text-sm">
+                                      App Notification
+                                    </label>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      id="canc-send-email"
+                                      type="checkbox"
+                                      checked={canc.sendEmail}
+                                      onChange={(e) =>
+                                        setAppointmentNotificationTypes((prev) => ({
+                                          ...prev,
+                                          cancellation: { ...(prev.cancellation || {}), sendEmail: e.target.checked },
+                                        }))
+                                      }
+                                      className="rounded border-gray-600 bg-transparent"
+                                    />
+                                    <label htmlFor="canc-send-email" className="text-sm">
+                                      E-Mail
+                                    </label>
+                                  </div>
+                                </div>
+
                                 <div className="flex gap-2 mb-2 flex-wrap">
                                   <button
                                     onClick={() =>
                                       insertVariable(
                                         "Studio_Name",
                                         cancellationTextareaRef,
-                                        appointmentNotificationTypes.cancellation.template,
+                                        appointmentNotificationTypes?.cancellation?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            cancellation: { ...prev.cancellation, template: value },
+                                            cancellation: { ...(prev.cancellation || {}), template: value },
                                           })),
                                       )
                                     }
@@ -314,30 +435,47 @@ const SettingsModal = ({
                                   <button
                                     onClick={() =>
                                       insertVariable(
-                                        "Member_Name",
+                                        "Member_First_Name",
                                         cancellationTextareaRef,
-                                        appointmentNotificationTypes.cancellation.template,
+                                        appointmentNotificationTypes?.cancellation?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            cancellation: { ...prev.cancellation, template: value },
+                                            cancellation: { ...(prev.cancellation || {}), template: value },
                                           })),
                                       )
                                     }
                                     className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
                                   >
-                                    Member Name
+                                    Member First Name
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      insertVariable(
+                                        "Member_Last_Name",
+                                        cancellationTextareaRef,
+                                        appointmentNotificationTypes?.cancellation?.template || "",
+                                        (value) =>
+                                          setAppointmentNotificationTypes((prev) => ({
+                                            ...prev,
+                                            cancellation: { ...(prev.cancellation || {}), template: value },
+                                          })),
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                  >
+                                    Member Last Name
                                   </button>
                                   <button
                                     onClick={() =>
                                       insertVariable(
                                         "Appointment_Type",
                                         cancellationTextareaRef,
-                                        appointmentNotificationTypes.cancellation.template,
+                                        appointmentNotificationTypes?.cancellation?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            cancellation: { ...prev.cancellation, template: value },
+                                            cancellation: { ...(prev.cancellation || {}), template: value },
                                           })),
                                       )
                                     }
@@ -345,51 +483,106 @@ const SettingsModal = ({
                                   >
                                     Appointment Type
                                   </button>
+                                  <button
+                                    onClick={() =>
+                                      insertVariable(
+                                        "Booked_Time",
+                                        cancellationTextareaRef,
+                                        appointmentNotificationTypes?.cancellation?.template || "",
+                                        (value) =>
+                                          setAppointmentNotificationTypes((prev) => ({
+                                            ...prev,
+                                            cancellation: { ...(prev.cancellation || {}), template: value },
+                                          })),
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                  >
+                                    Booked Time
+                                  </button>
                                 </div>
                                 <textarea
                                   ref={cancellationTextareaRef}
-                                  value={appointmentNotificationTypes.cancellation.template}
+                                  value={appointmentNotificationTypes?.cancellation?.template || ""}
                                   onChange={(e) =>
                                     setAppointmentNotificationTypes((prev) => ({
                                       ...prev,
-                                      cancellation: { ...prev.cancellation, template: e.target.value },
+                                      cancellation: { ...(prev.cancellation || {}), template: e.target.value },
                                     }))
                                   }
                                   className="w-full bg-[#222222] resize-none text-white rounded-xl px-4 py-2 text-sm h-20"
-                                  placeholder="Hello {Member_Name}, your {Appointment_Type} has been cancelled."
+                                  placeholder="Hello {Member_First_Name} {Member_Last_Name} , your {Appointment_Type} has been cancelled."
                                 />
                               </div>
                             )}
                           </div>
 
+                          {/* Rescheduled */}
                           <div>
                             <div className="flex items-center gap-2 mb-2">
                               <input
                                 type="checkbox"
-                                checked={appointmentNotificationTypes.rescheduled.enabled}
+                                checked={resch.enabled}
                                 onChange={(e) =>
                                   setAppointmentNotificationTypes((prev) => ({
                                     ...prev,
-                                    rescheduled: { ...prev.rescheduled, enabled: e.target.checked },
+                                    rescheduled: { ...(prev.rescheduled || {}), enabled: e.target.checked },
                                   }))
                                 }
                                 className="rounded border-gray-600 bg-transparent"
                               />
                               <span className="text-sm font-medium">Appointment Rescheduled</span>
                             </div>
-                            {appointmentNotificationTypes.rescheduled.enabled && (
+                            {resch.enabled && (
                               <div className="ml-6">
+                                <div className="flex items-center gap-4 mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      id="resch-send-app"
+                                      type="checkbox"
+                                      checked={resch.sendApp}
+                                      onChange={(e) =>
+                                        setAppointmentNotificationTypes((prev) => ({
+                                          ...prev,
+                                          rescheduled: { ...(prev.rescheduled || {}), sendApp: e.target.checked },
+                                        }))
+                                      }
+                                      className="rounded border-gray-600 bg-transparent"
+                                    />
+                                    <label htmlFor="resch-send-app" className="text-sm">
+                                      App Notification
+                                    </label>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      id="resch-send-email"
+                                      type="checkbox"
+                                      checked={resch.sendEmail}
+                                      onChange={(e) =>
+                                        setAppointmentNotificationTypes((prev) => ({
+                                          ...prev,
+                                          rescheduled: { ...(prev.rescheduled || {}), sendEmail: e.target.checked },
+                                        }))
+                                      }
+                                      className="rounded border-gray-600 bg-transparent"
+                                    />
+                                    <label htmlFor="resch-send-email" className="text-sm">
+                                      E-Mail
+                                    </label>
+                                  </div>
+                                </div>
+
                                 <div className="flex gap-2 mb-2 flex-wrap">
                                   <button
                                     onClick={() =>
                                       insertVariable(
                                         "Studio_Name",
                                         rescheduledTextareaRef,
-                                        appointmentNotificationTypes.rescheduled.template,
+                                        appointmentNotificationTypes?.rescheduled?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            rescheduled: { ...prev.rescheduled, template: value },
+                                            rescheduled: { ...(prev.rescheduled || {}), template: value },
                                           })),
                                       )
                                     }
@@ -400,30 +593,47 @@ const SettingsModal = ({
                                   <button
                                     onClick={() =>
                                       insertVariable(
-                                        "Member_Name",
+                                        "Member_First_Name",
                                         rescheduledTextareaRef,
-                                        appointmentNotificationTypes.rescheduled.template,
+                                        appointmentNotificationTypes?.rescheduled?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            rescheduled: { ...prev.rescheduled, template: value },
+                                            rescheduled: { ...(prev.rescheduled || {}), template: value },
                                           })),
                                       )
                                     }
                                     className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
                                   >
-                                    Member Name
+                                    Member First Name
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      insertVariable(
+                                        "Member_Last_Name",
+                                        rescheduledTextareaRef,
+                                        appointmentNotificationTypes?.rescheduled?.template || "",
+                                        (value) =>
+                                          setAppointmentNotificationTypes((prev) => ({
+                                            ...prev,
+                                            rescheduled: { ...(prev.rescheduled || {}), template: value },
+                                          })),
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                  >
+                                    Member Last Name
                                   </button>
                                   <button
                                     onClick={() =>
                                       insertVariable(
                                         "Appointment_Type",
                                         rescheduledTextareaRef,
-                                        appointmentNotificationTypes.rescheduled.template,
+                                        appointmentNotificationTypes?.rescheduled?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            rescheduled: { ...prev.rescheduled, template: value },
+                                            rescheduled: { ...(prev.rescheduled || {}), template: value },
                                           })),
                                       )
                                     }
@@ -436,11 +646,11 @@ const SettingsModal = ({
                                       insertVariable(
                                         "Booked_Time",
                                         rescheduledTextareaRef,
-                                        appointmentNotificationTypes.rescheduled.template,
+                                        appointmentNotificationTypes?.rescheduled?.template || "",
                                         (value) =>
                                           setAppointmentNotificationTypes((prev) => ({
                                             ...prev,
-                                            rescheduled: { ...prev.rescheduled, template: value },
+                                            rescheduled: { ...(prev.rescheduled || {}), template: value },
                                           })),
                                       )
                                     }
@@ -451,15 +661,198 @@ const SettingsModal = ({
                                 </div>
                                 <textarea
                                   ref={rescheduledTextareaRef}
-                                  value={appointmentNotificationTypes.rescheduled.template}
+                                  value={appointmentNotificationTypes?.rescheduled?.template || ""}
                                   onChange={(e) =>
                                     setAppointmentNotificationTypes((prev) => ({
                                       ...prev,
-                                      rescheduled: { ...prev.rescheduled, template: e.target.value },
+                                      rescheduled: { ...(prev.rescheduled || {}), template: e.target.value },
                                     }))
                                   }
                                   className="w-full bg-[#222222] resize-none text-white rounded-xl px-4 py-2 text-sm h-20"
-                                  placeholder="Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}."
+                                  placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}."
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="border-t border-gray-700 my-4" />
+
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <input
+                                type="checkbox"
+                                checked={reminder.enabled}
+                                onChange={(e) =>
+                                  setAppointmentNotificationTypes((prev) => ({
+                                    ...prev,
+                                    reminder: { ...(prev.reminder || {}), enabled: e.target.checked },
+                                  }))
+                                }
+                                className="rounded border-gray-600 bg-transparent"
+                              />
+                              <span className="text-sm font-medium">Appointment Reminder</span>
+                            </div>
+                            {reminder.enabled && (
+                              <div className="ml-6">
+                                {/* Hours before */}
+                                <div className="flex flex-wrap items-center gap-3 mb-3">
+                                  <label className="text-sm text-gray-300">Send reminder</label>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={reminder.hoursBefore}
+                                    onChange={(e) =>
+                                      setAppointmentNotificationTypes((prev) => ({
+                                        ...prev,
+                                        reminder: {
+                                          ...(prev.reminder || {}),
+                                          hoursBefore: Number.parseInt(e.target.value || "1", 10),
+                                        },
+                                      }))
+                                    }
+                                    className="w-24 bg-[#222222] text-white rounded-lg px-3 py-1 text-sm"
+                                  />
+                                  <span className="text-sm text-gray-300">hours before</span>
+                                </div>
+
+                                {/* Delivery method */}
+                                <div className="flex items-center gap-4 mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      id="reminder-send-app"
+                                      type="checkbox"
+                                      checked={reminder.sendApp}
+                                      onChange={(e) =>
+                                        setAppointmentNotificationTypes((prev) => ({
+                                          ...prev,
+                                          reminder: { ...(prev.reminder || {}), sendApp: e.target.checked },
+                                        }))
+                                      }
+                                      className="rounded border-gray-600 bg-transparent"
+                                    />
+                                    <label htmlFor="reminder-send-app" className="text-sm">
+                                      App Notification
+                                    </label>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      id="reminder-send-email"
+                                      type="checkbox"
+                                      checked={reminder.sendEmail}
+                                      onChange={(e) =>
+                                        setAppointmentNotificationTypes((prev) => ({
+                                          ...prev,
+                                          reminder: { ...(prev.reminder || {}), sendEmail: e.target.checked },
+                                        }))
+                                      }
+                                      className="rounded border-gray-600 bg-transparent"
+                                    />
+                                    <label htmlFor="reminder-send-email" className="text-sm">
+                                      E-Mail
+                                    </label>
+                                  </div>
+                                </div>
+
+                                {/* Variables */}
+                                <div className="flex gap-2 mb-2 flex-wrap">
+                                  <button
+                                    onClick={() =>
+                                      insertVariable(
+                                        "Studio_Name",
+                                        reminderTextareaRef,
+                                        appointmentNotificationTypes?.reminder?.template || "",
+                                        (value) =>
+                                          setAppointmentNotificationTypes((prev) => ({
+                                            ...prev,
+                                            reminder: { ...(prev.reminder || {}), template: value },
+                                          })),
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                  >
+                                    Studio Name
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      insertVariable(
+                                        "Member_First_Name",
+                                        reminderTextareaRef,
+                                        appointmentNotificationTypes?.reminder?.template || "",
+                                        (value) =>
+                                          setAppointmentNotificationTypes((prev) => ({
+                                            ...prev,
+                                            reminder: { ...(prev.reminder || {}), template: value },
+                                          })),
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                  >
+                                    Member First Name
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      insertVariable(
+                                        "Member_Last_Name",
+                                        reminderTextareaRef,
+                                        appointmentNotificationTypes?.reminder?.template || "",
+                                        (value) =>
+                                          setAppointmentNotificationTypes((prev) => ({
+                                            ...prev,
+                                            reminder: { ...(prev.reminder || {}), template: value },
+                                          })),
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                  >
+                                    Member Last Name
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      insertVariable(
+                                        "Appointment_Type",
+                                        reminderTextareaRef,
+                                        appointmentNotificationTypes?.reminder?.template || "",
+                                        (value) =>
+                                          setAppointmentNotificationTypes((prev) => ({
+                                            ...prev,
+                                            reminder: { ...(prev.reminder || {}), template: value },
+                                          })),
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                  >
+                                    Appointment Type
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      insertVariable(
+                                        "Booked_Time",
+                                        reminderTextareaRef,
+                                        appointmentNotificationTypes?.reminder?.template || "",
+                                        (value) =>
+                                          setAppointmentNotificationTypes((prev) => ({
+                                            ...prev,
+                                            reminder: { ...(prev.reminder || {}), template: value },
+                                          })),
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                  >
+                                    Booked Time
+                                  </button>
+                                </div>
+
+                                <textarea
+                                  ref={reminderTextareaRef}
+                                  value={appointmentNotificationTypes?.reminder?.template || ""}
+                                  onChange={(e) =>
+                                    setAppointmentNotificationTypes((prev) => ({
+                                      ...prev,
+                                      reminder: { ...(prev.reminder || {}), template: e.target.value },
+                                    }))
+                                  }
+                                  className="w-full bg-[#222222] resize-none text-white rounded-xl px-4 py-2 text-sm h-20"
+                                  placeholder="Hello {Member_First_Name} {Member_Last_Name}, this is a reminder for your {Appointment_Type} at {Booked_Time}."
                                 />
                               </div>
                             )}
@@ -476,13 +869,21 @@ const SettingsModal = ({
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Auto-Archive Duration (days)
+                    <span className="inline-flex items-center gap-2">
+                      Auto-Archive Duration (days)
+                      <span
+                        className="inline-flex items-center justify-center align-middle"
+                        title="This only archives member chats automatically after the defined number of days. Chats are not lost and can be restored anytime."
+                      >
+                        <Info className="w-4 h-4 text-gray-400" />
+                      </span>
+                    </span>
                   </label>
                   <input
                     type="number"
                     value={settings.autoArchiveDuration}
                     onChange={(e) =>
-                      setSettings({ ...settings, autoArchiveDuration: Number.parseInt(e.target.value) })
+                      setSettings({ ...settings, autoArchiveDuration: Number.parseInt(e.target.value) || 1 })
                     }
                     className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
                     min="1"
@@ -503,7 +904,7 @@ const SettingsModal = ({
                     type="number"
                     placeholder="SMTP Port"
                     value={settings.smtpPort}
-                    onChange={(e) => setSettings({ ...settings, smtpPort: Number(e.target.value) })}
+                    onChange={(e) => setSettings({ ...settings, smtpPort: Number(e.target.value) || 0 })}
                     className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm mb-2"
                   />
                   <input
@@ -520,32 +921,6 @@ const SettingsModal = ({
                     onChange={(e) => setSettings({ ...settings, smtpPass: e.target.value })}
                     className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Default Broadcast Distribution
-                  </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={settings.broadcastEmail}
-                        onChange={(e) => setSettings({ ...settings, broadcastEmail: e.target.checked })}
-                        className="rounded border-gray-600 bg-transparent"
-                      />
-                      <span className="text-sm text-gray-300">Email</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={settings.broadcastChat}
-                        onChange={(e) => setSettings({ ...settings, broadcastChat: e.target.checked })}
-                        className="rounded border-gray-600 bg-transparent"
-                      />
-                      <span className="text-sm text-gray-300">Chat Notification</span>
-                    </label>
-                  </div>
                 </div>
 
                 <div>
@@ -577,7 +952,7 @@ const SettingsModal = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default SettingsModal

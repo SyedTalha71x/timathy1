@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Clock, AlertTriangle, Info, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -14,9 +14,16 @@ const ViewDetailsModal = ({
   redirectToContract,
   handleEditMember,
   setEditModalTabMain,
-  DefaultAvatar1
+  DefaultAvatar1,
+  initialTab = "details"
 }) => {
   const [activeTab, setActiveTab] = useState("details");
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   if (!isOpen || !selectedMemberMain) return null;
 
@@ -45,31 +52,28 @@ const ViewDetailsModal = ({
           <div className="flex border-b border-gray-700 mt-4 -mb-4">
             <button
               onClick={() => setActiveTab("details")}
-              className={`px-4 py-2 text-sm font-medium ${
-                activeTab === "details"
+              className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
                   ? "text-blue-400 border-b-2 border-blue-400"
                   : "text-gray-400 hover:text-white"
-              }`}
+                }`}
             >
               Details
             </button>
             <button
               onClick={() => setActiveTab("note")}
-              className={`px-4 py-2 text-sm font-medium ${
-                activeTab === "note" 
-                  ? "text-blue-400 border-b-2 border-blue-400" 
+              className={`px-4 py-2 text-sm font-medium ${activeTab === "note"
+                  ? "text-blue-400 border-b-2 border-blue-400"
                   : "text-gray-400 hover:text-white"
-              }`}
+                }`}
             >
               Special Note
             </button>
             <button
               onClick={() => setActiveTab("relations")}
-              className={`px-4 py-2 text-sm font-medium ${
-                activeTab === "relations"
+              className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
                   ? "text-blue-400 border-b-2 border-blue-400"
                   : "text-gray-400 hover:text-white"
-              }`}
+                }`}
             >
               Relations
             </button>
@@ -137,9 +141,20 @@ const ViewDetailsModal = ({
                     <p className="text-sm">{selectedMemberMain.joinDate}</p>
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-400">Address</p>
-                  <p className="text-sm">{`${selectedMemberMain.street}, ${selectedMemberMain.zipCode} ${selectedMemberMain.city}`}</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+
+                
+                  <div>
+
+                    <p className="text-sm text-gray-400">Address</p>
+                    <p className="text-sm">{`${selectedMemberMain.street}, ${selectedMemberMain.zipCode} ${selectedMemberMain.city}`}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Gender</p>
+                    <p className="text-sm">{selectedMemberMain?.gender || ""}</p>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
@@ -216,8 +231,7 @@ const ViewDetailsModal = ({
                             <div className="w-0.5 h-6 md:h-8 bg-gray-600"></div>
                             {/* Category header */}
                             <div
-                              className={`px-2 py-1 md:px-3 md:py-1 rounded-lg text-xs md:text-sm font-medium capitalize ${
-                                category === "family"
+                              className={`px-2 py-1 md:px-3 md:py-1 rounded-lg text-xs md:text-sm font-medium capitalize ${category === "family"
                                   ? "bg-yellow-600 text-yellow-100"
                                   : category === "friendship"
                                     ? "bg-green-600 text-green-100"
@@ -226,7 +240,7 @@ const ViewDetailsModal = ({
                                       : category === "work"
                                         ? "bg-blue-600 text-blue-100"
                                         : "bg-gray-600 text-gray-100"
-                              }`}
+                                }`}
                             >
                               {category}
                             </div>
@@ -235,11 +249,10 @@ const ViewDetailsModal = ({
                               {relations.map((relation) => (
                                 <div
                                   key={relation.id}
-                                  className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[100px] md:min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${
-                                    relation.type === "member" || relation.type === "lead"
+                                  className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[100px] md:min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${relation.type === "member" || relation.type === "lead"
                                       ? "border border-blue-500/30"
                                       : ""
-                                  }`}
+                                    }`}
                                   onClick={() => {
                                     if (relation.type === "member" || relation.type === "lead") {
                                       toast.info(`Clicked on ${relation.name} (${relation.type})`);
@@ -249,13 +262,12 @@ const ViewDetailsModal = ({
                                   <div className="text-white text-xs md:text-sm font-medium">{relation.name}</div>
                                   <div className="text-gray-400 text-xs">({relation.relation})</div>
                                   <div
-                                    className={`text-xs mt-1 px-1 py-0.5 rounded ${
-                                      relation.type === "member"
+                                    className={`text-xs mt-1 px-1 py-0.5 rounded ${relation.type === "member"
                                         ? "bg-green-600 text-green-100"
                                         : relation.type === "lead"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                    }`}
+                                      }`}
                                   >
                                     {relation.type}
                                   </div>
@@ -271,7 +283,7 @@ const ViewDetailsModal = ({
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Relations List */}
                 <div className="bg-[#161616] rounded-xl p-4 md:p-6">
                   <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
@@ -284,11 +296,10 @@ const ViewDetailsModal = ({
                             relations.map((relation) => (
                               <div
                                 key={relation.id}
-                                className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${
-                                  relation.type === "member" || relation.type === "lead"
+                                className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
                                     ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
                                     : ""
-                                }`}
+                                  }`}
                                 onClick={() => {
                                   if (relation.type === "member" || relation.type === "lead") {
                                     toast.info(`Clicked on ${relation.name} (${relation.type})`);
@@ -299,13 +310,12 @@ const ViewDetailsModal = ({
                                   <span className="text-white font-medium text-sm md:text-base">{relation.name}</span>
                                   <span className="text-gray-400 ml-2 text-sm">- {relation.relation}</span>
                                   <span
-                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                      relation.type === "member"
+                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
                                         ? "bg-green-600 text-green-100"
                                         : relation.type === "lead"
                                           ? "bg-blue-600 text-blue-100"
                                           : "bg-gray-600 text-gray-100"
-                                    }`}
+                                      }`}
                                   >
                                     {relation.type}
                                   </span>
@@ -324,7 +334,7 @@ const ViewDetailsModal = ({
             )}
           </div>
         </div>
-        
+
         {/* Footer - Fixed for relations tab only */}
         {activeTab === "relations" && (
           <div className="flex-shrink-0 bg-[#1C1C1C] p-4 md:p-6 border-t border-gray-700">
@@ -336,7 +346,7 @@ const ViewDetailsModal = ({
             </button>
           </div>
         )}
-        
+
         {/* Footer for details tab */}
         {activeTab === "details" && (
           <div className="flex-shrink-0 p-4 md:p-6 border-t border-gray-700">
