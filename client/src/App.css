@@ -23,23 +23,7 @@ body {
   overflow-x: hidden;
 }
 
-.fixed.inset-0 {
-  z-index: 2147483646 !important; /* overlay */
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-}
 
-.fixed.inset-0 > div {
-  z-index: 2147483647 !important; /* modal content */
-  position: relative !important;
-}
-
-.main-content-container {
-  min-height: calc(100vh - 4rem);
-}
 
 input[type="date"] {
   color-scheme: dark;
