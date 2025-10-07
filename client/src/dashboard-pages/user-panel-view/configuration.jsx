@@ -58,6 +58,8 @@ import { PERMISSION_GROUPS } from "../../utils/user-panel-states/configuration-s
 import { QRCode, Typography } from "antd"
 import { QrcodeOutlined, ImportOutlined } from "@ant-design/icons"
 
+import ContractBuilder from "../../components/user-panel-components/configuration-components/ContractBuilder"
+
 const { Title } = Typography
 
 
@@ -1142,120 +1144,143 @@ const [memberQRCodeUrl, setMemberQRCodeUrl] = useState("")
       </div>
     </Panel>
     <Panel header="Staff Roles" key="1" className="bg-[#252525]">
-      <div className="space-y-4">
-        {roles.map((role, index) => (
-          <div key={index} className="flex flex-col gap-4 p-3 border border-[#303030] rounded-lg">
-            {/* Role Name and Color Row */}
-            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-              <Input
-                placeholder="Role Name"
-                value={role.name}
-                onChange={(e) => {
-                  const updatedRoles = [...roles]
-                  updatedRoles[index].name = e.target.value
-                  setRoles(updatedRoles)
-                }}
-                className="!w-full sm:!w-48 !py-3.5"
-                style={inputStyle}
-              />
+  <div className="space-y-4">
+    {roles.map((role, index) => (
+      <div
+        key={index}
+        className="flex flex-col gap-4 p-3 border border-[#303030] rounded-lg"
+      >
+        {/* Role Name and Color Row */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <Input
+            placeholder="Role Name"
+            value={role.name}
+            onChange={(e) => {
+              const updatedRoles = [...roles]
+              updatedRoles[index].name = e.target.value
+              setRoles(updatedRoles)
+            }}
+            className="!w-full sm:!w-48 !py-3.5"
+            style={inputStyle}
+          />
 
-              {/* Color Picker */}
-              <div className="flex items-center gap-2">
-                <ColorPicker
-                  value={role.color}
-                  onChange={(color) => {
-                    const updatedRoles = [...roles]
-                    updatedRoles[index].color = color
-                    setRoles(updatedRoles)
-                  }}
-                />
-                <Tooltip title="Role display color">
-                  <InfoCircleOutlined style={tooltipStyle} />
-                </Tooltip>
-              </div>
+          {/* Color Picker */}
+          <div className="flex items-center gap-2">
+            <ColorPicker
+              value={role.color}
+              onChange={(color) => {
+                const updatedRoles = [...roles]
+                updatedRoles[index].color = color
+                setRoles(updatedRoles)
+              }}
+            />
+            <Tooltip title="Role display color">
+              <InfoCircleOutlined style={tooltipStyle} />
+            </Tooltip>
+          </div>
 
-              {/* Remove Button */}
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => setRoles(roles.filter((_, i) => i !== index))}
-                className="w-full sm:w-auto mt-2 sm:mt-0"
-                style={buttonStyle}
-              >
-                Remove
-              </Button>
-            </div>
+          {/* Remove Button */}
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => setRoles(roles.filter((_, i) => i !== index))}
+            className="w-full sm:w-auto mt-2 sm:mt-0"
+            style={buttonStyle}
+          >
+            Remove
+          </Button>
+        </div>
 
-            {/* Permissions Transfer - Responsive */}
-            <div className="w-full">
-              <Transfer
-                dataSource={PERMISSION_DATA}
-                targetKeys={role.permissions}
-                onChange={(nextTargetKeys) => {
-                  const updatedRoles = [...roles]
-                  updatedRoles[index].permissions = nextTargetKeys
-                  setRoles(updatedRoles)
-                }}
-                render={(item) => (
-                  <span style={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: 8, 
-                    width: "100%", 
+        {/* Permissions Transfer - Fully Responsive */}
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-[600px] sm:min-w-0">
+            <Transfer
+              dataSource={PERMISSION_DATA}
+              targetKeys={role.permissions}
+              onChange={(nextTargetKeys) => {
+                const updatedRoles = [...roles]
+                updatedRoles[index].permissions = nextTargetKeys
+                setRoles(updatedRoles)
+              }}
+              render={(item) => (
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    width: "100%",
                     color: "#ffffff",
                     fontSize: "12px",
-                    padding: "4px 0"
-                  }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", width: 16 }}>
-                      {GROUP_ICONS[item.iconName]}
-                    </span>
-                    <span
-                      style={{ 
-                        flex: 1, 
-                        overflow: "hidden", 
-                        textOverflow: "ellipsis", 
-                        whiteSpace: "nowrap", 
-                        color: "#ffffff" 
-                      }}
-                    >
-                      {item.title}
-                    </span>
-                    <Tag color="blue" style={{ marginLeft: 4, fontSize: "10px", padding: "0 4px" }}>
-                      {item.group}
-                    </Tag>
+                    padding: "4px 0",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      width: 16,
+                    }}
+                  >
+                    {GROUP_ICONS[item.iconName]}
                   </span>
-                )}
-                titles={["Available Permissions", "Assigned Permissions"]}
-                showSearch
-                filterOption={(inputValue, item) =>
-                  item.title.toLowerCase().includes(inputValue.toLowerCase()) ||
-                  item.group.toLowerCase().includes(inputValue.toLowerCase())
-                }
-                listStyle={{
-                  width: "100%",
-                  height: 280,
-                }}
-                className="!w-full responsive-transfer"
-                operations={["Assign", "Remove"]}
-                selectAllLabels={[
-                  (selectedCount, totalCount) => `Available ${selectedCount}/${totalCount}`,
-                  (selectedCount, totalCount) => `Assigned ${selectedCount}/${totalCount}`
-                ]}
-              />
-            </div>
+                  <span
+                    style={{
+                      flex: 1,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      color: "#ffffff",
+                    }}
+                  >
+                    {item.title}
+                  </span>
+                  <Tag
+                    color="blue"
+                    style={{
+                      marginLeft: 4,
+                      fontSize: "10px",
+                      padding: "0 4px",
+                    }}
+                  >
+                    {item.group}
+                  </Tag>
+                </span>
+              )}
+              titles={["Available Permissions", "Assigned Permissions"]}
+              showSearch
+              filterOption={(inputValue, item) =>
+                item.title.toLowerCase().includes(inputValue.toLowerCase()) ||
+                item.group.toLowerCase().includes(inputValue.toLowerCase())
+              }
+              listStyle={{
+                width: "calc(50% - 22px)",
+                height: 280,
+              }}
+              className="!w-full responsive-transfer"
+              operations={["Assign", "Remove"]}
+              selectAllLabels={[
+                (selectedCount, totalCount) =>
+                  `Available ${selectedCount}/${totalCount}`,
+                (selectedCount, totalCount) =>
+                  `Assigned ${selectedCount}/${totalCount}`,
+              ]}
+            />
           </div>
-        ))}
-        <Button
-          type="dashed"
-          onClick={handleAddRole}
-          icon={<PlusOutlined />}
-          className="w-full sm:w-auto"
-          style={buttonStyle}
-        >
-          Add Role
-        </Button>
+        </div>
       </div>
-    </Panel>
+    ))}
+
+    <Button
+      type="dashed"
+      onClick={handleAddRole}
+      icon={<PlusOutlined />}
+      className="w-full sm:w-auto"
+      style={buttonStyle}
+    >
+      Add Role
+    </Button>
+  </div>
+</Panel>
   </Collapse>
 </Panel>
             <Panel header="Member Management" key="4" className="bg-[#202020]">
@@ -1634,7 +1659,7 @@ const [memberQRCodeUrl, setMemberQRCodeUrl] = useState("")
               </div>
             </Panel>
             <Panel header="Contract Form" key="2" className="bg-[#202020]">
-              <div className="space-y-4">
+              {/* <div className="space-y-4">
                 {contractSections.map((section, index) => (
                   <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
                     <Panel header={section.title || "New Section"} key="1" className="bg-[#252525]">
@@ -1723,7 +1748,8 @@ const [memberQRCodeUrl, setMemberQRCodeUrl] = useState("")
                 <Button type="dashed" onClick={handleAddContractSection} icon={<PlusOutlined />} style={buttonStyle}>
                   Add Contract Section
                 </Button>
-              </div>
+              </div> */}
+              <ContractBuilder/>
             </Panel>
             <Panel header="Contract Pause Reasons" key="3" className="bg-[#202020]">
               <div className="space-y-4">

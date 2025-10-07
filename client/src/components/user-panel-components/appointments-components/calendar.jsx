@@ -1292,6 +1292,8 @@ export default function Calendar({
               eventClick={handleEventClick}
               eventResize={handleEventResize}
               select={handleDateSelect}
+              slotEventOverlap={false}
+              eventOverlap={false}
               eventDragStart={(info) => {
                 // Hide tooltip when drag starts
                 hideTooltip()
@@ -2298,11 +2300,11 @@ export default function Calendar({
         .blocked-appointment-bg {
   background-image: linear-gradient(
     -45deg,
-    rgba(255, 0, 0, 0.1) 25%,
+    rgba(255, 255, 255, 0.3) 25%,
     transparent 25%,
     transparent 50%,
-    rgba(255, 0, 0, 0.1) 50%,
-    rgba(255, 0, 0, 0.1) 75%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.3) 75%,
     transparent 75%,
     transparent
   );
