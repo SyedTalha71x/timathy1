@@ -4,7 +4,7 @@
 import { X } from "lucide-react"
 import { toast } from "react-hot-toast"
 
-const NotifyMemberModal = ({
+const NotifyMemberModalMain = ({
   isOpen,
   onClose,
   notifyAction,
@@ -70,4 +70,4 @@ const NotifyMemberModal = ({
   )
 }
 
-export default NotifyMemberModal
+export default NotifyMemberModalMain

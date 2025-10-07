@@ -15,17 +15,17 @@ import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialTrainingModal from "./add-trial-training"
 import EditAppointmentModalMain from "./selected-appointment-modal"
-import MemberOverviewModal from "./calendar-components/MemberOverviewModal"
-import MemberDetailsModal from "./calendar-components/MemberDetailsModal"
-import AppointmentModal from "./calendar-components/AppointmentModal"
-import ContingentModal from "./calendar-components/ContingentModal"
-import HistoryModal from "./calendar-components/HistoryModal"
-import TypeSelectionModal from "./calendar-components/TypeSelectionModal"
-// </CHANGE> ensure imports resolve to our local modals (paths may differ from original)
+import HistoryModalMain from "./calendar-components/HistoryModalMain"
 
-import AppointmentActionModal from "./calendar-components/AppointmentActionModal"
-import NotifyMemberModal from "./calendar-components/NotifyMemberModal"
-import EditBlockedSlotModal from "./calendar-components/EditBlockTimeSlot"
+
+import MemberOverviewModalMain from "./calendar-components/MemberOverviewModalMain"
+import MemberDetailsModalMain from "./calendar-components/MemberDetailsModalMain"
+import AppointmentActionModalMain from "./calendar-components/AppointmentActionModalMain"
+import NotifyMemberModalMain from "./calendar-components/NotifyMemberModalMain"
+import TypeSelectionModalMain from "./calendar-components/TypeSelectionModalMain"
+import ContingentModalMain from "./calendar-components/ContingentModalMain"
+import AppointmentModalMain from "./calendar-components/AppointmentModalMain"
+import EditBlockedSlotModalMain from "./calendar-components/EditBlockedSlotModalMain"
 
 
 export default function Calendar({
@@ -1439,7 +1439,7 @@ export default function Calendar({
         </div>
       </div>
 
-      <MemberOverviewModal
+      <MemberOverviewModalMain
         isOpen={isMemberOverviewModalOpen}
         selectedMember={selectedMember}
         calculateAge={calculateAge}
@@ -1452,7 +1452,7 @@ export default function Calendar({
         setIsMemberOverviewModalOpen={setIsMemberOverviewModalOpen}
         setSelectedMember={setSelectedMember}
       />
-      <MemberDetailsModal
+      <MemberDetailsModalMain
         isOpen={isMemberDetailsModalOpen}
         selectedMember={selectedMember}
         setIsOpen={setIsMemberDetailsModalOpen}
@@ -1464,7 +1464,7 @@ export default function Calendar({
         redirectToContract={redirectToContract}
         memberRelations={memberRelations}
       />
-      <AppointmentModal
+      <AppointmentModalMain
         showModal={showAppointmentModal}
         selectedMember={selectedMemberForAppointments}
         setShowModal={setShowAppointmentModal}
@@ -1478,7 +1478,7 @@ export default function Calendar({
         handleManageContingent={handleManageContingent}
         handleCreateNewAppointment={handleCreateNewAppointment}
       />
-      <ContingentModal
+      <ContingentModalMain
         showContingentModal={showContingentModal}
         setShowContingentModal={setShowContingentModal}
         currentBillingPeriod={currentBillingPeriod}
@@ -1486,7 +1486,7 @@ export default function Calendar({
         setTempContingent={setTempContingent}
         handleSaveContingent={handleSaveContingent}
       />
-      <HistoryModal
+      <HistoryModalMain
         showHistoryModal={showHistoryModal}
         setShowHistoryModal={setShowHistoryModal}
         selectedMember={selectedMember}
@@ -1555,12 +1555,12 @@ export default function Calendar({
           setIsBlockModalOpen(false)
         }}
       />
-      <TypeSelectionModal
+      <TypeSelectionModalMain
         isOpen={isTypeSelectionOpen}
         onClose={() => setIsTypeSelectionOpen(false)}
         onSelect={handleTypeSelection}
       />
-      <AppointmentActionModal
+      <AppointmentActionModalMain
         isOpen={isAppointmentActionModalOpen}
         appointment={selectedAppointment}
         onClose={() => setIsAppointmentActionModalOpen(false)}
@@ -1568,7 +1568,7 @@ export default function Calendar({
         onCancel={handleCancelAppointment}
         onViewMember={handleViewMemberDetails}
       />
-      <NotifyMemberModal
+      <NotifyMemberModalMain
         isOpen={isNotifyMemberOpen}
         onClose={() => setIsNotifyMemberOpen(false)}
         notifyAction={notifyAction}
@@ -1577,9 +1577,9 @@ export default function Calendar({
         handleNotifyMember={handleNotifyMember}
         setPendingEventInfo={setPendingEventInfo}
       />
-      {/* </CHANGE> render the blocked edit modal and handle submit to update the slot */}
+
       {isEditBlockedModalOpen && blockedEditData && (
-        <EditBlockedSlotModal
+        <EditBlockedSlotModalMain
           isOpen={isEditBlockedModalOpen}
           onClose={() => setIsEditBlockedModalOpen(false)}
           initialBlock={blockedEditData}

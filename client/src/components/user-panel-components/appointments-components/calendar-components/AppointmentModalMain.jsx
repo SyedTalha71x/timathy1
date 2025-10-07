@@ -5,7 +5,7 @@
 import React from "react"
 import { X, Edit3, Trash2 } from "lucide-react"
 
-const AppointmentModal = ({
+const AppointmentModalMain = ({
   showModal,
   selectedMember,
   setShowModal,
@@ -147,4 +147,4 @@ const AppointmentModal = ({
   )
 }
 
-export default AppointmentModal
+export default AppointmentModalMain

@@ -5,7 +5,7 @@ import React from "react"
 import { X, FileText } from "lucide-react"
 import DefaultAvatar from "../../../../../public/gray-avatar-fotor-20250912192528.png"; 
 
-const MemberDetailsModal = ({
+const MemberDetailsModalMain = ({
   isOpen,
   selectedMember,
   setIsOpen,
@@ -218,4 +218,4 @@ const MemberDetailsModal = ({
   )
 }
 
-export default MemberDetailsModal
+export default MemberDetailsModalMain

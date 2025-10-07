@@ -3,7 +3,7 @@
 import React from "react";
 import { X } from "lucide-react";
 
-const TypeSelectionModal = ({ isOpen, onClose, onSelect }) => {
+const TypeSelectionModalMain = ({ isOpen, onClose, onSelect }) => {
   if (!isOpen) return null;
 
   const handleClick = (type) => {
@@ -55,4 +55,4 @@ const TypeSelectionModal = ({ isOpen, onClose, onSelect }) => {
   );
 };
 
-export default TypeSelectionModal;
+export default TypeSelectionModalMain;

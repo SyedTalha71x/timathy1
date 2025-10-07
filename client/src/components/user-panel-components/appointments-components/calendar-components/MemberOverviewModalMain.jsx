@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import DefaultAvatar from "../../../../../public/gray-avatar-fotor-20250912192528.png";
 
-const MemberOverviewModal = ({
+const MemberOverviewModalMain = ({
   isOpen,
   selectedMember,
   calculateAge,
@@ -196,4 +196,4 @@ const MemberOverviewModal = ({
   );
 };
 
-export default MemberOverviewModal;
+export default MemberOverviewModalMain;

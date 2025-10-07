@@ -3,7 +3,7 @@
 import React from "react";
 import { X, Info } from "lucide-react";
 
-const ContingentModal = ({
+const ContingentModalMain = ({
   showContingentModal,
   setShowContingentModal,
   currentBillingPeriod,
@@ -100,4 +100,4 @@ const ContingentModal = ({
   );
 };
 
-export default ContingentModal;
+export default ContingentModalMain;

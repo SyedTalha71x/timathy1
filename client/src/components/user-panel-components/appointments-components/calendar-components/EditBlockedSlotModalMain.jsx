@@ -6,7 +6,7 @@ import { X } from "lucide-react"
   new modal for editing blocked time slots
   Derived from BlockAppointmentModal, but initializes from initialBlock and says "Save Changes".
 */
-const EditBlockedSlotModal = ({ isOpen, onClose, initialBlock, onSubmit, appointmentTypesMain }) => {
+const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, appointmentTypesMain }) => {
   const [blockData, setBlockData] = useState({
     startDate: "",
     endDate: "",
@@ -202,4 +202,4 @@ const EditBlockedSlotModal = ({ isOpen, onClose, initialBlock, onSubmit, appoint
   )
 }
 
-export default EditBlockedSlotModal
+export default EditBlockedSlotModalMain

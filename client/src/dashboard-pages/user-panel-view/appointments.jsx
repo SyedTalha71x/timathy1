@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronDown,
   ChevronUp,
+  Dumbbell,
 } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
@@ -52,6 +53,8 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import { createPortal } from "react-dom"
+import TrainingPlansModalMain from "../../components/user-panel-components/appointments-components/training-plan-modal"
+import MemberOverviewModalMain from "../../components/user-panel-components/appointments-components/calendar-components/MemberOverviewModalMain"
 
 
 const SpecialNotePortal = ({ children, isOpen }) => {
@@ -69,6 +72,7 @@ export default function Appointments() {
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [selectedDate, setSelectedDate] = useState(null)
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
+
 
   const [selectedAppointmentMain, setSelectedAppointmentMain] = useState(null)
 
@@ -91,6 +95,17 @@ export default function Appointments() {
   // FIXED: Added collapsible states for filters and upcoming appointments
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false)
   const [isUpcomingCollapsed, setIsUpcomingCollapsed] = useState(false)
+
+  // new stats for fumbell and member overview modals
+
+  const [isTrainingPlanModalOpenMain, setIsTrainingPlanModalOpenMain] = useState(false)
+  const [selectedUserForTrainingPlanMain, setSelectedUserForTrainingPlanMain] = useState(null)
+  const [memberTrainingPlansMain, setMemberTrainingPlansMain] = useState({})
+  const [isMemberDetailsModalOpenMain, setIsMemberDetailsModalOpenMain] = useState(false)
+  const [isMemberOverviewModalOpenMain, setIsMemberOverviewModalOpenMain] = useState(false)
+  const [activeTabMain, setActiveTabMain] = useState("details")
+  const [selectedMemberForAppointmentsMain, setSelectedMemberForAppointmentsMain] = useState(null)
+
 
   // Filter state - Added Cancelled Appointments and Past Appointments
   const [appointmentFilters, setAppointmentFilters] = useState({
@@ -120,6 +135,37 @@ export default function Appointments() {
   const [filteredAppointments, setFilteredAppointments] = useState(appointmentsMain)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
+
+  const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
+    {
+      id: 1,
+      name: "Beginner Full Body",
+      description: "Complete full body workout for beginners",
+      duration: "4 weeks",
+      difficulty: "Beginner",
+    },
+    {
+      id: 2,
+      name: "Advanced Strength Training",
+      description: "High intensity strength building program",
+      duration: "8 weeks",
+      difficulty: "Advanced",
+    },
+    {
+      id: 3,
+      name: "Weight Loss Circuit",
+      description: "Fat burning circuit training program",
+      duration: "6 weeks",
+      difficulty: "Intermediate",
+    },
+    {
+      id: 4,
+      name: "Muscle Building Split",
+      description: "Targeted muscle building program",
+      duration: "12 weeks",
+      difficulty: "Intermediate",
+    },
+  ])
 
   useEffect(() => {
     applyFilters()
@@ -217,9 +263,18 @@ export default function Appointments() {
     return `${day}/${month}/${year}`
   }
 
-  const handleViewMembersDetail = () => {
-    toast.success("Member view modal functionality will be later implemented by backend")
+  const handleViewMemberDetailsMain = () => {
+    setIsAppointmentActionModalOpen(false)
+    // Find member by name from the appointment
+    const member = appointmentsMain.find((m) => m.title === selectedAppointment?.name)
+    if (member) {
+      setSelectedMemberMain(member)
+      setIsMemberOverviewModalOpenMain(true) // Show overview first instead of details
+    } else {
+      toast.error("Member details not found")
+    }
   }
+
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
       id: appointmentsMain.length + 1,
@@ -270,6 +325,10 @@ export default function Appointments() {
       toast.success("Appointment cancelled successfully")
       toast.success("Member notified successfully")
     }
+    else {
+      toast.success("Appointment cancelled successfully")
+      toast.success("Member not notified")
+    }
   }
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase()
@@ -315,12 +374,12 @@ export default function Appointments() {
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
-  
+
       const handleNoteClick = (e) => {
         e.stopPropagation()
         setActiveNoteIdMain(activeNoteIdMain === memberId ? null : memberId)
       }
-  
+
       return (
         <div className="relative">
           <div
@@ -346,7 +405,7 @@ export default function Appointments() {
                   const rect = trigger.getBoundingClientRect();
                   const spaceBelow = window.innerHeight - rect.bottom;
                   const popoverHeight = 200; // approximate height
-                  
+
                   // If not enough space below, show above
                   if (spaceBelow < popoverHeight && rect.top > popoverHeight) {
                     return `${rect.top - popoverHeight - 8}px`;
@@ -358,14 +417,14 @@ export default function Appointments() {
                   if (!trigger) return '50%';
                   const rect = trigger.getBoundingClientRect();
                   const popoverWidth = 288; // w-72 = 288px
-                  
+
                   // Keep within viewport
                   let left = rect.left;
                   if (left + popoverWidth > window.innerWidth) {
                     left = window.innerWidth - popoverWidth - 16;
                   }
                   if (left < 16) left = 16;
-                  
+
                   return `${left}px`;
                 })(),
               }}
@@ -416,6 +475,38 @@ export default function Appointments() {
     },
     [activeNoteIdMain, setActiveNoteIdMain],
   )
+
+  const handleDumbbellClickMain = (appointment, e) => {
+    e.stopPropagation()
+    setSelectedUserForTrainingPlanMain(appointment)
+    setIsTrainingPlanModalOpenMain(true)
+  }
+
+  const handleAssignTrainingPlanMain = (memberId, planId) => {
+    const plan = availableTrainingPlansMain.find((p) => p.id === Number.parseInt(planId))
+    if (plan) {
+      const assignedPlan = {
+        ...plan,
+        assignedDate: new Date().toLocaleDateString(),
+      }
+
+      setMemberTrainingPlansMain((prev) => ({
+        ...prev,
+        [memberId]: [...(prev[memberId] || []), assignedPlan],
+      }))
+
+      toast.success(`Training plan "${plan.name}" assigned successfully!`)
+    }
+  }
+
+  const handleRemoveTrainingPlanMain = (memberId, planId) => {
+    setMemberTrainingPlansMain((prev) => ({
+      ...prev,
+      [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId),
+    }))
+
+    toast.success("Training plan removed successfully!")
+  }
 
 
   // Extract all states and functions from the hook
@@ -598,7 +689,6 @@ export default function Appointments() {
 
   // more sidebar related functions
 
-  // Chart configuration
   const chartSeries = [
     { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
@@ -749,6 +839,62 @@ export default function Appointments() {
   const getBillingPeriodsWrapper = (memberId) => {
     return getBillingPeriods(memberId, memberContingentData);
   };
+
+  // new functions regarding member overview modal in appointment
+
+  const calculateAgeMain = (dateOfBirth) => {
+    if (!dateOfBirth) return ""
+    const today = new Date()
+    const birthDate = new Date(dateOfBirth)
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const m = today.getMonth() - birthDate.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+    return age
+  }
+
+  const isContractExpiringSoonMain = (contractEnd) => {
+    if (!contractEnd) return false
+    const today = new Date()
+    const endDate = new Date(contractEnd)
+    const oneMonthFromNow = new Date()
+    oneMonthFromNow.setMonth(today.getMonth() + 1)
+    return endDate <= oneMonthFromNow && endDate >= today
+  }
+
+  const handleViewDetailedInfoMain = () => {
+    setIsMemberOverviewModalOpenMain(false)
+    setActiveTabMain("details")
+    setIsMemberDetailsModalOpenMain(true)
+  }
+
+  const handleCalendarFromOverviewMain = () => {
+    setIsMemberOverviewModalOpenMain(false)
+    setSelectedMemberForAppointmentsMain(selectedMember)
+    // later to change this to main
+    setShowAppointmentModal(true)
+  }
+
+  const handleHistoryFromOverviewMain = () => {
+    setIsMemberOverviewModalOpenMain(false)
+    // later to change this to main
+    setShowHistoryModal(true)
+  }
+
+  const handleCommunicationFromOverviewMain = () => {
+    setIsMemberOverviewModalOpenMain(false)
+    // Redirect to communications with member selected
+    window.location.href = `/dashboard/communication`
+  }
+
+  const handleEditFromOverviewMain = () => {
+    setIsMemberOverviewModalOpenMain(false)
+    // You can add edit functionality here
+    toast.success("Edit functionality would be implemented here")
+  }
+
+
 
 
 
@@ -911,9 +1057,16 @@ export default function Appointments() {
                                 handleAppointmentOptionsModalMain(appointment)
                               }}
                             >
-                              <div className="absolute p-1 top-0 left-0 z-10">
+                              <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                                 {renderSpecialNoteIconMain(appointment.specialNote, appointment.id)}
+                                <div
+                                  className="cursor-pointer rounded transition-colors"
+                                  onClick={(e) => handleDumbbellClickMain(appointment, e)}
+                                >
+                                  <Dumbbell className="text-white" size={16} />
+                                </div>
                               </div>
+
                               <div className="flex flex-col mr-16 items-center justify-between gap-2 cursor-pointer">
                                 <div className="flex items-center gap-2 ml-4 relative w-full justify-center">
                                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative">
@@ -1091,7 +1244,7 @@ export default function Appointments() {
             setisEditAppointmentModalOpenMain(true)
           }}
           onCancel={handleCancelAppointmentMain}
-          onViewMember={handleViewMembersDetail}
+          onViewMember={handleViewMemberDetailsMain}
         />
 
         {isEditAppointmentModalOpenMain && selectedAppointmentMain && (
@@ -1202,6 +1355,35 @@ export default function Appointments() {
           }}
         />
 
+
+
+        <TrainingPlansModalMain
+          isOpen={isTrainingPlanModalOpenMain}
+          onClose={() => {
+            setIsTrainingPlanModalOpenMain(false)
+            setSelectedUserForTrainingPlanMain(null)
+          }}
+          selectedMember={selectedUserForTrainingPlanMain}
+          memberTrainingPlans={memberTrainingPlansMain[selectedUserForTrainingPlanMain?.id] || []}
+          availableTrainingPlans={availableTrainingPlansMain}
+          onAssignPlan={handleAssignTrainingPlanMain}
+          onRemovePlan={handleRemoveTrainingPlanMain}
+        />
+
+        <MemberOverviewModalMain
+          isOpen={isMemberOverviewModalOpenMain}
+          selectedMember={selectedMemberMain}
+          calculateAge={calculateAgeMain}
+          isContractExpiringSoon={isContractExpiringSoonMain}
+          handleCalendarFromOverview={handleCalendarFromOverviewMain}
+          handleHistoryFromOverview={handleHistoryFromOverviewMain}
+          handleCommunicationFromOverview={handleCommunicationFromOverviewMain}
+          handleViewDetailedInfo={handleViewDetailedInfoMain}
+          handleEditFromOverview={handleEditFromOverviewMain}
+          setIsMemberOverviewModalOpen={setIsMemberOverviewModalOpenMain}
+          setSelectedMember={setSelectedMemberMain}
+        />
+
         <Toaster
           position="top-right"
           toastOptions={{
@@ -1227,6 +1409,8 @@ export default function Appointments() {
           background-size: 10px 10px;
         }
       `}</style>
+
+
 
 
         {/* sidebar related modal */}

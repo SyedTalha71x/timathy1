@@ -3,7 +3,7 @@
 import React from "react";
 import { X } from "lucide-react";
 
-const HistoryModal = ({
+const HistoryModalMain = ({
   showHistoryModal,
   setShowHistoryModal,
   selectedMember,
@@ -210,4 +210,4 @@ const Section = ({ title, data, emptyMessage, renderItem }) => (
   </div>
 );
 
-export default HistoryModal;
+export default HistoryModalMain;

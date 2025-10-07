@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { X, Edit, User } from "lucide-react"
 
-const AppointmentActionModal = ({ isOpen, appointment, onClose, onEdit, onCancel, onViewMember }) => {
+const AppointmentActionModalMain = ({ isOpen, appointment, onClose, onEdit, onCancel, onViewMember }) => {
   if (!isOpen || !appointment) return null
 
   const isBlocked = appointment?.isBlocked || appointment?.type === "Blocked Time"
@@ -72,4 +72,4 @@ const AppointmentActionModal = ({ isOpen, appointment, onClose, onEdit, onCancel
   )
 }
 
-export default AppointmentActionModal
+export default AppointmentActionModalMain
