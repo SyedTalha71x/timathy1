@@ -771,9 +771,13 @@ export default function ContractList() {
                 </button>
               </div>
             </div>
-            <button onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)} className="md:hidden text-white">
+            {/* <button onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)} className="md:hidden text-white">
               <IoIosMenu size={23} />
-            </button>
+            </button> */}
+            <div onClick={toggleRightSidebar} className="cursor-pointer md:hidden  ">
+              <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+            </div>
+
           </div>
 
           {/* Controls Row - Responsive Layout */}
@@ -821,12 +825,15 @@ export default function ContractList() {
                 <span>Create Contract</span>
               </button>
 
-              <button
+              {/* <button
                 onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
                 className="hidden md:block text-sm hover:bg-gray-100 hover:text-black text-white rounded-md cursor-pointer"
               >
                 <IoIosMenu size={23} />
-              </button>
+              </button> */}
+              <div onClick={toggleRightSidebar} className="cursor-pointer hidden md:block ">
+                <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+              </div>
             </div>
           </div>
         </div>
@@ -1088,23 +1095,23 @@ export default function ContractList() {
                   </div>
                 )}
 
-<div className="mb-4 flex flex-col gap-1.5">
-  <h3 className="text-white font-medium text-lg leading-tight">{contract.memberName}</h3>
-  <p className="text-gray-400 text-sm leading-snug">{contract.contractType}</p>
+                <div className="mb-4 flex flex-col gap-1.5">
+                  <h3 className="text-white font-medium text-lg leading-tight">{contract.memberName}</h3>
+                  <p className="text-gray-400 text-sm leading-snug">{contract.contractType}</p>
 
-  <div className="flex items-center gap-2">
-    <p className="text-gray-400 text-sm leading-snug">
-      {contract.startDate} - {contract.endDate}
-    </p>
-    {isContractExpired(contract.endDate) && contract.status === "Active" && (
-      <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
-    )}
-  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-gray-400 text-sm leading-snug">
+                      {contract.startDate} - {contract.endDate}
+                    </p>
+                    {isContractExpired(contract.endDate) && contract.status === "Active" && (
+                      <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
+                    )}
+                  </div>
 
-  <p className="text-gray-400 text-sm leading-snug">
-    {contract.isDigital ? "Digital" : "Analog"}
-  </p>
-</div>
+                  <p className="text-gray-400 text-sm leading-snug">
+                    {contract.isDigital ? "Digital" : "Analog"}
+                  </p>
+                </div>
 
 
                 <div className="flex flex-col gap-2">
@@ -1301,18 +1308,18 @@ export default function ContractList() {
       />
 
       {/* Sidebar related modals */}
-       <TrainingPlansModal
-                isOpen={isTrainingPlanModalOpen}
-                onClose={() => {
-                  setIsTrainingPlanModalOpen(false)
-                  setSelectedUserForTrainingPlan(null)
-                }}
-                selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-                memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-                availableTrainingPlans={availableTrainingPlans}
-                onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-                onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-              />
+      <TrainingPlansModal
+        isOpen={isTrainingPlanModalOpen}
+        onClose={() => {
+          setIsTrainingPlanModalOpen(false)
+          setSelectedUserForTrainingPlan(null)
+        }}
+        selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+        availableTrainingPlans={availableTrainingPlans}
+        onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+        onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+      />
 
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}

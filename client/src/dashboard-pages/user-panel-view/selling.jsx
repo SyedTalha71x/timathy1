@@ -1279,7 +1279,7 @@ Payment Method: ${invoiceData.paymentMethod}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button
+                {/* <button
                   onClick={toggleRightSidebar}
                   className="cursor-pointer rounded-md text-sm hover:bg-white hover:text-black transition-colors flex items-center gap-2 p-2 relative"
                   title="Open Shopping Cart"
@@ -1290,7 +1290,19 @@ Payment Method: ${invoiceData.paymentMethod}
                       {cart.reduce((sum, item) => sum + item.quantity, 0)}
                     </span>
                   )}
-                </button>
+                </button> */}
+                 <div
+  onClick={toggleRightSidebar}
+  className="cursor-pointer relative "
+>
+  <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+
+  {cart.length > 0 && (
+    <span className="bg-orange-500 text-white text-[10px] rounded-full px-[5px] py-[2px] min-w-[18px] h-[18px] flex items-center justify-center absolute -top-2 -right-2">
+      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+    </span>
+  )}
+</div>
               </div>
             </div>
             <div className="hidden lg:flex items-center mb-3 justify-end gap-2">

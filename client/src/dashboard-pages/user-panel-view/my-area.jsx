@@ -1244,19 +1244,16 @@ export default function MyArea() {
           <div className="p-1 md:p-5 space-y-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               {/* Top Row (Title + Menu on mobile, Title only on desktop) */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl font-bold">My Area</h1>
 
                 </div>
 
                 {/* Menu Icon → visible on mobile and medium screens */}
-                <button
-                  onClick={toggleRightSidebar}
-                  className="p-3 text-zinc-400 hover:bg-zinc-800 rounded-xl lg:hidden"
-                >
-                  <Menu size={20} />
-                </button>
+              <div onClick={toggleRightSidebar} className="lg:hidden block">
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
               </div>
 
               {/* Buttons Section */}

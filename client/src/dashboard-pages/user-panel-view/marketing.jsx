@@ -472,13 +472,16 @@ const MarketingTable = () => {
               <div className="w-full flex justify-between items-center md:w-auto">
                 <h1 className="text-2xl oxanium_font text-white">Marketing</h1>
                 <div></div>
-                <div className="md:hidden block">
+                {/* <div className="md:hidden block">
                   <IoIosMenu
                     onClick={toggleRightSidebar}
                     size={25}
                     className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
                   />
-                </div>
+                </div> */}
+                 <div onClick={toggleRightSidebar} className="cursor-pointer md:hidden block ">
+              <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+            </div>
               </div>
               <div className="flex lg:flex-row flex-col lg:gap-4 items-center gap-2 w-full lg:w-auto">
                 <button
@@ -494,13 +497,16 @@ const MarketingTable = () => {
                   Date
                   <ChevronDown size={16} />
                 </button>
-                <div className="md:block hidden">
+                {/* <div className="md:block hidden">
                   <IoIosMenu
                     onClick={toggleRightSidebar}
                     size={25}
                     className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
                   />
-                </div>
+                </div> */}
+                 <div onClick={toggleRightSidebar} className="cursor-pointer md:block hidden ">
+              <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+            </div>
               </div>
 
               {isDateOpen && (

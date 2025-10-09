@@ -944,13 +944,16 @@ export default function LeadManagement() {
         <div className="gap-2 w-full sm:w-auto flex justify-between items-center">
           <h1 className="text-xl sm:text-2xl text-white font-bold">Leads</h1>
           <div></div>
-          <div className="sm:hidden block">
+          {/* <div className="sm:hidden block">
             <IoIosMenu
               onClick={toggleRightSidebar}
               size={25}
               className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
             />
-          </div>
+          </div> */}
+             <div onClick={toggleRightSidebar} className="cursor-pointer sm:hidden block">
+      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+    </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button
@@ -961,13 +964,16 @@ export default function LeadManagement() {
             <span className="inline">Create Lead</span>
             {/* <span className="xs:hidden">Add</span> */}
           </button>
-          <div className="sm:block hidden">
+          {/* <div className="sm:block hidden">
             <IoIosMenu
               onClick={toggleRightSidebar}
               size={25}
               className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
             />
-          </div>
+          </div> */}
+             <div onClick={toggleRightSidebar} className="cursor-pointer sm:block hidden">
+      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+    </div>
         </div>
       </div>
       <div className="mb-4 sm:mb-6 relative">

@@ -1225,13 +1225,16 @@ useEffect(() => {
             <div className="flex flex-col gap-4 mb-6">
               <div className="flex justify-between items-center gap-4 mb-6">
                 <h1 className="text-2xl font-bold text-white">To-Do</h1>
-                <div className="flex items-center justify-end">
+                {/* <div className="flex items-center justify-end">
                   <IoIosMenu
                     onClick={toggleRightSidebar}
                     size={28}
                     className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md p-1"
                   />
-                </div>
+                </div> */}
+                <div onClick={toggleRightSidebar} className="cursor-pointer">
+      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+    </div>
               </div>
 
               <div className="flex flex-col md:flex-row gap-4 items-stretch">

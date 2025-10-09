@@ -546,34 +546,30 @@ export default function ActivityMonitor() {
         }
         `}>
         <div className="w-full mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">Activity Monitor</h1>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-              <div className="text-xs sm:text-sm text-gray-400 text-center sm:text-left">
-                Last updated: {lastRefresh.toLocaleTimeString()}
-              </div>
-              <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 sm:mb-8">
+  {/* Left side - Heading */}
+  <h1 className="text-xl sm:text-2xl font-bold text-white">Activity Monitor</h1>
 
+  {/* Right side - Buttons and timestamp */}
+  <div className="flex items-center gap-3 sm:gap-4">
+    <div className="text-xs sm:text-sm text-gray-400">
+      Last updated: {lastRefresh.toLocaleTimeString()}
+    </div>
 
-                <button
-                  onClick={handleRefresh}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-[#161616] hover:bg-[#2F2F2F] rounded-xl transition-colors text-sm"
-                >
-                  <RefreshCw size={16} />
-                  <span className="sm:inline">Refresh</span>
-                </button>
-                <div className="block">
-                  <IoIosMenu
-                    onClick={toggleRightSidebar}
-                    size={25}
-                    className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+    <button
+      onClick={handleRefresh}
+      className="flex items-center justify-center gap-2 px-4 py-2 bg-[#161616] hover:bg-[#2F2F2F] rounded-xl transition-colors text-sm"
+    >
+      <RefreshCw size={16} />
+      <span className="hidden sm:inline">Refresh</span>
+    </button>
+
+    <div onClick={toggleRightSidebar} className="cursor-pointer">
+      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+    </div>
+  </div>
+</div>
+
 
           {/* Summary Cards - Mobile Optimized */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">

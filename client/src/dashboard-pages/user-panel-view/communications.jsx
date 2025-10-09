@@ -819,14 +819,17 @@ export default function Communications() {
       >
         <div className="p-4 h-full flex flex-col relative">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center ">
-              <button
+            <div className="flex items-center gap-2 ">
+              {/* <button
                 onClick={() => setShowSidebar(true)}
                 className="p-2 hover:bg-gray-800 rounded-full"
                 aria-label="Open Menu"
               >
                 <Menu className="w-5 h-5" />
-              </button>
+              </button> */}
+               <div  onClick={() => setShowSidebar(true)} className="">
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
               <h1 className="text-2xl font-bold">Messenger</h1>
             </div>
             <div className="flex items-center gap-2">

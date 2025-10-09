@@ -563,12 +563,15 @@ export default function StaffManagement() {
                   </div>
                 </div>
 
-                <button
+                {/* <button
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
                   className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md lg:hidden block"
                 >
                   <IoIosMenu size={24} />
-                </button>
+                </button> */}
+                <div onClick={toggleRightSidebar} className="cursor-pointer block lg:hidden">
+                  <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -598,12 +601,15 @@ export default function StaffManagement() {
                   + Add Staff
                 </button>
 
-                <button
+                {/* <button
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
                   className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md lg:block hidden"
                 >
                   <IoIosMenu size={24} />
-                </button>
+                </button> */}
+                <div onClick={toggleRightSidebar} className="cursor-pointer hidden lg:block">
+                  <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+                </div>
               </div>
             </div>
 
@@ -867,18 +873,18 @@ export default function StaffManagement() {
         />
 
         {/* Sidebar related modals */}
-         <TrainingPlansModal
-                                          isOpen={isTrainingPlanModalOpen}
-                                          onClose={() => {
-                                            setIsTrainingPlanModalOpen(false)
-                                            setSelectedUserForTrainingPlan(null)
-                                          }}
-                                          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-                                          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-                                          availableTrainingPlans={availableTrainingPlans}
-                                          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-                                          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-                                        />
+        <TrainingPlansModal
+          isOpen={isTrainingPlanModalOpen}
+          onClose={() => {
+            setIsTrainingPlanModalOpen(false)
+            setSelectedUserForTrainingPlan(null)
+          }}
+          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+          availableTrainingPlans={availableTrainingPlans}
+          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+        />
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}

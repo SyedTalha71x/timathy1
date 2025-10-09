@@ -525,7 +525,7 @@ const BulletinBoard = () => {
                   </svg>
                   <span className="hidden sm:inline">Create Post</span>
                 </button>
-                <div>
+                {/* <div>
                   <div className="block">
                     <IoIosMenu
                       onClick={toggleRightSidebar}
@@ -533,7 +533,10 @@ const BulletinBoard = () => {
                       className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md sm:text-[20px] md:text-[22px]"
                     />
                   </div>
-                </div>
+                </div> */}
+                 <div onClick={toggleRightSidebar} className="">
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
               </div>
             </div>
           </div>

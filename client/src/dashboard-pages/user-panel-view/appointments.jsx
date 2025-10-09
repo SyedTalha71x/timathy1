@@ -957,13 +957,9 @@ export default function Appointments() {
                   </button>
                 </div>
                 <div></div>
-                <div className="md:hidden block">
-                  <IoIosMenu
-                    onClick={toggleRightSidebar}
-                    size={25}
-                    className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                  />
-                </div>
+                <div onClick={toggleRightSidebar} className="lg:hidden md:hidden block">
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
               </div>
               <div className="flex items-center md:flex-row flex-col gap-2 w-full sm:w-auto">
                 <button
@@ -993,13 +989,16 @@ export default function Appointments() {
                   </svg>{" "}
                   Block Time Slot
                 </button>
-                <div className="md:block hidden">
+                {/* <div className="md:block hidden">
                   <IoIosMenu
                     onClick={toggleRightSidebar}
                     size={25}
                     className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
                   />
-                </div>
+                </div> */}
+                 <div onClick={toggleRightSidebar} className="md:block hidden">
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
               </div>
             </div>
 

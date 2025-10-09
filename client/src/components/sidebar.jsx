@@ -212,16 +212,16 @@ const Sidebar = () => {
           <div className=" bg-orange-500 p-4 rounded-md">
             <img src="/Orgagym white.svg" className="h-10 w-10" alt="Orgagym Logo" />
           </div>
-          <div onClick={toggleSidebar}>
+          {/* <div onClick={toggleSidebar}>
             <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-          </div>
-          {/* <button
+          </div> */}
+          <button
             onClick={toggleSidebar}
             className="p-2 rounded-lg text-white hover:bg-zinc-700"
             aria-label="Toggle Sidebar"
           >
             <Menu size={24} />
-          </button> */}
+          </button>
         </div>
         <div className="flex gap-1 items-center">
 

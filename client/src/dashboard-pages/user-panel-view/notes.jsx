@@ -468,7 +468,7 @@ export default function NotesApp() {
         <div className=" ">
           <div className="mb-8 flex justify-between items-center w-full">
             <h1 className="text-xl md:text-2xl font-bold oxanium_font whitespace-nowrap">Notes</h1>
-            <div>
+            {/* <div>
                 <div className="block">
                                              <IoIosMenu
                                                onClick={toggleRightSidebar}
@@ -476,7 +476,10 @@ export default function NotesApp() {
                                                className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
                                              />
                                            </div>
-            </div>
+            </div> */}
+            <div onClick={toggleRightSidebar} className="cursor-pointer">
+      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+    </div>
           </div>
 
           {/* Tabs - Fixed border issue */}

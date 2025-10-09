@@ -1148,12 +1148,16 @@ export default function AnalyticsDashboard() {
             <div className="flex items-center justify-between">
               <h1 className="text-white oxanium_font text-xl md:text-2xl">Analytics</h1>
 
-              <IoIosMenu
+              {/* <IoIosMenu
                 onClick={toggleRightSidebar}
                 size={25}
                 className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-              />
+              /> */}
+              <div onClick={toggleRightSidebar}>
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
             </div>
+
 
             <div className="flex gap-3 md:mt-10 mt-5  pt-3 overflow-x-auto pb-2">
               {tabs.map((tab) => {

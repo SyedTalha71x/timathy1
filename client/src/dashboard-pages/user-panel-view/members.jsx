@@ -254,8 +254,8 @@ export default function Members() {
 
   const getActiveFiltersText = () => {
     const statusText = filterOptions.find(opt => opt.id === filterStatus)?.label.split(' (')[0] || 'All Members';
-    const typeText = memberTypeFilter === 'all' ? 'All Types' : 
-                     memberTypeFilter === 'full' ? 'Full Members' : 'Temporary Members';
+    const typeText = memberTypeFilter === 'all' ? 'All Types' :
+      memberTypeFilter === 'full' ? 'Full Members' : 'Temporary Members';
     return `${statusText} & ${typeText}`;
   };
 
@@ -717,18 +717,18 @@ export default function Members() {
   }
 
   // 
-const handleDeleteAppointmentMain = (id) => {
-  setAppointmentToDelete(id)
-}
+  const handleDeleteAppointmentMain = (id) => {
+    setAppointmentToDelete(id)
+  }
 
-const confirmDeleteAppointment = () => {
-  setAppointmentsMain(appointmentsMain.filter((app) => app.id !== appointmentToDelete))
-  setSelectedAppointmentDataMain(null)
-  setShowSelectedAppointmentModalMain(false)
-  setIsNotifyMemberOpenMain(true)
-  setNotifyActionMain("delete")
-  setAppointmentToDelete(null)
-}
+  const confirmDeleteAppointment = () => {
+    setAppointmentsMain(appointmentsMain.filter((app) => app.id !== appointmentToDelete))
+    setSelectedAppointmentDataMain(null)
+    setShowSelectedAppointmentModalMain(false)
+    setIsNotifyMemberOpenMain(true)
+    setNotifyActionMain("delete")
+    setAppointmentToDelete(null)
+  }
   const toggleViewMode = () => {
     setViewMode(viewMode === "grid" ? "list" : "grid")
   }
@@ -763,7 +763,7 @@ const confirmDeleteAppointment = () => {
     setSelectedMemberMain(member)
     setViewDetailsInitialTab("relations")
     setIsViewDetailsModalOpen(true)
-  } 
+  }
 
   // 
   const handleAddRelationMain = () => {
@@ -1230,12 +1230,15 @@ const confirmDeleteAppointment = () => {
               </div>
 
               {/* IoIosMenu (right side on small/tablet, hidden on lg+) */}
-              <div className="block lg:hidden">
+              {/* <div className="block lg:hidden">
                 <IoIosMenu
                   onClick={toggleRightSidebar}
                   size={25}
                   className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
                 />
+              </div> */}
+              <div onClick={toggleRightSidebar} className="cursor-pointer block lg:hidden">
+                <img src="/icon.svg" className="h-5 w-5" alt="menu" />
               </div>
             </div>
 
@@ -1252,16 +1255,16 @@ const confirmDeleteAppointment = () => {
 
               {/* Filter */}
               <button
-  onClick={() => setShowFilterModal(true)}
-  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
->
-  <Filter size={16} />
-  <span className="truncate">
-    {(filterStatus !== 'all' || memberTypeFilter !== 'all') 
-      ? getActiveFiltersText() 
-      : 'Filter'}
-  </span>
-</button>
+                onClick={() => setShowFilterModal(true)}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
+              >
+                <Filter size={16} />
+                <span className="truncate">
+                  {(filterStatus !== 'all' || memberTypeFilter !== 'all')
+                    ? getActiveFiltersText()
+                    : 'Filter'}
+                </span>
+              </button>
 
 
 
@@ -1287,12 +1290,16 @@ const confirmDeleteAppointment = () => {
               </div>
 
               {/* Desktop Menu (only visible on lg+) */}
-              <div className="hidden lg:block">
+              {/* <div className="hidden lg:block">
                 <IoIosMenu
                   onClick={toggleRightSidebar}
                   size={25}
                   className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
                 />
+              </div> */
+              }
+              <div onClick={toggleRightSidebar} className="cursor-pointer hidden lg:block">
+                <img src="/icon.svg" className="h-5 w-5" alt="menu" />
               </div>
             </div>
           </div>
@@ -1302,81 +1309,81 @@ const confirmDeleteAppointment = () => {
 
             <div className="flex items-center justify-end gap-2  w-full ">
               <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-sm">Sort:</label>
-              <div className="relative sort-dropdown flex-1"> 
-                <button
-                  onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                  className="w-full flex cursor-pointer items-center justify-between gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
-                >
-                  <span className="truncate">
-                    {sortOptions.find((opt) => opt.id === sortBy)?.label}
-                  </span>
-                  <ChevronDown
-                    size={16}
-                    className={`transform transition-transform flex-shrink-0 ${isSortDropdownOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
+                <label htmlFor="sort" className="text-sm">Sort:</label>
+                <div className="relative sort-dropdown flex-1">
+                  <button
+                    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                    className="w-full flex cursor-pointer items-center justify-between gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
+                  >
+                    <span className="truncate">
+                      {sortOptions.find((opt) => opt.id === sortBy)?.label}
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`transform transition-transform flex-shrink-0 ${isSortDropdownOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
 
-                {isSortDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-full rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
-                    {sortOptions.map((option) => (
+                  {isSortDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-full rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
+                      {sortOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          onClick={() => {
+                            setSortBy(option.id)
+                            setIsSortDropdownOpen(false)
+                          }}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === sortBy ? "bg-black" : ""
+                            }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative direction-dropdown md:w-[140px] w-full">
+                  <button
+                    onClick={() => setIsDirectionDropdownOpen(!isDirectionDropdownOpen)}
+                    className="w-full flex cursor-pointer items-center justify-between gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black"
+                  >
+                    <span className="truncate">
+                      {sortDirection === "asc" ? "Ascending" : "Descending"}
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`transform transition-transform flex-shrink-0 ${isDirectionDropdownOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {isDirectionDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-full rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
                       <button
-                        key={option.id}
                         onClick={() => {
-                          setSortBy(option.id)
-                          setIsSortDropdownOpen(false)
+                          setSortDirection("asc")
+                          setIsDirectionDropdownOpen(false)
                         }}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === sortBy ? "bg-black" : ""
-                          }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${sortDirection === "asc" ? "bg-black" : ""}`}
                       >
-                        {option.label}
+                        <span>Ascending</span>
+                        <span className="text-gray-400"></span>
                       </button>
-                    ))}
-                  </div>
-                )}
+                      <button
+                        onClick={() => {
+                          setSortDirection("desc")
+                          setIsDirectionDropdownOpen(false)
+                        }}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${sortDirection === "desc" ? "bg-black" : ""}`}
+                      >
+                        <span>Descending</span>
+                        <span className="text-gray-400"></span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="relative direction-dropdown md:w-[140px] w-full">
-                <button
-                  onClick={() => setIsDirectionDropdownOpen(!isDirectionDropdownOpen)}
-                  className="w-full flex cursor-pointer items-center justify-between gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black"
-                >
-                  <span className="truncate">
-                    {sortDirection === "asc" ? "Ascending" : "Descending"}
-                  </span>
-                  <ChevronDown
-                    size={16}
-                    className={`transform transition-transform flex-shrink-0 ${isDirectionDropdownOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
-
-                {isDirectionDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-full rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
-                    <button
-                      onClick={() => {
-                        setSortDirection("asc")
-                        setIsDirectionDropdownOpen(false)
-                      }}
-                      className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${sortDirection === "asc" ? "bg-black" : ""}`}
-                    >
-                      <span>Ascending</span>
-                      <span className="text-gray-400"></span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSortDirection("desc")
-                        setIsDirectionDropdownOpen(false)
-                      }}
-                      className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${sortDirection === "desc" ? "bg-black" : ""}`}
-                    >
-                      <span>Descending</span>
-                      <span className="text-gray-400"></span>
-                    </button>
-                  </div>
-                )}
-              </div>
-              </div>
-             
             </div>
           </div>
 
@@ -1801,29 +1808,29 @@ const confirmDeleteAppointment = () => {
       </div>
 
       {appointmentToDelete && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000000]">
-    <div className="bg-[#181818] text-white rounded-xl p-6 max-w-md mx-4">
-      <h3 className="text-lg font-semibold mb-4">Delete Appointment</h3>
-      <p className="text-gray-300 mb-6">
-        Are you sure you want to delete this appointment? This action cannot be undone.
-      </p>
-      <div className="flex gap-3 justify-end">
-        <button
-          onClick={() => setAppointmentToDelete(null)}
-          className="px-4 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={confirmDeleteAppointment}
-          className="px-4 py-2 bg-red-600 text-sm text-white rounded-xl hover:bg-red-700"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000000]">
+          <div className="bg-[#181818] text-white rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Delete Appointment</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this appointment? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setAppointmentToDelete(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteAppointment}
+                className="px-4 py-2 bg-red-600 text-sm text-white rounded-xl hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ViewDetailsModal
         isOpen={isViewDetailsModalOpen}
@@ -1839,7 +1846,7 @@ const confirmDeleteAppointment = () => {
         handleEditMember={handleEditMember}
         setEditModalTabMain={setEditModalTabMain}
         DefaultAvatar1={DefaultAvatar1}
-        initialTab={viewDetailsInitialTab} 
+        initialTab={viewDetailsInitialTab}
       />
       <AppointmentModalMain
         isOpen={showAppointmentModalMain}
@@ -1934,13 +1941,13 @@ const confirmDeleteAppointment = () => {
 
 
       {chatPopup.isOpen && chatPopup.member && (
-          <ChatPopup
-            member={chatPopup.member}
-            isOpen={chatPopup.isOpen}
-            onClose={() => setChatPopup({ isOpen: false, member: null })}
-            onOpenFullMessenger={() => handleOpenFullMessenger(chatPopup.member)}
-          />
-        )}
+        <ChatPopup
+          member={chatPopup.member}
+          isOpen={chatPopup.isOpen}
+          onClose={() => setChatPopup({ isOpen: false, member: null })}
+          onOpenFullMessenger={() => handleOpenFullMessenger(chatPopup.member)}
+        />
+      )}
       {/* sidebar related modal  */}
 
       <Sidebar
@@ -2002,17 +2009,17 @@ const confirmDeleteAppointment = () => {
 
       {/* Sidebar related modals */}
       <TrainingPlansModal
-                                  isOpen={isTrainingPlanModalOpen}
-                                  onClose={() => {
-                                    setIsTrainingPlanModalOpen(false)
-                                    setSelectedUserForTrainingPlan(null)
-                                  }}
-                                  selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-                                  memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-                                  availableTrainingPlans={availableTrainingPlans}
-                                  onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-                                  onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-                                />
+        isOpen={isTrainingPlanModalOpen}
+        onClose={() => {
+          setIsTrainingPlanModalOpen(false)
+          setSelectedUserForTrainingPlan(null)
+        }}
+        selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+        availableTrainingPlans={availableTrainingPlans}
+        onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+        onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+      />
 
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}

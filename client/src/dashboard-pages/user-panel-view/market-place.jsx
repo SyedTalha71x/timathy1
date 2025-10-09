@@ -505,13 +505,16 @@ const sortedProducts = sortProducts(filtered, sortBy, sortDirection)
 
             <h1 className="text-white oxanium_font text-xl mb-5 md:text-2xl">Marketplace</h1>
             <div></div>
-            <div className=" block">
+            {/* <div className=" block">
               <IoIosMenu
                 onClick={toggleRightSidebar}
                 size={25}
                 className="cursor-pointer mb-6 text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
               />
-            </div>
+            </div> */}
+            <div onClick={toggleRightSidebar}>
+            <img src="/icon.svg" className="h-5 w-5 mb-6 cursor-pointer" alt="" />
+          </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 mb-8">
