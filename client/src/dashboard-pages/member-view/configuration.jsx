@@ -237,7 +237,7 @@ Last updated: January 2025`,
                     style={inputStyle}
                     placeholder="Enter current password"
                     iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                    className="white-text"        
+                    className="white-text"
                   />
                 </div>
                 <Button onClick={handleRequestEmailChange} style={requestButtonStyle}>
@@ -259,7 +259,7 @@ Last updated: January 2025`,
                     style={inputStyle}
                     placeholder="Enter current password"
                     iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                    className="white-text"                  />
+                    className="white-text" />
                 </div>
                 <div>
                   <label className="block text-white mb-2">New Password</label>
@@ -269,7 +269,7 @@ Last updated: January 2025`,
                     style={inputStyle}
                     placeholder="Enter new password"
                     iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                    className="white-text"        
+                    className="white-text"
                   />
                 </div>
                 <div>
@@ -280,7 +280,7 @@ Last updated: January 2025`,
                     style={inputStyle}
                     placeholder="Confirm new password"
                     iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                    className="white-text"        
+                    className="white-text"
                   />
                 </div>
                 <Button onClick={handleRequestPasswordChange} style={requestButtonStyle}>
@@ -408,7 +408,7 @@ Last updated: January 2025`,
         </TabPane>
       </Tabs>
 
-      <div className="flex justify-end mt-6">
+      {/* <div className="flex justify-end mt-6">
         <Button
           type="primary"
           icon={<SaveOutlined />}
@@ -418,7 +418,7 @@ Last updated: January 2025`,
         >
           Save Settings
         </Button>
-      </div>
+      </div> */}
 
       <style jsx global>{`
         /* Ant Design Component Overrides */

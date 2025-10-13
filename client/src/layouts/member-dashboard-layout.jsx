@@ -9,7 +9,7 @@ const MemberDashboardLayout = () => {
     <div className="bg-[#111111] min-h-screen">
       <div className="flex flex-col md:flex-row h-full">
         <Sidebar />
-        <main className="flex-1 md:h-screen h-[calc(100vh-4rem)] overflow-y-auto md:pt-5 pt-20 pb-10 p-5">
+        <main className="flex-1 md:h-screen h-[calc(100vh-4rem)] overflow-y-auto md:pt-5 pt-20 pb-10 md:p-5 p-2">
           <Outlet />
         </main>
       </div>

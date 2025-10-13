@@ -83,7 +83,6 @@ export default function StudioChat() {
 
   
     <div className="flex flex-col relative md:h-[92vh] h-auto overflow-hidden bg-[#1C1C1C] text-gray-200 rounded-3xl">
-      {/* Chat Header */}
       <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-700/50 bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-3 md:gap-4">
           <div className="relative">
@@ -144,12 +143,9 @@ export default function StudioChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
       <div className="p-4 md:p-6 border-t border-gray-700/50 bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-3 bg-gray-800/50 rounded-2xl p-3 md:p-4 border border-gray-600/30 backdrop-blur-sm">
-          {/* <button className="p-2 hover:bg-gray-700/50 rounded-xl transition-all duration-300 hover:scale-110 flex-shrink-0">
-            <Paperclip className="w-5 h-5 text-gray-400 hover:text-blue-400 transition-colors" />
-          </button> */}
+        
           <input
             type="text"
             value={messageText}

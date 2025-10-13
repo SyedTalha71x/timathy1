@@ -1,10 +1,8 @@
-"use client"
-
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useCallback } from "react"
 import toast from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
-import { AlertTriangle, Info } from "react-feather" // Import AlertTriangle and Info components
+import { AlertTriangle, Info } from "react-feather" 
 import { CalendarIcon, Edit, X } from "lucide-react"
 import {
   appointmentsData,

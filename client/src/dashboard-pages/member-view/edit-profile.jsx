@@ -30,28 +30,11 @@ function App() {
 
   return (
     <div className="flex rounded-3xl bg-[#1C1C1C] text-white min-h-screen relative">
-      {/* {isRightSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={toggleRightSidebar}
-        />
-      )} */}
-
       <main className="flex-1 min-w-0">
         <div className="p-4 md:p-8">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-xl md:text-2xl font-bold oxanium_font">Profile settings</h1>
-            {/* <button 
-              onClick={toggleRightSidebar}
-              className="lg:hidden p-2 hover:bg-zinc-800 rounded-lg transition-colors duration-200"
-              aria-label="Toggle notifications"
-            >
-              {isRightSidebarOpen ? (
-                <X size={24} />
-              ) : (
-                <Bell size={24} />
-              )}
-            </button> */}
+           
           </div>
 
           <div className="mb-8 flex flex-col justify-start items-start">
