@@ -4,6 +4,9 @@ const hashedPassword = require('../utils/HashedPassword');
 const bcrypt = require('bcryptjs');
 const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
+// generate Random Member number like #ORGA-2025-001
+const generateMemberNo = require('../utils/GenerateMemberNo')
+
 const {
   BadRequestError,
   UnauthorizedError,
@@ -29,7 +32,6 @@ const createMember = async (req, res, next) => {
       zipCode,
       dateOfBirth,
       about,
-      memberNumber
     } = req.body;
 
     // check for duplicate email
@@ -47,6 +49,9 @@ const createMember = async (req, res, next) => {
       );
 
     const securePassword = await hashedPassword(password);
+
+    // generate Random MemberNo
+    const memberNumber = await generateMemberNo()
 
     const member = await MemberModel.create({
       firstName,
