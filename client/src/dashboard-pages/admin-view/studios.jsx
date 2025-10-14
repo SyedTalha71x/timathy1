@@ -29,7 +29,7 @@ import {
   studioStatsData,
 } from "../../utils/admin-panel-states/states"
 
-import DefaultStudioImage from "../../../public/default-avatar.avif"
+import DefaultStudioImage from "../../../public/gray-avatar-fotor-20250912192528.png"
 import toast, { Toaster } from "react-hot-toast"
 import { RiContractFill } from "react-icons/ri"
 import { IoIosMenu } from "react-icons/io"
@@ -140,21 +140,21 @@ export default function Studios() {
       sunday: "",
     },
     closingDays: "",
-  
+
     // branding
     logoUrl: "",
     logoFile: null,
-  
+
     // studio data enhancements
     openingHoursList: [], // [{ day, startTime, endTime }]
     closingDaysList: [], // [{ date, description }]
-  
+
     // resources
     maxCapacity: 10,
     appointmentTypes: [], // [{ name, duration, capacity, color, interval, images }]
-  
+
     trialTraining: { name: "Trial Training", duration: 60, capacity: 1, color: "#1890ff" },
-  
+
     // contracts
     contractTypes: [], // [{ name, duration, cost, billingPeriod, userCapacity, autoRenewal, renewalPeriod, renewalPrice, cancellationPeriod }]
     contractSections: [
@@ -169,7 +169,7 @@ export default function Studios() {
     ],
     noticePeriod: 30,
     extensionPeriod: 12,
-  
+
     // communication
     autoArchiveDuration: 30,
     emailNotifications: true,
@@ -202,7 +202,7 @@ export default function Studios() {
       },
     ],
     broadcastMessages: [],
-  
+
     emailConfig: {
       smtpServer: "",
       smtpPort: 587,
@@ -213,7 +213,7 @@ export default function Studios() {
       smtpUser: "",
       smtpPass: "",
     },
-  
+
     // appearance
     appearance: {
       theme: "dark",
@@ -221,26 +221,26 @@ export default function Studios() {
       secondaryColor: "#1890ff",
       allowUserThemeToggle: true,
     },
-  
+
     // =========================
     // Parity with Configuration
     // =========================
-  
+
     // <NEW> Roles/permissions available in configuration
     roles: [
       // Example: { name: "Admin", permissions: ["manage_users", "edit_contracts", "view_reports"] }
     ],
-  
+
     // <NEW> Lead sources used for reporting and filtering
     leadSources: [
       // Example: "Instagram", "Google Ads", "Walk-in"
     ],
-  
+
     // <NEW> TODO/Task tags to categorize tasks
     todoTags: [
       // Example: "Follow-up", "Payment Pending", "Urgent"
     ],
-  
+
     // <NEW> Currency and VAT rates for billing/contract pricing
     currency: "EUR",
     vatRates: [
@@ -248,12 +248,12 @@ export default function Studios() {
       { name: "Standard", rate: 19 },
       { name: "Reduced", rate: 7 },
     ],
-  
+
     // <NEW> Additional contract documents appended to contracts
     additionalContractDocuments: [
       // Example: { title: "Privacy Policy", url: "" } or { title: "House Rules", file: File }
     ],
-  
+
     // <NEW> Automated birthday greetings
     birthdayMessages: {
       enabled: false,
@@ -263,14 +263,14 @@ export default function Studios() {
       sendVia: ["email"], // ["email", "platform"]
       sendTime: "09:00", // HH:mm
     },
-  
+
     // <NEW> Default broadcast distribution (audience & channels)
     defaultBroadcastDistribution: {
       audience: "all-members", // e.g., "all-members", "active-only", "frozen-only", "staff"
       channels: ["platform"], // ["platform", "email"]
       allowReplies: true,
     },
-  
+
     // <NEW> Allow members to self-cancel their memberships according to contract rules
     allowMemberSelfCancellation: false,
   });
@@ -1144,7 +1144,7 @@ export default function Studios() {
               ) : (
                 <button
                   onClick={() => setIsCreateFranchiseModalOpen(true)}
-                  className="bg-[#3F74FF] md:w-auto w-full  justify-center  hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm flex items-center gap-2"
+                  className="bg-blue-600 md:w-auto w-full  justify-center  hover:bg-[#3F74FF]/90 px-4 py-1 rounded-xl text-sm flex items-center gap-2"
                 >
                   <Plus size={16} />
                   Create Franchise
@@ -1225,10 +1225,10 @@ export default function Studios() {
 
                       <div className="flex flex-col gap-4">
                         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
+                          <div className="flex flex-col sm:flex-row mt-3 items-center sm:items-start gap-4 w-full sm:w-auto">
                             <img
                               src={studio.image || DefaultStudioImage}
-                              className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 object-cover"
+                              className="h-20 w-20 sm:h-16 sm:w-16 rounded-xl flex-shrink-0 object-cover"
                               alt=""
                             />
                             <div className="flex flex-col items-center sm:items-start flex-1 min-w-0">

@@ -1,6 +1,7 @@
+
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   Input,
   Select,
@@ -29,9 +30,21 @@ import {
   SettingOutlined,
   EyeInvisibleOutlined,
   EyeTwoTone,
+  BoldOutlined,
+  ItalicOutlined,
+  UnderlineOutlined,
+  UnorderedListOutlined,
+  OrderedListOutlined,
+  LinkOutlined,
+  UndoOutlined,
+  RedoOutlined,
+  ClearOutlined,
 } from "@ant-design/icons"
 import "../../custom-css/admin-configuration.css"
-import defaultLogoUrl from '../../../public/gray-avatar-fotor-20250912192528.png'
+import defaultLogoUrl from "../../../public/gray-avatar-fotor-20250912192528.png"
+import ContractBuilder from "../../components/admin-dashboard-components/contract-builder"
+import ReactQuill from 'react-quill'
+import 'react-quill/dist/quill.snow.css'
 
 
 const { Option } = Select
@@ -73,164 +86,81 @@ const saveButtonStyle = {
   fontSize: "14px",
 }
 
-
 const tooltipStyle = {
   marginLeft: "8px",
   color: "rgba(255, 255, 255, 0.5)",
 }
 
-// Add this component above the ConfigurationPage component
-const RichTextEditor = ({ value, onChange, placeholder }) => {
-  const [activeFormat, setActiveFormat] = useState(null);
-  
+const WysiwygEditor = ({ value, onChange, placeholder }) => {
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      [{ 'color': [] }, { 'background': [] }],
+      ['link', 'image'],
+      ['clean']
+    ],
+  }
+
   const formats = [
-    { type: 'bold', icon: 'B', label: 'Bold' },
-    { type: 'italic', icon: 'I', label: 'Italic' },
-    { type: 'underline', icon: 'U', label: 'Underline' },
-    { type: 'heading', icon: 'H', label: 'Heading' },
-    { type: 'list', icon: '•', label: 'Bullet List' },
-  ];
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'align',
+    'color', 'background',
+    'link', 'image'
+  ]
 
-  const sizes = ['small', 'normal', 'large', 'xlarge'];
+  // Add custom CSS for placeholder
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .ql-editor.ql-blank::before {
+        color: #ffffff !important;
+        opacity: 0.7 !important;
+        font-style: normal !important;
+      }
+      .ql-editor {
+        color: #ffffff !important;
+      }
+      .ql-toolbar {
+        border-color: #303030 !important;
+        background-color: #151515 !important;
+      }
+      .ql-container {
+        border-color: #303030 !important;
+        background-color: #101010 !important;
+      }
+      .ql-snow .ql-stroke {
+        stroke: #ffffff !important;
+      }
+      .ql-snow .ql-fill {
+        fill: #ffffff !important;
+      }
+      .ql-snow .ql-picker-label {
+        color: #ffffff !important;
+      }
+    `
+    document.head.appendChild(style)
 
-  const applyFormat = (formatType) => {
-    const formatMap = {
-      bold: '<strong>selected text</strong>',
-      italic: '<em>selected text</em>',
-      underline: '<u>selected text</u>',
-      heading: '<h3>selected text</h3>',
-      list: '<ul><li>item</li></ul>'
-    };
-
-    const textArea = document.activeElement;
-    const start = textArea.selectionStart;
-    const end = textArea.selectionEnd;
-    const selectedText = value.substring(start, end);
-    
-    let newText = value;
-    
-    if (formatMap[formatType]) {
-      const formattedText = formatMap[formatType].replace('selected text', selectedText || 'text');
-      newText = value.substring(0, start) + formattedText + value.substring(end);
+    return () => {
+      document.head.removeChild(style)
     }
-    
-    onChange(newText);
-    setActiveFormat(null);
-  };
-
-  const changeTextSize = (size) => {
-    const sizeMap = {
-      small: '<small>selected text</small>',
-      normal: 'selected text',
-      large: '<big>selected text</big>',
-      xlarge: '<h2>selected text</h2>'
-    };
-
-    const textArea = document.activeElement;
-    const start = textArea.selectionStart;
-    const end = textArea.selectionEnd;
-    const selectedText = value.substring(start, end);
-    
-    let newText = value;
-    
-    if (sizeMap[size]) {
-      const sizedText = sizeMap[size].replace('selected text', selectedText || 'text');
-      newText = value.substring(0, start) + sizedText + value.substring(end);
-    }
-    
-    onChange(newText);
-  };
+  }, [])
 
   return (
-    <div className="rich-text-editor">
-      {/* Formatting Toolbar */}
-      <div className="flex flex-wrap gap-2 mb-3 p-3 bg-[#151515] rounded-lg border border-[#303030]">
-        <div className="flex items-center gap-1">
-          {formats.map((format) => (
-            <Tooltip key={format.type} title={format.label}>
-              <Button
-                type="text"
-                onClick={() => applyFormat(format.type)}
-                className="w-8 h-8 flex items-center justify-center text-white hover:bg-[#303030]"
-                style={buttonStyle}
-              >
-                {format.icon}
-              </Button>
-            </Tooltip>
-          ))}
-        </div>
-        
-        <Divider type="vertical" style={{ borderColor: '#303030', height: '24px' }} />
-        
-        <div className="flex items-center gap-1">
-          <span className="text-xs text-gray-400 mr-2">Size:</span>
-          {sizes.map((size) => (
-            <Tooltip key={size} title={size.charAt(0).toUpperCase() + size.slice(1)}>
-              <Button
-                type="text"
-                onClick={() => changeTextSize(size)}
-                className="w-8 h-8 flex items-center justify-center text-xs text-white hover:bg-[#303030]"
-                style={buttonStyle}
-              >
-                A
-                {size === 'small' && <span className="text-[10px]">↓</span>}
-                {size === 'large' && <span className="text-[10px]">↑</span>}
-                {size === 'xlarge' && <span className="text-[10px]">↑↑</span>}
-              </Button>
-            </Tooltip>
-          ))}
-        </div>
-        
-        <Divider type="vertical" style={{ borderColor: '#303030', height: '24px' }} />
-        
-        <Tooltip title="Clear formatting">
-          <Button
-            type="text"
-            onClick={() => onChange(value.replace(/<[^>]*>/g, ''))}
-            className="w-8 h-8 flex items-center justify-center text-white hover:bg-[#303030]"
-            style={buttonStyle}
-          >
-            🗑️
-          </Button>
-        </Tooltip>
-      </div>
-
-      {/* Text Area */}
-      <TextArea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        rows={8}
-        style={inputStyle}
-        placeholder={placeholder}
-        className="rich-text-area"
-      />
-      
-      {/* Preview Toggle */}
-      <div className="mt-2 flex justify-end">
-        <Tooltip title="Toggle HTML preview">
-          <Switch
-            checkedChildren="HTML"
-            unCheckedChildren="Text"
-            onChange={(checked) => {
-              if (!checked) {
-                // Convert HTML to plain text for editing
-                onChange(value.replace(/<[^>]*>/g, ''));
-              }
-            }}
-            size="small"
-          />
-        </Tooltip>
-      </div>
-      
-      {/* Formatting Help */}
-      <div className="mt-2 text-xs text-gray-500">
-        <span>Tip: Select text and click formatting buttons, or use shortcuts:</span>
-        <br />
-        <span className="text-gray-400">Ctrl+B (Bold), Ctrl+I (Italic), Ctrl+U (Underline)</span>
-      </div>
-    </div>
-  );
-};
+    <ReactQuill
+      value={value}
+      onChange={onChange}
+      modules={modules}
+      formats={formats}
+      placeholder={placeholder}
+      theme="snow"
+    />
+  )
+}
 
 const ConfigurationPage = () => {
   const [currency, setCurrency] = useState("€")
@@ -239,7 +169,20 @@ const ConfigurationPage = () => {
   const [hasExistingPassword, sethasExistingPassword] = useState(false)
   const [newLeadSource, setNewLeadSource] = useState("")
 
+  const [emailSignature, setEmailSignature] = useState("Best regards,\n{Studio_Name} Team")
 
+  const [emailConfig, setEmailConfig] = useState({
+    smtpServer: "",
+    smtpPort: 587,
+    emailAddress: "",
+    password: "",
+    useSSL: false,
+    senderName: "",
+    smtpUser: "", // Added from reference
+    smtpPass: "", // Added from reference
+  })
+
+  const [autoArchiveDuration, setAutoArchiveDuration] = useState(30)
 
   // Opening hours and closing days
   const [closingDays, setClosingDays] = useState([])
@@ -269,6 +212,7 @@ const ConfigurationPage = () => {
   const [generalSettings, setGeneralSettings] = useState({
     imprint: "",
     privacyPolicy: "",
+    termsAndConditions: "",
     contactData: {
       companyName: "",
       address: "",
@@ -283,6 +227,9 @@ const ConfigurationPage = () => {
       confirmPassword: "",
     },
   })
+
+  const [changelog, setChangelog] = useState([])
+  const [newChangelog, setNewChangelog] = useState({ version: "", date: null, color: "#3b82f6", content: "" })
 
   // Lead sources
   const [leadSources, setLeadSources] = useState([
@@ -323,6 +270,14 @@ const ConfigurationPage = () => {
     }
 
     return true
+  }
+
+  const testEmailConnection = () => {
+    console.log("Test Email connection", emailConfig)
+    notification.info({
+      message: "Test Connection",
+      description: "Attempting to connect to SMTP server...",
+    })
   }
 
   const handleSaveConfiguration = () => {
@@ -427,26 +382,26 @@ const ConfigurationPage = () => {
   }
 
   // Lead sources handlers
-const handleAddLeadSource = () => {
-  if (!newLeadSource.trim()) return;
-  
-  const newId = Math.max(...leadSources.map((s) => s.id), 0) + 1
-  setLeadSources([
-    ...leadSources,
-    {
-      id: newId,
-      name: newLeadSource.trim(),
-      description: "",
-      isActive: true,
-    },
-  ])
-  
-  setNewLeadSource(""); // Clear the input field
-  notification.success({
-    message: "Lead Source Added",
-    description: "New lead source has been successfully added.",
-  })
-}
+  const handleAddLeadSource = () => {
+    if (!newLeadSource.trim()) return
+
+    const newId = Math.max(...leadSources.map((s) => s.id), 0) + 1
+    setLeadSources([
+      ...leadSources,
+      {
+        id: newId,
+        name: newLeadSource.trim(),
+        description: "",
+        isActive: true,
+      },
+    ])
+
+    setNewLeadSource("") // Clear the input field
+    notification.success({
+      message: "Lead Source Added",
+      description: "New lead source has been successfully added.",
+    })
+  }
 
   const handleUpdateLeadSource = (id, field, value) => {
     setLeadSources(leadSources.map((source) => (source.id === id ? { ...source, [field]: value } : source)))
@@ -483,60 +438,79 @@ const handleAddLeadSource = () => {
 
   // Add these helper functions to your component
   const getPasswordStrength = (password) => {
-    if (!password) return 'None';
-    if (password.length < 8) return 'Weak';
+    if (!password) return "None"
+    if (password.length < 8) return "Weak"
 
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const hasUpper = /[A-Z]/.test(password)
+    const hasLower = /[a-z]/.test(password)
+    const hasNumbers = /\d/.test(password)
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password)
 
-    const strengthFactors = [hasUpper, hasLower, hasNumbers, hasSpecial].filter(Boolean).length;
+    const strengthFactors = [hasUpper, hasLower, hasNumbers, hasSpecial].filter(Boolean).length
 
-    if (strengthFactors >= 4 && password.length >= 12) return 'Strong';
-    if (strengthFactors >= 3) return 'Good';
-    return 'Fair';
-  };
+    if (strengthFactors >= 4 && password.length >= 12) return "Strong"
+    if (strengthFactors >= 3) return "Good"
+    return "Fair"
+  }
 
   const getPasswordStrengthColor = (password) => {
-    const strength = getPasswordStrength(password);
+    const strength = getPasswordStrength(password)
     switch (strength) {
-      case 'Strong': return 'bg-green-500';
-      case 'Good': return 'bg-blue-500';
-      case 'Fair': return 'bg-yellow-500';
-      case 'Weak': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case "Strong":
+        return "bg-green-500"
+      case "Good":
+        return "bg-blue-500"
+      case "Fair":
+        return "bg-yellow-500"
+      case "Weak":
+        return "bg-red-500"
+      default:
+        return "bg-gray-500"
     }
-  };
+  }
 
   const getPasswordStrengthPercent = (password) => {
-    const strength = getPasswordStrength(password);
+    const strength = getPasswordStrength(password)
     switch (strength) {
-      case 'Strong': return 100;
-      case 'Good': return 75;
-      case 'Fair': return 50;
-      case 'Weak': return 25;
-      default: return 0;
+      case "Strong":
+        return 100
+      case "Good":
+        return 75
+      case "Fair":
+        return 50
+      case "Weak":
+        return 25
+      default:
+        return 0
     }
-  };
+  }
 
   const isPasswordFormValid = () => {
-    const { currentPassword, newPassword, confirmPassword } = generalSettings.accountLogin;
+    const { currentPassword, newPassword, confirmPassword } = generalSettings.accountLogin
 
     // If user has existing password, current password is required
-    if (hasExistingPassword && !currentPassword) return false;
+    if (hasExistingPassword && !currentPassword) return false
 
     // New password must meet requirements
-    if (!newPassword || newPassword.length < 8) return false;
+    if (!newPassword || newPassword.length < 8) return false
 
     // Passwords must match
-    if (newPassword !== confirmPassword) return false;
+    if (newPassword !== confirmPassword) return false
 
-    return true;
-  };
+    return true
+  }
 
-  
-
+  const addChangelogEntry = () => {
+    if (!newChangelog.version || !newChangelog.date || !newChangelog.content) {
+      notification.warning({ message: "Missing Fields", description: "Version, date and details are required." })
+      return
+    }
+    setChangelog([{ ...newChangelog }, ...changelog])
+    setNewChangelog({ version: "", date: null, color: newChangelog.color, content: "" })
+  }
+  const removeChangelogEntry = (index) => {
+    setChangelog(changelog.filter((_, i) => i !== index))
+  }
 
   return (
     <div className=" w-full mx-auto lg:p-10 p-5 rounded-3xl space-y-8 bg-[#181818] min-h-screen text-white">
@@ -545,28 +519,36 @@ const handleAddLeadSource = () => {
       <Tabs defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="General" key="1">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-           
-<Panel header="Legal Information" key="1" className="bg-[#202020]">
-  <div className="space-y-6">
-    <Form layout="vertical">
-      <Form.Item label={<span className="text-white">Imprint</span>}>
-        <RichTextEditor
-          value={generalSettings.imprint}
-          onChange={(value) => handleUpdateGeneralSettings("imprint", value)}
-          placeholder="Enter your company's imprint information with formatting..."
-        />
-      </Form.Item>
-      
-      <Form.Item label={<span className="text-white">Privacy Policy</span>}>
-        <RichTextEditor
-          value={generalSettings.privacyPolicy}
-          onChange={(value) => handleUpdateGeneralSettings("privacyPolicy", value)}
-          placeholder="Enter your privacy policy with formatting..."
-        />
-      </Form.Item>
-    </Form>
-  </div>
-</Panel>
+            <Panel header="Legal Information" key="1" className="bg-[#202020]">
+              <div className="space-y-6">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Imprint</span>}>
+                    <WysiwygEditor
+                      value={generalSettings.imprint}
+                      onChange={(value) => handleUpdateGeneralSettings("imprint", value)}
+                      placeholder="Enter your company's imprint information..."
+                    />
+                  </Form.Item>
+
+                  <Form.Item label={<span className="text-white">Privacy Policy</span>}>
+                    <WysiwygEditor
+                      value={generalSettings.privacyPolicy}
+                      onChange={(value) => handleUpdateGeneralSettings("privacyPolicy", value)}
+                      placeholder="Enter your privacy policy..."
+
+                    />
+                  </Form.Item>
+
+                  <Form.Item label={<span className="text-white">Terms and Conditions</span>}>
+                    <WysiwygEditor
+                      value={generalSettings.termsAndConditions}
+                      onChange={(value) => handleUpdateGeneralSettings("termsAndConditions", value)}
+                      placeholder="Enter your terms and conditions with formatting..."
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
 
             <Panel header="Contact Information" key="2" className="bg-[#202020]">
               <div className="space-y-4">
@@ -628,7 +610,7 @@ const handleAddLeadSource = () => {
                           alt="Studio Logo"
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            e.target.src = defaultLogoUrl;
+                            e.target.src = defaultLogoUrl
                           }}
                         />
                       </div>
@@ -640,7 +622,7 @@ const handleAddLeadSource = () => {
                         showUploadList={false}
                       >
                         <Button icon={<UploadOutlined />} style={buttonStyle}>
-                          {logo.length > 0 ? 'Change Logo' : 'Upload Logo'}
+                          {logo.length > 0 ? "Change Logo" : "Upload Logo"}
                         </Button>
                       </Upload>
                       {logo.length > 0 && (
@@ -649,8 +631,8 @@ const handleAddLeadSource = () => {
                           danger
                           size="small"
                           onClick={() => {
-                            setLogo([]);
-                            setLogoUrl('');
+                            setLogo([])
+                            setLogoUrl("")
                           }}
                         >
                           Remove Logo
@@ -680,9 +662,7 @@ const handleAddLeadSource = () => {
                       <Form.Item
                         label={<span className="text-white">Current Password</span>}
                         name="currentPassword"
-                        rules={[
-                          { required: true, message: 'Please enter your current password' }
-                        ]}
+                        rules={[{ required: true, message: "Please enter your current password" }]}
                       >
                         <Password
                           value={generalSettings.accountLogin.currentPassword}
@@ -698,12 +678,12 @@ const handleAddLeadSource = () => {
                       label={<span className="text-white">New Password</span>}
                       name="newPassword"
                       rules={[
-                        { required: true, message: 'Please enter a new password' },
-                        { min: 8, message: 'Password must be at least 8 characters' },
+                        { required: true, message: "Please enter a new password" },
+                        { min: 8, message: "Password must be at least 8 characters" },
                         {
                           pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                          message: 'Must include uppercase, lowercase, and numbers'
-                        }
+                          message: "Must include uppercase, lowercase, and numbers",
+                        },
                       ]}
                     // help="Must be at least 8 characters with uppercase, lowercase, and numbers"
                     >
@@ -720,15 +700,15 @@ const handleAddLeadSource = () => {
                     <Form.Item
                       label={<span className="text-white">Confirm New Password</span>}
                       name="confirmPassword"
-                      dependencies={['newPassword']}
+                      dependencies={["newPassword"]}
                       rules={[
-                        { required: true, message: 'Please confirm your new password' },
+                        { required: true, message: "Please confirm your new password" },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
-                            if (!value || getFieldValue('newPassword') === value) {
-                              return Promise.resolve();
+                            if (!value || getFieldValue("newPassword") === value) {
+                              return Promise.resolve()
                             }
-                            return Promise.reject(new Error('Passwords do not match'));
+                            return Promise.reject(new Error("Passwords do not match"))
                           },
                         }),
                       ]}
@@ -890,12 +870,7 @@ const handleAddLeadSource = () => {
                     </Radio.Group>
                   </Form.Item>
 
-                  <Form.Item label={<span className="text-white">Allow Users to Toggle Theme</span>}>
-                    <Switch
-                      checked={appearance.allowUserThemeToggle}
-                      onChange={(checked) => setAppearance({ ...appearance, allowUserThemeToggle: checked })}
-                    />
-                  </Form.Item>
+
 
                   <Divider style={{ borderColor: "#303030" }} />
 
@@ -912,7 +887,7 @@ const handleAddLeadSource = () => {
                     <div className="flex items-center gap-3">
                       <ColorPicker
                         value={appearance.primaryColor}
-                        onChange={(color) => setAppearance({ ...appearance, primaryColor: color })}
+                        onChange={(color) => setAppearance({ ...appearance, primaryColor: color.toHexString() })}
                       />
                       <div
                         className="h-10 w-20 rounded-md flex items-center justify-center text-white"
@@ -936,7 +911,7 @@ const handleAddLeadSource = () => {
                     <div className="flex items-center gap-3">
                       <ColorPicker
                         value={appearance.secondaryColor}
-                        onChange={(color) => setAppearance({ ...appearance, secondaryColor: color })}
+                        onChange={(color) => setAppearance({ ...appearance, secondaryColor: color.toHexString() })}
                       />
                       <div
                         className="h-10 w-20 rounded-md flex items-center justify-center text-white"
@@ -1026,7 +1001,7 @@ const handleAddLeadSource = () => {
                             />
                           </div>
                         </Form.Item>
-                        <Form.Item label={<span className="text-white white-text">Cost</span>}>
+                        <Form.Item label={<span className="text-white">Cost</span>}>
                           <div className="white-text">
                             <InputNumber
                               value={type.cost}
@@ -1102,70 +1077,7 @@ const handleAddLeadSource = () => {
             </Panel>
 
             <Panel header="Contract Sections" key="2" className="bg-[#202020]">
-              <div className="space-y-4">
-                {contractSections.map((section, index) => (
-                  <Collapse key={index} className="border border-[#303030] rounded-lg overflow-hidden">
-                    <Panel header={section.title || "New Section"} key="1" className="bg-[#252525]">
-                      <Form layout="vertical">
-                        <Form.Item label={<span className="text-white">Section Title</span>}>
-                          <Input
-                            value={section.title}
-                            onChange={(e) => {
-                              const updated = [...contractSections]
-                              updated[index].title = e.target.value
-                              setContractSections(updated)
-                            }}
-                            style={inputStyle}
-                          />
-                        </Form.Item>
-                        <Form.Item label={<span className="text-white">Content</span>}>
-                          <TextArea
-                            value={section.content}
-                            onChange={(e) => {
-                              const updated = [...contractSections]
-                              updated[index].content = e.target.value
-                              setContractSections(updated)
-                            }}
-                            rows={4}
-                            style={inputStyle}
-                          />
-                        </Form.Item>
-                        <Form.Item label={<span className="text-white">Signature needed</span>}>
-                          <Switch
-                            checked={section.editable ?? false}
-                            onChange={(checked) => {
-                              const updated = [...contractSections]
-                              updated[index].editable = checked
-                              setContractSections(updated)
-                            }}
-                          />
-                        </Form.Item>
-                        <Form.Item label={<span className="text-white">Requires Agreement</span>}>
-                          <Switch
-                            checked={section.requiresAgreement}
-                            onChange={(checked) => {
-                              const updated = [...contractSections]
-                              updated[index].requiresAgreement = checked
-                              setContractSections(updated)
-                            }}
-                          />
-                        </Form.Item>
-                      </Form>
-                      <Button
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => setContractSections(contractSections.filter((_, i) => i !== index))}
-                        style={buttonStyle}
-                      >
-                        Remove
-                      </Button>
-                    </Panel>
-                  </Collapse>
-                ))}
-                <Button type="dashed" onClick={handleAddContractSection} icon={<PlusOutlined />} style={buttonStyle}>
-                  Add Contract Section
-                </Button>
-              </div>
+              <ContractBuilder />
             </Panel>
 
             <Panel header="Contract Pause Reasons" key="3" className="bg-[#202020]">
@@ -1248,15 +1160,15 @@ const handleAddLeadSource = () => {
                       style={inputStyle}
                       onPressEnter={() => {
                         if (newLeadSource.trim()) {
-                          handleAddLeadSource();
+                          handleAddLeadSource()
                         }
                       }}
                     />
                     <Button
                       onClick={() => {
                         if (newLeadSource.trim()) {
-                          handleAddLeadSource();
-                          setNewLeadSource(""); // Clear input after adding
+                          handleAddLeadSource()
+                          setNewLeadSource("") // Clear input after adding
                         }
                       }}
                       style={saveButtonStyle}
@@ -1272,7 +1184,10 @@ const handleAddLeadSource = () => {
                   {leadSources.length > 0 ? (
                     <div className="space-y-2">
                       {leadSources.map((source) => (
-                        <div key={source.id} className="flex justify-between items-center bg-[#1C1C1C] px-4 py-3 rounded-lg">
+                        <div
+                          key={source.id}
+                          className="flex justify-between items-center bg-[#1C1C1C] px-4 py-3 rounded-lg"
+                        >
                           <span className="text-white text-sm">{source.name}</span>
                           <Button
                             onClick={() => handleRemoveLeadSource(source.id)}
@@ -1288,6 +1203,207 @@ const handleAddLeadSource = () => {
                     <div className="text-center py-8">
                       <p className="text-gray-400 text-sm">No lead sources created yet</p>
                       <p className="text-gray-500 text-xs mt-1">Add your first lead source above</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Panel>
+          </Collapse>
+        </TabPane>
+
+        <TabPane tab="Email" key="6">
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Email Signature" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Default Email Signature</span>}>
+                    <WysiwygEditor
+                      value={emailSignature}
+                      onChange={setEmailSignature}
+                      placeholder="Enter your default email signature..."
+                    />
+                    <div className="text-xs text-gray-400 mt-2">
+                      <strong>Available variables:</strong> {"{Studio_Name}"}, {"{Your_Name}"}, {"{Phone_Number}"}, {"{Email}"}
+                    </div>
+                  </Form.Item>
+                </Form>
+
+
+              </div>
+            </Panel>
+            <Panel header="SMTP Setup" key="3" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white white-text">SMTP Server</span>}>
+                    <Input
+                      value={emailConfig.smtpServer}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          smtpServer: e.target.value,
+                        })
+                      }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
+                      style={inputStyle}
+                      placeholder="smtp.example.com"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white white-text">SMTP Port</span>}>
+                    <div className="white-text">
+                      <InputNumber
+                        value={emailConfig.smtpPort}
+                        onChange={(value) =>
+                          setEmailConfig({
+                            ...emailConfig,
+                            smtpPort: value || 587,
+                          })
+                        }
+                        style={inputStyle}
+                        placeholder="587"
+                      />
+                    </div>
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Email Address (Username)</span>}>
+                    <Input
+                      value={emailConfig.smtpUser} // Changed to smtpUser
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          smtpUser: e.target.value,
+                        })
+                      }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
+                      style={inputStyle}
+                      placeholder="studio@example.com"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white white-text">Password</span>}>
+                    <Input.Password
+                      value={emailConfig.smtpPass} // Changed to smtpPass
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          smtpPass: e.target.value,
+                        })
+                      }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Use SSL/TLS</span>}>
+                    <Switch
+                      checked={emailConfig.useSSL}
+                      onChange={(checked) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          useSSL: checked,
+                        })
+                      }
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Default Sender Name</span>}>
+                    <Input
+                      value={emailConfig.senderName}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          senderName: e.target.value,
+                        })
+                      }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
+                      style={inputStyle}
+                      placeholder="Your Studio Name"
+                    />
+                  </Form.Item>
+                  <Button type="primary" style={buttonStyle} onClick={testEmailConnection}>
+                    Test Connection
+                  </Button>
+                </Form>
+              </div>
+            </Panel>
+          </Collapse>
+        </TabPane>
+
+        {/* NEW TAB FOR CHANGELOG */}
+        <TabPane tab="Changelog" key="7">
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            <Panel header="Manage Version History" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg text-white font-medium">Changelog Entries</h3>
+                </div>
+
+                {/* Add New Changelog Entry Form */}
+                <div className="bg-[#1C1C1C] p-4 rounded-lg mb-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Input
+                      value={newChangelog.version}
+                      onChange={(e) => setNewChangelog({ ...newChangelog, version: e.target.value })}
+                      placeholder="Version (e.g., 2.1.0)"
+                      style={inputStyle}
+                    />
+                    <DatePicker
+                      value={newChangelog.date}
+                      onChange={(date) => setNewChangelog({ ...newChangelog, date })}
+                      placeholder="Release Date"
+                      className="bg-[#101010] text-white"
+                      style={{ backgroundColor: "#101010", border: "none", color: "#fff", padding: "10px 10px" }}
+                    />
+                    <ColorPicker
+                      value={newChangelog.color}
+                      onChange={(c) => setNewChangelog({ ...newChangelog, color: c.toHexString() })}
+                      className="col-span-1 md:col-span-2"
+                    />
+                  </div>
+                  <WysiwygEditor
+                    value={newChangelog.content}
+                    onChange={(val) => setNewChangelog({ ...newChangelog, content: val })}
+                    placeholder="Details with formatting..."
+                  />
+                  <Button
+                    onClick={addChangelogEntry}
+                    style={saveButtonStyle}
+                    disabled={!newChangelog.version || !newChangelog.date || !newChangelog.content}
+                  >
+                    Add Changelog Entry
+                  </Button>
+                </div>
+
+                <div className="max-h-96 overflow-y-auto border border-[#303030] rounded-lg">
+                  {changelog.length > 0 ? (
+                    <div className="space-y-3 p-4">
+                      {changelog.map((entry, index) => (
+                        <div
+                          key={index}
+                          className="bg-[#1C1C1C] p-4 rounded-lg flex justify-between items-start"
+                          style={{ borderLeft: `6px solid ${entry.color}` }}
+                        >
+                          <div className="pr-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-white font-semibold text-lg">Version {entry.version}</span>
+                              <span className="text-gray-400 text-sm">
+                                Released on {entry.date ? entry.date.format("MMMM D, YYYY") : "No Date"}
+                              </span>
+                            </div>
+                            <div
+                              className="text-gray-300 text-sm leading-relaxed"
+                              dangerouslySetInnerHTML={{ __html: entry.content }}
+                            />
+                          </div>
+                          <Button
+                            danger
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            size="small"
+                            onClick={() => removeChangelogEntry(index)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 text-sm">No changelog entries added yet.</p>
+                      <p className="text-gray-500 text-xs mt-1">Add your first entry above.</p>
                     </div>
                   )}
                 </div>

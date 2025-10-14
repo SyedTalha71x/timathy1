@@ -3,53 +3,69 @@ import { Check, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 const CheckFundsModal = ({ isOpen, onClose, transactions, onUpdateStatuses }) => {
-  const [selectedTransactions, setSelectedTransactions] = useState({})
-  const [newStatus, setNewStatus] = useState("Successful")
+  const [transactionStatuses, setTransactionStatuses] = useState({})
 
   useEffect(() => {
     // Initialize with all transactions that have "Check incoming funds" status
-    const initialSelected = {}
+    const initialStatuses = {}
     transactions.forEach((tx) => {
       if (tx.status === "Check incoming funds") {
-        initialSelected[tx.id] = true
+        initialStatuses[tx.id] = "Successful" // Default status for each transaction
       }
     })
-    setSelectedTransactions(initialSelected)
+    setTransactionStatuses(initialStatuses)
   }, [transactions])
 
-  const handleToggleTransaction = (id) => {
-    setSelectedTransactions((prev) => ({
+  const handleStatusChange = (id, status) => {
+    setTransactionStatuses((prev) => ({
       ...prev,
-      [id]: !prev[id],
+      [id]: status,
     }))
   }
 
   const handleUpdateStatuses = () => {
-    const txToUpdate = Object.keys(selectedTransactions)
-      .filter((id) => selectedTransactions[id])
+    const txToUpdate = Object.keys(transactionStatuses)
       .map((id) => transactions.find((tx) => tx.id === id))
       .map((tx) => ({
         ...tx,
-        status: newStatus,
+        status: transactionStatuses[tx.id],
       }))
 
     onUpdateStatuses(txToUpdate)
     onClose()
   }
 
-  const handleSelectAll = (selected) => {
-    const newSelected = {}
+  const handleSelectAll = (status) => {
+    const newStatuses = {}
     transactions
       .filter((tx) => tx.status === "Check incoming funds")
       .forEach((tx) => {
-        newSelected[tx.id] = selected
+        newStatuses[tx.id] = status
       })
-    setSelectedTransactions(newSelected)
+    setTransactionStatuses(newStatuses)
+  }
+
+  const handleToggleTransaction = (id, selected) => {
+    if (selected) {
+      // Add transaction with default status
+      setTransactionStatuses((prev) => ({
+        ...prev,
+        [id]: "Successful",
+      }))
+    } else {
+      // Remove transaction
+      setTransactionStatuses((prev) => {
+        const newStatuses = { ...prev }
+        delete newStatuses[id]
+        return newStatuses
+      })
+    }
   }
 
   if (!isOpen) return null
 
   const checkingTransactions = transactions.filter((tx) => tx.status === "Check incoming funds")
+  const selectedCount = Object.keys(transactionStatuses).length
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
@@ -69,37 +85,15 @@ const CheckFundsModal = ({ isOpen, onClose, transactions, onUpdateStatuses }) =>
                 <div className="flex gap-2">
                   <button
                     className="px-3 py-1 text-sm rounded-lg bg-[#141414] text-gray-300 hover:bg-black"
-                    onClick={() => handleSelectAll(true)}
+                    onClick={() => handleSelectAll("Successful")}
                   >
-                    Select All
+                    Mark All Successful
                   </button>
                   <button
                     className="px-3 py-1 text-sm rounded-lg bg-[#141414] text-gray-300 hover:bg-black"
-                    onClick={() => handleSelectAll(false)}
+                    onClick={() => handleSelectAll("Failed")}
                   >
-                    Deselect All
-                  </button>
-                </div>
-              </div>
-
-              <div className="mb-4 flex items-center gap-4">
-                <span className="text-gray-300">Set selected to:</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setNewStatus("Successful")}
-                    className={`px-3 py-1 rounded-lg text-sm ${
-                      newStatus === "Successful" ? "bg-green-900/50 text-green-400" : "bg-[#141414] text-gray-300"
-                    }`}
-                  >
-                    Successful
-                  </button>
-                  <button
-                    onClick={() => setNewStatus("Failed")}
-                    className={`px-3 py-1 rounded-lg text-sm ${
-                      newStatus === "Failed" ? "bg-red-900/50 text-red-400" : "bg-[#141414] text-gray-300"
-                    }`}
-                  >
-                    Failed
+                    Mark All Failed
                   </button>
                 </div>
               </div>
@@ -111,21 +105,23 @@ const CheckFundsModal = ({ isOpen, onClose, transactions, onUpdateStatuses }) =>
                       <input
                         type="checkbox"
                         className="rounded bg-black border-gray-700"
-                        checked={
-                          Object.values(selectedTransactions).every((v) => v) &&
-                          Object.keys(selectedTransactions).length > 0
-                        }
+                        checked={selectedCount === checkingTransactions.length && selectedCount > 0}
                         onChange={() => {
-                          const allSelected =
-                            Object.values(selectedTransactions).every((v) => v) &&
-                            Object.keys(selectedTransactions).length > 0
-                          handleSelectAll(!allSelected)
+                          const allSelected = selectedCount === checkingTransactions.length && selectedCount > 0
+                          if (allSelected) {
+                            // Deselect all
+                            setTransactionStatuses({})
+                          } else {
+                            // Select all with default status
+                            handleSelectAll("Successful")
+                          }
                         }}
                       />
                     </th>
                     <th className="px-3 py-2 text-left">Studio</th>
                     <th className="px-3 py-2 text-left">Studio Owner</th>
                     <th className="px-3 py-2 text-left">Date</th>
+                    <th className="px-3 py-2 text-left">Status</th>
                     <th className="px-3 py-2 text-right rounded-tr-lg">Amount</th>
                   </tr>
                 </thead>
@@ -136,13 +132,39 @@ const CheckFundsModal = ({ isOpen, onClose, transactions, onUpdateStatuses }) =>
                         <input
                           type="checkbox"
                           className="rounded bg-black border-gray-700"
-                          checked={selectedTransactions[tx.id] || false}
-                          onChange={() => handleToggleTransaction(tx.id)}
+                          checked={!!transactionStatuses[tx.id]}
+                          onChange={(e) => handleToggleTransaction(tx.id, e.target.checked)}
                         />
                       </td>
                       <td className="px-3 py-2">{tx.studioName}</td>
                       <td className="px-3 py-2">{tx.studioOwner}</td>
                       <td className="px-3 py-2">{new Date(tx.date).toLocaleDateString()}</td>
+                      <td className="px-3 py-2">
+                        {transactionStatuses[tx.id] && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleStatusChange(tx.id, "Successful")}
+                              className={`px-2 py-1 rounded text-xs ${
+                                transactionStatuses[tx.id] === "Successful" 
+                                  ? "bg-green-900/50 text-green-400" 
+                                  : "bg-[#141414] text-gray-300 hover:bg-black"
+                              }`}
+                            >
+                              Successful
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(tx.id, "Failed")}
+                              className={`px-2 py-1 rounded text-xs ${
+                                transactionStatuses[tx.id] === "Failed" 
+                                  ? "bg-red-900/50 text-red-400" 
+                                  : "bg-[#141414] text-gray-300 hover:bg-black"
+                              }`}
+                            >
+                              Failed
+                            </button>
+                          </div>
+                        )}
+                      </td>
                       <td className="px-3 py-2 text-right">
                         {new Intl.NumberFormat("en-US", {
                           style: "currency",
@@ -171,10 +193,10 @@ const CheckFundsModal = ({ isOpen, onClose, transactions, onUpdateStatuses }) =>
           <button
             onClick={handleUpdateStatuses}
             className="px-4 py-2 rounded-xl text-sm bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90 flex items-center gap-2"
-            disabled={!Object.values(selectedTransactions).some((v) => v)}
+            disabled={selectedCount === 0}
           >
             <Check className="w-4 h-4" />
-            Update Status
+            Update Status ({selectedCount})
           </button>
         </div>
       </div>

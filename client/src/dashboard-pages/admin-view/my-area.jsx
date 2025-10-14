@@ -1,50 +1,54 @@
+/* eslint-disable no-empty */
+// admin panel -- my area
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
-import {
-  BarChart3,
-  MoreVertical,
-  X,
-  ChevronDown,
-  Edit,
-  Check,
-  ArrowDown,
-  ArrowUp,
-  Plus,
-  ExternalLink,
-} from "lucide-react"
+import { BarChart3, MoreVertical, X, ChevronDown, Edit, Check, Plus, ExternalLink } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
-import WidgetSelectionModal from '../../components/admin-dashboard-components/myarea-components/widgets'
-import Sidebar from '../../components/admin-dashboard-components/myarea-components/myarea-sidebar'
+import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
+import Sidebar from "../../components/admin-dashboard-components/myarea-components/myarea-sidebar"
 import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
 import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
+import { Eye, Minus } from "react-feather"
+import ViewManagementModal from "../../components/admin-dashboard-components/myarea-components/view-management"
 
-const DraggableWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
+const DraggableWidget = ({
+  id,
+  children,
+  index,
+  moveWidget,
+  removeWidget,
+  isEditing,
+  widgets,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  isDragging,
+  isDragOver,
+}) => {
   const ref = useRef(null)
   return (
-    <div ref={ref} className="relative mb-4 w-full">
+    <div
+      ref={ref}
+      draggable={isEditing}
+      onDragStart={(e) => onDragStart?.(index, e)} // pass event for dataTransfer
+      onDragOver={(e) => onDragOver?.(index, e)}
+      onDrop={(e) => onDrop?.(index, e)} // pass event for preventDefault + payload
+      onDragEnd={onDragEnd}
+      className={`relative mb-4 w-full ${isEditing ? "animate-wobble cursor-move" : ""} ${isDragging ? "dragging" : ""} ${isDragOver ? "drag-over" : ""}`}
+    >
       {isEditing && (
         <div className="absolute top-2 right-2 z-10 flex gap-2">
           <button
-            onClick={() => moveWidget(index, index - 1)}
-            className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
-            disabled={index === 0}
+            onClick={() => removeWidget(id)}
+            className="p-1 bg-gray-500 rounded-md cursor-pointer text-black flex items-center justify-center w-7 h-7"
           >
-            <ArrowUp size={12} />
-          </button>
-          <button
-            onClick={() => moveWidget(index, index + 1)}
-            className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
-            disabled={index === widgets.length - 1}
-          >
-            <ArrowDown size={12} />
-          </button>
-
-          <button onClick={() => removeWidget(id)} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700">
-            <X size={12} />
+            <Minus size={25} />
           </button>
         </div>
       )}
@@ -66,7 +70,14 @@ export default function MyArea() {
   const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
   const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
 
+  const [savedViews, setSavedViews] = useState([])
+  const [currentView, setCurrentView] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+
   const [isEditing, setIsEditing] = useState(false)
+  const [isSidebarEditing, setIsSidebarEditing] = useState(false)
+  const [dragIndex, setDragIndex] = useState(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 },
     { id: "todo", type: "todo", position: 1 },
@@ -150,28 +161,17 @@ export default function MyArea() {
 
   const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   const toggleEditing = () => setIsEditing(!isEditing)
-
-  // Add this function to your MyArea component to replace the existing canAddWidget functions
+  const toggleSidebarEditing = () => setIsSidebarEditing(!isSidebarEditing)
 
   const getWidgetStatus = (widgetType) => {
-    // Check if widget exists in main dashboard widgets
     const existsInDashboard = widgets.some((widget) => widget.type === widgetType)
-
-    if (existsInDashboard) {
-      return { canAdd: false, location: "dashboard" }
-    }
-
+    if (existsInDashboard) return { canAdd: false, location: "dashboard" }
     return { canAdd: true, location: null }
   }
 
   const getSidebarWidgetStatus = (widgetType) => {
-    // Check if widget exists in sidebar widgets
     const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
-
-    if (existsInSidebar) {
-      return { canAdd: false, location: "sidebar" }
-    }
-
+    if (existsInSidebar) return { canAdd: false, location: "sidebar" }
     return { canAdd: true, location: null }
   }
 
@@ -227,36 +227,11 @@ export default function MyArea() {
 
   // Updated expiring contracts - all set to "Expiring Soon" with yellow status
   const [expiringContracts, setExpiringContracts] = useState([
-    {
-      id: 1,
-      title: "Oxygen Gym Membership",
-      expiryDate: "June 30, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 2,
-      title: "Timathy Fitness Equipment Lease",
-      expiryDate: "July 15, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 3,
-      title: "Studio Space Rental",
-      expiryDate: "August 5, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 4,
-      title: "Insurance Policy",
-      expiryDate: "September 10, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 5,
-      title: "Software License",
-      expiryDate: "October 20, 2025",
-      status: "Expiring Soon",
-    },
+    { id: 1, title: "Oxygen Gym Membership", expiryDate: "June 30, 2025", status: "Expiring Soon" },
+    { id: 2, title: "Timathy Fitness Equipment Lease", expiryDate: "July 15, 2025", status: "Expiring Soon" },
+    { id: 3, title: "Studio Space Rental", expiryDate: "August 5, 2025", status: "Expiring Soon" },
+    { id: 4, title: "Insurance Policy", expiryDate: "September 10, 2025", status: "Expiring Soon" },
+    { id: 5, title: "Software License", expiryDate: "October 20, 2025", status: "Expiring Soon" },
   ])
 
   const chartOptions = {
@@ -269,11 +244,7 @@ export default function MyArea() {
     },
     colors: ["#FF6B1A", "#2E5BFF"],
     stroke: { curve: "smooth", width: 4, opacity: 1 },
-    markers: {
-      size: 1,
-      strokeWidth: 0,
-      hover: { size: 6 },
-    },
+    markers: { size: 1, strokeWidth: 0, hover: { size: 6 } },
     xaxis: {
       categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       labels: { style: { colors: "#999999", fontSize: "12px" } },
@@ -287,9 +258,7 @@ export default function MyArea() {
       labels: {
         style: { colors: "#999999", fontSize: "12px" },
         formatter: (value) => {
-          if (selectedMemberType === "Finance" && value >= 1000) {
-            return `$${(value / 1000).toFixed(0)}k`
-          }
+          if (selectedMemberType === "Finance" && value >= 1000) return `$${(value / 1000).toFixed(0)}k`
           return Math.round(value)
         },
       },
@@ -324,15 +293,10 @@ export default function MyArea() {
     },
     tooltip: {
       theme: "dark",
-      style: {
-        fontSize: "12px",
-        fontFamily: "Inter, sans-serif",
-      },
-      custom: ({ series, seriesIndex, dataPointIndex, w }) => {
+      style: { fontSize: "12px", fontFamily: "Inter, sans-serif" },
+      custom: ({ series, seriesIndex, dataPointIndex }) => {
         let value = series[seriesIndex][dataPointIndex]
-        if (selectedMemberType === "Finance") {
-          value = `$${value.toLocaleString()}`
-        }
+        if (selectedMemberType === "Finance") value = `$${value.toLocaleString()}`
         return (
           '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
           '<span style="color: black;">' +
@@ -349,39 +313,75 @@ export default function MyArea() {
   ]
 
   const handleAddWidget = (widgetType) => {
-    const newWidget = {
-      id: `widget${Date.now()}`,
-      type: widgetType,
-      position: widgets.length,
-    }
+    const newWidget = { id: `widget${Date.now()}`, type: widgetType, position: widgets.length }
     setWidgets((currentWidgets) => [...currentWidgets, newWidget])
     setIsWidgetModalOpen(false)
     toast.success(`${widgetType} widget has been added Successfully`)
   }
 
   const handleAddSidebarWidget = (widgetType) => {
-    const newWidget = {
-      id: `sidebar-widget${Date.now()}`,
-      type: widgetType,
-      position: sidebarWidgets.length,
-    }
+    const newWidget = { id: `sidebar-widget${Date.now()}`, type: widgetType, position: sidebarWidgets.length }
     setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
     setIsRightWidgetModalOpen(false)
     toast.success(`${widgetType} widget has been added to sidebar Successfully`)
   }
 
+  const handleDragStart = (index, e) => {
+    if (!isEditing) return
+    try {
+      e.dataTransfer.effectAllowed = "move"
+      e.dataTransfer.setData("text/plain", String(index))
+    } catch { }
+    setDragIndex(index)
+  }
+  const handleDragOver = (index, e) => {
+    if (!isEditing) return
+    e.preventDefault()
+    try {
+      e.dataTransfer.dropEffect = "move"
+    } catch { }
+    setDragOverIndex(index)
+  }
+  const handleDrop = (index, e) => {
+    if (!isEditing) return
+    e.preventDefault()
+    let from = dragIndex
+    if (from === null) {
+      const payload = e.dataTransfer.getData("text/plain")
+      if (payload) {
+        const parsed = Number.parseInt(payload, 10)
+        if (!Number.isNaN(parsed)) from = parsed
+      }
+    }
+    if (from !== null && from !== index) {
+      moveWidget(from, index)
+    }
+    setDragIndex(null)
+    setDragOverIndex(null)
+  }
+  const handleDragEnd = () => {
+    setDragIndex(null)
+    setDragOverIndex(null)
+  }
+
   return (
     <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
+      <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
+      <style>{`
+        @keyframes wobble {
+          0%, 100% { transform: rotate(0deg); }
+          15% { transform: rotate(-1deg); }
+          30% { transform: rotate(1deg); }
+          45% { transform: rotate(-1deg); }
+          60% { transform: rotate(1deg); }
+          75% { transform: rotate(-1deg); }
+          90% { transform: rotate(1deg); }
+        }
+          
+        .animate-wobble { animation: wobble 0.5s ease-in-out infinite; }
+        .dragging { opacity: 0.5; border: 2px dashed #fff; }
+        .drag-over { border: 2px dashed #888; }
+      `}</style>
       <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-3 md:p-5 space-y-4">
@@ -391,6 +391,16 @@ export default function MyArea() {
                 <h1 className="text-xl font-bold">My Area</h1>
               </div>
               <div className="flex items-center gap-2">
+
+                {!isEditing && (
+                  <button
+                    onClick={() => setIsViewModalOpen(true)}
+                    className="px-4 py-2 bg-zinc-700 md:w-auto w-full text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
+                  >
+                    <Eye size={16} />
+                    {currentView ? currentView.name : "Standard View"}
+                  </button>
+                )}
                 <button
                   onClick={() => setIsWidgetModalOpen(true)}
                   className="py-2 px-4 bg-black text-white hover:bg-zinc-900 rounded-xl text-sm cursor-pointer flex items-center gap-1"
@@ -398,13 +408,17 @@ export default function MyArea() {
                   <Plus size={16} />
                   <span className="hidden sm:inline">Add Widget</span>
                 </button>
+
                 <button
                   onClick={toggleEditing}
-                  className={`p-2 ${isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                    } rounded-lg flex items-center gap-1`}
+                  className={`p-2 ${isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"} rounded-lg flex items-center gap-1`}
+                  title={isEditing ? "Done" : "Edit Dashboard"}
                 >
                   {isEditing ? <Check size={16} /> : <Edit size={16} />}
                 </button>
+
+
+
                 <button
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
                   className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg lg:hidden"
@@ -420,50 +434,59 @@ export default function MyArea() {
               {widgets
                 .filter((widget) => widget.type === "chart")
                 .sort((a, b) => a.position - b.position)
-                .map((widget, index) => (
-                  <DraggableWidget
-                    key={widget.id}
-                    id={widget.id}
-                    index={widgets.findIndex((w) => w.id === widget.id)}
-                    moveWidget={moveWidget}
-                    removeWidget={removeWidget}
-                    isEditing={isEditing}
-                    widgets={widgets}
-                  >
-                    <div className="p-4 bg-[#2F2F2F] rounded-xl">
-                      <div className="relative mb-3" ref={chartDropdownRef}>
-                        <button
-                          onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
-                        >
-                          {selectedMemberType}
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
-                        {isChartDropdownOpen && (
-                          <div className="absolute z-10 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg">
-                            {Object.keys(memberTypes).map((type) => (
-                              <button
-                                key={type}
-                                className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
-                                onClick={() => {
-                                  setSelectedMemberType(type)
-                                  setIsChartDropdownOpen(false)
-                                }}
-                              >
-                                {type}
-                              </button>
-                            ))}
+                .map((widget) => {
+                  const idx = widgets.findIndex((w) => w.id === widget.id)
+                  return (
+                    <DraggableWidget
+                      key={widget.id}
+                      id={widget.id}
+                      index={idx}
+                      moveWidget={moveWidget}
+                      removeWidget={removeWidget}
+                      isEditing={isEditing}
+                      widgets={widgets}
+                      onDragStart={handleDragStart}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      onDragEnd={handleDragEnd}
+                      isDragging={dragIndex === idx}
+                      isDragOver={dragOverIndex === idx}
+                    >
+                      <div className="p-4 bg-[#2F2F2F] rounded-xl">
+                        <div className="relative mb-3" ref={chartDropdownRef}>
+                          <button
+                            onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
+                          >
+                            {selectedMemberType}
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          {isChartDropdownOpen && (
+                            <div className="absolute z-10 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg">
+                              {Object.keys(memberTypes).map((type) => (
+                                <button
+                                  key={type}
+                                  className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
+                                  onClick={() => {
+                                    setSelectedMemberType(type)
+                                    setIsChartDropdownOpen(false)
+                                  }}
+                                >
+                                  {type}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="overflow-x-auto">
+                          <div className="min-w-[600px]">
+                            <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
                           </div>
-                        )}
-                      </div>
-                      <div className="overflow-x-auto">
-                        <div className="min-w-[600px]">
-                          <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
                         </div>
                       </div>
-                    </div>
-                  </DraggableWidget>
-                ))}
+                    </DraggableWidget>
+                  )
+                })}
 
               {/* Website Links and Expiring Contracts in Same Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -471,129 +494,152 @@ export default function MyArea() {
                 {widgets
                   .filter((widget) => widget.type === "websiteLink")
                   .sort((a, b) => a.position - b.position)
-                  .map((widget) => (
-                    <DraggableWidget
-                      key={widget.id}
-                      id={widget.id}
-                      index={widgets.findIndex((w) => w.id === widget.id)}
-                      moveWidget={moveWidget}
-                      removeWidget={removeWidget}
-                      isEditing={isEditing}
-                      widgets={widgets}
-                    >
-                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[350px] flex flex-col">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">Website Links</h2>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                          <div className="grid grid-cols-1 gap-3">
-                            {customLinks.map((link) => (
-                              <div key={link.id} className="p-5 bg-black rounded-xl flex items-center justify-between">
-                                <div>
-                                  <h3 className="text-sm font-medium">{link.title}</h3>
-                                  <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={() => window.open(link.url, "_blank")}
-                                    className="p-2 hover:bg-zinc-700 rounded-lg"
-                                  >
-                                    <ExternalLink size={16} />
-                                  </button>
-                                  <div className="relative">
+                  .map((widget) => {
+                    const idx = widgets.findIndex((w) => w.id === widget.id)
+                    return (
+                      <DraggableWidget
+                        key={widget.id}
+                        id={widget.id}
+                        index={idx}
+                        moveWidget={moveWidget}
+                        removeWidget={removeWidget}
+                        isEditing={isEditing}
+                        widgets={widgets}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        onDragEnd={handleDragEnd}
+                        isDragging={dragIndex === idx}
+                        isDragOver={dragOverIndex === idx}
+                      >
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[350px] flex flex-col">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">Website Links</h2>
+                          </div>
+                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <div className="grid grid-cols-1 gap-3">
+                              {customLinks.map((link) => (
+                                <div
+                                  key={link.id}
+                                  className="p-5 bg-black rounded-xl flex items-center justify-between"
+                                >
+                                  <div>
+                                    <h3 className="text-sm font-medium">{link.title}</h3>
+                                    <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
                                     <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        toggleDropdown(`link-${link.id}`)
-                                      }}
+                                      onClick={() => window.open(link.url, "_blank")}
                                       className="p-2 hover:bg-zinc-700 rounded-lg"
                                     >
-                                      <MoreVertical size={16} />
+                                      <ExternalLink size={16} />
                                     </button>
-                                    {openDropdownIndex === `link-${link.id}` && (
-                                      <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            setEditingLink(link)
-                                            setOpenDropdownIndex(null)
-                                          }}
-                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
-                                        >
-                                          Edit
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            removeCustomLink(link.id)
-                                            setOpenDropdownIndex(null)
-                                          }}
-                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                                        >
-                                          Remove
-                                        </button>
-                                      </div>
-                                    )}
+                                    <div className="relative">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          toggleDropdown(`link-${link.id}`)
+                                        }}
+                                        className="p-2 hover:bg-zinc-700 rounded-lg"
+                                      >
+                                        <MoreVertical size={16} />
+                                      </button>
+                                      {openDropdownIndex === `link-${link.id}` && (
+                                        <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              setEditingLink(link)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                          >
+                                            Edit
+                                          </button>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              removeCustomLink(link.id)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                          >
+                                            Remove
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
+                          <button
+                            onClick={addCustomLink}
+                            className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 mt-auto"
+                          >
+                            Add website link...
+                          </button>
                         </div>
-                        <button
-                          onClick={addCustomLink}
-                          className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 mt-auto"
-                        >
-                          Add website link...
-                        </button>
-                      </div>
-                    </DraggableWidget>
-                  ))}
+                      </DraggableWidget>
+                    )
+                  })}
 
                 {/* Expiring Contracts Widget */}
                 {widgets
                   .filter((widget) => widget.type === "expiringContracts")
                   .sort((a, b) => a.position - b.position)
-                  .map((widget) => (
-                    <DraggableWidget
-                      key={widget.id}
-                      id={widget.id}
-                      index={widgets.findIndex((w) => w.id === widget.id)}
-                      moveWidget={removeWidget}
-                      removeWidget={removeWidget}
-                      isEditing={isEditing}
-                      widgets={widgets}
-                    >
-                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[350px] flex flex-col">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">Expiring Contracts</h2>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                          <div className="grid grid-cols-1 gap-3">
-                            {expiringContracts.map((contract) => (
-                              <Link to={"/admin-dashboard/contract"} key={contract.id}>
-                                <div className="p-4 bg-black rounded-xl">
-                                  <div className="flex justify-between items-start">
-                                    <div>
-                                      <h3 className="text-sm font-medium">{contract.title}</h3>
-                                      <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
+                  .map((widget) => {
+                    const idx = widgets.findIndex((w) => w.id === widget.id)
+                    return (
+                      <DraggableWidget
+                        key={widget.id}
+                        id={widget.id}
+                        index={idx}
+                        moveWidget={moveWidget}
+                        removeWidget={removeWidget}
+                        isEditing={isEditing}
+                        widgets={widgets}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        onDragEnd={handleDragEnd}
+                        isDragging={dragIndex === idx}
+                        isDragOver={dragOverIndex === idx}
+                      >
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[350px] flex flex-col">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">Expiring Contracts</h2>
+                          </div>
+                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <div className="grid grid-cols-1 gap-3">
+                              {expiringContracts.map((contract) => (
+                                <Link to={"/admin-dashboard/contract"} key={contract.id}>
+                                  <div className="p-4 bg-black rounded-xl">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <h3 className="text-sm font-medium">{contract.title}</h3>
+                                        <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
+                                      </div>
+                                      <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400">
+                                        {contract.status}
+                                      </span>
                                     </div>
-                                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400">
-                                      {contract.status}
-                                    </span>
                                   </div>
-                                </div>
-                              </Link>
-                            ))}
+                                </Link>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </DraggableWidget>
-                  ))}
+                      </DraggableWidget>
+                    )
+                  })}
               </div>
             </div>
           </div>
         </main>
+
+        
 
         {/* Sidebar Component */}
         <Sidebar
@@ -601,8 +647,9 @@ export default function MyArea() {
           onClose={() => setIsRightSidebarOpen(false)}
           widgets={sidebarWidgets}
           setWidgets={setSidebarWidgets}
-          isEditing={isEditing}
+          isEditing={isSidebarEditing}
           todos={todos}
+          setTodos={setTodos}
           customLinks={customLinks}
           setCustomLinks={setCustomLinks}
           expiringContracts={expiringContracts}
@@ -616,6 +663,18 @@ export default function MyArea() {
           setEditingLink={setEditingLink}
           openDropdownIndex={openDropdownIndex}
           setOpenDropdownIndex={setOpenDropdownIndex}
+          onToggleEditing={() => setIsSidebarEditing((v) => !v)} // wire up sidebar-only edit toggle
+        />
+
+        <ViewManagementModal
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+          savedViews={savedViews}
+          setSavedViews={setSavedViews}
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          widgets={widgets}
+          setWidgets={setWidgets}
         />
 
         {/* Modals */}

@@ -26,184 +26,21 @@ import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea
 import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
 import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
 import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
+import { adminTickets } from "../../utils/admin-panel-states/tickets-states"
 
-const adminTickets = [
-    {
-        id: 1,
-        subject: "Account is not premium",
-        status: "Open",
-        priority: "Medium",
-        category: "Account",
-        customer: {
-            name: "John Doe",
-            email: "john.doe@example.com",
-            id: "USR001"
-        },
-        assignedTo: "Sarah Wilson",
-        createdDate: "28/1/2025",
-        lastUpdated: "28/1/2025",
-        messages: [
-            {
-                id: 1,
-                sender: "customer",
-                senderName: "John Doe",
-                content: "Account is not premium.",
-                timestamp: "28/1/2025 10:30 AM",
-                attachments: []
-            },
-        ],
-        tags: ["premium", "account-issue"]
-    },
-    {
-        id: 2,
-        subject: "Subscription renewal issue",
-        status: "In Progress",
-        priority: "High",
-        category: "Billing",
-        customer: {
-            name: "Jane Smith",
-            email: "jane.smith@example.com",
-            id: "USR002"
-        },
-        assignedTo: "Mike Johnson",
-        createdDate: "27/1/2025",
-        lastUpdated: "28/1/2025",
-        messages: [
-            {
-                id: 1,
-                sender: "customer",
-                senderName: "Jane Smith",
-                content: "Having issues with subscription renewal. Payment keeps failing.",
-                timestamp: "27/1/2025 2:15 PM",
-                attachments: []
-            },
-            {
-                id: 2,
-                sender: "support",
-                senderName: "Mike Johnson",
-                content: "I've checked your payment method and it seems there's an issue with your card. Please try updating your payment information.",
-                timestamp: "27/1/2025 3:20 PM",
-                attachments: []
-            },
-            {
-                id: 3,
-                sender: "support",
-                senderName: "Mike Johnson",
-                content: "We have updated your subscription information. Please log in to GamsGo using your personal email and click on 'Subscription' to view the latest details.",
-                timestamp: "28/1/2025 9:45 AM",
-                attachments: []
-            },
-        ],
-        tags: ["subscription", "payment", "urgent"]
-    },
-    {
-        id: 3,
-        subject: "Payment processing error",
-        status: "Resolved",
-        priority: "Medium",
-        category: "Payment",
-        customer: {
-            name: "Robert Brown",
-            email: "robert.brown@example.com",
-            id: "USR003"
-        },
-        assignedTo: "Sarah Wilson",
-        createdDate: "25/1/2025",
-        lastUpdated: "25/1/2025",
-        messages: [
-            {
-                id: 1,
-                sender: "customer",
-                senderName: "Robert Brown",
-                content: "Having trouble with payment processing",
-                timestamp: "25/1/2025 11:00 AM",
-                attachments: []
-            },
-            {
-                id: 2,
-                sender: "support",
-                senderName: "Sarah Wilson",
-                content: "Issue has been resolved. Your payment has been processed successfully.",
-                timestamp: "25/1/2025 1:30 PM",
-                attachments: []
-            },
-        ],
-        tags: ["payment", "resolved"]
-    },
-    {
-        id: 4,
-        subject: "Widget not loading properly",
-        status: "Open",
-        priority: "Low",
-        category: "Technical",
-        customer: {
-            name: "Emily Davis",
-            email: "emily.davis@example.com",
-            id: "USR004"
-        },
-        assignedTo: "Unassigned",
-        createdDate: "29/1/2025",
-        lastUpdated: "29/1/2025",
-        messages: [
-            {
-                id: 1,
-                sender: "customer",
-                senderName: "Emily Davis",
-                content: "The dashboard widget is not loading properly on my account. It shows a blank screen.",
-                timestamp: "29/1/2025 8:15 AM",
-                attachments: []
-            },
-        ],
-        tags: ["widget", "technical", "dashboard"]
-    },
-    {
-        id: 5,
-        subject: "Billing discrepancy",
-        status: "Pending Customer",
-        priority: "High",
-        category: "Billing",
-        customer: {
-            name: "Michael Wilson",
-            email: "michael.wilson@example.com",
-            id: "USR005"
-        },
-        assignedTo: "Lisa Chen",
-        createdDate: "26/1/2025",
-        lastUpdated: "27/1/2025",
-        messages: [
-            {
-                id: 1,
-                sender: "customer",
-                senderName: "Michael Wilson",
-                content: "I was charged twice for the same subscription. Please help resolve this.",
-                timestamp: "26/1/2025 4:30 PM",
-                attachments: []
-            },
-            {
-                id: 2,
-                sender: "support",
-                senderName: "Lisa Chen",
-                content: "I can see the duplicate charge on your account. Can you please provide the transaction IDs for both charges so I can process a refund?",
-                timestamp: "27/1/2025 10:15 AM",
-                attachments: []
-            },
-        ],
-        tags: ["billing", "refund", "duplicate-charge"]
-    }
-]
+
 
 const AdminTicketsSystem = () => {
     const [tickets, setTickets] = useState(adminTickets)
     const [selectedTicket, setSelectedTicket] = useState(null)
     const [searchTerm, setSearchTerm] = useState("")
-    const [statusFilter, setStatusFilter] = useState("All")
-    const [priorityFilter, setPriorityFilter] = useState("All")
-    const [assigneeFilter, setAssigneeFilter] = useState("All")
     const [showFilters, setShowFilters] = useState(false)
+
+    const [statusFilter, setStatusFilter] = useState(["All"])
+    const [priorityFilter, setPriorityFilter] = useState(["All"])
 
     const statusOptions = ["All", "Open", "In Progress", "Pending Customer", "Resolved", "Closed"]
     const priorityOptions = ["All", "High", "Medium", "Low"]
-    const assigneeOptions = ["All", "Unassigned", "Sarah Wilson", "Mike Johnson", "Lisa Chen", "David Rodriguez", "Emma Thompson"]
 
 
 
@@ -328,12 +165,49 @@ const AdminTicketsSystem = () => {
             ticket.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             ticket.customer.email.toLowerCase().includes(searchTerm.toLowerCase())
 
-        const matchesStatus = statusFilter === "All" || ticket.status === statusFilter
-        const matchesPriority = priorityFilter === "All" || ticket.priority === priorityFilter
-        const matchesAssignee = assigneeFilter === "All" || ticket.assignedTo === assigneeFilter
+        // If "All" is selected or no filters, show all. Otherwise check selected filters
+        const matchesStatus = statusFilter.includes("All") || statusFilter.length === 0 || statusFilter.includes(ticket.status)
+        const matchesPriority = priorityFilter.includes("All") || priorityFilter.length === 0 || priorityFilter.includes(ticket.priority)
 
-        return matchesSearch && matchesStatus && matchesPriority && matchesAssignee
+        return matchesSearch && matchesStatus && matchesPriority
     })
+
+    const toggleFilter = (filterType, value) => {
+        const setters = {
+            status: setStatusFilter,
+            priority: setPriorityFilter
+        }
+
+        const currentFilters = {
+            status: statusFilter,
+            priority: priorityFilter
+        }
+
+        const setFilter = setters[filterType]
+        const filters = currentFilters[filterType]
+
+        if (value === "All") {
+            // If clicking "All", clear all other selections and select only "All"
+            setFilter(["All"])
+        } else {
+            if (filters.includes(value)) {
+                // Remove the filter
+                const newFilters = filters.filter(item => item !== value)
+                // If no filters left, set to ["All"]
+                setFilter(newFilters.length === 0 ? ["All"] : newFilters)
+            } else {
+                // Add the filter and remove "All" if it's there
+                const newFilters = filters.filter(item => item !== "All")
+                setFilter([...newFilters, value])
+            }
+        }
+    }
+
+    const clearAllFilters = () => {
+        setStatusFilter(["All"])
+        setPriorityFilter(["All"])
+    }
+
 
     const handleTicketClick = (ticket) => {
         setSelectedTicket(ticket)
@@ -386,7 +260,6 @@ const AdminTicketsSystem = () => {
         setSearchTerm("")
         setStatusFilter("All")
         setPriorityFilter("All")
-        setAssigneeFilter("All")
         setShowFilters(false)
 
     }
@@ -487,7 +360,6 @@ const AdminTicketsSystem = () => {
                 : 'mr-0'
             }
           `}>
-            {/* Header */}
             <div className="">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex justify-between items-center w-full">
@@ -498,9 +370,9 @@ const AdminTicketsSystem = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button onClick={handleExport} className="flex items-center gap-2 cursor-pointer px-4 py-2 text-sm rounded-lg bg-gray-600 ">
+                        <button onClick={handleExport} className="flex whitespace-nowrap items-center gap-2 cursor-pointer px-4 py-2 text-sm rounded-lg bg-gray-600 ">
                             <Download size={16} />
-                            Export
+                            Export Excel
                         </button>
                         <button onClick={handleRefresh} className="flex items-center gap-2 cursor-pointer px-4 py-2 text-sm border border-slate-400/60 rounded-lg  ">
                             <RefreshCw size={16} />
@@ -536,63 +408,68 @@ const AdminTicketsSystem = () => {
                     </button>
                 </div>
 
-                {/* Filter Dropdowns */}
                 {showFilters && (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 text-sm gap-4 mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 text-sm gap-4 mt-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">Status</label>
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="w-full border border-gray-600 rounded-md px-3 py-2 text-sm bg-[#161616] text-gray-200"
-                            >
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                            <div className="space-y-2">
                                 {statusOptions.map(status => (
-                                    <option key={status} value={status}>{status}</option>
+                                    <label key={status} className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={statusFilter.includes(status)}
+                                            onChange={() => toggleFilter('status', status)}
+                                            className="rounded border-gray-600 bg-[#161616] text-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="ml-2 text-gray-300 text-sm">{status}</span>
+                                    </label>
                                 ))}
-                            </select>
+                            </div>
                         </div>
 
+                        {/* Priority Filter */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">Priority</label>
-                            <select
-                                value={priorityFilter}
-                                onChange={(e) => setPriorityFilter(e.target.value)}
-                                className="w-full border border-gray-600 rounded-md px-3 py-2 text-sm bg-[#161616] text-gray-200"
-                            >
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Priority</label>
+                            <div className="space-y-2">
                                 {priorityOptions.map(priority => (
-                                    <option key={priority} value={priority}>{priority}</option>
+                                    <label key={priority} className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={priorityFilter.includes(priority)}
+                                            onChange={() => toggleFilter('priority', priority)}
+                                            className="rounded border-gray-600 bg-[#161616] text-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="ml-2 text-gray-300 text-sm">{priority}</span>
+                                    </label>
                                 ))}
-                            </select>
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">Assigned To</label>
-                            <select
-                                value={assigneeFilter}
-                                onChange={(e) => setAssigneeFilter(e.target.value)}
-                                className="w-full border border-gray-600 rounded-md px-3 py-2 text-sm bg-[#161616] text-gray-200"
-                            >
-                                {assigneeOptions.map(assignee => (
-                                    <option key={assignee} value={assignee}>{assignee}</option>
-                                ))}
-                            </select>
-                        </div>
+                        {(statusFilter.length > 1 || priorityFilter.length > 1 ||
+                            (statusFilter.length === 1 && !statusFilter.includes("All")) ||
+                            (priorityFilter.length === 1 && !priorityFilter.includes("All"))) && (
+                                <div className="sm:col-span-2">
+                                    <button
+                                        onClick={clearAllFilters}
+                                        className="text-sm text-blue-400 hover:text-blue-300 underline"
+                                    >
+                                        Clear all filters
+                                    </button>
+                                </div>
+                            )}
                     </div>
                 )}
             </div>
 
-            {/* Tickets Table */}
-            <div className="flex-1 px-3 py-4">
+            <div className="flex-1  py-4">
                 <div className="bg-[#1C1C1C] rounded-lg  overflow-hidden">
-                    {/* Desktop Table View */}
                     <div className="">
-                        <div className="bg-[#1C1C1C] rounded-lg border border-slate-400/40 overflow-hidden">
-                            {/* Card View for All Screens */}
+                        <div className="bg-[#1C1C1C]  overflow-hidden">
                             <div>
                                 {filteredTickets.map((ticket) => (
                                     <div
                                         key={ticket.id}
-                                        className="border-b border-gray-700 p-4 cursor-pointer hover:bg-[#161616]"
+                                        className="border border-slate-600/50 rounded-md m-2 p-4 cursor-pointer hover:bg-[#161616]"
                                         onClick={() => handleTicketClick(ticket)}
                                     >
                                         <div className="flex items-start justify-between mb-2">
@@ -603,7 +480,9 @@ const AdminTicketsSystem = () => {
                                             <span className="text-xs text-gray-400">{ticket.createdDate}</span>
                                         </div>
 
-                                        <h3 className="font-medium text-white mb-2 text-sm">{ticket.subject}</h3>
+                                        <span className="font-bold ">{ticket.studioName}</span>
+
+                                        <h3 className="font-medium text-white mb-2 mt-4 text-sm">{ticket.subject}</h3>
 
                                         <div className="flex flex-wrap items-center gap-2 mb-3">
                                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(ticket.status)}`}>
@@ -642,14 +521,7 @@ const AdminTicketsSystem = () => {
                                 ))}
                             </div>
 
-                            {/* Empty State */}
-                            {filteredTickets.length === 0 && (
-                                <div className="text-center py-12">
-                                    <MessageSquare size={48} className="mx-auto text-gray-600 mb-4" />
-                                    <h3 className="text-lg font-medium text-white mb-2">No tickets found</h3>
-                                    <p className="text-gray-400">Try adjusting your search or filter criteria.</p>
-                                </div>
-                            )}
+
                         </div>
                     </div>
 

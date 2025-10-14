@@ -132,7 +132,7 @@ const Dashboardlayout = () => {
                           <button
                             key={language.code}
                             onClick={() => handleLanguageSelect(language)}
-                            className={`block w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-3 ${selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
+                            className={` w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-3 ${selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
                               }`}
                           >
                             <img src={language.flag} className="h- rounded-sm w-8" />

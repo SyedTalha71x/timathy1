@@ -15,6 +15,7 @@ import DocumentViewerModal from "../../components/admin-dashboard-components/fin
 import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
 import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
 import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
+import ExportConfirmationModal from "../../components/admin-dashboard-components/finance-components/export-confirmation-modal"
 
 export default function FinancesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
@@ -39,6 +40,9 @@ export default function FinancesPage() {
   const [customPeriodStart, setCustomPeriodStart] = useState("")
   const [customPeriodEnd, setCustomPeriodEnd] = useState("")
   const [showCustomPeriodInput, setShowCustomPeriodInput] = useState(false)
+
+  const [exportConfirmationOpen, setExportConfirmationOpen] = useState(false)
+
 
   const periodOptions = [
     "Overall",
@@ -572,6 +576,35 @@ export default function FinancesPage() {
     setDocumentViewerOpen(true)
   }
 
+  const exportToCSV = () => {
+    const headers = ["Member Name", "Date", "Type", "Amount", "Status", "Services"]
+    const csvData = filteredTransactions.map((transaction) => [
+      transaction.memberName,
+      formatDate(transaction.date),
+      transaction.type,
+      transaction.amount,
+      transaction.status,
+      transaction.services.map((service) => `${service.name}: $${service.cost}`).join("; "),
+    ])
+
+    const csvContent = [headers.join(","), ...csvData.map((row) => row.map((field) => `"${field}"`).join(","))].join(
+      "\n",
+    )
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute(
+      "download",
+      `financial_data_${selectedPeriod.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`,
+    )
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const hasCheckingTransactions =
     (selectedPeriod === "Overall"
       ? Object.values(financialData).flatMap((period) => period.transactions || [])
@@ -736,6 +769,14 @@ export default function FinancesPage() {
 
           <div className="flex gap-2 items-center w-full sm:w-auto">
             <button
+              onClick={() => setExportConfirmationOpen(true)}
+              className={`bg-gray-600 cursor-pointer text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors ${isRightSidebarOpen ? 'px-3' : 'px-4'
+                }`}
+            >
+              <Download className="w-4 h-4" />
+              <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Export Excel</span>
+            </button>
+            <button
               onClick={() => setSepaModalOpen(true)}
               className="bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
             >
@@ -855,9 +896,8 @@ export default function FinancesPage() {
             {paginatedTransactions.map((transaction, index) => (
               <tr
                 key={transaction.id}
-                className={`border-b border-gray-800 ${
-                  index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""
-                }`}
+                className={`border-b border-gray-800 ${index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""
+                  }`}
               >
                 <td className="px-4 py-3 font-medium">{transaction.studioName}</td>
                 <td className="px-4 py-3">{transaction.studioOwner}</td>
@@ -947,11 +987,10 @@ export default function FinancesPage() {
               <button
                 key={page}
                 onClick={() => handlePageChange(page)}
-                className={`px-3 py-1.5 rounded-xl transition-colors border ${
-                  currentPage === page
+                className={`px-3 py-1.5 rounded-xl transition-colors border ${currentPage === page
                     ? "bg-[#3F74FF] text-white border-transparent"
                     : "bg-black text-white border-gray-800 hover:bg-gray-900"
-                }`}
+                  }`}
               >
                 {page}
               </button>
@@ -1017,6 +1056,12 @@ export default function FinancesPage() {
           </div>
         </div>
       )}
+
+      <ExportConfirmationModal
+        isOpen={exportConfirmationOpen}
+        onClose={() => setExportConfirmationOpen(false)}
+        onConfirm={exportToCSV}
+      />
 
       <SepaXmlModal
         isOpen={sepaModalOpen}

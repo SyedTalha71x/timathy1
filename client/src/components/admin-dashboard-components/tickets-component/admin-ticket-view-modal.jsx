@@ -283,7 +283,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                 </div>
   
                 {/* Assigned To */}
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Assigned To</label>
                   <select
                     value={assignedTo}
@@ -294,7 +294,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                       <option key={staff} value={staff}>{staff}</option>
                     ))}
                   </select>
-                </div>
+                </div> */}
   
                 <button
                   onClick={handleUpdateTicket}
@@ -317,7 +317,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
   
             {/* Tags */}
             <div className="p-4">
-              <h4 className="font-semibold text-white mb-3 text-sm">Tags</h4>
+              <h4 className="font-semibold text-white mb-3 text-sm">Subject</h4>
               <div className="flex flex-wrap gap-2">
                 {ticket.tags.map((tag, index) => (
                   <span key={index} className="px-2 py-1 bg-blue-900/30 text-blue-400 rounded-full text-xs border border-blue-700">

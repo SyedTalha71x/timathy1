@@ -1,44 +1,48 @@
+/* eslint-disable no-empty */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
-import {
-  BarChart3,
-  MoreVertical,
-  X,
-  ChevronDown,
-  Edit,
-  Check,
-  ArrowDown,
-  ArrowUp,
-  Plus,
-  ExternalLink,
-} from "lucide-react"
-import { toast } from "react-hot-toast"
+import { MoreVertical, X, ChevronDown, Edit, Check, ArrowDown, ArrowUp, Plus, ExternalLink } from "lucide-react"
+import { Eye, Minus } from "react-feather"
+import ViewManagementModal from "./sidebar-components/view-management"
+import EditTaskModal from '../todo-components/edit-task-modal'
 
-const DraggableSidebarWidget = ({ id, children, index, moveWidget, removeWidget, isEditing, widgets }) => {
+const DraggableSidebarWidget = ({
+  id,
+  children,
+  index,
+  moveWidget,
+  removeWidget,
+  isEditing,
+  widgets,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  isDragging,
+  isDragOver,
+}) => {
   const ref = useRef(null)
   return (
-    <div ref={ref} className="relative mb-4 w-full">
+    <div
+      ref={ref}
+      draggable={isEditing}
+      onDragStart={(e) => onDragStart?.(index, e)}
+      onDragOver={(e) => onDragOver?.(index, e)}
+      onDrop={(e) => onDrop?.(index, e)}
+      onDragEnd={onDragEnd}
+      className={`relative mb-4 w-full ${isEditing ? "animate-wobble cursor-move" : ""} ${isDragging ? "dragging" : ""} ${isDragOver ? "drag-over" : ""}`}
+    >
       {isEditing && (
         <div className="absolute top-2 right-2 z-10 flex gap-2">
+
           <button
-            onClick={() => moveWidget(index, index - 1)}
-            className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
-            disabled={index === 0}
+            onClick={() => removeWidget(id)}
+            className="p-1 bg-gray-500 rounded-md cursor-pointer text-black flex items-center justify-center w-7 h-7"
           >
-            <ArrowUp size={12} />
-          </button>
-          <button
-            onClick={() => moveWidget(index, index + 1)}
-            className="p-1.5 bg-gray-800 rounded hover:bg-gray-700"
-            disabled={index === widgets.length - 1}
-          >
-            <ArrowDown size={12} />
-          </button>
-          <button onClick={() => removeWidget(id)} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700">
-            <X size={12} />
+            <Minus size={25} />
           </button>
         </div>
       )}
@@ -54,6 +58,7 @@ const Sidebar = ({
   setWidgets,
   isEditing,
   todos,
+  setTodos,
   customLinks,
   setCustomLinks,
   expiringContracts,
@@ -67,11 +72,66 @@ const Sidebar = ({
   setEditingLink,
   openDropdownIndex,
   setOpenDropdownIndex,
+  onToggleEditing, // add prop to toggle sidebar-only editing
 }) => {
   const navigate = useNavigate()
   const dropdownRef = useRef(null)
   const chartDropdownRef = useRef(null)
   const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
+
+  const [savedViews, setSavedViews] = useState([])
+  const [currentView, setCurrentView] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+
+  const [editingTask, setEditingTask] = useState(null)
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState(null)
+  const [taskToCancel, setTaskToCancel] = useState(null)
+
+  const [dragIndex, setDragIndex] = useState(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
+
+  const handleDragStart = (index, e) => {
+    if (!isEditing) return
+    try {
+      e.dataTransfer.effectAllowed = "move"
+      // Required for Firefox to initiate a drag operation
+      e.dataTransfer.setData("text/plain", String(index))
+    } catch { }
+    setDragIndex(index)
+  }
+
+  const handleDragOver = (index, e) => {
+    if (!isEditing) return
+    e.preventDefault()
+    try {
+      e.dataTransfer.dropEffect = "move"
+    } catch { }
+    setDragOverIndex(index)
+  }
+
+  const handleDrop = (index, e) => {
+    if (!isEditing) return
+    e.preventDefault()
+    let from = dragIndex
+    if (from === null) {
+      const payload = e.dataTransfer.getData("text/plain")
+      if (payload) {
+        const parsed = Number.parseInt(payload, 10)
+        if (!Number.isNaN(parsed)) from = parsed
+      }
+    }
+    if (from !== null && from !== index) {
+      moveWidget(from, index)
+    }
+    setDragIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDragIndex(null)
+    setDragOverIndex(null)
+  }
 
   const moveWidget = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= widgets.length) return
@@ -199,14 +259,52 @@ const Sidebar = ({
     }
   }, [setOpenDropdownIndex])
 
+
+  const handleEditTask = (task) => {
+    setEditingTask(task)
+    setIsEditTaskModalOpen(true)
+  }
+
+  const handleUpdateTask = (updatedTask) => {
+    setTodos((prev) => prev.map((todo) => (todo.id === updatedTask.id ? updatedTask : todo)))
+  }
+
+  const handleDeleteTask = (taskId) => {
+    setTodos((prev) => prev.filter((todo) => todo.id !== taskId))
+    setTaskToDelete(null)
+  }
+
+  const handleCancelTask = (taskId) => {
+    setTodos((prev) => prev.map((todo) => (todo.id === taskId ? { ...todo, status: "cancelled" } : todo)))
+    setTaskToCancel(null)
+  }
+
   return (
     <>
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />
-      )}
+      <style>{`
+        @keyframes wobble {
+          0%, 100% { transform: rotate(0deg); }
+          15% { transform: rotate(-1deg); }
+          30% { transform: rotate(1deg); }
+          45% { transform: rotate(-1deg); }
+          60% { transform: rotate(1deg); }
+          75% { transform: rotate(-1deg); }
+          90% { transform: rotate(1deg); }
+        }
+        .animate-wobble {
+          animation: wobble 0.5s ease-in-out infinite;
+        }
+        .dragging {
+          opacity: 0.5;
+          border: 2px dashed #fff;
+        }
+        .drag-over {
+          border: 2px dashed #888;
+        }
+      `}</style>
 
-      {/* Sidebar */}
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />}
+
       <aside
         className={`
           fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-96 lg:w-96 bg-[#181818] 
@@ -221,12 +319,30 @@ const Sidebar = ({
             <h2 className="text-xl font-bold">Sidebar</h2>
             <div className="flex items-center gap-2">
               <button
+                onClick={onToggleEditing}
+                className={`p-2 ${isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"} rounded-lg flex items-center gap-1`}
+                title={isEditing ? "Done (Sidebar)" : "Edit Sidebar"}
+              >
+                {isEditing ? <Check size={16} /> : <Edit size={16} />}
+              </button>
+              {!isEditing && (
+                <button
+                  onClick={() => setIsViewModalOpen(true)}
+                  className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                  title="Manage Sidebar Views"
+                >
+                  <Eye size={14} />
+                  {currentView ? currentView.name : ""}
+                </button>
+              )}
+
+              <button
                 onClick={onAddWidget}
                 className="p-2 bg-black text-white hover:bg-zinc-900 rounded-lg text-sm cursor-pointer flex items-center gap-1"
               >
                 <Plus size={16} />
-                <span className="hidden lg:inline">Add Widget</span>
               </button>
+
               <button
                 onClick={onClose}
                 className="p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl lg:hidden"
@@ -250,16 +366,19 @@ const Sidebar = ({
                   removeWidget={removeWidget}
                   isEditing={isEditing}
                   widgets={widgets}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
+                  isDragging={dragIndex === index}
+                  isDragOver={dragOverIndex === index}
                 >
                   {/* Chart Widget */}
                   {widget.type === "chart" && (
                     <div>
-
-
                       <h3 className="text-lg font-semibold mb-3">Analytics</h3>
                       <div className="p-3 bg-[#2F2F2F] rounded-xl">
-                        <div className="flex items-center justify-between mb-3">
-                        </div>
+                        <div className="flex items-center justify-between mb-3" />
                         <div className="relative mb-3" ref={chartDropdownRef}>
                           <button
                             onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
@@ -313,9 +432,57 @@ const Sidebar = ({
                                   {todo.dueDate} {todo.dueTime}
                                 </span>
                               </div>
-                              <button className="px-2 py-1 bg-blue-600 text-white rounded-lg text-xs flex-shrink-0 ml-2">
-                                To-Do
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button className="px-2 py-1 bg-blue-600 text-white rounded-lg text-xs flex-shrink-0 ml-2">
+                                  To-Do
+                                </button>
+
+                                {/* Wrap dropdown in a div that stops propagation */}
+                                <div onClick={(e) => e.stopPropagation()}>
+                                  <div className="relative">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        toggleDropdown(`main-todo-${todo.id}`)
+                                      }}
+                                      className="p-1 hover:bg-zinc-700 rounded"
+                                    >
+                                      <MoreVertical size={16} />
+                                    </button>
+                                    {openDropdownIndex === `main-todo-${todo.id}` && (
+                                      <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                        <button
+                                          onClick={() => {
+                                            handleEditTask(todo)
+                                            setOpenDropdownIndex(null)
+                                          }}
+                                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                        >
+                                          Edit Task
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setTaskToCancel(todo.id)
+                                            setOpenDropdownIndex(null)
+                                          }}
+                                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                        >
+                                          Cancel Task
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setTaskToDelete(todo.id)
+                                            setOpenDropdownIndex(null)
+                                          }}
+                                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                        >
+                                          Delete Task
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -332,13 +499,10 @@ const Sidebar = ({
                   {/* Website Links Widget */}
                   {widget.type === "websiteLink" && (
                     <div>
-
-
                       <div className="flex mb-3 justify-between items-center">
                         <h3 className="text-lg font-semibold">Website Links</h3>
                       </div>
                       <div className="space-y-3 p-3 rounded-xl bg-[#2F2F2F]">
-
                         <div className="max-h-64 overflow-y-auto custom-scrollbar pr-1">
                           <div className="space-y-2">
                             {customLinks.map((link) => (
@@ -414,7 +578,6 @@ const Sidebar = ({
                       </div>
 
                       <div className="space-y-3 p-3 rounded-xl bg-[#2F2F2F]">
-
                         <div className="max-h-64 overflow-y-auto custom-scrollbar pr-1">
                           <div className="space-y-2">
                             {expiringContracts.map((contract) => (
@@ -455,6 +618,76 @@ const Sidebar = ({
           </div>
         </div>
       </aside>
+
+      {taskToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this task? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteTask(taskToDelete)}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {taskToCancel && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToCancel(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                No
+              </button>
+              <button
+                onClick={() => handleCancelTask(taskToCancel)}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+              >
+                Cancel Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isEditTaskModalOpen && editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onClose={() => {
+            setIsEditTaskModalOpen(false)
+            setEditingTask(null)
+          }}
+          onUpdateTask={handleUpdateTask}
+        />
+      )}
+
+      <ViewManagementModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        savedViews={savedViews}
+        setSavedViews={setSavedViews}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        sidebarWidgets={widgets} // Fixed: pass the actual widgets array
+        setSidebarWidgets={setWidgets} // Fixed: pass the setWidgets function
+      />
     </>
   )
 }

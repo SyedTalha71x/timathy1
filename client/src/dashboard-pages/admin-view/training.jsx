@@ -436,7 +436,7 @@ export default function AdminTrainingManagement() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex justify-between items-center gap-2 w-full md:w-auto">
-            <h1 className="text-white text-xl md:text-2xl font-bold mb-2">Training</h1>
+            <h1 className="text-white text-xl md:text-2xl font-bold mb-2">Training Exercises</h1>
             <div onClick={toggleRightSidebar} className="cursor-pointer text-white lg:hidden md:hidden block hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
               <IoIosMenu size={26} />
             </div>

@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { IoIosMenu } from 'react-icons/io';
+import { FaInfoCircle, FaThumbtack } from 'react-icons/fa';
 
 import WebsiteLinkModal from '../../components/admin-dashboard-components/myarea-components/website-link-modal';
 import WidgetSelectionModal from '../../components/admin-dashboard-components/myarea-components/widgets';
@@ -18,7 +19,9 @@ const Marketplace = () => {
       articleNo: '555088-101',
       price: '180.00',
       link: 'https://nike.com/air-jordan-1',
-      picture: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=300&fit=crop'
+      picture: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=300&fit=crop',
+      isPinned: false,
+      infoText: ''
     },
     {
       id: '2',
@@ -27,7 +30,9 @@ const Marketplace = () => {
       articleNo: 'MPXN3LL/A',
       price: '999.00',
       link: 'https://apple.com/iphone-15',
-      picture: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=300&fit=crop'
+      picture: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=300&fit=crop',
+      isPinned: true,
+      infoText: 'Latest iPhone model with titanium design and advanced camera system'
     },
     {
       id: '3',
@@ -36,15 +41,19 @@ const Marketplace = () => {
       articleNo: 'WH1000XM5/B',
       price: '399.99',
       link: 'https://sony.com/wh-1000xm5',
-      picture: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop'
+      picture: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop',
+      isPinned: false,
+      infoText: 'Industry-leading noise cancellation with 30-hour battery life'
     }
   ];
 
   const [products, setProducts] = useState(sampleProducts);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [productForInfo, setProductForInfo] = useState(null);
   const [formData, setFormData] = useState({
     brandName: '',
     productName: '',
@@ -52,7 +61,8 @@ const Marketplace = () => {
     price: '',
     link: '',
     picture: null,
-    picturePreview: ''
+    picturePreview: '',
+    infoText: ''
   });
 
   const fileInputRef = useRef(null);
@@ -172,6 +182,13 @@ const Marketplace = () => {
 
   // -------------- end of sidebar logic
 
+  // Sort products: pinned products first
+  const sortedProducts = [...products].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return 0;
+  });
+
   const openAddModal = () => {
     setEditingProduct(null);
     setFormData({
@@ -181,7 +198,8 @@ const Marketplace = () => {
       price: '',
       link: '',
       picture: null,
-      picturePreview: ''
+      picturePreview: '',
+      infoText: ''
     });
     setIsModalOpen(true);
   };
@@ -195,7 +213,8 @@ const Marketplace = () => {
       price: product.price,
       link: product.link,
       picture: null,
-      picturePreview: product.picture || ''
+      picturePreview: product.picture || '',
+      infoText: product.infoText || ''
     });
     setIsModalOpen(true);
   };
@@ -208,6 +227,29 @@ const Marketplace = () => {
   const closeDeleteModal = () => {
     setProductToDelete(null);
     setIsDeleteModalOpen(false);
+  };
+
+  const openInfoModal = (product) => {
+    setProductForInfo(product);
+    setIsInfoModalOpen(true);
+  };
+
+  const closeInfoModal = () => {
+    setProductForInfo(null);
+    setIsInfoModalOpen(false);
+  };
+
+  const togglePinProduct = (productId) => {
+    setProducts(products.map(product =>
+      product.id === productId
+        ? { ...product, isPinned: !product.isPinned }
+        : product
+    ));
+    
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      toast.success(product.isPinned ? 'Product unpinned' : 'Product pinned!');
+    }
   };
 
   const handleInputChange = (e) => {
@@ -259,7 +301,9 @@ const Marketplace = () => {
       articleNo: formData.articleNo,
       price: formData.price,
       link: formData.link,
-      picture: formData.picturePreview || (editingProduct ? editingProduct.picture : '')
+      picture: formData.picturePreview || (editingProduct ? editingProduct.picture : ''),
+      infoText: formData.infoText,
+      isPinned: editingProduct ? editingProduct.isPinned : false
     };
 
     if (editingProduct) {
@@ -269,6 +313,7 @@ const Marketplace = () => {
           ? { ...productData, id: editingProduct.id }
           : product
       ));
+      toast.success('Product updated successfully!');
     } else {
       // Add new product
       const newProduct = {
@@ -276,6 +321,7 @@ const Marketplace = () => {
         id: Date.now().toString()
       };
       setProducts([...products, newProduct]);
+      toast.success('Product added successfully!');
     }
 
     setIsModalOpen(false);
@@ -286,6 +332,7 @@ const Marketplace = () => {
     if (productToDelete) {
       setProducts(products.filter(product => product.id !== productToDelete.id));
       closeDeleteModal();
+      toast.success('Product deleted successfully!');
     }
   };
 
@@ -382,8 +429,22 @@ const Marketplace = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <div key={product.id} className="bg-[#1C1C1C] rounded-lg overflow-hidden border border-gray-700 hover:border-gray-600 transition-colors duration-200 relative">
+          {sortedProducts.map((product) => (
+            <div 
+              key={product.id} 
+              className={`
+                bg-[#1C1C1C] rounded-lg border-slate-400/40 overflow-hidden border transition-colors duration-200 relative
+                
+              `}
+            >
+              {/* Pin Badge */}
+              {product.isPinned && (
+                <div className="absolute top-2 left-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 z-10">
+                  <FaThumbtack size={10} />
+                  Pinned
+                </div>
+              )}
+
               <div className="h-48 bg-[#101010] flex items-center justify-center overflow-hidden">
                 {product.picture ? (
                   <img
@@ -396,20 +457,43 @@ const Marketplace = () => {
                 )}
               </div>
 
-              {/* Edit/Delete Icons */}
+              {/* Action Icons */}
               <div className="absolute top-2 right-2 flex space-x-2">
                 <button
+                  onClick={() => togglePinProduct(product.id)}
+                  className={`p-2 rounded-full transition-colors duration-200 ${
+                    product.isPinned 
+                      ? 'bg-yellow-500 text-black hover:bg-yellow-600' 
+                      : 'bg-gray-600 text-white hover:bg-gray-700'
+                  }`}
+                  title={product.isPinned ? 'Unpin Product' : 'Pin Product'}
+                >
+                  <FaThumbtack size={14} />
+                </button>
+                
+                {product.infoText && (
+                  <button
+                    onClick={() => openInfoModal(product)}
+                    className="bg-blue-600 text-white p-2 rounded-full transition-colors duration-200 hover:bg-blue-700"
+                    title="View Info"
+                  >
+                    <FaInfoCircle size={14} />
+                  </button>
+                )}
+                
+                <button
                   onClick={() => openEditModal(product)}
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white p-2 rounded-full transition-colors duration-200"
+                  className="bg-gray-600 text-white p-2 rounded-full transition-colors duration-200 hover:bg-gray-700"
                   title="Edit Product"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
+                
                 <button
                   onClick={() => openDeleteModal(product)}
-                  className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors duration-200"
+                  className="bg-gray-600 text-white p-2 rounded-full transition-colors duration-200 hover:bg-gray-700"
                   title="Delete Product"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -420,10 +504,23 @@ const Marketplace = () => {
 
               {/* Product Info */}
               <div className="p-4">
-                <h3 className="text-lg font-semibold mb-2 text-white truncate">{product.productName}</h3>
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-white truncate flex-1 mr-2">
+                    {product.productName}
+                  </h3>
+                  {!product.infoText && (
+                    <button
+                      onClick={() => openEditModal(product)}
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                      title="Add Info"
+                    >
+                      <FaInfoCircle size={16} />
+                    </button>
+                  )}
+                </div>
                 <p className="text-gray-400 text-sm mb-1 truncate">Brand: {product.brandName}</p>
                 <p className="text-gray-400 text-sm mb-1">Article No: {product.articleNo}</p>
-                <p className="text-green-400 font-medium text-lg mb-3">${product.price}</p>
+                <p className="text-white font-medium text-lg mb-3">${product.price}</p>
 
                 {product.link && (
                   <a
@@ -441,6 +538,7 @@ const Marketplace = () => {
         </div>
       )}
 
+      {/* Add/Edit Product Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-[#1C1C1C] rounded-lg w-full max-w-md mx-auto max-h-[80vh] custom-scrollbar overflow-y-auto">
@@ -574,6 +672,20 @@ const Marketplace = () => {
                       placeholder="https://example.com/product"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Product Info
+                    </label>
+                    <textarea
+                      name="infoText"
+                      value={formData.infoText}
+                      onChange={handleInputChange}
+                      rows="3"
+                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors resize-none"
+                      placeholder="Add additional information about the product..."
+                    />
+                  </div>
                 </div>
 
                 <div className="flex space-x-3 mt-6">
@@ -597,6 +709,7 @@ const Marketplace = () => {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && productToDelete && (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-[#1C1C1C] rounded-lg w-full max-w-md mx-auto">
@@ -626,6 +739,70 @@ const Marketplace = () => {
                   className="flex-1 bg-red-600 text-sm hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
                 >
                   Delete Product
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Product Info Modal */}
+      {isInfoModalOpen && productForInfo && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#1C1C1C] rounded-lg w-full max-w-md mx-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white">Product Information</h2>
+                <button
+                  onClick={closeInfoModal}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-white mb-2">{productForInfo.productName}</h3>
+                <p className="text-gray-400 text-sm mb-1">Brand: {productForInfo.brandName}</p>
+                <p className="text-gray-400 text-sm mb-3">Article No: {productForInfo.articleNo}</p>
+                
+                {productForInfo.infoText ? (
+                  <div className="bg-[#101010] rounded-lg p-4">
+                    <p className="text-gray-300 text-sm leading-relaxed">{productForInfo.infoText}</p>
+                  </div>
+                ) : (
+                  <div className="bg-[#101010] rounded-lg p-4 text-center">
+                    <p className="text-gray-500 text-sm">No additional information available</p>
+                    <button
+                      onClick={() => {
+                        closeInfoModal();
+                        openEditModal(productForInfo);
+                      }}
+                      className="text-blue-400 hover:text-blue-300 text-sm mt-2"
+                    >
+                      Add information
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    closeInfoModal();
+                    openEditModal(productForInfo);
+                  }}
+                  className="flex-1 bg-blue-600 text-sm hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
+                >
+                  Edit Product
+                </button>
+                <button
+                  onClick={closeInfoModal}
+                  className="flex-1 bg-gray-600 text-sm hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
+                >
+                  Close
                 </button>
               </div>
             </div>

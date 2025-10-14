@@ -47,6 +47,7 @@ import AdminTicketsSystem from "./dashboard-pages/admin-view/tickets";
 import AdminAnalytics from './dashboard-pages/admin-view/analytics'
 import AdminMarketPlace from './dashboard-pages/admin-view/marketplace'
 import AdminEmailManagement from './dashboard-pages/admin-view/email'
+import AdminNotes from './dashboard-pages/admin-view/notes'
 
 
 // Member Dashboard  
@@ -122,6 +123,8 @@ function App() {
           <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="marketplace" element={<AdminMarketPlace />} />
           <Route path="email" element={<AdminEmailManagement />} />
+          <Route path="notes" element={<AdminNotes />} />
+
 
 
         </Route>

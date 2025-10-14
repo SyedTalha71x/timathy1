@@ -17,6 +17,7 @@ import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea
 import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
 import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
 import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
+import { Search } from "react-feather"
 
 const initialStudioContracts = [
   {
@@ -565,13 +566,14 @@ export default function ContractList() {
           </div>
         </div>
 
-        <div className="relative w-full mb-2">
+        <div className="mb-6 w-full relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search for any contract..."
+            placeholder="Search Contracts"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-black text-sm text-white px-4 py-2.5 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#F27A30]"
+            className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
           />
         </div>
 
