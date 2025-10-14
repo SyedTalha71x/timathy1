@@ -125,6 +125,10 @@ export default function Analytics() {
     },
   ])
 
+  const handleToggleEditing = () => {
+    setIsEditing(!isEditing);
+  };
+
   const updateCustomLink = (id, field, value) => {
     setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
   }
@@ -295,6 +299,8 @@ export default function Analytics() {
           setEditingLink={setEditingLink}
           openDropdownIndex={openDropdownIndex}
           setOpenDropdownIndex={setOpenDropdownIndex}
+          onToggleEditing={handleToggleEditing} // Add this line
+          setTodos={setTodos}
         />
 
 <ConfirmationModal

@@ -1324,7 +1324,6 @@ const ConfigurationPage = () => {
           </Collapse>
         </TabPane>
 
-        {/* NEW TAB FOR CHANGELOG */}
         <TabPane tab="Changelog" key="7">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
             <Panel header="Manage Version History" key="1" className="bg-[#202020]">
@@ -1333,7 +1332,6 @@ const ConfigurationPage = () => {
                   <h3 className="text-lg text-white font-medium">Changelog Entries</h3>
                 </div>
 
-                {/* Add New Changelog Entry Form */}
                 <div className="bg-[#1C1C1C] p-4 rounded-lg mb-4 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <Input

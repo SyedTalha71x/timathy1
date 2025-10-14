@@ -1162,6 +1162,8 @@ const EmailManagementPage = () => {
           setEditingLink={setEditingLink}
           openDropdownIndex={openDropdownIndex}
           setOpenDropdownIndex={setOpenDropdownIndex}
+          onToggleEditing={()=>{ setIsEditing(!isEditing);}} // Add this line
+          setTodos={setTodos}
         />
 
         <ConfirmationModal

@@ -664,6 +664,7 @@ export default function MyArea() {
           openDropdownIndex={openDropdownIndex}
           setOpenDropdownIndex={setOpenDropdownIndex}
           onToggleEditing={() => setIsSidebarEditing((v) => !v)} // wire up sidebar-only edit toggle
+
         />
 
         <ViewManagementModal
