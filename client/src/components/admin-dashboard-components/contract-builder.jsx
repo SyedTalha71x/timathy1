@@ -711,7 +711,7 @@ const ContractBuilder = () => {
         open={previewVisible}
         onCancel={() => setPreviewVisible(false)}
         width="95%"
-        style={{ top: 10, maxWidth: '1200px' }}
+        style={{ top: 10, maxWidth: '1200px', zIndex: 1000000 }}
         footer={[
           <Button key="close" onClick={() => setPreviewVisible(false)} size="small">
             Close

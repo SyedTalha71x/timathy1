@@ -15,7 +15,6 @@ const StudioFinancesModal = ({
 
   const currentFinances = studioFinances[studio.id]?.[financesPeriod];
   
-  // Calculate success rate safely
   const calculateSuccessRate = () => {
     if (!currentFinances || currentFinances.totalRevenue === 0) return 0;
     return (currentFinances.successfulPayments / currentFinances.totalRevenue) * 100;

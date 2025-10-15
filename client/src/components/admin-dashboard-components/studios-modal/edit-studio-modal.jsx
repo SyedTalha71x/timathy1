@@ -1,9 +1,11 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X, Plus, Trash2, Bold, Italic, Underline } from "lucide-react"
 import { toast } from "react-hot-toast"
+import ContractBuilder from "../contract-builder"
 
 const TabButton = ({ id, label, activeTab, setActiveTab }) => (
   <button
@@ -40,7 +42,7 @@ const iconBtn =
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 const BILLING_PERIODS = ["weekly", "monthly", "quarterly", "yearly", "annually"]
 
-const EditStudioModal = ({
+export default function EditStudioModal({
   isOpen,
   onClose,
   selectedStudio,
@@ -49,8 +51,33 @@ const EditStudioModal = ({
   handleInputChange,
   handleEditSubmit,
   DefaultStudioImage,
-}) => {
+}) {
   const [activeTab, setActiveTab] = useState("data")
+
+  const [templateName, setTemplateName] = useState("")
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("permissionTemplates")
+      if (stored) {
+        setEditForm((prev) => ({ ...prev, permissionTemplates: JSON.parse(stored) }))
+      } else if (!editForm.permissionTemplates) {
+        setEditForm((prev) => ({ ...prev, permissionTemplates: [] }))
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, []) // eslint-disable-line
+
+  useEffect(() => {
+    try {
+      if (Array.isArray(editForm?.permissionTemplates)) {
+        localStorage.setItem("permissionTemplates", JSON.stringify(editForm.permissionTemplates))
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, [editForm?.permissionTemplates])
 
   if (!isOpen || !selectedStudio) return null
 
@@ -132,6 +159,39 @@ const EditStudioModal = ({
     toast.success(`${list.length} document(s) added`)
   }
 
+  const savePermissionsTemplate = () => {
+    const name = templateName.trim()
+    if (!name) {
+      toast.error("Please enter a name for the template.")
+      return
+    }
+    const roles = Array.isArray(editForm.roles) ? editForm.roles : []
+    const next = [...(editForm.permissionTemplates || [])]
+
+    // Prevent duplicate names
+    if (next.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
+      toast.error("A template with this name already exists.")
+      return
+    }
+
+    next.push({ name, roles })
+    setField("permissionTemplates", next)
+    setTemplateName("")
+    toast.success("Permissions saved as template.")
+  }
+
+  const applyPermissionsTemplate = (tpl) => {
+    if (!tpl || !Array.isArray(tpl.roles)) return
+    setField("roles", JSON.parse(JSON.stringify(tpl.roles)))
+    toast.success(`Applied template "${tpl.name}".`)
+  }
+
+  const deletePermissionsTemplate = (name) => {
+    const next = (editForm.permissionTemplates || []).filter((t) => t.name !== name)
+    setField("permissionTemplates", next)
+    toast.success("Template deleted.")
+  }
+
   return (
     <div
       className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[9999] overflow-y-auto"
@@ -154,13 +214,14 @@ const EditStudioModal = ({
               <TabButton id="data" label="Studio Data" activeTab={activeTab} setActiveTab={setActiveTab} />
               <TabButton id="resources" label="Resources" activeTab={activeTab} setActiveTab={setActiveTab} />
               <TabButton id="contracts" label="Contracts" activeTab={activeTab} setActiveTab={setActiveTab} />
+              <TabButton id="finances" label="Finances" activeTab={activeTab} setActiveTab={setActiveTab} />
               <TabButton id="communication" label="Communication" activeTab={activeTab} setActiveTab={setActiveTab} />
               <TabButton id="appearance" label="Appearance" activeTab={activeTab} setActiveTab={setActiveTab} />
+              <TabButton id="admin" label="Admin Configuration" activeTab={activeTab} setActiveTab={setActiveTab} />
             </div>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-6 custom-scrollbar overflow-y-auto max-h-[70vh]">
-            {/* Tab Panels */}
             {/* Studio Data */}
             <div id="panel-data" role="tabpanel" hidden={activeTab !== "data"} className="space-y-4">
               <Section title="Studio Logo">
@@ -313,7 +374,6 @@ const EditStudioModal = ({
               </Section>
 
               <Section title="Opening Hours">
-                {/* Labeled opening hours list */}
                 <div className="space-y-3">
                   {(editForm.openingHoursList || []).map((row, idx) => (
                     <div key={idx} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center">
@@ -373,7 +433,6 @@ const EditStudioModal = ({
                   </button>
                 </div>
 
-                {/* Legacy per-day text inputs kept for compatibility */}
                 <div className="border border-slate-700 rounded-xl p-4 mt-4">
                   <label className="text-sm text-gray-200 block mb-3 font-medium">Opening Hours (legacy per-day)</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -440,7 +499,6 @@ const EditStudioModal = ({
                   </button>
                 </div>
 
-                {/* Legacy single string for compatibility */}
                 <div className="mt-4">
                   <label className="text-sm text-gray-200 block mb-2">Closing Days (legacy notes)</label>
                   <input
@@ -451,98 +509,6 @@ const EditStudioModal = ({
                     className={smallInput}
                     placeholder="e.g., Christmas Day, New Year's Day"
                   />
-                </div>
-              </Section>
-
-              <Section title="Contract Dates">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Contract Start</label>
-                    <input
-                      type="date"
-                      name="contractStart"
-                      value={editForm.contractStart || ""}
-                      onChange={handleInputChange}
-                      className={smallInput}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Contract End</label>
-                    <input
-                      type="date"
-                      name="contractEnd"
-                      value={editForm.contractEnd || ""}
-                      onChange={handleInputChange}
-                      className={smallInput}
-                    />
-                  </div>
-                </div>
-              </Section>
-
-              <Section title="About Studio">
-                <label className="text-sm text-gray-200 block mb-2">Studio Description</label>
-                <textarea
-                  name="about"
-                  value={editForm.about || ""}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[120px]"
-                  placeholder="Describe your studio, services, specialties, equipment, atmosphere, etc..."
-                />
-                <p className="text-xs text-gray-400 mt-2">
-                  This will be shown on the studio profile and helps members understand what makes your studio unique.
-                </p>
-              </Section>
-
-              <Section title="Special Note">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm text-gray-200 font-medium">Mark as Important</label>
-                    <input
-                      type="checkbox"
-                      checked={editForm.noteImportance === "important"}
-                      onChange={(e) => setField("noteImportance", e.target.checked ? "important" : "unimportant")}
-                      className="h-4 w-4 accent-[#FF843E]"
-                    />
-                  </div>
-
-                  <label className="text-sm text-gray-200 block mb-2">Note</label>
-                  <textarea
-                    name="note"
-                    value={editForm.note || ""}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                    placeholder="Enter internal note for this studio..."
-                  />
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Note Valid From</label>
-                      <input
-                        type="date"
-                        name="noteStartDate"
-                        value={editForm.noteStartDate || ""}
-                        onChange={handleInputChange}
-                        className={smallInput}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Note Valid Until</label>
-                      <input
-                        type="date"
-                        name="noteEndDate"
-                        value={editForm.noteEndDate || ""}
-                        onChange={handleInputChange}
-                        className={smallInput}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="bg-[#101010] rounded-lg p-3">
-                    <p className="text-xs text-gray-400">
-                      <strong>Note:</strong> Important notes display prominently for internal management. If no dates
-                      are specified, the note will be considered always valid.
-                    </p>
-                  </div>
                 </div>
               </Section>
             </div>
@@ -676,58 +642,8 @@ const EditStudioModal = ({
                 </div>
               </Section>
 
-              {/* NEW: Staff Roles */}
-              <Section title="Staff Roles">
-                <div className="space-y-3">
-                  {(editForm.roles || []).map((role, idx) => (
-                    <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr,auto] gap-3 items-start">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Role Name</label>
-                        <input
-                          className={smallInput}
-                          placeholder="Role Name"
-                          value={role.name || ""}
-                          onChange={(e) => updateArrayItem("roles", idx, { name: e.target.value })}
-                        />
-                        <div className="mt-3 grid grid-cols-3 gap-2">
-                          {["read", "write", "delete"].map((perm) => (
-                            <label key={perm} className="inline-flex items-center gap-2 text-sm text-gray-200">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 accent-[#FF843E]"
-                                checked={(role.permissions || []).includes(perm)}
-                                onChange={() => togglePermission(idx, perm)}
-                              />
-                              {perm.charAt(0).toUpperCase() + perm.slice(1)}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex md:justify-end">
-                        <button
-                          type="button"
-                          className={iconBtn}
-                          aria-label="Remove role"
-                          onClick={() => removeArrayItem("roles", idx)}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className={smallBtnMuted}
-                    onClick={() => addArrayItem("roles", { name: "", permissions: [] })}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <Plus size={16} /> Add Role
-                    </span>
-                  </button>
-                </div>
-              </Section>
+              {/* NOTE: Staff Roles moved to Admin Configuration tab per request. */}
 
-              {/* NEW: Lead Sources */}
               <Section title="Lead Sources">
                 <div className="space-y-3">
                   {(editForm.leadSources || []).map((src, idx) => (
@@ -763,7 +679,6 @@ const EditStudioModal = ({
                 </div>
               </Section>
 
-              {/* NEW: TO-DO Tags */}
               <Section title="TO-DO Tags">
                 <div className="space-y-3">
                   {(editForm.tags || []).map((tag, idx) => (
@@ -803,84 +718,6 @@ const EditStudioModal = ({
                   >
                     <span className="inline-flex items-center gap-2">
                       <Plus size={16} /> Add Tag
-                    </span>
-                  </button>
-                </div>
-              </Section>
-
-              {/* NEW: Finances (Currency + VAT Rates) */}
-              <Section title="Currency Settings">
-                <div className="grid grid-cols-1 md:grid-cols-[220px,1fr] gap-3 items-center">
-                  <label className="text-sm text-gray-200">Currency</label>
-                  <select
-                    className={smallSelect}
-                    value={editForm.currency || "€"}
-                    onChange={(e) => setField("currency", e.target.value)}
-                  >
-                    <option value="€">€ (Euro)</option>
-                    <option value="$">$ (US Dollar)</option>
-                    <option value="£">£ (British Pound)</option>
-                    <option value="¥">¥ (Japanese Yen)</option>
-                    <option value="Fr">Fr (Swiss Franc)</option>
-                    <option value="A$">A$ (Australian Dollar)</option>
-                    <option value="C$">C$ (Canadian Dollar)</option>
-                    <option value="kr">kr (Swedish Krona)</option>
-                  </select>
-                </div>
-              </Section>
-
-              <Section title="VAT Rates">
-                <div className="space-y-3">
-                  {(editForm.vatRates || []).map((rate, idx) => (
-                    <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr,180px,1fr,48px] gap-2 items-center">
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">VAT Name</label>
-                        <input
-                          className={smallInput}
-                          placeholder="e.g., Standard"
-                          value={rate.name || ""}
-                          onChange={(e) => updateArrayItem("vatRates", idx, { name: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Rate (%)</label>
-                        <input
-                          type="number"
-                          className={smallNumber}
-                          min={0}
-                          max={100}
-                          value={rate.percentage ?? 0}
-                          onChange={(e) =>
-                            updateArrayItem("vatRates", idx, { percentage: Number(e.target.value || 0) })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Description</label>
-                        <input
-                          className={smallInput}
-                          placeholder="Optional"
-                          value={rate.description || ""}
-                          onChange={(e) => updateArrayItem("vatRates", idx, { description: e.target.value })}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        className={iconBtn}
-                        aria-label="Remove VAT Rate"
-                        onClick={() => removeArrayItem("vatRates", idx)}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className={smallBtnMuted}
-                    onClick={() => addArrayItem("vatRates", { name: "", percentage: 0, description: "" })}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <Plus size={16} /> Add VAT Rate
                     </span>
                   </button>
                 </div>
@@ -1045,100 +882,7 @@ const EditStudioModal = ({
               </Section>
 
               <Section title="Contract Sections">
-                <div className="space-y-3">
-                  {(editForm.contractSections || []).map((sec, idx) => (
-                    <div key={idx} className="space-y-2 border border-[#303030] p-3 rounded-lg">
-                      <label className="text-sm text-gray-200 block mb-2">Section Title</label>
-                      <input
-                        className={smallInput}
-                        placeholder="Section Title"
-                        value={sec.title || ""}
-                        onChange={(e) => updateArrayItem("contractSections", idx, { title: e.target.value })}
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          className={iconBtn}
-                          onClick={() => applyFormatting(`contract-content-${idx}`, "bold", idx)}
-                          aria-label="Bold"
-                        >
-                          <Bold size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          className={iconBtn}
-                          onClick={() => applyFormatting(`contract-content-${idx}`, "italic", idx)}
-                          aria-label="Italic"
-                        >
-                          <Italic size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          className={iconBtn}
-                          onClick={() => applyFormatting(`contract-content-${idx}`, "underline", idx)}
-                          aria-label="Underline"
-                        >
-                          <Underline size={16} />
-                        </button>
-                      </div>
-                      <label className="text-sm text-gray-200 block mb-2">Content</label>
-                      <textarea
-                        id={`contract-content-${idx}`}
-                        className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[120px]"
-                        placeholder="Section content (HTML supported)"
-                        value={sec.content || ""}
-                        onChange={(e) => updateArrayItem("contractSections", idx, { content: e.target.value })}
-                      />
-                      <div className="flex flex-wrap items-center gap-4">
-                        {/* Matching labels seen on configuration page */}
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-200">
-                          <input
-                            type="checkbox"
-                            checked={!!sec.editable}
-                            onChange={(e) => updateArrayItem("contractSections", idx, { editable: e.target.checked })}
-                            className="h-4 w-4 accent-[#FF843E]"
-                          />
-                          Signature needed
-                        </label>
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-200">
-                          <input
-                            type="checkbox"
-                            checked={sec.requiresAgreement !== false}
-                            onChange={(e) =>
-                              updateArrayItem("contractSections", idx, { requiresAgreement: e.target.checked })
-                            }
-                            className="h-4 w-4 accent-[#FF843E]"
-                          />
-                          Requires agreement
-                        </label>
-                        <button
-                          type="button"
-                          className={iconBtn + " ml-auto"}
-                          onClick={() => removeArrayItem("contractSections", idx)}
-                          aria-label="Remove contract section"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className={smallBtnMuted}
-                    onClick={() =>
-                      addArrayItem("contractSections", {
-                        title: "",
-                        content: "",
-                        editable: true,
-                        requiresAgreement: true,
-                      })
-                    }
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <Plus size={16} /> Add Contract Section
-                    </span>
-                  </button>
-                </div>
+               <ContractBuilder/>
               </Section>
 
               <Section title="Pause Reasons">
@@ -1209,7 +953,6 @@ const EditStudioModal = ({
                     />
                   </div>
                 </div>
-                {/* NEW: Allow Member Self-Cancellation */}
                 <div className="mt-3">
                   <label className="inline-flex items-center gap-2 text-sm text-gray-200">
                     <input
@@ -1223,7 +966,6 @@ const EditStudioModal = ({
                 </div>
               </Section>
 
-              {/* NEW: Additional Documents */}
               <Section title="Additional Documents">
                 <div className="space-y-3">
                   <label className="text-sm text-gray-200 block mb-2">Upload PDF Documents</label>
@@ -1243,6 +985,88 @@ const EditStudioModal = ({
                   ) : (
                     <p className="text-xs text-gray-400">No documents uploaded.</p>
                   )}
+                </div>
+              </Section>
+            </div>
+
+            <div id="panel-finances" role="tabpanel" hidden={activeTab !== "finances"} className="space-y-4">
+              <Section title="Currency Settings">
+                <div className="grid grid-cols-1 md:grid-cols-[220px,1fr] gap-3 items-center">
+                  <label className="text-sm text-gray-200">Currency</label>
+                  <select
+                    className={smallSelect}
+                    value={editForm.currency || "€"}
+                    onChange={(e) => setField("currency", e.target.value)}
+                  >
+                    <option value="€">€ (Euro)</option>
+                    <option value="$">$ (US Dollar)</option>
+                    <option value="£">£ (British Pound)</option>
+                    <option value="¥">¥ (Japanese Yen)</option>
+                    <option value="Fr">Fr (Swiss Franc)</option>
+                    <option value="A$">A$ (Australian Dollar)</option>
+                    <option value="C$">C$ (Canadian Dollar)</option>
+                    <option value="kr">kr (Swedish Krona)</option>
+                  </select>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  You can now manually select your preferred currency regardless of country selection.
+                </p>
+              </Section>
+
+              <Section title="VAT Rates">
+                <div className="space-y-3">
+                  {(editForm.vatRates || []).map((rate, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr,180px,1fr,48px] gap-2 items-center">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">VAT Name</label>
+                        <input
+                          className={smallInput}
+                          placeholder="e.g., Standard"
+                          value={rate.name || ""}
+                          onChange={(e) => updateArrayItem("vatRates", idx, { name: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Rate (%)</label>
+                        <input
+                          type="number"
+                          className={smallNumber}
+                          min={0}
+                          max={100}
+                          value={rate.percentage ?? 0}
+                          onChange={(e) =>
+                            updateArrayItem("vatRates", idx, { percentage: Number(e.target.value || 0) })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Description</label>
+                        <input
+                          className={smallInput}
+                          placeholder="Optional"
+                          value={rate.description || ""}
+                          onChange={(e) => updateArrayItem("vatRates", idx, { description: e.target.value })}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className={iconBtn}
+                        aria-label="Remove VAT Rate"
+                        onClick={() => removeArrayItem("vatRates", idx)}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className={smallBtnMuted}
+                    onClick={() => addArrayItem("vatRates", { name: "", percentage: 0, description: "" })}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Plus size={16} /> Add VAT Rate
+                    </span>
+                  </button>
                 </div>
               </Section>
             </div>
@@ -1495,7 +1319,6 @@ const EditStudioModal = ({
                 </div>
               </Section>
 
-              {/* NEW: Birthday Messages */}
               <Section title="Birthday Messages">
                 <div className="space-y-3">
                   <label className="inline-flex items-center gap-2 text-sm text-gray-200">
@@ -1536,7 +1359,6 @@ const EditStudioModal = ({
                 </div>
               </Section>
 
-              {/* NEW: Default Broadcast Distribution */}
               <Section title="Default Broadcast Distribution">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label className="inline-flex items-center gap-2 text-sm text-gray-200">
@@ -1695,6 +1517,174 @@ const EditStudioModal = ({
               </Section>
             </div>
 
+            <div id="panel-admin" role="tabpanel" hidden={activeTab !== "admin"} className="space-y-4">
+              <Section title="About Studio">
+                <label className="text-sm text-gray-200 block mb-2">Studio Description</label>
+                <textarea
+                  name="about"
+                  value={editForm.about || ""}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[120px]"
+                  placeholder="Describe your studio, services, specialties, equipment, atmosphere, etc..."
+                />
+                <p className="text-xs text-gray-400 mt-2">
+                  This will be shown on the studio profile and helps members understand what makes your studio unique.
+                </p>
+              </Section>
+
+              <Section title="Special Note">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm text-gray-200 font-medium">Mark as Important</label>
+                    <input
+                      type="checkbox"
+                      checked={editForm.noteImportance === "important"}
+                      onChange={(e) => setField("noteImportance", e.target.checked ? "important" : "unimportant")}
+                      className="h-4 w-4 accent-[#FF843E]"
+                    />
+                  </div>
+
+                  <label className="text-sm text-gray-200 block mb-2">Note</label>
+                  <textarea
+                    name="note"
+                    value={editForm.note || ""}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
+                    placeholder="Enter internal note for this studio..."
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Note Valid From</label>
+                      <input
+                        type="date"
+                        name="noteStartDate"
+                        value={editForm.noteStartDate || ""}
+                        onChange={handleInputChange}
+                        className={smallInput}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Note Valid Until</label>
+                      <input
+                        type="date"
+                        name="noteEndDate"
+                        value={editForm.noteEndDate || ""}
+                        onChange={handleInputChange}
+                        className={smallInput}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-[#101010] rounded-lg p-3">
+                    <p className="text-xs text-gray-400">
+                      <strong>Note:</strong> Important notes display prominently for internal management. If no dates
+                      are specified, the note will be considered always valid.
+                    </p>
+                  </div>
+                </div>
+              </Section>
+
+              <Section title="Permissions">
+                {/* Roles with permissions (from previous implementation, moved here) */}
+                <div className="space-y-3">
+                  {(editForm.roles || []).map((role, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr,auto] gap-3 items-start">
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Role Name</label>
+                        <input
+                          className={smallInput}
+                          placeholder="Role Name"
+                          value={role.name || ""}
+                          onChange={(e) => updateArrayItem("roles", idx, { name: e.target.value })}
+                        />
+                        <div className="mt-3 grid grid-cols-3 gap-2">
+                          {["read", "write", "delete"].map((perm) => (
+                            <label key={perm} className="inline-flex items-center gap-2 text-sm text-gray-200">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 accent-[#FF843E]"
+                                checked={(role.permissions || []).includes(perm)}
+                                onChange={() => togglePermission(idx, perm)}
+                              />
+                              {perm.charAt(0).toUpperCase() + perm.slice(1)}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex md:justify-end">
+                        <button
+                          type="button"
+                          className={iconBtn}
+                          aria-label="Remove role"
+                          onClick={() => removeArrayItem("roles", idx)}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className={smallBtnMuted}
+                    onClick={() => addArrayItem("roles", { name: "", permissions: [] })}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Plus size={16} /> Add Role
+                    </span>
+                  </button>
+                </div>
+
+                <div className="mt-6 border-t border-[#303030] pt-4">
+                  <h4 className="text-white font-medium mb-3">Permission Templates</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr,160px] gap-2 mb-3">
+                    <input
+                      className={smallInput}
+                      placeholder="Template name (e.g., 'Small Studio Default')"
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                    />
+                    <button type="button" className={smallBtnPrimary} onClick={savePermissionsTemplate}>
+                      Save Current as Template
+                    </button>
+                  </div>
+
+                  {(editForm.permissionTemplates || []).length === 0 ? (
+                    <p className="text-xs text-gray-400">No templates saved yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {(editForm.permissionTemplates || []).map((tpl, i) => (
+                        <div
+                          key={tpl.name + i}
+                          className="flex items-center gap-2 bg-[#101010] rounded-lg px-3 py-2 text-sm"
+                        >
+                          <span className="text-white">{tpl.name}</span>
+                          <span className="text-gray-400">({(tpl.roles || []).length} role(s))</span>
+                          <div className="ml-auto flex items-center gap-2">
+                            <button
+                              type="button"
+                              className={smallBtnMuted}
+                              onClick={() => applyPermissionsTemplate(tpl)}
+                            >
+                              Apply
+                            </button>
+                            <button
+                              type="button"
+                              className={iconBtn}
+                              aria-label="Delete template"
+                              onClick={() => deletePermissionsTemplate(tpl.name)}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Section>
+            </div>
+
             <div className="flex gap-3 pt-2 sticky bottom-0 bg-[#1C1C1C] py-2">
               <button type="button" onClick={onClose} className={"flex-1 " + smallBtnMuted}>
                 Cancel
@@ -1709,5 +1699,3 @@ const EditStudioModal = ({
     </div>
   )
 }
-
-export default EditStudioModal

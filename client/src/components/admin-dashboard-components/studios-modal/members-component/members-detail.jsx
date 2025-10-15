@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { X, Clock } from "lucide-react";
-import DefaultAvatar1 from "../../../../public/gray-avatar-fotor-20250912192528.png"; // update path
+import DefaultAvatar1 from "../../../../../public/gray-avatar-fotor-20250912192528.png"; 
 
 const MemberDetailsModal = ({ isOpen, onClose, member, calculateAge, isContractExpiringSoon }) => {
   if (!isOpen || !member) return null;
@@ -10,7 +10,6 @@ const MemberDetailsModal = ({ isOpen, onClose, member, calculateAge, isContractE
     <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-3xl relative">
         <div className="p-6">
-          {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-lg font-semibold">Member Details</h2>
             <button
@@ -21,9 +20,7 @@ const MemberDetailsModal = ({ isOpen, onClose, member, calculateAge, isContractE
             </button>
           </div>
 
-          {/* Details */}
           <div className="space-y-4 text-white">
-            {/* Profile */}
             <div className="flex flex-col md:flex-row items-center gap-4">
               <img
                 src={member.image || DefaultAvatar1}
@@ -50,7 +47,6 @@ const MemberDetailsModal = ({ isOpen, onClose, member, calculateAge, isContractE
               </div>
             </div>
 
-            {/* Info grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-400">Membership Type</p>
@@ -93,13 +89,11 @@ const MemberDetailsModal = ({ isOpen, onClose, member, calculateAge, isContractE
               </p>
             </div>
 
-            {/* About */}
             <div>
               <p className="text-sm text-gray-400">About</p>
               <p className="text-sm">{member.about}</p>
             </div>
 
-            {/* Notes */}
             {member.note && (
               <div>
                 <p className="text-sm text-gray-400">Note</p>

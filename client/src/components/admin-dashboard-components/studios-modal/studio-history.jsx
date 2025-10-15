@@ -29,25 +29,22 @@ export default function StudioHistoryModalMain({
         {/* Tabs */}
         <div className="mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0 bg-[#141414] rounded-lg p-1">
-            {["general", "equipment", "maintenance", "finance", "events"].map(
-              (tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setHistoryTabMain(tab)}
-                  className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm transition-colors ${
-                    historyTabMain === tab
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:text-white"
-                  }`}
-                >
-                  {tab === "general" && "General Updates"}
-                  {tab === "equipment" && "Equipment Changes"}
-                  {tab === "maintenance" && "Maintenance Logs"}
-                  {tab === "finance" && "Finance Records"}
-                  {tab === "events" && "Studio Events"}
-                </button>
-              )
-            )}
+            {["general", "contract", "finance", "tickets"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setHistoryTabMain(tab)}
+                className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm transition-colors ${
+                  historyTabMain === tab
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:text-white"
+                }`}
+              >
+                {tab === "general" && "General Changes"}
+                {tab === "contract" && "Contract Changes"}
+                {tab === "finance" && "Finance Transactions"}
+                {tab === "tickets" && "Ticket Changelog"}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -55,32 +52,12 @@ export default function StudioHistoryModalMain({
         <div className="bg-[#141414] rounded-xl p-3 sm:p-4">
           {historyTabMain === "general" && (
             <Section
-              title="General Updates"
+              title="General Changes"
               data={studioHistoryMain[studio.id]?.general}
-              render={(update) => (
-                <>
-                  <p className="font-medium text-white text-sm sm:text-base">
-                    {update.action}
-                  </p>
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    {update.date} by {update.user}
-                  </p>
-                  <p className="text-xs sm:text-sm text-gray-300">
-                    {update.details}
-                  </p>
-                </>
-              )}
-            />
-          )}
-
-          {historyTabMain === "equipment" && (
-            <Section
-              title="Equipment Changes"
-              data={studioHistoryMain[studio.id]?.equipment}
               render={(item) => (
                 <>
                   <p className="font-medium text-white text-sm sm:text-base">
-                    {item.action} - {item.equipment}
+                    {item.action}
                   </p>
                   <p className="text-xs sm:text-sm text-gray-400">
                     {item.date} by {item.user}
@@ -93,18 +70,20 @@ export default function StudioHistoryModalMain({
             />
           )}
 
-          {historyTabMain === "maintenance" && (
+          {historyTabMain === "contract" && (
             <Section
-              title="Maintenance Logs"
-              data={studioHistoryMain[studio.id]?.maintenance}
-              render={(log) => (
+              title="Contract Changes"
+              data={studioHistoryMain[studio.id]?.contract}
+              render={(change) => (
                 <>
                   <p className="font-medium text-white text-sm sm:text-base">
-                    {log.task}
+                    {change.action}
                   </p>
-                  <p className="text-xs sm:text-sm text-gray-400">{log.date}</p>
+                  <p className="text-xs sm:text-sm text-gray-400">
+                    {change.date} by {change.user}
+                  </p>
                   <p className="text-xs sm:text-sm text-gray-300">
-                    {log.description}
+                    {change.details}
                   </p>
                 </>
               )}
@@ -113,7 +92,7 @@ export default function StudioHistoryModalMain({
 
           {historyTabMain === "finance" && (
             <Section
-              title="Finance Records"
+              title="Finance Transactions"
               data={studioHistoryMain[studio.id]?.finance}
               render={(transaction) => (
                 <>
@@ -140,21 +119,20 @@ export default function StudioHistoryModalMain({
             />
           )}
 
-          {historyTabMain === "events" && (
+          {historyTabMain === "tickets" && (
             <Section
-              title="Studio Events"
-              data={studioHistoryMain[studio.id]?.events}
-              render={(event) => (
+              title="Ticket Changelog"
+              data={studioHistoryMain[studio.id]?.tickets}
+              render={(ticket) => (
                 <>
                   <p className="font-medium text-white text-sm sm:text-base">
-                    {event.title}
+                    {ticket.title}
                   </p>
                   <p className="text-xs sm:text-sm text-gray-400">
-                    {new Date(event.date).toLocaleDateString()} at{" "}
-                    {new Date(event.date).toLocaleTimeString()}
+                    {ticket.date} — {ticket.status}
                   </p>
                   <p className="text-xs sm:text-sm text-gray-300">
-                    {event.description}
+                    {ticket.description}
                   </p>
                 </>
               )}
@@ -194,6 +172,3 @@ function Section({ title, data, render }) {
     </div>
   );
 }
-
-/** Example Studio History Data */
-

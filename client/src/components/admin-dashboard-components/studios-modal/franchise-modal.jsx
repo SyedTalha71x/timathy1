@@ -18,16 +18,16 @@ const FranchiseModal = ({
 
   if (!isOpen) return null
 
-  const handleArchive = () => {
-    if (
-      window.confirm(
-        `Are you sure you want to archive "${selectedFranchise?.name}"? This action can be reversed later.`,
-      )
-    ) {
-      onArchive(selectedFranchise.id)
-      onClose()
-    }
-  }
+  // const handleArchive = () => {
+  //   if (
+  //     window.confirm(
+  //       `Are you sure you want to archive "${selectedFranchise?.name}"? This action can be reversed later.`,
+  //     )
+  //   ) {
+  //     onArchive(selectedFranchise.id)
+  //     onClose()
+  //   }
+  // }
 
   return (
     <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[10000] overflow-y-auto">
@@ -350,10 +350,22 @@ const FranchiseModal = ({
               {isEdit && (
                 <button
                   type="button"
-                  onClick={handleArchive}
-                  className="flex-1 bg-red-600  text-white rounded-xl py-2 text-sm cursor-pointer"
+                  onClick={() => {
+                    const isArchived = selectedFranchise?.isArchived
+                    const action = isArchived ? "unarchive" : "archive"
+                    if (
+                      window.confirm(
+                        `Are you sure you want to ${action} "${selectedFranchise?.name}"?`
+                      )
+                    ) {
+                      onArchive(selectedFranchise.id, !isArchived)
+                      onClose()
+                    }
+                  }}
+                  className={`flex-1 ${selectedFranchise?.isArchived ? "bg-gray-600 " : "bg-red-600 hover:bg-red-700"
+                    } text-white rounded-xl py-2 text-sm cursor-pointer`}
                 >
-                  Archive Franchise
+                  {selectedFranchise?.isArchived ? "Unarchive Franchise" : "Archive Franchise"}
                 </button>
               )}
               <button

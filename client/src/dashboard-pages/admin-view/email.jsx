@@ -1,9 +1,10 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   Mail,
   Send,
-  Settings,
   Inbox,
   FileText,
   MoreVertical,
@@ -18,13 +19,14 @@ import {
   Search,
   X,
 } from "lucide-react"
-import { IoIosMenu } from "react-icons/io"
+import { IoIosMegaphone, IoIosMenu } from "react-icons/io"
 import toast from "react-hot-toast"
 
 import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
 import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
 import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
 import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
+import BroadcastModal from "../../components/admin-dashboard-components/email-components/BroadcastModal"
 
 const emailListNew = {
   inbox: [
@@ -110,20 +112,20 @@ const emailTemplates = [
     id: 1,
     name: "Meeting Request",
     subject: "Meeting Request - {{topic}}",
-    body: "Hi {{name}},\n\nI would like to schedule a meeting to discuss {{topic}}. Please let me know your availability.\n\nBest regards,\n{{sender_name}}"
+    body: "Hi {{name}},\n\nI would like to schedule a meeting to discuss {{topic}}. Please let me know your availability.\n\nBest regards,\n{{sender_name}}",
   },
   {
     id: 2,
     name: "Follow Up",
     subject: "Following up on {{topic}}",
-    body: "Hi {{name}},\n\nI wanted to follow up on our previous conversation about {{topic}}. Do you have any updates?\n\nThanks,\n{{sender_name}}"
+    body: "Hi {{name}},\n\nI wanted to follow up on our previous conversation about {{topic}}. Do you have any updates?\n\nThanks,\n{{sender_name}}",
   },
   {
     id: 3,
     name: "Thank You",
     subject: "Thank you for {{reason}}",
-    body: "Hi {{name}},\n\nThank you for {{reason}}. It was a pleasure working with you.\n\nBest regards,\n{{sender_name}}"
-  }
+    body: "Hi {{name}},\n\nThank you for {{reason}}. It was a pleasure working with you.\n\nBest regards,\n{{sender_name}}",
+  },
 ]
 
 const members = [
@@ -144,6 +146,8 @@ const EmailManagementPage = () => {
     subject: "",
     body: "",
   })
+
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false)
 
   const [emailList, setEmailList] = useState(() => {
     const defaultList = {
@@ -181,121 +185,120 @@ const EmailManagementPage = () => {
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
   const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
 
-    //sidebar related logic and states 
-    const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
-    const [isEditing, setIsEditing] = useState(false)
-    const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
-    const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
-    const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
-    const [editingLink, setEditingLink] = useState(null)
-    const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-  
-    const [sidebarWidgets, setSidebarWidgets] = useState([
-      { id: "sidebar-chart", type: "chart", position: 0 },
-      { id: "sidebar-todo", type: "todo", position: 1 },
-      { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
-      { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
-    ])
-  
-    const [todos, setTodos] = useState([
-      {
-        id: 1,
-        title: "Review Design",
-        description: "Review the new dashboard design",
-        assignee: "Jack",
-        dueDate: "2024-12-15",
-        dueTime: "14:30",
-      },
-      {
-        id: 2,
-        title: "Team Meeting",
-        description: "Weekly team sync",
-        assignee: "Jack",
-        dueDate: "2024-12-16",
-        dueTime: "10:00",
-      },
-    ])
-  
-    const memberTypes = {
-      "Studios Acquired": {
-        data: [
-          [30, 45, 60, 75, 90, 105, 120, 135, 150],
-          [25, 40, 55, 70, 85, 100, 115, 130, 145],
-        ],
-        growth: "12%",
-        title: "Studios Acquired",
-      },
-      Finance: {
-        data: [
-          [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000],
-          [45000, 55000, 70000, 80000, 90000, 105000, 120000, 135000, 155000],
-        ],
-        growth: "8%",
-        title: "Finance Statistics",
-      },
-      Leads: {
-        data: [
-          [120, 150, 180, 210, 240, 270, 300, 330, 360],
-          [100, 130, 160, 190, 220, 250, 280, 310, 340],
-        ],
-        growth: "15%",
-        title: "Leads Statistics",
-      },
-      Franchises: {
-        data: [
-          [120, 150, 180, 210, 240, 270, 300, 330, 360],
-          [100, 130, 160, 190, 220, 250, 280, 310, 340],
-        ],
-        growth: "10%",
-        title: "Franchises Acquired",
-      },
-    }
-  
-    const [customLinks, setCustomLinks] = useState([
-      {
-        id: "link1",
-        url: "https://fitness-web-kappa.vercel.app/",
-        title: "Timathy Fitness Town",
-      },
-      { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
-      { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
-    ])
-  
-    const [expiringContracts, setExpiringContracts] = useState([
-      {
-        id: 1,
-        title: "Oxygen Gym Membership",
-        expiryDate: "June 30, 2025",
-        status: "Expiring Soon",
-      },
-      {
-        id: 2,
-        title: "Timathy Fitness Equipment Lease",
-        expiryDate: "July 15, 2025",
-        status: "Expiring Soon",
-      },
-      {
-        id: 3,
-        title: "Studio Space Rental",
-        expiryDate: "August 5, 2025",
-        status: "Expiring Soon",
-      },
-      {
-        id: 4,
-        title: "Insurance Policy",
-        expiryDate: "September 10, 2025",
-        status: "Expiring Soon",
-      },
-      {
-        id: 5,
-        title: "Software License",
-        expiryDate: "October 20, 2025",
-        status: "Expiring Soon",
-      },
-    ])
-  
-    // -------------- end of sidebar logic
-  
+  //sidebar related logic and states
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
+  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
+  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
+  const [editingLink, setEditingLink] = useState(null)
+  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
+
+  const [sidebarWidgets, setSidebarWidgets] = useState([
+    { id: "sidebar-chart", type: "chart", position: 0 },
+    { id: "sidebar-todo", type: "todo", position: 1 },
+    { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
+    { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
+  ])
+
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      title: "Review Design",
+      description: "Review the new dashboard design",
+      assignee: "Jack",
+      dueDate: "2024-12-15",
+      dueTime: "14:30",
+    },
+    {
+      id: 2,
+      title: "Team Meeting",
+      description: "Weekly team sync",
+      assignee: "Jack",
+      dueDate: "2024-12-16",
+      dueTime: "10:00",
+    },
+  ])
+
+  const memberTypes = {
+    "Studios Acquired": {
+      data: [
+        [30, 45, 60, 75, 90, 105, 120, 135, 150],
+        [25, 40, 55, 70, 85, 100, 115, 130, 145],
+      ],
+      growth: "12%",
+      title: "Studios Acquired",
+    },
+    Finance: {
+      data: [
+        [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000],
+        [45000, 55000, 70000, 80000, 90000, 105000, 120000, 135000, 155000],
+      ],
+      growth: "8%",
+      title: "Finance Statistics",
+    },
+    Leads: {
+      data: [
+        [120, 150, 180, 210, 240, 270, 300, 330, 360],
+        [100, 130, 160, 190, 220, 250, 280, 310, 340],
+      ],
+      growth: "15%",
+      title: "Leads Statistics",
+    },
+    Franchises: {
+      data: [
+        [120, 150, 180, 210, 240, 270, 300, 330, 360],
+        [100, 130, 160, 190, 220, 250, 280, 310, 340],
+      ],
+      growth: "10%",
+      title: "Franchises Acquired",
+    },
+  }
+
+  const [customLinks, setCustomLinks] = useState([
+    {
+      id: "link1",
+      url: "https://fitness-web-kappa.vercel.app/",
+      title: "Timathy Fitness Town",
+    },
+    { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
+    { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
+  ])
+
+  const [expiringContracts, setExpiringContracts] = useState([
+    {
+      id: 1,
+      title: "Oxygen Gym Membership",
+      expiryDate: "June 30, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 2,
+      title: "Timathy Fitness Equipment Lease",
+      expiryDate: "July 15, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 3,
+      title: "Studio Space Rental",
+      expiryDate: "August 5, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 4,
+      title: "Insurance Policy",
+      expiryDate: "September 10, 2025",
+      status: "Expiring Soon",
+    },
+    {
+      id: 5,
+      title: "Software License",
+      expiryDate: "October 20, 2025",
+      status: "Expiring Soon",
+    },
+  ])
+
+  // -------------- end of sidebar logic
 
   const updateEmailStatus = (emailId, updates) => {
     setEmailList((prev) => {
@@ -543,7 +546,7 @@ const EmailManagementPage = () => {
     return members.filter(
       (member) =>
         member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchTerm.toLowerCase())
+        member.email.toLowerCase().includes(searchTerm.toLowerCase()),
     )
   }
 
@@ -581,6 +584,26 @@ const EmailManagementPage = () => {
     console.log("Refreshing emails...")
   }
 
+  const handleBroadcast = ({ message, recipients, settings }) => {
+    const nowIso = new Date().toISOString()
+    const newEmails = (recipients || []).map((rec) => ({
+      id: `${Date.now()}-${rec?.id || Math.random()}`,
+      sender: "You",
+      recipient: rec?.email || rec?.name || "Recipient",
+      subject: message?.title || "Broadcast",
+      body: message?.message || "",
+      time: nowIso,
+      status: "Sent",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+    }))
+
+    setEmailList((prev) => ({
+      ...prev,
+      sent: [...newEmails, ...(prev.sent || [])],
+    }))
+  }
 
   // continue sidebar logic
   const updateCustomLink = (id, field, value) => {
@@ -626,21 +649,18 @@ const EmailManagementPage = () => {
   }
 
   return (
-    <div className={`
+    <div
+      className={`
         min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
         transition-all duration-500 ease-in-out flex-1
-       ${isRightSidebarOpen
-          ? 'lg:mr-86 mr-0'
-          : 'mr-0'
-        }
-      `}>
+       ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"}
+      `}
+    >
       <div className="">
         <div className="">
           <div className=" border-b border-gray-700">
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                Email 
-              </h1>
+              <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">Email</h1>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowSendEmailModal(true)}
@@ -650,10 +670,12 @@ const EmailManagementPage = () => {
                   <span className="hidden sm:inline">Send Email</span>
                   <span className="sm:hidden">Send</span>
                 </button>
-                   <div onClick={toggleRightSidebar} className="cursor-pointer  text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-                              <IoIosMenu size={26} />
-                            </div>
-                
+                <div
+                  onClick={toggleRightSidebar}
+                  className="cursor-pointer  text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
+                >
+                  <IoIosMenu size={26} />
+                </div>
               </div>
             </div>
 
@@ -919,6 +941,13 @@ const EmailManagementPage = () => {
             )}
           </div>
         </div>
+        <button
+          onClick={() => setShowBroadcastModal(true)}
+          className="absolute bottom-4 md:bottom-6 right-4 md:right-6 p-3 bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg z-10"
+          title="Create Broadcast (Email Only)"
+        >
+          <IoIosMegaphone className="w-5 h-5 md:w-6 md:h-6 text-white" />
+        </button>
       </div>
 
       {/* Backdrop for dropdown */}
@@ -1020,9 +1049,9 @@ const EmailManagementPage = () => {
                       <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-10 max-h-48 overflow-y-auto">
                         <button
                           onClick={() => {
-                            setEmailData({ ...emailData, subject: "", body: "" });
-                            handleTemplateSelect(null);
-                            setShowTemplateDropdown(false);
+                            setEmailData({ ...emailData, subject: "", body: "" })
+                            handleTemplateSelect(null)
+                            setShowTemplateDropdown(false)
                           }}
                           className="w-full text-left p-3 hover:bg-[#2F2F2F] text-sm text-gray-400 border-b border-gray-700"
                         >
@@ -1051,8 +1080,8 @@ const EmailManagementPage = () => {
                       type="text"
                       value={emailData.to}
                       onChange={(e) => {
-                        setEmailData({ ...emailData, to: e.target.value });
-                        setShowRecipientDropdown(e.target.value.length > 0);
+                        setEmailData({ ...emailData, to: e.target.value })
+                        setShowRecipientDropdown(e.target.value.length > 0)
                       }}
                       onFocus={() => setShowRecipientDropdown(emailData.to.length > 0)}
                       className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm pr-10"
@@ -1105,9 +1134,15 @@ const EmailManagementPage = () => {
                       <button className="p-1 hover:bg-gray-600 rounded text-sm italic">I</button>
                       <button className="p-1 hover:bg-gray-600 rounded text-sm underline">U</button>
                       <div className="w-px h-4 bg-gray-600 mx-1" />
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Attach file">📎</button>
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Insert link">🔗</button>
-                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Insert table">📊</button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Attach file">
+                        📎
+                      </button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Insert link">
+                        🔗
+                      </button>
+                      <button className="p-1 hover:bg-gray-600 rounded text-sm" title="Insert table">
+                        📊
+                      </button>
                     </div>
                     <textarea
                       value={emailData.body}
@@ -1140,56 +1175,76 @@ const EmailManagementPage = () => {
         </div>
       )}
 
-       {/* sidebar related modals */}
+      {/* sidebar related modals */}
 
-       <Sidebar
-          isOpen={isRightSidebarOpen}
-          onClose={() => setIsRightSidebarOpen(false)}
-          widgets={sidebarWidgets}
-          setWidgets={setSidebarWidgets}
-          isEditing={isEditing}
-          todos={todos}
-          customLinks={customLinks}
-          setCustomLinks={setCustomLinks}
-          expiringContracts={expiringContracts}
-          selectedMemberType={selectedMemberType}
-          setSelectedMemberType={setSelectedMemberType}
-          memberTypes={memberTypes}
-          onAddWidget={() => setIsRightWidgetModalOpen(true)}
+      <Sidebar
+        isOpen={isRightSidebarOpen}
+        onClose={() => setIsRightSidebarOpen(false)}
+        widgets={sidebarWidgets}
+        setWidgets={setSidebarWidgets}
+        isEditing={isEditing}
+        todos={todos}
+        customLinks={customLinks}
+        setCustomLinks={setCustomLinks}
+        expiringContracts={expiringContracts}
+        selectedMemberType={selectedMemberType}
+        setSelectedMemberType={setSelectedMemberType}
+        memberTypes={memberTypes}
+        onAddWidget={() => setIsRightWidgetModalOpen(true)}
+        updateCustomLink={updateCustomLink}
+        removeCustomLink={removeCustomLink}
+        editingLink={editingLink}
+        setEditingLink={setEditingLink}
+        openDropdownIndex={openDropdownIndex}
+        setOpenDropdownIndex={setOpenDropdownIndex}
+        onToggleEditing={() => {
+          setIsEditing(!isEditing)
+        }} // Add this line
+        setTodos={setTodos}
+      />
+
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
+        onConfirm={confirmRemoveLink}
+        title="Delete Website Link"
+        message="Are you sure you want to delete this website link? This action cannot be undone."
+      />
+
+      <WidgetSelectionModal
+        isOpen={isRightWidgetModalOpen}
+        onClose={() => setIsRightWidgetModalOpen(false)}
+        onSelectWidget={handleAddSidebarWidget}
+        getWidgetStatus={getSidebarWidgetStatus}
+        widgetArea="sidebar"
+      />
+
+      {editingLink && (
+        <WebsiteLinkModal
+          link={editingLink}
+          onClose={() => setEditingLink(null)}
           updateCustomLink={updateCustomLink}
-          removeCustomLink={removeCustomLink}
-          editingLink={editingLink}
-          setEditingLink={setEditingLink}
-          openDropdownIndex={openDropdownIndex}
-          setOpenDropdownIndex={setOpenDropdownIndex}
-          onToggleEditing={()=>{ setIsEditing(!isEditing);}} // Add this line
-          setTodos={setTodos}
+          setCustomLinks={setCustomLinks}
         />
+      )}
 
-        <ConfirmationModal
-          isOpen={confirmationModal.isOpen}
-          onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
-          onConfirm={confirmRemoveLink}
-          title="Delete Website Link"
-          message="Are you sure you want to delete this website link? This action cannot be undone."
+      {showBroadcastModal && (
+        <BroadcastModal
+          emailOnly={true}
+          onClose={() => setShowBroadcastModal(false)}
+          broadcastFolders={[]} // not used in email-only mode
+          preConfiguredMessages={[]} // not used in email-only mode
+          chatList={members} // use members as recipients source
+          archivedChats={[]}
+          settings={{ emailSignature: "Best regards,<br/>Team" }}
+          setShowFolderModal={() => {}}
+          onBroadcast={(payload) => {
+            handleBroadcast(payload)
+            setShowBroadcastModal(false)
+          }}
+          onCreateMessage={() => {}}
         />
-
-        <WidgetSelectionModal
-          isOpen={isRightWidgetModalOpen}
-          onClose={() => setIsRightWidgetModalOpen(false)}
-          onSelectWidget={handleAddSidebarWidget}
-          getWidgetStatus={getSidebarWidgetStatus}
-          widgetArea="sidebar"
-        />
-
-        {editingLink && (
-          <WebsiteLinkModal
-            link={editingLink}
-            onClose={() => setEditingLink(null)}
-            updateCustomLink={updateCustomLink}
-            setCustomLinks={setCustomLinks}
-          />
-        )}
+      )}
     </div>
   )
 }

@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -21,9 +23,13 @@ import {
 
 import {
   FranchiseData,
+  studioappointmentsMainData,
+  studioappointmentTypeMainData,
   studioContractsData,
   studioDataNew,
+  studiofreeAppointmentsMainData,
   studioHistoryMainData,
+  studiomemberHistoryNew,
   studioMembersData,
   studioStaffData,
   studioStatsData,
@@ -39,21 +45,30 @@ import AssignStudioModal from "../../components/admin-dashboard-components/studi
 import StudioManagementModal from "../../components/admin-dashboard-components/studios-modal/studio-management-modal"
 import FranchiseDetailsModal from "../../components/admin-dashboard-components/studios-modal/franchise-details-modal"
 
-import EditMemberModal from "../../components/admin-dashboard-components/studios-modal/edit-member-modal"
-import EditStaffModal from "../../components/admin-dashboard-components/studios-modal/edit-staff-modal"
+import EditMemberModal from "../../components/admin-dashboard-components/studios-modal/members-component/edit-member-modal"
+import EditStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/edit-staff-modal"
 import StudioDetailsModal from "../../components/admin-dashboard-components/studios-modal/studios-detail-modal"
 
 import EditStudioModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-modal"
-import ContractsModal from "../../components/admin-dashboard-components/studios-modal/contract-modal"
-import AddStaffModal from "../../components/admin-dashboard-components/studios-modal/add-staff-modal"
-import { ViewStaffModal } from "../../components/admin-dashboard-components/studios-modal/view-staff-details"
-import MemberDetailsModal from "../../components/admin-dashboard-components/studios-modal/members-detail"
-import ContractDetailsModal from "../../components/admin-dashboard-components/studios-modal/contract-details"
+import ContractsModal from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-modal"
+import AddStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/add-staff-modal"
+import { ViewStaffModal } from "../../components/admin-dashboard-components/studios-modal/staff-components/view-staff-details"
+import MemberDetailsModal from "../../components/admin-dashboard-components/studios-modal/members-component/members-detail"
+import ContractDetailsModal from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-details"
 import StudioHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/studio-history"
 import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
 import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
 import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
 import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
+import StudioMembersModal from "../../components/admin-dashboard-components/studios-modal/members-component/MemberOverviewModal"
+import StudioStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/StaffOverviewModal"
+import MemberHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/member-history-modal"
+import { MemberDocumentModal } from "../../components/admin-dashboard-components/studios-modal/members-component/members-document-modal"
+import AppointmentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/appointment-modal"
+import EditAppointmentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/edit-appointment-modal"
+import AddAppointmentModal from "../../components/admin-dashboard-components/studios-modal/members-component/add-appointment-modal"
+import ContingentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/show-contigent-modal"
+import AddBillingPeriodModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/add-biling-period-modal"
 
 export default function Studios() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -188,8 +203,7 @@ export default function Studios() {
       {
         type: "cancellation",
         title: "Appointment Cancellation",
-        message:
-          "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
+        message: "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
         sendVia: ["email", "platform"],
         enabled: true,
       },
@@ -258,8 +272,7 @@ export default function Studios() {
     birthdayMessages: {
       enabled: false,
       subject: "Happy Birthday from {Studio_Name}",
-      message:
-        "Dear {Member_Name},\nWishing you a wonderful birthday! Your {Studio_Name} family celebrates you today.",
+      message: "Dear {Member_Name},\nWishing you a wonderful birthday! Your {Studio_Name} family celebrates you today.",
       sendVia: ["email"], // ["email", "platform"]
       sendTime: "09:00", // HH:mm
     },
@@ -273,7 +286,7 @@ export default function Studios() {
 
     // <NEW> Allow members to self-cancel their memberships according to contract rules
     allowMemberSelfCancellation: false,
-  });
+  })
 
   const [franchiseForm, setFranchiseForm] = useState({
     name: "",
@@ -309,6 +322,66 @@ export default function Studios() {
 
   const [memberSearchQuery, setMemberSearchQuery] = useState("")
   const [staffSearchQuery, setStaffSearchQuery] = useState("")
+
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [memberHistory, setMemberHistory] = useState(studiomemberHistoryNew)
+  const [showDocumentModal, setShowDocumentModal] = useState(false)
+  const [showAppointmentModalMain, setShowAppointmentModalMain] = useState(false)
+  const [appointmentsMain, setAppointmentsMain] = useState(studioappointmentsMainData)
+  const [appointmentTypesMain, setAppointmentTypesMain] = useState(studioappointmentTypeMainData)
+  const [freeAppointmentsMain, setFreeAppointmentsMain] = useState(studiofreeAppointmentsMainData)
+  const [selectedAppointmentDataMain, setSelectedAppointmentDataMain] = useState(null)
+  const [showAddAppointmentModalMain, setShowAddAppointmentModalMain] = useState(false)
+  const [showSelectedAppointmentModalMain, setShowSelectedAppointmentModalMain] = useState(false)
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null)
+
+  const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
+  // 
+  const [notifyActionMain, setNotifyActionMain] = useState("")
+
+
+  const [memberContingent, setMemberContingent] = useState({
+    1: {
+      current: { used: 2, total: 7 },
+      future: {
+        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
+        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
+      },
+    },
+    2: {
+      current: { used: 1, total: 8 },
+      future: {
+        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
+        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
+      },
+    },
+  })
+  //  all
+  const [showContingentModalMain, setShowContingentModalMain] = useState(false)
+  const [tempContingentMain, setTempContingentMain] = useState({ used: 0, total: 0 })
+  const [currentBillingPeriodMain, setCurrentBillingPeriodMain] = useState("04.14.25 - 04.18.2025")
+  const [selectedBillingPeriodMain, setSelectedBillingPeriodMain] = useState("current")
+  const [showAddBillingPeriodModalMain, setShowAddBillingPeriodModalMain] = useState(false)
+  const [newBillingPeriodMain, setNewBillingPeriodMain] = useState("")
+
+  // 
+  const getBillingPeriodsMain = (memberId) => {
+    const memberData = memberContingent[memberId]
+    if (!memberData) return []
+    const periods = [{ id: "current", label: `Current (${currentBillingPeriodMain})`, data: memberData.current }]
+    if (memberData.future) {
+      Object.entries(memberData.future).forEach(([period, data]) => {
+        periods.push({
+          id: period,
+          label: `Future (${period})`,
+          data: data,
+        })
+      })
+    }
+    return periods
+  }
+
+
 
   //sidebar related logic and states
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -995,6 +1068,127 @@ export default function Studios() {
     setIsRightSidebarOpen(!isRightSidebarOpen)
   }
 
+  // new state and functions
+
+  const handleHistoryFromOverview = (member) => {
+    console.log("Setting member for history:", member)
+    setSelectedMemberForEdit(member) // This sets the member for history
+    setShowHistoryModal(true) // This should open the member history modal
+  }
+
+  const handleDocumentFromOverview = (member) => {
+    setSelectedMemberForEdit(member) // Change this from setselectedStaffForEdit
+    setShowDocumentModal(true)
+  }
+
+  const handleCalendarFromOverview = (member) => {
+    setSelectedMemberForEdit(member)
+    setShowAppointmentModalMain(true)
+  }
+
+  const getMemberAppointmentsMain = (memberId) => {
+    return appointmentsMain.filter((app) => app.memberId === memberId)
+  }
+
+  const handleEditAppointmentMain = (appointment) => {
+    const fullAppointment = {
+      ...appointment,
+      name: selectedMemberForEdit?.title || "Member",
+      specialNote: appointment.specialNote || {
+        text: "",
+        isImportant: false,
+        startDate: "",
+        endDate: "",
+      },
+    }
+    setSelectedAppointmentDataMain(fullAppointment)
+    setShowSelectedAppointmentModalMain(true)
+    setShowAppointmentModalMain(false)
+  }
+
+  const handleDeleteAppointmentMain = (id) => {
+    setAppointmentToDelete(id)
+  }
+
+
+  const handleCreateNewAppointmentMain = () => {
+    setShowAddAppointmentModalMain(true)
+    setShowAppointmentModalMain(false)
+  }
+
+  const handleManageContingentMain = (memberId) => {
+    const memberData = memberContingent[memberId]
+    if (memberData) {
+      setTempContingentMain(memberData.current)
+      setSelectedBillingPeriodMain("current")
+    } else {
+      setTempContingentMain({ used: 0, total: 0 })
+    }
+    setShowContingentModalMain(true)
+  }
+
+  const handleBillingPeriodChange = (periodId) => {
+    setSelectedBillingPeriodMain(periodId)
+    const memberData = memberContingent[selectedMemberForEdit.id]
+    if (periodId === "current") {
+      setTempContingentMain(memberData.current)
+    } else {
+      setTempContingentMain(memberData.future[periodId] || { used: 0, total: 0 })
+    }
+  }
+
+  // 
+  const handleSaveContingentMain = () => {
+    if (selectedMemberForEdit) {
+      const updatedContingent = { ...memberContingent }
+      if (selectedBillingPeriodMain === "current") {
+        updatedContingent[selectedMemberForEdit.id].current = { ...tempContingentMain }
+      } else {
+        if (!updatedContingent[selectedMemberForEdit.id].future) {
+          updatedContingent[selectedMemberForEdit.id].future = {}
+        }
+        updatedContingent[selectedMemberForEdit.id].future[selectedBillingPeriodMain] = { ...tempContingentMain }
+      }
+      setMemberContingent(updatedContingent)
+      toast.success("Contingent updated successfully")
+    }
+    setShowContingentModalMain(false)
+  }
+
+  // 
+  const handleAddBillingPeriodMain = () => {
+    if (newBillingPeriodMain.trim() && selectedMemberForEdit) {
+      const updatedContingent = { ...memberContingent }
+      if (!updatedContingent[selectedMemberForEdit.id].future) {
+        updatedContingent[selectedMemberForEdit.id].future = {}
+      }
+      updatedContingent[selectedMemberForEdit.id].future[newBillingPeriodMain] = { used: 0, total: 0 }
+      setMemberContingent(updatedContingent)
+      setNewBillingPeriodMain("")
+      setShowAddBillingPeriodModalMain(false)
+      toast.success("New billing period added successfully")
+    }
+  }
+
+  const handleAddAppointmentSubmit = (data) => {
+    const newAppointment = {
+      id: Math.max(0, ...appointmentsMain.map((a) => a.id)) + 1,
+      ...data,
+      memberId: selectedMemberForEdit?.id,
+    }
+    setAppointmentsMain([...appointmentsMain, newAppointment])
+    setShowAddAppointmentModalMain(false)
+  }
+
+  const handleAppointmentChange = (changes) => {
+    if (selectedAppointmentDataMain) {
+      setSelectedAppointmentDataMain({
+        ...selectedAppointmentDataMain,
+        ...changes,
+      })
+    }
+  }
+
   return (
     <>
       <Toaster
@@ -1262,6 +1456,16 @@ export default function Studios() {
                           </div>
                           <div className="flex gap-2 items-center md:flex-row flex-col md:justify-end justify-center">
                             <button
+                              onClick={() => {
+                                setSelectedStudio(studio) // Set the studio first
+                                setShowHistory(true)
+                              }}
+                              className="text-gray-200 md:w-auto w-full cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                            >
+                              <HistoryIcon size={16} />
+                              <span className="">History</span>
+                            </button>
+                            <button
                               onClick={() => handleViewDetails(studio)}
                               className="text-gray-200 md:w-auto w-full cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
                             >
@@ -1305,17 +1509,6 @@ export default function Studios() {
                             <RiContractFill size={16} />
                             <span>{studioStats[studio.id]?.contracts || 0}</span>
                             <span className="">Contracts</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setSelectedStudio(studio) // Set the studio first
-                              setShowHistory(true)
-                            }}
-                            className="flex items-center md:w-auto w-full justify-center cursor-pointer gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
-                          >
-                            <HistoryIcon size={16} />
-                            <span className="">History</span>
                           </button>
                         </div>
                       </div>
@@ -1499,6 +1692,255 @@ export default function Studios() {
         </div>
       </div>
 
+      {/* Member related modals */}
+      {/* start  */}
+      <StudioMembersModal
+        isOpen={isMembersModalOpen}
+        studio={selectedStudioForModal}
+        studioMembers={studioMembers}
+        memberSearchQuery={memberSearchQuery}
+        setMemberSearchQuery={setMemberSearchQuery}
+        getFilteredMembers={getFilteredMembers}
+        onClose={() => {
+          setIsMembersModalOpen(false)
+          setSelectedStudioForModal(null)
+          setMemberSearchQuery("")
+        }}
+        onViewMember={handleViewMemberDetails}
+        onEditMember={handleEditMember}
+        handleHistoryFromOverview={handleHistoryFromOverview}
+        handleDocumentFromOverview={handleDocumentFromOverview}
+        handleCalendarFromOverview={handleCalendarFromOverview}
+      />
+
+      <EditMemberModal
+        isOpen={isEditMemberModalOpen}
+        onClose={() => setIsEditMemberModalOpen(false)}
+        selectedMember={selectedMemberForEdit}
+        onSave={handleMemberEditSubmit}
+      />
+
+      <MemberDetailsModal
+        isOpen={isMemberDetailsModalOpen}
+        onClose={() => setIsMemberDetailsModalOpen(false)}
+        member={selectedItemForDetails}
+      />
+
+      <MemberHistoryModalMain
+        isOpen={showHistoryModal}
+        onClose={() => {
+          setShowHistoryModal(false)
+          setSelectedMemberForEdit(null)
+        }}
+        selectedMember={selectedMemberForEdit} // Change from 'member' to 'selectedMember'
+        memberHistory={memberHistory}
+        historyTabMain={historyTabMain}
+        setHistoryTabMain={setHistoryTabMain}
+      />
+
+      <MemberDocumentModal
+        member={selectedMemberForEdit}
+        isOpen={showDocumentModal}
+        onClose={() => {
+          setShowDocumentModal(false)
+          setSelectedMemberForEdit(null) // Reset when closing
+        }}
+      />
+
+      <AppointmentModalMain
+        isOpen={showAppointmentModalMain}
+        onClose={() => {
+          setShowAppointmentModalMain(false)
+          setSelectedMemberForEdit(null)
+        }}
+        selectedMemberMain={selectedMemberForEdit}
+        getMemberAppointmentsMain={getMemberAppointmentsMain}
+        appointmentTypesMain={appointmentTypesMain}
+        handleEditAppointmentMain={handleEditAppointmentMain}
+        handleDeleteAppointmentMain={handleDeleteAppointmentMain}
+        memberContingent={memberContingent}
+        currentBillingPeriodMain={currentBillingPeriodMain}
+        handleManageContingentMain={handleManageContingentMain}
+        handleCreateNewAppointmentMain={handleCreateNewAppointmentMain}
+      />
+
+      {showAddAppointmentModalMain && (
+        <AddAppointmentModal
+          isOpen={showAddAppointmentModalMain}
+          onClose={() => setShowAddAppointmentModalMain(false)}
+          appointmentTypesMain={appointmentTypesMain}
+          onSubmit={handleAddAppointmentSubmit}
+          setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain}
+          setNotifyActionMain={setNotifyActionMain}
+          freeAppointmentsMain={freeAppointmentsMain}
+        />
+      )}
+      {showSelectedAppointmentModalMain && selectedAppointmentDataMain && (
+        <EditAppointmentModalMain
+          selectedAppointmentMain={selectedAppointmentDataMain}
+          setSelectedAppointmentMain={setSelectedAppointmentDataMain}
+          appointmentTypesMain={appointmentTypesMain}
+          freeAppointmentsMain={freeAppointmentsMain}
+          handleAppointmentChange={handleAppointmentChange}
+          appointmentsMain={appointmentsMain}
+          setAppointmentsMain={setAppointmentsMain}
+          setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain}
+          setNotifyActionMain={setNotifyActionMain}
+          onDelete={handleDeleteAppointmentMain}
+        />
+      )}
+
+      <ContingentModalMain
+        showContingentModalMain={showContingentModalMain}
+        setShowContingentModalMain={setShowContingentModalMain}
+        selectedMemberForAppointmentsMain={selectedMemberForEdit}
+        getBillingPeriodsMain={getBillingPeriodsMain}
+        selectedBillingPeriodMain={selectedBillingPeriodMain}
+        handleBillingPeriodChange={handleBillingPeriodChange}
+        setShowAddBillingPeriodModalMain={setShowAddBillingPeriodModalMain}
+        currentBillingPeriodMain={currentBillingPeriodMain}
+        tempContingentMain={tempContingentMain}
+        setTempContingentMain={setTempContingentMain}
+        handleSaveContingentMain={handleSaveContingentMain}
+      />
+      <AddBillingPeriodModalMain
+        open={showAddBillingPeriodModalMain}
+        newBillingPeriodMain={newBillingPeriodMain}
+        setNewBillingPeriodMain={setNewBillingPeriodMain}
+        onClose={() => setShowAddBillingPeriodModalMain(false)}
+        onAdd={handleAddBillingPeriodMain}
+      />
+      {/* end --------- */}
+
+      {/* Staff related modals */}
+      {/* start  */}
+      <StudioStaffModal
+        isOpen={isStaffsModalOpen}
+        studio={selectedStudioForModal}
+        studioStaffs={studioStaffs}
+        staffSearchQuery={staffSearchQuery}
+        setStaffSearchQuery={setStaffSearchQuery}
+        getFilteredStaff={getFilteredStaff}
+        onClose={() => {
+          setIsStaffsModalOpen(false)
+          setSelectedStudioForModal(null)
+          setStaffSearchQuery("")
+        }}
+        onAddStaff={() => setIsAddStaffModalOpen(true)}
+        onViewStaff={handleViewStaffDetails}
+        onEditStaff={(staff) => {
+          setselectedStaffForEdit(staff)
+          setisEditStaffModalOpen(true)
+        }}
+      />
+
+      <EditStaffModal
+        isOpen={isEditStaffModalOpen}
+        onClose={() => {
+          setisEditStaffModalOpen(false)
+          setselectedStaffForEdit(null)
+        }}
+        onSave={(updatedStaff) => {
+          setStudioStaffs((prev) => ({
+            ...prev,
+            [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((staff) =>
+              staff.id === updatedStaff.id ? updatedStaff : staff,
+            ),
+          }))
+          setisEditStaffModalOpen(false)
+          toast.success("Staff member updated successfully")
+        }}
+        staff={selectedStaffForEdit}
+        handleRemovalStaff={(staff) => {
+          setStudioStaffs((prev) => ({
+            ...prev,
+            [selectedStudioForModal.id]: prev[selectedStudioForModal.id].filter((s) => s.id !== staff.id),
+          }))
+          setisEditStaffModalOpen(false)
+          toast.success("Staff member removed successfully")
+        }}
+      />
+
+      {isStaffDetailsModalOpen && selectedItemForDetails && (
+        <ViewStaffModal
+          isVisible={isStaffDetailsModalOpen}
+          onClose={() => setIsStaffDetailsModalOpen(false)}
+          staffData={selectedItemForDetails}
+        />
+      )}
+
+      {isAddStaffModalOpen && (
+        <AddStaffModal
+          isOpen={isAddStaffModalOpen}
+          onClose={() => setIsAddStaffModalOpen(false)}
+          onSave={(newStaff) => {
+            setStudioStaffs((prev) => ({
+              ...prev,
+              [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newStaff],
+            }))
+            setIsAddStaffModalOpen(false)
+            toast.success("Staff member added successfully")
+          }}
+        />
+      )}
+      {/* end ----- */}
+
+      {/* contract related modal */}
+      {/* start */}
+      <ContractsModal
+        isOpen={isContractsModalOpen}
+        onClose={() => setIsContractsModalOpen(false)}
+        selectedStudio={selectedStudioForModal}
+        studioContracts={studioContracts}
+        handleFileUpload={handleFileUpload}
+        handleDownloadFile={handleDownloadFile}
+        onViewDetails={handleViewContractDetails}
+      />
+
+      <ContractDetailsModal
+        isOpen={isContractDetailsModalOpen}
+        onClose={() => setIsContractDetailsModalOpen(false)}
+        contract={selectedItemForDetails}
+      />
+      {/* end ----- */}
+
+      {/* Main Studio related Modals */}
+      {/* start  */}
+      <EditStudioModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        selectedStudio={selectedStudio}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        handleInputChange={handleInputChange}
+        handleEditSubmit={handleEditSubmit}
+        DefaultStudioImage={DefaultStudioImage}
+      />
+
+      <StudioDetailsModal
+        isOpen={isViewDetailsModalOpen}
+        onClose={() => setIsViewDetailsModalOpen(false)}
+        studio={selectedStudio}
+        franchises={franchises}
+        studioStats={studioStats}
+        DefaultStudioImage={DefaultStudioImage}
+        isContractExpiringSoon={isContractExpiringSoon}
+        onEditStudio={handleEditStudio}
+        onGoToContract={handleGoToContract}
+        onViewFranchiseDetails={handleViewFranchiseDetails}
+      />
+
+      <StudioHistoryModalMain
+        show={showHistory}
+        studio={selectedStudio}
+        studioHistoryMain={studioHistoryMainData}
+        historyTabMain={historyTabMain}
+        setHistoryTabMain={setHistoryTabMain}
+        onClose={() => {
+          setShowHistory(false)
+          setSelectedStudio(null)
+        }}
+      />
       {/* Create/Edit Franchise Modal */}
       <FranchiseModal
         isCreateModalOpen={isCreateFranchiseModalOpen}
@@ -1548,307 +1990,9 @@ export default function Studios() {
         onEditStudio={handleEditStudio}
         toast={toast}
       />
-
-      {isMembersModalOpen && selectedStudioForModal && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                  {selectedStudioForModal.name} - Members ({studioMembers[selectedStudioForModal.id]?.length || 0})
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsMembersModalOpen(false)
-                    setSelectedStudioForModal(null)
-                    setMemberSearchQuery("")
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={20} className="cursor-pointer" />
-                </button>
-              </div>
-
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                  <input
-                    type="text"
-                    placeholder="Search members by name, email, or phone..."
-                    value={memberSearchQuery}
-                    onChange={(e) => setMemberSearchQuery(e.target.value)}
-                    className="w-full bg-[#101010] pl-10 pr-4 py-2 text-sm outline-none rounded-lg text-white placeholder-gray-500 border border-slate-600"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
-                {getFilteredMembers().map((member) => (
-                  <div
-                    key={member.id}
-                    className="bg-[#161616] rounded-xl lg:p-4 p-3 flex justify-between flex-col md:flex-row gap-2 md:items-center items-start"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1">
-                        <h3 className="font-medium text-white">{member.firstName}</h3>
-                        <h3 className="font-medium text-white">{member.lastName}</h3>
-                      </div>
-                      <div className="text-sm  text-gray-400 mt-2">
-                        <p className="flex gap-1">
-                          <span className="font-bold text-gray-200">Email:</span>
-                          {member.email}
-                        </p>
-                        <p className="flex gap-1">
-                          <span className="font-bold text-gray-200">Phone:</span> {member.phone}
-                        </p>
-                        <p className="flex gap-1">
-                          <span className="font-bold text-gray-200">Joined:</span> {member.joinDate}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
-                      <button
-                        onClick={() => handleViewMemberDetails(member)}
-                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                      >
-                        <Eye size={16} />
-                        View Details
-                      </button>
-                      <button
-                        onClick={() => handleEditMember(member)}
-                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                      >
-                        <Edit size={16} />
-                        Edit
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isStaffsModalOpen && selectedStudioForModal && (
-        <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                  {selectedStudioForModal.name} - Staff ({studioStaffs[selectedStudioForModal.id]?.length || 0})
-                </h2>
-                <div className="flex gap-2">
-                  <div className="md:block hidden">
-                    <button
-                      onClick={() => setIsAddStaffModalOpen(true)}
-                      className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
-                    >
-                      <Plus size={18} />
-                      <span className="open_sans_font">Add Staff</span>
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setIsStaffsModalOpen(false)
-                      setSelectedStudioForModal(null)
-                      setStaffSearchQuery("")
-                    }}
-                    className="text-gray-400 hover:text-white"
-                  >
-                    <X size={20} className="cursor-pointer" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="md:hidden flex justify-end items-center mb-3">
-                <button
-                  onClick={() => setIsAddStaffModalOpen(true)}
-                  className="bg-[#FF843E] cursor-pointer text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
-                >
-                  <Plus size={18} />
-                  <span className="open_sans_font">Add Staff</span>
-                </button>
-              </div>
-
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                  <input
-                    type="text"
-                    placeholder="Search staff by name, email, phone, or role..."
-                    value={staffSearchQuery}
-                    onChange={(e) => setStaffSearchQuery(e.target.value)}
-                    className="w-full bg-[#101010] pl-10 pr-4 py-2 text-sm outline-none rounded-lg text-white placeholder-gray-500 border border-slate-600"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
-                {getFilteredStaff().map((staff) => (
-                  <div
-                    key={staff.id}
-                    className="bg-[#161616] rounded-xl p-4 flex justify-between md:flex-row flex-col gap-3 items-center"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1">
-                        <h3 className="font-medium text-white">{staff.firstName}</h3>
-                        <h3 className="font-medium text-white">{staff.lastName}</h3>
-                      </div>
-                      <div className="text-sm text-gray-400 mt-1">
-                        <p>
-                          {staff.email} • {staff.phone}
-                        </p>
-                        <p>
-                          Role: {staff.role} • Joined: {staff.joinDate}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
-                      <button
-                        onClick={() => handleViewStaffDetails(staff)}
-                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                      >
-                        <Eye size={16} />
-                        View Details
-                      </button>
-                      <button
-                        onClick={() => {
-                          setselectedStaffForEdit(staff)
-                          setisEditStaffModalOpen(true)
-                        }}
-                        className="text-gray-200 cursor-pointer bg-black  rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                      >
-                        <Edit size={16} />
-                        Edit
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <ContractsModal
-        isOpen={isContractsModalOpen}
-        onClose={() => setIsContractsModalOpen(false)}
-        selectedStudio={selectedStudioForModal}
-        studioContracts={studioContracts}
-        handleFileUpload={handleFileUpload}
-        handleDownloadFile={handleDownloadFile}
-        onViewDetails={handleViewContractDetails}
-      />
-
-      <EditMemberModal
-        isOpen={isEditMemberModalOpen}
-        onClose={() => setIsEditMemberModalOpen(false)}
-        selectedMember={selectedMemberForEdit}
-        onSave={handleMemberEditSubmit}
-      />
-
-      <EditStaffModal
-        isOpen={isEditStaffModalOpen}
-        onClose={() => {
-          setisEditStaffModalOpen(false)
-          setselectedStaffForEdit(null)
-        }}
-        onSave={(updatedStaff) => {
-          setStudioStaffs((prev) => ({
-            ...prev,
-            [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((staff) =>
-              staff.id === updatedStaff.id ? updatedStaff : staff,
-            ),
-          }))
-          setisEditStaffModalOpen(false)
-          toast.success("Staff member updated successfully")
-        }}
-        staff={selectedStaffForEdit}
-        handleRemovalStaff={(staff) => {
-          setStudioStaffs((prev) => ({
-            ...prev,
-            [selectedStudioForModal.id]: prev[selectedStudioForModal.id].filter((s) => s.id !== staff.id),
-          }))
-          setisEditStaffModalOpen(false)
-          toast.success("Staff member removed successfully")
-        }}
-      />
-
-      {/* Edit Studio Modal */}
-      <EditStudioModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        selectedStudio={selectedStudio}
-        editForm={editForm}
-        setEditForm={setEditForm}
-        handleInputChange={handleInputChange}
-        handleEditSubmit={handleEditSubmit}
-        DefaultStudioImage={DefaultStudioImage}
-      />
-
-      <StudioDetailsModal
-        isOpen={isViewDetailsModalOpen}
-        onClose={() => setIsViewDetailsModalOpen(false)}
-        studio={selectedStudio}
-        franchises={franchises}
-        studioStats={studioStats}
-        DefaultStudioImage={DefaultStudioImage}
-        isContractExpiringSoon={isContractExpiringSoon}
-        onEditStudio={handleEditStudio}
-        onGoToContract={handleGoToContract}
-        onViewFranchiseDetails={handleViewFranchiseDetails}
-      />
-
-      <MemberDetailsModal
-        isOpen={isMemberDetailsModalOpen}
-        onClose={() => setIsMemberDetailsModalOpen(false)}
-        member={selectedItemForDetails}
-      />
-
-      {isStaffDetailsModalOpen && selectedItemForDetails && (
-        <ViewStaffModal
-          isVisible={isStaffDetailsModalOpen}
-          onClose={() => setIsStaffDetailsModalOpen(false)}
-          staffData={selectedItemForDetails}
-        />
-      )}
-
-      <ContractDetailsModal
-        isOpen={isContractDetailsModalOpen}
-        onClose={() => setIsContractDetailsModalOpen(false)}
-        contract={selectedItemForDetails}
-      />
-
-      {isAddStaffModalOpen && (
-        <AddStaffModal
-          isOpen={isAddStaffModalOpen}
-          onClose={() => setIsAddStaffModalOpen(false)}
-          onSave={(newStaff) => {
-            setStudioStaffs((prev) => ({
-              ...prev,
-              [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newStaff],
-            }))
-            setIsAddStaffModalOpen(false)
-            toast.success("Staff member added successfully")
-          }}
-        />
-      )}
-
-      <StudioHistoryModalMain
-        show={showHistory}
-        studio={selectedStudio}
-        studioHistoryMain={studioHistoryMainData}
-        historyTabMain={historyTabMain}
-        setHistoryTabMain={setHistoryTabMain}
-        onClose={() => {
-          setShowHistory(false)
-          setSelectedStudio(null)
-        }}
-      />
+      {/* end----- */}
 
       {/* sidebar related modals  */}
-
       <Sidebar
         isOpen={isRightSidebarOpen}
         onClose={() => setIsRightSidebarOpen(false)}
@@ -1869,7 +2013,9 @@ export default function Studios() {
         setEditingLink={setEditingLink}
         openDropdownIndex={openDropdownIndex}
         setOpenDropdownIndex={setOpenDropdownIndex}
-        onToggleEditing={()=>{ setIsEditing(!isEditing);}} // Add this line
+        onToggleEditing={() => {
+          setIsEditing(!isEditing)
+        }} // Add this line
         setTodos={setTodos}
       />
 

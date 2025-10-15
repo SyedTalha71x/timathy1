@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { X, Calendar } from "lucide-react";
-import DefaultAvatar from "../../../../public/gray-avatar-fotor-20250912192528.png"; // update path
+import DefaultAvatar from "../../../../../public/gray-avatar-fotor-20250912192528.png"; // update path
 
 export function ViewStaffModal({ isVisible, onClose, staffData }) {
   if (!isVisible || !staffData) return null;
