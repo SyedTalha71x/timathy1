@@ -1,12 +1,20 @@
 /* eslint-disable react/no-unescaped-entities */
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, FileText, Search } from "lucide-react"
+import { X, FileText, Search, Eye, History } from "lucide-react"
 import { useState } from "react"
 import { DocumentManagementModal } from "../../contract-components/document-management-modal"
 
-const ContractsModal = ({ isOpen, onClose, selectedStudio, studioContracts, handleFileUpload, handleDownloadFile }) => {
+const ContractsModal = ({ 
+  isOpen, 
+  onClose, 
+  selectedStudio, 
+  studioContracts, 
+  handleFileUpload, 
+  handleDownloadFile,
+  onViewDetails,
+  handleViewContractHistory // Add this prop
+}) => {
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const [selectedContract, setSelectedContract] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -32,6 +40,18 @@ const ContractsModal = ({ isOpen, onClose, selectedStudio, studioContracts, hand
   const handleManageDocuments = (contract) => {
     setSelectedContract(contract)
     setIsDocumentModalOpen(true)
+  }
+
+  const handleViewContractDetails = (contract) => {
+    if (onViewDetails) {
+      onViewDetails(contract)
+    }
+  }
+
+  const handleContractHistory = (contract) => {
+    if (handleViewContractHistory) {
+      handleViewContractHistory(contract)
+    }
   }
 
   const handleSearchChange = (e) => {
@@ -109,7 +129,22 @@ const ContractsModal = ({ isOpen, onClose, selectedStudio, studioContracts, hand
                     <span className="text-sm text-gray-400">{contract.isDigital ? "Digital" : "Analog"}</span>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleContractHistory(contract)}
+                      className="p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors"
+                      title="View Contract History"
+                    >
+                      <History className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleViewContractDetails(contract)}
+                      className="p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors"
+                      title="View Contract Details"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </button>
+                    
                     <button
                       onClick={() => handleManageDocuments(contract)}
                       className="p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors"
@@ -143,7 +178,6 @@ const ContractsModal = ({ isOpen, onClose, selectedStudio, studioContracts, hand
         </div>
       </div>
 
-      {/* Document Management Modal */}
       {isDocumentModalOpen && selectedContract && (
         <DocumentManagementModal
           contract={selectedContract}

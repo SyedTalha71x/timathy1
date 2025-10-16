@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { X, Search, Plus, Eye, Edit } from "lucide-react"
+import { X, Search, Plus, Eye, Edit, FileText, History } from "lucide-react"
 
 const StudioStaffModal = ({
   isOpen,
@@ -12,6 +12,9 @@ const StudioStaffModal = ({
   onAddStaff,
   onViewStaff,
   onEditStaff,
+  handleDocumentFromOverview,
+  handleHistoryFromOverview
+
 }) => {
   if (!isOpen || !studio) return null
 
@@ -92,6 +95,23 @@ const StudioStaffModal = ({
                 </div>
 
                 <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
+                  <div className="grid grid-cols-2 gap-2">
+              
+                    <button
+                      onClick={() => handleHistoryFromOverview(staff)}
+                      className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                      title="View History"
+                    >
+                      <History size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDocumentFromOverview(staff)}
+                      className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                      title="Document Management"
+                    >
+                      <FileText size={16} />
+                    </button>
+                  </div>
                   <button
                     onClick={() => onViewStaff(staff)}
                     className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"

@@ -24,14 +24,19 @@ import {
 import {
   FranchiseData,
   studioappointmentsMainData,
+  studioappointmentsStaffData,
   studioappointmentTypeMainData,
+  studioappointmentTypeStaffData,
+  studioContractHistoryData,
   studioContractsData,
   studioDataNew,
   studiofreeAppointmentsMainData,
+  studiofreeAppointmentsStaffData,
   studioHistoryMainData,
   studiomemberHistoryNew,
   studioMembersData,
   studioStaffData,
+  studiostaffHistoryNew,
   studioStatsData,
 } from "../../utils/admin-panel-states/states"
 
@@ -69,6 +74,14 @@ import EditAppointmentModalMain from "../../components/admin-dashboard-component
 import AddAppointmentModal from "../../components/admin-dashboard-components/studios-modal/members-component/add-appointment-modal"
 import ContingentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/show-contigent-modal"
 import AddBillingPeriodModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/add-biling-period-modal"
+import StaffHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/staff-components/staff-history-modal"
+import { StaffDocumentModal } from "../../components/admin-dashboard-components/studios-modal/staff-components/staff-document-modal"
+import AppointmentModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/appointment-modal"
+import AddAppointmentModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/add-appointment-modal"
+import EditAppointmentModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/edit-appointment-modal"
+import ContingentModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/show-contigent-modal"
+import AddBillingPeriodModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/add-billing-period"
+import { ContractHistoryModal } from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-history-modal"
 
 export default function Studios() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -126,25 +139,35 @@ export default function Studios() {
   const [showPassword, setShowPassword] = useState({})
 
   const [editForm, setEditForm] = useState({
-    // existing fields
+    // =========================
+    // Basic Studio Information
+    // =========================
     name: "",
     email: "",
     phone: "",
     street: "",
     zipCode: "",
     city: "",
+    country: "",
     website: "",
     about: "",
     note: "",
     noteStartDate: "",
     noteEndDate: "",
     noteImportance: "unimportant",
+
+    // =========================
+    // Contract Information
+    // =========================
     contractStart: "",
     contractEnd: "",
     ownerName: "",
     taxId: "",
     iban: "",
-    country: "",
+
+    // =========================
+    // Schedule and Operations
+    // =========================
     openingHours: {
       monday: "",
       tuesday: "",
@@ -155,37 +178,41 @@ export default function Studios() {
       sunday: "",
     },
     closingDays: "",
-
-    // branding
-    logoUrl: "",
-    logoFile: null,
-
-    // studio data enhancements
     openingHoursList: [], // [{ day, startTime, endTime }]
     closingDaysList: [], // [{ date, description }]
 
-    // resources
+    // =========================
+    // Branding
+    // =========================
+    logoUrl: "",
+    logoFile: null,
+
+    // =========================
+    // Resources / Appointments
+    // =========================
     maxCapacity: 10,
     appointmentTypes: [], // [{ name, duration, capacity, color, interval, images }]
-
     trialTraining: { name: "Trial Training", duration: 60, capacity: 1, color: "#1890ff" },
 
-    // contracts
+    // =========================
+    // Contracts
+    // =========================
     contractTypes: [], // [{ name, duration, cost, billingPeriod, userCapacity, autoRenewal, renewalPeriod, renewalPrice, cancellationPeriod }]
     contractSections: [
-      // default minimal sections
       { title: "Personal Information", content: "", editable: false, requiresAgreement: true },
       { title: "Contract Terms", content: "", editable: false, requiresAgreement: true },
     ],
     contractPauseReasons: [
-      // sensible defaults
       { name: "Vacation", maxDays: 30 },
       { name: "Medical", maxDays: 90 },
     ],
     noticePeriod: 30,
     extensionPeriod: 12,
+    allowMemberSelfCancellation: false,
 
-    // communication
+    // =========================
+    // Communication
+    // =========================
     autoArchiveDuration: 30,
     emailNotifications: true,
     chatNotifications: true,
@@ -196,21 +223,24 @@ export default function Studios() {
       {
         type: "booking",
         title: "Appointment Confirmation",
-        message: "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}.",
+        message:
+          "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}.",
         sendVia: ["email", "platform"],
         enabled: true,
       },
       {
         type: "cancellation",
         title: "Appointment Cancellation",
-        message: "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
+        message:
+          "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
         sendVia: ["email", "platform"],
         enabled: true,
       },
       {
         type: "rescheduled",
         title: "Appointment Rescheduled",
-        message: "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}.",
+        message:
+          "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}.",
         sendVia: ["email", "platform"],
         enabled: true,
       },
@@ -228,7 +258,9 @@ export default function Studios() {
       smtpPass: "",
     },
 
-    // appearance
+    // =========================
+    // Appearance
+    // =========================
     appearance: {
       theme: "dark",
       primaryColor: "#FF843E",
@@ -237,56 +269,36 @@ export default function Studios() {
     },
 
     // =========================
-    // Parity with Configuration
+    // Configuration
     // =========================
+    roles: [], // Example: { name: "Admin", permissions: [...] }
+    leadSources: [], // Example: "Instagram", "Google Ads"
+    todoTags: [], // Example: "Follow-up", "Payment Pending"
 
-    // <NEW> Roles/permissions available in configuration
-    roles: [
-      // Example: { name: "Admin", permissions: ["manage_users", "edit_contracts", "view_reports"] }
-    ],
-
-    // <NEW> Lead sources used for reporting and filtering
-    leadSources: [
-      // Example: "Instagram", "Google Ads", "Walk-in"
-    ],
-
-    // <NEW> TODO/Task tags to categorize tasks
-    todoTags: [
-      // Example: "Follow-up", "Payment Pending", "Urgent"
-    ],
-
-    // <NEW> Currency and VAT rates for billing/contract pricing
     currency: "EUR",
     vatRates: [
-      // Example defaults
       { name: "Standard", rate: 19 },
       { name: "Reduced", rate: 7 },
     ],
 
-    // <NEW> Additional contract documents appended to contracts
-    additionalContractDocuments: [
-      // Example: { title: "Privacy Policy", url: "" } or { title: "House Rules", file: File }
-    ],
+    additionalContractDocuments: [], // Example: { title: "Privacy Policy", url: "" }
 
-    // <NEW> Automated birthday greetings
     birthdayMessages: {
       enabled: false,
       subject: "Happy Birthday from {Studio_Name}",
-      message: "Dear {Member_Name},\nWishing you a wonderful birthday! Your {Studio_Name} family celebrates you today.",
+      message:
+        "Dear {Member_Name},\nWishing you a wonderful birthday! Your {Studio_Name} family celebrates you today.",
       sendVia: ["email"], // ["email", "platform"]
       sendTime: "09:00", // HH:mm
     },
 
-    // <NEW> Default broadcast distribution (audience & channels)
     defaultBroadcastDistribution: {
-      audience: "all-members", // e.g., "all-members", "active-only", "frozen-only", "staff"
+      audience: "all-members", // e.g., "all-members", "active-only", "staff"
       channels: ["platform"], // ["platform", "email"]
       allowReplies: true,
     },
+  });
 
-    // <NEW> Allow members to self-cancel their memberships according to contract rules
-    allowMemberSelfCancellation: false,
-  })
 
   const [franchiseForm, setFranchiseForm] = useState({
     name: "",
@@ -317,12 +329,16 @@ export default function Studios() {
   const [studioStaffs, setStudioStaffs] = useState(studioStaffData)
   const [studioContracts, setStudioContracts] = useState(studioContractsData)
 
+
+  // for studio history itself
   const [showHistory, setShowHistory] = useState(false)
   const [historyTabMain, setHistoryTabMain] = useState("general")
 
   const [memberSearchQuery, setMemberSearchQuery] = useState("")
   const [staffSearchQuery, setStaffSearchQuery] = useState("")
 
+
+  // for members
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [memberHistory, setMemberHistory] = useState(studiomemberHistoryNew)
   const [showDocumentModal, setShowDocumentModal] = useState(false)
@@ -336,10 +352,7 @@ export default function Studios() {
   const [appointmentToDelete, setAppointmentToDelete] = useState(null)
 
   const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
-  // 
   const [notifyActionMain, setNotifyActionMain] = useState("")
-
-
   const [memberContingent, setMemberContingent] = useState({
     1: {
       current: { used: 2, total: 7 },
@@ -356,7 +369,7 @@ export default function Studios() {
       },
     },
   })
-  //  all
+
   const [showContingentModalMain, setShowContingentModalMain] = useState(false)
   const [tempContingentMain, setTempContingentMain] = useState({ used: 0, total: 0 })
   const [currentBillingPeriodMain, setCurrentBillingPeriodMain] = useState("04.14.25 - 04.18.2025")
@@ -364,7 +377,6 @@ export default function Studios() {
   const [showAddBillingPeriodModalMain, setShowAddBillingPeriodModalMain] = useState(false)
   const [newBillingPeriodMain, setNewBillingPeriodMain] = useState("")
 
-  // 
   const getBillingPeriodsMain = (memberId) => {
     const memberData = memberContingent[memberId]
     if (!memberData) return []
@@ -380,6 +392,72 @@ export default function Studios() {
     }
     return periods
   }
+
+
+  // for staff 
+  const [showStaffHistoryModal, setShowStaffHistoryModal] = useState(false)
+  const [staffHistory, setstaffHistory] = useState(studiostaffHistoryNew)
+  const [historyTabStaff, setHistoryTabStaff] = useState("general")
+  const [showDocumentModalStaff, setShowDocumentModalStaff] = useState(false)
+  const [showAppointmentModalStaff, setShowAppointmentModalStaff] = useState(false)
+  const [appointmentsStaff, setAppointmentsStaff] = useState(studioappointmentsStaffData)
+  const [appointmentTypesStaff, setAppointmentTypesStaff] = useState(studioappointmentTypeStaffData)
+  const [freeAppointmentsStaff, setFreeAppointmentsStaff] = useState(studiofreeAppointmentsStaffData)
+  const [appointmentStaffToDelete, setAppointmentStaffToDelete] = useState(null)
+
+  const [selectedAppointmentDataStaff, setSelectedAppointmentDataStaff] = useState(null)
+  const [showAddAppointmentModalStaff, setShowAddAppointmentModalStaff] = useState(false)
+  const [showSelectedAppointmentModalStaff, setShowSelectedAppointmentModalStaff] = useState(false)
+
+  const [staffContingent, setStaffContingent] = useState({
+    1: {
+      current: { used: 2, total: 7 },
+      future: {
+        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
+        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
+      },
+    },
+    2: {
+      current: { used: 1, total: 8 },
+      future: {
+        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
+        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
+      },
+    },
+  })
+
+  const [showContingentModalStaff, setShowContingentModalStaff] = useState(false)
+  const [tempContingentStaff, setTempContingentStaff] = useState({ used: 0, total: 0 })
+  const [currentBillingPeriodStaff, setCurrentBillingPeriodStaff] = useState("04.14.25 - 04.18.2025")
+  const [selectedBillingPeriodStaff, setSelectedBillingPeriodStaff] = useState("current")
+  const [showAddBillingPeriodModalStaff, setShowAddBillingPeriodModalStaff] = useState(false)
+  const [newBillingPeriodStaff, setNewBillingPeriodStaff] = useState("")
+
+  const [isNotifyMemberOpenStaff, setIsNotifyMemberOpenStaff] = useState(false)
+  const [notifyActionStaff, setNotifyActionStaff] = useState("")
+
+  const getBillingPeriodsStaff = (staffId) => {
+    const staffData = staffContingent[staffId]
+    if (!staffData) return []
+    const periods = [{ id: "current", label: `Current (${currentBillingPeriodMain})`, data: staffData.current }]
+    if (staffData.future) {
+      Object.entries(staffData.future).forEach(([period, data]) => {
+        periods.push({
+          id: period,
+          label: `Future (${period})`,
+          data: data,
+        })
+      })
+    }
+    return periods
+  }
+
+  // for contracts 
+
+  const [contractHistory, setcontractHistory] = useState(studioContractHistoryData)
+  const [isContractHistoryModalOpen, setIsContractHistoryModalOpen] = useState(false)
+  const [selectedContractForHistory, setSelectedContractForHistory] = useState(null)
+
 
 
 
@@ -1068,7 +1146,7 @@ export default function Studios() {
     setIsRightSidebarOpen(!isRightSidebarOpen)
   }
 
-  // new state and functions
+  // new state and functions for member
 
   const handleHistoryFromOverview = (member) => {
     console.log("Setting member for history:", member)
@@ -1188,6 +1266,128 @@ export default function Studios() {
       })
     }
   }
+
+
+  // functions and other things for staff
+  const handleAppointmentChangeStaff = (changes) => {
+    if (selectedAppointmentDataStaff) {
+      setSelectedAppointmentDataStaff({
+        ...selectedAppointmentDataStaff,
+        ...changes,
+      })
+    }
+  }
+  const handleStaffHistoryFromOverview = (staff) => {
+    setselectedStaffForEdit(staff)
+    setShowStaffHistoryModal(true)
+  }
+
+  const handleStaffDocumentFromOverview = (staff) => {
+    setselectedStaffForEdit(staff)
+    setShowDocumentModalStaff(true)
+  }
+
+  const handleStaffCalendarFromOverview = (staff) => {
+    setselectedStaffForEdit(staff)
+    setShowAppointmentModalStaff(true)
+  }
+
+  // const getStaffAppointments = (staffId) => {
+  //   return appointmentsStaff.filter((app) => app.staffId === staffId)
+  // }
+
+  // const handleEditAppointmentStaff = (appointment) => {
+  //   const fullAppointment = {
+  //     ...appointment,
+  //     name: selectedStaffForEdit?.title || "Staff",
+  //     specialNote: appointment.specialNote || {
+  //       text: "",
+  //       isImportant: false,
+  //       startDate: "",
+  //       endDate: "",
+  //     },
+  //   }
+  //   setSelectedAppointmentDataStaff(fullAppointment)
+  //   setShowSelectedAppointmentModalStaff(true)
+  //   setShowAppointmentModalStaff(false)
+  // }
+
+  // const handleDeleteAppointmentStaff = (id) => {
+  //   setAppointmentStaffToDelete(id)
+  // }
+
+  // const handleCreateNewAppointmentStaff = () => {
+  //   setShowAddAppointmentModalStaff(true)
+  //   setShowAppointmentModalStaff(false)
+  // }
+
+  // const handleManageContingentStaff = (staffId) => {
+  //   const staffData = staffContingent[staffId]
+  //   if (staffData) {
+  //     setTempContingentStaff(staffData.current)
+  //     setSelectedBillingPeriodStaff("current")
+  //   } else {
+  //     setTempContingentStaff({ used: 0, total: 0 })
+  //   }
+  //   setShowContingentModalStaff(true)
+  // }
+
+  // const handleAddAppointmentSubmitStaff = (data) => {
+  //   const newAppointment = {
+  //     id: Math.max(0, ...appointmentsStaff.map((a) => a.id)) + 1,
+  //     ...data,
+  //     staffId: selectedStaffForEdit?.id,
+  //   }
+  //   setAppointmentsStaff([...appointmentsStaff, newAppointment])
+  //   setShowAddAppointmentModalStaff(false)
+  // }
+
+  // const handleBillingPeriodChangeStaff = (periodId) => {
+  //   setSelectedBillingPeriodStaff(periodId)
+  //   const staffData = staffContingent[selectedStaffForEdit.id]
+  //   if (periodId === "current") {
+  //     setTempContingentStaff(staffData.current)
+  //   } else {
+  //     setTempContingentStaff(staffData.future[periodId] || { used: 0, total: 0 })
+  //   }
+  // }
+
+  // const handleAddBillingPeriodStaff = () => {
+  //   if (newBillingPeriodStaff.trim() && selectedStaffForEdit) {
+  //     const updatedContingent = { ...staffContingent }
+  //     if (!updatedContingent[selectedStaffForEdit.id].future) {
+  //       updatedContingent[selectedStaffForEdit.id].future = {}
+  //     }
+  //     updatedContingent[selectedStaffForEdit.id].future[newBillingPeriodStaff] = { used: 0, total: 0 }
+  //     setStaffContingent(updatedContingent)
+  //     setNewBillingPeriodStaff("")
+  //     setShowAddBillingPeriodModalStaff(false)
+  //     toast.success("New billing period added successfully")
+  //   }
+  // }
+
+  // const handleSaveContingentStaff = () => {
+  //   if (selectedStaffForEdit) {
+  //     const updatedContingent = { ...staffContingent }
+  //     if (selectedBillingPeriodStaff === "current") {
+  //       updatedContingent[selectedStaffForEdit.id].current = { ...tempContingentStaff }
+  //     } else {
+  //       if (!updatedContingent[selectedStaffForEdit.id].future) {
+  //         updatedContingent[selectedStaffForEdit.id].future = {}
+  //       }
+  //       updatedContingent[selectedStaffForEdit.id].future[selectedBillingPeriodStaff] = { ...tempContingentStaff }
+  //     }
+  //     setStaffContingent(updatedContingent)
+  //     toast.success("Contingent updated successfully")
+  //   }
+  //   setShowContingentModalStaff(false)
+  // }
+
+  const handleViewContractHistory = (contract) => {
+    setSelectedContractForHistory(contract)
+    setIsContractHistoryModalOpen(true)
+  }
+
 
   return (
     <>
@@ -1812,6 +2012,8 @@ export default function Studios() {
       />
       {/* end --------- */}
 
+
+
       {/* Staff related modals */}
       {/* start  */}
       <StudioStaffModal
@@ -1832,6 +2034,8 @@ export default function Studios() {
           setselectedStaffForEdit(staff)
           setisEditStaffModalOpen(true)
         }}
+        handleHistoryFromOverview={handleStaffHistoryFromOverview}
+        handleDocumentFromOverview={handleStaffDocumentFromOverview}
       />
 
       <EditStaffModal
@@ -1883,7 +2087,102 @@ export default function Studios() {
           }}
         />
       )}
+
+      <StaffHistoryModalMain
+        isOpen={showStaffHistoryModal}
+        onClose={() => {
+          setShowStaffHistoryModal(false)
+          setselectedStaffForEdit(null)
+        }}
+        selectedStaff={selectedStaffForEdit}
+        staffHistory={staffHistory}
+        historyTabMain={historyTabStaff}
+        setHistoryTabMain={setHistoryTabStaff}
+      />
+
+      <StaffDocumentModal
+        staff={selectedStaffForEdit}
+        isOpen={showDocumentModalStaff}
+        onClose={() => {
+          setShowDocumentModalStaff(false)
+          setselectedStaffForEdit(null)
+        }}
+      />
+
+      {/* <AppointmentModalStaff
+        isOpen={showAppointmentModalStaff}
+        onClose={() => {
+          setShowAppointmentModalStaff(false)
+          setselectedStaffForEdit(null)
+        }}
+        selectedStaff={selectedStaffForEdit}
+        getStaffAppointmentsStaff={getStaffAppointments}
+        appointmentTypesStaff={appointmentTypesStaff}
+        handleEditAppointmentStaff={handleEditAppointmentStaff}
+        handleDeleteAppointmentStaff={handleDeleteAppointmentStaff}
+        staffContingent={staffContingent}
+        currentBillingPeriodStaff={currentBillingPeriodStaff}
+        handleManageContingentStaff={handleManageContingentStaff}
+        handleCreateNewAppointmentStaff={handleCreateNewAppointmentStaff}
+      />
+
+      {showAddAppointmentModalStaff && (
+        <AddAppointmentModalStaff
+          isOpen={showAddAppointmentModalStaff}
+          onClose={() => setShowAddAppointmentModalStaff(false)}
+          appointmentTypesStaff={appointmentTypesStaff}
+          onSubmit={handleAddAppointmentSubmitStaff}
+          setIsNotifyStaffOpen={setIsNotifyMemberOpenStaff}
+          setNotifyActionStaff={setNotifyActionStaff}
+          freeAppointmentsStaff={freeAppointmentsStaff}
+        />
+      )}
+
+      {showSelectedAppointmentModalStaff && selectedAppointmentDataStaff && (
+        <EditAppointmentModalStaff
+          selectedAppointmentStaff={selectedAppointmentDataStaff}
+          setSelectedAppointmentStaff={setSelectedAppointmentDataStaff}
+          appointmentTypesStaff={appointmentTypesStaff}
+          freeAppointmentsStaff={freeAppointmentsStaff}
+          handleAppointmentChangeStaff={handleAppointmentChangeStaff}
+          appointmentsStaff={appointmentsStaff}
+          setAppointmentsStaff={setAppointmentsStaff}
+          setIsNotifyStaffOpen={setIsNotifyMemberOpenStaff}
+          setNotifyActionStaff={setNotifyActionStaff}
+          onDelete={handleDeleteAppointmentStaff}
+        />
+      )}
+
+      <ContingentModalStaff
+        showContingentModalStaff={showContingentModalStaff}
+        setShowContingentModalStaff={setShowContingentModalStaff}
+        selectedMemberForAppointmentsStaff={selectedMemberForEdit}
+        getBillingPeriodsStaff={getBillingPeriodsStaff}
+        selectedBillingPeriodStaff={selectedBillingPeriodStaff}
+        handleBillingPeriodChangeStaff={handleBillingPeriodChangeStaff}
+        setShowAddBillingPeriodModalStaff={setShowAddBillingPeriodModalStaff}
+        currentBillingPeriodStaff={currentBillingPeriodStaff}
+        tempContingentStaff={tempContingentStaff}
+        setTempContingentStaff={setTempContingentStaff}
+        handleSaveContingentStaff={handleSaveContingentStaff}
+      />
+
+<AddBillingPeriodModalStaff
+        open={showAddBillingPeriodModalStaff}
+        newBillingPeriodStaff={newBillingPeriodStaff}
+        setNewBillingPeriodStaff={setNewBillingPeriodStaff}
+        onClose={() => setShowAddBillingPeriodModalStaff(false)}
+        onAdd={handleAddBillingPeriodStaff}
+      /> */}
+
       {/* end ----- */}
+
+
+
+
+
+
+
 
       {/* contract related modal */}
       {/* start */}
@@ -1895,6 +2194,7 @@ export default function Studios() {
         handleFileUpload={handleFileUpload}
         handleDownloadFile={handleDownloadFile}
         onViewDetails={handleViewContractDetails}
+        handleViewContractHistory={handleViewContractHistory} // Add this prop
       />
 
       <ContractDetailsModal
@@ -1902,6 +2202,17 @@ export default function Studios() {
         onClose={() => setIsContractDetailsModalOpen(false)}
         contract={selectedItemForDetails}
       />
+
+      {isContractHistoryModalOpen && selectedContractForHistory && (
+        <ContractHistoryModal
+          contract={selectedContractForHistory}
+          history={contractHistory[selectedStudioForModal?.id] || []} // Use studio ID for history
+          onClose={() => {
+            setIsContractHistoryModalOpen(false)
+            setSelectedContractForHistory(null)
+          }}
+        />
+      )}
       {/* end ----- */}
 
       {/* Main Studio related Modals */}

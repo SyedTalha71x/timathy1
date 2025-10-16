@@ -2222,3 +2222,184 @@ export const studiofreeAppointmentsMainData = [
   { id: 6, date: "2025-04-05", time: "9:30 AM" },
   { id: 7, date: "2025-04-05", time: "3:00 PM" },
 ]
+
+
+
+
+export const studiostaffHistoryNew = {
+  1: {
+      general: [
+          {
+              id: 1,
+              date: "2025-01-15",
+              action: "Email updated",
+              details: "Changed from old@email.com to jennifer@example.com",
+              user: "Admin",
+          },
+          { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
+      ],
+      checkins: [
+          { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "Jennifer Markus" },
+          { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "Jennifer Markus" },
+      ],
+      appointments: [
+          { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
+          { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
+      ],
+      finance: [
+          {
+              id: 1,
+              date: "2025-01-01",
+              type: "Payment",
+              amount: "$99.99",
+              description: "Monthly membership fee",
+              status: "completed",
+          },
+          {
+              id: 2,
+              date: "2024-12-01",
+              type: "Payment",
+              amount: "$99.99",
+              description: "Monthly membership fee",
+              status: "completed",
+          },
+      ],
+      contracts: [
+          {
+              id: 1,
+              date: "2024-03-01",
+              action: "Contract signed",
+              details: "Initial 12-month membership contract",
+              user: "Admin",
+          },
+          { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
+      ],
+  },
+  2: {
+      general: [
+          {
+              id: 1,
+              date: "2025-01-12",
+              action: "Profile updated",
+              details: "Updated personal information",
+              user: "Admin",
+          },
+      ],
+      checkins: [
+          { id: 1, date: "2025-01-19T08:00", type: "Check-in", location: "Main Entrance", user: "Jerry Haffer" },
+          { id: 2, date: "2025-01-19T10:30", type: "Check-out", location: "Main Entrance", user: "Jerry Haffer" },
+      ],
+      appointments: [
+          { id: 1, date: "2025-01-17T14:00", title: "Cardio Session", status: "completed", trainer: "Lisa Davis" },
+      ],
+      finance: [
+          {
+              id: 1,
+              date: "2025-01-01",
+              type: "Payment",
+              amount: "$89.99",
+              description: "Monthly membership fee",
+              status: "completed",
+          },
+      ],
+      contracts: [
+          {
+              id: 1,
+              date: "2021-11-15",
+              action: "Contract signed",
+              details: "Initial membership contract",
+              user: "Admin",
+          },
+      ],
+  },
+  3: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+  4: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+  5: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+  100: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+};
+
+export const studioappointmentsStaffData = [
+  {
+    id: 1,
+    title: "Initial Consultation",
+    date: "2025-03-15T10:00",
+    status: "upcoming",
+    type: "Consultation",
+    staffId: 1,
+    specialNote: {
+      text: "First time client, needs introduction to equipment",
+      isImportant: true,
+      startDate: "2025-03-15",
+      endDate: "2025-03-20",
+    },
+  },
+  {
+    id: 2,
+    title: "Follow-up Meeting",
+    date: "2025-03-20T14:30",
+    status: "upcoming",
+    type: "Follow-up",
+    staffId: 1,
+  },
+  {
+    id: 3,
+    title: "Annual Review",
+    date: "2025-04-05T11:00",
+    status: "upcoming",
+    type: "Annual Review",
+    staffId: 2,
+  },
+]
+
+export const studioappointmentTypeStaffData = [
+  { name: "Consultation", duration: 30, color: "bg-blue-700" },
+  { name: "Follow-up", duration: 45, color: "bg-green-700" },
+  { name: "Annual Review", duration: 60, color: "bg-purple-600" },
+  { name: "Training", duration: 60, color: "bg-orange-600" },
+  { name: "Assessment", duration: 90, color: "bg-red-600" },
+]
+
+export const studiofreeAppointmentsStaffData = [
+  { id: 1, date: "2025-03-15", time: "9:00 AM" },
+  { id: 2, date: "2025-03-15", time: "11:00 AM" },
+  { id: 3, date: "2025-03-15", time: "2:00 PM" },
+  { id: 4, date: "2025-03-20", time: "10:00 AM" },
+  { id: 5, date: "2025-03-20", time: "1:30 PM" },
+  { id: 6, date: "2025-04-05", time: "9:30 AM" },
+  { id: 7, date: "2025-04-05", time: "3:00 PM" },
+]
+
+
+export const studioContractHistoryData = {
+  "12321-1": [
+      {
+          id: "hist-1",
+          date: "2023-12-15",
+          action: "Contract Changed",
+          details: "Changed from Basic to Premium",
+          performedBy: "Admin User",
+          oldValue: "Basic",
+          newValue: "Premium",
+      },
+      {
+          id: "hist-2",
+          date: "2023-11-20",
+          action: "Contract Renewed",
+          details: "Renewed for 12 months",
+          performedBy: "System",
+          oldValue: "2023-01-01 to 2024-01-01",
+          newValue: "2024-01-01 to 2025-01-01",
+      },
+  ],
+  "12321-2": [
+      {
+          id: "hist-3",
+          date: "2023-10-10",
+          action: "Contract Paused",
+          details: "Paused due to Pregnancy",
+          performedBy: "Admin User",
+          oldValue: "Active",
+          newValue: "Paused",
+      },
+  ],
+}
