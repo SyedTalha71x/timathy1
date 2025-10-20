@@ -199,8 +199,8 @@ const EmailManagementPage = () => {
     { id: "sidebar-todo", type: "todo", position: 1 },
     { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
     { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
+    { id: "sidebar-notes", type: "notes", position: 4 },
   ])
-
   const [todos, setTodos] = useState([
     {
       id: 1,

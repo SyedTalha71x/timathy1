@@ -54,7 +54,7 @@ import EditMemberModal from "../../components/admin-dashboard-components/studios
 import EditStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/edit-staff-modal"
 import StudioDetailsModal from "../../components/admin-dashboard-components/studios-modal/studios-detail-modal"
 
-import EditStudioModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-modal"
+import EditStudioModal from '../../components/admin-dashboard-components/studios-modal/edit-studio-modal'
 import ContractsModal from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-modal"
 import AddStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/add-staff-modal"
 import { ViewStaffModal } from "../../components/admin-dashboard-components/studios-modal/staff-components/view-staff-details"
@@ -155,16 +155,8 @@ export default function Studios() {
     noteStartDate: "",
     noteEndDate: "",
     noteImportance: "unimportant",
-
-    // =========================
-    // Contract Information
-    // =========================
-    contractStart: "",
-    contractEnd: "",
     ownerName: "",
-    taxId: "",
-    iban: "",
-
+  
     // =========================
     // Schedule and Operations
     // =========================
@@ -180,20 +172,20 @@ export default function Studios() {
     closingDays: "",
     openingHoursList: [], // [{ day, startTime, endTime }]
     closingDaysList: [], // [{ date, description }]
-
+  
     // =========================
     // Branding
     // =========================
     logoUrl: "",
     logoFile: null,
-
+  
     // =========================
     // Resources / Appointments
     // =========================
     maxCapacity: 10,
     appointmentTypes: [], // [{ name, duration, capacity, color, interval, images }]
     trialTraining: { name: "Trial Training", duration: 60, capacity: 1, color: "#1890ff" },
-
+  
     // =========================
     // Contracts
     // =========================
@@ -209,7 +201,7 @@ export default function Studios() {
     noticePeriod: 30,
     extensionPeriod: 12,
     allowMemberSelfCancellation: false,
-
+  
     // =========================
     // Communication
     // =========================
@@ -223,30 +215,27 @@ export default function Studios() {
       {
         type: "booking",
         title: "Appointment Confirmation",
-        message:
-          "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}.",
+        message: "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}.",
         sendVia: ["email", "platform"],
         enabled: true,
       },
       {
         type: "cancellation",
         title: "Appointment Cancellation",
-        message:
-          "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
+        message: "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
         sendVia: ["email", "platform"],
         enabled: true,
       },
       {
         type: "rescheduled",
         title: "Appointment Rescheduled",
-        message:
-          "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}.",
+        message: "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}.",
         sendVia: ["email", "platform"],
         enabled: true,
       },
     ],
     broadcastMessages: [],
-
+  
     emailConfig: {
       smtpServer: "",
       smtpPort: 587,
@@ -257,7 +246,15 @@ export default function Studios() {
       smtpUser: "",
       smtpPass: "",
     },
-
+  
+    birthdayMessages: {
+      enabled: false,
+      subject: "Happy Birthday from {Studio_Name}",
+      message: "Dear {Member_Name},\nWishing you a wonderful birthday! Your {Studio_Name} family celebrates you today.",
+      sendVia: ["email"],
+      sendTime: "09:00",
+    },
+  
     // =========================
     // Appearance
     // =========================
@@ -267,37 +264,24 @@ export default function Studios() {
       secondaryColor: "#1890ff",
       allowUserThemeToggle: true,
     },
-
+  
     // =========================
     // Configuration
     // =========================
-    roles: [], // Example: { name: "Admin", permissions: [...] }
-    leadSources: [], // Example: "Instagram", "Google Ads"
-    todoTags: [], // Example: "Follow-up", "Payment Pending"
-
+    roles: [], // [{ name, permissions: ["read", "write", "delete"] }]
+    permissionTemplates: [], // [{ name, roles: [...] }]
+    leadSources: [], // [{ name }]
+    tags: [], // [{ name, color }]
+  
     currency: "EUR",
     vatRates: [
       { name: "Standard", rate: 19 },
       { name: "Reduced", rate: 7 },
     ],
-
-    additionalContractDocuments: [], // Example: { title: "Privacy Policy", url: "" }
-
-    birthdayMessages: {
-      enabled: false,
-      subject: "Happy Birthday from {Studio_Name}",
-      message:
-        "Dear {Member_Name},\nWishing you a wonderful birthday! Your {Studio_Name} family celebrates you today.",
-      sendVia: ["email"], // ["email", "platform"]
-      sendTime: "09:00", // HH:mm
-    },
-
-    defaultBroadcastDistribution: {
-      audience: "all-members", // e.g., "all-members", "active-only", "staff"
-      channels: ["platform"], // ["platform", "email"]
-      allowReplies: true,
-    },
-  });
+  
+    additionalContractDocuments: [],
+    additionalDocs: [],
+  })
 
 
   const [franchiseForm, setFranchiseForm] = useState({
@@ -475,6 +459,7 @@ export default function Studios() {
     { id: "sidebar-todo", type: "todo", position: 1 },
     { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
     { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
+    { id: "sidebar-notes", type: "notes", position: 4 },
   ])
 
   const [todos, setTodos] = useState([

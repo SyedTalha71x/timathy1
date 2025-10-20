@@ -15,6 +15,7 @@ import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea
 import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
 import { Eye, Minus } from "react-feather"
 import ViewManagementModal from "../../components/admin-dashboard-components/myarea-components/view-management"
+import NotesWidget from "../../components/admin-dashboard-components/myarea-components/notes-widgets"
 
 const DraggableWidget = ({
   id,
@@ -83,6 +84,7 @@ export default function MyArea() {
     { id: "todo", type: "todo", position: 1 },
     { id: "websiteLink", type: "websiteLink", position: 2 },
     { id: "expiringContracts", type: "expiringContracts", position: 3 },
+    { id: "notes", type: "notes", position: 4 },
   ])
 
   // Sidebar widgets - now contains all widget types
@@ -91,6 +93,7 @@ export default function MyArea() {
     { id: "sidebar-todo", type: "todo", position: 1 },
     { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
     { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
+    { id: "sidebar-notes", type: "notes", position: 4 },
   ])
 
   const [customLinks, setCustomLinks] = useState([
@@ -631,6 +634,32 @@ export default function MyArea() {
                             </div>
                           </div>
                         </div>
+                      </DraggableWidget>
+                    )
+                  })}
+
+{widgets
+                  .filter((widget) => widget.type === "notes")
+                  .sort((a, b) => a.position - b.position)
+                  .map((widget) => {
+                    const idx = widgets.findIndex((w) => w.id === widget.id)
+                    return (
+                      <DraggableWidget
+                        key={widget.id}
+                        id={widget.id}
+                        index={idx}
+                        moveWidget={moveWidget}
+                        removeWidget={removeWidget}
+                        isEditing={isEditing}
+                        widgets={widgets}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        onDragEnd={handleDragEnd}
+                        isDragging={dragIndex === idx}
+                        isDragOver={dragOverIndex === idx}
+                      >
+                        <NotesWidget/>
                       </DraggableWidget>
                     )
                   })}

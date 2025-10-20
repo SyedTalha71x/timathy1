@@ -15,6 +15,7 @@ import {
 import ViewManagementModal from "./myarea-components/sidebar-components/view-management"
 import EditTaskModal from "./todo-components/edit-task-modal"
 import { Check, Edit, Eye, Minus } from "react-feather"
+import NotesWidget from "./myarea-components/notes-widgets"
 
 const DraggableSidebarWidget = ({ 
     id, 
@@ -609,6 +610,7 @@ const Sidebar = ({
                                             </div>
                                         </div>
                                     )}
+                                    {widget.type === "notes" && <NotesWidget />}
                                 </DraggableSidebarWidget>
                             ))}
 

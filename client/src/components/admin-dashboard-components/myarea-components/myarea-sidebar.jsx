@@ -8,6 +8,7 @@ import { MoreVertical, X, ChevronDown, Edit, Check, ArrowDown, ArrowUp, Plus, Ex
 import { Eye, Minus } from "react-feather"
 import ViewManagementModal from "./sidebar-components/view-management"
 import EditTaskModal from '../todo-components/edit-task-modal'
+import NotesWidget from "./notes-widgets"
 
 const DraggableSidebarWidget = ({
   id,
@@ -600,6 +601,7 @@ const Sidebar = ({
                       </div>
                     </div>
                   )}
+                    {widget.type === "notes" && <NotesWidget />}
                 </DraggableSidebarWidget>
               ))}
 

@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { X, BarChart3, ListTodo, Link, CalendarDays } from "lucide-react"
+import { TbClipboardText } from "react-icons/tb"
 
 export default function WidgetSelectionModal({ 
   isOpen, 
@@ -35,6 +36,12 @@ export default function WidgetSelectionModal({
       description: "Track contracts nearing expiration",
       icon: CalendarDays,
     },
+    {
+      id: "notes",
+      name: "Notes",
+      description: "Manage your notes",
+      icon: TbClipboardText,
+    },
    
   ]
 
@@ -62,7 +69,13 @@ export default function WidgetSelectionModal({
       name: "Expiring Contracts",
       description: "Track contracts nearing expiration",
       icon: CalendarDays,
-    }
+    },
+    {
+      id: "notes",
+      name: "Notes",
+      description: "Manage your notes",
+      icon: TbClipboardText,  
+    },
   ]
 
   // Select widgets based on the area
