@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable react/no-unknown-property */ /* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */ /* eslint-disable react/no-unescaped-entities */
 import FullCalendar from "@fullcalendar/react"
 import toast, { Toaster } from "react-hot-toast"
@@ -17,7 +15,6 @@ import TrialTrainingModal from "./add-trial-training"
 import EditAppointmentModalMain from "./selected-appointment-modal"
 import HistoryModalMain from "./calendar-components/HistoryModalMain"
 
-
 import MemberOverviewModalMain from "./calendar-components/MemberOverviewModalMain"
 import MemberDetailsModalMain from "./calendar-components/MemberDetailsModalMain"
 import AppointmentActionModalMain from "./calendar-components/AppointmentActionModalMain"
@@ -27,9 +24,8 @@ import ContingentModalMain from "./calendar-components/ContingentModalMain"
 import AppointmentModalMain from "./calendar-components/AppointmentModalMain"
 import EditBlockedSlotModalMain from "./calendar-components/EditBlockedSlotModalMain"
 
-
 export default function Calendar({
-  appointmentsMain = [],
+  appointmentsMain,
   onEventClick,
   onDateSelect,
   searchQuery = "",
@@ -55,6 +51,9 @@ export default function Calendar({
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [showListView, setShowListView] = useState(false)
   const [historyTab, setHistoryTab] = useState("general")
+
+  // New state for expanded days in month view
+  const [expandedDays, setExpandedDays] = useState({})
 
   // Tooltip states
   const [tooltip, setTooltip] = useState({
@@ -355,6 +354,24 @@ export default function Calendar({
 
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
 
+  // Function to handle expanding/collapsing day in month view
+  const handleToggleDayExpand = (dateString, e) => {
+    e.stopPropagation(); // Prevent event from bubbling up
+    e.preventDefault(); // Prevent default behavior
+    setExpandedDays(prev => ({
+      ...prev,
+      [dateString]: !prev[dateString]
+    }))
+  }
+
+
+  // Function to handle appointment click in month view
+  const handleMonthViewAppointmentClick = (appointment, e) => {
+    e.stopPropagation()
+    setSelectedAppointment(appointment)
+    setIsAppointmentActionModalOpen(true)
+  }
+
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
@@ -588,17 +605,6 @@ export default function Calendar({
   }, [])
 
   const handleEventDrop = (info) => {
-    // // Check if it's a past or cancelled event and prevent drag/drop
-    // const appointmentId = Number.parseInt(info.event.id)
-    // const appointment = appointments?.find((app) => app.id === appointmentId)
-
-    // if (appointment && (appointment.isPast || appointment.isCancelled)) {
-    //   info.revert()
-    //   const reason = appointment.isPast ? "past" : "cancelled"
-    //   toast.error(`Cannot move ${reason} appointments`)
-    //   return
-    // }
-
     setPendingEventInfo(info)
     setNotifyAction("change")
     setIsNotifyMemberOpen(true)
@@ -1092,6 +1098,7 @@ export default function Calendar({
           <div className="text-xs text-blue-300">{tooltip.content.type}</div>
         </div>
       )}
+
       <div className="h-full w-full">
         <div className="w-full bg-black">
           <div
@@ -1146,9 +1153,8 @@ export default function Calendar({
                         }, 100)
                       }
                     }}
-                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${
-                      calendarRef.current?.getApi()?.view?.type === "dayGridMonth" ? "bg-gray-500" : "bg-gray-600"
-                    }`}
+                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${calendarRef.current?.getApi()?.view?.type === "dayGridMonth" ? "bg-gray-500" : "bg-gray-600"
+                      }`}
                   >
                     Month
                   </button>
@@ -1162,9 +1168,8 @@ export default function Calendar({
                         }, 100)
                       }
                     }}
-                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${
-                      calendarRef.current?.getApi()?.view?.type === "timeGridWeek" ? "bg-gray-500" : "bg-gray-600"
-                    }`}
+                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${calendarRef.current?.getApi()?.view?.type === "timeGridWeek" ? "bg-gray-500" : "bg-gray-600"
+                      }`}
                   >
                     Week
                   </button>
@@ -1178,9 +1183,8 @@ export default function Calendar({
                         }, 100)
                       }
                     }}
-                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${
-                      calendarRef.current?.getApi()?.view?.type === "timeGridDay" ? "bg-gray-500" : "bg-gray-600"
-                    }`}
+                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${calendarRef.current?.getApi()?.view?.type === "timeGridDay" ? "bg-gray-500" : "bg-gray-600"
+                      }`}
                   >
                     Day
                   </button>
@@ -1198,22 +1202,13 @@ export default function Calendar({
               <div className=" items-center gap-1 md:inline  sm:gap-2 flex-shrink-0">
                 <button
                   onClick={generateFreeDates}
-                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${
-                    viewMode === "all" ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-500 hover:bg-gray-600"
-                  }`}
+                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-500 hover:bg-gray-600"
+                    }`}
                   aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
                 >
                   <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
                   <span className="sm:hidden">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
                 </button>
-                {/* {isMobile && (
-                  <button
-                    onClick={() => setShowListView(!showListView)}
-                    className="p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 bg-gray-600 hover:bg-gray-500"
-                  >
-                    {showListView ? "Calendar" : "List"}
-                  </button>
-                )} */}
               </div>
             </div>
           </div>
@@ -1244,9 +1239,8 @@ export default function Calendar({
                         setSelectedAppointment(apt)
                         setIsAppointmentActionModalOpen(true)
                       }}
-                      className={`p-3 rounded-lg border cursor-pointer ${
-                        apt.isPast ? "bg-gray-100 opacity-60" : "bg-white"
-                      } ${apt.isCancelled ? "border-red-300" : "border-gray-200"}`}
+                      className={`p-3 rounded-lg border cursor-pointer ${apt.isPast ? "bg-gray-100 opacity-60" : "bg-white"
+                        } ${apt.isCancelled ? "border-red-300" : "border-gray-200"}`}
                       style={{
                         borderLeft: `4px solid ${apt.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"}`,
                       }}
@@ -1294,6 +1288,7 @@ export default function Calendar({
               select={handleDateSelect}
               slotEventOverlap={false}
               eventOverlap={false}
+
               eventDragStart={(info) => {
                 // Hide tooltip when drag starts
                 hideTooltip()
@@ -1306,30 +1301,210 @@ export default function Calendar({
                 // Hide tooltip when resize starts
                 hideTooltip()
               }}
-              dayMaxEvents={false}
+
+              dayMaxEvents={false} // Remove the limit to show all appointments
               eventMaxStack={10}
+              // Hide default events in month view since we're rendering them custom
+              eventDisplay={(args) => {
+                const viewType = calendarRef.current?.getApi()?.view?.type;
+                if (viewType === "dayGridMonth") {
+                  return 'none'; // Completely hide default events in month view
+                }
+                return 'auto';
+              }}
+              eventDidMount={(info) => {
+                const viewType = info.view.type;
+                if (viewType === "dayGridMonth") {
+                  // Hide the event element completely in month view
+                  info.el.style.display = 'none';
+                }
+              }}
+              // Add day click handler for month view
+              dayCellDidMount={(info) => {
+                if (calendarRef.current?.getApi()?.view?.type === "dayGridMonth") {
+                  info.el.style.cursor = 'pointer';
+                }
+              }}
+              datesSet={(info) => {
+                setTimeout(() => {
+                  setCurrentDateDisplay(formatDateRange(info.view.currentStart))
+                }, 100)
+              }}
+              // Custom day cell content for month view
+              dayCellContent={(args) => {
+                if (calendarRef.current?.getApi()?.view?.type === "dayGridMonth") {
+                  const date = new Date(args.date)
+                  const formattedDate = formatDate(date)
+                  const dateString = date.toISOString().split('T')[0]
+
+                  // Get appointments for this specific day
+                  const dayAppointments = filteredAppointments.filter(appointment => {
+                    const dateParts = appointment.date?.split("|") || []
+                    if (dateParts.length < 2) return false
+                    const appointmentDate = dateParts[1].trim()
+                    return appointmentDate === formattedDate
+                  })
+
+                  const isExpanded = expandedDays[dateString]
+                  const displayAppointments = isExpanded ? dayAppointments : dayAppointments.slice(0, 3)
+                  const moreCount = dayAppointments.length - 3
+
+                  return (
+                    <div className="fc-daygrid-day-frame">
+                      <div className="fc-daygrid-day-top">
+                        <span className="fc-daygrid-day-number">{args.dayNumberText}</span>
+                      </div>
+                      <div className="fc-daygrid-day-events">
+
+                        {displayAppointments.map((appointment, index) => {
+                          // Use the same styling logic as in other views
+                          const isPastEvent = appointment.isPast || false
+                          const isCancelledEvent = appointment.isCancelled || false
+                          const isBlockedEvent = appointment.isBlocked || appointment.type === "Blocked Time"
+
+                          let backgroundColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
+                          let borderColor = backgroundColor
+                          let textColor = "#FFFFFF"
+                          let opacity = 1
+
+                          if (isCancelledEvent) {
+                            // Cancelled appointments - diagonal stripes
+                            backgroundColor = "#4a4a4a"
+                            borderColor = "#777777"
+                            textColor = "#bbbbbb"
+                            opacity = 0.6
+                          } else if (isPastEvent) {
+                            // Past appointments - darker and more opaque
+                            backgroundColor = "#1a1a1a"
+                            borderColor = "#2a2a2a"
+                            textColor = "#555555"
+                            opacity = 0.4
+                          } else if (isBlockedEvent) {
+                            // Blocked appointments - red with pattern
+                            backgroundColor = "#dc2626" // red-600
+                            borderColor = "#dc2626"
+                            textColor = "#ffffff"
+                            opacity = 0.8
+                          }
+
+                          return (
+                            <div
+                              key={appointment.id}
+                              className={`fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-draggable fc-event-resizable fc-event-start fc-event-end cursor-pointer ${isCancelledEvent ? "cancelled-event" : ""
+                                } ${isPastEvent ? "past-event" : ""} ${isBlockedEvent ? "blocked-event" : ""}`}
+                              style={{
+                                backgroundColor: backgroundColor,
+                                borderColor: borderColor,
+                                color: textColor,
+                                marginBottom: "2px",
+                                padding: "2px 4px",
+                                borderRadius: "3px",
+                                fontSize: "11px",
+                                opacity: opacity,
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                e.preventDefault()
+                                handleMonthViewAppointmentClick(appointment, e)
+                              }}
+                              onMouseEnter={(e) => {
+                                e.stopPropagation()
+                                const rect = e.currentTarget.getBoundingClientRect()
+                                const scrollX = window.scrollX || document.documentElement.scrollLeft
+                                const scrollY = window.scrollY || document.documentElement.scrollTop
+
+                                const tooltipX = rect.left + scrollX + rect.width / 2
+                                const tooltipY = rect.top + scrollY - 10
+
+                                setTooltip({
+                                  show: true,
+                                  x: tooltipX,
+                                  y: tooltipY,
+                                  content: {
+                                    name: appointment.name,
+                                    date: formattedDate.split('-').join(' '),
+                                    time: `${appointment.startTime || "N/A"} - ${appointment.endTime || "N/A"}`,
+                                    type: appointment.type || "N/A",
+                                  },
+                                })
+                              }}
+                              onMouseLeave={(e) => {
+                                e.stopPropagation()
+                                hideTooltip()
+                              }}
+                            >
+                              <div className="fc-event-main">
+                                <div className="fc-event-title-container">
+                                  <div className="fc-event-title fc-sticky">
+                                    {appointment.name}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                        {!isExpanded && moreCount > 0 && (
+                          <div
+                            className="fc-daygrid-more-link"
+                            style={{
+                              fontSize: "11px",
+                              color: "#666",
+                              marginTop: "2px",
+                              cursor: "pointer",
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Stop event bubbling
+                              e.preventDefault(); // Prevent default
+                              handleToggleDayExpand(dateString, e);
+                            }}
+                          >
+                            +{moreCount} more
+                          </div>
+                        )}
+                        {isExpanded && moreCount > 0 && (
+                          <div
+                            className="fc-daygrid-more-link"
+                            style={{
+                              fontSize: "11px",
+                              color: "#666",
+                              marginTop: "2px",
+                              cursor: "pointer",
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Stop event bubbling
+                              e.preventDefault(); // Prevent default
+                              handleToggleDayExpand(dateString, e);
+                            }}
+                          >
+                            Show less
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
+                return null
+              }}
               // Responsive day header format
               dayHeaderContent={(args) => {
                 const date = new Date(args.date)
-                const isSmallScreen = window.innerWidth < 1024 // Changed to include tablets
+                const isSmallScreen = window.innerWidth < 1024
                 const weekday = date.toLocaleDateString("en-US", {
                   weekday: isSmallScreen ? "short" : "long",
                 })
                 const day = date.getDate()
 
-                // Remove comma and show date below day name
+                // Modified: Place day number next to weekday name on the same line
                 if (isSmallScreen) {
                   return (
-                    <div style={{ textAlign: "center", lineHeight: "1.2" }}>
-                      <div>{weekday.substr(0, 3)}</div>
-                      <div>{day}</div>
+                    <div style={{ textAlign: "center", lineHeight: "1.2", padding: "4px 0" }}>
+                      <div>{weekday.substr(0, 3)} {day}</div>
                     </div>
                   )
                 } else {
                   return (
-                    <div style={{ textAlign: "center", lineHeight: "1.2" }}>
-                      <div>{weekday}</div>
-                      <div>{day}</div>
+                    <div style={{ textAlign: "center", lineHeight: "1.2", padding: "6px 0" }}>
+                      <div>{weekday} {day}</div>
                     </div>
                   )
                 }
@@ -1353,40 +1528,34 @@ export default function Calendar({
               }}
               eventContent={(eventInfo) => (
                 <div
-                  className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${
-                    eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
-                  } ${
-                    eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""
-                  } ${
-                    eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
+                  className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
+                    } ${eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content cancelled-appointment-bg" : ""
+                    } ${eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked
                       ? "blocked-event-content blocked-appointment-bg"
                       : ""
-                  } ${
-                    eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                    } ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
                       ? "opacity-20"
                       : ""
-                  } ${
-                    eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
+                    } ${eventInfo.event.extendedProps.isFree && eventInfo.event.extendedProps.viewMode === "free"
                       ? " shadow-lg transform scale-105"
                       : ""
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${
-                      eventInfo.event.extendedProps.isPast
-                        ? "text-gray-500"
-                        : eventInfo.event.extendedProps.isCancelled
-                          ? "text-gray-300"
-                          : eventInfo.event.extendedProps.isBlocked ||
-                              eventInfo.event.extendedProps.appointment?.isBlocked
-                            ? "text-red-200" // Remove the emoji from here
-                            : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                              ? "text-gray-600"
-                              : eventInfo.event.extendedProps.isFree &&
-                                  eventInfo.event.extendedProps.viewMode === "free"
-                                ? "text-white font-bold"
-                                : ""
-                    }`}
+                    className={`font-semibold text-[10px] sm:text-xs md:text-sm truncate ${eventInfo.event.extendedProps.isPast
+                      ? "text-gray-500"
+                      : eventInfo.event.extendedProps.isCancelled
+                        ? "text-gray-300"
+                        : eventInfo.event.extendedProps.isBlocked ||
+                          eventInfo.event.extendedProps.appointment?.isBlocked
+                          ? "text-red-200" // Remove the emoji from here
+                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                            ? "text-gray-600"
+                            : eventInfo.event.extendedProps.isFree &&
+                              eventInfo.event.extendedProps.viewMode === "free"
+                              ? "text-white font-bold"
+                              : ""
+                      }`}
                   >
                     {eventInfo.event.extendedProps.isCancelled
                       ? `${eventInfo.event.title}`
@@ -1397,18 +1566,17 @@ export default function Calendar({
                           : eventInfo.event.title}
                   </div>
                   <div
-                    className={`text-[8px] sm:text-xs opacity-90 truncate ${
-                      eventInfo.event.extendedProps.isPast
-                        ? "text-gray-600"
-                        : eventInfo.event.extendedProps.isCancelled
-                          ? "text-gray-400"
-                          : eventInfo.event.extendedProps.isBlocked ||
-                              eventInfo.event.extendedProps.appointment?.isBlocked
-                            ? "text-red-300"
-                            : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
-                              ? "text-gray-600"
-                              : ""
-                    }`}
+                    className={`text-[8px] sm:text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast
+                      ? "text-gray-600"
+                      : eventInfo.event.extendedProps.isCancelled
+                        ? "text-gray-400"
+                        : eventInfo.event.extendedProps.isBlocked ||
+                          eventInfo.event.extendedProps.appointment?.isBlocked
+                          ? "text-red-300"
+                          : eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree
+                            ? "text-gray-600"
+                            : ""
+                      }`}
                   >
                     {eventInfo.event.extendedProps.type || "Available"}
                   </div>
@@ -1438,6 +1606,7 @@ export default function Calendar({
           )}
         </div>
       </div>
+
 
       <MemberOverviewModalMain
         isOpen={isMemberOverviewModalOpen}
@@ -1628,7 +1797,7 @@ export default function Calendar({
         />
       )}
 
-      
+
       <Toaster position="top-right" />
 
       <style jsx>{`
@@ -1667,7 +1836,7 @@ export default function Calendar({
   /* Dynamic column widths based on day name length */
   :global(.fc-col-header-cell) {
     font-size: 14px !important;
-    padding: 8px 2px !important;
+    padding: 4px 2px !important;
     text-align: center;
     border-right: 1px solid #e5e7eb;
     background: #f9fafb;
@@ -1805,7 +1974,7 @@ export default function Calendar({
   /* Wider columns for better text visibility on mobile */
   :global(.fc-col-header-cell) {
     font-size: 12px !important;
-    padding: 8px 4px !important;
+    padding: 4px 2px !important;
     text-align: center;
     border-right: 1px solid #e5e7eb;
     background: #f9fafb;
@@ -1918,7 +2087,7 @@ export default function Calendar({
   
   :global(.fc-col-header-cell) {
     font-size: 11px !important;
-    padding: 6px 3px !important;
+    padding: 4px 2px !important;
     white-space: nowrap !important;
     overflow: visible !important;
   }
@@ -2025,7 +2194,7 @@ export default function Calendar({
   
   :global(.fc-col-header-cell) {
     font-size: 10px !important;
-    padding: 5px 2px !important;
+    padding: 4px 2px !important;
     white-space: nowrap !important;
     overflow: visible !important;
   }

@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { ChevronLeft, ChevronRight, X, Download, Users, Calendar } from "lucide-react"
+import { ChevronLeft, ChevronRight, X, Download, Users, Calendar, Plus } from "lucide-react"
 import { useMemo, useState } from "react"
 import toast from "react-hot-toast"
 import VacationCalendarModal from "./vacation-calendar-modal"
@@ -18,13 +18,12 @@ function localDateStr(date) {
 
 function StaffPlanningModal({ staffMembers, onClose }) {
   // Core state
-  const [activeMenuItem, setActiveMenuItem] = useState("attendance") // 'attendance' | 'vacation' | 'shifts'
+  const [activeMenuItem, setActiveMenuItem] = useState("attendance") // Default to shifts
   const [showVacationCalendar, setShowVacationCalendar] = useState(false)
 
-  // Staff picking / views
-  const [showStaffPicker, setShowStaffPicker] = useState(false)
+  // Staff picking / views - REMOVED showStaffPicker state
   const [selectedStaff, setSelectedStaff] = useState(null)
-  const [viewAllShifts, setViewAllShifts] = useState(false)
+  const [viewAllShifts, setViewAllShifts] = useState(true) // Set to true by default
 
   // Calendar + shift form (per-staff)
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -36,6 +35,15 @@ function StaffPlanningModal({ staffMembers, onClose }) {
   const [isRangeBooking, setIsRangeBooking] = useState(false)
   const [rangeStartDate, setRangeStartDate] = useState(null)
   const [rangeEndDate, setRangeEndDate] = useState(null)
+
+  // Absence state
+  const [showAbsenceForm, setShowAbsenceForm] = useState(false)
+  const [absenceStartDate, setAbsenceStartDate] = useState("")
+  const [absenceEndDate, setAbsenceEndDate] = useState("")
+  const [absenceStartTime, setAbsenceStartTime] = useState("09:00")
+  const [absenceEndTime, setAbsenceEndTime] = useState("17:00")
+  const [absenceReason, setAbsenceReason] = useState("")
+  const [absences, setAbsences] = useState({})
 
   // Attendance Overview states
   const [statusFilter, setStatusFilter] = useState("all")
@@ -56,6 +64,26 @@ function StaffPlanningModal({ staffMembers, onClose }) {
       { date: "2024-01-18", startTime: "09:30", endTime: "17:30", hoursWorked: 8, status: "scheduled" },
     ],
   }))
+
+  // Initialize with some sample absences
+  useState(() => {
+    const sampleAbsences = {}
+    staffMembers.forEach((staff, index) => {
+      if (index < 2) { // Add absences for first 2 staff members
+        const absenceId = `absence-${staff.id}-1`
+        sampleAbsences[absenceId] = {
+          id: absenceId,
+          staffId: staff.id,
+          startDate: "2024-01-10",
+          endDate: "2024-01-12",
+          startTime: "09:00",
+          endTime: "17:00",
+          reason: index === 0 ? "Sick Leave" : "Vacation"
+        }
+      }
+    })
+    setAbsences(sampleAbsences)
+  })
 
   // ============ Navigation helpers ============
   const goToPreviousMonth = () => {
@@ -249,14 +277,12 @@ function StaffPlanningModal({ staffMembers, onClose }) {
     setViewAllShifts(false)
     initStaffShifts(staff)
     setShowShiftForm(false)
-    setShowStaffPicker(false)
   }
 
   const handlePickAll = () => {
     setSelectedStaff(null)
     setViewAllShifts(true)
     setShowShiftForm(false)
-    setShowStaffPicker(false)
   }
 
   const toggleRangeBooking = () => {
@@ -395,6 +421,60 @@ function StaffPlanningModal({ staffMembers, onClose }) {
     toast.success("Vacation request submitted for approval")
   }
 
+  // ============ Absence functionality ============
+  const handleAddAbsence = () => {
+    if (!selectedStaff) {
+      toast.error("Please select a staff member first")
+      return
+    }
+    setShowAbsenceForm(true)
+  }
+
+  const handleSaveAbsence = () => {
+    if (!absenceStartDate || !absenceEndDate || !absenceReason) {
+      toast.error("Please fill all required fields")
+      return
+    }
+
+    const absenceId = `absence-${selectedStaff.id}-${Date.now()}`
+    const newAbsence = {
+      id: absenceId,
+      staffId: selectedStaff.id,
+      startDate: absenceStartDate,
+      endDate: absenceEndDate,
+      startTime: absenceStartTime,
+      endTime: absenceEndTime,
+      reason: absenceReason
+    }
+
+    setAbsences(prev => ({ ...prev, [absenceId]: newAbsence }))
+    setShowAbsenceForm(false)
+    setAbsenceStartDate("")
+    setAbsenceEndDate("")
+    setAbsenceStartTime("09:00")
+    setAbsenceEndTime("17:00")
+    setAbsenceReason("")
+    toast.success("Absence added successfully")
+  }
+
+  const isDateInAbsence = (date, staffId) => {
+    const dateStr = localDateStr(date)
+    return Object.values(absences).some(absence => 
+      absence.staffId === staffId && 
+      dateStr >= absence.startDate && 
+      dateStr <= absence.endDate
+    )
+  }
+
+  const getAbsenceForDate = (date, staffId) => {
+    const dateStr = localDateStr(date)
+    return Object.values(absences).find(absence => 
+      absence.staffId === staffId && 
+      dateStr >= absence.startDate && 
+      dateStr <= absence.endDate
+    )
+  }
+
   // ============ Aggregated "All" shifts (calendar) ============
   const allShiftsMap = useMemo(() => {
     const map = {}
@@ -407,6 +487,7 @@ function StaffPlanningModal({ staffMembers, onClose }) {
           startTime: shift.startTime,
           endTime: shift.endTime,
           status: shift.status,
+          color: s.color || "#3b82f6" // Use indicator color
         })
       })
     })
@@ -422,7 +503,7 @@ function StaffPlanningModal({ staffMembers, onClose }) {
           onClick={() => {
             setActiveMenuItem("attendance")
             setSelectedStaff(null)
-            setViewAllShifts(false)
+            setViewAllShifts(true)
             setShowVacationCalendar(false)
             setShowShiftForm(false)
           }}
@@ -438,7 +519,7 @@ function StaffPlanningModal({ staffMembers, onClose }) {
           onClick={() => {
             setActiveMenuItem("shifts")
             setShowVacationCalendar(false)
-            setShowStaffPicker(true)
+            setViewAllShifts(true) // Always show all staff schedule when clicking Shift Schedule
           }}
           className={`w-full text-left p-3 rounded-lg text-sm flex items-center gap-2 transition-colors ${
             activeMenuItem === "shifts" ? "bg-blue-600 text-white" : "hover:bg-gray-700 text-gray-300"
@@ -452,7 +533,7 @@ function StaffPlanningModal({ staffMembers, onClose }) {
           onClick={() => {
             setActiveMenuItem("vacation")
             setSelectedStaff(null)
-            setViewAllShifts(false)
+            setViewAllShifts(true)
             setShowVacationCalendar(true)
             setShowShiftForm(false)
           }}
@@ -644,7 +725,7 @@ function StaffPlanningModal({ staffMembers, onClose }) {
                   className={`
                     relative text-center p-1 sm:p-2 rounded-md text-xs sm:text-sm cursor-pointer h-10 sm:h-12 flex flex-col items-center justify-center
                     ${hasAny ? "bg-blue-600/40" : ""}
-                    ${isSelected ? "outline outline-1 outline-green-500" : ""}
+                    ${isSelected ? "outline outline-1 outline-blue-500" : ""}
                     ${isWeekend ? "text-gray-500" : ""}
                     ${!hasAny ? "hover:bg-gray-700" : "hover:bg-blue-600/60"}
                   `}
@@ -811,29 +892,37 @@ function StaffPlanningModal({ staffMembers, onClose }) {
                 const hasShiftBooked = shifts[dateStr] !== undefined
                 const isWeekend = day.getDay() === 0 || day.getDay() === 6
                 const isSelected = isInSelectedRange(day)
+                const isAbsent = isDateInAbsence(day, selectedStaff.id)
+                const absence = getAbsenceForDate(day, selectedStaff.id)
 
                 return (
                   <div
                     key={dateStr}
                     className={`
                       relative text-center p-1 sm:p-2 rounded-md text-xs sm:text-sm cursor-pointer h-10 sm:h-12 flex flex-col items-center justify-center
-                      ${hasShiftBooked ? "bg-blue-600/40" : ""}
-                      ${isSelected ? "bg-green-600/40 border border-green-500" : ""}
+                      ${isAbsent ? "bg-red-600/40 border border-red-500" : hasShiftBooked ? `bg-[${selectedStaff.color || '#3b82f6'}]/40` : ""}
+                      ${isSelected ? "bg-blue-600/40 border border-blue-500" : ""}
                       ${isWeekend ? "text-gray-500" : ""}
                       ${
-                        !hasShiftBooked && !isSelected
+                        !hasShiftBooked && !isSelected && !isAbsent
                           ? "hover:bg-gray-700"
                           : hasShiftBooked
-                            ? "hover:bg-blue-600/60"
+                            ? `hover:bg-[${selectedStaff.color || '#3b82f6'}]/60`
                             : ""
                       }
                     `}
                     onClick={() => handleDateClick(day)}
+                    title={isAbsent ? `Absent: ${absence?.reason}` : hasShiftBooked ? `${selectedStaff.firstName} ${selectedStaff.lastName}: ${shifts[dateStr]}` : ""}
                   >
                     <span>{day.getDate()}</span>
-                    {hasShiftBooked && (
+                    {hasShiftBooked && !isAbsent && (
                       <div className="absolute bottom-0 left-0 right-0 text-[8px] sm:text-[10px] text-center pb-0.5 px-0.5 truncate">
                         {shifts[dateStr]}
+                      </div>
+                    )}
+                    {isAbsent && (
+                      <div className="absolute bottom-0 left-0 right-0 text-[8px] sm:text-[10px] text-center pb-0.5 px-0.5 truncate text-red-300">
+                        Absent
                       </div>
                     )}
                   </div>
@@ -843,15 +932,27 @@ function StaffPlanningModal({ staffMembers, onClose }) {
           </div>
 
           <div className="mt-4 bg-[#141414] rounded-xl p-4">
-            <h3 className="text-lg font-semibold mb-2">Scheduled Shifts</h3>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold">Scheduled Shifts</h3>
+              <button
+                onClick={handleAddAbsence}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-1"
+              >
+                <Plus size={14} />
+                Add Absence
+              </button>
+            </div>
             {Object.keys(shifts).length > 0 ? (
               <div className="space-y-2 max-h-[200px] custom-scrollbar overflow-y-auto">
                 {Object.entries(shifts).map(([dateStr, period]) => {
                   const date = new Date(dateStr)
+                  const isAbsent = isDateInAbsence(date, selectedStaff.id)
                   return (
                     <div
                       key={dateStr}
-                      className="flex justify-between text-sm items-center p-2 bg-[#1C1C1C] rounded-lg hover:bg-[#242424] cursor-pointer"
+                      className={`flex justify-between text-sm items-center p-2 rounded-lg hover:bg-[#242424] cursor-pointer ${
+                        isAbsent ? "bg-red-600/20 border border-red-500" : "bg-[#1C1C1C]"
+                      }`}
                       onClick={() => {
                         setSelectedDate(date)
                         const [start, end] = period.split("-")
@@ -860,11 +961,14 @@ function StaffPlanningModal({ staffMembers, onClose }) {
                         setIsRangeBooking(false)
                         setShowShiftForm(true)
                       }}
+                      title={isAbsent ? `Absent: ${getAbsenceForDate(date, selectedStaff.id)?.reason}` : ""}
                     >
                       <span>
                         {date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                       </span>
-                      <span className="font-medium">{period}</span>
+                      <span className={`font-medium ${isAbsent ? "text-red-300" : ""}`}>
+                        {period} {isAbsent && "(Absent)"}
+                      </span>
                     </div>
                   )
                 })}
@@ -889,66 +993,146 @@ function StaffPlanningModal({ staffMembers, onClose }) {
       >
         All
       </button>
-      {selectedStaff && (
+      {staffMembers.map((staff) => (
         <button
-          className={`px-3 py-1.5 rounded-lg text-sm ${
-            !viewAllShifts ? "bg-blue-600 text-white" : "bg-[#1C1C1C] text-gray-300 hover:bg-gray-700"
+          key={staff.id}
+          className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 ${
+            selectedStaff?.id === staff.id && !viewAllShifts 
+              ? "bg-blue-600 text-white" 
+              : "bg-[#1C1C1C] text-gray-300 hover:bg-gray-700"
           }`}
-          onClick={() => {
-            if (!selectedStaff) setShowStaffPicker(true)
-            setViewAllShifts(false)
-          }}
+          onClick={() => handleStaffSelect(staff)}
         >
-          {selectedStaff.firstName} {selectedStaff.lastName}
+          <div 
+            className="w-3 h-3 rounded-full" 
+            style={{ backgroundColor: staff.color || '#3b82f6' }}
+          ></div>
+          {staff.firstName} {staff.lastName}
         </button>
-      )}
-      <div className="flex-1" />
-      <button
-        className="px-3 py-1.5 rounded-lg text-sm bg-[#1C1C1C] text-gray-300 hover:bg-gray-700"
-        onClick={() => setShowStaffPicker(true)}
-      >
-        Choose Staff
-      </button>
+      ))}
     </div>
   )
 
-  // ============ Staff Picker ============
-  const StaffPickerModal = () => {
-    if (!showStaffPicker) return null
+  // ============ Absence Form ============
+  const AbsenceForm = () => {
+    if (!showAbsenceForm) return null
     return (
       <div
         className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
-        onClick={() => setShowStaffPicker(false)}
+        onClick={() => setShowAbsenceForm(false)}
       >
         <div className="bg-[#181818] text-white rounded-xl w-full max-w-md p-4" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-lg font-semibold">Select Staff</h4>
-            <button className="text-gray-400 hover:text-white" onClick={() => setShowStaffPicker(false)}>
+            <h4 className="text-lg font-semibold">Add Absence</h4>
+            <button className="text-gray-400 hover:text-white" onClick={() => setShowAbsenceForm(false)}>
               <X size={18} />
             </button>
           </div>
 
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-gray-300 block mb-2">Staff Member</label>
+              <div className="bg-[#1C1C1C] px-4 py-2 rounded-lg">
+                {selectedStaff.firstName} {selectedStaff.lastName}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-300 block mb-2">Start Date *</label>
+                <input
+                  type="date"
+                  value={absenceStartDate}
+                  onChange={(e) => setAbsenceStartDate(e.target.value)}
+                  className="w-full bg-[#1C1C1C] rounded-lg px-4 py-2 text-white"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-300 block mb-2">End Date *</label>
+                <input
+                  type="date"
+                  value={absenceEndDate}
+                  onChange={(e) => setAbsenceEndDate(e.target.value)}
+                  className="w-full bg-[#1C1C1C] rounded-lg px-4 py-2 text-white"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-300 block mb-2">Start Time</label>
+                <input
+                  type="time"
+                  value={absenceStartTime}
+                  onChange={(e) => setAbsenceStartTime(e.target.value)}
+                  className="w-full bg-[#1C1C1C] rounded-lg px-4 py-2 text-white"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-300 block mb-2">End Time</label>
+                <input
+                  type="time"
+                  value={absenceEndTime}
+                  onChange={(e) => setAbsenceEndTime(e.target.value)}
+                  className="w-full bg-[#1C1C1C] rounded-lg px-4 py-2 text-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-300 block mb-2">Reason *</label>
+              <input
+                type="text"
+                value={absenceReason}
+                onChange={(e) => setAbsenceReason(e.target.value)}
+                placeholder="Enter reason for absence"
+                className="w-full bg-[#1C1C1C] rounded-lg px-4 py-2 text-white"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-6">
             <button
-              className="w-full text-left p-3 rounded-lg bg-[#1C1C1C] hover:bg-gray-700 text-sm"
-              onClick={handlePickAll}
+              onClick={() => setShowAbsenceForm(false)}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm flex-1"
             >
-              All Staff
+              Cancel
             </button>
-            {staffMembers.map((s) => (
-              <button
-                key={s.id}
-                className="w-full text-left p-3 rounded-lg bg-[#1C1C1C] hover:bg-gray-700 text-sm"
-                onClick={() => handleStaffSelect(s)}
-              >
-                {s.firstName} {s.lastName}
-              </button>
-            ))}
+            <button
+              onClick={handleSaveAbsence}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm flex-1"
+            >
+              Save Absence
+            </button>
           </div>
         </div>
       </div>
     )
   }
+
+  // ============ Legend Component ============
+  const Legend = () => (
+    <div className="mt-4 bg-[#141414] rounded-xl p-4">
+      <h3 className="text-lg font-semibold mb-2">Staff Legend</h3>
+      <div className="flex flex-wrap gap-3">
+        {staffMembers.map((staff) => (
+          <div key={staff.id} className="flex items-center gap-2">
+            <div 
+              className="w-4 h-4 rounded-full" 
+              style={{ backgroundColor: staff.color || '#3b82f6' }}
+            ></div>
+            <span className="text-sm text-gray-300">
+              {staff.firstName} {staff.lastName}
+            </span>
+          </div>
+        ))}
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full bg-red-600/40 border border-red-500"></div>
+          <span className="text-sm text-gray-300">Absent</span>
+        </div>
+      </div>
+    </div>
+  )
 
   // ============ Main Modal ============
   return (
@@ -972,6 +1156,8 @@ function StaffPlanningModal({ staffMembers, onClose }) {
                   onClose={() => {}}
                   onSubmit={handleVacationRequest}
                   isEmbedded={true}
+                  staffMembers={staffMembers}
+                  isStaffPlanning={true}
                 />
               </div>
             ) : activeMenuItem === "attendance" ? (
@@ -981,18 +1167,16 @@ function StaffPlanningModal({ staffMembers, onClose }) {
                 <ShiftTabs />
                 <div className="bg-transparent">
                   {viewAllShifts ? (
-                    renderAllShiftsCalendar()
+                    <>
+                      {renderAllShiftsCalendar()}
+                      <Legend />
+                    </>
                   ) : selectedStaff ? (
                     renderIndividualSchedule()
                   ) : (
                     <div className="bg-[#141414] rounded-xl p-6 text-center">
                       <p className="text-gray-300 mb-3">Choose a staff to manage their schedule</p>
-                      <button
-                        className="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700"
-                        onClick={() => setShowStaffPicker(true)}
-                      >
-                        Open Staff Picker
-                      </button>
+                      <p className="text-gray-400 text-sm">Select a staff member from the tabs above</p>
                     </div>
                   )}
                 </div>
@@ -1003,7 +1187,7 @@ function StaffPlanningModal({ staffMembers, onClose }) {
       </div>
 
       {/* Popups */}
-      <StaffPickerModal />
+      <AbsenceForm />
     </div>
   )
 }

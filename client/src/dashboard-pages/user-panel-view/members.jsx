@@ -20,6 +20,8 @@ import {
   File,
   Dumbbell,
   FileText,
+  Plus,
+  ChevronUp,
 } from "lucide-react"
 import DefaultAvatar1 from "../../../public/gray-avatar-fotor-20250912192528.png"
 import toast, { Toaster } from "react-hot-toast"
@@ -77,6 +79,9 @@ export default function Members() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
   // 
+  const [isCompactView, setIsCompactView] = useState(false);
+  const [expandedMemberId, setExpandedMemberId] = useState(null);
+
   const [activeNoteIdMain, setActiveNoteIdMain] = useState(null)
   const [activeTab, setActiveTab] = useState("details")
   const [tempMemberModalTab, setTempMemberModalTab] = useState("details")
@@ -91,14 +96,14 @@ export default function Members() {
   });
 
 
-  const [sortBy, setSortBy] = useState("alphabetical")
+  const [sortBy, setSortBy] = useState("alphabetical-asc");
   const [sortDirection, setSortDirection] = useState("asc")
 
   const sortOptions = [
     { id: "alphabetical", label: "Alphabetical" },
     { id: "status", label: "Status" },
     { id: "relations", label: "Relations Count" },
-    { id: "age", label: "Age" },
+    // { id: "age", label: "Age" },
     { id: "expiring", label: "Contracts Expiring Soon" },
   ]
 
@@ -146,6 +151,13 @@ export default function Members() {
   const [selectedBillingPeriodMain, setSelectedBillingPeriodMain] = useState("current")
   const [showAddBillingPeriodModalMain, setShowAddBillingPeriodModalMain] = useState(false)
   const [newBillingPeriodMain, setNewBillingPeriodMain] = useState("")
+
+  const [availableBillingPeriods, setAvailableBillingPeriods] = useState([
+    "07.14.25 - 07.18.2025",
+    "08.14.25 - 08.18.2025",
+    "09.14.25 - 09.18.2025",
+    "10.14.25 - 10.18.2025"
+  ]);
 
   // 
   const getBillingPeriodsMain = (memberId) => {
@@ -376,6 +388,14 @@ export default function Members() {
     }
   }
 
+  const getFirstAndLastName = (fullName) => {
+    const names = fullName.split(' ');
+    return {
+      firstName: names[0] || '',
+      lastName: names.slice(1).join(' ') || ''
+    };
+  };
+
   // 
   const handleUnarchiveMemberMain = (memberId) => {
     const member = members.find((m) => m.id === memberId)
@@ -449,13 +469,16 @@ export default function Members() {
       filtered = filtered.filter((member) => member.memberType === "temporary")
     }
 
+    // Extract field and direction from sortBy
+    const [field, direction] = sortBy.split("-");
+
     // Apply sorting
-    if (sortBy === "alphabetical") {
+    if (field === "alphabetical") {
       filtered.sort((a, b) => {
         const comparison = a.title.localeCompare(b.title)
-        return sortDirection === "asc" ? comparison : -comparison
+        return direction === "asc" ? comparison : -comparison
       })
-    } else if (sortBy === "status") {
+    } else if (field === "status") {
       filtered.sort((a, b) => {
         const getStatusPriority = (member) => {
           if (member.isArchived) return 3
@@ -463,14 +486,14 @@ export default function Members() {
           return 1
         }
         const comparison = getStatusPriority(a) - getStatusPriority(b)
-        return sortDirection === "asc" ? comparison : -comparison
+        return direction === "asc" ? comparison : -comparison
       })
-    } else if (sortBy === "relations") {
+    } else if (field === "relations") {
       filtered.sort((a, b) => {
         const comparison = getRelationsCount(a.id) - getRelationsCount(b.id)
-        return sortDirection === "asc" ? comparison : -comparison
+        return direction === "asc" ? comparison : -comparison
       })
-    } else if (sortBy === "age") {
+    } else if (field === "age") {
       filtered.sort((a, b) => {
         const getAge = (dateOfBirth) => {
           if (!dateOfBirth) return 0
@@ -484,9 +507,9 @@ export default function Members() {
           return age
         }
         const comparison = getAge(a.dateOfBirth) - getAge(b.dateOfBirth)
-        return sortDirection === "asc" ? comparison : -comparison
+        return direction === "asc" ? comparison : -comparison
       })
-    } else if (sortBy === "expiring") {
+    } else if (field === "expiring") {
       // Sort members with contracts expiring first, then by expiration date
       filtered.sort((a, b) => {
         const aExpiring = isContractExpiringSoonMain(a.contractEnd)
@@ -495,15 +518,15 @@ export default function Members() {
         // If both are expiring or both are not expiring, sort by contract end date
         if (aExpiring === bExpiring) {
           if (!a.contractEnd && !b.contractEnd) return 0
-          if (!a.contractEnd) return sortDirection === "asc" ? 1 : -1
-          if (!b.contractEnd) return sortDirection === "asc" ? -1 : 1
+          if (!a.contractEnd) return direction === "asc" ? 1 : -1
+          if (!b.contractEnd) return direction === "asc" ? -1 : 1
 
           const comparison = new Date(a.contractEnd) - new Date(b.contractEnd)
-          return sortDirection === "asc" ? comparison : -comparison
+          return direction === "asc" ? comparison : -comparison
         }
 
         // Prioritize expiring contracts
-        if (sortDirection === "asc") {
+        if (direction === "asc") {
           return bExpiring ? 1 : -1
         } else {
           return aExpiring ? 1 : -1
@@ -671,17 +694,23 @@ export default function Members() {
   // 
   const handleAddBillingPeriodMain = () => {
     if (newBillingPeriodMain.trim() && selectedMemberForAppointmentsMain) {
-      const updatedContingent = { ...memberContingent }
+      const updatedContingent = { ...memberContingent };
       if (!updatedContingent[selectedMemberForAppointmentsMain.id].future) {
-        updatedContingent[selectedMemberForAppointmentsMain.id].future = {}
+        updatedContingent[selectedMemberForAppointmentsMain.id].future = {};
       }
-      updatedContingent[selectedMemberForAppointmentsMain.id].future[newBillingPeriodMain] = { used: 0, total: 0 }
-      setMemberContingent(updatedContingent)
-      setNewBillingPeriodMain("")
-      setShowAddBillingPeriodModalMain(false)
-      toast.success("New billing period added successfully")
+      updatedContingent[selectedMemberForAppointmentsMain.id].future[newBillingPeriodMain] = { used: 0, total: 0 };
+      setMemberContingent(updatedContingent);
+
+      // Remove the used period from available periods
+      setAvailableBillingPeriods(prev =>
+        prev.filter(period => period !== newBillingPeriodMain)
+      );
+
+      setNewBillingPeriodMain("");
+      setShowAddBillingPeriodModalMain(false);
+      toast.success("New billing period added successfully");
     }
-  }
+  };
 
   // 
   const handleEditAppointmentMain = (appointment) => {
@@ -1141,23 +1170,6 @@ export default function Members() {
     return getBillingPeriods(memberId, memberContingentData);
   };
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-600"
-      case "Intermediate":
-        return "bg-yellow-600"
-      case "Advanced":
-        return "bg-red-600"
-      default:
-        return "bg-gray-600"
-    }
-  }
-
-  const getVideoById = (id) => {
-    return trainingVideos.find((video) => video.id === id)
-  }
-
 
 
 
@@ -1197,7 +1209,7 @@ export default function Members() {
         }}
       />
       <div
-        className={`flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative  ${isRightSidebarOpen ? "lg:mr-96 mr-0" : "mr-0"
+        className={`flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative ${isRightSidebarOpen ? "lg:mr-96 mr-0" : "mr-0"
           }`}
       >
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
@@ -1206,6 +1218,23 @@ export default function Members() {
             <div className="flex w-full lg:w-auto justify-between items-center gap-3">
               <div className="flex items-center gap-3">
                 <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
+
+
+              </div>
+
+
+              {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:hidden block ">
+                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+              ) : (<div onClick={toggleRightSidebar} className="md:hidden block ">
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+              <div className="flex gap-2">
+
 
                 {/* View Mode Switch (only visible on small + tablet, left beside heading) */}
                 <div className="flex items-center gap-1 bg-black rounded-xl p-1 lg:hidden">
@@ -1227,33 +1256,57 @@ export default function Members() {
                     <List size={16} />
                   </button>
                 </div>
-              </div>
 
-              {/* IoIosMenu (right side on small/tablet, hidden on lg+) */}
-              {/* <div className="block lg:hidden">
-                <IoIosMenu
-                  onClick={toggleRightSidebar}
-                  size={25}
-                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                />
-              </div> */}
-              <div onClick={toggleRightSidebar} className="cursor-pointer block lg:hidden">
-                <img src="/icon.svg" className="h-5 w-5" alt="menu" />
-              </div>
-            </div>
+                {/* Desktop View Mode (only visible on lg+) */}
+                <div className="hidden lg:flex items-center gap-1 bg-black rounded-xl p-1">
+                  <span className="text-xs text-gray-400 px-2">View</span>
+                  <button
+                    onClick={toggleViewMode}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
+                      }`}
+                    title="Grid View"
+                  >
+                    <Grid3X3 size={16} />
+                  </button>
+                  <button
+                    onClick={toggleViewMode}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
+                      }`}
+                    title="List View"
+                  >
+                    <List size={16} />
+                  </button>
+                </div>
 
-            {/* Right Section (buttons + sort + desktop view mode + desktop menu) */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-              {/* Create Member */}
+                {/* Display Mode Switch */}
+                <div className="flex bg-black items-center rounded-xl border border-gray-800 p-1 w-fit">
+                  <span className="text-xs text-gray-400 px-2">Display</span>
+                  <button
+                    onClick={() => setIsCompactView(false)}
+                    className={`p-2 rounded-lg transition-colors ${!isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                      }`}
+                    title="Detailed View"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsCompactView(true)}
+                    className={`p-2 rounded-lg transition-colors ${isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                      }`}
+                    title="Compact View"
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
               <button
                 onClick={() => setShowCreateTempMemberModal(true)}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
               >
-                <UserPlus size={16} />
+                <Plus size={16} />
                 Create Temp Member
               </button>
 
-              {/* Filter */}
               <button
                 onClick={() => setShowFilterModal(true)}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
@@ -1268,122 +1321,35 @@ export default function Members() {
 
 
 
-              {/* Desktop View Mode (only visible on lg+) */}
-              <div className="hidden lg:flex items-center gap-1 bg-black rounded-xl p-1">
-                <span className="text-xs text-gray-400 px-2">View</span>
-                <button
-                  onClick={toggleViewMode}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
-                    }`}
-                  title="Grid View"
-                >
-                  <Grid3X3 size={16} />
-                </button>
-                <button
-                  onClick={toggleViewMode}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
-                    }`}
-                  title="List View"
-                >
-                  <List size={16} />
-                </button>
+              {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:block hidden ">
+                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
               </div>
-
-              {/* Desktop Menu (only visible on lg+) */}
-              {/* <div className="hidden lg:block">
-                <IoIosMenu
-                  onClick={toggleRightSidebar}
-                  size={25}
-                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                />
-              </div> */
-              }
-              <div onClick={toggleRightSidebar} className="cursor-pointer hidden lg:block">
-                <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+              ) : (<div onClick={toggleRightSidebar} className="md:block hidden ">
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
               </div>
+              )}
             </div>
           </div>
+
           <div className="flex justify-end items-center mb-4">
-
-
-
-            <div className="flex items-center justify-end gap-2  w-full ">
+            <div className="flex items-center justify-end gap-2 w-full">
               <div className="flex items-center gap-2">
-                <label htmlFor="sort" className="text-sm">Sort:</label>
-                <div className="relative sort-dropdown flex-1">
-                  <button
-                    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                    className="w-full flex cursor-pointer items-center justify-between gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
-                  >
-                    <span className="truncate">
-                      {sortOptions.find((opt) => opt.id === sortBy)?.label}
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={`transform transition-transform flex-shrink-0 ${isSortDropdownOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {isSortDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-full rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
-                      {sortOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          onClick={() => {
-                            setSortBy(option.id)
-                            setIsSortDropdownOpen(false)
-                          }}
-                          className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] ${option.id === sortBy ? "bg-black" : ""
-                            }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="relative direction-dropdown md:w-[140px] w-full">
-                  <button
-                    onClick={() => setIsDirectionDropdownOpen(!isDirectionDropdownOpen)}
-                    className="w-full flex cursor-pointer items-center justify-between gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black"
-                  >
-                    <span className="truncate">
-                      {sortDirection === "asc" ? "Ascending" : "Descending"}
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={`transform transition-transform flex-shrink-0 ${isDirectionDropdownOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {isDirectionDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-full rounded-lg bg-[#2F2F2F] shadow-lg z-50 border border-slate-300/30">
-                      <button
-                        onClick={() => {
-                          setSortDirection("asc")
-                          setIsDirectionDropdownOpen(false)
-                        }}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${sortDirection === "asc" ? "bg-black" : ""}`}
-                      >
-                        <span>Ascending</span>
-                        <span className="text-gray-400"></span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSortDirection("desc")
-                          setIsDirectionDropdownOpen(false)
-                        }}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-[#3F3F3F] flex items-center justify-between ${sortDirection === "desc" ? "bg-black" : ""}`}
-                      >
-                        <span>Descending</span>
-                        <span className="text-gray-400"></span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <label htmlFor="sort" className="text-sm whitespace-nowrap">Sort by:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[200px]"
+                >
+                  <option value="alphabetical-asc">Alphabetical (A-Z)</option>
+                  <option value="alphabetical-desc">Alphabetical (Z-A)</option>
+                  <option value="status-asc">Status (Active First)</option>
+                  <option value="status-desc">Status (Archived First)</option>
+                  <option value="relations-asc">Relations Count (Low to High)</option>
+                  <option value="relations-desc">Relations Count (High to Low)</option>
+                  <option value="expiring-asc">Contracts Expiring Soon</option>
+                  <option value="expiring-desc">Contracts Expiring Last</option>
+                </select>
               </div>
-
             </div>
           </div>
 
@@ -1402,356 +1368,977 @@ export default function Members() {
             </div>
           </div>
 
-          <div
-            className={`open_sans_font ${viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-3"
-              }`}
-          >
-            {filteredAndSortedMembers().length > 0 ? (
-              filteredAndSortedMembers().map((member) => (
-                <div
-                  key={member.id}
-                  className={`bg-[#161616] rounded-xl relative ${viewMode === "grid" ? "p-4" : "p-4 sm:p-6"}`}
-                >
-                  {/* Note indicator - positioned absolutely in top-left */}
-                  {member.note && (
-                    <div className="absolute top-3 left-3 z-10">
-                      <div className="relative">
-                        <div
-                          className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
-                          }}
-                        >
-                          {member.noteImportance === "important" ? (
-                            <AlertTriangle size={18} className="text-white" />
-                          ) : (
-                            <Info size={18} className="text-white" />
-                          )}
-                        </div>
-                        {activeNoteIdMain === member.id && (
-                          <div
-                            ref={notePopoverRefMain}
-                            className="absolute left-6 top-4 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
-                          >
-                            <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                              {member.noteImportance === "important" ? (
-                                <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                              ) : (
-                                <Info className="text-blue-500 shrink-0" size={18} />
-                              )}
-                              <h4 className="text-white flex gap-1 items-center font-medium">
-                                <div>Special Note</div>
-                                <div className="text-sm text-gray-400">
-                                  {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+          <div className="open_sans_font">
+            {viewMode === "list" ? (
+              // LIST VIEW
+              isCompactView ? (
+                // COMPACT LIST VIEW
+                <div className="space-y-2">
+                  {filteredAndSortedMembers().length > 0 ? (
+                    filteredAndSortedMembers().map((member) => (
+                      <div key={member.id}>
+                        {expandedMemberId === member.id ? (
+                          // Expanded compact view - shows full details
+                          <div className="flex flex-col lg:flex-row lg:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4 relative">
+                            {/* Note indicator */}
+                            {member.note && (
+                              <div className="absolute top-3 left-3 z-10">
+                                <div className="relative">
+                                  <div
+                                    className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                                      } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
+                                    }}
+                                  >
+                                    {member.noteImportance === "important" ? (
+                                      <AlertTriangle size={18} className="text-white" />
+                                    ) : (
+                                      <Info size={18} className="text-white" />
+                                    )}
+                                  </div>
+                                  {activeNoteIdMain === member.id && (
+                                    <div
+                                      ref={notePopoverRefMain}
+                                      className="absolute left-6 top-4 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
+                                    >
+                                      <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                                        {member.noteImportance === "important" ? (
+                                          <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                                        ) : (
+                                          <Info className="text-blue-500 shrink-0" size={18} />
+                                        )}
+                                        <h4 className="text-white flex gap-1 items-center font-medium">
+                                          <div>Special Note</div>
+                                          <div className="text-sm text-gray-400">
+                                            {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+                                          </div>
+                                        </h4>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setActiveNoteIdMain(null)
+                                          }}
+                                          className="ml-auto text-gray-400 hover:text-white"
+                                        >
+                                          <X size={16} />
+                                        </button>
+                                      </div>
+                                      <div className="p-3">
+                                        <p className="text-white text-sm leading-relaxed">{member.note}</p>
+                                        {member.noteStartDate && member.noteEndDate && (
+                                          <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                                            <p className="text-xs text-gray-300">
+                                              Valid from {member.noteStartDate} to {member.noteEndDate}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
-                              </h4>
-                              <button
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-4 flex-1 min-w-0 pl-4">
+                              <img
+                                src={member.image || DefaultAvatar1}
+                                className="h-12 w-12 rounded-2xl flex-shrink-0 object-cover"
+                                alt=""
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                                  <h3 className="text-white font-medium text-base sm:text-lg truncate">
+                                    {member.title}
+                                  </h3>
+
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    {member.isArchived ? (
+                                      <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
+                                    ) : (
+                                      <span
+                                        className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
+                                          }`}
+                                      >
+                                        {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
+                                      </span>
+                                    )}
+
+                                    {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
+                                  </div>
+                                </div>
+
+                                <div className="text-sm mt-1 flex flex-col sm:items-start gap-1">
+                                  <div className="flex items-center gap-1">
+                                    <p className="text-gray-400">Member Type:</p>
+                                    <span className="text-gray-400">
+                                      {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                                    </span>
+                                  </div>
+
+                                  <p className="text-gray-400 text-sm flex items-center gap-1">
+                                    {member.memberType === "full" ? (
+                                      <>
+                                        Contract: {member.contractStart} -{" "}
+                                        <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
+                                          {member.contractEnd}
+                                        </span>
+                                        {isContractExpiringSoonMain(member.contractEnd) && (
+                                          <Info size={14} className="text-red-500" />
+                                        )}
+                                      </>
+                                    ) : (
+                                      <>
+                                        No Contract - Auto-archive: {member.autoArchiveDate}
+                                        {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
+                                          <Clock size={14} className="text-orange-500" />
+                                        )}
+                                      </>
+                                    )}
+                                  </p>
+                                </div>
+
+                                <div className="mt-1">
+                                  <button
+                                    onClick={() => handleRelationClick(member)}
+                                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                  >
+                                    <Users size={12} />
+                                    Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
+                              <div className="grid grid-cols-5 gap-2">
+                                <button
+                                  onClick={() => handleCalendarClick(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="View Appointments"
+                                >
+                                  <Calendar size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleTrainingPlansClickMain(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="Training Plans"
+                                >
+                                  <Dumbbell size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleHistoryClick(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="View History"
+                                >
+                                  <History size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDocumentClick(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="Document Management"
+                                >
+                                  <FileText size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleChatClick(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="Start Chat"
+                                >
+                                  <MessageCircle size={16} />
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  onClick={() => handleViewDetails(member)}
+                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                                >
+                                  <Eye size={16} />
+                                  <span className="text-sm">View Details</span>
+                                </button>
+                                <button
+                                  onClick={() => handleEditMember(member)}
+                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <span className="text-sm">Edit</span>
+                                </button>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => setExpandedMemberId(null)}
+                              className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
+                              title="Collapse"
+                            >
+                              <ChevronUp className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </div>
+                        ) : (
+                          // Collapsed compact view - minimal info
+                          <div className="flex items-center justify-between bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-3">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <img
+                                src={member.image || DefaultAvatar1}
+                                alt={member.title}
+                                className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-white font-medium text-sm truncate">
+                                    {getFirstAndLastName(member.title).firstName}
+                                  </span>
+                                  <span className="text-white font-medium text-sm truncate">
+                                    {getFirstAndLastName(member.title).lastName}
+                                  </span>
+                                  <span
+                                    className={`px-1.5 py-0.5 text-xs font-medium rounded flex-shrink-0 ${member.isArchived
+                                      ? "bg-red-600 text-white"
+                                      : member.isActive
+                                        ? "bg-green-600 text-white"
+                                        : "bg-yellow-600 text-white"
+                                      }`}
+                                  >
+                                    {member.isArchived ? "A" : member.isActive ? "A" : "P"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setExpandedMemberId(member.id)}
+                              className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors flex-shrink-0"
+                              title="Expand"
+                            >
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-red-600 text-center text-sm cursor-pointer">
+                      <p className="text-gray-400">
+                        {filterStatus === "active"
+                          ? "No active members found."
+                          : filterStatus === "paused"
+                            ? "No paused members found."
+                            : filterStatus === "archived"
+                              ? "No archived members found."
+                              : "No members found."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // DETAILED LIST VIEW
+                <div className="flex flex-col gap-3">
+                  {filteredAndSortedMembers().length > 0 ? (
+                    filteredAndSortedMembers().map((member) => (
+                      <div
+                        key={member.id}
+                        className="bg-[#161616] rounded-xl relative p-4 sm:p-6"
+                      >
+                        {/* Note indicator */}
+                        {member.note && (
+                          <div className="absolute top-3 left-3 z-10">
+                            <div className="relative">
+                              <div
+                                className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                                  } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  setActiveNoteIdMain(null)
+                                  setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
                                 }}
-                                className="ml-auto text-gray-400 hover:text-white"
                               >
-                                <X size={16} />
-                              </button>
-                            </div>
-                            <div className="p-3">
-                              <p className="text-white text-sm leading-relaxed">{member.note}</p>
-                              {member.noteStartDate && member.noteEndDate && (
-                                <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                                  <p className="text-xs text-gray-300">
-                                    Valid from {member.noteStartDate} to {member.noteEndDate}
-                                  </p>
+                                {member.noteImportance === "important" ? (
+                                  <AlertTriangle size={18} className="text-white" />
+                                ) : (
+                                  <Info size={18} className="text-white" />
+                                )}
+                              </div>
+                              {activeNoteIdMain === member.id && (
+                                <div
+                                  ref={notePopoverRefMain}
+                                  className="absolute left-6 top-4 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
+                                >
+                                  <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                                    {member.noteImportance === "important" ? (
+                                      <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                                    ) : (
+                                      <Info className="text-blue-500 shrink-0" size={18} />
+                                    )}
+                                    <h4 className="text-white flex gap-1 items-center font-medium">
+                                      <div>Special Note</div>
+                                      <div className="text-sm text-gray-400">
+                                        {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+                                      </div>
+                                    </h4>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setActiveNoteIdMain(null)
+                                      }}
+                                      className="ml-auto text-gray-400 hover:text-white"
+                                    >
+                                      <X size={16} />
+                                    </button>
+                                  </div>
+                                  <div className="p-3">
+                                    <p className="text-white text-sm leading-relaxed">{member.note}</p>
+                                    {member.noteStartDate && member.noteEndDate && (
+                                      <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                                        <p className="text-xs text-gray-300">
+                                          Valid from {member.noteStartDate} to {member.noteEndDate}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </div>
                           </div>
                         )}
-                      </div>
-                    </div>
-                  )}
 
-                  {viewMode === "grid" ? (
-                    // Grid layout
-                    <div className="flex flex-col">
-                      <div className="flex flex-col items-center mb-4">
-                        <img
-                          src={member.image || DefaultAvatar1}
-                          className="h-20 w-20 rounded-2xl flex-shrink-0 object-cover mb-3"
-                          alt=""
-                        />
-                        <div className="flex flex-col items-center">
-                          <div className="flex flex-col sm:flex-row items-center gap-2">
-                            <h3 className="text-white font-medium truncate text-lg">
-                              {member.title}
-                              {member.dateOfBirth && ` (${calculateAgeMain(member.dateOfBirth)})`}
-                            </h3>
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-4 pl-4">
+                          {/* Left side - Profile info */}
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <img
+                              src={member.image || DefaultAvatar1}
+                              className="h-12 w-12 sm:h-20 sm:w-20 rounded-2xl flex-shrink-0 object-cover"
+                              alt=""
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                                <h3 className="text-white font-medium text-base sm:text-lg truncate">
+                                  {member.title}
+                                </h3>
 
-                            <div className="flex items-center gap-2">
-                              {member.isArchived ? (
-                                <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
-                              ) : (
-                                <span
-                                  className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
-                                    }`}
-                                >
-                                  {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
-                                </span>
-                              )}
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  {member.isArchived ? (
+                                    <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
+                                  ) : (
+                                    <span
+                                      className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
+                                        }`}
+                                    >
+                                      {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
+                                    </span>
+                                  )}
 
-                              {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
-                            </div>
-                          </div>
+                                  {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
+                                </div>
+                              </div>
 
-                          <div className="text-sm mt-1 flex items-center gap-1">
-                            <p className="text-gray-400">Member Type:</p>
-                            <span className="text-gray-400">
-                              {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                            </span>
-                          </div>
-
-                          <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
-                            {member.memberType === "full" ? (
-                              <>
-                                Contract: {member.contractStart} -{" "}
-                                <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
-                                  {member.contractEnd}
-                                </span>
-                                {isContractExpiringSoonMain(member.contractEnd) && (
-                                  <Info size={16} className="text-red-500 ml-1" />
-                                )}
-                              </>
-                            ) : (
-                              <>
-                                No Contract - Auto-archive: {member.autoArchiveDate}
-                                {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
-                                  <Clock size={16} className="text-orange-500 ml-1" />
-                                )}
-                              </>
-                            )}
-                          </p>
-                          <div className="mt-2">
-                            <button
-                              onClick={() => handleRelationClick(member)}
-                              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                            >
-                              <Users size={12} />
-                              Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action buttons - Icons only in first row */}
-                      <div className="grid grid-cols-5 gap-2 mt-auto">
-                        <button
-                          onClick={() => handleCalendarClick(member)}
-                          className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                          title="View Appointments"
-                        >
-                          <Calendar size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleTrainingPlansClickMain(member)}
-                          className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                          title="Training Plans"
-                        >
-                          <Dumbbell size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleHistoryClick(member)}
-                          className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                          title="View History"
-                        >
-                          <History size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDocumentClick(member)}
-                          className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
-                          title="Document Management"
-                        >
-                          <FileText size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleChatClick(member)}
-                          className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                          title="Start Chat"
-                        >
-                          <MessageCircle size={16} />
-                        </button>
-                      </div>
-
-                      {/* Second row - Text buttons */}
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        <button
-                          onClick={() => handleViewDetails(member)}
-                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-1"
-                        >
-                          <Eye size={14} />
-                          <span className="text-xs">View Details</span>
-                        </button>
-                        <button
-                          onClick={() => handleEditMember(member)}
-                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                        >
-                          <span className="text-sm">Edit</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    // List layout
-                    <div className="flex flex-col lg:flex-row lg:items-center gap-4 pl-4">
-                      {/* Left side - Profile info */}
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <img
-                          src={member.image || DefaultAvatar1}
-                          className="h-12 w-12 sm:h-20 sm:w-20 rounded-2xl flex-shrink-0 object-cover"
-                          alt=""
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                            <h3 className="text-white font-medium text-base sm:text-lg truncate">
-                              {member.title}
-                              {member.dateOfBirth && ` (${calculateAgeMain(member.dateOfBirth)})`}
-                            </h3>
-
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              {member.isArchived ? (
-                                <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
-                              ) : (
-                                <span
-                                  className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
-                                    }`}
-                                >
-                                  {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
-                                </span>
-                              )}
-
-                              {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
-                            </div>
-                          </div>
-
-                          <div className="text-sm mt-1 flex flex-col sm:items-start gap-1">
-                            <div className="flex items-center gap-1">
-                              <p className="text-gray-400">Member Type:</p>
-                              <span className="text-gray-400">
-                                {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                              </span>
-                            </div>
-
-                            <p className="text-gray-400 text-sm flex items-center gap-1">
-                              {member.memberType === "full" ? (
-                                <>
-                                  Contract: {member.contractStart} -{" "}
-                                  <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
-                                    {member.contractEnd}
+                              <div className="text-sm mt-1 flex flex-col sm:items-start gap-1">
+                                <div className="flex items-center gap-1">
+                                  <p className="text-gray-400">Member Type:</p>
+                                  <span className="text-gray-400">
+                                    {member.memberType === "full" ? "Full Member" : "Temporary Member"}
                                   </span>
-                                  {isContractExpiringSoonMain(member.contractEnd) && (
-                                    <Info size={14} className="text-red-500" />
+                                </div>
+
+                                <p className="text-gray-400 text-sm flex items-center gap-1">
+                                  {member.memberType === "full" ? (
+                                    <>
+                                      Contract: {member.contractStart} -{" "}
+                                      <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
+                                        {member.contractEnd}
+                                      </span>
+                                      {isContractExpiringSoonMain(member.contractEnd) && (
+                                        <Info size={14} className="text-red-500" />
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      No Contract - Auto-archive: {member.autoArchiveDate}
+                                      {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
+                                        <Clock size={14} className="text-orange-500" />
+                                      )}
+                                    </>
                                   )}
-                                </>
-                              ) : (
-                                <>
-                                  No Contract - Auto-archive: {member.autoArchiveDate}
-                                  {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
-                                    <Clock size={14} className="text-orange-500" />
-                                  )}
-                                </>
-                              )}
-                            </p>
+                                </p>
+                              </div>
+
+                              <div className="mt-1">
+                                <button
+                                  onClick={() => handleRelationClick(member)}
+                                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                >
+                                  <Users size={12} />
+                                  Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
+                                </button>
+                              </div>
+                            </div>
                           </div>
 
-                          <div className="mt-1">
-                            <button
-                              onClick={() => handleRelationClick(member)}
-                              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                            >
-                              <Users size={12} />
-                              Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
-                            </button>
+                          {/* Right side - Action buttons */}
+                          <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
+                            {/* First row - 5 icon buttons only */}
+                            <div className="grid grid-cols-5 gap-2">
+                              <button
+                                onClick={() => handleCalendarClick(member)}
+                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                title="View Appointments"
+                              >
+                                <Calendar size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleTrainingPlansClickMain(member)}
+                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                title="Training Plans"
+                              >
+                                <Dumbbell size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleHistoryClick(member)}
+                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                title="View History"
+                              >
+                                <History size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDocumentClick(member)}
+                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                title="Document Management"
+                              >
+                                <FileText size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleChatClick(member)}
+                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                title="Start Chat"
+                              >
+                                <MessageCircle size={16} />
+                              </button>
+                            </div>
+
+                            {/* Second row - Text buttons */}
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                onClick={() => handleViewDetails(member)}
+                                className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                              >
+                                <Eye size={16} />
+                                <span className="text-sm">View Details</span>
+                              </button>
+                              <button
+                                onClick={() => handleEditMember(member)}
+                                className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                              >
+                                <span className="text-sm">Edit</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-
-                      {/* Right side - Action buttons */}
-                      <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
-                        {/* First row - 5 icon buttons only */}
-                        <div className="grid grid-cols-5 gap-2">
-                          <button
-                            onClick={() => handleCalendarClick(member)}
-                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                            title="View Appointments"
-                          >
-                            <Calendar size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleTrainingPlansClickMain(member)}
-                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                            title="Training Plans"
-                          >
-                            <Dumbbell size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleHistoryClick(member)}
-                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                            title="View History"
-                          >
-                            <History size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDocumentClick(member)}
-                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                            title="Document Management"
-                          >
-                            <FileText size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleChatClick(member)}
-                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                            title="Start Chat"
-                          >
-                            <MessageCircle size={16} />
-                          </button>
-                        </div>
-
-                        {/* Second row - Text buttons */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            onClick={() => handleViewDetails(member)}
-                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                          >
-                            <Eye size={16} />
-                            <span className="text-sm">View Details</span>
-                          </button>
-                          <button
-                            onClick={() => handleEditMember(member)}
-                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                          >
-                            <span className="text-sm">Edit</span>
-                          </button>
-                        </div>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-red-600 text-center text-sm cursor-pointer">
+                      <p className="text-gray-400">
+                        {filterStatus === "active"
+                          ? "No active members found."
+                          : filterStatus === "paused"
+                            ? "No paused members found."
+                            : filterStatus === "archived"
+                              ? "No archived members found."
+                              : "No members found."}
+                      </p>
                     </div>
                   )}
                 </div>
-              ))
-            ) : (
-              <div className="text-red-600 text-center text-sm cursor-pointer col-span-full">
-                <p className="text-gray-400">
-                  {filterStatus === "active"
-                    ? "No active members found."
-                    : filterStatus === "paused"
-                      ? "No paused members found."
-                      : filterStatus === "archived"
-                        ? "No archived members found."
-                        : "No members found."}
-                </p>
-              </div>
-            )}
+              )
+            ) : // GRID VIEW
+              isCompactView ? (
+                // COMPACT GRID VIEW
+                <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  {filteredAndSortedMembers().length > 0 ? (
+                    filteredAndSortedMembers().map((member) => (
+                      <div key={member.id}>
+                        {expandedMemberId === member.id ? (
+                          // Expanded view within grid
+                          <div className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col h-full col-span-2 md:col-span-2 lg:col-span-2 relative">
+                            {/* Note indicator */}
+                            {member.note && (
+                              <div className="absolute top-3 left-3 z-10">
+                                <div className="relative">
+                                  <div
+                                    className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                                      } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
+                                    }}
+                                  >
+                                    {member.noteImportance === "important" ? (
+                                      <AlertTriangle size={18} className="text-white" />
+                                    ) : (
+                                      <Info size={18} className="text-white" />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Header section */}
+                            <div className="flex justify-between items-start mb-3 pl-4">
+                              <span
+                                className={`px-2 py-0.5 text-xs font-medium rounded-lg ${member.isArchived
+                                  ? "bg-red-600 text-white"
+                                  : member.isActive
+                                    ? "bg-green-600 text-white"
+                                    : "bg-yellow-600 text-white"
+                                  }`}
+                              >
+                                {member.isArchived ? "Archived" : member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
+                              </span>
+                            </div>
+
+                            {/* Content section */}
+                            <div className="flex-1 mb-4 flex flex-col gap-1.5 pl-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <img
+                                  src={member.image || DefaultAvatar1}
+                                  className="h-16 w-16 rounded-2xl flex-shrink-0 object-cover"
+                                  alt=""
+                                />
+                                <div>
+                                  <h3 className="text-white font-medium text-lg leading-tight">{member.title}</h3>
+                                  <p className="text-gray-400 text-sm">
+                                    {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <p className="text-gray-400 text-sm leading-snug">
+                                {member.memberType === "full" ? (
+                                  <>
+                                    Contract: {member.contractStart} -{" "}
+                                    <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
+                                      {member.contractEnd}
+                                    </span>
+                                    {isContractExpiringSoonMain(member.contractEnd) && (
+                                      <Info size={14} className="text-red-500 ml-1" />
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    No Contract - Auto-archive: {member.autoArchiveDate}
+                                    {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
+                                      <Clock size={14} className="text-orange-500 ml-1" />
+                                    )}
+                                  </>
+                                )}
+                              </p>
+
+                              <div className="mt-2">
+                                <button
+                                  onClick={() => handleRelationClick(member)}
+                                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                >
+                                  <Users size={12} />
+                                  Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Button section */}
+                            <div className="flex flex-col gap-2 mt-auto">
+                              <div className="grid grid-cols-5 gap-2">
+                                <button
+                                  onClick={() => handleCalendarClick(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="View Appointments"
+                                >
+                                  <Calendar size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleTrainingPlansClickMain(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="Training Plans"
+                                >
+                                  <Dumbbell size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleHistoryClick(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="View History"
+                                >
+                                  <History size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDocumentClick(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="Document Management"
+                                >
+                                  <FileText size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleChatClick(member)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  title="Start Chat"
+                                >
+                                  <MessageCircle size={16} />
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-1 gap-2">
+                                <button
+                                  onClick={() => handleViewDetails(member)}
+                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                                >
+                                  <Eye size={16} />
+                                  <span className="text-sm">View Details</span>
+                                </button>
+                                <button
+                                  onClick={() => handleEditMember(member)}
+                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <span className="text-sm">Edit</span>
+                                </button>
+                              </div>
+
+                              <button
+                                onClick={() => setExpandedMemberId(null)}
+                                className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
+                                title="Collapse"
+                              >
+                                <ChevronUp size={16} />
+                                Collapse
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          // Compact tile view
+                          <div className="bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col items-center justify-center gap-2 h-full relative">
+                            {/* Note indicator - positioned inside the card */}
+                            {member.note && (
+                              <div className="absolute top-2 left-2 z-10">
+                                <div className="relative">
+                                  <div
+                                    className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                                      } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
+                                    }}
+                                  >
+                                    {member.noteImportance === "important" ? (
+                                      <AlertTriangle size={14} className="text-white" />
+                                    ) : (
+                                      <Info size={14} className="text-white" />
+                                    )}
+                                  </div>
+                                  {activeNoteIdMain === member.id && (
+                                    <div
+                                      ref={notePopoverRefMain}
+                                      className="absolute left-6 top-0 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
+                                    >
+                                      <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                                        {member.noteImportance === "important" ? (
+                                          <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                                        ) : (
+                                          <Info className="text-blue-500 shrink-0" size={18} />
+                                        )}
+                                        <h4 className="text-white flex gap-1 items-center font-medium">
+                                          <div>Special Note</div>
+                                          <div className="text-sm text-gray-400">
+                                            {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+                                          </div>
+                                        </h4>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setActiveNoteIdMain(null)
+                                          }}
+                                          className="ml-auto text-gray-400 hover:text-white"
+                                        >
+                                          <X size={16} />
+                                        </button>
+                                      </div>
+                                      <div className="p-3">
+                                        <p className="text-white text-sm leading-relaxed">{member.note}</p>
+                                        {member.noteStartDate && member.noteEndDate && (
+                                          <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                                            <p className="text-xs text-gray-300">
+                                              Valid from {member.noteStartDate} to {member.noteEndDate}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="relative w-full">
+                              <img
+                                src={member.image || DefaultAvatar1}
+                                alt={member.title}
+                                className="w-12 h-12 rounded-full mx-auto object-cover"
+                              />
+                              <span
+                                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold text-white ${member.isArchived
+                                  ? "bg-red-600"
+                                  : member.isActive
+                                    ? "bg-green-600"
+                                    : "bg-yellow-600"
+                                  }`}
+                              >
+                                {member.isArchived ? "A" : member.isActive ? "A" : "P"}
+                              </span>
+                            </div>
+
+                            <div className="text-center w-full min-w-0">
+                              <p className="text-white font-medium text-xs truncate">
+                                {getFirstAndLastName(member.title).firstName}
+                              </p>
+                              <p className="text-gray-400 text-xs truncate">
+                                {getFirstAndLastName(member.title).lastName}
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={() => setExpandedMemberId(member.id)}
+                              className="p-1.5 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors w-full flex items-center justify-center"
+                              title="Expand"
+                            >
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-red-600 text-center text-sm cursor-pointer col-span-full">
+                      <p className="text-gray-400">
+                        {filterStatus === "active"
+                          ? "No active members found."
+                          : filterStatus === "paused"
+                            ? "No paused members found."
+                            : filterStatus === "archived"
+                              ? "No archived members found."
+                              : "No members found."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // DETAILED GRID VIEW
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredAndSortedMembers().length > 0 ? (
+                    filteredAndSortedMembers().map((member) => (
+                      <div
+                        key={member.id}
+                        className="bg-[#161616] rounded-xl relative p-4"
+                      >
+                        {/* Note indicator */}
+                        {member.note && (
+                          <div className="absolute top-3 left-3 z-10">
+                            <div className="relative">
+                              <div
+                                className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
+                                  } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
+                                }}
+                              >
+                                {member.noteImportance === "important" ? (
+                                  <AlertTriangle size={18} className="text-white" />
+                                ) : (
+                                  <Info size={18} className="text-white" />
+                                )}
+                              </div>
+                              {activeNoteIdMain === member.id && (
+                                <div
+                                  ref={notePopoverRefMain}
+                                  className="absolute left-6 top-4 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
+                                >
+                                  <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                                    {member.noteImportance === "important" ? (
+                                      <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
+                                    ) : (
+                                      <Info className="text-blue-500 shrink-0" size={18} />
+                                    )}
+                                    <h4 className="text-white flex gap-1 items-center font-medium">
+                                      <div>Special Note</div>
+                                      <div className="text-sm text-gray-400">
+                                        {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+                                      </div>
+                                    </h4>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setActiveNoteIdMain(null)
+                                      }}
+                                      className="ml-auto text-gray-400 hover:text-white"
+                                    >
+                                      <X size={16} />
+                                    </button>
+                                  </div>
+                                  <div className="p-3">
+                                    <p className="text-white text-sm leading-relaxed">{member.note}</p>
+                                    {member.noteStartDate && member.noteEndDate && (
+                                      <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                                        <p className="text-xs text-gray-300">
+                                          Valid from {member.noteStartDate} to {member.noteEndDate}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex flex-col">
+                          <div className="flex flex-col items-center mb-4">
+                            <img
+                              src={member.image || DefaultAvatar1}
+                              className="h-20 w-20 rounded-2xl flex-shrink-0 object-cover mb-3"
+                              alt=""
+                            />
+                            <div className="flex flex-col items-center">
+                              <div className="flex flex-col sm:flex-row items-center gap-2">
+                                <h3 className="text-white font-medium truncate text-lg">
+                                  {member.title}
+                                </h3>
+
+                                <div className="flex items-center gap-2">
+                                  {member.isArchived ? (
+                                    <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
+                                  ) : (
+                                    <span
+                                      className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
+                                        }`}
+                                    >
+                                      {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
+                                    </span>
+                                  )}
+
+                                  {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
+                                </div>
+                              </div>
+
+                              <div className="text-sm mt-1 flex items-center gap-1">
+                                <p className="text-gray-400">Member Type:</p>
+                                <span className="text-gray-400">
+                                  {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                                </span>
+                              </div>
+
+                              <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
+                                {member.memberType === "full" ? (
+                                  <>
+                                    Contract: {member.contractStart} -{" "}
+                                    <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
+                                      {member.contractEnd}
+                                    </span>
+                                    {isContractExpiringSoonMain(member.contractEnd) && (
+                                      <Info size={16} className="text-red-500 ml-1" />
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    No Contract - Auto-archive: {member.autoArchiveDate}
+                                    {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
+                                      <Clock size={16} className="text-orange-500 ml-1" />
+                                    )}
+                                  </>
+                                )}
+                              </p>
+                              <div className="mt-2">
+                                <button
+                                  onClick={() => handleRelationClick(member)}
+                                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                >
+                                  <Users size={12} />
+                                  Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action buttons - Icons only in first row */}
+                          <div className="grid grid-cols-5 gap-2 mt-auto">
+                            <button
+                              onClick={() => handleCalendarClick(member)}
+                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                              title="View Appointments"
+                            >
+                              <Calendar size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleTrainingPlansClickMain(member)}
+                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                              title="Training Plans"
+                            >
+                              <Dumbbell size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleHistoryClick(member)}
+                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                              title="View History"
+                            >
+                              <History size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDocumentClick(member)}
+                              className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                              title="Document Management"
+                            >
+                              <FileText size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleChatClick(member)}
+                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                              title="Start Chat"
+                            >
+                              <MessageCircle size={16} />
+                            </button>
+                          </div>
+
+                          {/* Second row - Text buttons */}
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            <button
+                              onClick={() => handleViewDetails(member)}
+                              className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-1"
+                            >
+                              <Eye size={14} />
+                              <span className="text-xs">View Details</span>
+                            </button>
+                            <button
+                              onClick={() => handleEditMember(member)}
+                              className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                            >
+                              <span className="text-sm">Edit</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-red-600 text-center text-sm cursor-pointer col-span-full">
+                      <p className="text-gray-400">
+                        {filterStatus === "active"
+                          ? "No active members found."
+                          : filterStatus === "paused"
+                            ? "No paused members found."
+                            : filterStatus === "archived"
+                              ? "No archived members found."
+                              : "No members found."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
 
+          {/* Your existing modals */}
           <FilterModal
             isOpen={showFilterModal}
             onClose={() => setShowFilterModal(false)}
@@ -1916,6 +2503,7 @@ export default function Members() {
         setNewBillingPeriodMain={setNewBillingPeriodMain}
         onClose={() => setShowAddBillingPeriodModalMain(false)}
         onAdd={handleAddBillingPeriodMain}
+        availableBillingPeriods={availableBillingPeriods}
       />
       <TrainingPlansModalMain
         isOpen={showTrainingPlansModalMain}
@@ -2005,6 +2593,7 @@ export default function Members() {
         handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
         onSaveSpecialNote={handleSaveSpecialNoteWrapper}
         notifications={notifications}
+        setTodos={setTodos}
       />
 
       {/* Sidebar related modals */}

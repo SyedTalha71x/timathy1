@@ -10,6 +10,7 @@ import TaskItem from "../../components/user-panel-components/task-components/tas
 import AssignModal from "../../components/user-panel-components/task-components/assign-modal"
 import TagsModal from "../../components/user-panel-components/task-components/edit-tags"
 import Draggable from "react-draggable"
+import CalendarModal from "../../components/user-panel-components/task-components/calendar-modal"
 
 import { UserCheck, Briefcase } from "lucide-react"
 
@@ -39,6 +40,46 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
+
+
+const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
+  if (!date && !time) return null;
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '';
+    const [hours, minutes] = timeStr.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const formattedHour = hour % 12 || 12;
+    return `${formattedHour}:${minutes} ${ampm}`;
+  };
+
+  return (
+    <div className="flex items-center gap-2 bg-[#2F2F2F] rounded-lg px-3 py-1 text-sm mr-2">
+      <span className="text-white whitespace-nowrap">
+        {date && formatDate(date)}
+        {date && time && ' • '}
+        {time && formatTime(time)}
+      </span>
+      <button
+        onClick={onClear}
+        className="text-gray-400 hover:text-white ml-1"
+        title="Clear date and time"
+      >
+        <X size={14} />
+      </button>
+    </div>
+  );
+};
 
 export default function TodoApp() {
   const sidebarSystem = useSidebarSystem();
@@ -87,10 +128,74 @@ export default function TodoApp() {
     { id: "canceled", title: "Canceled", color: "#ef4444" },
   ])
 
+  const [calendarModal, setCalendarModal] = useState({
+    isOpen: false,
+    taskId: null,
+    initialDate: "",
+    initialTime: "",
+    initialReminder: "",
+    initialRepeat: ""
+  });
+
   const [assignModalTask, setAssignModalTask] = useState(null)
   const [tagsModalTask, setTagsModalTask] = useState(null)
 
   const columnRefs = useRef({})
+
+  const handleOpenCalendarModal = (taskId, currentDate = "", currentTime = "", currentReminder = "", currentRepeat = "") => {
+    setCalendarModal({
+      isOpen: true,
+      taskId,
+      initialDate: currentDate,
+      initialTime: currentTime,
+      initialReminder: currentReminder,
+      initialRepeat: currentRepeat
+    });
+  };
+
+  const handleClearDateTime = () => {
+    setSelectedDate("")
+    setSelectedTime("")
+    setSelectedReminder("")
+    setSelectedRepeat("")
+  }
+
+  const handleCalendarSave = (calendarData) => {
+    if (calendarModal.taskId) {
+      // Update existing task
+      const taskToUpdate = tasks.find(t => t.id === calendarModal.taskId);
+      const updatedTask = {
+        ...taskToUpdate,
+        dueDate: calendarData.date,
+        dueTime: calendarData.time,
+        reminder: calendarData.reminder,
+        repeat: calendarData.repeat
+      };
+
+      handleTaskUpdate(updatedTask);
+      toast.success("Task date/time updated successfully!");
+    }
+
+    setCalendarModal({
+      isOpen: false,
+      taskId: null,
+      initialDate: "",
+      initialTime: "",
+      initialReminder: "",
+      initialRepeat: ""
+    });
+  };
+
+  const handleCalendarClose = () => {
+    setCalendarModal({
+      isOpen: false,
+      taskId: null,
+      initialDate: "",
+      initialTime: "",
+      initialReminder: "",
+      initialRepeat: ""
+    });
+  };
 
   const handleOpenAssignModal = (task) => {
     setAssignModalTask(task)
@@ -131,54 +236,55 @@ export default function TodoApp() {
   }, [])
 
   // Add this useEffect to handle task completion and create repeat tasks
-useEffect(() => {
-  const now = new Date();
-  let shouldUpdateRepeatConfigs = false;
-  const updatedRepeatConfigs = { ...repeatConfigs };
-
-  Object.entries(repeatConfigs).forEach(([taskId, config]) => {
-    const task = tasks.find(t => t.id === parseInt(taskId));
-    
-    // Skip if task doesn't exist or isn't completed
-    if (!task || task.status !== "completed") return;
-    
-    // Check if we need to create a repeat task
-    const lastCompleted = config.lastCompletedDate ? new Date(config.lastCompletedDate) : null;
-    const taskCompletedDate = new Date(task.updatedAt || now); // Use task update time or current time
-    
-    // Only create repeat if:
-    // 1. We haven't created one for this completion yet, AND
-    // 2. The task was completed after the last repeat creation
-    if (!lastCompleted || lastCompleted < taskCompletedDate) {
-      createNextRepeatTask(config, task);
+  useEffect(() => {
+    const now = new Date();
+    const updatedRepeatConfigs = { ...repeatConfigs };
+    let tasksUpdated = false;
+  
+    Object.entries(repeatConfigs).forEach(([taskId, config]) => {
+      const task = tasks.find(t => t.id === parseInt(taskId));
       
-      // Update the last completed date to prevent infinite loops
-      updatedRepeatConfigs[taskId] = {
-        ...config,
-        lastCompletedDate: taskCompletedDate.toISOString()
-      };
-      shouldUpdateRepeatConfigs = true;
+      // Skip if task doesn't exist or isn't completed
+      if (!task || task.status !== "completed") return;
+  
+      // Check if we need to create repeat tasks
+      const lastCompleted = config.lastCompletedDate ? new Date(config.lastCompletedDate) : null;
+      const taskCompletedDate = new Date(task.updatedAt || now);
+      
+      // Only process if this completion is newer than our last processing
+      if (!lastCompleted || lastCompleted < taskCompletedDate) {
+        const createdTasks = createNextRepeatTasks(config, task);
+        
+        if (createdTasks > 0) {
+          // Update the last completed date
+          updatedRepeatConfigs[taskId] = {
+            ...config,
+            lastCompletedDate: taskCompletedDate.toISOString(),
+            occurrencesCreated: (config.occurrencesCreated || 0) + createdTasks
+          };
+          tasksUpdated = true;
+        }
+      }
+    });
+  
+    if (tasksUpdated) {
+      setRepeatConfigs(updatedRepeatConfigs);
     }
-  });
-
-  if (shouldUpdateRepeatConfigs) {
-    setRepeatConfigs(updatedRepeatConfigs);
-  }
-}, [tasks]); // Only depend on tasks, not repeatConfigs
+  }, [tasks]);
 
   const handleTaskStatusChange = (taskId, newStatus) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === taskId ? { 
-          ...task, 
-          status: newStatus, 
-          isPinned: false, 
+        task.id === taskId ? {
+          ...task,
+          status: newStatus,
+          isPinned: false,
           dragVersion: 0,
           updatedAt: new Date().toISOString() // Add this line
         } : task,
       ),
     );
-    
+
     toast.success(`Task status changed to ${newStatus}!`);
   };
 
@@ -199,21 +305,21 @@ useEffect(() => {
       const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
       const newTask = {
         id: newId,
-        title: newTaskInput.trim(), // This will preserve line breaks
+        title: newTaskInput.trim(),
         assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
         roles: selectedRoles,
         tags: selectedTags.map((t) => t.name),
         status: "ongoing",
         category: "general",
-        dueDate: selectedDate,
-        dueTime: selectedTime,
+        dueDate: selectedDate, // This uses selectedDate
+        dueTime: selectedTime, // This uses selectedTime
         isPinned: false,
         dragVersion: 0,
       }
       setTasks((prevTasks) => [...prevTasks, newTask])
       setNewTaskInput("")
-      setSelectedDate("")
-      setSelectedTime("")
+      setSelectedDate("") // Clear after task creation
+      setSelectedTime("") // Clear after task creation
       setSelectedAssignees([])
       setSelectedRoles([])
       setSelectedTags([])
@@ -221,65 +327,80 @@ useEffect(() => {
     }
   }
 
-  const createNextRepeatTask = (config, completedTask) => {
+  const createNextRepeatTasks = (config, completedTask) => {
     const { originalTask, repeatOptions } = config;
+    let tasksCreated = 0;
   
     try {
-      const currentIterationDate = new Date(completedTask.dueDate);
-  
-      // Calculate next occurrence based on repeat frequency
-      if (repeatOptions.frequency === "daily") {
-        currentIterationDate.setDate(currentIterationDate.getDate() + 1);
-      } else if (repeatOptions.frequency === "weekly") {
-        currentIterationDate.setDate(currentIterationDate.getDate() + 7);
-      } else if (repeatOptions.frequency === "monthly") {
-        currentIterationDate.setMonth(currentIterationDate.getMonth() + 1);
-      }
-  
-      // Check if we should create the task based on end conditions
-      let shouldCreate = true;
-  
-      if (repeatOptions.endDate && currentIterationDate > new Date(repeatOptions.endDate)) {
-        shouldCreate = false;
-      }
-  
-      if (repeatOptions.occurrences) {
-        const occurrencesCount = Object.values(repeatConfigs).filter(
-          config => config.originalTask.id === originalTask.id
-        ).length;
-        if (occurrencesCount >= repeatOptions.occurrences) {
-          shouldCreate = false;
-        }
-      }
-  
-      // Check if this repeat task already exists to prevent duplicates
-      const newDueDate = currentIterationDate.toISOString().split('T')[0];
-      const taskAlreadyExists = tasks.some(t => 
+      // Calculate how many occurrences should exist based on the original task
+      const allRepeatTasks = tasks.filter(t => 
         t.title === originalTask.title && 
-        t.dueDate === newDueDate &&
-        t.status === "ongoing"
+        t.id !== originalTask.id
       );
+      
+      const currentOccurrences = allRepeatTasks.length;
+      const maxOccurrences = repeatOptions.occurrences || Infinity;
+      
+      // If we haven't reached the occurrence limit, create the next task
+      if (currentOccurrences < maxOccurrences - 1) { // -1 because original task counts as first occurrence
+        const lastTaskDate = new Date(completedTask.dueDate);
+        let nextDate = new Date(lastTaskDate);
   
-      if (shouldCreate && !taskAlreadyExists) {
-        const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-        const newTask = {
-          ...originalTask,
-          id: newId,
-          dueDate: newDueDate,
-          isPinned: false,
-          dragVersion: 0,
-          status: "ongoing",
-          title: originalTask.title, // Remove "(Copy)" from title
-          createdAt: new Date().toISOString()
-        };
+        // Calculate next occurrence based on repeat frequency
+        if (repeatOptions.frequency === "daily") {
+          nextDate.setDate(nextDate.getDate() + 1);
+        } else if (repeatOptions.frequency === "weekly") {
+          nextDate.setDate(nextDate.getDate() + 7);
+          
+          // For weekly repeats with specific days, find the next selected day
+          if (repeatOptions.repeatDays && repeatOptions.repeatDays.length > 0) {
+            const currentDay = nextDate.getDay();
+            const nextDays = repeatOptions.repeatDays.filter(day => day > currentDay);
+            const daysToAdd = nextDays.length > 0 
+              ? nextDays[0] - currentDay
+              : 7 - currentDay + repeatOptions.repeatDays[0];
+            nextDate.setDate(nextDate.getDate() + daysToAdd);
+          }
+        } else if (repeatOptions.frequency === "monthly") {
+          nextDate.setMonth(nextDate.getMonth() + 1);
+        }
   
-        setTasks(prevTasks => [...prevTasks, newTask]);
-        toast.success(`New repeat task created for ${originalTask.title}`);
+        // Check end date condition
+        if (repeatOptions.endDate && nextDate > new Date(repeatOptions.endDate)) {
+          return tasksCreated;
+        }
+  
+        // Check if this repeat task already exists
+        const newDueDate = nextDate.toISOString().split('T')[0];
+        const taskAlreadyExists = tasks.some(t =>
+          t.title === originalTask.title &&
+          t.dueDate === newDueDate &&
+          t.status === "ongoing"
+        );
+  
+        if (!taskAlreadyExists) {
+          const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+          const newTask = {
+            ...originalTask,
+            id: newId,
+            dueDate: newDueDate,
+            isPinned: false,
+            dragVersion: 0,
+            status: "ongoing",
+            createdAt: new Date().toISOString()
+          };
+  
+          setTasks(prevTasks => [...prevTasks, newTask]);
+          tasksCreated = 1;
+          toast.success(`New repeat task created for ${originalTask.title}`);
+        }
       }
     } catch (error) {
       console.error("Error creating repeat task:", error);
       toast.error("Error creating repeat task");
     }
+    
+    return tasksCreated;
   };
 
   const handleTaskPinToggle = (taskId) => {
@@ -334,18 +455,19 @@ useEffect(() => {
       setRepeatConfigs(prev => ({
         ...prev,
         [taskToRepeat.id]: {
-          originalTask: taskToRepeat,
+          originalTask: { ...taskToRepeat },
           repeatOptions: repeatOptions,
-          lastCompletedDate: null
+          lastCompletedDate: null,
+          occurrencesCreated: 0
         }
       }));
-
-      toast.success("Repeat settings saved! New tasks will be created when this task is completed.");
+  
+      toast.success(`Repeat settings saved! Task will repeat ${repeatOptions.occurrences || 'until'} ${repeatOptions.endDate || 'indefinitely'}.`);
     } catch (error) {
       toast.error("Error setting up repeat task. Please try again.");
       console.error("Repeat task error:", error);
     }
-
+  
     setIsRepeatModalOpen(false);
     setSelectedTaskForRepeat(null);
   };
@@ -737,6 +859,9 @@ useEffect(() => {
             <h3 className="font-medium text-white text-sm">{title}</h3>
           </div>
         </div>
+        <div className="">
+
+       
         <div className="p-3 flex-1 min-h-[400px] relative">
           {tasks.length > 0 ? (
             tasks.map((task, index) => {
@@ -757,7 +882,7 @@ useEffect(() => {
                 >
                   <div
                     ref={taskItemRefs.current[task.id]}
-                    className={`cursor-grab mb-3 ${draggingTaskId === task.id ? "z-[9999] relative" : ""}`}
+                    className={`cursor-grab mb-3  ${draggingTaskId === task.id ? "z-[9999] relative" : ""} `}
                     style={{
                       zIndex: draggingTaskId === task.id ? 9999 : "auto",
                       position: draggingTaskId === task.id ? "relative" : "static",
@@ -781,6 +906,8 @@ useEffect(() => {
                       availableRoles={availableRoles}
                       onOpenAssignModal={handleOpenAssignModal}
                       onOpenTagsModal={handleOpenTagsModal}
+                      onOpenCalendarModal={handleOpenCalendarModal} 
+                      repeatConfigs={repeatConfigs} 
                     />
                   </div>
                 </Draggable>
@@ -789,6 +916,7 @@ useEffect(() => {
           ) : (
             <div className="text-gray-400 text-center py-8">No {title.toLowerCase()} tasks found</div>
           )}
+        </div>
         </div>
       </div>
     )
@@ -1225,26 +1353,23 @@ useEffect(() => {
             <div className="flex flex-col gap-4 mb-6">
               <div className="flex justify-between items-center gap-4 mb-6">
                 <h1 className="text-2xl font-bold text-white">To-Do</h1>
-                {/* <div className="flex items-center justify-end">
-                  <IoIosMenu
-                    onClick={toggleRightSidebar}
-                    size={28}
-                    className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md p-1"
-                  />
-                </div> */}
-                <div onClick={toggleRightSidebar} className="cursor-pointer">
-      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
-    </div>
+               
+                {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className=" ">
+            <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
+          ) : (<div onClick={toggleRightSidebar} className=" ">
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
+          )}
               </div>
 
               <div className="flex flex-col md:flex-row gap-4 items-stretch">
                 <div className="relative flex items-start flex-grow bg-[#101010] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none min-h-[44px]">
-                  <Plus size={18} className="text-gray-400 mr-2 mt-1  flex-shrink-0" />
+                  <Plus size={18} className="text-gray-400 mr-2 mt-1 flex-shrink-0" />
                   <textarea
                     placeholder="Add new task"
                     value={newTaskInput}
                     onChange={(e) => {
-                      // Limit to 4 lines maximum
                       const lines = e.target.value.split('\n');
                       if (lines.length <= 4) {
                         setNewTaskInput(e.target.value);
@@ -1253,7 +1378,6 @@ useEffect(() => {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         if (e.shiftKey) {
-                          // Allow new line with Shift+Enter
                           e.preventDefault();
                           const cursorPosition = e.target.selectionStart;
                           const newValue = newTaskInput.substring(0, cursorPosition) + '\n' + newTaskInput.substring(cursorPosition);
@@ -1262,7 +1386,6 @@ useEffect(() => {
                             setNewTaskInput(newValue);
                           }
                         } else {
-                          // Submit task with Enter alone
                           e.preventDefault();
                           handleAddTaskFromInput();
                         }
@@ -1272,23 +1395,30 @@ useEffect(() => {
                     rows={1}
                     style={{
                       minHeight: '20px',
-                      maxHeight: '80px', // Approximately 4 lines
+                      maxHeight: '80px',
                       height: 'auto',
                     }}
                     ref={(textarea) => {
                       if (textarea) {
-                        // Auto-resize textarea
                         textarea.style.height = 'auto';
                         textarea.style.height = Math.min(textarea.scrollHeight, 80) + 'px';
                       }
                     }}
                   />
 
+                  {/* Display selected date/time - LEFT of calendar icon */}
+                  <SelectedDateTimeDisplay
+                    date={selectedDate}
+                    time={selectedTime}
+                    onClear={handleClearDateTime}
+                  />
+
+                  {/* Calendar icon - now on the RIGHT of the displayed date/time */}
                   <div className="relative calendar-dropdown">
                     <button
                       type="button"
                       onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                      className="text-gray-400 hover:text-white ml-2 no-drag p-1"
+                      className="text-gray-400 hover:text-white no-drag p-1"
                       title="Set due date"
                     >
                       <Calendar size={18} />
@@ -1449,72 +1579,81 @@ useEffect(() => {
                   </button>
 
                   <div className="relative sort-dropdown">
-                    <button
-                      onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                      className="md:w-auto w-full flex cursor-pointer items-center justify-center  gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
-                    >
-                      <Filter size={16} />
-                      <span>
-                        {sortOption === "dueDate-asc" && "Due Date (Earliest)"}
-                        {sortOption === "dueDate-desc" && "Due Date (Latest)"}
-                        {sortOption === "tag-asc" && "Tag (A-Z)"}
-                        {sortOption === "tag-desc" && "Tag (Z-A)"}
-                      </span>
-                      <ChevronDown size={16} />
-                    </button>
-                    {isSortDropdownOpen && (
-                      <div className="absolute right-0 top-full mt-1 bg-[#2F2F2F] rounded-xl shadow-lg z-10 w-48">
-                        <div className="p-2">
-                          <h3 className="text-xs text-gray-400 px-3 py-1">Sort by Due Date</h3>
-                          <button
-                            onClick={() => {
-                              setSortOption("dueDate-asc")
-                              setIsSortDropdownOpen(false)
-                            }}
-                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
-                              }`}
-                          >
-                            <Calendar size={14} />
-                            <span>Earliest First</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSortOption("dueDate-desc")
-                              setIsSortDropdownOpen(false)
-                            }}
-                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
-                              }`}
-                          >
-                            <Calendar size={14} />
-                            <span>Latest First</span>
-                          </button>
-                          <h3 className="text-xs text-gray-400 px-3 py-1 mt-2">Sort by Tag</h3>
-                          <button
-                            onClick={() => {
-                              setSortOption("tag-asc")
-                              setIsSortDropdownOpen(false)
-                            }}
-                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
-                              }`}
-                          >
-                            <Tag size={14} />
-                            <span>A to Z</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSortOption("tag-desc")
-                              setIsSortDropdownOpen(false)
-                            }}
-                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
-                              }`}
-                          >
-                            <Tag size={14} />
-                            <span>Z to A</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+  <button
+    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+    className="md:w-auto w-full flex cursor-pointer items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+  >
+    <span>
+      {sortOption === "dueDate-asc" && "Due Date (Earliest)"}
+      {sortOption === "dueDate-desc" && "Due Date (Latest)"}
+      {sortOption === "tag-asc" && "Tag (A-Z)"}
+      {sortOption === "tag-desc" && "Tag (Z-A)"}
+    </span>
+    <ChevronDown size={16} />
+  </button>
+
+  {isSortDropdownOpen && (
+    <div className="absolute right-0 top-full mt-1 bg-[#2F2F2F] rounded-xl shadow-lg z-10 w-48">
+      <div className="p-2">
+        <h3 className="text-xs text-gray-400 px-3 py-1">Sort by Due Date</h3>
+
+        <button
+          onClick={() => {
+            setSortOption("dueDate-asc")
+            setIsSortDropdownOpen(false)
+          }}
+          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
+            sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
+          }`}
+        ><Calendar size={14} />
+          <span>Earliest First</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setSortOption("dueDate-desc")
+            setIsSortDropdownOpen(false)
+          }}
+          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
+            sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
+          }`}
+        >
+          <Calendar size={14} />
+          <span>Latest First</span>
+        </button>
+
+        <h3 className="text-xs text-gray-400 px-3 py-1 mt-2">Sort by Tag</h3>
+
+        <button
+          onClick={() => {
+            setSortOption("tag-asc")
+            setIsSortDropdownOpen(false)
+          }}
+          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
+            sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
+          }`}
+        >
+          <Tag size={14} />
+          <span>A to Z</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setSortOption("tag-desc")
+            setIsSortDropdownOpen(false)
+          }}
+          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
+            sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
+          }`}
+        >
+          <Tag size={14} />
+          <span>Z to A</span>
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
                 </div>
               </div>
             </div>
@@ -1673,6 +1812,16 @@ useEffect(() => {
           />
         )}
 
+        <CalendarModal
+          isOpen={calendarModal.isOpen}
+          onClose={handleCalendarClose}
+          onSave={handleCalendarSave}
+          initialDate={calendarModal.initialDate}
+          initialTime={calendarModal.initialTime}
+          initialReminder={calendarModal.initialReminder}
+          initialRepeat={calendarModal.initialRepeat}
+        />
+
 
         {/* sidebar related modals */}
         <Sidebar
@@ -1730,22 +1879,23 @@ useEffect(() => {
           handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
           onSaveSpecialNote={handleSaveSpecialNoteWrapper}
           notifications={notifications}
+          setTodos={setTodos}
         />
 
         {/* Sidebar related modals */}
-       <TrainingPlansModal
-                                                isOpen={isTrainingPlanModalOpen}
-                                                onClose={() => {
-                                                  setIsTrainingPlanModalOpen(false)
-                                                  setSelectedUserForTrainingPlan(null)
-                                                }}
-                                                selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-                                                memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-                                                availableTrainingPlans={availableTrainingPlans}
-                                                onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-                                                onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-                                              />
-      
+        <TrainingPlansModal
+          isOpen={isTrainingPlanModalOpen}
+          onClose={() => {
+            setIsTrainingPlanModalOpen(false)
+            setSelectedUserForTrainingPlan(null)
+          }}
+          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+          availableTrainingPlans={availableTrainingPlans}
+          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+        />
+
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}

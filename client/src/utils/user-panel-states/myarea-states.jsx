@@ -1,4 +1,5 @@
 import Rectangle1 from "../../../public/Rectangle 1.png"
+import PersonImage from '../../../public/avatar3.png'
 
 
 const today = new Date().toISOString().split('T')[0]; // Get today's date
@@ -268,6 +269,7 @@ export const appointmentsData = [
     {
         id: 1,
         name: "Yolanda",
+        lastName: "Dummy",
         time: "10:00 - 14:00",
         date: "Mon | 03-08-2025",
         color: "bg-[#4169E1]",
@@ -286,6 +288,7 @@ export const appointmentsData = [
     {
         id: 2,
         name: "Alexandra",
+        lastName: "Dummy",
         time: "10:00 - 18:00",
         date: "Tue | 04-02-2025",
         color: "bg-[#FF6B6B]",
@@ -304,6 +307,7 @@ export const appointmentsData = [
     {
         id: 3,
         name: "Marcus",
+        lastName: "Dummy",
         time: "14:00 - 16:00",
         date: "Wed | 05-02-2025",
         color: "bg-[#50C878]",
@@ -322,6 +326,7 @@ export const appointmentsData = [
     {
         id: 4,
         name: "John",
+        lastName: "Dummy",
         time: "14:00 - 16:00",
         date: "Thu | 06-02-2025",
         color: "bg-[#50C878]",
@@ -546,3 +551,133 @@ export const bulletinBoardData = [
   ];
 
    
+
+  export const demoNotifications = {
+    memberChat: [
+      {
+        id: "mc1",
+        type: "member_chat",
+        senderName: "John Smith",
+        senderAvatar: PersonImage,
+        message: "Hey, can I reschedule my session for tomorrow?",
+        time: "2 min ago",
+        isRead: false,
+        chatId: "chat_001",
+      },
+      {
+        id: "mc2",
+        type: "member_chat",
+        senderName: "Sarah Johnson",
+        senderAvatar: PersonImage,
+        message: "Thanks for the workout plan! Really enjoying it.",
+        time: "15 min ago",
+        isRead: false,
+        chatId: "chat_002",
+      },
+      {
+        id: "mc3",
+        type: "member_chat",
+        senderName: "Mike Wilson",
+        senderAvatar: PersonImage,
+        message: "Is the gym open on Sunday?",
+        time: "1 hour ago",
+        isRead: true,
+        chatId: "chat_003",
+      },
+    ],
+    studioChat: [
+      {
+        id: "sc1",
+        type: "studio_chat",
+        senderName: "Alex (Trainer)",
+        senderAvatar: PersonImage,
+        message: "New member orientation scheduled for 3 PM",
+        time: "5 min ago",
+        isRead: false,
+        chatId: "studio_001",
+      },
+      {
+        id: "sc2",
+        type: "studio_chat",
+        senderName: "Emma (Manager)",
+        senderAvatar: PersonImage,
+        message: "Equipment maintenance completed",
+        time: "30 min ago",
+        isRead: false,
+        chatId: "studio_002",
+      },
+      {
+        id: "sc3",
+        type: "studio_chat",
+        senderName: "David (Receptionist)",
+        senderAvatar: PersonImage,
+        message: "Front desk coverage needed tomorrow",
+        time: "2 hours ago",
+        isRead: true,
+        chatId: "studio_003",
+      },
+    ],
+    activityMonitor: [
+      {
+        id: "am1",
+        type: "activity_monitor",
+        activityType: "vacation",
+        title: "Vacation Request Pending",
+        description: "John Smith has requested vacation from Dec 15-20, 2024",
+        senderName: "John Smith",
+        senderAvatar: PersonImage,
+        time: "5 min ago",
+        isRead: false,
+        status: "pending",
+        actionRequired: true,
+        timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+        activityId: "activity_001",
+      },
+      {
+        id: "am2",
+        type: "activity_monitor",
+        activityType: "contract",
+        title: "Contract Expiring Soon",
+        description: "Sarah Johnson's contract expires in 3 days",
+        senderName: "System",
+        senderAvatar: PersonImage,
+        time: "1 hour ago",
+        isRead: false,
+        status: "pending",
+        actionRequired: true,
+        timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        activityId: "activity_002",
+      },
+      {
+        id: "am3",
+        type: "activity_monitor",
+        activityType: "appointment",
+        title: "Appointment Reminder",
+        description: "Mike Wilson has an appointment tomorrow at 2:00 PM",
+        senderName: "System",
+        senderAvatar: PersonImage,
+        time: "2 hours ago",
+        isRead: true,
+        status: "pending",
+        actionRequired: false,
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        activityId: "activity_003",
+      },
+      {
+        id: "am4",
+        type: "activity_monitor",
+        activityType: "email",
+        title: "Unread Important Email",
+        description: "New email from corporate regarding policy updates",
+        senderName: "Corporate",
+        senderAvatar: PersonImage,
+        time: "3 hours ago",
+        isRead: true,
+        status: "pending",
+        actionRequired: true,
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        activityId: "activity_004",
+      },
+    ],
+  }
+  

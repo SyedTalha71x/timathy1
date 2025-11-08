@@ -1132,11 +1132,10 @@ export default function AnalyticsDashboard() {
         className={`
       min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6
       transition-all duration-500 ease-in-out flex-1
-      ${
-        isRightSidebarOpen
-          ? "lg:mr-86 mr-0" // Adjust right margin when sidebar is open on larger screens
-          : "mr-0" // No margin when closed
-      }
+      ${isRightSidebarOpen
+            ? "lg:mr-86 mr-0" // Adjust right margin when sidebar is open on larger screens
+            : "mr-0" // No margin when closed
+          }
     `}
       >
         {isMobileMenuOpen && (
@@ -1148,14 +1147,13 @@ export default function AnalyticsDashboard() {
             <div className="flex items-center justify-between">
               <h1 className="text-white oxanium_font text-xl md:text-2xl">Analytics</h1>
 
-              {/* <IoIosMenu
-                onClick={toggleRightSidebar}
-                size={25}
-                className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-              /> */}
-              <div onClick={toggleRightSidebar}>
-            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-          </div>
+              {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="block ">
+                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+              ) : (<div onClick={toggleRightSidebar} className="block ">
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+              )}
             </div>
 
 
@@ -1166,11 +1164,10 @@ export default function AnalyticsDashboard() {
                   <button
                     key={tab.name}
                     onClick={() => setActiveTab(tab.name)}
-                    className={`flex items-center gap-2 px-4 ml-1 cursor-pointer  py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap shadow-lg ${
-                      activeTab === tab.name
-                        ? "bg-blue-600 text-white scale-105"
-                        : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F] hover:text-white"
-                    }`}
+                    className={`flex items-center gap-2 px-4 ml-1 cursor-pointer  py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap shadow-lg ${activeTab === tab.name
+                      ? "bg-blue-600 text-white scale-105"
+                      : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F] hover:text-white"
+                      }`}
                   >
                     <Icon className="text-lg" />
                     {tab.name}
@@ -1238,22 +1235,23 @@ export default function AnalyticsDashboard() {
           handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
           onSaveSpecialNote={handleSaveSpecialNoteWrapper}
           notifications={notifications}
+          setTodos={setTodos}
         />
 
         {/* Sidebar related modals */}
-       <TrainingPlansModal
-                                                isOpen={isTrainingPlanModalOpen}
-                                                onClose={() => {
-                                                  setIsTrainingPlanModalOpen(false)
-                                                  setSelectedUserForTrainingPlan(null)
-                                                }}
-                                                selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-                                                memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-                                                availableTrainingPlans={availableTrainingPlans}
-                                                onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-                                                onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-                                              />
-      
+        <TrainingPlansModal
+          isOpen={isTrainingPlanModalOpen}
+          onClose={() => {
+            setIsTrainingPlanModalOpen(false)
+            setSelectedUserForTrainingPlan(null)
+          }}
+          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+          availableTrainingPlans={availableTrainingPlans}
+          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+        />
+
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}

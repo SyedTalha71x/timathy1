@@ -1,7 +1,11 @@
+
 /* eslint-disable react/prop-types */
 import { X, Info, Trash2 } from "lucide-react"
 import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 import { toast } from "react-hot-toast"
+import { useState, useMemo } from "react"
+import { COUNTRIES } from "../../../utils/user-panel-states/members-states"
+
 
 const CreateTempMemberModal = ({
   show,
@@ -20,39 +24,60 @@ const CreateTempMemberModal = ({
   availableMembersLeadsMain,
   relationOptionsMain,
 }) => {
-  if (!show) return null
+  const [countryInput, setCountryInput] = useState(tempMemberForm.country || "")
+  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false)
+
+  const filteredCountries = useMemo(() => {
+    if (!countryInput) return []
+    return COUNTRIES.filter((country) => country.toLowerCase().startsWith(countryInput.toLowerCase())).slice(0, 5)
+  }, [countryInput])
+
+  const handleCountryChange = (e) => {
+    const value = e.target.value
+    setCountryInput(value)
+    setShowCountrySuggestions(true)
+    handleTempMemberInputChange({ target: { name: "country", value } })
+  }
+
+  const handleCountrySelect = (country) => {
+    setCountryInput(country)
+    setShowCountrySuggestions(false)
+    handleTempMemberInputChange({ target: { name: "country", value: country } })
+  }
 
   const handleFormSubmit = (e) => {
     e.preventDefault()
-    
+
     // Validate required fields from details section
     if (!tempMemberForm.firstName || !tempMemberForm.firstName.trim()) {
       toast.error("First Name is required")
       setTempMemberModalTab("details")
       return
     }
-    
+
     if (!tempMemberForm.lastName || !tempMemberForm.lastName.trim()) {
       toast.error("Last Name is required")
       setTempMemberModalTab("details")
       return
     }
-    
+
     if (!tempMemberForm.email || !tempMemberForm.email.trim()) {
       toast.error("Email is required")
       setTempMemberModalTab("details")
       return
     }
-    
+
     if (!tempMemberForm.phone || !tempMemberForm.phone.trim()) {
       toast.error("Phone is required")
       setTempMemberModalTab("details")
       return
     }
-    
+
     // If validation passes, proceed with creation
     handleCreateTempMember(e)
   }
+
+  if (!show) return null
 
   return (
     <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -219,16 +244,30 @@ const CreateTempMemberModal = ({
                   </select>
                 </div>
 
-                {/* Country */}
-                <div>
+                <div className="relative">
                   <label className="text-sm text-gray-200 block mb-2">Country</label>
                   <input
                     type="text"
-                    name="country"
-                    value={tempMemberForm.country}
-                    onChange={handleTempMemberInputChange}
+                    value={countryInput}
+                    onChange={handleCountryChange}
+                    onFocus={() => setShowCountrySuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowCountrySuggestions(false), 200)}
+                    placeholder="Type country name..."
                     className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
                   />
+                  {showCountrySuggestions && filteredCountries.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-[#222] border border-gray-600 rounded-xl mt-1 z-50 max-h-40 overflow-y-auto">
+                      {filteredCountries.map((country) => (
+                        <div
+                          key={country}
+                          onClick={() => handleCountrySelect(country)}
+                          className="px-4 py-2 text-white text-sm hover:bg-[#333] cursor-pointer"
+                        >
+                          {country}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Street */}
@@ -426,7 +465,9 @@ const CreateTempMemberModal = ({
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <select
                         value={newRelationMain.category}
-                        onChange={(e) => setNewRelationMain({ ...newRelationMain, category: e.target.value, relation: "" })}
+                        onChange={(e) =>
+                          setNewRelationMain({ ...newRelationMain, category: e.target.value, relation: "" })
+                        }
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
                         <option value="family">Family</option>
@@ -557,7 +598,10 @@ const CreateTempMemberModal = ({
             )}
 
             {/* Submit */}
-            <button type="submit" className="w-full bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-2 text-sm cursor-pointer transition-colors">
+            <button
+              type="submit"
+              className="w-full bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-2 text-sm cursor-pointer transition-colors"
+            >
               Create Temporary Member
             </button>
           </form>

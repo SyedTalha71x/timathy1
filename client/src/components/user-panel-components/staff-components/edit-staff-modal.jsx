@@ -1,7 +1,5 @@
-
-
 /* eslint-disable react/prop-types */
-import { X } from "lucide-react"
+import { X, Info } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
 
@@ -17,6 +15,7 @@ function EditStaffModal({
   const [editedStaff, setEditedStaff] = useState({
     ...staff,
     about: staff.description || staff.about || "", // Handle both field names
+    color: staff.color || "#3F74FF", // Default color
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
@@ -25,6 +24,10 @@ function EditStaffModal({
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setEditedStaff((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleColorChange = (e) => {
+    setEditedStaff((prev) => ({ ...prev, color: e.target.value }))
   }
 
   const handlePasswordToggle = () => {
@@ -80,6 +83,20 @@ function EditStaffModal({
               Change picture
             </label>
           </div>
+           {/* Staff Identification Color Field */}
+           <div>
+            <label className="text-sm text-gray-200 block mb-2">Staff Identification Color</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                name="color"
+                value={editedStaff.color}
+                onChange={handleColorChange}
+                className="w-12 h-12 bg-[#101010] rounded-xl cursor-pointer border border-gray-600"
+              />
+              <span className="text-sm text-gray-400">{editedStaff.color}</span>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-gray-200 block mb-2">First Name</label>
@@ -116,18 +133,19 @@ function EditStaffModal({
             />
           </div>
           <div>
-  <label className="text-sm text-gray-200 block mb-2">Gender</label>
-  <select
-    name="gender"
-    value={editedStaff.gender || ""}
-    onChange={handleInputChange}
-    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-    required
-  >
-    <option value="male">Male</option>
-    <option value="female">Female</option>
-  </select>
-</div>
+            <label className="text-sm text-gray-200 block mb-2">Gender</label>
+            <select
+              name="gender"
+              value={editedStaff.gender || ""}
+              onChange={handleInputChange}
+              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              required
+            >
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
           <div>
             <label className="text-sm text-gray-200 block mb-2">Email</label>
             <input
@@ -211,8 +229,21 @@ function EditStaffModal({
               <option value="employee">Employee</option>
             </select>
           </div>
+          
+         
+
+          {/* Vacation Entitlement with Info Icon */}
           <div>
-            <label className="text-sm text-gray-200 block mb-2">Vacation Entitlement (Days)</label>
+            <label className="text-sm text-gray-200 block mb-2 flex items-center gap-2">
+              Vacation Entitlement per Year (Days)
+              <div className="relative group">
+                <Info size={14} className="text-gray-400 cursor-help" />
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                  Changes will take effect next year
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                </div>
+              </div>
+            </label>
             <input
               type="number"
               name="vacationEntitlement"
@@ -222,6 +253,7 @@ function EditStaffModal({
               required
             />
           </div>
+
           <div>
             <label className="text-sm text-gray-200 block mb-2">About</label>
             <textarea

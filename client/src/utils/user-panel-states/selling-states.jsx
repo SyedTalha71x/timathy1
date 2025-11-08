@@ -61,6 +61,7 @@ export const productsMainData = [
       id: 1,
       date: "2024-01-15 14:30:22",
       member: "John Doe",
+      email: 'johndoe@gmail.com',
       memberType: "Full Member",
       items: [
         { name: "Premium Orange Sneakers", quantity: 2, price: 129.99, type: "Product" },
@@ -76,6 +77,7 @@ export const productsMainData = [
       id: 2,
       date: "2024-01-14 09:15:45",
       member: "No Member",
+      email: '',
       memberType: "N/A",
       items: [{ name: "Orange Athletic Shoes", quantity: 1, price: 189.5, type: "Product" }],
       totalAmount: 189.5,
@@ -89,6 +91,7 @@ export const productsMainData = [
       date: "2024-01-13 16:45:12",
       member: "Jane Smith",
       memberType: "Temporary Member",
+      email: 'janesmith@gmail.com',
       items: [
         { name: "Nutrition Consultation", quantity: 3, price: 50.0, type: "Service" },
         { name: "Premium Orange Sneakers", quantity: 1, price: 129.99, type: "Product" },

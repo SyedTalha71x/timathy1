@@ -21,17 +21,17 @@ import HistoryModal from "../../components/myarea-components/HistoryModal";
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal";
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal";
-import { useSidebarSystem } from "../../hooks/useSidebarSystem"; 
+import { useSidebarSystem } from "../../hooks/useSidebarSystem";
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal";
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal";
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal";
 
 const MarketingTable = () => {
   const navigate = useNavigate();
-  
+
   // Use the sidebar system hook
   const sidebarSystem = useSidebarSystem();
-  
+
   // Extract all states and functions from the hook
   const {
     // States
@@ -188,7 +188,7 @@ const MarketingTable = () => {
     renderSpecialNoteIcon,
 
     // new states 
-    customLinks,setCustomLinks, communications, setCommunications,
+    customLinks, setCustomLinks, communications, setCommunications,
     todos, setTodos, expiringContracts, setExpiringContracts,
     birthdays, setBirthdays, notifications, setNotifications,
     appointments, setAppointments,
@@ -472,16 +472,14 @@ const MarketingTable = () => {
               <div className="w-full flex justify-between items-center md:w-auto">
                 <h1 className="text-2xl oxanium_font text-white">Marketing</h1>
                 <div></div>
-                {/* <div className="md:hidden block">
-                  <IoIosMenu
-                    onClick={toggleRightSidebar}
-                    size={25}
-                    className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                  />
-                </div> */}
-                 <div onClick={toggleRightSidebar} className="cursor-pointer md:hidden block ">
-              <img src="/icon.svg" className="h-5 w-5" alt="menu" />
-            </div>
+
+                {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:hidden block ">
+                  <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                ) : (<div onClick={toggleRightSidebar} className="md:hidden block ">
+                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                )}
               </div>
               <div className="flex lg:flex-row flex-col lg:gap-4 items-center gap-2 w-full lg:w-auto">
                 <button
@@ -497,16 +495,14 @@ const MarketingTable = () => {
                   Date
                   <ChevronDown size={16} />
                 </button>
-                {/* <div className="md:block hidden">
-                  <IoIosMenu
-                    onClick={toggleRightSidebar}
-                    size={25}
-                    className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                  />
-                </div> */}
-                 <div onClick={toggleRightSidebar} className="cursor-pointer md:block hidden ">
-              <img src="/icon.svg" className="h-5 w-5" alt="menu" />
-            </div>
+
+                {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:block hidden ">
+                  <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                ) : (<div onClick={toggleRightSidebar} className="md:block hidden ">
+                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                )}
               </div>
 
               {isDateOpen && (
@@ -666,21 +662,22 @@ const MarketingTable = () => {
           handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
           onSaveSpecialNote={handleSaveSpecialNoteWrapper}
           notifications={notifications}
+          setTodos={setTodos}
         />
 
         {/* Sidebar related modals */}
         <TrainingPlansModal
-                             isOpen={isTrainingPlanModalOpen}
-                             onClose={() => {
-                               setIsTrainingPlanModalOpen(false)
-                               setSelectedUserForTrainingPlan(null)
-                             }}
-                             selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-                             memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-                             availableTrainingPlans={availableTrainingPlans}
-                             onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-                             onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-                           />
+          isOpen={isTrainingPlanModalOpen}
+          onClose={() => {
+            setIsTrainingPlanModalOpen(false)
+            setSelectedUserForTrainingPlan(null)
+          }}
+          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+          availableTrainingPlans={availableTrainingPlans}
+          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+        />
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}

@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/sidebar";
-import { Building2, Globe, X } from "lucide-react";
+import { Building2, Globe, X, History } from "lucide-react";
 import { useSidebarSystem } from "../hooks/useSidebarSystem";
 
 const Dashboardlayout = () => {
@@ -14,6 +14,7 @@ const Dashboardlayout = () => {
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
   const [isChangelogModalOpen, setIsChangelogModalOpen] = useState(false)
+  const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false)
   
   const toggleLanguageDropdown = () => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
 
@@ -25,6 +26,66 @@ const Dashboardlayout = () => {
     { code: "it", name: "Italian", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
   ]
 
+  // Sample activity log data
+  const activityLogs = [
+    {
+      id: 1,
+      action: "Appointment Created",
+      description: "Created new appointment for John Doe - Personal Training",
+      timestamp: "2024-12-15 14:30",
+      type: "appointment"
+    },
+    {
+      id: 2,
+      action: "Member Updated",
+      description: "Updated profile information for Sarah Smith",
+      timestamp: "2024-12-15 13:15",
+      type: "member"
+    },
+    {
+      id: 3,
+      action: "Contract Created",
+      description: "Created new 12-month contract for Mike Johnson",
+      timestamp: "2024-12-15 11:45",
+      type: "contract"
+    },
+    {
+      id: 4,
+      action: "Appointment Rescheduled",
+      description: "Rescheduled yoga class from 3 PM to 4 PM",
+      timestamp: "2024-12-15 10:20",
+      type: "appointment"
+    },
+    {
+      id: 5,
+      action: "Payment Processed",
+      description: "Processed monthly payment for Emily Brown",
+      timestamp: "2024-12-15 09:30",
+      type: "payment"
+    },
+    {
+      id: 6,
+      action: "Member Added",
+      description: "Added new member: Robert Wilson",
+      timestamp: "2024-12-14 16:45",
+      type: "member"
+    },
+    {
+      id: 7,
+      action: "Class Created",
+      description: "Created new HIIT class schedule",
+      timestamp: "2024-12-14 15:20",
+      type: "class"
+    },
+    {
+      id: 8,
+      action: "Contract Renewed",
+      description: "Renewed contract for Lisa Garcia",
+      timestamp: "2024-12-14 14:10",
+      type: "contract"
+    }
+  ]
+
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language.name)
     setIsLanguageDropdownOpen(false)
@@ -32,6 +93,10 @@ const Dashboardlayout = () => {
   }
 
   const toggleDropdownMain = () => setIsDropdownOpen(!isDropdownOpen)
+
+  const handleActivityLogClick = () => {
+    setIsActivityLogModalOpen(true)
+  }
 
   const studioName = "Studio One"
   const fullName = "Samantha"
@@ -78,6 +143,40 @@ const Dashboardlayout = () => {
     )
   }
 
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'appointment':
+        return '📅'
+      case 'member':
+        return '👤'
+      case 'contract':
+        return '📝'
+      case 'payment':
+        return '💳'
+      case 'class':
+        return '🏋️'
+      default:
+        return '📋'
+    }
+  }
+
+  const getActivityColor = (type) => {
+    switch (type) {
+      case 'appointment':
+        return 'border-blue-500'
+      case 'member':
+        return 'border-green-500'
+      case 'contract':
+        return 'border-purple-500'
+      case 'payment':
+        return 'border-yellow-500'
+      case 'class':
+        return 'border-orange-500'
+      default:
+        return 'border-gray-500'
+    }
+  }
+
 
   return (
     <>
@@ -99,15 +198,24 @@ const Dashboardlayout = () => {
   `}
           >
             <div
-              className="lg:flex hidden rounded-md justify-end bg-[#1f1e1e] z-10 p-2 mb-2 items-center gap-2"
+              className="lg:flex hidden rounded-md justify-start bg-[#1f1e1e] z-10 p-2 mb-2 items-center gap-2"
             >
               <div className="flex gap-1 items-center">
                 <div className="">
                   <div className="flex items-center gap-2 ">
                     <div className="flex items-center gap-1">
                       <h2 className="font-semibold text-white text-md leading-tight">{fullName}</h2>
-                      <span className="text-zinc-400 text-md font-medium">{role}</span>
+                      {/* <span className="text-zinc-400 text-md font-medium">{role}</span> */}
                     </div>
+
+                    {/* Activity Log Icon */}
+                    <button
+                      onClick={handleActivityLogClick}
+                      className="text-white bg-black rounded-xl border border-slate-600 py-2 px-4 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                      aria-label="Activity Log"
+                    >
+                      <History size={20} />
+                    </button>
 
                     {/* Studio Name */}
                     <div className="flex items-center  gap-1 bg-black py-1 px-3 rounded-md w-fit">
@@ -148,7 +256,7 @@ const Dashboardlayout = () => {
                   <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
                 </div>
                 {isDropdownOpen && (
-                  <div className="absolute right-8 top-17 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]  ">
+                  <div className="absolute right-[980px] top-17 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]  ">
                     <div className="py-2" role="menu">
                       <button
                         onClick={handleEditProfile}
@@ -195,6 +303,47 @@ const Dashboardlayout = () => {
 
 
       </div>
+
+      {/* Activity Log Modal */}
+      <Modal isOpen={isActivityLogModalOpen} onClose={() => setIsActivityLogModalOpen(false)} title="Activity Log">
+        <div className="text-zinc-300">
+          <div className="mb-6">
+            <p className="text-zinc-400 mb-4">Recent activities and actions performed on the platform</p>
+            
+            <div className="space-y-4">
+              {activityLogs.map((activity) => (
+                <div 
+                  key={activity.id} 
+                  className={`border-l-4 ${getActivityColor(activity.type)} pl-4 py-3 bg-[#222222] rounded-r-lg`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-lg">{getActivityIcon(activity.type)}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-white">{activity.action}</h4>
+                        <span className="text-xs text-zinc-400 bg-[#2a2a2a] px-2 py-1 rounded">
+                          {activity.timestamp}
+                        </span>
+                      </div>
+                      <p className="text-sm text-zinc-300 mt-1">{activity.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-6 pt-4 border-t border-zinc-700">
+            <p className="text-sm text-zinc-400">
+              Showing {activityLogs.length} recent activities
+            </p>
+            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm">
+              Load More
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       <Modal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} title="Terms & Conditions">
         <div className="text-zinc-300 space-y-6">
           <div>

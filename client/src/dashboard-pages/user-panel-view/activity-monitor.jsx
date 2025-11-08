@@ -43,6 +43,9 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
+import SidebarLogoLeft from '../../../public/expand-sidebar mirrored.svg'
+
+
 export default function ActivityMonitor() {
   const sidebarSystem = useSidebarSystem();
   const [selectedFilter, setSelectedFilter] = useState("all")
@@ -542,33 +545,38 @@ export default function ActivityMonitor() {
           transition-all duration-500 ease-in-out flex-1
           ${isRightSidebarOpen
           ? 'lg:mr-86 mr-0' // Adjust right margin when sidebar is open on larger screens
-          : 'mr-0' 
+          : 'mr-0'
         }
         `}>
         <div className="w-full mx-auto">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 sm:mb-8">
-  {/* Left side - Heading */}
-  <h1 className="text-xl sm:text-2xl font-bold text-white">Activity Monitor</h1>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 sm:mb-8">
+            {/* Left side - Heading */}
+            <h1 className="text-xl sm:text-2xl font-bold text-white">Activity Monitor</h1>
 
-  {/* Right side - Buttons and timestamp */}
-  <div className="flex items-center gap-3 sm:gap-4">
-    <div className="text-xs sm:text-sm text-gray-400">
-      Last updated: {lastRefresh.toLocaleTimeString()}
-    </div>
+            {/* Right side - Buttons and timestamp */}
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="text-xs sm:text-sm text-gray-400">
+                Last updated: {lastRefresh.toLocaleTimeString()}
+              </div>
 
-    <button
-      onClick={handleRefresh}
-      className="flex items-center justify-center gap-2 px-4 py-2 bg-[#161616] hover:bg-[#2F2F2F] rounded-xl transition-colors text-sm"
-    >
-      <RefreshCw size={16} />
-      <span className="hidden sm:inline">Refresh</span>
-    </button>
+              <button
+                onClick={handleRefresh}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#161616] hover:bg-[#2F2F2F] rounded-xl transition-colors text-sm"
+              >
+                <RefreshCw size={16} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
 
-    <div onClick={toggleRightSidebar} className="cursor-pointer">
-      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
-    </div>
-  </div>
-</div>
+              {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="block ">
+                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+              ) : (<div onClick={toggleRightSidebar} className="block ">
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+              )}
+
+            </div>
+          </div>
 
 
           {/* Summary Cards - Mobile Optimized */}
@@ -620,8 +628,8 @@ export default function ActivityMonitor() {
                     setShowArchived(false)
                   }}
                   className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${selectedFilter === "all" && !showArchived
-                      ? "bg-blue-600 text-white"
-                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                    ? "bg-blue-600 text-white"
+                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                     }`}
                 >
                   All Active ({counts.total})
@@ -649,8 +657,8 @@ export default function ActivityMonitor() {
                       setShowArchived(false)
                     }}
                     className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 flex-shrink-0 ${selectedFilter === type && !showArchived
-                        ? `${config.color} text-white`
-                        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                      ? `${config.color} text-white`
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                       }`}
                   >
                     <config.icon size={12} />
@@ -916,10 +924,10 @@ export default function ActivityMonitor() {
                               </div>
                               <span
                                 className={`px-2 py-1 rounded text-xs font-medium flex-shrink-0 ${contract.daysLeft <= 7
-                                    ? "bg-red-600"
-                                    : contract.daysLeft <= 14
-                                      ? "bg-yellow-600"
-                                      : "bg-orange-600"
+                                  ? "bg-red-600"
+                                  : contract.daysLeft <= 14
+                                    ? "bg-yellow-600"
+                                    : "bg-orange-600"
                                   } text-white`}
                               >
                                 {contract.daysLeft} days left
@@ -1110,21 +1118,22 @@ export default function ActivityMonitor() {
         handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
         onSaveSpecialNote={handleSaveSpecialNoteWrapper}
         notifications={notifications}
+        setTodos={setTodos}
       />
 
       {/* Sidebar related modals */}
       <TrainingPlansModal
-                             isOpen={isTrainingPlanModalOpen}
-                             onClose={() => {
-                               setIsTrainingPlanModalOpen(false)
-                               setSelectedUserForTrainingPlan(null)
-                             }}
-                             selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-                             memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-                             availableTrainingPlans={availableTrainingPlans}
-                             onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-                             onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-                           />
+        isOpen={isTrainingPlanModalOpen}
+        onClose={() => {
+          setIsTrainingPlanModalOpen(false)
+          setSelectedUserForTrainingPlan(null)
+        }}
+        selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+        availableTrainingPlans={availableTrainingPlans}
+        onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+        onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+      />
 
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}

@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { Check, X } from "lucide-react";
+import { Check, X, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const CheckFundsModal = ({
@@ -78,20 +78,29 @@ const CheckFundsModal = ({
     const currentStatus = transaction.status === "Check incoming funds" ? "Pending" : transaction.status;
     
     if (isSelected && transaction.status === "Check incoming funds") {
-      // Show the individual status for selected transactions
+      // Show dropdown for selected transactions
       const individualStatus = transactionStatuses[transaction.id] || "Successful";
-      const statusClass = individualStatus === "Successful" 
-        ? "text-green-400 bg-green-900/20 px-2 w-20 py-1 rounded-lg text-xs"
-        : "text-red-400 bg-red-900/20 px-2 py-1 w-20 rounded-lg text-xs";
       
       return (
-        <span className={statusClass}>
-          {individualStatus}
-        </span>
+        <div className="relative inline-block">
+          <select
+            value={individualStatus}
+            onChange={(e) => handleUpdateStatus(transaction.id, e.target.value)}
+            className={`px-2 py-1 pr-6 rounded-lg text-xs border-none outline-none cursor-pointer appearance-none ${
+              individualStatus === "Successful"
+                ? "text-green-400 bg-green-900/20"
+                : "text-red-400 bg-red-900/20"
+            }`}
+          >
+            <option value="Successful" className="bg-[#1C1C1C] text-green-400">Successful</option>
+            <option value="Failed" className="bg-[#1C1C1C] text-red-400">Failed</option>
+          </select>
+          <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-current" />
+        </div>
       );
     }
     
-    // Show current status
+    // Show current status as static text
     const statusClass = currentStatus === "Pending"
       ? "text-yellow-400 bg-yellow-900/20 px-2 py-1 rounded-lg text-xs"
       : currentStatus === "Successful"
@@ -104,40 +113,6 @@ const CheckFundsModal = ({
       <span className={statusClass}>
         {currentStatus}
       </span>
-    );
-  };
-
-  // Get status buttons for individual transaction
-  const getStatusButtons = (transaction) => {
-    if (!selectedTransactions[transaction.id] || transaction.status !== "Check incoming funds") {
-      return null;
-    }
-
-    const currentStatus = transactionStatuses[transaction.id] || "Successful";
-    
-    return (
-      <div className="flex gap-1 mt-1">
-        <button
-          onClick={() => handleUpdateStatus(transaction.id, "Successful")}
-          className={`px-2 py-1 rounded text-xs ${
-            currentStatus === "Successful"
-              ? "bg-green-900/50 text-green-400"
-              : "bg-[#141414] text-gray-300 hover:bg-black"
-          }`}
-        >
-          Successful
-        </button>
-        <button
-          onClick={() => handleUpdateStatus(transaction.id, "Failed")}
-          className={`px-2 py-1 rounded text-xs ${
-            currentStatus === "Failed"
-              ? "bg-red-900/50 text-red-400"
-              : "bg-[#141414] text-gray-300 hover:bg-black"
-          }`}
-        >
-          Failed
-        </button>
-      </div>
     );
   };
 
@@ -227,10 +202,7 @@ const CheckFundsModal = ({
                           {new Date(tx.date).toLocaleDateString()}
                         </td>
                         <td className="px-3 py-2">
-                          <div className="flex flex-col gap-1">
-                            {getStatusDisplay(tx)}
-                            {getStatusButtons(tx)}
-                          </div>
+                          {getStatusDisplay(tx)}
                         </td>
                         <td className="px-3 py-2 text-right">
                           {new Intl.NumberFormat("en-US", {

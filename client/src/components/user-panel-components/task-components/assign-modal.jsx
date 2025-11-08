@@ -1,10 +1,8 @@
-
-
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
-import { X, Check, Users } from "lucide-react"
+import { X, Check, Users, Briefcase, UserCheck } from "lucide-react"
 
 const AssignModal = ({ task, availableAssignees, availableRoles, onClose, onUpdate }) => {
   const [assignmentMode, setAssignmentMode] = useState("staff")
@@ -15,10 +13,14 @@ const AssignModal = ({ task, availableAssignees, availableRoles, onClose, onUpda
     setSelectedAssignees((prev) =>
       prev.includes(assigneeName) ? prev.filter((a) => a !== assigneeName) : [...prev, assigneeName],
     )
+    // Clear roles when assigning to staff
+    setSelectedRoles([])
   }
 
   const toggleRole = (role) => {
     setSelectedRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]))
+    // Clear staff when assigning to roles
+    setSelectedAssignees([])
   }
 
   const handleSave = () => {
@@ -77,7 +79,7 @@ const AssignModal = ({ task, availableAssignees, availableRoles, onClose, onUpda
                         isSelected ? "bg-[#FF843E]/20 border border-[#FF843E]" : "bg-[#1C1C1C] hover:bg-[#2F2F2F]"
                       }`}
                     >
-                      <Users size={14} />
+                       <UserCheck size={14} />
                       <span className="flex-1">{fullName}</span>
                       {isSelected && <Check size={14} className="text-[#FF843E]" />}
                     </button>
@@ -101,7 +103,7 @@ const AssignModal = ({ task, availableAssignees, availableRoles, onClose, onUpda
                         isSelected ? "bg-[#FF843E]/20 border border-[#FF843E]" : "bg-[#1C1C1C] hover:bg-[#2F2F2F]"
                       }`}
                     >
-                      <Users size={14} />
+                     <Briefcase size={14} />
                       <span className="flex-1">{role}</span>
                       {isSelected && <Check size={14} className="text-[#FF843E]" />}
                     </button>

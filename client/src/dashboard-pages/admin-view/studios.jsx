@@ -1,4 +1,3 @@
-"use client"
 
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"

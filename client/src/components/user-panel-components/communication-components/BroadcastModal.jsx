@@ -275,15 +275,15 @@ export default function BroadcastModal({
           {/* Recipient selector */}
           <div className="mb-4">
             <div className="relative">
-              <button
-                onClick={() => {
-                  setShowRecipientDropdown(!showRecipientDropdown)
-                  if (!showRecipientDropdown) setSearchMember("")
-                }}
-                className="w-full py-3 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
-              >
-                Select Recipients
-              </button>
+           
+              <div className="mb-2">
+                <button
+                  onClick={() => onCreateMessage && onCreateMessage()}
+                  className="w-full py-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2"
+                >
+                  Create New Push Template
+                </button>
+              </div>
               {showRecipientDropdown && (
                 <div
                   ref={recipientDropdownRef}
@@ -415,14 +415,15 @@ export default function BroadcastModal({
                 </div>
               </div>
 
-              <div className="mb-2">
-                <button
-                  onClick={() => onCreateMessage && onCreateMessage()}
-                  className="w-full py-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2"
-                >
-                  Create New Push Template
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setShowRecipientDropdown(!showRecipientDropdown)
+                  if (!showRecipientDropdown) setSearchMember("")
+                }}
+                className="w-full py-3 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
+              >
+                Select Recipients
+              </button>
             </div>
           )}
 

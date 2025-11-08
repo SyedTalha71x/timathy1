@@ -68,6 +68,10 @@ export default function LeadManagement() {
   const [leadToDeleteId, setLeadToDeleteId] = useState(null)
   const [selectedEditTab, setSelectedEditTab] = useState("details") // New state for EditLeadModal tab
 
+  const [selectedViewTab, setSelectedViewTab] = useState("details")
+
+
+
   const [isTrialAppointmentModalOpen, setIsTrialAppointmentModalOpen] = useState(false)
   const [isEditTrialModalOpen, setIsEditTrialModalOpen] = useState(false)
   const [isDeleteTrialConfirmationModalOpen, setIsDeleteTrialConfirmationModalOpen] = useState(false)
@@ -90,7 +94,7 @@ export default function LeadManagement() {
 
   const handleCreateNewTrial = (lead) => {
     setSelectedLead(lead)
-    setIsTrialAppointmentModalOpen(false) // Close the appointments modal
+    // setIsTrialAppointmentModalOpen(false) // Close the appointments modal
     setIsTrialModalOpen(true) // Open the add trial modal
   }
 
@@ -153,17 +157,19 @@ export default function LeadManagement() {
     setLeads(combinedLeads)
   }, [])
 
-  const handleViewLeadDetails = (lead) => {
+  const handleViewLeadDetails = (lead, tab = "details") => {
     setSelectedLead(lead)
+    setSelectedViewTab(tab) // Add this new state
     setIsViewDetailsModalOpen(true)
   }
+
 
   const handleAddTrialTraining = (lead) => {
     setSelectedLead(lead)
     setIsTrialModalOpen(true)
   }
 
-  const handleCreateContract = (lead) => {
+  const handleCreateContract = (lead) => {  
     setSelectedLead(lead)
     setIsCreateContractModalOpen(true)
   }
@@ -295,8 +301,6 @@ export default function LeadManagement() {
     targetColumnId: "",
     onSave: null,
   })
-
-  const [specialNoteText, setSpecialNoteText] = useState("") // State for the textarea value
 
   const handleDragStop = (e, data, lead, sourceColumnId, index) => {
     const draggedElem = e.target
@@ -448,7 +452,7 @@ export default function LeadManagement() {
     // Remove the lead from its current position
     const filteredLeads = updatedLeads.filter((l) => l.id !== lead.id)
 
-    // Update the lead's properties
+    // Update the lead's properties - PRESERVE EXISTING SPECIAL NOTE DATA
     const updatedLead = {
       ...leadToMove,
       columnId: targetColumnId,
@@ -456,10 +460,13 @@ export default function LeadManagement() {
       status: targetColumnId,
       dragVersion: 0,
       specialNote: {
-        text: specialNote.text,
-        isImportant: specialNote.isImportant,
-        startDate: specialNote.startDate,
-        endDate: specialNote.endDate,
+        // Merge new note data with existing note data
+        text: specialNote.text || leadToMove.specialNote?.text || "",
+        isImportant: specialNote.isImportant !== undefined ?
+          specialNote.isImportant :
+          leadToMove.specialNote?.isImportant || false,
+        startDate: specialNote.startDate || leadToMove.specialNote?.startDate || null,
+        endDate: specialNote.endDate || leadToMove.specialNote?.endDate || null,
       },
     }
 
@@ -472,9 +479,10 @@ export default function LeadManagement() {
     // Update localStorage
     const localStorageLeads = filteredLeads.filter((l) => l.source === "localStorage")
     localStorage.setItem("leads", JSON.stringify(localStorageLeads))
-    toast.success(`Lead moved to ${columns.find((c) => c.id === targetColumnId).title} with note`)
-  }
 
+    const targetColumnTitle = columns.find((c) => c.id === targetColumnId)?.title || targetColumnId
+    toast.success(`Lead moved to ${targetColumnTitle} with note`)
+  }
 
   const handleTrialModalClose = () => {
     setIsTrialModalOpen(false)
@@ -511,13 +519,13 @@ export default function LeadManagement() {
 
   const handleEditTrialAppointment = (appointment) => {
     setSelectedTrialAppointment(appointment)
-    setIsTrialAppointmentModalOpen(false)
+    // setIsTrialAppointmentModalOpen(false)
     setIsEditTrialModalOpen(true)
   }
 
   const handleDeleteTrialAppointment = (appointmentId) => {
     setAppointmentToDelete(appointmentId)
-    setIsTrialAppointmentModalOpen(false)
+    // setIsTrialAppointmentModalOpen(false)
     setIsDeleteTrialConfirmationModalOpen(true)
   }
 
@@ -899,36 +907,62 @@ export default function LeadManagement() {
     return getBillingPeriods(memberId, memberContingentData)
   }
 
+  // In the main LeadManagement component, add this function:
+  const handleEditNoteMain = (leadId, updatedNote) => {
+    const updatedLeads = leads.map((lead) =>
+      lead.id === leadId
+        ? {
+          ...lead,
+          specialNote: {
+            text: updatedNote.text || "",
+            isImportant: updatedNote.isImportant || false,
+            startDate: updatedNote.startDate || null,
+            endDate: updatedNote.endDate || null,
+          },
+          dragVersion: (lead.dragVersion || 0) + 1, // Force re-render
+        }
+        : lead
+    );
+
+    setLeads(updatedLeads);
+
+    // Update localStorage
+    const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage");
+    localStorage.setItem("leads", JSON.stringify(localStorageLeads));
+
+    toast.success("Note updated successfully");
+  };
+
   return (
     <div
       className={`
-      min-h-screen rounded-3xl p-6 bg-[#1C1C1C]
-      transition-all duration-300 ease-in-out flex-1
+        min-h-screen rounded-3xl p-6 bg-[#1C1C1C]
+        transition-all duration-300 ease-in-out flex-1
 
-    `}
+      `}
     >
       <style>
         {`
-          @keyframes wobble {
-            0%, 100% { transform: rotate(0deg); }
-            15% { transform: rotate(-1deg); }
-            30% { transform: rotate(1deg); }
-            45% { transform: rotate(-1deg); }
-            60% { transform: rotate(1deg); }
-            75% { transform: rotate(-1deg); }
-            90% { transform: rotate(1deg); }
-          }
-          .animate-wobble {
-            animation: wobble 0.5s ease-in-out infinite;
-          }
-          .dragging {
-            opacity: 0.5;
-            border: 2px dashed #fff;
-          }
-          .drag-over {
-            border: 2px dashed #888;
-          }
-        `}
+            @keyframes wobble {
+              0%, 100% { transform: rotate(0deg); }
+              15% { transform: rotate(-1deg); }
+              30% { transform: rotate(1deg); }
+              45% { transform: rotate(-1deg); }
+              60% { transform: rotate(1deg); }
+              75% { transform: rotate(-1deg); }
+              90% { transform: rotate(1deg); }
+            }
+            .animate-wobble {
+              animation: wobble 0.5s ease-in-out infinite;
+            }
+            .dragging {
+              opacity: 0.5;
+              border: 2px dashed #fff;
+            }
+            .drag-over {
+              border: 2px dashed #888;
+            }
+          `}
       </style>
       <Toaster
         position="top-right"
@@ -945,15 +979,19 @@ export default function LeadManagement() {
           <h1 className="text-xl sm:text-2xl text-white font-bold">Leads</h1>
           <div></div>
           {/* <div className="sm:hidden block">
-            <IoIosMenu
-              onClick={toggleRightSidebar}
-              size={25}
-              className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-            />
-          </div> */}
-             <div onClick={toggleRightSidebar} className="cursor-pointer sm:hidden block">
-      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
-    </div>
+              <IoIosMenu
+                onClick={toggleRightSidebar}
+                size={25}
+                className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
+              />
+            </div> */}
+          {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:hidden block ">
+            <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
+          ) : (<div onClick={toggleRightSidebar} className="md:hidden block ">
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
+          )}
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button
@@ -964,16 +1002,14 @@ export default function LeadManagement() {
             <span className="inline">Create Lead</span>
             {/* <span className="xs:hidden">Add</span> */}
           </button>
-          {/* <div className="sm:block hidden">
-            <IoIosMenu
-              onClick={toggleRightSidebar}
-              size={25}
-              className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-            />
-          </div> */}
-             <div onClick={toggleRightSidebar} className="cursor-pointer sm:block hidden">
-      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
-    </div>
+
+          {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:block hidden ">
+            <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
+          ) : (<div onClick={toggleRightSidebar} className="md:block hidden ">
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
+          )}
         </div>
       </div>
       <div className="mb-4 sm:mb-6 relative">
@@ -1007,6 +1043,7 @@ export default function LeadManagement() {
             setShowHistoryModalLead={setShowHistoryModalLead}
             setSelectedLead={setSelectedLead} // ADD THIS LINE - this was missing!
             onManageTrialAppointments={handleManageTrialAppointments}
+            onEditNote={handleEditNote}
           />
         ))}
       </div>
@@ -1039,11 +1076,15 @@ export default function LeadManagement() {
         onClose={() => {
           setIsViewDetailsModalOpen(false)
           setSelectedLead(null)
+          setSelectedViewTab("details") // Reset tab on close
         }}
         leadData={selectedLead}
         memberRelationsLead={memberRelationsLead}
-        onEditLead={handleEditLead} // Pass onEditLead
+        onEditLead={handleEditLead}
+        initialTab={selectedViewTab} // Pass the tab here
       />
+
+
       <TrialTrainingModal
         isOpen={isTrialModalOpen}
         onClose={handleTrialModalClose}
@@ -1272,6 +1313,7 @@ export default function LeadManagement() {
         handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
         onSaveSpecialNote={handleSaveSpecialNoteWrapper}
         notifications={notifications}
+        setTodos={setTodos}
       />
 
       {isRightSidebarOpen && (

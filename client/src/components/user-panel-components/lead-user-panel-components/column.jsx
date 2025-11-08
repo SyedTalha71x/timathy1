@@ -1,4 +1,4 @@
-import { Lock } from "lucide-react"
+import { Lock } from 'lucide-react'
 import LeadCard from "./lead-card"
 import { useState } from "react"
 
@@ -18,9 +18,10 @@ const Column = ({
   onEditColumn,
   columnRef,
   memberRelationsLead,
-  setShowHistoryModalLead, // Add this to the props
-  setSelectedLead, // Add this to the props - THIS WAS MISSING
+  setShowHistoryModalLead,
+  setSelectedLead,
   onManageTrialAppointments,
+  onEditNote,
 }) => {
   const isTrialColumn = id === "trial"
   const [draggingLeadId, setDraggingLeadId] = useState(null)
@@ -69,38 +70,38 @@ const Column = ({
         )}
       </div>
       <div
-  className="
+        className="
     p-2 sm:p-3 flex-1  custom-scrollbar
     min-h-[250px] sm:min-h-[400px] 
-    lg:min-h-[700px]   // ✅ ensures taller column on large screens
+    lg:min-h-[700px]
     overflow-y-auto 
-    max-h-[75vh]       // ✅ increases max height so more leads show
+    max-h-[75vh]
   "
->
-  {leads.map((lead, index) => (
-    <LeadCard
-      key={lead.id}
-      lead={lead}
-      onViewDetails={onViewDetails}
-      onAddTrial={onAddTrial}
-      onCreateContract={onCreateContract}
-      onEditLead={onEditLead}
-      onDeleteLead={onDeleteLead}
-      columnId={id}
-      onDragStop={(e, data, leadData, sourceColumnId, leadIndex) => {
-        setDraggingLeadId(null)
-        onDragStop(e, data, leadData, sourceColumnId, leadIndex)
-      }}
-      index={index}
-      memberRelationsLead={memberRelationsLead}
-      setShowHistoryModalLead={setShowHistoryModalLead}
-      setSelectedLead={setSelectedLead}
-      onManageTrialAppointments={onManageTrialAppointments}
-    />
-  ))}
-</div>
-
-
+      >
+        {leads.map((lead, index) => (
+          <LeadCard
+            key={lead.id}
+            lead={lead}
+            onViewDetails={onViewDetails}
+            onAddTrial={onAddTrial}
+            onCreateContract={onCreateContract}
+            onEditLead={onEditLead}
+            onDeleteLead={onDeleteLead}
+            columnId={id}
+            onDragStop={(e, data, leadData, sourceColumnId, leadIndex, draggedNode) => {
+              setDraggingLeadId(null)
+              // <CHANGE> Pass draggedNode to parent to handle intra-column reordering
+              onDragStop(e, data, leadData, sourceColumnId, leadIndex, draggedNode)
+            }}
+            index={index}
+            memberRelationsLead={memberRelationsLead}
+            setShowHistoryModalLead={setShowHistoryModalLead}
+            setSelectedLead={setSelectedLead}
+            onManageTrialAppointments={onManageTrialAppointments}
+            onEditNote={onEditNote}
+          />
+        ))}
+      </div>
     </div>
   )
 }

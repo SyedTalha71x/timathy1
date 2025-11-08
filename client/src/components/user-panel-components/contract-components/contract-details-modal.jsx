@@ -12,6 +12,12 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel, han
     window.print()
   }
 
+  const handleHistoryClick = (contractId) => {
+    // Close the current modal first, then open history
+    onClose()
+    handleHistoryModal(contractId)
+  }
+
   const handleDownloadPDF = () => {
     // In a real implementation, this would generate and download a PDF
     alert("Downloading contract as PDF...")
@@ -88,7 +94,7 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel, han
                 Go to member
               </button>
               <button
-                onClick={() => handleHistoryModal(contract.id)}
+              onClick={() => handleHistoryClick(contract.id)}
                 className="text-white cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center flex-1 sm:flex-none sm:w-12"
               >
                 <HistoryIcon size={16} />
@@ -128,21 +134,7 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel, han
               </div>
             </div>
 
-            {/* <div className="flex gap-2 pt-4">
-              <button
-                onClick={onPause}
-                className="py-2 px-5 bg-black text-white text-sm rounded-xl border border-gray-800"
-              >
-                Pause contract
-              </button>
-
-              <button
-                onClick={onCancel}
-                className="py-2 px-5 bg-black text-red-500 cursor-pointer text-sm rounded-xl border border-gray-800"
-              >
-                Cancel contract
-              </button>
-            </div> */}
+          
           </div>
         )}
       </div>

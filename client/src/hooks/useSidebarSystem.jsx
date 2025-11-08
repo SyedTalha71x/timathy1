@@ -19,9 +19,14 @@ import {
   notificationData,
   todosData,
 } from "../utils/user-panel-states/myarea-states"
+import { createPortal } from "react-dom"
 
 export const useSidebarSystem = () => {
   const navigate = useNavigate()
+
+
+  const [hoveredNoteId, setHoveredNoteId] = useState(null)
+  const [hoverTimeout, setHoverTimeout] = useState(null)
 
   // ===== SIDEBAR STATES =====
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -147,6 +152,7 @@ export const useSidebarSystem = () => {
     { id: "birthday", type: "birthday", position: 7 },
     { id: "bulletinBoard", type: "bulletinBoard", position: 8 },
     { id: "notes", type: "notes", position: 9 },
+    { id: "sidebarShiftSchedule", type: "shiftSchedule", position: 10 }
 
   ])
 
@@ -161,6 +167,7 @@ export const useSidebarSystem = () => {
     { id: "bulletinBoard", type: "bulletinBoard", position: 7 },
     { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 8 },
     { id: "notes", type: "notes", position: 9 },
+    { id: "sidebarShiftSchedule", type: "shiftSchedule", position: 10 }
   ])
 
   // Training Plans States
@@ -718,19 +725,55 @@ export const useSidebarSystem = () => {
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
-
+  
       const handleNoteClick = (e) => {
         e.stopPropagation()
         setActiveNoteId(activeNoteId === memberId ? null : memberId)
       }
-
+  
+      const handleMouseEnter = (e) => {
+        e.stopPropagation()
+        // Clear any existing timeout
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          setHoverTimeout(null)
+        }
+        
+        // Set a small delay before showing to prevent flickering
+        const timeout = setTimeout(() => {
+          setHoveredNoteId(memberId)
+        }, 300)
+        setHoverTimeout(timeout)
+      }
+  
+      const handleMouseLeave = (e) => {
+        e.stopPropagation()
+        // Clear the timeout if mouse leaves before delay
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          setHoverTimeout(null)
+        }
+        setHoveredNoteId(null)
+      }
+  
+      const handleEditClick = (e) => {
+        e.stopPropagation()
+        setActiveNoteId(null) // Close the note popover
+        setHoveredNoteId(null) // Close hover popover
+        handleEditNote(memberId, specialNote) // Open the edit modal
+      }
+  
+      // Determine if we should show the popover (either clicked or hovered)
+      const shouldShowPopover = activeNoteId === memberId || hoveredNoteId === memberId
+  
       return (
         <div className="relative">
           <div
-            className={`${
-              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer transition-all duration-200 hover:scale-110`}
             onClick={handleNoteClick}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
             {specialNote.isImportant ? (
               <AlertTriangle size={18} className="text-white" />
@@ -738,65 +781,119 @@ export const useSidebarSystem = () => {
               <Info size={18} className="text-white" />
             )}
           </div>
-
-          {activeNoteId === memberId && (
-            <div
-              ref={notePopoverRef}
-              className="absolute left-0 top-6 w-74 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
-            >
-              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {specialNote.isImportant ? (
-                  <AlertTriangle className="text-red-500 shrink-0" size={18} />
-                ) : (
-                  <Info className="text-blue-500 shrink-0" size={18} />
-                )}
-                <h4 className="text-white flex text-sm gap-1 items-center font-medium">
-                  <div>Special Note</div>
-                  <div className="text-sm text-gray-400">
-                    {specialNote.isImportant ? "(Important)" : "(Unimportant)"}
-                  </div>
-                </h4>
-                <button
-                  onClick={() => handleEditNote(memberId, specialNote)}
-                  className="ml-auto text-gray-400 hover:text-white mr-2"
-                >
-                  <Edit size={16} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setActiveNoteId(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-                {specialNote.startDate && specialNote.endDate ? (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
-                      {new Date(specialNote.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Always valid
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
+  
+          {shouldShowPopover && (
+            createPortal(
+              <div
+                ref={notePopoverRef}
+                className="fixed w-74 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999]"
+                style={{
+                  top: (() => {
+                    const trigger = document.querySelector(`[data-note-trigger="${memberId}"]`);
+                    if (!trigger) return '50%';
+                    const rect = trigger.getBoundingClientRect();
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    const popoverHeight = 200; // approximate height
+  
+                    // If not enough space below, show above
+                    if (spaceBelow < popoverHeight && rect.top > popoverHeight) {
+                      return `${rect.top - popoverHeight - 8}px`;
+                    }
+                    return `${rect.bottom + 8}px`;
+                  })(),
+                  left: (() => {
+                    const trigger = document.querySelector(`[data-note-trigger="${memberId}"]`);
+                    if (!trigger) return '50%';
+                    const rect = trigger.getBoundingClientRect();
+                    const popoverWidth = 296; // w-74 = 296px
+  
+                    // Keep within viewport
+                    let left = rect.left;
+                    if (left + popoverWidth > window.innerWidth) {
+                      left = window.innerWidth - popoverWidth - 16;
+                    }
+                    if (left < 16) left = 16;
+  
+                    return `${left}px`;
+                  })(),
+                }}
+                onMouseEnter={() => {
+                  // Keep open when hovering over popover
+                  if (hoveredNoteId === memberId) {
+                    setHoveredNoteId(memberId)
+                  }
+                }}
+                onMouseLeave={() => {
+                  // Only close if it was opened via hover (not click)
+                  if (hoveredNoteId === memberId) {
+                    setHoveredNoteId(null)
+                  }
+                }}
+              >
+                <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                  {specialNote.isImportant ? (
+                    <AlertTriangle className="text-red-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex text-sm gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400">
+                      {specialNote.isImportant ? "(Important)" : ""}
+                    </div>
+                  </h4>
+                  <button
+                    onClick={handleEditClick}
+                    className="ml-auto text-gray-400 hover:text-white mr-2 transition-colors"
+                    title="Edit Note"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveNoteId(null)
+                      setHoveredNoteId(null)
+                    }}
+                    className="text-gray-400 hover:text-white transition-colors"
+                    title="Close"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="p-3">
+                  <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
+                  {specialNote.startDate && specialNote.endDate ? (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <CalendarIcon size={12} />
+                        Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                        {new Date(specialNote.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <CalendarIcon size={12} />
+                        Always valid
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>,
+              document.body
+            )
           )}
+          
+          {/* Add data attribute to the trigger for positioning */}
+          <div 
+            data-note-trigger={memberId}
+            className="hidden"
+          />
         </div>
       )
     },
-    [activeNoteId, setActiveNoteId],
+    [activeNoteId, setActiveNoteId, hoveredNoteId, hoverTimeout, handleEditNote],
   )
 
   const todoFilterOptions = [

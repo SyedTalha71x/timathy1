@@ -1,22 +1,42 @@
 
-
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { X, AlertTriangle, Info } from "lucide-react"
-import { useState } from "react"
-import toast from "react-hot-toast"
+import { useEffect, useState } from "react"
 
-const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLead, onEditLead }) => {
-  const [activeTab, setActiveTab] = useState("details")
+const ViewLeadDetailsModal = ({
+  isVisible,
+  onClose,
+  leadData,
+  memberRelationsLead,
+  onEditLead,
+  initialTab = "details",
+}) => {
+  const [activeTab, setActiveTab] = useState(initialTab)
+
+  // IMPORTANT: Update tab whenever initialTab changes
+  useEffect(() => {
+    setActiveTab(initialTab)
+  }, [initialTab])
+
+  // Reset to details when modal closes
+  useEffect(() => {
+    if (!isVisible) {
+      setActiveTab("details")
+    }
+  }, [isVisible])
 
   if (!isVisible || !leadData) return null
 
   const handleEditRelations = () => {
-    // Close the view modal and open the edit modal
     onClose()
-    onEditLead(leadData)
+    onEditLead(leadData, "relations")
   }
-  
+
+  const handleEditNote = () => {
+    onClose()
+    onEditLead(leadData, "note")
+  }
+
   const getSourceColor = (source) => {
     const sourceColors = {
       Website: "bg-blue-900 text-blue-300",
@@ -33,15 +53,12 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
   }
 
   return (
-    <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
+    <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-white open_sans_font_700 text-lg font-semibold">Lead Details</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white"
-            >
+            <h2 className="text-white text-lg font-semibold">Lead Details</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={20} className="cursor-pointer" />
             </button>
           </div>
@@ -67,7 +84,9 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
             <button
               onClick={() => setActiveTab("relations")}
               className={`px-4 py-2 text-sm font-medium ${
-                activeTab === "relations" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                activeTab === "relations"
+                  ? "text-blue-400 border-b-2 border-blue-400"
+                  : "text-gray-400 hover:text-white"
               }`}
             >
               Relations
@@ -171,11 +190,7 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
               )}
               <div className="flex justify-end mt-6">
                 <button
-                  onClick={() => {
-                    onClose()
-                    onEditLead(leadData)
-                    // Note: You may need to add setEditModalTab("note") if this functionality exists
-                  }}
+                  onClick={handleEditNote}
                   className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
                 >
                   Edit Note
@@ -196,15 +211,11 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
                   </div>
                   {/* Connection Lines and Categories */}
                   <div className="relative w-full">
-                    {/* Horizontal line */}
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
-                    {/* Category sections */}
                     <div className="grid grid-cols-5 gap-4 pt-8">
                       {Object.entries(memberRelationsLead[leadData.id] || {}).map(([category, relations]) => (
                         <div key={category} className="flex flex-col items-center space-y-4">
-                          {/* Vertical line */}
                           <div className="w-0.5 h-8 bg-gray-600"></div>
-                          {/* Category header */}
                           <div
                             className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
                               category === "family"
@@ -220,7 +231,6 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
                           >
                             {category}
                           </div>
-                          {/* Relations in this category */}
                           <div className="space-y-2">
                             {relations.map((relation) => (
                               <div
@@ -230,11 +240,6 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
                                     ? "border border-blue-500/30"
                                     : ""
                                 }`}
-                                onClick={() => {
-                                  if (relation.type === "member" || relation.type === "lead") {
-                                    toast.info(`Clicked on ${relation.name} (${relation.type})`)
-                                  }
-                                }}
                               >
                                 <div className="text-white text-sm font-medium">{relation.name}</div>
                                 <div className="text-gray-400 text-xs">({relation.relation})</div>
@@ -278,11 +283,6 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
                                   ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
                                   : ""
                               }`}
-                              onClick={() => {
-                                if (relation.type === "member" || relation.type === "lead") {
-                                  toast.info(`Clicked on ${relation.name} (${relation.type})`)
-                                }
-                              }}
                             >
                               <div>
                                 <span className="text-white font-medium">{relation.name}</span>
@@ -309,18 +309,16 @@ const ViewLeadDetailsModal = ({ isVisible, onClose, leadData, memberRelationsLea
                   ))}
                 </div>
               </div>
-              <div className="flex justify-end mt-6">
-                <button
-                  onClick={() => {
-                    onClose()
-                    onEditLead(leadData)
-                    // Note: You may need to add setEditModalTab("relations") if this functionality exists
-                  }}
-                  className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
-                >
-                  Edit Relations
-                </button>
-              </div>
+            </div>
+          )}
+          {activeTab === "relations" && (
+            <div className="flex-shrink-0 bg-[#1C1C1C] p-4 md:p-6 border-t border-gray-700 mt-6">
+              <button
+                onClick={handleEditRelations}
+                className="w-full bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
+              >
+                Edit Relations
+              </button>
             </div>
           )}
         </div>

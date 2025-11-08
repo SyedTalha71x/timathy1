@@ -2,7 +2,6 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
 import { Toaster } from "react-hot-toast"
-import { IoIosMenu } from "react-icons/io"
 
 import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
@@ -25,10 +24,19 @@ import CreateBulletinModal from "../../components/user-panel-components/bulletin
 import EditBulletinModal from "../../components/user-panel-components/bulletin-board-components/EditBulletinBoard"
 import DeleteBulletinModal from "../../components/user-panel-components/bulletin-board-components/DeleteBulletinBoard"
 import ViewBulletinModal from "../../components/user-panel-components/bulletin-board-components/ViewBulletinBoard"
-
+import TagManagerModal from "../../components/user-panel-components/bulletin-board-components/TagManagerModal"
+import { MdOutlineZoomOutMap } from "react-icons/md"
 
 const BulletinBoard = () => {
   const sidebarSystem = useSidebarSystem()
+
+  const [tags, setTags] = useState([
+    { id: 1, name: "Important", color: "#FF6B6B" },
+    { id: 2, name: "Update", color: "#4ECDC4" },
+    { id: 3, name: "Announcement", color: "#FFE66D" },
+  ])
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
+
   const [posts, setPosts] = useState([
     {
       id: 1,
@@ -39,6 +47,8 @@ const BulletinBoard = () => {
       author: "Admin",
       createdAt: new Date().toLocaleDateString(),
       createdBy: "current-user",
+      image: "https://png.pngtree.com/png-clipart/20190515/original/pngtree-announcement-icon-png-image_3660817.jpg",
+      tags: [],
     },
   ])
 
@@ -56,6 +66,8 @@ const BulletinBoard = () => {
     content: "",
     visibility: "Members",
     status: "Active",
+    image: null,
+    tags: [],
   })
 
   const [editFormData, setEditFormData] = useState({
@@ -63,7 +75,23 @@ const BulletinBoard = () => {
     content: "",
     visibility: "Members",
     status: "Active",
+    image: null,
+    tags: [],
   })
+
+  const handleAddTag = (newTag) => {
+    setTags([...tags, newTag])
+  }
+
+  const handleDeleteTag = (tagId) => {
+    setTags(tags.filter((tag) => tag.id !== tagId))
+    setPosts(
+      posts.map((post) => ({
+        ...post,
+        tags: post.tags.filter((id) => id !== tagId),
+      })),
+    )
+  }
 
   const handleCreatePost = () => {
     if (createFormData.title.trim() && createFormData.content.trim()) {
@@ -75,7 +103,7 @@ const BulletinBoard = () => {
         createdBy: "current-user",
       }
       setPosts([newPost, ...posts])
-      setCreateFormData({ title: "", content: "", visibility: "Members", status: "Active" })
+      setCreateFormData({ title: "", content: "", visibility: "Members", status: "Active", image: null, tags: [] })
       setShowCreateModal(false)
     }
   }
@@ -101,6 +129,8 @@ const BulletinBoard = () => {
       content: post.content,
       visibility: post.visibility,
       status: post.status,
+      image: post.image,
+      tags: post.tags || [],
     })
     setShowEditModal(true)
   }
@@ -116,7 +146,6 @@ const BulletinBoard = () => {
     return visibilityMatch && statusMatch
   })
 
-  // Extract all states and functions from the hook
   const {
     isRightSidebarOpen,
     isSidebarEditing,
@@ -525,18 +554,13 @@ const BulletinBoard = () => {
                   </svg>
                   <span className="hidden sm:inline">Create Post</span>
                 </button>
-                {/* <div>
-                  <div className="block">
-                    <IoIosMenu
-                      onClick={toggleRightSidebar}
-                      size={26}
-                      className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md sm:text-[20px] md:text-[22px]"
-                    />
-                  </div>
-                </div> */}
-                 <div onClick={toggleRightSidebar} className="">
-            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-          </div>
+                {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="block ">
+                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+              ) : (<div onClick={toggleRightSidebar} className="block ">
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+              )}
               </div>
             </div>
           </div>
@@ -571,105 +595,132 @@ const BulletinBoard = () => {
           </div>
 
           <div
-  className={`grid grid-cols-1 md:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-3"} gap-6`}
->
-  {filteredPosts.map((post) => (
-    <div
-      key={post.id}
-      className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-6 hover:shadow-xl hover:border-gray-700 transition-all duration-200 h-64 flex flex-col"
-    >
-      <div className="flex items-start justify-between mb-4 flex-shrink-0">
-        <div className="flex-1 min-w-0"> {/* Added min-w-0 for proper text wrapping */}
-          {/* Title with proper text wrapping */}
-          <h3 className="text-lg font-semibold text-white mb-2 break-words whitespace-normal overflow-hidden">
-            {post.title}
-          </h3>
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${post.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-gray-500/10 text-gray-400 border border-gray-500/20"}`}
-            >
-              {post.status}
-            </span>
-            <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-medium">
-              {post.visibility}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Content area with proper text wrapping */}
-      <div className="flex-1 overflow-hidden mb-4 min-h-0">
-        <div className="h-full ">
-          <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-wrap">
-            {post.content.slice(0,60)}...
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between pt-4 border-t border-gray-800 flex-shrink-0">
-        <div className="text-xs text-gray-500">
-          <p className="font-medium text-gray-400">By {post.author}</p>
-          <p>{post.createdAt}</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setViewingPost(post)}
-            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
-            title="View full post"
+            className={`grid grid-cols-1 md:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-3"} gap-6`}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
-          </button>
+            {filteredPosts.map((post) => (
+              <div
+                key={post.id}
+                className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-6 hover:shadow-xl hover:border-gray-700 transition-all duration-200 flex flex-col"
+              >
+                {post.image && (
+                  <div className="relative mb-4 rounded-lg overflow-hidden border border-gray-700 h-32">
+                    <img src={post.image || "/placeholder.svg"} alt="Post" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => setViewingPost(post)}
+                      className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded transition-colors"
+                      title="Expand image"
+                    >
+                                     <MdOutlineZoomOutMap />
+                    </button>
+                  </div>
+                )}
 
-          {post.createdBy === "current-user" && (
-            <>
-              <button
-                onClick={() => openEditModal(post)}
-                className="text-blue-400 hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-gray-800"
-                title="Edit post"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-              </button>
-              <button
-                onClick={() => openDeleteModal(post)}
-                className="text-red-400 hover:text-red-300 transition-colors p-2 rounded-lg hover:bg-gray-800"
-                title="Delete post"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
+                <div className="flex items-start justify-between mb-4 flex-shrink-0">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-white mb-2 break-words whitespace-normal overflow-hidden">
+                      {post.title}
+                    </h3>
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${post.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-gray-500/10 text-gray-400 border border-gray-500/20"}`}
+                      >
+                        {post.status}
+                      </span>
+                      <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-medium">
+                        {post.visibility}
+                      </span>
+                      {post.tags && post.tags.length > 0 && (
+                        <div className="flex gap-1 flex-wrap">
+                          {post.tags.map((tagId) => {
+                            const tag = tags.find((t) => t.id === tagId)
+                            return tag ? (
+                              <span
+                                key={tag.id}
+                                className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                                style={{ backgroundColor: tag.color }}
+                              >
+                                {tag.name}
+                              </span>
+                            ) : null
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-hidden mb-4 min-h-0">
+                  <div className="h-full ">
+                    <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                      {post.content.slice(0, 60)}...
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-800 flex-shrink-0">
+                  <div className="text-xs text-gray-500">
+                    <p className="font-medium text-gray-400">By {post.author}</p>
+                    <p>{post.createdAt}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setViewingPost(post)}
+                      className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
+                      title="View full post"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    </button>
+
+                    {post.createdBy === "current-user" && (
+                      <>
+                        <button
+                          onClick={() => openEditModal(post)}
+                          className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
+                          title="Edit post"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(post)}
+                          className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
+                          title="Delete post"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
           {filteredPosts.length === 0 && (
             <div className="text-center py-16">
@@ -699,25 +750,28 @@ const BulletinBoard = () => {
         </div>
 
         <CreateBulletinModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        formData={createFormData}
-        setFormData={setCreateFormData}
-        onCreate={handleCreatePost}
-      />
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          formData={createFormData}
+          setFormData={setCreateFormData}
+          onCreate={handleCreatePost}
+          availableTags={tags}
+          onOpenTagManager={() => setIsTagManagerOpen(true)}
+        />
 
-
-<EditBulletinModal
-  isOpen={showEditModal}
-  onClose={() => {
-    setShowEditModal(false)
-    setSelectedPost(null)
-    setEditFormData({ title: "", content: "", visibility: "Members", status: "Active" }) // Reset on close
-  }}
-  formData={editFormData}
-  setFormData={setEditFormData}
-  onSave={handleEditPost}
-/>
+        <EditBulletinModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false)
+            setSelectedPost(null)
+            setEditFormData({ title: "", content: "", visibility: "Members", status: "Active", image: null, tags: [] })
+          }}
+          formData={editFormData}
+          setFormData={setEditFormData}
+          onSave={handleEditPost}
+          availableTags={tags}
+          onOpenTagManager={() => setIsTagManagerOpen(true)}
+        />
 
         <DeleteBulletinModal
           isOpen={showDeleteModal}
@@ -726,7 +780,20 @@ const BulletinBoard = () => {
           onDelete={handleDeletePost}
         />
 
-        <ViewBulletinModal isOpen={!!viewingPost} onClose={() => setViewingPost(null)} post={viewingPost} />
+        <ViewBulletinModal
+          isOpen={!!viewingPost}
+          onClose={() => setViewingPost(null)}
+          post={viewingPost}
+          allTags={tags}
+        />
+
+        <TagManagerModal
+          isOpen={isTagManagerOpen}
+          onClose={() => setIsTagManagerOpen(false)}
+          tags={tags}
+          onAddTag={handleAddTag}
+          onDeleteTag={handleDeleteTag}
+        />
 
         <Sidebar
           isRightSidebarOpen={isRightSidebarOpen}
@@ -783,6 +850,7 @@ const BulletinBoard = () => {
           handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
           onSaveSpecialNote={handleSaveSpecialNoteWrapper}
           notifications={notifications}
+          setTodos={setTodos}
         />
 
         <TrainingPlansModal

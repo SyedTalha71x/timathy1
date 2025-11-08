@@ -3,8 +3,8 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { MdOutlineHelpCenter } from "react-icons/md"
-import { FaPeopleLine } from "react-icons/fa6"
+import { MdOutlineHelpCenter, MdOutlineMessage } from "react-icons/md"
+import { FaNotesMedical, FaPeopleLine } from "react-icons/fa6"
 import { FaCartPlus } from "react-icons/fa"
 
 import {
@@ -23,7 +23,12 @@ import {
   Globe,
   ClipboardList,
   Building2,
+  History,
 } from "lucide-react"
+import { HiOutlineUsers } from "react-icons/hi2";
+import { IoFitnessOutline } from "react-icons/io5";
+
+
 import { RiContractLine } from "react-icons/ri"
 import { CiMonitor } from "react-icons/ci"
 import { IoIosCheckmarkCircleOutline } from "react-icons/io";
@@ -34,6 +39,8 @@ import { TbBrandGoogleAnalytics } from "react-icons/tb"
 
 import { BadgeDollarSign } from "lucide-react"
 import { CgGym } from "react-icons/cg"
+
+import OrgaGymLogoWihoutText from '../../public/Orgagym white without text.svg'
 
 const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -48,9 +55,11 @@ const Sidebar = () => {
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
   const [isChangelogModalOpen, setIsChangelogModalOpen] = useState(false)
+  const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false)
 
   const [isProductivityHubOpen, setIsProductivityHubOpen] = useState(false)
-  const [isMembersOpen, setisMembersOpen] = useState(false)
+  const [isMemberAreaOpen, setIsMemberAreaOpen] = useState(false)
+  const [isFitnessHubOpen, setIsFitnessHubOpen] = useState(false)
 
   const languages = [
     { code: "en", name: "English", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Flag_of_the_United_States.png/1024px-Flag_of_the_United_States.png" },
@@ -58,6 +67,66 @@ const Sidebar = () => {
     { code: "fr", name: "French", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/1280px-Flag_of_France.svg.png" },
     { code: "es", name: "Spanish", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Flag_of_Spain.svg/1280px-Flag_of_Spain.svg.png" },
     { code: "it", name: "Italian", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
+  ]
+
+  // Sample activity log data
+  const activityLogs = [
+    {
+      id: 1,
+      action: "Appointment Created",
+      description: "Created new appointment for John Doe - Personal Training",
+      timestamp: "2024-12-15 14:30",
+      type: "appointment"
+    },
+    {
+      id: 2,
+      action: "Member Updated",
+      description: "Updated profile information for Sarah Smith",
+      timestamp: "2024-12-15 13:15",
+      type: "member"
+    },
+    {
+      id: 3,
+      action: "Contract Created",
+      description: "Created new 12-month contract for Mike Johnson",
+      timestamp: "2024-12-15 11:45",
+      type: "contract"
+    },
+    {
+      id: 4,
+      action: "Appointment Rescheduled",
+      description: "Rescheduled yoga class from 3 PM to 4 PM",
+      timestamp: "2024-12-15 10:20",
+      type: "appointment"
+    },
+    {
+      id: 5,
+      action: "Payment Processed",
+      description: "Processed monthly payment for Emily Brown",
+      timestamp: "2024-12-15 09:30",
+      type: "payment"
+    },
+    {
+      id: 6,
+      action: "Member Added",
+      description: "Added new member: Robert Wilson",
+      timestamp: "2024-12-14 16:45",
+      type: "member"
+    },
+    {
+      id: 7,
+      action: "Class Created",
+      description: "Created new HIIT class schedule",
+      timestamp: "2024-12-14 15:20",
+      type: "class"
+    },
+    {
+      id: 8,
+      action: "Contract Renewed",
+      description: "Renewed contract for Lisa Garcia",
+      timestamp: "2024-12-14 14:10",
+      type: "contract"
+    }
   ]
 
   const studioName = "Studio One"
@@ -73,12 +142,17 @@ const Sidebar = () => {
   const toggleLanguageDropdown = () => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
   const toggleCommunication = () => setIsCommunicationOpen(!isCommunicationOpen)
   const toggleProductivityHub = () => setIsProductivityHubOpen(!isProductivityHubOpen)
-  const toggleMembers = () => setisMembersOpen(!isMembersOpen)
+  const toggleMemberArea = () => setIsMemberAreaOpen(!isMemberAreaOpen)
+  const toggleFitnessHub = () => setIsFitnessHubOpen(!isFitnessHubOpen)
 
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language.name)
     setIsLanguageDropdownOpen(false)
     console.log("Language selected:", language)
+  }
+
+  const handleActivityLogClick = () => {
+    setIsActivityLogModalOpen(true)
   }
 
   useEffect(() => {
@@ -122,6 +196,40 @@ const Sidebar = () => {
     window.location.href = "/login"
   }
 
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'appointment':
+        return '📅'
+      case 'member':
+        return '👤'
+      case 'contract':
+        return '📝'
+      case 'payment':
+        return '💳'
+      case 'class':
+        return '🏋️'
+      default:
+        return '📋'
+    }
+  }
+
+  const getActivityColor = (type) => {
+    switch (type) {
+      case 'appointment':
+        return 'border-blue-500'
+      case 'member':
+        return 'border-green-500'
+      case 'contract':
+        return 'border-purple-500'
+      case 'payment':
+        return 'border-yellow-500'
+      case 'class':
+        return 'border-orange-500'
+      default:
+        return 'border-gray-500'
+    }
+  }
+
 
   const menuItems = [
     { icon: Home, label: "My Area", to: "/dashboard/my-area" },
@@ -136,7 +244,9 @@ const Sidebar = () => {
       to: "/dashboard/communication",
       hasSubmenu: true,
       submenu: [
-        { label: "Messenger", to: "/dashboard/communication", icon: MessageCircle },
+        {
+          label: "Messenger", to: "/dashboard/communication", icon: MdOutlineMessage
+        },
         { label: "Bulletin Board", to: "/dashboard/bulletin-board", icon: ClipboardList },
       ],
     },
@@ -148,28 +258,33 @@ const Sidebar = () => {
       submenu: [
         { label: "Activity Monitor", to: "/dashboard/activity-monitor", icon: CiMonitor },
         { label: "To-Do", to: "/dashboard/to-do", icon: CheckSquare },
-        { label: "Notes", to: "/dashboard/notes", icon: ClipboardList },
+        { label: "Notes", to: "/dashboard/notes", icon: FaNotesMedical },
       ],
     },
     {
-      icon: Users, label: "Manage Members", to: "#", hasSubmenu: true,
+      icon: Users, label: "Member Area", to: "#", hasSubmenu: true,
       submenu: [
-        { label: "Members", to: "/dashboard/members", icon: Users },
+        { label: "Members", to: "/dashboard/members", icon: HiOutlineUsers },
         { label: "Check In", to: "/dashboard/members-checkin", icon: IoIosCheckmarkCircleOutline },
+        { label: "Contracts", to: "/dashboard/contract", icon: RiContractLine },
       ],
     },
     { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
     { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
-    { icon: RiContractLine, label: "Contracts", to: "/dashboard/contract" },
     { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
     { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
     { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
 
     { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
     {
-      icon: CgGym,
-      label: "Training",
-      to: "/dashboard/training",
+      icon: IoFitnessOutline,
+      label: "Fitness Hub",
+      to: "#",
+      hasSubmenu: true,
+      submenu: [
+        { label: "Training", to: "/dashboard/training", icon: CgGym },
+        { label: "Assessment", to: "/dashboard/assessment", icon: CheckSquare },
+      ],
     },
 
     {
@@ -205,45 +320,50 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between lg:hidden z-40">
+      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-40">
         {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={toggleSidebar} />}
 
-        <div className="flex items-center gap-3">
-          <div className=" bg-orange-500 p-4 rounded-md">
-            <img src="/Orgagym white.svg" className="h-10 w-10" alt="Orgagym Logo" />
+        <div className="flex items-center gap-2">
+          <div className="bg-orange-500 p-2 rounded-md">
+            <img src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
           </div>
-          {/* <div onClick={toggleSidebar}>
-            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-          </div> */}
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-lg text-white hover:bg-zinc-700"
+            className="p-1.5 rounded-lg text-white hover:bg-zinc-700"
             aria-label="Toggle Sidebar"
           >
-            <Menu size={24} />
+            <Menu size={20} />
           </button>
         </div>
-        <div className="flex gap-1 items-center">
 
-          <div className="relative mr-2">
+        <div className="flex gap-1 items-center">
+          {/* Activity Log Icon for Mobile */}
+          <button
+            onClick={handleActivityLogClick}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-[#2a2a2a] cursor-pointer flex items-center transition-colors"
+            aria-label="Activity Log"
+          >
+            <History size={18} />
+          </button>
+
+          <div className="relative mr-1">
             <button
               onClick={toggleLanguageDropdown}
-              className="p-2 px-3 rounded-xl text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center gap-1"
+              className="p-1.5 px-2 rounded-lg text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center"
               aria-label="Language Selection"
             >
-              <Globe size={20} />
+              <Globe size={18} />
             </button>
             {isLanguageDropdownOpen && (
-              <div className="absolute right-0 top-12 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
-                <div className="py-2" role="menu">
+              <div className="absolute right-0 top-10 w-36 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+                <div className="py-1" role="menu">
                   {languages.map((language) => (
                     <button
                       key={language.code}
                       onClick={() => handleLanguageSelect(language)}
-                      className={` w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-3 ${selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
-                        }`}
+                      className={`w-full px-3 py-1.5 text-xs text-left hover:bg-zinc-700 flex items-center gap-2 ${selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"}`}
                     >
-                      <img src={language.flag} className="h- rounded-sm w-8" />
+                      <img src={language.flag} className="h-5 rounded-sm w-6" />
                       <span>{language.name}</span>
                     </button>
                   ))}
@@ -252,65 +372,65 @@ const Sidebar = () => {
             )}
           </div>
 
-          <div onClick={toggleDropdown} className="flex items-center gap-1 cursor-pointer">
-            <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
+          <div onClick={toggleDropdown} className="flex items-center cursor-pointer">
+            <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-7 h-7 rounded-md" />
           </div>
+
           {isDropdownOpen && (
-            <div className="absolute right-5 top-13 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
-              <div className="p-2">
+            <div className="absolute right-3 top-11 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+              <div className="p-1.5">
                 <div className="flex flex-col">
                   {/* Trainer Name and Role */}
                   <div className="flex flex-col">
-                    <h2 className="font-semibold text-white text-sm leading-tight">{fullName}</h2>
+                    <h2 className="font-semibold text-white text-xs leading-tight">{fullName}</h2>
                     <span className="text-zinc-400 text-xs font-medium">{role}</span>
                   </div>
 
                   {/* Studio Name */}
-                  <div className="flex items-center mt-2 gap-1 bg-black py-1 px-3 rounded-md w-fit">
-                    <Building2 size={14} className="text-white" />
+                  <div className="flex items-center mt-1 gap-1 bg-black py-1 px-2 rounded w-fit">
+                    <Building2 size={12} className="text-white" />
                     <p className="text-xs font-medium text-white">{studioName}</p>
                   </div>
                 </div>
               </div>
 
               {/* Menu Items */}
-              <div className="py-2" role="menu">
+              <div className="py-1" role="menu">
                 <button
                   onClick={handleEditProfile}
-                  className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
                 >
                   Edit Profile
                 </button>
                 <hr className="border-zinc-600 my-1" />
                 <button
                   onClick={handlePrivacyPolicy}
-                  className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
                 >
                   Privacy Policy
                 </button>
                 <button
                   onClick={handleTermsOfUse}
-                  className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
                 >
                   Terms & Conditions
                 </button>
                 <button
                   onClick={handleChangelog}
-                  className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
                 >
                   Changelog
                 </button>
                 <hr className="border-zinc-600 my-1" />
                 <button
                   onClick={handleLogout}
-                  className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
                 >
                   Logout
                 </button>
               </div>
             </div>
           )}
-
         </div>
       </div>
 
@@ -328,7 +448,7 @@ const Sidebar = () => {
             <div className={`flex ${isCollapsed ? "justify-center" : "justify-center"} items-center w-full`}>
               {isCollapsed ? (
                 <div className="w-full bg-orange-500 flex items-center justify-center p-4">
-                  <img src="/Orgagym white.svg" className="h-auto w-auto max-w-full" alt="Orgagym Logo" />
+                  <img src={OrgaGymLogoWihoutText} className="h-auto w-auto max-w-full" alt="Orgagym Logo" />
                 </div>
               ) : (
                 <div className="w-full bg-orange-500 flex items-center justify-center p-4">
@@ -371,9 +491,9 @@ const Sidebar = () => {
                       <button
                         onClick={() => {
                           if (item.label === "Communication") toggleCommunication();
-                          if (item.label === "Manage Members") toggleMembers();
-                          if (item.label === "Productivity Hub")
-                            toggleProductivityHub();
+                          if (item.label === "Member Area") toggleMemberArea();
+                          if (item.label === "Productivity Hub") toggleProductivityHub();
+                          if (item.label === "Fitness Hub") toggleFitnessHub();
                         }}
                         className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full ${isCollapsed ? "justify-center" : "text-left"
                           } group transition-all duration-500 ${location.pathname.startsWith(item.to) && item.to !== "#"
@@ -404,10 +524,10 @@ const Sidebar = () => {
                             <span>{item.label}</span>
                             <ChevronRight
                               size={16}
-                              className={`transition-transform ${(item.label === "Communication" &&
-                                isCommunicationOpen) || (item.label === "Manage Members" && isMembersOpen) ||
-                                (item.label === "Productivity Hub" &&
-                                  isProductivityHubOpen)
+                              className={`transition-transform ${(item.label === "Communication" && isCommunicationOpen) ||
+                                (item.label === "Member Area" && isMemberAreaOpen) ||
+                                (item.label === "Productivity Hub" && isProductivityHubOpen) ||
+                                (item.label === "Fitness Hub" && isFitnessHubOpen)
                                 ? "rotate-90"
                                 : ""
                                 }`}
@@ -418,8 +538,9 @@ const Sidebar = () => {
 
                       {/* Submenu */}
                       {((item.label === "Communication" && isCommunicationOpen) ||
-                        (item.label === "Manage Members" && isMembersOpen) ||
-                        (item.label === "Productivity Hub" && isProductivityHubOpen)) && (
+                        (item.label === "Member Area" && isMemberAreaOpen) ||
+                        (item.label === "Productivity Hub" && isProductivityHubOpen) ||
+                        (item.label === "Fitness Hub" && isFitnessHubOpen)) && (
                           <ul className={`${isCollapsed ? 'ml-0' : 'ml-2'} mt-1 space-y-2`}>
                             {item.submenu.map((subItem) => (
                               <li key={subItem.label}>
@@ -432,7 +553,13 @@ const Sidebar = () => {
                                     }`}
                                 >
                                   <div className="relative flex items-center gap-3">
-                                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                                    {/* L-shaped indicator */}
+                                    <div className="relative">
+                                      <div className={`w-4 h-4 flex items-center justify-center ${location.pathname === subItem.to ? "text-white" : "text-zinc-400 group-hover:text-white"}`}>
+                                        <div className={`absolute left-0 top-0 w-0.5 h-2.5 ${location.pathname === subItem.to ? "bg-white" : "bg-zinc-400 group-hover:bg-white"} rounded-full`}></div>
+                                        <div className={`absolute left-0 top-0 w-2.5 h-0.5 ${location.pathname === subItem.to ? "bg-white" : "bg-zinc-400 group-hover:bg-white"} rounded-full`}></div>
+                                      </div>
+                                    </div>
                                     <subItem.icon
                                       size={20}
                                       className={`cursor-pointer ${location.pathname === subItem.to
@@ -506,6 +633,45 @@ const Sidebar = () => {
         </div>
       </aside>
 
+      {/* Activity Log Modal */}
+      <Modal isOpen={isActivityLogModalOpen} onClose={() => setIsActivityLogModalOpen(false)} title="Activity Log">
+        <div className="text-zinc-300">
+          <div className="mb-6">
+            <p className="text-zinc-400 mb-4">Recent activities and actions performed on the platform</p>
+
+            <div className="space-y-4">
+              {activityLogs.map((activity) => (
+                <div
+                  key={activity.id}
+                  className={`border-l-4 ${getActivityColor(activity.type)} pl-4 py-3 bg-[#222222] rounded-r-lg`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-lg">{getActivityIcon(activity.type)}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-white">{activity.action}</h4>
+                        <span className="text-xs text-zinc-400 bg-[#2a2a2a] px-2 py-1 rounded">
+                          {activity.timestamp}
+                        </span>
+                      </div>
+                      <p className="text-sm text-zinc-300 mt-1">{activity.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-6 pt-4 border-t border-zinc-700">
+            <p className="text-sm text-zinc-400">
+              Showing {activityLogs.length} recent activities
+            </p>
+            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm">
+              Load More
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} title="Terms & Conditions">
         <div className="text-zinc-300 space-y-6">

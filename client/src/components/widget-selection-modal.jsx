@@ -1,6 +1,10 @@
 /* eslint-disable react/prop-types */
 import { FileText, X } from "lucide-react"
 import { BarChart3, Calendar, Users, Link, CheckSquare, Gift, Clipboard } from "lucide-react"
+import { RiContractLine } from "react-icons/ri";
+import { MdOutlineSchedule } from "react-icons/md";
+
+
 
 export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus, widgetArea = "dashboard" }) {
   if (!isOpen) return null
@@ -16,7 +20,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       id: "expiringContracts",
       name: "Expiring Contracts",
       description: "Track contracts nearing expiration",
-      icon: Calendar,
+      icon: RiContractLine,
     },
     {
       id: "appointments",
@@ -60,6 +64,12 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       description: "Create and manage personal notes",
       icon: FileText,
     },
+    {
+      id: "shiftSchedule",
+      name: "Shift Schedule",
+      description: "View and manage staff shift schedules",
+      icon: MdOutlineSchedule,
+    }
   ]
 
   const sidebarWidgets = [
@@ -92,7 +102,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       id: "expiringContracts",
       name: "Expiring Contracts",
       description: "Track contracts nearing expiration",
-      icon: Calendar,
+      icon: RiContractLine,
     },
     {
       id: "appointments",
@@ -118,6 +128,12 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       description: "Create and manage personal notes",
       icon: FileText,
     },
+    {
+      id: "shiftSchedule",
+      name: "Shift Schedule",
+      description: "View and manage staff shift schedules",
+      icon: MdOutlineSchedule,
+    }
   ]
 
   // Select widgets based on the area

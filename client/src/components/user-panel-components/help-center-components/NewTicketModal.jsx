@@ -1,8 +1,80 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { ImageIcon } from "lucide-react"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { List, X } from "react-feather"
+import ReactQuill from "react-quill"
 
+const WysiwygEditor = ({ value, onChange, placeholder }) => {
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      [{ 'color': [] }, { 'background': [] }],
+      ['link', 'image'],
+      ['clean']
+    ],
+  }
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'align',
+    'color', 'background',
+    'link', 'image'
+  ]
+
+  // Add custom CSS for placeholder
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .ql-editor.ql-blank::before {
+        color: #ffffff !important;
+        opacity: 0.7 !important;
+        font-style: normal !important;
+      }
+      .ql-editor {
+        color: #ffffff !important;
+      }
+      .ql-toolbar {
+        border-color: #303030 !important;
+        background-color: #151515 !important;
+      }
+      .ql-container {
+        border-color: #303030 !important;
+        background-color: #101010 !important;
+      }
+      .ql-snow .ql-stroke {
+        stroke: #ffffff !important;
+      }
+      .ql-snow .ql-fill {
+        fill: #ffffff !important;
+      }
+      .ql-snow .ql-picker-label {
+        color: #ffffff !important;
+      }
+    `
+    document.head.appendChild(style)
+
+    return () => {
+      document.head.removeChild(style)
+    }
+  }, [])
+
+  return (
+    <ReactQuill
+      value={value}
+      onChange={onChange}
+      modules={modules}
+      formats={formats}
+      placeholder={placeholder}
+      theme="snow"
+    />
+  )
+}
 const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
     const [subject, setSubject] = useState("")
     const [reason, setReason] = useState("")
@@ -10,9 +82,11 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
     const [uploadedImages, setUploadedImages] = useState([])
     const [isBold, setIsBold] = useState(false)
     const [isItalic, setIsItalic] = useState(false)
+    const [requesterName, setRequesterName] = useState("")
+    const [requesterEmail, setRequesterEmail] = useState("")
     const textareaRef = useRef(null)
     const fileInputRef = useRef(null)
-  
+
     const subjects = [
       { value: "", label: "Select a Subject" },
       { value: "appointments", label: "Appointments" },
@@ -28,7 +102,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
       { value: "analytics", label: "Analytics" },
       { value: "configuration", label: "Configuration" },
     ]
-  
+
     const reasons = {
       appointments: [
         { value: "", label: "Select a Reason" },
@@ -115,39 +189,39 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
         { value: "setup_assistance", label: "Setup Assistance" },
       ],
     }
-  
+
     const handleSubjectChange = (e) => {
       setSubject(e.target.value)
       setReason("")
     }
-  
+
     const handleReasonChange = (e) => {
       setReason(e.target.value)
     }
-  
+
     const toggleBold = () => {
       setIsBold(!isBold)
     }
-  
+
     const toggleItalic = () => {
       setIsItalic(!isItalic)
     }
-  
+
     const addBulletPoint = () => {
       const textarea = textareaRef.current
       if (!textarea) return
-  
+
       const start = textarea.selectionStart
       const text = textarea.value
       const lines = text.split("\n")
       const currentLineIndex = text.substring(0, start).split("\n").length - 1
-  
+
       if (!lines[currentLineIndex].startsWith("• ")) {
         lines[currentLineIndex] = "• " + lines[currentLineIndex]
         setAdditionalDescription(lines.join("\n"))
       }
     }
-  
+
     const handleImageUpload = (e) => {
       const files = Array.from(e.target.files)
       files.forEach((file) => {
@@ -158,27 +232,29 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
         reader.readAsDataURL(file)
       })
     }
-  
+
     const removeImage = (index) => {
       setUploadedImages((prev) => prev.filter((_, i) => i !== index))
     }
-  
+
     const handleSubmit = () => {
-      if (subject && reason) {
-        onSubmit(subject, reason, additionalDescription, uploadedImages, isBold, isItalic)
+      if (subject && reason && requesterName && requesterEmail) {
+        onSubmit(subject, reason, additionalDescription, uploadedImages, isBold, isItalic, requesterName, requesterEmail)
         setSubject("")
         setReason("")
         setAdditionalDescription("")
         setUploadedImages([])
         setIsBold(false)
         setIsItalic(false)
+        setRequesterName("")
+        setRequesterEmail("")
       } else {
-        alert("Please select both a subject and a reason.")
+        alert("Please fill in all required fields: Subject, Reason, Requester Name, and Requester Email.")
       }
     }
-  
+
     if (!isOpen) return null
-  
+
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
         <div className="bg-[#1C1C1C] rounded-lg sm:rounded-xl p-4 sm:p-6 w-full max-w-md mx-2 sm:mx-0 relative max-h-[95vh] overflow-y-auto">
@@ -189,14 +265,37 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
             <X size={18} className="sm:w-5 sm:h-5" />
           </button>
           <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6 text-center pr-6">Create New Ticket</h2>
-  
-          <div className="space-y-4 sm:space-y-6">
+
+          <div className="space-y-4 sm:space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+            {/* Requester Fields */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Subject</label>
+              <label className="block text-sm font-medium text-white mb-2">Requester Name *</label>
+              <input
+                type="text"
+                value={requesterName}
+                onChange={(e) => setRequesterName(e.target.value)}
+                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF]"
+                placeholder="Enter requester name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">Requester Email *</label>
+              <input
+                type="email"
+                value={requesterEmail}
+                onChange={(e) => setRequesterEmail(e.target.value)}
+                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF]"
+                placeholder="Enter requester email"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">Subject *</label>
               <select
                 value={subject}
                 onChange={handleSubjectChange}
-                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none"
+                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF]"
               >
                 {subjects.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -205,14 +304,14 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
                 ))}
               </select>
             </div>
-  
+
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Reason</label>
+              <label className="block text-sm font-medium text-white mb-2">Reason *</label>
               <select
                 value={reason}
                 onChange={handleReasonChange}
                 disabled={!subject}
-                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {subject ? (
                   reasons[subject].map((option) => (
@@ -225,83 +324,55 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
                 )}
               </select>
             </div>
-  
+
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Additional description</label>
-              <div className="border border-gray-600 rounded-lg sm:rounded-xl overflow-hidden bg-[#101010]">
-                <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-[#2A2A2A] border-b border-gray-600">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-1 hover:bg-gray-700 rounded text-gray-300"
-                    title="Add image"
-                  >
-                    <ImageIcon size={14} className="sm:w-4 sm:h-4" />
-                  </button>
-                  <button
-                    onClick={toggleBold}
-                    className={`px-1.5 py-1 hover:bg-gray-700 rounded font-bold text-xs sm:text-sm ${
-                      isBold ? "bg-gray-700 text-white" : "text-gray-300"
-                    }`}
-                    title="Bold"
-                  >
-                    B
-                  </button>
-                  <button
-                    onClick={toggleItalic}
-                    className={`px-1.5 py-1 hover:bg-gray-700 rounded italic text-xs sm:text-sm ${
-                      isItalic ? "bg-gray-700 text-white" : "text-gray-300"
-                    }`}
-                    title="Italic"
-                  >
-                    I
-                  </button>
-                  <button
-                    onClick={addBulletPoint}
-                    className="p-1 hover:bg-gray-700 rounded text-gray-300"
-                    title="Add list"
-                  >
-                    <List size={14} className="sm:w-4 sm:h-4" />
-                  </button>
-                </div>
+  <label className="block text-sm font-medium text-white mb-2">Additional description</label>
   
-                {uploadedImages.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-2 bg-[#101010]">
-                    {uploadedImages.map((img, idx) => (
-                      <div key={idx} className="relative">
-                        <img src={img || "/placeholder.svg"} alt="Preview" className="w-20 h-20 object-cover rounded" />
-                        <button
-                          onClick={() => removeImage(idx)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-  
-                <textarea
-                  ref={textareaRef}
-                  value={additionalDescription}
-                  onChange={(e) => setAdditionalDescription(e.target.value)}
-                  placeholder="Provide additional details about your issue..."
-                  style={{
-                    fontWeight: isBold ? "bold" : "normal",
-                    fontStyle: isItalic ? "italic" : "normal",
-                  }}
-                  className="w-full bg-[#101010] text-sm px-3 sm:px-4 py-2 sm:py-2.5 text-white placeholder-gray-500 outline-none min-h-[60px] sm:min-h-[80px] resize-none"
-                />
-              </div>
-            </div>
-  
+  {/* Image upload section - keep this above the editor */}
+  <div className="mb-3">
+    <input
+      type="file"
+      ref={fileInputRef}
+      onChange={handleImageUpload}
+      accept="image/*"
+      multiple
+      className="hidden"
+    />
+    <button
+      onClick={() => fileInputRef.current?.click()}
+      className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+    >
+      <ImageIcon size={16} />
+      Attach Images
+    </button>
+    
+    {uploadedImages.length > 0 && (
+      <div className="flex flex-wrap gap-2 mt-2">
+        {uploadedImages.map((img, idx) => (
+          <div key={idx} className="relative">
+            <img src={img || "/placeholder.svg"} alt="Preview" className="w-20 h-20 object-cover rounded border border-gray-600" />
+            <button
+              onClick={() => removeImage(idx)}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* WYSIWYG Editor */}
+  <div className="border border-gray-600 rounded-lg overflow-hidden bg-[#101010]">
+    <WysiwygEditor
+      value={additionalDescription}
+      onChange={setAdditionalDescription}
+      placeholder="Provide additional details about your issue..."
+    />
+  </div>
+</div>
+
             <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
               <button
                 onClick={onClose}
@@ -312,7 +383,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
               <button
                 onClick={handleSubmit}
                 className="w-full sm:w-auto px-4 py-2 text-sm rounded-md sm:rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
-                disabled={!subject || !reason}
+                disabled={!subject || !reason || !requesterName || !requesterEmail}
               >
                 Submit Ticket
               </button>
@@ -321,6 +392,6 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
         </div>
       </div>
     )
-  }
+}
 
-  export default NewTicketModal
+export default NewTicketModal

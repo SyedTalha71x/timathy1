@@ -15,11 +15,10 @@ import {
   ChevronDown,
   ChevronUp,
   Dumbbell,
+  Edit,
 } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
-import { IoIosMenu } from "react-icons/io"
-import { useNavigate } from "react-router-dom"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
@@ -55,12 +54,9 @@ import TrainingPlansModal from "../../components/myarea-components/TrainingPlanM
 import { createPortal } from "react-dom"
 import TrainingPlansModalMain from "../../components/user-panel-components/appointments-components/training-plan-modal"
 import MemberOverviewModalMain from "../../components/user-panel-components/appointments-components/calendar-components/MemberOverviewModalMain"
+import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
 
-
-const SpecialNotePortal = ({ children, isOpen }) => {
-  if (!isOpen) return null;
-  return createPortal(children, document.body);
-};
+import SidebarLogoLeft from '../../../public/expand-sidebar mirrored.svg'
 
 export default function Appointments() {
   const sidebarSystem = useSidebarSystem();
@@ -73,6 +69,10 @@ export default function Appointments() {
   const [selectedDate, setSelectedDate] = useState(null)
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
 
+
+
+  const [hoveredNoteId, setHoveredNoteId] = useState(null)
+  const [hoverTimeout, setHoverTimeout] = useState(null)
 
   const [selectedAppointmentMain, setSelectedAppointmentMain] = useState(null)
 
@@ -93,7 +93,7 @@ export default function Appointments() {
   const [isEditAppointmentModalOpenMain, setisEditAppointmentModalOpenMain] = useState(false)
 
   // FIXED: Added collapsible states for filters and upcoming appointments
-  const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false)
+  const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(true)
   const [isUpcomingCollapsed, setIsUpcomingCollapsed] = useState(false)
 
   // new stats for fumbell and member overview modals
@@ -106,6 +106,8 @@ export default function Appointments() {
   const [activeTabMain, setActiveTabMain] = useState("details")
   const [selectedMemberForAppointmentsMain, setSelectedMemberForAppointmentsMain] = useState(null)
 
+  const [showEditNoteModalMain, setShowEditNoteModalMain] = useState(false)
+  const [selectedAppointmentForNoteMain, setSelectedAppointmentForNoteMain] = useState(null)
 
   // Filter state - Added Cancelled Appointments and Past Appointments
   const [appointmentFilters, setAppointmentFilters] = useState({
@@ -367,6 +369,31 @@ export default function Appointments() {
     setisEditAppointmentModalOpenMain(false) // Ensure edit modal is closed
   }
 
+  // Add this function to handle note editing
+  const handleEditNoteMain = (appointmentId, currentNote) => {
+    const appointment = appointmentsMain.find(app => app.id === appointmentId)
+    if (appointment) {
+      setSelectedAppointmentForNoteMain(appointment)
+      setShowEditNoteModalMain(true)
+      setActiveNoteIdMain(null)
+      setHoveredNoteId(null)
+    }
+  }
+
+  // Add this function to handle saving the edited note
+  const handleSaveSpecialNoteMain = (appointmentId, updatedNote) => {
+    setAppointmentsMain(prevAppointments =>
+      prevAppointments.map(appointment =>
+        appointment.id === appointmentId
+          ? { ...appointment, specialNote: updatedNote }
+          : appointment
+      )
+    )
+    toast.success("Special note updated successfully")
+    setShowEditNoteModalMain(false)
+    setSelectedAppointmentForNoteMain(null)
+  }
+
   const renderSpecialNoteIconMain = useCallback(
     (specialNote, memberId) => {
       if (!specialNote?.text) return null
@@ -380,13 +407,43 @@ export default function Appointments() {
         setActiveNoteIdMain(activeNoteIdMain === memberId ? null : memberId)
       }
 
+      const handleMouseEnter = (e) => {
+        e.stopPropagation()
+        // Clear any existing timeout
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          setHoverTimeout(null)
+        }
+
+        // Set a small delay before showing to prevent flickering
+        const timeout = setTimeout(() => {
+          setHoveredNoteId(memberId)
+        }, 300)
+        setHoverTimeout(timeout)
+      }
+
+      const handleMouseLeave = (e) => {
+        e.stopPropagation()
+        // Clear the timeout if mouse leaves before delay
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          setHoverTimeout(null)
+        }
+        setHoveredNoteId(null)
+      }
+
+      // Determine if we should show the popover (either clicked or hovered)
+      const shouldShowPopover = activeNoteIdMain === memberId || hoveredNoteId === memberId
+
       return (
         <div className="relative">
           <div
             id={`note-trigger-${memberId}`}
             className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer transition-all duration-200 hover:scale-110`}
             onClick={handleNoteClick}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
             {specialNote.isImportant ? (
               <AlertTriangle size={18} className="text-white" />
@@ -394,86 +451,116 @@ export default function Appointments() {
               <Info size={18} className="text-white" />
             )}
           </div>
-          <SpecialNotePortal isOpen={activeNoteIdMain === memberId}>
-            <div
-              ref={notePopoverRefMain}
-              className="fixed w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[9999]"
-              style={{
-                top: (() => {
-                  const trigger = document.getElementById(`note-trigger-${memberId}`);
-                  if (!trigger) return '50%';
-                  const rect = trigger.getBoundingClientRect();
-                  const spaceBelow = window.innerHeight - rect.bottom;
-                  const popoverHeight = 200; // approximate height
 
-                  // If not enough space below, show above
-                  if (spaceBelow < popoverHeight && rect.top > popoverHeight) {
-                    return `${rect.top - popoverHeight - 8}px`;
+          {shouldShowPopover && (
+            createPortal(
+              <div
+                ref={notePopoverRefMain}
+                className="fixed w-80 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[9999]"
+                style={{
+                  top: (() => {
+                    const trigger = document.getElementById(`note-trigger-${memberId}`);
+                    if (!trigger) return '50%';
+                    const rect = trigger.getBoundingClientRect();
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    const popoverHeight = 200; // approximate height
+
+                    // If not enough space below, show above
+                    if (spaceBelow < popoverHeight && rect.top > popoverHeight) {
+                      return `${rect.top - popoverHeight - 8}px`;
+                    }
+                    return `${rect.bottom + 8}px`;
+                  })(),
+                  left: (() => {
+                    const trigger = document.getElementById(`note-trigger-${memberId}`);
+                    if (!trigger) return '50%';
+                    const rect = trigger.getBoundingClientRect();
+                    const popoverWidth = 288; // w-72 = 288px
+
+                    // Keep within viewport
+                    let left = rect.left;
+                    if (left + popoverWidth > window.innerWidth) {
+                      left = window.innerWidth - popoverWidth - 16;
+                    }
+                    if (left < 16) left = 16;
+
+                    return `${left}px`;
+                  })(),
+                }}
+                onMouseEnter={() => {
+                  // Keep open when hovering over popover
+                  if (hoveredNoteId === memberId) {
+                    setHoveredNoteId(memberId)
                   }
-                  return `${rect.bottom + 8}px`;
-                })(),
-                left: (() => {
-                  const trigger = document.getElementById(`note-trigger-${memberId}`);
-                  if (!trigger) return '50%';
-                  const rect = trigger.getBoundingClientRect();
-                  const popoverWidth = 288; // w-72 = 288px
-
-                  // Keep within viewport
-                  let left = rect.left;
-                  if (left + popoverWidth > window.innerWidth) {
-                    left = window.innerWidth - popoverWidth - 16;
+                }}
+                onMouseLeave={() => {
+                  // Only close if it was opened via hover (not click)
+                  if (hoveredNoteId === memberId) {
+                    setHoveredNoteId(null)
                   }
-                  if (left < 16) left = 16;
+                }}
+              >
+                <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                  {specialNote.isImportant ? (
+                    <AlertTriangle className="text-red-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400">
+                      {specialNote.isImportant ? "(Important)" : ""}
+                    </div>
+                  </h4>
 
-                  return `${left}px`;
-                })(),
-              }}
-            >
-              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {specialNote.isImportant === "important" ? (
-                  <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                ) : (
-                  <Info className="text-blue-500 shrink-0" size={18} />
-                )}
-                <h4 className="text-white flex gap-1 items-center font-medium">
-                  <div>Special Note</div>
-                  <div className="text-sm text-gray-400 ">
-                    {specialNote.isImportant === "important" ? "(Important)" : "(Unimportant)"}
-                  </div>
-                </h4>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setActiveNoteIdMain(null)
-                  }}
-                  className="ml-auto text-gray-400 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-                {specialNote.startDate && specialNote.endDate ? (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} /> Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
-                      {new Date(specialNote.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} /> Always valid
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </SpecialNotePortal>
+                  {/* Edit Note Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleEditNoteMain(memberId, specialNote)
+                    }}
+                    className="ml-auto text-gray-400 hover:text-blue-400 transition-colors p-1"
+                    title="Edit note"
+                  >
+                    <Edit size={14} />
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveNoteIdMain(null)
+                      setHoveredNoteId(null)
+                    }}
+                    className="text-gray-400 hover:text-white transition-colors p-1"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="p-3">
+                  <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
+                  {specialNote.startDate && specialNote.endDate ? (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <CalendarIcon size={12} /> Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                        {new Date(specialNote.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <CalendarIcon size={12} /> Always valid
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>,
+              document.body
+            )
+          )}
         </div>
       )
     },
-    [activeNoteIdMain, setActiveNoteIdMain],
+    [activeNoteIdMain, setActiveNoteIdMain, hoveredNoteId, hoverTimeout],
   )
 
   const handleDumbbellClickMain = (appointment, e) => {
@@ -958,8 +1045,8 @@ export default function Appointments() {
                 </div>
                 <div></div>
                 <div onClick={toggleRightSidebar} className="lg:hidden md:hidden block">
-            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-          </div>
+                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
               </div>
               <div className="flex items-center md:flex-row flex-col gap-2 w-full sm:w-auto">
                 <button
@@ -989,16 +1076,16 @@ export default function Appointments() {
                   </svg>{" "}
                   Block Time Slot
                 </button>
-                {/* <div className="md:block hidden">
-                  <IoIosMenu
-                    onClick={toggleRightSidebar}
-                    size={25}
-                    className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                  />
-                </div> */}
-                 <div onClick={toggleRightSidebar} className="md:block hidden">
-            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-          </div>
+
+                {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:block hidden">
+                  <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                ) : (<div onClick={toggleRightSidebar} className="md:block hidden">
+                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                )}
+
+
               </div>
             </div>
 
@@ -1028,90 +1115,6 @@ export default function Appointments() {
                       />
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     </div>
-                  </div>
-
-                  <div className="w-full">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-white font-bold text-sm">Upcoming Appointments</h2>
-                      <button
-                        onClick={() => setIsUpcomingCollapsed(!isUpcomingCollapsed)}
-                        className="text-gray-400 hover:text-white transition-colors"
-                      >
-                        {isUpcomingCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-                      </button>
-                    </div>
-                    {!isUpcomingCollapsed && (
-                      <div className="space-y-2 custom-scrollbar overflow-y-auto  max-h-[400px] w-full">
-                        {filteredAppointments.length > 0 ? (
-                          filteredAppointments.map((appointment, index) => (
-                            <div
-                              key={appointment.id}
-                              className={`${appointment.isCancelled
-                                ? "bg-gray-700 cancelled-appointment-bg"
-                                : appointment.isPast && !appointment.isCancelled
-                                  ? "bg-gray-800 opacity-50"
-                                  : appointment.color
-                                } rounded-xl cursor-pointer p-2 relative w-full`}
-                              onClick={() => {
-                                handleAppointmentOptionsModalMain(appointment)
-                              }}
-                            >
-                              <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-                                {renderSpecialNoteIconMain(appointment.specialNote, appointment.id)}
-                                <div
-                                  className="cursor-pointer rounded transition-colors"
-                                  onClick={(e) => handleDumbbellClickMain(appointment, e)}
-                                >
-                                  <Dumbbell className="text-white" size={16} />
-                                </div>
-                              </div>
-
-                              <div className="flex flex-col mr-16 items-center justify-between gap-2 cursor-pointer">
-                                <div className="flex items-center gap-2 ml-4 relative w-full justify-center">
-                                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative">
-                                    <img
-                                      src={Avatar || "/placeholder.svg"}
-                                      alt=""
-                                      className="w-full h-full rounded-full"
-                                    />
-                                  </div>
-                                  <div className="text-white text-left">
-                                    <p className="font-semibold text-sm">{appointment.name} {appointment.lastName}</p>
-                                    <p className="text-xs flex gap-1 items-center opacity-80">
-                                      <Clock size={12} />
-                                      {appointment.time} | {appointment.date?.split("|")[0]}
-                                    </p>
-                                    <p className="text-xs opacity-80 mt-1">
-                                      {appointment.isTrial ? (
-                                        "Trial Session"
-                                      ) : appointment.isCancelled ? (
-                                        <span className="text-red-400">Cancelled</span>
-                                      ) : (
-                                        appointment.type
-                                      )}
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleCheckInMain(appointment.id)
-                                  }}
-                                  className={`px-2 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                    ? "border border-white/50 text-white bg-transparent"
-                                    : "bg-black text-white"
-                                    }`}
-                                >
-                                  {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                                </button>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-white text-center text-sm">No appointments scheduled for this date.</p>
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   <div className="bg-[#000000] rounded-xl p-3 mt-4 w-full">
@@ -1195,6 +1198,92 @@ export default function Appointments() {
                       </div>
                     )}
                   </div>
+
+                  <div className="w-full">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-white font-bold text-sm">Upcoming Appointments</h2>
+                      <button
+                        onClick={() => setIsUpcomingCollapsed(!isUpcomingCollapsed)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        {isUpcomingCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+                      </button>
+                    </div>
+                    {!isUpcomingCollapsed && (
+                      <div className="space-y-2 custom-scrollbar overflow-y-auto  max-h-[335px] w-full">
+                        {filteredAppointments.length > 0 ? (
+                          filteredAppointments.map((appointment, index) => (
+                            <div
+                              key={appointment.id}
+                              className={`${appointment.isCancelled
+                                ? "bg-gray-700 cancelled-appointment-bg"
+                                : appointment.isPast && !appointment.isCancelled
+                                  ? "bg-gray-800 opacity-50"
+                                  : appointment.color
+                                } rounded-xl cursor-pointer p-2 relative w-full`}
+                              onClick={() => {
+                                handleAppointmentOptionsModalMain(appointment)
+                              }}
+                            >
+                              <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                                {renderSpecialNoteIconMain(appointment.specialNote, appointment.id)}
+                                <div
+                                  className="cursor-pointer rounded transition-colors"
+                                  onClick={(e) => handleDumbbellClickMain(appointment, e)}
+                                >
+                                  <Dumbbell className="text-white" size={16} />
+                                </div>
+                              </div>
+
+                              <div className="flex flex-col mr-16 items-center justify-between gap-2 cursor-pointer">
+                                <div className="flex items-center gap-2 ml-4 relative w-full justify-center">
+                                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative">
+                                    <img
+                                      src={Avatar || "/placeholder.svg"}
+                                      alt=""
+                                      className="w-full h-full rounded-full"
+                                    />
+                                  </div>
+                                  <div className="text-white text-left">
+                                    <p className="font-semibold text-sm">{appointment.name} {appointment.lastName}</p>
+                                    <p className="text-xs flex gap-1 items-center opacity-80">
+                                      <Clock size={12} />
+                                      {appointment.time} | {appointment.date?.split("|")[0]}
+                                    </p>
+                                    <p className="text-xs opacity-80 mt-1">
+                                      {appointment.isTrial ? (
+                                        "Trial Session"
+                                      ) : appointment.isCancelled ? (
+                                        <span className="text-red-400">Cancelled</span>
+                                      ) : (
+                                        appointment.type
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleCheckInMain(appointment.id)
+                                  }}
+                                  className={`px-2 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
+                                    ? "border border-white/50 text-white bg-transparent"
+                                    : "bg-black text-white"
+                                    }`}
+                                >
+                                  {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-white text-center text-sm">No appointments scheduled for this date.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+
                 </div>
               </div>
               <div
@@ -1383,6 +1472,19 @@ export default function Appointments() {
           setSelectedMember={setSelectedMemberMain}
         />
 
+        {showEditNoteModalMain && selectedAppointmentForNoteMain && (
+          <SpecialNoteEditModal
+            isOpen={showEditNoteModalMain}
+            onClose={() => {
+              setShowEditNoteModalMain(false)
+              setSelectedAppointmentForNoteMain(null)
+            }}
+            appointment={selectedAppointmentForNoteMain}
+            onSave={handleSaveSpecialNoteMain}
+          />
+        )}
+
+
         <Toaster
           position="top-right"
           toastOptions={{
@@ -1468,6 +1570,7 @@ export default function Appointments() {
           handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
           onSaveSpecialNote={handleSaveSpecialNoteWrapper}
           notifications={notifications}
+          setTodos={setTodos}
         />
 
         {/* Sidebar related modals */}

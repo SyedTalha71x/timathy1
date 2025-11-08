@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
-import { ExternalLink } from "lucide-react"
+import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react"
 import { IoIosMenu } from "react-icons/io"
 import { useNavigate } from "react-router-dom"
 
@@ -57,8 +57,15 @@ export default function MarketplacePage() {
 
   const trainingVideos = trainingVideosData
 
-  const [sortBy, setSortBy] = useState("name")
   const [sortDirection, setSortDirection] = useState("asc") // new state
+
+  const [sortBy, setSortBy] = useState("name-asc");
+
+
+  const [sortConfig, setSortConfig] = useState({
+    field: "name",
+    direction: "asc" // "asc" or "desc"
+  });
 
 
   const getFilteredProducts = () => {
@@ -72,38 +79,55 @@ export default function MarketplacePage() {
 
 
 
-  const sortProducts = (products, field, direction) => {
+  const sortProducts = (products, sortValue) => {
+    const [field, direction] = sortValue.split("-");
+
     return [...products].sort((a, b) => {
-      let aValue = a[field]
-      let bValue = b[field]
-  
+      let aValue = a[field];
+      let bValue = b[field];
+
       // Special handling for price
       if (field === "price") {
         const parsePrice = (priceStr) =>
-          parseFloat(priceStr.replace("€", "").replace(",", ".").trim())
-        aValue = parsePrice(aValue)
-        bValue = parsePrice(bValue)
+          parseFloat(priceStr.replace("€", "").replace(",", ".").trim());
+        aValue = parsePrice(aValue);
+        bValue = parsePrice(bValue);
       } else {
         // Normalize strings
-        if (typeof aValue === "string") aValue = aValue.toLowerCase()
-        if (typeof bValue === "string") bValue = bValue.toLowerCase()
+        if (typeof aValue === "string") aValue = aValue.toLowerCase();
+        if (typeof bValue === "string") bValue = bValue.toLowerCase();
       }
-  
+
       // Handle comparison based on direction
       if (direction === "asc") {
-        if (aValue < bValue) return -1
-        if (aValue > bValue) return 1
+        if (aValue < bValue) return -1;
+        if (aValue > bValue) return 1;
       } else {
-        if (aValue > bValue) return -1
-        if (aValue < bValue) return 1
+        if (aValue > bValue) return -1;
+        if (aValue < bValue) return 1;
       }
-      return 0
-    })
+      return 0;
+    });
+  };
+
+
+  const filtered = getFilteredProducts();
+  const sortedProducts = sortProducts(filtered, sortBy);
+
+  const handleSortFieldChange = (field) => {
+    setSortConfig(prev => ({
+      field,
+      direction: prev.field === field ? prev.direction : "asc"
+    }))
   }
 
-  const filtered = getFilteredProducts()
-const sortedProducts = sortProducts(filtered, sortBy, sortDirection)
-  
+  // Add this function to toggle sort direction:
+  const toggleSortDirection = () => {
+    setSortConfig(prev => ({
+      ...prev,
+      direction: prev.direction === "asc" ? "desc" : "asc"
+    }))
+  }
 
   // Extract all states and functions from the hook
   const {
@@ -437,24 +461,6 @@ const sortedProducts = sortProducts(filtered, sortBy, sortDirection)
     return getBillingPeriods(memberId, memberContingentData);
   };
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-600"
-      case "Intermediate":
-        return "bg-yellow-600"
-      case "Advanced":
-        return "bg-red-600"
-      default:
-        return "bg-gray-600"
-    }
-  }
-
-  const getVideoById = (id) => {
-    return trainingVideos.find((video) => video.id === id)
-  }
-
-
 
 
   return (
@@ -505,16 +511,14 @@ const sortedProducts = sortProducts(filtered, sortBy, sortDirection)
 
             <h1 className="text-white oxanium_font text-xl mb-5 md:text-2xl">Marketplace</h1>
             <div></div>
-            {/* <div className=" block">
-              <IoIosMenu
-                onClick={toggleRightSidebar}
-                size={25}
-                className="cursor-pointer mb-6 text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-              />
-            </div> */}
-            <div onClick={toggleRightSidebar}>
-            <img src="/icon.svg" className="h-5 w-5 mb-6 cursor-pointer" alt="" />
-          </div>
+
+            {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className=" ">
+              <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+            </div>
+            ) : (<div onClick={toggleRightSidebar} className=" ">
+              <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+            </div>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 mb-8">
@@ -528,61 +532,53 @@ const sortedProducts = sortProducts(filtered, sortBy, sortDirection)
               />
             </div>
 
-            {/* Sort by Field */}
+            {/* Single Sort Dropdown */}
             <div className="flex items-center gap-2">
-
-
-              <label htmlFor="" className="text-sm">Sort:</label>
+              <label htmlFor="sort" className="text-sm whitespace-nowrap">Sort by:</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="md:w-auto w-full cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+                className="md:w-auto w-full cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[200px]"
               >
-                <option value="name">Name</option>
-                <option value="price">Price</option>
-                <option value="brand">Brand</option>
-                <option value="articleNo">Article No.</option>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="price-asc">Price (Low to High)</option>
+                <option value="price-desc">Price (High to Low)</option>
+                <option value="brand-asc">Brand (A-Z)</option>
+                <option value="brand-desc">Brand (Z-A)</option>
+                <option value="articleNo-asc">Article No. (Ascending)</option>
+                <option value="articleNo-desc">Article No. (Descending)</option>
               </select>
             </div>
-
-            {/* Sort Direction */}
-            <select
-              value={sortDirection}
-              onChange={(e) => setSortDirection(e.target.value)}
-              className="md:w-auto w-full cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[140px]"
-            >
-              <option value="asc">Ascending</option>
-              <option value="desc">Descending</option>
-            </select>
           </div>
 
 
-          <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>          
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>
             {sortedProducts.map((product) => (
-            <div key={product.id} className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative">
-              <div className="relative w-full h-48 bg-white">
-                <img
-                  src={product.image || "/placeholder.svg"}
-                  alt={product.name}
-                  className="object-cover w-full h-full"
-                />
-                <button
-                  onClick={() => window.open(product.link, "_blank")}
-                  className="absolute bottom-3 right-3 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
-                  aria-label="Open product link"
-                >
-                  <ExternalLink size={16} />
-                </button>
-              </div>
+              <div key={product.id} className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative">
+                <div className="relative w-full h-48 bg-white">
+                  <img
+                    src={product.image || "/placeholder.svg"}
+                    alt={product.name}
+                    className="object-cover w-full h-full"
+                  />
+                  <button
+                    onClick={() => window.open(product.link, "_blank")}
+                    className="absolute bottom-3 right-3 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+                    aria-label="Open product link"
+                  >
+                    <ExternalLink size={16} />
+                  </button>
+                </div>
 
-              <div className="p-4 bg-[#2a2a2a] text-white">
-                <h3 className="text-base font-medium mb-1">{product.name}</h3>
-                <p className="text-sm text-gray-300 mb-1">{product.brand}</p>
-                <p className="text-sm text-gray-400 mb-2">Art. No: {product.articleNo}</p>
-                <p className="text-lg font-bold text-white">{product.price}</p>
+                <div className="p-4 bg-[#2a2a2a] text-white">
+                  <h3 className="text-base font-medium mb-1">{product.name}</h3>
+                  <p className="text-sm text-gray-300 mb-1">{product.brand}</p>
+                  <p className="text-sm text-gray-400 mb-2">Art. No: {product.articleNo}</p>
+                  <p className="text-lg font-bold text-white">{product.price}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
           </div>
 
           {getFilteredProducts().length === 0 && (
@@ -650,21 +646,22 @@ const sortedProducts = sortProducts(filtered, sortBy, sortDirection)
         handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
         onSaveSpecialNote={handleSaveSpecialNoteWrapper}
         notifications={notifications}
+        setTodos={setTodos}
       />
 
       {/* Sidebar related modals */}
       <TrainingPlansModal
-                           isOpen={isTrainingPlanModalOpen}
-                           onClose={() => {
-                             setIsTrainingPlanModalOpen(false)
-                             setSelectedUserForTrainingPlan(null)
-                           }}
-                           selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-                           memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-                           availableTrainingPlans={availableTrainingPlans}
-                           onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-                           onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-                         />
+        isOpen={isTrainingPlanModalOpen}
+        onClose={() => {
+          setIsTrainingPlanModalOpen(false)
+          setSelectedUserForTrainingPlan(null)
+        }}
+        selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+        availableTrainingPlans={availableTrainingPlans}
+        onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+        onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+      />
 
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}

@@ -1,16 +1,14 @@
-
-
 import { Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
-
 /* eslint-disable react/prop-types */
-const EditLeadModal = ({ 
-  isVisible, 
-  onClose, 
-  onSave, 
-  leadData, 
-  memberRelationsLead, 
+
+const EditLeadModal = ({
+  isVisible,
+  onClose,
+  onSave,
+  leadData,
+  memberRelationsLead,
   setMemberRelationsLead,
   availableMembersLeads = [],
   relationOptions = {
@@ -19,10 +17,12 @@ const EditLeadModal = ({
     relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
     work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
     other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
-  }
+  },
+  initialTab = "details" // Add this prop
 }) => {
-  const [activeTab, setActiveTab] = useState("details")
+  const [activeTab, setActiveTab] = useState(initialTab) // Use initialTab
   const [editingRelationsLead, setEditingRelationsLead] = useState(false)
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -43,6 +43,50 @@ const EditLeadModal = ({
     country: "",
     details: "",
   })
+
+  useEffect(() => {
+    if (isVisible) {
+      setActiveTab(initialTab)
+    }
+  }, [initialTab, isVisible])
+
+  // Country options - same as in AddLeadModal
+  const countryOptions = [
+    "United States",
+    "Canada",
+    "United Kingdom",
+    "Germany",
+    "France",
+    "Italy",
+    "Spain",
+    "Australia",
+    "Japan",
+    "China",
+    "Brazil",
+    "Mexico",
+    "India",
+    "South Korea",
+    "Netherlands",
+    "Switzerland",
+    "Sweden",
+    "Norway",
+    "Denmark",
+    "Finland",
+    "Austria",
+    "Belgium",
+    "Portugal",
+    "Ireland",
+    "New Zealand",
+    "Singapore",
+    "United Arab Emirates",
+    "South Africa",
+    // Add more countries as needed
+  ]
+
+  // Filter countries based on input
+  const filteredCountries = countryOptions.filter(country =>
+    country.toLowerCase().includes(formData.country.toLowerCase())
+  )
 
   const sourceOptions = [
     "Website",
@@ -103,7 +147,6 @@ const EditLeadModal = ({
   const handleAddRelationLead = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
     if (!newRelationLead.name || !newRelationLead.relation) {
       toast.error("Please fill in all fields")
       return
@@ -111,6 +154,7 @@ const EditLeadModal = ({
 
     const relationId = Date.now()
     const updatedRelations = { ...memberRelationsLead }
+    
     if (!updatedRelations[leadData.id]) {
       updatedRelations[leadData.id] = {
         family: [],
@@ -129,14 +173,19 @@ const EditLeadModal = ({
     })
 
     setMemberRelationsLead(updatedRelations)
-    setNewRelationLead({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
+    setNewRelationLead({
+      name: "",
+      relation: "",
+      category: "family",
+      type: "manual",
+      selectedMemberId: null
+    })
     toast.success("Relation added successfully")
   }
 
   const handleDeleteRelationLead = (category, relationId, e) => {
     e.preventDefault()
     e.stopPropagation()
-    
     const updatedRelations = { ...memberRelationsLead }
     updatedRelations[leadData.id][category] = updatedRelations[leadData.id][category].filter(
       (rel) => rel.id !== relationId,
@@ -148,7 +197,6 @@ const EditLeadModal = ({
   const handleSubmit = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
     onSave({
       ...formData,
       id: leadData.id,
@@ -165,7 +213,28 @@ const EditLeadModal = ({
   }
 
   const updateFormData = (field, value) => {
-    setFormData({ ...formData, [field]: value })
+    setFormData({
+      ...formData,
+      [field]: value
+    })
+  }
+
+  // Handle country selection
+  const handleCountrySelect = (country) => {
+    setFormData({
+      ...formData,
+      country: country
+    })
+    setShowCountryDropdown(false)
+  }
+
+  // Handle country input change
+  const handleCountryChange = (value) => {
+    setFormData({
+      ...formData,
+      country: value
+    })
+    setShowCountryDropdown(true)
   }
 
   // Handle tab clicks with event stopping
@@ -200,11 +269,11 @@ const EditLeadModal = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto" 
       onClick={handleBackdropClick}
     >
       <div 
-        className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8"
+        className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8" 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
@@ -216,30 +285,33 @@ const EditLeadModal = ({
 
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-700 mb-6">
-          <button
+          <button 
             onClick={(e) => handleTabClick("details", e)}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
-              ? "text-blue-400 border-b-2 border-blue-400"
-              : "text-gray-400 hover:text-white"
-              }`}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === "details" 
+                ? "text-blue-400 border-b-2 border-blue-400" 
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             Details
           </button>
-          <button
+          <button 
             onClick={(e) => handleTabClick("note", e)}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === "note"
-              ? "text-blue-400 border-b-2 border-blue-400"
-              : "text-gray-400 hover:text-white"
-              }`}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === "note" 
+                ? "text-blue-400 border-b-2 border-blue-400" 
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             Special Note
           </button>
-          <button
+          <button 
             onClick={(e) => handleTabClick("relations", e)}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
-              ? "text-blue-400 border-b-2 border-blue-400"
-              : "text-gray-400 hover:text-white"
-              }`}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === "relations" 
+                ? "text-blue-400 border-b-2 border-blue-400" 
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             Relations
           </button>
@@ -247,7 +319,6 @@ const EditLeadModal = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="max-h-[50vh] overflow-y-auto custom-scrollbar space-y-4">
-            
             {/* Details Tab */}
             {activeTab === "details" && (
               <>
@@ -273,7 +344,7 @@ const EditLeadModal = ({
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="text-sm text-gray-200 block mb-2">Email</label>
                   <input
@@ -284,7 +355,7 @@ const EditLeadModal = ({
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm text-gray-200 block mb-2">Phone</label>
                   <input
@@ -295,6 +366,7 @@ const EditLeadModal = ({
                     required
                   />
                 </div>
+
                 <div>
                   <label className="text-sm text-gray-200 block mb-2">Gender</label>
                   <select
@@ -303,6 +375,7 @@ const EditLeadModal = ({
                     onChange={(e) => updateFormData("gender", e.target.value)}
                     className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                   >
+                    <option value="">Select Gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>
@@ -328,6 +401,9 @@ const EditLeadModal = ({
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">City</label>
                     <input
@@ -337,14 +413,31 @@ const EditLeadModal = ({
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
-                  <div>
+                  <div className="relative">
                     <label className="text-sm text-gray-200 block mb-2">Country</label>
                     <input
                       type="text"
                       value={formData.country}
-                      onChange={(e) => updateFormData("country", e.target.value)}
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      onFocus={() => setShowCountryDropdown(true)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      placeholder="Type or select country"
                     />
+                    
+                    {/* Country Dropdown */}
+                    {showCountryDropdown && filteredCountries.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-[#141414] border border-gray-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                        {filteredCountries.map((country) => (
+                          <div
+                            key={country}
+                            onClick={() => handleCountrySelect(country)}
+                            className="px-4 py-2 text-sm text-white hover:bg-[#2A2A2A] cursor-pointer first:rounded-t-xl last:rounded-b-xl"
+                          >
+                            {country}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -453,7 +546,7 @@ const EditLeadModal = ({
                     {editingRelationsLead ? "Done" : "Edit"}
                   </button>
                 </div>
-                
+
                 {editingRelationsLead && (
                   <div className="mb-4 p-3 bg-[#101010] rounded-xl">
                     <div className="grid grid-cols-1 gap-2 mb-2">
@@ -461,7 +554,12 @@ const EditLeadModal = ({
                         value={newRelationLead.type}
                         onChange={(e) => {
                           const type = e.target.value
-                          setNewRelationLead({ ...newRelationLead, type, name: "", selectedMemberId: null })
+                          setNewRelationLead({
+                            ...newRelationLead,
+                            type,
+                            name: "",
+                            selectedMemberId: null
+                          })
                         }}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
@@ -469,6 +567,7 @@ const EditLeadModal = ({
                         <option value="member">Select Member</option>
                         <option value="lead">Select Lead</option>
                       </select>
+
                       {newRelationLead.type === "manual" ? (
                         <input
                           type="text"
@@ -502,10 +601,15 @@ const EditLeadModal = ({
                         </select>
                       )}
                     </div>
+
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <select
                         value={newRelationLead.category}
-                        onChange={(e) => setNewRelationLead({ ...newRelationLead, category: e.target.value, relation: "" })}
+                        onChange={(e) => setNewRelationLead({
+                          ...newRelationLead,
+                          category: e.target.value,
+                          relation: ""
+                        })}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
                         <option value="family">Family</option>
@@ -514,6 +618,7 @@ const EditLeadModal = ({
                         <option value="work">Work</option>
                         <option value="other">Other</option>
                       </select>
+
                       <select
                         value={newRelationLead.relation}
                         onChange={(e) => setNewRelationLead({ ...newRelationLead, relation: e.target.value })}
@@ -527,6 +632,7 @@ const EditLeadModal = ({
                         ))}
                       </select>
                     </div>
+
                     <button
                       type="button"
                       onClick={handleAddRelationLead}
@@ -536,13 +642,15 @@ const EditLeadModal = ({
                     </button>
                   </div>
                 )}
-                
+
                 <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {leadData &&
-                    memberRelationsLead[leadData.id] &&
+                  {leadData && memberRelationsLead[leadData.id] && 
                     Object.entries(memberRelationsLead[leadData.id]).map(([category, relations]) =>
                       relations.map((relation) => (
-                        <div key={relation.id} className="flex items-center justify-between bg-[#101010] rounded px-3 py-2">
+                        <div 
+                          key={relation.id} 
+                          className="flex items-center justify-between bg-[#101010] rounded px-3 py-2"
+                        >
                           <div className="text-sm">
                             <span className="text-white">{relation.name}</span>
                             <span className="text-gray-400 ml-2">({relation.relation})</span>
@@ -552,8 +660,8 @@ const EditLeadModal = ({
                                 relation.type === "member"
                                   ? "bg-green-600 text-green-100"
                                   : relation.type === "lead"
-                                    ? "bg-blue-600 text-blue-100"
-                                    : "bg-gray-600 text-gray-100"
+                                  ? "bg-blue-600 text-blue-100"
+                                  : "bg-gray-600 text-gray-100"
                               }`}
                             >
                               {relation.type}
@@ -571,6 +679,7 @@ const EditLeadModal = ({
                         </div>
                       )),
                     )}
+
                   {(!memberRelationsLead[leadData?.id] || 
                     Object.values(memberRelationsLead[leadData?.id] || {}).every(arr => arr.length === 0)) && (
                     <div className="text-gray-500 text-sm text-center py-4">
@@ -591,7 +700,10 @@ const EditLeadModal = ({
             >
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E]">
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E]"
+            >
               Save Changes
             </button>
           </div>

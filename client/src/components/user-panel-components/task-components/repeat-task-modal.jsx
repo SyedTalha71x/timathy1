@@ -164,17 +164,20 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
                   />
                   <span>After</span>
                   <input
-                    type="number"
-                    value={occurrences}
-                    onChange={(e) => {
-                      setOccurrences(e.target.value)
-                      setEndType("afterOccurrences")
-                    }}
-                    onClick={() => setEndType("afterOccurrences")}
-                    min="1"
-                    placeholder="1"
-                    className="w-20 bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-600 focus:border-[#FF843E]"
-                  />
+  type="number"
+  value={occurrences}
+  onChange={(e) => {
+    const value = e.target.value;
+    if (value === "" || (Number.parseInt(value, 10) > 0)) {
+      setOccurrences(value);
+      setEndType("afterOccurrences");
+    }
+  }}
+  onClick={() => setEndType("afterOccurrences")}
+  min="1"
+  placeholder="4"
+  className="w-20 bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-600 focus:border-[#FF843E]"
+/>
                   <span>occurrences</span>
                 </label>
               </div>

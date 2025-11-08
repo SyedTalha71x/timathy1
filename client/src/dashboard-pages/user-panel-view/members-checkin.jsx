@@ -1,12 +1,11 @@
 import { useState } from "react"
-import { Search, Calendar, Clock, CheckCircle, ChevronDown, X } from "lucide-react"
+import { Search, Calendar, Clock, CheckCircle, X } from "lucide-react"
 
 export default function CheckIns() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("upcoming")
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [checkInHistory, setCheckInHistory] = useState([])
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
 
   const DefaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23666' width='100' height='100'/%3E%3Ctext fill='%23fff' font-family='Arial' font-size='40' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3EU%3C/text%3E%3C/svg%3E"
 
@@ -17,7 +16,8 @@ export default function CheckIns() {
       memberName: "John Doe",
       memberImage: null,
       appointmentType: "Personal Training",
-      scheduledTime: "10:00 AM",
+      scheduledTime: "10:00 AM - 10:30 AM",
+      
       date: new Date().toISOString().split('T')[0],
       isCheckedIn: false,
       duration: "60 min"
@@ -28,7 +28,7 @@ export default function CheckIns() {
       memberName: "Jane Smith",
       memberImage: null,
       appointmentType: "Group Class",
-      scheduledTime: "11:30 AM",
+      scheduledTime: "11:30 AM - 12:30 PM",
       date: new Date().toISOString().split('T')[0],
       isCheckedIn: false,
       duration: "45 min"
@@ -39,7 +39,7 @@ export default function CheckIns() {
       memberName: "Mike Johnson",
       memberImage: null,
       appointmentType: "Consultation",
-      scheduledTime: "02:00 PM",
+      scheduledTime: "02:00 PM - 3:00 PM",
       date: new Date().toISOString().split('T')[0],
       isCheckedIn: true,
       checkInTime: "01:55 PM",
@@ -115,40 +115,22 @@ export default function CheckIns() {
   return (
     <div className="flex flex-col bg-[#1C1C1C] rounded-3xl text-white min-h-screen">
       <div className="flex-1 p-3 sm:p-4 md:p-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-white">Check-Ins</h1>
 
-          {/* Date Picker */}
           <div className="relative w-full sm:w-auto">
-            <button
-              onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
-              className="flex items-center justify-between w-full sm:w-auto gap-2 px-3 sm:px-4 py-2 bg-black rounded-xl border border-slate-300/30 text-sm"
-            >
-              <div className="flex items-center gap-2">
-                <Calendar size={16} />
-                <span className="text-xs sm:text-sm">{formatDate(selectedDate)}</span>
-              </div>
-              <ChevronDown size={16} />
-            </button>
-            
-            {isDatePickerOpen && (
-              <div className="absolute right-0 mt-2 bg-[#2F2F2F] rounded-xl p-3 shadow-lg z-50 border border-slate-300/30">
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => {
-                    setSelectedDate(e.target.value)
-                    setIsDatePickerOpen(false)
-                  }}
-                  className="bg-black text-white rounded-lg px-3 py-2 border border-slate-300/30 outline-none text-sm"
-                />
-              </div>
-            )}
+          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-black rounded-xl border border-slate-300/30 text-sm">
+            <Calendar size={16} />
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-transparent text-white outline-none text-xs sm:text-sm"
+            />
           </div>
         </div>
+        </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="bg-[#161616] rounded-xl p-3 sm:p-4">
             <div className="flex items-center justify-between">

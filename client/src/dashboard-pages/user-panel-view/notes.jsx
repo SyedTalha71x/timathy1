@@ -468,21 +468,16 @@ export default function NotesApp() {
         <div className=" ">
           <div className="mb-8 flex justify-between items-center w-full">
             <h1 className="text-xl md:text-2xl font-bold oxanium_font whitespace-nowrap">Notes</h1>
-            {/* <div>
-                <div className="block">
-                                             <IoIosMenu
-                                               onClick={toggleRightSidebar}
-                                               size={25}
-                                               className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                                             />
-                                           </div>
-            </div> */}
-            <div onClick={toggleRightSidebar} className="cursor-pointer">
-      <img src="/icon.svg" className="h-5 w-5" alt="menu" />
-    </div>
+          
+            {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className=" ">
+            <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
+          ) : (<div onClick={toggleRightSidebar} className="  ">
+            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+          </div>
+          )}
           </div>
 
-          {/* Tabs - Fixed border issue */}
           <div className="flex border-b border-gray-700 mb-6">
             <button
               onClick={() => setActiveTab("personal")}
@@ -539,81 +534,93 @@ export default function NotesApp() {
             </div>
           ) : (
             <div
-  className={`grid grid-cols-1 sm:grid-cols-2 ${
-    isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"
-  } gap-6`}
->
-  {currentNotes.map((note) => (
-    <div
-      key={note.id}
-      className="bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 flex flex-col"
-    >
-      <div className="p-6 flex flex-col h-full">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-lg font-semibold text-white line-clamp-1 flex-1 mr-2">
-            {note.title}
-          </h3>
-          <div className="flex gap-1 flex-shrink-0">
-            <button
-              onClick={() => setViewingNote(note)}
-              className="text-gray-400 hover:text-green-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-              title="View note"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() => setEditingNote(note)}
-              className="text-gray-400 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-              title="Edit note"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() => setDeleteConfirm(note)}
-              className="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-              title="Delete note"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
+            className={`grid grid-cols-1 sm:grid-cols-2 ${
+              isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"
+            } gap-6`}
+          >
+            {currentNotes.map((note) => (
+              <div
+                key={note.id}
+                className="bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 flex flex-col"
+              >
+                <div className="p-6 flex flex-col h-full">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-semibold text-white line-clamp-1 flex-1 mr-2">
+                      {note.title}
+                    </h3>
+                  </div>
+          
+                  <p className="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed flex-1 overflow-hidden">
+                    {note.content}
+                  </p>
+          
+                  <div className="flex items-center justify-between mt-auto">
+                    <p className="text-xs text-gray-500">
+                      {(note.createdAt)}
+                    </p>
+          
+                    <div className="flex gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => setViewingNote(note)}
+                        className="text-gray-400 hover:text-green-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        title="View note"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </button>
+          
+                      {/* Edit Button */}
+                      <button
+                        onClick={() => setEditingNote(note)}
+                        className="text-gray-400 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        title="Edit note"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414
+                              a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </button>
+          
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => setDeleteConfirm(note)}
+                        className="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        title="Delete note"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 
+                              7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-        <p className="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed flex-1 overflow-hidden">
-          {note.content}
-        </p>
-        <div className="text-xs text-gray-500 mt-auto">
-          <p>Created: {formatDate(note.createdAt)}</p>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
+          
           )}
         </div>
 
@@ -633,332 +640,333 @@ export default function NotesApp() {
           noteTitle={deleteConfirm?.title}
         />
       </div>
-      
+
       {viewingNote && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div className="bg-[#1A1A1A] rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-gray-800">
-      <div className="p-6 border-b border-gray-800 flex justify-between items-start">
-        <h2 className="text-2xl font-bold text-white pr-8">{viewingNote.title}</h2>
-        <button
-          onClick={() => setViewingNote(null)}
-          className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <div className="p-6 overflow-y-auto max-h-[calc(80vh-140px)]">
-        <p className="text-gray-300 text-base leading-relaxed whitespace-pre-wrap">
-          {viewingNote.content}
-        </p>
-      </div>
-      <div className="p-6 border-t border-gray-800 text-xs text-gray-500 space-y-1">
-        <p>Created: {formatDate(viewingNote.createdAt)}</p>
-        {viewingNote.updatedAt !== viewingNote.createdAt && (
-          <p>Updated: {formatDate(viewingNote.updatedAt)}</p>
-        )}
-      </div>
-    </div>
-  </div>
-)}
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1A1A1A] rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-gray-800">
+            <div className="p-6 border-b border-gray-800 flex justify-between items-start">
+              <h2 className="text-2xl font-bold text-white pr-8">{viewingNote.title}</h2>
+              <button
+                onClick={() => setViewingNote(null)}
+                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-140px)]">
+              <p className="text-gray-300 text-base leading-relaxed whitespace-pre-wrap">
+                {viewingNote.content}
+              </p>
+            </div>
+            <div className="p-6 border-t border-gray-800 text-xs text-gray-500 space-y-1">
+              <p> {(viewingNote.createdAt)}</p>
+              {viewingNote.updatedAt !== viewingNote.createdAt && (
+                <p>Updated: {(viewingNote.updatedAt)}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
 
       <Sidebar
-          isRightSidebarOpen={isRightSidebarOpen}
-          toggleRightSidebar={toggleRightSidebar}
-          isSidebarEditing={isSidebarEditing}
-          toggleSidebarEditing={toggleSidebarEditing}
-          rightSidebarWidgets={rightSidebarWidgets}
-          moveRightSidebarWidget={moveRightSidebarWidget}
-          removeRightSidebarWidget={removeRightSidebarWidget}
-          setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
-          communications={communications}
-          redirectToCommunication={redirectToCommunication}
-          todos={todos}
-          handleTaskComplete={handleTaskCompleteWrapper}
-          todoFilter={todoFilter}
-          setTodoFilter={setTodoFilter}
-          todoFilterOptions={todoFilterOptions}
-          isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
-          setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
-          openDropdownIndex={openDropdownIndex}
-          toggleDropdown={toggleDropdown}
-          handleEditTask={handleEditTask}
-          setTaskToCancel={setTaskToCancel}
-          setTaskToDelete={setTaskToDelete}
-          birthdays={birthdays}
-          isBirthdayToday={isBirthdayToday}
-          handleSendBirthdayMessage={handleSendBirthdayMessage}
-          customLinks={customLinks}
-          truncateUrl={truncateUrl}
+        isRightSidebarOpen={isRightSidebarOpen}
+        toggleRightSidebar={toggleRightSidebar}
+        isSidebarEditing={isSidebarEditing}
+        toggleSidebarEditing={toggleSidebarEditing}
+        rightSidebarWidgets={rightSidebarWidgets}
+        moveRightSidebarWidget={moveRightSidebarWidget}
+        removeRightSidebarWidget={removeRightSidebarWidget}
+        setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
+        communications={communications}
+        redirectToCommunication={redirectToCommunication}
+        todos={todos}
+        handleTaskComplete={handleTaskCompleteWrapper}
+        todoFilter={todoFilter}
+        setTodoFilter={setTodoFilter}
+        todoFilterOptions={todoFilterOptions}
+        isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
+        setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
+        openDropdownIndex={openDropdownIndex}
+        toggleDropdown={toggleDropdown}
+        handleEditTask={handleEditTask}
+        setTaskToCancel={setTaskToCancel}
+        setTaskToDelete={setTaskToDelete}
+        birthdays={birthdays}
+        isBirthdayToday={isBirthdayToday}
+        handleSendBirthdayMessage={handleSendBirthdayMessage}
+        customLinks={customLinks}
+        truncateUrl={truncateUrl}
+        appointments={appointments}
+        renderSpecialNoteIcon={renderSpecialNoteIcon}
+        handleDumbbellClick={handleDumbbellClick}
+        handleCheckIn={handleCheckInWrapper}
+        handleAppointmentOptionsModal={handleAppointmentOptionsModal}
+        selectedMemberType={selectedMemberType}
+        setSelectedMemberType={setSelectedMemberType}
+        memberTypes={memberTypes}
+        isChartDropdownOpen={isChartDropdownOpen}
+        setIsChartDropdownOpen={setIsChartDropdownOpen}
+        chartOptions={chartOptions}
+        chartSeries={chartSeries}
+        expiringContracts={expiringContracts}
+        getWidgetPlacementStatus={getWidgetPlacementStatus}
+        onClose={toggleRightSidebar}
+        hasUnreadNotifications={2}
+        setIsWidgetModalOpen={setIsWidgetModalOpen}
+        handleEditNote={handleEditNoteWrapper}
+        activeNoteId={activeNoteId}
+        setActiveNoteId={setActiveNoteId}
+        isSpecialNoteModalOpen={isSpecialNoteModalOpen}
+        setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
+        selectedAppointmentForNote={selectedAppointmentForNote}
+        setSelectedAppointmentForNote={setSelectedAppointmentForNote}
+        handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
+        onSaveSpecialNote={handleSaveSpecialNoteWrapper}
+        notifications={notifications}
+        setTodos={setTodos}
+      />
+
+      {/* Sidebar related modals */}
+      <TrainingPlansModal
+        isOpen={isTrainingPlanModalOpen}
+        onClose={() => {
+          setIsTrainingPlanModalOpen(false)
+          setSelectedUserForTrainingPlan(null)
+        }}
+        selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+        availableTrainingPlans={availableTrainingPlans}
+        onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
+        onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+      />
+
+      <AppointmentActionModalV2
+        isOpen={showAppointmentOptionsModal}
+        onClose={() => {
+          setShowAppointmentOptionsModal(false);
+          setSelectedAppointment(null);
+        }}
+        appointment={selectedAppointment}
+        isEventInPast={isEventInPast}
+        onEdit={() => {
+          setShowAppointmentOptionsModal(false);
+          setIsEditAppointmentModalOpen(true);
+        }}
+        onCancel={handleCancelAppointment}
+        onViewMember={handleViewMemberDetails}
+      />
+
+      <NotifyMemberModal
+        isOpen={isNotifyMemberOpen}
+        onClose={() => setIsNotifyMemberOpen(false)}
+        notifyAction={notifyAction}
+        actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
+        handleNotifyMember={handleNotifyMember}
+      />
+
+      {isEditAppointmentModalOpen && selectedAppointment && (
+        <EditAppointmentModalV2
+          selectedAppointment={selectedAppointment}
+          setSelectedAppointment={setSelectedAppointment}
+          appointmentTypes={appointmentTypes}
+          freeAppointments={freeAppointments}
+          handleAppointmentChange={(changes) => {
+            setSelectedAppointment({ ...selectedAppointment, ...changes });
+          }}
           appointments={appointments}
-          renderSpecialNoteIcon={renderSpecialNoteIcon}
-          handleDumbbellClick={handleDumbbellClick}
-          handleCheckIn={handleCheckInWrapper}
-          handleAppointmentOptionsModal={handleAppointmentOptionsModal}
-          selectedMemberType={selectedMemberType}
-          setSelectedMemberType={setSelectedMemberType}
-          memberTypes={memberTypes}
-          isChartDropdownOpen={isChartDropdownOpen}
-          setIsChartDropdownOpen={setIsChartDropdownOpen}
-          chartOptions={chartOptions}
-          chartSeries={chartSeries}
-          expiringContracts={expiringContracts}
-          getWidgetPlacementStatus={getWidgetPlacementStatus}
-          onClose={toggleRightSidebar}
-          hasUnreadNotifications={2}
-          setIsWidgetModalOpen={setIsWidgetModalOpen}
-          handleEditNote={handleEditNoteWrapper}
-          activeNoteId={activeNoteId}
-          setActiveNoteId={setActiveNoteId}
-          isSpecialNoteModalOpen={isSpecialNoteModalOpen}
-          setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
-          selectedAppointmentForNote={selectedAppointmentForNote}
-          setSelectedAppointmentForNote={setSelectedAppointmentForNote}
-          handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
-          onSaveSpecialNote={handleSaveSpecialNoteWrapper}
-          notifications={notifications}
-        />
-
-        {/* Sidebar related modals */}
-       <TrainingPlansModal
-                 isOpen={isTrainingPlanModalOpen}
-                 onClose={() => {
-                   setIsTrainingPlanModalOpen(false)
-                   setSelectedUserForTrainingPlan(null)
-                 }}
-                 selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-                 memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-                 availableTrainingPlans={availableTrainingPlans}
-                 onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-                 onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-               />
-
-        <AppointmentActionModalV2
-          isOpen={showAppointmentOptionsModal}
+          setAppointments={setAppointments}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          onDelete={handleDeleteAppointmentWrapper}
           onClose={() => {
-            setShowAppointmentOptionsModal(false);
+            setIsEditAppointmentModalOpen(false);
             setSelectedAppointment(null);
           }}
-          appointment={selectedAppointment}
-          isEventInPast={isEventInPast}
-          onEdit={() => {
-            setShowAppointmentOptionsModal(false);
-            setIsEditAppointmentModalOpen(true);
-          }}
-          onCancel={handleCancelAppointment}
-          onViewMember={handleViewMemberDetails}
         />
+      )}
 
-        <NotifyMemberModal
-          isOpen={isNotifyMemberOpen}
-          onClose={() => setIsNotifyMemberOpen(false)}
-          notifyAction={notifyAction}
-          actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
-          handleNotifyMember={handleNotifyMember}
+      <WidgetSelectionModal
+        isOpen={isRightWidgetModalOpen}
+        onClose={() => setIsRightWidgetModalOpen(false)}
+        onSelectWidget={handleAddRightSidebarWidget}
+        getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
+        widgetArea="sidebar"
+      />
+
+      <MemberOverviewModal
+        isOpen={isMemberOverviewModalOpen}
+        onClose={() => {
+          setIsMemberOverviewModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        handleCalendarFromOverview={handleCalendarFromOverview}
+        handleHistoryFromOverview={handleHistoryFromOverview}
+        handleCommunicationFromOverview={handleCommunicationFromOverview}
+        handleViewDetailedInfo={handleViewDetailedInfo}
+        handleEditFromOverview={handleEditFromOverview}
+      />
+
+      <AppointmentModal
+        show={showAppointmentModal}
+        member={selectedMember}
+        onClose={() => {
+          setShowAppointmentModal(false);
+          setSelectedMember(null);
+        }}
+        getMemberAppointments={getMemberAppointmentsWrapper}
+        appointmentTypes={appointmentTypes}
+        handleEditAppointment={handleEditAppointment}
+        handleCancelAppointment={handleCancelAppointment}
+        currentBillingPeriod={currentBillingPeriod}
+        memberContingentData={memberContingentData}
+        handleManageContingent={handleManageContingent}
+        handleCreateNewAppointment={handleCreateNewAppointment}
+      />
+
+      <HistoryModal
+        show={showHistoryModal}
+        onClose={() => {
+          setShowHistoryModal(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        historyTab={historyTab}
+        setHistoryTab={setHistoryTab}
+        memberHistory={memberHistory}
+      />
+
+      <MemberDetailsModal
+        isOpen={isMemberDetailsModalOpen}
+        onClose={() => {
+          setIsMemberDetailsModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        memberRelations={memberRelations}
+        DefaultAvatar={DefaultAvatar}
+        calculateAge={calculateAge}
+        isContractExpiringSoon={isContractExpiringSoon}
+        redirectToContract={redirectToContract}
+      />
+
+      <ContingentModal
+        show={showContingentModal}
+        setShow={setShowContingentModal}
+        selectedMember={selectedMember}
+        getBillingPeriods={getBillingPeriodsWrapper}
+        selectedBillingPeriod={selectedBillingPeriod}
+        handleBillingPeriodChange={setSelectedBillingPeriod}
+        setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
+        tempContingent={tempContingent}
+        setTempContingent={setTempContingent}
+        currentBillingPeriod={currentBillingPeriod}
+        handleSaveContingent={handleSaveContingentWrapper}
+      />
+
+      <AddBillingPeriodModal
+        show={showAddBillingPeriodModal}
+        setShow={setShowAddBillingPeriodModal}
+        newBillingPeriod={newBillingPeriod}
+        setNewBillingPeriod={setNewBillingPeriod}
+        handleAddBillingPeriod={handleAddBillingPeriodWrapper}
+      />
+
+      <EditMemberModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedMember(null);
+        }}
+        selectedMember={selectedMember}
+        editModalTab={editModalTab}
+        setEditModalTab={setEditModalTab}
+        editForm={editForm}
+        handleInputChange={handleInputChange}
+        handleEditSubmit={handleEditSubmitWrapper}
+        editingRelations={editingRelations}
+        setEditingRelations={setEditingRelations}
+        newRelation={newRelation}
+        setNewRelation={setNewRelation}
+        availableMembersLeads={availableMembersLeads}
+        relationOptions={relationOptions}
+        handleAddRelation={handleAddRelationWrapper}
+        memberRelations={memberRelations}
+        handleDeleteRelation={handleDeleteRelationWrapper}
+        handleArchiveMember={handleArchiveMemberWrapper}
+        handleUnarchiveMember={handleUnarchiveMemberWrapper}
+      />
+
+      {isRightSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeSidebar}
         />
+      )}
 
-        {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModalV2
-            selectedAppointment={selectedAppointment}
-            setSelectedAppointment={setSelectedAppointment}
-            appointmentTypes={appointmentTypes}
-            freeAppointments={freeAppointments}
-            handleAppointmentChange={(changes) => {
-              setSelectedAppointment({ ...selectedAppointment, ...changes });
-            }}
-            appointments={appointments}
-            setAppointments={setAppointments}
-            setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-            setNotifyAction={setNotifyAction}
-            onDelete={handleDeleteAppointmentWrapper}
-            onClose={() => {
-              setIsEditAppointmentModalOpen(false);
-              setSelectedAppointment(null);
-            }}
-          />
-        )}
-
-        <WidgetSelectionModal
-          isOpen={isRightWidgetModalOpen}
-          onClose={() => setIsRightWidgetModalOpen(false)}
-          onSelectWidget={handleAddRightSidebarWidget}
-          getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
-          widgetArea="sidebar"
-        />
-
-        <MemberOverviewModal
-          isOpen={isMemberOverviewModalOpen}
+      {isEditTaskModalOpen && editingTask && (
+        <EditTaskModal
+          task={editingTask}
           onClose={() => {
-            setIsMemberOverviewModalOpen(false);
-            setSelectedMember(null);
+            setIsEditTaskModalOpen(false);
+            setEditingTask(null);
           }}
-          selectedMember={selectedMember}
-          calculateAge={calculateAge}
-          isContractExpiringSoon={isContractExpiringSoon}
-          handleCalendarFromOverview={handleCalendarFromOverview}
-          handleHistoryFromOverview={handleHistoryFromOverview}
-          handleCommunicationFromOverview={handleCommunicationFromOverview}
-          handleViewDetailedInfo={handleViewDetailedInfo}
-          handleEditFromOverview={handleEditFromOverview}
+          onUpdateTask={handleUpdateTaskWrapper}
         />
+      )}
 
-        <AppointmentModal
-          show={showAppointmentModal}
-          member={selectedMember}
-          onClose={() => {
-            setShowAppointmentModal(false);
-            setSelectedMember(null);
-          }}
-          getMemberAppointments={getMemberAppointmentsWrapper}
-          appointmentTypes={appointmentTypes}
-          handleEditAppointment={handleEditAppointment}
-          handleCancelAppointment={handleCancelAppointment}
-          currentBillingPeriod={currentBillingPeriod}
-          memberContingentData={memberContingentData}
-          handleManageContingent={handleManageContingent}
-          handleCreateNewAppointment={handleCreateNewAppointment}
-        />
-
-        <HistoryModal
-          show={showHistoryModal}
-          onClose={() => {
-            setShowHistoryModal(false);
-            setSelectedMember(null);
-          }}
-          selectedMember={selectedMember}
-          historyTab={historyTab}
-          setHistoryTab={setHistoryTab}
-          memberHistory={memberHistory}
-        />
-
-        <MemberDetailsModal
-          isOpen={isMemberDetailsModalOpen}
-          onClose={() => {
-            setIsMemberDetailsModalOpen(false);
-            setSelectedMember(null);
-          }}
-          selectedMember={selectedMember}
-          memberRelations={memberRelations}
-          DefaultAvatar={DefaultAvatar}
-          calculateAge={calculateAge}
-          isContractExpiringSoon={isContractExpiringSoon}
-          redirectToContract={redirectToContract}
-        />
-
-        <ContingentModal
-          show={showContingentModal}
-          setShow={setShowContingentModal}
-          selectedMember={selectedMember}
-          getBillingPeriods={getBillingPeriodsWrapper}
-          selectedBillingPeriod={selectedBillingPeriod}
-          handleBillingPeriodChange={setSelectedBillingPeriod}
-          setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
-          tempContingent={tempContingent}
-          setTempContingent={setTempContingent}
-          currentBillingPeriod={currentBillingPeriod}
-          handleSaveContingent={handleSaveContingentWrapper}
-        />
-
-        <AddBillingPeriodModal
-          show={showAddBillingPeriodModal}
-          setShow={setShowAddBillingPeriodModal}
-          newBillingPeriod={newBillingPeriod}
-          setNewBillingPeriod={setNewBillingPeriod}
-          handleAddBillingPeriod={handleAddBillingPeriodWrapper}
-        />
-
-        <EditMemberModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setSelectedMember(null);
-          }}
-          selectedMember={selectedMember}
-          editModalTab={editModalTab}
-          setEditModalTab={setEditModalTab}
-          editForm={editForm}
-          handleInputChange={handleInputChange}
-          handleEditSubmit={handleEditSubmitWrapper}
-          editingRelations={editingRelations}
-          setEditingRelations={setEditingRelations}
-          newRelation={newRelation}
-          setNewRelation={setNewRelation}
-          availableMembersLeads={availableMembersLeads}
-          relationOptions={relationOptions}
-          handleAddRelation={handleAddRelationWrapper}
-          memberRelations={memberRelations}
-          handleDeleteRelation={handleDeleteRelationWrapper}
-          handleArchiveMember={handleArchiveMemberWrapper}
-          handleUnarchiveMember={handleUnarchiveMemberWrapper}
-        />
-
-        {isRightSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={closeSidebar}
-          />
-        )}
-
-        {isEditTaskModalOpen && editingTask && (
-          <EditTaskModal
-            task={editingTask}
-            onClose={() => {
-              setIsEditTaskModalOpen(false);
-              setEditingTask(null);
-            }}
-            onUpdateTask={handleUpdateTaskWrapper}
-          />
-        )}
-
-        {taskToDelete && (
-          <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
-              <p className="text-gray-300 mb-6">
-                Are you sure you want to delete this task? This action cannot be undone.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToDelete(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteTaskWrapper(taskToDelete)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
+      {taskToDelete && (
+        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this task? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteTaskWrapper(taskToDelete)}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+              >
+                Delete
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {taskToCancel && (
-          <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
-              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToCancel(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  No
-                </button>
-                <button
-                  onClick={() => handleCancelTaskWrapper(taskToCancel)}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-                >
-                  Cancel Task
-                </button>
-              </div>
+      {taskToCancel && (
+        <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToCancel(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                No
+              </button>
+              <button
+                onClick={() => handleCancelTaskWrapper(taskToCancel)}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+              >
+                Cancel Task
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </>
   )
 }

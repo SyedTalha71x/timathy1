@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef } from "react"
-import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, ChevronDown } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { Printer } from "lucide-react"
 
@@ -11,6 +11,7 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
   const [editingDocId, setEditingDocId] = useState(null)
   const [newDocName, setNewDocName] = useState("")
   const [viewingDocument, setViewingDocument] = useState(null)
+  const [openCategoryDropdown, setOpenCategoryDropdown] = useState(null)
   const fileInputRef = useRef(null)
 
   const sampleDocuments = [
@@ -191,7 +192,12 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
 
   const changeDocumentCategory = (docId, category) => {
     setDocuments(displayDocuments.map((doc) => (doc.id === docId ? { ...doc, category } : doc)))
+    setOpenCategoryDropdown(null)
     toast.success("Document category updated")
+  }
+
+  const toggleCategoryDropdown = (docId) => {
+    setOpenCategoryDropdown(openCategoryDropdown === docId ? null : docId)
   }
 
   const getDocumentIcon = (type) => {
@@ -271,9 +277,6 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <p className="text-gray-300">
               Manage documents for <span className="font-medium text-white">{member.firstName} {member.lastName}</span>
-              <span className="text-gray-500 text-sm block sm:inline sm:ml-2">
-                Member #{member.memberNumber}
-              </span>
             </p>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
@@ -383,11 +386,33 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
                           </div>
                         ) : (
                           <>
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                               <p className="text-white font-medium truncate">{doc.name}</p>
-                              <span className={`text-xs px-2 py-0.5 rounded-full bg-gray-800 ${getCategoryColor(doc.category)}`}>
-                                {getCategoryLabel(doc.category)}
-                              </span>
+                              <div className="relative">
+                                <button
+                                  onClick={() => toggleCategoryDropdown(doc.id)}
+                                  className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-800 ${getCategoryColor(doc.category)} hover:bg-gray-700 transition-colors`}
+                                >
+                                  {getCategoryLabel(doc.category)}
+                                  <ChevronDown className="w-3 h-3" />
+                                </button>
+                                
+                                {openCategoryDropdown === doc.id && (
+                                  <div className="absolute top-full left-0 mt-1 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-lg z-10 min-w-[120px]">
+                                    {documentCategories.map((category) => (
+                                      <button
+                                        key={category.id}
+                                        onClick={() => changeDocumentCategory(doc.id, category.id)}
+                                        className={`flex items-center gap-2 w-full px-3 py-2 text-xs hover:bg-[#333] transition-colors ${doc.category === category.id ? 'bg-[#3a3a3a]' : ''}`}
+                                      >
+                                        <div className={`w-2 h-2 rounded-full bg-current ${category.color}`}></div>
+                                        <span className={category.color}>{category.label}</span>
+                                        {doc.category === category.id && <Check className="w-3 h-3 ml-auto" />}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                             <p className="text-xs text-gray-400">
                               {doc.size} • Uploaded on {doc.uploadDate}
@@ -398,21 +423,6 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
                     </div>
                     {editingDocId !== doc.id && (
                       <div className="flex gap-2 mt-3 sm:mt-0 justify-end">
-                        {/* Category selector */}
-                        <div className="relative">
-                          <select
-                            value={doc.category}
-                            onChange={(e) => changeDocumentCategory(doc.id, e.target.value)}
-                            className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md text-xs border border-gray-700 hover:bg-[#333] transition-colors"
-                            title="Change Category"
-                          >
-                            {documentCategories.map((category) => (
-                              <option key={category.id} value={category.id}>
-                                {category.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
                         <button
                           onClick={() => handleViewDocument(doc)}
                           className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"

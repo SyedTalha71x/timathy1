@@ -54,6 +54,11 @@ import EditAppointmentModalV2 from "../../components/myarea-components/EditAppoi
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import NotesWidget from "../../components/myarea-components/widjets/NotesWidjets"
 import BulletinBoardWidget from "../../components/myarea-components/widjets/BulletinBoardWidget"
+import AddTaskModal from "../../components/user-panel-components/task-components/add-task-modal"
+import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
+import ShiftScheduleWidget from "../../components/myarea-components/widjets/ShiftScheduleWidget"
+import { createPortal } from "react-dom"
+import AnalyticsChartWidget from "../../components/myarea-components/widjets/AnalyticsChartWidget"
 
 
 export default function MyArea() {
@@ -68,6 +73,9 @@ export default function MyArea() {
   const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [isSidebarEditing, setIsSidebarEditing] = useState(false)
+
+  const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
+
 
   const [showAppointmentOptionsModal, setshowAppointmentOptionsModal] = useState(false)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
@@ -92,9 +100,9 @@ export default function MyArea() {
   const [isSpecialNoteModalOpen, setIsSpecialNoteModalOpen] = useState(false)
   const [selectedAppointmentForNote, setSelectedAppointmentForNote] = useState(null)
 
-  const [bulletinFilter, setBulletinFilter] = useState("all");
 
-
+  const [hoveredNoteId, setHoveredNoteId] = useState(null)
+  const [hoverTimeout, setHoverTimeout] = useState(null)
 
   const [isMemberOverviewModalOpen, setisMemberOverviewModalOpen] = useState(false)
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
@@ -122,6 +130,9 @@ export default function MyArea() {
     selectedMemberId: null,
   })
   const [memberRelations, setMemberRelations] = useState(memberRelationsData)
+
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
+
 
   const DefaultAvatar = Avatar
   const availableMembersLeads = availableMembersLeadsNew
@@ -174,6 +185,7 @@ export default function MyArea() {
     { id: "birthday", type: "birthday", position: 6 },
     { id: "bulletinBoard", type: "bulletinBoard", position: 7 }, // Add this line
     { id: "notes", type: "notes", position: 8 },
+    { id: "shiftSchedule", type: "shiftSchedule", position: 9 }
   ])
 
   // Add right sidebar widgets state
@@ -188,6 +200,7 @@ export default function MyArea() {
 
     { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 7 },
     { id: "notes", type: "notes", position: 8 },
+    { id: "shiftSchedule", type: "shiftSchedule", position: 9 }
   ])
 
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
@@ -211,6 +224,9 @@ export default function MyArea() {
   const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false) // For contingent modal
   const [newBillingPeriod, setNewBillingPeriod] = useState("") // For contingent modal
   const [showContingentModal, setShowContingentModal] = useState(false)
+
+  const [tasks, setTasks] = useState([])
+  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
 
 
   const notePopoverRef = useRef(null)
@@ -366,16 +382,13 @@ export default function MyArea() {
     }))
   }
 
-  const handleBulletinFilterChange = (filter) => {
-    setBulletinFilter(filter);
-  };
 
-  const getFilteredBulletinPosts = () => {
-    if (bulletinFilter === "all") {
-      return bulletinBoardData;
-    }
-    return bulletinBoardData.filter(post => post.category === bulletinFilter);
-  };
+
+  const handleAddTask = (newTask) => {
+    setTodos(prevTodos => [...prevTodos, newTask]) // Also add to todos if needed
+    toast.success("Task added successfully!")
+  }
+
 
 
   const handleEditSubmit = (e) => {
@@ -966,24 +979,72 @@ export default function MyArea() {
 
 
   const renderSpecialNoteIcon = useCallback(
-    (specialNote, memberId) => {
-      if (!specialNote.text) return null
+    (specialNote, memberId, event) => {
+      if (!specialNote?.text) return null
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
 
+
       const handleNoteClick = (e) => {
         e.stopPropagation()
+        const rect = e.currentTarget.getBoundingClientRect()
+        setNotePosition({
+          top: rect.bottom + window.scrollY + 8,
+          left: rect.left + window.scrollX,
+        })
         setActiveNoteId(activeNoteId === memberId ? null : memberId)
+      }
+
+      const handleMouseEnter = (e) => {
+        e.stopPropagation()
+        // Clear any existing timeout
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          setHoverTimeout(null)
+        }
+
+        const rect = e.currentTarget.getBoundingClientRect()
+        setNotePosition({
+          top: rect.bottom + window.scrollY + 8,
+          left: rect.left + window.scrollX,
+        })
+
+        // Set a small delay before showing to prevent flickering
+        const timeout = setTimeout(() => {
+          setActiveNoteId(memberId)
+        }, 300)
+        setHoverTimeout(timeout)
+      }
+
+      const handleMouseLeave = (e) => {
+        e.stopPropagation()
+        // Clear the timeout if mouse leaves before delay
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          setHoverTimeout(null)
+        }
+        // Only hide if it's not actively clicked/open
+        if (activeNoteId !== memberId) {
+          setActiveNoteId(null)
+        }
+      }
+
+      const handleEditClick = (e) => {
+        e.stopPropagation()
+        setActiveNoteId(null) // Close the note popover
+        handleEditNote(memberId, specialNote) // Open the edit modal
       }
 
       return (
         <div className="relative">
           <div
             className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer transition-all duration-200 hover:scale-110`}
             onClick={handleNoteClick}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
             {specialNote.isImportant ? (
               <AlertTriangle size={18} className="text-white" />
@@ -993,63 +1054,74 @@ export default function MyArea() {
           </div>
 
           {activeNoteId === memberId && (
-            <div
-              ref={notePopoverRef}
-              className="absolute left-0 top-6 w-74 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
-            >
-              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {specialNote.isImportant ? (
-                  <AlertTriangle className="text-red-500 shrink-0" size={18} />
-                ) : (
-                  <Info className="text-blue-500 shrink-0" size={18} />
-                )}
-                <h4 className="text-white flex text-sm gap-1 items-center font-medium">
-                  <div>Special Note</div>
-                  <div className="text-sm text-gray-400">
-                    {specialNote.isImportant ? "(Important)" : "(Unimportant)"}
-                  </div>
-                </h4>
-                <button
-                  onClick={() => handleEditNote(memberId, specialNote)}
-                  className="ml-auto text-gray-400 hover:text-white mr-2"
-                >
-                  <Edit size={16} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setActiveNoteId(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-                {specialNote.startDate && specialNote.endDate ? (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
-                      {new Date(specialNote.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Always valid
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
+            createPortal(
+              <div
+                ref={notePopoverRef}
+                className="fixed w-64 sm:w-80 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999]"
+                style={{
+                  top: notePosition.top,
+                  left: notePosition.left,
+                }}
+                onMouseEnter={() => setActiveNoteId(memberId)} // Keep open when hovering over popover
+                onMouseLeave={() => setActiveNoteId(null)} // Close when leaving popover
+              >
+                <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                  {specialNote.isImportant ? (
+                    <AlertTriangle className="text-red-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400">
+                      {specialNote.isImportant ? "(Important)" : ""}
+                    </div>
+                  </h4>
+                  <button
+                    onClick={handleEditClick}
+                    className="ml-auto text-gray-400 hover:text-white mr-2 transition-colors"
+                    title="Edit Note"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveNoteId(null)
+                    }}
+                    className="text-gray-400 hover:text-white transition-colors"
+                    title="Close"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="p-3">
+                  <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
+                  {specialNote.startDate && specialNote.endDate ? (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <CalendarIcon size={12} />
+                        Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                        {new Date(specialNote.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <CalendarIcon size={12} />
+                        Always valid
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>,
+              document.body
+            )
           )}
         </div>
       )
     },
-    [activeNoteId, setActiveNoteId],
+    [activeNoteId, notePosition, hoverTimeout],
   )
 
   const handleViewMemberDetails = () => {
@@ -1253,9 +1325,9 @@ export default function MyArea() {
                 </div>
 
                 {/* Menu Icon → visible on mobile and medium screens */}
-              <div onClick={toggleRightSidebar} className="lg:hidden block">
-            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-          </div>
+                <div onClick={toggleRightSidebar} className="lg:hidden block">
+                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
               </div>
 
               {/* Buttons Section */}
@@ -1263,7 +1335,7 @@ export default function MyArea() {
                 {!isEditing && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
-                    className="px-4 py-2 bg-zinc-700 md:w-auto w-full text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
+                    className="px-4 py-2  flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
                   >
                     <Eye size={16} />
                     {currentView ? currentView.name : "Standard View"}
@@ -1307,7 +1379,7 @@ export default function MyArea() {
                     isEditing={isEditing}
                     widgets={widgets}
                   >
-                    <div className="p-4 bg-[#2F2F2F] rounded-xl">
+                    {/* <div className="p-4 bg-[#2F2F2F] rounded-xl">
                       <div className="relative mb-3" ref={chartDropdownRef}>
                         <button
                           onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
@@ -1336,7 +1408,11 @@ export default function MyArea() {
                       <div className="w-full">
                         <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
                       </div>
-                    </div>
+                    </div> */}
+                    <AnalyticsChartWidget
+                      isEditing={isEditing}
+                      onRemove={() => removeWidget(widget.id)}
+                    />
                   </DraggableWidget>
                 ))}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1354,35 +1430,35 @@ export default function MyArea() {
                       widgets={widgets}
                     >
                       {widget.type === "expiringContracts" && (
-  <div className="space-y-3 p-4 rounded-xl max-h-[340px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
-    <div className="flex justify-between items-center flex-shrink-0">
-      <h2 className="text-lg font-semibold">Expiring Contracts</h2>
-    </div>
-    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-      <div className="grid grid-cols-1 gap-3">
-        {expiringContracts.map((contract) => (
-          <Link to={"/dashboard/contract"} key={contract.id}>
-            <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
-              <div className="flex justify-between items-start gap-3">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium break-words line-clamp-2">
-                    {contract.title}
-                  </h3>
-                  <p className="text-xs mt-1 text-zinc-400 whitespace-nowrap overflow-hidden text-ellipsis">
-                    Expires: {contract.expiryDate}
-                  </p>
-                </div>
-                <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap flex-shrink-0">
-                  {contract.status}
-                </span>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
+                        <div className="space-y-3 p-4 rounded-xl max-h-[340px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
+                          <div className="flex justify-between items-center flex-shrink-0">
+                            <h2 className="text-lg font-semibold">Expiring Contracts</h2>
+                          </div>
+                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <div className="grid grid-cols-1 gap-3">
+                              {expiringContracts.map((contract) => (
+                                <Link to={"/dashboard/contract"} key={contract.id}>
+                                  <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
+                                    <div className="flex justify-between items-start gap-3">
+                                      <div className="flex-1 min-w-0">
+                                        <h3 className="text-sm font-medium break-words line-clamp-2">
+                                          {contract.title}
+                                        </h3>
+                                        <p className="text-xs mt-1 text-zinc-400 whitespace-nowrap overflow-hidden text-ellipsis">
+                                          Expires: {contract.expiryDate}
+                                        </p>
+                                      </div>
+                                      <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap flex-shrink-0">
+                                        {contract.status}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {widget.type === "appointments" && (
                         <div className="space-y-3 p-4 rounded-xl md:h-[340px] h-auto bg-[#2F2F2F]">
                           <div className="flex justify-between items-center">
@@ -1399,7 +1475,7 @@ export default function MyArea() {
                                   <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                                     {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                                     <div
-                                      className="cursor-pointer rounded transition-colors"
+                                      className="cursor-pointer mt-2 ml-1 rounded transition-colors"
                                       onClick={(e) => handleDumbbellClick(appointment, e)}
                                     >
                                       <Dumbbell size={16} />
@@ -1413,15 +1489,15 @@ export default function MyArea() {
                                     }}
                                   >
                                     <div className="flex items-center gap-2 relative w-full justify-center">
-                                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+                                      <div className="w-12 h-12 rounded-xl  bg-white/20 flex items-center justify-center relative">
                                         <img
                                           src={Avatar || "/placeholder.svg"}
                                           alt=""
-                                          className="w-full h-full rounded-full"
+                                          className="w-full h-full rounded-xl "
                                         />
                                       </div>
                                       <div className="text-white text-left flex-1">
-                                        <p className="font-semibold">{appointment.name} {appointment.lastName || ""}</p>
+                                        <p className="font-semibold text-sm">{appointment.name} {appointment.lastName || ""}</p>
                                         <p className="text-xs flex gap-1 items-center opacity-80">
                                           <Clock size={14} />
                                           {appointment.time} | {appointment.date.split("|")[0]}
@@ -1464,6 +1540,12 @@ export default function MyArea() {
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Website Links</h2>
+                            <button
+                              onClick={addCustomLink}
+                              className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
+                            >
+                              <Plus size={18} />
+                            </button>
                           </div>
                           <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
                             <div className="grid grid-cols-1 gap-3">
@@ -1525,18 +1607,19 @@ export default function MyArea() {
                               ))}
                             </div>
                           </div>
-                          <button
-                            onClick={addCustomLink}
-                            className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 mt-auto"
-                          >
-                            Add website link...
-                          </button>
+
                         </div>
                       )}
                       {widget.type === "todo" && (
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">To-Do</h2>
+                            <button
+                              onClick={() => setIsAddTaskModalOpen(true)}
+                              className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                            >
+                              <Plus size={18} />
+                            </button>
                           </div>
                           <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
                             <button
@@ -1699,8 +1782,15 @@ export default function MyArea() {
                         </div>
                       )}
                       {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
-                      
+
                       {widget.type === "notes" && <NotesWidget />}
+
+                      {widget.type === "shiftSchedule" && (
+                        <ShiftScheduleWidget
+                          isEditing={isEditing}
+                          onRemove={() => removeWidget(widget.id)}
+                        />
+                      )}
                     </DraggableWidget>
                   ))}
               </div>
@@ -1766,6 +1856,7 @@ export default function MyArea() {
           setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
           communications={communications}
           todos={todos}
+          setTodos={setTodos}
           handleTaskComplete={handleTaskComplete}
           todoFilter={todoFilter}
           setTodoFilter={setTodoFilter}
@@ -1811,6 +1902,11 @@ export default function MyArea() {
           notifications={notifications}
 
         />
+        {isAddTaskModalOpen && <AddTaskModal
+          onClose={() => setIsAddTaskModalOpen(false)}
+          onAddTask={handleAddTask}
+          configuredTags={configuredTags}
+        />}
 
         {isEditTaskModalOpen && editingTask && (
           <EditTaskModal

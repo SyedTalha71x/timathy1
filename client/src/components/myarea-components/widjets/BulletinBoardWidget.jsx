@@ -7,6 +7,7 @@ import {
   Trash2,
 } from "lucide-react"
 import Modal from "../bulletin-board-widjet-components/Modal"
+import { Link } from "react-router-dom"
 
 
 export const BulletinBoardWidget = () => {
@@ -260,11 +261,13 @@ export const BulletinBoardWidget = () => {
 
       {/* See All Link */}
       {getFilteredPosts().length > 0 && (
+        <Link to={"/dashboard/bulletin-board"}>
         <div className="flex justify-center pt-2">
           <button className="text-sm text-white hover:underline">
             See all
           </button>
         </div>
+        </Link>
       )}
 
       <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create New Post">

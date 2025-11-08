@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Calendar, ChevronLeft, ChevronRight, X, History, Eye } from "lucide-react"
-import { useState } from "react"
+import { Calendar, ChevronLeft, ChevronRight, X, History, Eye, Trash2 } from 'lucide-react'
+import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 
 // helper to format date to YYYY-MM-DD using local time (avoids timezone off-by-one)
@@ -13,15 +13,33 @@ function formatLocalYMD(date) {
   return `${y}-${m}-${d}`
 }
 
-function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = false }) {
+// Helper function to create striped background
+const createStripedBackground = (color) => {
+  return {
+    backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 5px, ${color}40 5px, ${color}40 10px)`,
+    backgroundColor: `${color}20`
+  }
+}
+
+function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = false, staffMembers = [], isStaffPlanning = false }) {
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  const [reason, setReason] = useState("")
   const [showCalendar, setShowCalendar] = useState(true)
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
   const [showRequestForm, setShowRequestForm] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [showVacationJournal, setShowVacationJournal] = useState(false)
+  const [calendarView, setCalendarView] = useState("yearly")
+  const [calendarSize, setCalendarSize] = useState(0) // Start with 0 for embedded mode
+
+  // Reset calendar size when embedded to prevent zoom issues
+  useEffect(() => {
+    if (isEmbedded) {
+      setCalendarSize(0)
+    }
+  }, [isEmbedded])
 
   const [bookedVacations, setBookedVacations] = useState([
     {
@@ -76,7 +94,7 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
 
   const calculateVacationDays = () => {
     if (!startDate || !endDate) return 0
-    const start = new Date(startDate + "T00:00:00") // ensure local midnight
+    const start = new Date(startDate + "T00:00:00")
     const end = new Date(endDate + "T00:00:00")
     const diffTime = Math.abs(end - start)
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
@@ -98,12 +116,13 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
       endDate: new Date(endDate + "T00:00:00"),
       status: "pending",
       requestDate: new Date(),
-      reason: "Vacation request",
+      reason: reason || "Vacation request",
     }
     setBookedVacations([...bookedVacations, newVacation])
     onSubmit(staffMember.id, startDate, endDate)
     setShowRequestForm(false)
     setShowConfirmDialog(false)
+    setReason("")
     toast.success("Vacation request submitted successfully")
   }
 
@@ -127,6 +146,14 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
 
   const goToNextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
+  }
+
+  const goToPreviousYear = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear() - 1, 0, 1))
+  }
+
+  const goToNextYear = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear() + 1, 0, 1))
   }
 
   const isClosingDay = (date) => {
@@ -166,7 +193,31 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
     return days
   }
 
+  const generateYearlyCalendarDays = () => {
+    const year = currentMonth.getFullYear()
+    const allDays = []
+    for (let month = 0; month < 12; month++) {
+      const firstDayOfMonth = new Date(year, month, 1)
+      const lastDayOfMonth = new Date(year, month + 1, 0)
+      const daysInMonth = lastDayOfMonth.getDate()
+      const firstDayOfWeek = firstDayOfMonth.getDay()
+      const monthDays = []
+
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        monthDays.push(null)
+      }
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        monthDays.push(new Date(year, month, i))
+      }
+
+      allDays.push({ month, days: monthDays })
+    }
+    return allDays
+  }
+
   const calendarDays = generateCalendarDays()
+  const yearlyCalendarDays = generateYearlyCalendarDays()
 
   const formatDateName = (dateStr) => {
     if (!dateStr) return ""
@@ -195,6 +246,21 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
 
   const getPendingVacations = () => {
     return bookedVacations.filter((vacation) => vacation.status === "pending")
+  }
+
+  const handleCancelPending = (vacationId) => {
+    setBookedVacations(bookedVacations.filter((v) => v.id !== vacationId))
+    toast.success("Pending request cancelled")
+  }
+
+  const getColleagueColors = () => {
+    return staffMembers
+      .filter((s) => s.id !== staffMember.id)
+      .map((s) => ({
+        id: s.id,
+        name: `${s.firstName} ${s.lastName}`,
+        color: s.indicatorColor || "#666666",
+      }))
   }
 
   const renderVacationJournal = () => (
@@ -251,7 +317,16 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
                     <p className="text-sm text-gray-300">{vacation.reason}</p>
                     <p className="text-xs text-gray-400">Requested: {vacation.requestDate.toLocaleDateString()}</p>
                   </div>
-                  <span className="bg-orange-600 text-white px-2 py-1 rounded text-xs">Pending</span>
+                  <div className="flex gap-2">
+                    <span className="bg-orange-600 text-white px-2 py-1 rounded text-xs">Pending</span>
+                    <button
+                      onClick={() => handleCancelPending(vacation.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1"
+                    >
+                      <Trash2 size={12} />
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -295,13 +370,29 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
     ? "w-full h-full"
     : "fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto"
 
+  // Responsive modal class with better scaling for embedded mode
   const modalClass = isEmbedded
     ? "bg-transparent text-white p-0 w-full h-full overflow-y-auto"
-    : "bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+    : "bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-2xl max-h-[70vh] overflow-y-auto"
+
+  // Calculate scale - disable scaling in embedded mode to prevent overflow
+  const scaleValue = isEmbedded ? 1 : (1 + calendarSize * 0.1)
+
+  // Get staff indicator color
+  const staffIndicatorColor = staffMember?.indicatorColor || "#3b82f6"
 
   return (
     <div className={containerClass}>
-      <div className={modalClass}>
+      <div 
+        className={modalClass} 
+        style={{ 
+          transform: `scale(${scaleValue})`, 
+          transformOrigin: "top center",
+          // Prevent scaling from causing overflow in embedded mode
+          maxWidth: isEmbedded ? '100%' : undefined,
+          maxHeight: isEmbedded ? '100%' : undefined
+        }}
+      >
         {showConfirmDialog ? (
           <div className="text-center">
             <h2 className="text-xl font-bold mb-4">Confirm Vacation Request</h2>
@@ -319,8 +410,13 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
               <p>
                 <strong>Remaining after booking:</strong> {remainingAfterBooking}
               </p>
+              {reason && (
+                <p>
+                  <strong>Reason:</strong> {reason}
+                </p>
+              )}
             </div>
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-4 justify-center flex-wrap">
               <button onClick={confirmSubmit} className="bg-blue-500 text-white px-6 py-2 rounded-xl text-sm">
                 Yes, Submit
               </button>
@@ -365,7 +461,7 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
+                  className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm w-full"
                 />
                 {startDate && <p className="text-xs text-gray-400 mt-1">{formatDateName(startDate)}</p>}
               </div>
@@ -375,9 +471,19 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full"
+                  className="bg-[#141414] white-calendar-icon rounded px-3 py-2 text-sm w-full"
                 />
                 {endDate && <p className="text-xs text-gray-400 mt-1">{formatDateName(endDate)}</p>}
+              </div>
+              <div>
+                <label className="text-sm text-gray-300 block mb-1">Reason (Optional)</label>
+                <input
+                  type="text"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="e.g., Family Holiday, Medical Appointment"
+                  className="bg-[#141414] text-sm rounded px-3 py-2 w-full"
+                />
               </div>
             </div>
             <div className="mt-4 space-y-2">
@@ -400,112 +506,264 @@ function VacationCalendarModal({ staffMember, onClose, onSubmit, isEmbedded = fa
           renderVacationJournal()
         ) : (
           <>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Vacation Calendar</h2>
-              <div className="flex items-center gap-2">
+            {/* Responsive Header */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl font-bold truncate">Vacation Calendar</h2>
+                {/* <p className="text-sm text-gray-400 truncate">{staffMember.firstName} {staffMember.lastName}</p> */}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                {/* Calendar view toggle - responsive */}
+                <div className="flex gap-1 bg-[#1C1C1C] rounded-lg p-1 order-1 sm:order-none">
+                  <button
+                    onClick={() => setCalendarView("monthly")}
+                    className={`px-2 py-1 rounded text-xs ${
+                      calendarView === "monthly" ? "bg-blue-600 text-white" : "text-gray-300"
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setCalendarView("yearly")}
+                    className={`px-2 py-1 rounded text-xs ${
+                      calendarView === "yearly" ? "bg-blue-600 text-white" : "text-gray-300"
+                    }`}
+                  >
+                    Yearly
+                  </button>
+                </div>
+
+                {/* Calendar resize controls - hide in embedded mode */}
+                {!isEmbedded && (
+                  <div className="flex gap-1 bg-[#1C1C1C] rounded-lg p-1 order-2 sm:order-none">
+                    <button
+                      onClick={() => setCalendarSize(Math.max(0, calendarSize - 1))}
+                      className="px-2 py-1 rounded text-xs hover:bg-gray-700"
+                    >
+                      −
+                    </button>
+                    <span className="px-2 py-1 text-xs text-gray-300">{Math.round((1 + calendarSize * 0.1) * 100)}%</span>
+                    <button
+                      onClick={() => setCalendarSize(Math.min(5, calendarSize + 1))}
+                      className="px-2 py-1 rounded text-xs hover:bg-gray-700"
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
+
                 <button
                   onClick={() => setShowVacationJournal(true)}
-                  className="text-gray-300 hover:text-white p-2 bg-[#1C1C1C] rounded-lg"
+                  className="text-gray-300 hover:text-white p-2 bg-[#1C1C1C] rounded-lg order-3 sm:order-none"
                   title="View Vacation Journal"
                 >
                   <History size={16} />
                 </button>
                 {!isEmbedded && (
-                  <button onClick={onClose} className="text-gray-300 hover:text-white">
+                  <button onClick={onClose} className="text-gray-300 hover:text-white order-4 sm:order-none">
                     <X size={20} />
                   </button>
                 )}
               </div>
             </div>
+
             <div className="mb-4">
-              <div className="flex justify-between items-center mb-4">
-                <button onClick={goToPreviousMonth} className="text-gray-300 hover:text-white p-2">
-                  <ChevronLeft size={20} />
-                </button>
-                <h3 className="font-medium text-lg">
-                  {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                </h3>
-                <button onClick={goToNextMonth} className="text-gray-300 hover:text-white p-2">
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-                  <div key={day} className="text-center text-xs font-medium py-2">
-                    {day}
+              {calendarView === "yearly" ? (
+                <>
+                  {/* Yearly view with responsive navigation */}
+                  <div className="flex justify-between items-center mb-4">
+                    <button onClick={goToPreviousYear} className="text-gray-300 hover:text-white p-2">
+                      <ChevronLeft size={20} />
+                    </button>
+                    <h3 className="font-medium text-lg text-center px-2">{currentMonth.getFullYear()}</h3>
+                    <button onClick={goToNextYear} className="text-gray-300 hover:text-white p-2">
+                      <ChevronRight size={20} />
+                    </button>
                   </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-1">
-                {calendarDays.map((day, index) => {
-                  if (!day) return <div key={index} className="opacity-0 h-10 sm:h-12"></div>
 
-                  const bookings = getDateBookings(day)
-                  const myPendingBookings = bookings.filter(
-                    (b) => b.staffId === staffMember.id && b.status === "pending",
-                  )
-                  const myApprovedBookings = bookings.filter(
-                    (b) => b.staffId === staffMember.id && b.status === "approved",
-                  )
-                  const colleagueBookings = bookings.filter((b) => b.staffId !== staffMember.id)
-                  const hasMyPending = myPendingBookings.length > 0
-                  const hasMyApproved = myApprovedBookings.length > 0
-                  const hasColleagueBookings = colleagueBookings.length > 0
-                  const isClosing = isClosingDay(day)
+                  {/* Responsive yearly calendar grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {yearlyCalendarDays.map((monthData) => (
+                      <div key={monthData.month} className="bg-[#1C1C1C] rounded-lg p-3">
+                        <h4 className="text-sm font-semibold mb-2 text-center">
+                          {new Date(currentMonth.getFullYear(), monthData.month, 1).toLocaleDateString("en-US", {
+                            month: "short",
+                          })}
+                        </h4>
+                        <div className="grid grid-cols-7 gap-1 mb-1">
+                          {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
+                            <div key={day} className="text-center text-[10px] font-medium py-0.5">
+                              {day}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-7 gap-0.5">
+                          {monthData.days.map((day, index) => {
+                            if (!day)
+                              return (
+                                <div key={`empty-${index}`} className="opacity-0 h-4 sm:h-5"></div>
+                              )
 
-                  const dayStr = formatLocalYMD(day)
-                  const isSelected = (startDate && dayStr === startDate) || (endDate && dayStr === endDate)
+                            const bookings = getDateBookings(day)
+                            const myPendingBookings = bookings.filter(
+                              (b) => b.staffId === staffMember.id && b.status === "pending",
+                            )
+                            const myApprovedBookings = bookings.filter(
+                              (b) => b.staffId === staffMember.id && b.status === "approved",
+                            )
+                            const colleagueBookings = bookings.filter((b) => b.staffId !== staffMember.id)
+                            const hasMyPending = myPendingBookings.length > 0
+                            const hasMyApproved = myApprovedBookings.length > 0
+                            const hasColleagueBookings = colleagueBookings.length > 0
+                            const isClosing = isClosingDay(day)
 
-                  return (
-                    <div
-                      key={index}
-                      className={`
-                        relative text-center p-1 sm:p-2 rounded-md text-xs sm:text-sm h-10 sm:h-12 flex items-center justify-center
-                        ${isClosing ? "bg-gray-600 text-gray-400 cursor-not-allowed" : "cursor-pointer"}
-                        ${hasMyPending && !isClosing ? "bg-orange-500/30" : ""}
-                        ${hasMyApproved && !isClosing ? "bg-green-500/30" : ""}
-                        ${isSelected && !isClosing ? "bg-blue-500/50 border border-blue-400" : ""}
-                        ${!hasMyPending && !hasMyApproved && !isSelected && !isClosing ? "hover:bg-blue-600/20" : ""}
-                      `}
-                      onClick={() => !isClosing && handleDateClick(day)}
-                    >
-                      <span>{day.getDate()}</span>
-                      {(hasMyPending || hasMyApproved || hasColleagueBookings) && !isClosing && (
-                        <div className="absolute bottom-1 left-0 right-0 flex justify-center space-x-1">
-                          {hasMyPending && <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-orange-500"></div>}
-                          {hasMyApproved && <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500"></div>}
-                          {hasColleagueBookings && (
-                            <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-gray-500"></div>
+                            const dayStr = formatLocalYMD(day)
+                            const isSelected = (startDate && dayStr === startDate) || (endDate && dayStr === endDate)
+
+                            return (
+                              <div
+                                key={index}
+                                className={`
+                                  relative text-center p-0.5 rounded text-[10px] h-4 sm:h-5 flex items-center justify-center
+                                  ${isClosing ? "bg-gray-600 text-gray-400 cursor-not-allowed" : "cursor-pointer"}
+                                  ${hasMyPending && !isClosing ? "bg-orange-500/30" : ""}
+                                  ${hasMyApproved && !isClosing ? "bg-green-500/30" : ""}
+                                  ${isSelected && !isClosing ? "bg-blue-500/50 border border-blue-400" : ""}
+                                  ${!hasMyPending && !hasMyApproved && !isSelected && !isClosing ? "hover:bg-blue-600/20" : ""}
+                                `}
+                                onClick={() => !isClosing && handleDateClick(day)}
+                                title={hasMyPending ? "Pending" : ""}
+                              >
+                                <span className="text-[8px] leading-none">{day.getDate()}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Monthly view with responsive navigation */}
+                  <div className="flex justify-between items-center mb-4">
+                    <button onClick={goToPreviousMonth} className="text-gray-300 hover:text-white p-2">
+                      <ChevronLeft size={20} />
+                    </button>
+                    <h3 className="font-medium text-lg text-center px-2">
+                      {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                    </h3>
+                    <button onClick={goToNextMonth} className="text-gray-300 hover:text-white p-2">
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                  
+                  {/* Responsive calendar grid */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
+                      <div key={day} className="text-center text-xs font-medium py-2">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {calendarDays.map((day, index) => {
+                      if (!day) return <div key={index} className="opacity-0 h-8 sm:h-10 md:h-12"></div>
+
+                      const bookings = getDateBookings(day)
+                      const myPendingBookings = bookings.filter(
+                        (b) => b.staffId === staffMember.id && b.status === "pending",
+                      )
+                      const myApprovedBookings = bookings.filter(
+                        (b) => b.staffId === staffMember.id && b.status === "approved",
+                      )
+                      const colleagueBookings = bookings.filter((b) => b.staffId !== staffMember.id)
+                      const hasMyPending = myPendingBookings.length > 0
+                      const hasMyApproved = myApprovedBookings.length > 0
+                      const hasColleagueBookings = colleagueBookings.length > 0
+                      const isClosing = isClosingDay(day)
+
+                      const dayStr = formatLocalYMD(day)
+                      const isSelected = (startDate && dayStr === startDate) || (endDate && dayStr === endDate)
+
+                      return (
+                        <div
+                          key={index}
+                          className={`
+                            relative text-center p-1 rounded-md text-xs h-8 sm:h-10 md:h-12 flex items-center justify-center
+                            ${isClosing ? "bg-gray-600 text-gray-400 cursor-not-allowed" : "cursor-pointer"}
+                            ${hasMyPending && !isClosing ? "bg-orange-500/30" : ""}
+                            ${hasMyApproved && !isClosing ? "bg-green-500/30" : ""}
+                            ${isSelected && !isClosing ? "bg-blue-500/50 border border-blue-400" : ""}
+                            ${!hasMyPending && !hasMyApproved && !isSelected && !isClosing ? "hover:bg-blue-600/20" : ""}
+                          `}
+                          onClick={() => !isClosing && handleDateClick(day)}
+                          title={hasMyPending ? "Pending vacation" : ""}
+                        >
+                          <span className="text-xs sm:text-sm">{day.getDate()}</span>
+                          {(hasMyPending || hasMyApproved || hasColleagueBookings) && !isClosing && (
+                            <div className="absolute bottom-1 left-0 right-0 flex justify-center space-x-0.5">
+                              {hasMyPending && <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-orange-500"></div>}
+                              {hasMyApproved && <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500"></div>}
+                              {hasColleagueBookings && (
+                                <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-gray-500"></div>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-orange-500/30 rounded-sm mr-2"></div>
-                  <span>Pending</span>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+
+              {/* Responsive legend */}
+              {!isStaffPlanning && (
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div className="flex items-center">
+                    <div 
+                      className="w-3 h-3 rounded-sm mr-2" 
+                      style={createStripedBackground(staffIndicatorColor)}
+                    ></div>
+                    <span>Pending</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div 
+                      className="w-3 h-3 rounded-sm mr-2" 
+                      style={{ backgroundColor: staffIndicatorColor }}
+                    ></div>
+                    <span>Approved</span>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500/30 rounded-sm mr-2"></div>
-                  <span>Approved</span>
+              )}
+
+              {/* Colleague colors - responsive */}
+              {getColleagueColors().length > 0 && (
+                <div className="mt-4 bg-[#141414] rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-300 mb-2">Colleagues</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                    {getColleagueColors().map((colleague) => (
+                      <div key={colleague.id} className="flex items-center gap-2 text-xs">
+                        <div
+                          className="w-3 h-3 rounded-sm flex-shrink-0"
+                          style={{ backgroundColor: colleague.color }}
+                        ></div>
+                        {isStaffPlanning && (
+                          <span className="text-gray-300 truncate">{colleague.name}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-gray-500/30 rounded-sm mr-2"></div>
-                  <span>Colleagues</span>
+              )}
+
+              {!isStaffPlanning && (
+                <div className="mt-4 bg-[#141414] rounded-lg p-3">
+                  <p className="text-sm text-gray-300">
+                    Vacation Days: <span className="font-bold text-white">{remainingVacationDays}</span> remaining
+                  </p>
                 </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-gray-600 rounded-sm mr-2"></div>
-                  <span>Closed</span>
-                </div>
-              </div>
-              <div className="mt-4 bg-[#141414] rounded-lg p-3">
-                <p className="text-sm text-gray-300">
-                  Vacation Days: <span className="font-bold text-white">{remainingVacationDays}</span> remaining
-                </p>
-              </div>
+              )}
             </div>
           </>
         )}

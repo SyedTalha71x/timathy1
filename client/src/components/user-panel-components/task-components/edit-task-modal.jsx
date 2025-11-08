@@ -1,4 +1,3 @@
-"use client"
 
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
@@ -90,10 +89,9 @@ const EditTaskModal = ({ onClose, onUpdateTask, configuredTags = [], taskToEdit,
         repeatSettings: builtRepeatSettings,
       }
       onUpdateTask(updatedTask)
+      onClose()
       toast.success("Task has been updated successfully!")
-      setTimeout(() => {
-        onClose()
-      }, 1500)
+    
     }
   }
 

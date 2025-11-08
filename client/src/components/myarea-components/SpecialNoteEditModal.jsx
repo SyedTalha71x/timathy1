@@ -81,12 +81,11 @@ export const SpecialNoteEditModal = ({ isOpen, onClose, appointment, onSave }) =
           {/* Appointment Info */}
           {appointment && (
             <div className="flex items-center gap-3 p-3 bg-black rounded-xl">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-sm font-semibold">{appointment.name.charAt(0).toUpperCase()}</span>
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+               <img src="/gray-avatar-fotor-20250912192528.png" alt="" className="rounded-xl" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm text-white">{appointment.name}</h3>
-                <p className="text-xs text-zinc-400">{appointment.date}</p>
+                <h3 className="font-semibold text-sm text-white">{appointment.name} {appointment.lastName}</h3>
               </div>
             </div>
           )}

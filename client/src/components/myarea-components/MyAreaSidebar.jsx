@@ -35,78 +35,17 @@ import StaffCheckInWidget from "./widjets/StaffWidgetCheckIn"
 import { SpecialNoteEditModal } from "./SpecialNoteEditModal"
 import RightSidebarWidget from "./sidebar-components/RightSidebarWidget"
 import ViewManagementModal from "./sidebar-components/ViewManagementModal"
-import { bulletinBoardData, memberTypesData } from "../../utils/user-panel-states/myarea-states"
+import { bulletinBoardData, demoNotifications, memberTypesData } from "../../utils/user-panel-states/myarea-states"
 
 import PersonImage from '../../../public/avatar3.png'
 import BulletinBoardWidget from "./widjets/BulletinBoardWidget"
 import NotesWidget from "./widjets/NotesWidjets"
+import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
+import AddTaskModal from "../user-panel-components/task-components/add-task-modal"
+import ShiftScheduleWidget from "./widjets/ShiftScheduleWidget"
+import { createPortal } from "react-dom"
+import ReplyModal from "./sidebar-components/ReplyModal"
 
-const demoNotifications = {
-  memberChat: [
-    {
-      id: "mc1",
-      type: "member_chat",
-      senderName: "John Smith",
-      senderAvatar: PersonImage,
-      message: "Hey, can I reschedule my session for tomorrow?",
-      time: "2 min ago",
-      isRead: false,
-      chatId: "chat_001",
-    },
-    {
-      id: "mc2",
-      type: "member_chat",
-      senderName: "Sarah Johnson",
-      senderAvatar: PersonImage,
-      message: "Thanks for the workout plan! Really enjoying it.",
-      time: "15 min ago",
-      isRead: false,
-      chatId: "chat_002",
-    },
-    {
-      id: "mc3",
-      type: "member_chat",
-      senderName: "Mike Wilson",
-      senderAvatar: PersonImage,
-      message: "Is the gym open on Sunday?",
-      time: "1 hour ago",
-      isRead: true,
-      chatId: "chat_003",
-    },
-  ],
-  studioChat: [
-    {
-      id: "sc1",
-      type: "studio_chat",
-      senderName: "Alex (Trainer)",
-      senderAvatar: PersonImage,
-      message: "New member orientation scheduled for 3 PM",
-      time: "5 min ago",
-      isRead: false,
-      chatId: "studio_001",
-    },
-    {
-      id: "sc2",
-      type: "studio_chat",
-      senderName: "Emma (Manager)",
-      senderAvatar: PersonImage,
-      message: "Equipment maintenance completed",
-      time: "30 min ago",
-      isRead: false,
-      chatId: "studio_002",
-    },
-    {
-      id: "sc3",
-      type: "studio_chat",
-      senderName: "David (Receptionist)",
-      senderAvatar: PersonImage,
-      message: "Front desk coverage needed tomorrow",
-      time: "2 hours ago",
-      isRead: true,
-      chatId: "studio_003",
-    },
-  ],
-}
 
 const ChartWithLocalState = () => {
   const [selectedMemberType, setSelectedMemberType] = useState("All members")
@@ -233,75 +172,6 @@ const ChartWithLocalState = () => {
   )
 }
 
-const MessageReplyModal = ({ isOpen, onClose, message, onSendReply }) => {
-  const [replyText, setReplyText] = useState("")
-
-  const handleSendReply = () => {
-    if (replyText.trim()) {
-      onSendReply(message.chatId, replyText)
-      setReplyText("")
-      onClose()
-      toast.success("Reply sent successfully!")
-    }
-  }
-
-  if (!isOpen || !message) return null
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#2F2F2F] rounded-xl w-full max-w-md">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <div className="flex items-center gap-3">
-            <img
-              src={message.senderAvatar || "/placeholder.svg"}
-              alt={message.senderName}
-              className="w-8 h-8 rounded-full"
-            />
-            <div>
-              <h3 className="text-white font-medium text-sm">Reply to {message.senderName}</h3>
-              <p className="text-gray-400 text-xs">{message.type === "member_chat" ? "Member Chat" : "Studio Chat"}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Original Message */}
-        <div className="p-4 bg-black/30">
-          <p className="text-gray-300 text-sm italic">"{message.message}"</p>
-          <p className="text-gray-500 text-xs mt-1">{message.time}</p>
-        </div>
-
-        {/* Reply Input */}
-        <div className="p-4">
-          <textarea
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            placeholder="Type your reply..."
-            className="w-full bg-black rounded-lg p-3 text-white text-sm resize-none h-24 border border-gray-600 focus:border-blue-500 focus:outline-none"
-          />
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-2 mt-3">
-            <button onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white text-sm">
-              Cancel
-            </button>
-            <button
-              onClick={handleSendReply}
-              disabled={!replyText.trim()}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm flex items-center gap-2"
-            >
-              <Reply size={16} />
-              Send Reply
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 const Sidebar = ({
   isRightSidebarOpen,
@@ -313,6 +183,7 @@ const Sidebar = ({
   removeRightSidebarWidget,
   setIsRightWidgetModalOpen,
   todos,
+  setTodos,
   handleTaskComplete,
   openDropdownIndex,
   toggleDropdown,
@@ -335,8 +206,12 @@ const Sidebar = ({
   onSaveSpecialNote, // Added prop for saving special notes
 }) => {
   const todoFilterDropdownRef = useRef(null)
-  const chartDropdownRef = useRef(null)
   const notePopoverRef = useRef(null)
+
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
+  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
+
+
 
   const [savedViews, setSavedViews] = useState([])
   const [currentView, setCurrentView] = useState(null)
@@ -347,7 +222,10 @@ const Sidebar = ({
   const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false)
   const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
 
-  const [sidebarBulletinFilter, setSidebarBulletinFilter] = useState("all")
+  const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
+  const [hoveredNoteId, setHoveredNoteId] = useState(null)
+  const [hoverTimeout, setHoverTimeout] = useState(null)
+
 
   const [notificationData, setNotificationData] = useState(demoNotifications)
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
@@ -355,6 +233,8 @@ const Sidebar = ({
   const [collapsedSections, setCollapsedSections] = useState({
     memberChat: false,
     studioChat: false,
+    activityMonitor: false,
+
   })
 
   // Local state for todo filtering
@@ -367,6 +247,32 @@ const Sidebar = ({
     { value: "completed", label: "Completed", color: "#10b981" },
     { value: "canceled", label: "Canceled", color: "#ef4444" },
   ]
+
+  const handleAddTask = (newTask) => {
+    setTodos(prevTodos => [...prevTodos, newTask]) // Also add to todos if needed
+    toast.success("Task added successfully!")
+  }
+
+  const activityTypes = {
+    vacation: {
+      icon: Users,
+      color: "bg-blue-600",
+    },
+    contract: {
+      icon: Building2,
+      color: "bg-orange-600",
+    },
+    appointment: {
+      icon: CalendarIcon,
+      color: "bg-green-600",
+    },
+    email: {
+      icon: MessageCircle,
+      color: "bg-purple-600",
+    },
+  }
+
+  
   /**
    * Handles opening the reply modal for a specific message
    * This function sets the selected message and opens the reply modal
@@ -388,6 +294,14 @@ const Sidebar = ({
       studioChat: prev.studioChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
     }))
   }
+  const handleOpenFullMessenger = (message) => {
+    setIsReplyModalOpen(false);
+    
+        window.location.href = `/dashboard/communication`;
+    
+    toast.success(`Redirecting to ${message.type === "member_chat" ? "Member" : "Studio"} Messenger`);
+  };
+
 
   const toggleNotificationSection = (section) => {
     setCollapsedSections((prev) => ({
@@ -418,6 +332,66 @@ const Sidebar = ({
     return notificationData[section].filter((msg) => !msg.isRead).length
   }
 
+  /**
+ * Handles activity actions (approve, reject, resolve, etc.)
+ */
+  const handleActivityAction = (activity, action) => {
+    console.log(`Performing ${action} on activity:`, activity.id)
+
+    // Update the activity status based on the action
+    setNotificationData((prev) => ({
+      ...prev,
+      activityMonitor: prev.activityMonitor.map((item) =>
+        item.id === activity.id
+          ? {
+            ...item,
+            status: action === "approve" || action === "resolve" ? "completed" :
+              action === "reject" ? "rejected" : item.status,
+            isRead: true,
+            actionRequired: false
+          }
+          : item
+      ),
+    }))
+
+    // Show appropriate toast message
+    const actionMessages = {
+      approve: "Vacation request approved",
+      reject: "Vacation request rejected",
+      resolve: "Activity marked as resolved",
+      archive: "Activity archived",
+    }
+
+    toast.success(actionMessages[action] || "Action completed")
+  }
+
+  /**
+   * Handles clicking on an activity notification
+   */
+  const handleActivityClick = (activity) => {
+    // Mark as read
+    markMessageAsRead(activity.id, activity.type)
+
+    // Here you can implement what happens when an activity is clicked
+    // For example, open a detailed view or perform a specific action
+    console.log("Activity clicked:", activity)
+
+    // You could also open a modal with more details here
+    // setSelectedActivity(activity)
+    // setIsActivityDetailModalOpen(true)
+  }
+
+  /**
+   * Handles jumping to the full activity monitor
+   */
+  const handleJumpToActivityMonitor = (activity) => {
+    window.location.href = "/dashboard/activity-monitor"
+  }
+
+
+
+
+
   const getFilteredTodos = () => {
     switch (todoFilter) {
       case "ongoing":
@@ -431,16 +405,6 @@ const Sidebar = ({
     }
   }
 
-  const handleSidebarBulletinFilterChange = (filter) => {
-    setSidebarBulletinFilter(filter)
-  }
-
-  const getSidebarFilteredBulletinPosts = () => {
-    if (sidebarBulletinFilter === "all") {
-      return bulletinBoardData
-    }
-    return bulletinBoardData.filter((post) => post.category === sidebarBulletinFilter)
-  }
 
   const handleSidebarEditNote = (appointmentId, currentNote) => {
     const appointment = appointments.find((app) => app.id === appointmentId)
@@ -466,23 +430,71 @@ const Sidebar = ({
 
   const renderSidebarSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
-      if (!specialNote.text) return null
+      if (!specialNote?.text) return null
       const isActive =
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
-
+  
       const handleNoteClick = (e) => {
         e.stopPropagation()
+        const rect = e.currentTarget.getBoundingClientRect()
+        setNotePosition({
+          top: rect.bottom + window.scrollY + 8,
+          left: rect.left + window.scrollX,
+        })
         setSidebarActiveNoteId(sidebarActiveNoteId === memberId ? null : memberId)
       }
-
+  
+      const handleMouseEnter = (e) => {
+        e.stopPropagation()
+        // Clear any existing timeout
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          setHoverTimeout(null)
+        }
+        
+        const rect = e.currentTarget.getBoundingClientRect()
+        setNotePosition({
+          top: rect.bottom + window.scrollY + 8,
+          left: rect.left + window.scrollX,
+        })
+        
+        // Set a small delay before showing to prevent flickering
+        const timeout = setTimeout(() => {
+          setHoveredNoteId(memberId)
+        }, 300)
+        setHoverTimeout(timeout)
+      }
+  
+      const handleMouseLeave = (e) => {
+        e.stopPropagation()
+        // Clear the timeout if mouse leaves before delay
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          setHoverTimeout(null)
+        }
+        setHoveredNoteId(null)
+      }
+  
+      const handleEditClick = (e) => {
+        e.stopPropagation()
+        setSidebarActiveNoteId(null) // Close the note popover
+        setHoveredNoteId(null) // Close hover popover
+        handleSidebarEditNote(memberId, specialNote) // Open the edit modal
+      }
+  
+      // Determine if we should show the popover (either clicked or hovered)
+      const shouldShowPopover = sidebarActiveNoteId === memberId || hoveredNoteId === memberId
+  
       return (
         <div className="relative">
           <div
             className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer transition-all duration-200 hover:scale-110`}
             onClick={handleNoteClick}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
             {specialNote.isImportant ? (
               <AlertTriangle size={18} className="text-white" />
@@ -490,65 +502,87 @@ const Sidebar = ({
               <Info size={18} className="text-white" />
             )}
           </div>
-
-          {sidebarActiveNoteId === memberId && (
-            <div
-              ref={notePopoverRef}
-              className="absolute left-0 top-6 w-74 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-20"
-            >
-              <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                {specialNote.isImportant ? (
-                  <AlertTriangle className="text-red-500 shrink-0" size={18} />
-                ) : (
-                  <Info className="text-blue-500 shrink-0" size={18} />
-                )}
-                <h4 className="text-white flex text-sm gap-1 items-center font-medium">
-                  <div>Special Note</div>
-                  <div className="text-sm text-gray-400">
-                    {specialNote.isImportant ? "(Important)" : "(Unimportant)"}
-                  </div>
-                </h4>
-                <button
-                  onClick={() => handleSidebarEditNote(memberId, specialNote)}
-                  className="ml-auto text-gray-400 hover:text-white mr-2"
-                >
-                  <Edit size={16} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setSidebarActiveNoteId(null)
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="p-3">
-                <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-                {specialNote.startDate && specialNote.endDate ? (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
-                      {new Date(specialNote.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                    <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                      <CalendarIcon size={12} />
-                      Always valid
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
+  
+          {shouldShowPopover && (
+            createPortal(
+              <div
+                ref={notePopoverRef}
+                className="fixed w-64 sm:w-74 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999]"
+                style={{
+                  top: notePosition.top,
+                  left: notePosition.left,
+                }}
+                onMouseEnter={() => {
+                  // Keep open when hovering over popover
+                  if (hoveredNoteId === memberId) {
+                    setHoveredNoteId(memberId)
+                  }
+                }}
+                onMouseLeave={() => {
+                  // Only close if it was opened via hover (not click)
+                  if (hoveredNoteId === memberId) {
+                    setHoveredNoteId(null)
+                  }
+                }}
+              >
+                <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
+                  {specialNote.isImportant ? (
+                    <AlertTriangle className="text-red-500 shrink-0" size={18} />
+                  ) : (
+                    <Info className="text-blue-500 shrink-0" size={18} />
+                  )}
+                  <h4 className="text-white flex gap-1 items-center font-medium">
+                    <div>Special Note</div>
+                    <div className="text-sm text-gray-400">
+                      {specialNote.isImportant ? "(Important)" : ""}
+                    </div>
+                  </h4>
+                  <button
+                    onClick={handleEditClick}
+                    className="ml-auto text-gray-400 hover:text-white mr-2 transition-colors"
+                    title="Edit Note"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSidebarActiveNoteId(null)
+                      setHoveredNoteId(null)
+                    }}
+                    className="text-gray-400 hover:text-white transition-colors"
+                    title="Close"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="p-3">
+                  <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
+                  {specialNote.startDate && specialNote.endDate ? (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <CalendarIcon size={12} />
+                        Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
+                        {new Date(specialNote.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                        <CalendarIcon size={12} />
+                        Always valid
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>,
+              document.body
+            )
           )}
         </div>
       )
     },
-    [sidebarActiveNoteId, appointments],
+    [sidebarActiveNoteId, notePosition, hoveredNoteId, hoverTimeout],
   )
 
   return (
@@ -567,19 +601,19 @@ const Sidebar = ({
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <h2 className="text-base sm:text-lg font-semibold text-white truncate">Sidebar</h2>
-                 
+
                 </div>
               </div>
               <div></div>
               <div className="flex items-center gap-1 sm:gap-2">
-                {!isSidebarEditing && (
+                {!isSidebarEditing && activeTab !== "notifications" && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
                     className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
                     title="Manage Sidebar Views"
                   >
-                    <Eye size={14} />
-                    {currentView ? currentView.name : ""}
+                    <Eye size={16} />
+                    {currentView ? currentView.name : "Standard View"}
                   </button>
                 )}
                 {activeTab === "widgets" && isSidebarEditing && (
@@ -588,7 +622,7 @@ const Sidebar = ({
                     className="p-1.5 sm:p-2 bg-black text-white hover:bg-zinc-900 rounded-lg cursor-pointer"
                     title="Add Widget"
                   >
-                    <Plus size={14} />
+                    <Plus size={20} />
                   </button>
                 )}
                 {activeTab === "widgets" && (
@@ -598,7 +632,7 @@ const Sidebar = ({
                       } rounded-lg flex items-center gap-1`}
                     title="Toggle Edit Mode"
                   >
-                    {isSidebarEditing ? <Check size={14} /> : <Edit size={14} />}
+                    {isSidebarEditing ? <Check size={18} /> : <Edit size={18} />}
                   </button>
                 )}
                 {/* Show close button only on medium and small screens */}
@@ -631,9 +665,9 @@ const Sidebar = ({
               <Bell size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
 
-              {getUnreadCount("memberChat") + getUnreadCount("studioChat") > 0 && (
+              {getUnreadCount("memberChat") + getUnreadCount("studioChat") + getUnreadCount("activityMonitor") > 0 && (
                 <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
-                  {getUnreadCount("memberChat") + getUnreadCount("studioChat")}
+                  {getUnreadCount("memberChat") + getUnreadCount("studioChat") + getUnreadCount("activityMonitor")}
                 </span>
               )}
             </button>
@@ -650,7 +684,7 @@ const Sidebar = ({
                   className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                  <User size={16} className="inline mr-2" />
+                    <User size={16} className="inline mr-2" />
                     <h3 className="text-white font-medium text-sm">Member Chat</h3>
                     {getUnreadCount("memberChat") > 0 && (
                       <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
@@ -782,6 +816,163 @@ const Sidebar = ({
                   </div>
                 )}
               </div>
+
+              {/* activity monitor  */}
+              <div className="bg-black rounded-xl overflow-hidden">
+                <button
+                  onClick={() => toggleNotificationSection("activityMonitor")}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Bell size={18}  />
+                    <h3 className="text-white font-medium text-sm">Activity Monitor</h3>
+
+                    {getUnreadCount("activityMonitor") > 0 && (
+                      <span className="bg-orange-500 text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-full">
+                        {getUnreadCount("activityMonitor")}
+                      </span>
+                    )}
+                  </div>
+
+                  {collapsedSections.activityMonitor ? (
+                    <ChevronDown size={18} className="text-gray-400" />
+                  ) : (
+                    <ChevronUp size={18} className="text-gray-400" />
+                  )}
+                </button>
+
+                {/* Content Section */}
+                {!collapsedSections.activityMonitor && (
+                  <div className="border-t border-gray-800">
+                    {notificationData.activityMonitor.length > 0 ? (
+                      <div className="divide-y divide-gray-800">
+                        {notificationData.activityMonitor.map((activity) => {
+                          const config = activityTypes[activity.activityType];
+                          const Icon = config ? config.icon : Bell;
+
+                          return (
+                            <div
+                              key={activity.id}
+                              className={`p-4 sm:p-5 hover:bg-gray-900 transition-colors cursor-pointer ${!activity.isRead ? "bg-purple-900/20" : ""
+                                }`}
+                              onClick={() => {
+                                handleActivityClick(activity);
+                                markMessageAsRead(activity.id, activity.type);
+                              }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div
+                                  className={`${config ? config.color : "bg-gray-700"} p-2.5 rounded-xl flex-shrink-0`}
+                                >
+                                  <Icon size={18} className="text-white" />
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <h4 className="text-white font-medium text-sm sm:text-base truncate">
+                                      {activity.title}
+                                    </h4>
+                                    {!activity.isRead && (
+                                      <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                    )}
+                                  </div>
+
+                                  <p className="text-gray-400 text-xs sm:text-sm line-clamp-2 mb-2">
+                                    {activity.description}
+                                  </p>
+
+                                  <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+                                    {/* Time & Status */}
+                                    <div className="flex items-center gap-2 text-gray-500 text-xs sm:text-sm">
+                                      
+
+                                      {activity.actionRequired && (
+                                        <span className="px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-yellow-600 text-white">
+                                          ACTION REQUIRED
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center gap-1 sm:gap-2">
+                                      {activity.actionRequired && activity.status === "pending" && (
+                                        <>
+                                          {activity.activityType === "vacation" && (
+                                            <>
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleActivityAction(activity, "approve");
+                                                }}
+                                                className="p-1.5 sm:p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                                title="Approve"
+                                              >
+                                                <Check size={12} className="text-white" />
+                                              </button>
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleActivityAction(activity, "reject");
+                                                }}
+                                                className="p-1.5 sm:p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                                                title="Reject"
+                                              >
+                                                <X size={12} className="text-white" />
+                                              </button>
+                                            </>
+                                          )}
+
+                                          {(activity.activityType === "email" ||
+                                            activity.activityType === "contract" ||
+                                            activity.activityType === "appointment") && (
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleActivityAction(activity, "resolve");
+                                                }}
+                                                className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                                title="Mark as Resolved"
+                                              >
+                                                <Check size={12} className="text-white" />
+                                              </button>
+                                            )}
+                                            
+                                        </>
+                                      )}
+
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleJumpToActivityMonitor(activity);
+                                        }}
+                                        className="p-1.5 sm:p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                                        title="Open in Activity Monitor"
+                                      >
+                                        <ExternalLink size={12} className="text-gray-400" />
+                                      </button>
+                                      <div className="text-xs flex items-center gap-2">
+
+                                      <Clock size={12} />
+                                      <span>{activity.time}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center text-gray-500">
+                        <Bell size={24} className="mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No activity notifications</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
 
@@ -804,6 +995,13 @@ const Sidebar = ({
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
                           <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">To-Do</h2>
+
+                          <button
+                            onClick={() => setIsAddTaskModalOpen(true)}
+                            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                          >
+                            <Plus size={18} />
+                          </button>
                         </div>
 
                         <div className="relative mb-3" ref={todoFilterDropdownRef}>
@@ -1014,7 +1212,7 @@ const Sidebar = ({
                                 <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                                   {renderSidebarSpecialNoteIcon(appointment.specialNote, appointment.id)}
                                   <div
-                                    className="cursor-pointer rounded transition-colors"
+                                    className="cursor-pointer rounded mt-3 ml-1 transition-colors"
                                     onClick={(e) => handleDumbbellClick(appointment, e)}
                                   >
                                     <Dumbbell size={16} />
@@ -1028,15 +1226,15 @@ const Sidebar = ({
                                   }}
                                 >
                                   <div className="flex items-center gap-2 relative w-full justify-center">
-                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center relative">
+                                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center relative">
                                       <img
                                         src={Avatar || "/placeholder.svg"}
                                         alt=""
-                                        className="w-full h-full rounded-full"
+                                        className="w-full h-full rounded-xl"
                                       />
                                     </div>
                                     <div className="text-white text-left flex-1">
-                                      <p className="font-semibold">{appointment.name} {appointment.lastName || ""}</p>
+                                      <p className="font-semibold text-sm">{appointment.name} {appointment.lastName || ""}</p>
                                       <p className="text-xs flex gap-1 items-center opacity-80">
                                         <Clock size={14} />
                                         {appointment.time} | {appointment.date.split("|")[0]}
@@ -1127,11 +1325,11 @@ const Sidebar = ({
                       </div>
                     )}
 
-{widget.type === "bulletinBoard" && <BulletinBoardWidget />}
+                    {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
 
 
-                   
-                                          {widget.type === "notes" && <NotesWidget />}
+
+                    {widget.type === "notes" && <NotesWidget />}
 
 
                     {widget.type === "staffCheckIn" && (
@@ -1144,23 +1342,22 @@ const Sidebar = ({
                         </div>
                       </div>
                     )}
+
+                    {widget.type === "shiftSchedule" && (
+                      <ShiftScheduleWidget
+                        isEditing={isSidebarEditing}
+                        onRemove={() => removeRightSidebarWidget(widget.id)}
+                        className="h-full"
+                      />
+                    )}
+
                   </RightSidebarWidget>
                 ))}
             </>
           )}
         </div>
       </aside>
-
-      <MessageReplyModal
-        isOpen={isReplyModalOpen}
-        onClose={() => {
-          setIsReplyModalOpen(false)
-          setSelectedMessage(null)
-        }}
-        message={selectedMessage}
-        onSendReply={handleSendReply}
-      />
-
+      
       <ViewManagementModal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
@@ -1170,6 +1367,23 @@ const Sidebar = ({
         setCurrentView={setCurrentView}
         sidebarWidgets={rightSidebarWidgets}
         setSidebarWidgets={() => { }} // This might need to be adjusted based on your implementation
+      />
+
+      {isAddTaskModalOpen && <AddTaskModal
+        onClose={() => setIsAddTaskModalOpen(false)}
+        onAddTask={handleAddTask}
+        configuredTags={configuredTags}
+      />}
+
+<ReplyModal
+        isOpen={isReplyModalOpen}
+        onClose={() => {
+          setIsReplyModalOpen(false);
+          setSelectedMessage(null);
+        }}
+        message={selectedMessage}
+        onSendReply={handleSendReply}
+        onOpenFullMessenger={handleOpenFullMessenger}
       />
     </>
   )

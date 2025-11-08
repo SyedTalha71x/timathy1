@@ -215,4 +215,32 @@ export const staffMembersData = [
       uses: 89
     }
   ];
+
+  // Mock data for assigned members with training plans
+export const assignedMembersData = [
+  {
+    id: 1,
+    name: "John Doe",
+    email: "john@example.com",
+    assignedPlan: "Beginner Full Body",
+    assignedDate: "2024-01-15",
+    progress: "In Progress"
+  },
+  {
+    id: 2,
+    name: "Jane Smith",
+    email: "jane@example.com",
+    assignedPlan: "Intermediate Strength",
+    assignedDate: "2024-01-10",
+    progress: "Completed"
+  },
+  {
+    id: 3,
+    name: "Mike Johnson",
+    email: "mike@example.com",
+    assignedPlan: "Advanced Cardio",
+    assignedDate: "2024-01-20",
+    progress: "Not Started"
+  }
+]
   

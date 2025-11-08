@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 const FilterModal = ({
@@ -12,9 +12,31 @@ const FilterModal = ({
   memberTypeFilter,
   setMemberTypeFilter
 }) => {
+  // Local state to track temporary filter values
+  const [tempFilterStatus, setTempFilterStatus] = useState(filterStatus);
+  const [tempMemberTypeFilter, setTempMemberTypeFilter] = useState(memberTypeFilter);
+
+  // Update local state when props change (when modal opens with new filter values)
+  useEffect(() => {
+    if (isOpen) {
+      setTempFilterStatus(filterStatus);
+      setTempMemberTypeFilter(memberTypeFilter);
+    }
+  }, [isOpen, filterStatus, memberTypeFilter]);
+
   if (!isOpen) return null;
 
   const handleApplyFilters = () => {
+    // Apply the temporary values to the actual filters
+    setFilterStatus(tempFilterStatus);
+    setMemberTypeFilter(tempMemberTypeFilter);
+    onClose();
+  };
+
+  const handleCancel = () => {
+    // Reset temporary values to current filter values
+    setTempFilterStatus(filterStatus);
+    setTempMemberTypeFilter(memberTypeFilter);
     onClose();
   };
 
@@ -25,7 +47,7 @@ const FilterModal = ({
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white open_sans_font_700 text-lg font-semibold">Filter Members</h2>
             <button 
-              onClick={onClose} 
+              onClick={handleCancel} 
               className="text-gray-400 hover:text-white"
             >
               <X size={20} className="cursor-pointer" />
@@ -40,9 +62,9 @@ const FilterModal = ({
                 {filterOptions.map((option) => (
                   <button
                     key={option.id}
-                    onClick={() => setFilterStatus(option.id)}
+                    onClick={() => setTempFilterStatus(option.id)}
                     className={`w-full px-4 py-2 text-left text-sm rounded-xl border transition-colors ${
-                      option.id === filterStatus
+                      option.id === tempFilterStatus
                         ? "bg-blue-600/20 border-blue-500 text-blue-300"
                         : "bg-[#101010] border-slate-300/30 text-white hover:bg-[#2F2F2F]"
                     }`}
@@ -60,8 +82,8 @@ const FilterModal = ({
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">Member Type</label>
                   <select
-                    value={memberTypeFilter}
-                    onChange={(e) => setMemberTypeFilter(e.target.value)}
+                    value={tempMemberTypeFilter}
+                    onChange={(e) => setTempMemberTypeFilter(e.target.value)}
                     className="w-full bg-[#101010] text-white rounded-xl px-4 py-2 text-sm border border-slate-300/30 focus:border-blue-500 focus:outline-none"
                   >
                     <option value="all">All Types</option>
@@ -73,7 +95,13 @@ const FilterModal = ({
             </div>
           </div>
 
-          <div className="flex justify-end mt-6">
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={handleCancel}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-xl text-sm transition-colors"
+            >
+              Cancel
+            </button>
             <button
               onClick={handleApplyFilters}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm transition-colors"

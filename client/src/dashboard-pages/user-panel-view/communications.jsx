@@ -34,14 +34,10 @@ import {
 
 import { IoIosMegaphone } from "react-icons/io"
 import CommuncationBg from "../../../public/communication-bg.svg"
-import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png" 
-import { Link } from "react-router-dom"
-import { CiMonitor } from "react-icons/ci"
-import { FaCartPlus, FaPeopleLine, FaUsers } from "react-icons/fa6"
-import { RiContractLine } from "react-icons/ri"
-import { CgGym } from "react-icons/cg"
-import { TbBrandGoogleAnalytics } from "react-icons/tb"
-import { MdOutlineHelpCenter } from "react-icons/md"
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
 
 
 import AddAppointmentModal from "../../components/user-panel-components/appointments-components/add-appointment-modal"
@@ -108,7 +104,6 @@ export default function Communications() {
     { id: 2, name: "Announcements", messages: [] },
     { id: 3, name: "Events", messages: [] },
   ])
-  const [selectedFolder, setSelectedFolder] = useState(null)
   const [newFolderName, setNewFolderName] = useState("")
   const [emailData, setEmailData] = useState({
     to: "",
@@ -123,7 +118,7 @@ export default function Communications() {
 
 
 
- 
+
 
   const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
   const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
@@ -152,15 +147,15 @@ export default function Communications() {
 
   // States for contigent modal 
   const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
-  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current") 
-  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false) 
-  const [newBillingPeriod, setNewBillingPeriod] = useState("") 
+  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current")
+  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
+  const [newBillingPeriod, setNewBillingPeriod] = useState("")
   const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
 
   const [isMemberOverviewModalOpen, setIsMemberOverviewModalOpen] = useState(false)
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState(null)
-  const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details") 
+  const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details")
   const [showHistoryModal, setShowHistoryModal] = useState(false)
 
   const dropdownRef = useRef(null)
@@ -176,6 +171,8 @@ export default function Communications() {
   const memberChatList = memberChatListNew
   const companyChatList = companyChatListNew
 
+  const messagesContainerRef = useRef(null);
+
 
   const [members, setMembers] = useState(membersNew)
 
@@ -186,6 +183,19 @@ export default function Communications() {
 
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
+
+  useEffect(() => {
+    // Auto-scroll to bottom when messages change
+    if (messagesEndRef.current) {
+      // Messages container ko dhundho
+      const messagesContainer = messagesEndRef.current.closest('.overflow-y-auto');
+      if (messagesContainer) {
+        // Sirf messages container ko scroll karo
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    }
+  }, [messages]);
+
 
   useEffect(() => {
     setSettings((prev) => ({
@@ -226,6 +236,12 @@ export default function Communications() {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpen(false)
+      }
+
+      if (showEmojiPicker &&
+        !event.target.closest('.emoji-picker-container') &&
+        !event.target.closest('button[aria-label="Add emoji"]')) {
+        setShowEmojiPicker(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -273,7 +289,7 @@ export default function Communications() {
       setChatList(companyChatList)
     }
   }, [chatType])
- 
+
   useEffect(() => {
     // Calculate unread counts for tabs
     const memberUnread = memberChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
@@ -285,13 +301,13 @@ export default function Communications() {
       company: companyUnread,
       email: emailUnread,
     })
-  }, [chatList, archivedChats, emailList]) 
+  }, [chatList, archivedChats, emailList])
 
 
   const handleEmailManagementClose = () => {
-    setShowEmailFrontend(false)    
+    setShowEmailFrontend(false)
     setIsMessagesOpen(true)
-        setChatType("member")
+    setChatType("member")
   }
 
   const handleTemplateSelect = (template) => {
@@ -387,13 +403,25 @@ export default function Communications() {
     setShowChatMenu(null)
   }
 
+  const getSortedChatList = () => {
+    const list = getCombinedChatList();
+    return list.sort((a, b) => {
+      if (a.type === 'separator' || b.type === 'separator') return 0;
+      const aPinned = pinnedChats.has(a.id);
+      const bPinned = pinnedChats.has(b.id);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return 0;
+    });
+  };
+
   const handleViewMember = (chatId, e) => {
     if (e) e.stopPropagation()
-    
+
     if (chatType === "company") {
       return
     }
-    
+
     let member = members.find((m) => m.id === chatId)
     if (!member) {
       const chat = chatList.find((c) => c.id === chatId) || archivedChats.find((c) => c.id === chatId)
@@ -444,6 +472,14 @@ export default function Communications() {
       handleRestoreChat(selectedChat.id)
     }
     setMessageText("")
+
+    // Immediate scroll after state update
+    setTimeout(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    }, 0);
+
     // Simulate message status updates
     setTimeout(() => {
       setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg)))
@@ -542,24 +578,42 @@ export default function Communications() {
     setShowAddAppointmentModal(true)
     setShowAppointmentModal(false)
   }
-  const handleEmojiSelect = (emoji) => {
-    setMessageText((prevText) => prevText + emoji.native)
-    setShowEmojiPicker(false)
-  }
+  const handleRemoveEmoji = (messageId, emojiName) => {
+    setMessageReactions((prev) => {
+      const updatedReactions = { ...prev };
+
+      if (updatedReactions[messageId] && updatedReactions[messageId][emojiName]) {
+        // Decrease the count
+        updatedReactions[messageId][emojiName] -= 1;
+
+        // Remove the emoji if count reaches zero
+        if (updatedReactions[messageId][emojiName] <= 0) {
+          delete updatedReactions[messageId][emojiName];
+        }
+
+        // Remove the entire message entry if no reactions left
+        if (Object.keys(updatedReactions[messageId]).length === 0) {
+          delete updatedReactions[messageId];
+        }
+      }
+
+      return updatedReactions;
+    });
+  };
 
   const handleBroadcast = (broadcastData) => {
     const { message, recipients, settings } = broadcastData;
-    
+
     if (!message) {
       alert("Please select a message to broadcast");
       return;
     }
-    
+
     if (recipients.length === 0) {
       alert("Please select at least one recipient");
       return;
     }
-  
+
     // Add message to selected folder (if you want to track this)
     // if (selectedFolder) {
     //   setBroadcastFolders((prev) =>
@@ -568,11 +622,11 @@ export default function Communications() {
     //     ),
     //   )
     // }
-  
+
     console.log("Broadcasting message to recipients:", recipients);
     console.log("Broadcast title:", message.title);
     console.log("Broadcast message:", message.message);
-    
+
     alert(
       `Broadcast sent to ${recipients.length} recipients via ${settings.broadcastEmail && settings.broadcastChat
         ? "Email and Chat"
@@ -581,7 +635,7 @@ export default function Communications() {
           : "Chat"
       }`,
     );
-    
+
     setActiveScreen("chat");
   }
   const handleCreateMessage = () => {
@@ -708,7 +762,7 @@ export default function Communications() {
     }
     return periods
   }
- 
+
   const handleAddBillingPeriod = () => {
     if (newBillingPeriod.trim() && selectedChat) {
       const updatedContingent = { ...memberContingentData }
@@ -800,7 +854,7 @@ export default function Communications() {
 
   return (
     <div className="relative flex lg:min-h-[92vh]   h-auto bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
-     <SidebarMenu showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
+      <SidebarMenu showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
 
 
 
@@ -827,9 +881,9 @@ export default function Communications() {
               >
                 <Menu className="w-5 h-5" />
               </button> */}
-               <div  onClick={() => setShowSidebar(true)} className="">
-            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-          </div>
+              <div onClick={() => setShowSidebar(true)} className="">
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer lg:hidden block" alt="" />
+              </div>
               <h1 className="text-2xl font-bold">Messenger</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -946,8 +1000,9 @@ export default function Communications() {
                         {pinnedChats.has(chat.id) && <Pin className="w-3 h-3 text-gray-400" />}
                         {chat.isArchived && <span className="text-xs bg-gray-600 px-2 py-1 rounded">Archived</span>}
                       </div>
+
                       {chat.unreadCount > 0 && (
-                        <span className="bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        <span className="bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                           {chat.unreadCount}
                         </span>
                       )}
@@ -962,10 +1017,10 @@ export default function Communications() {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <button
-                      className="p-1 hover:bg-gray-600 rounded-full"
+                      className="opacity-100 p-1 hover:bg-gray-600 rounded-full z-10 relative"
                       onClick={(e) => {
-                        e.stopPropagation()
-                        setShowChatMenu(showChatMenu === chat.id ? null : chat.id)
+                        e.stopPropagation();
+                        setShowChatMenu(showChatMenu === chat.id ? null : chat.id);
                       }}
                       aria-label="Chat options"
                     >
@@ -975,8 +1030,7 @@ export default function Communications() {
                   </div>
                 </div>
               ))
-              : // Use combined chat list for company type
-              getCombinedChatList().map((chat, index) => {
+              : getSortedChatList().map((chat, index) => {
                 // Handle separator
                 if (chat.type === "separator") {
                   return (
@@ -1034,10 +1088,10 @@ export default function Communications() {
                     <div className="flex flex-col items-center gap-1">
                       {chatType !== "company" && (
                         <button
-                          className="opacity-100 p-1 hover:bg-gray-600 rounded-full"
+                          className="opacity-100 p-1 hover:bg-gray-600 rounded-full z-10 relative"
                           onClick={(e) => {
-                            e.stopPropagation()
-                            setShowChatMenu(showChatMenu === chat.id ? null : chat.id)
+                            e.stopPropagation();
+                            setShowChatMenu(showChatMenu === chat.id ? null : chat.id);
                           }}
                           aria-label="Chat options"
                         >
@@ -1173,141 +1227,163 @@ export default function Communications() {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto max-h-[70vh] custom-scrollbar p-4 space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className={`flex gap-3 ${message.sender === "You" ? "justify-end" : ""} group`}>
-                  <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""}`}>
-                    <div
-                      className={`rounded-xl p-4 text-sm max-w-md relative ${message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
-                        } `}
-                    >
-                      <p style={{ whiteSpace: 'pre-wrap' }}>{message.content}</p>
-                      {/* Message actions */}
-                      <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
-                        <button
-                          onClick={() => setShowReactionPicker(showReactionPicker === message.id ? null : message.id)}
-                          className="p-1 bg-gray-700 hover:bg-gray-600 rounded-full"
-                          title="Add reaction"
-                        >
-                          <Smile className="w-5 h-5" />
-                        </button>
-                        {/* Removed individual message mark as unread button as per new requirement */}
-                      </div>
-                      {/* Reaction picker */}
-                      {showReactionPicker === message.id && (
-                        <div className="absolute top-14 -left-6  bg-gray-800 rounded-lg shadow-lg p-2 flex gap-1 z-10">
-                          {reactions.map((reaction) => (
-                            <button
-                              key={reaction.name}
-                              onClick={() => handleReaction(message.id, reaction.name)}
-                              className="p-1 hover:bg-gray-700 rounded text-xl"
-                            >
-                              {reaction.emoji}
-                            </button>
-                          ))}
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto max-h-[70vh] custom-scrollbar p-4 space-y-4">
+                {messages.map((message) => (
+                  <div key={message.id} className={`flex gap-3 ${message.sender === "You" ? "justify-end" : ""} group`}>
+                    <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""}`}>
+
+                      {/* Add sender name for company chats */}
+                      {chatType === "company" && message.sender !== "You" && (
+                        <div className="text-xs text-gray-500 font-medium mb-1">
+                          {message.sender}
                         </div>
                       )}
-                      {/* Display reactions */}
-                      {messageReactions[message.id] && (
-                        <div className="flex gap-1 mt-2">
-                          {Object.entries(messageReactions[message.id]).map(([reactionName, count]) => {
-                            const reaction = reactions.find((r) => r.name === reactionName)
-                            return (
-                              <span
-                                key={reactionName}
-                                className="bg-gray-700 rounded-full px-2 py-1 text-xs flex items-center gap-1"
+
+                      <div
+                        className={`rounded-xl p-4 text-sm max-w-md relative ${message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
+                          } `}
+                      >
+                        <p style={{ whiteSpace: 'pre-wrap' }}>{message.content}</p>
+
+                        {/* Message actions */}
+                        <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
+                          <button
+                            onClick={() => setShowReactionPicker(showReactionPicker === message.id ? null : message.id)}
+                            className="p-1 bg-gray-700 hover:bg-gray-600 rounded-full"
+                            title="Add reaction"
+                          >
+                            <Smile className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        {/* Reaction picker */}
+                        {showReactionPicker === message.id && (
+                          <div className="absolute top-14 -left-6 bg-gray-800 rounded-lg shadow-lg p-2 flex gap-1 z-10">
+                            {reactions.map((reaction) => (
+                              <button
+                                key={reaction.name}
+                                onClick={() => handleReaction(message.id, reaction.name)}
+                                className="p-1 hover:bg-gray-700 rounded text-xl transition-colors"
+                                title={`Add ${reaction.name} reaction`}
                               >
-                                <span className="text-lg">{reaction?.emoji}</span> {count}
-                              </span>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>{message.isUnread ? "border-2 border-yellow-500" : ""}
-                    <div className="flex items-center gap-1 text-sm text-gray-400">
-                      <span>{message.time}</span>
-                      {message.sender === "You" && getMessageStatusIcon(message.status)}
+                                {reaction.emoji}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Display reactions with removal option */}
+                        {messageReactions[message.id] && (
+                          <div className="flex gap-1 mt-2 flex-wrap">
+                            {Object.entries(messageReactions[message.id]).map(([reactionName, count]) => {
+                              const reaction = reactions.find((r) => r.name === reactionName);
+                              return (
+                                <div
+                                  key={reactionName}
+                                  className="bg-gray-700 rounded-full px-2 py-1 text-xs flex items-center gap-1 group/reaction relative"
+                                >
+                                  <span className="text-lg">{reaction?.emoji}</span>
+                                  <span>{count}</span>
+
+                                  <button
+                                    onClick={() => handleRemoveEmoji(message.id, reactionName)}
+                                    className="opacity-0 group-hover/reaction:opacity-100 transition-opacity ml-1 text-red-400 hover:text-red-300"
+                                    title={`Remove ${reactionName} reaction`}
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1 text-sm text-gray-400">
+                        <span>{message.time}</span>
+                        {message.sender === "You" && getMessageStatusIcon(message.status)}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
               <div ref={messagesEndRef} />
             </div>
             <div className="p-4 border-t border-gray-800 flex-shrink-0">
-              <div className="flex items-center gap-2 bg-black rounded-xl p-2">
-                {/* Emoji button */}
-                <button
-                  className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
-                  aria-label="Add emoji"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                >
-                  <Smile className="w-6 h-6 text-gray-200" />
-                </button>
+              <div className="flex items-end gap-2 bg-black rounded-xl p-2 relative">
 
-                {/* Textarea */}
+                <div className="relative">
+                  <button
+                    className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
+                    aria-label="Add emoji"
+                    onClick={() => setShowEmojiPicker(prev => !prev)}
+                  >
+                    <Smile className="w-6 h-6 text-gray-200" />
+                  </button>
+
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50">
+                      <Picker
+                        data={data}
+                        onEmojiSelect={(emoji) => {
+                          setMessageText(prev => prev + emoji.native);
+                          setShowEmojiPicker(false);
+                        }}
+                        theme="dark"
+                        previewPosition="none"
+                        skinTonePosition="none"
+                        perLine={8}
+                        maxFrequentRows={1}
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <textarea
                   placeholder="Type your message here..."
-                  className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-hidden leading-relaxed text-gray-200"
+                  className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-hidden leading-relaxed text-gray-200 py-2 placeholder-gray-400"
                   rows={1}
                   value={messageText}
                   onInput={(e) => {
-                    // auto-grow textarea
-                    e.target.style.height = "auto"
-                    e.target.style.height = e.target.scrollHeight + "px"
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey && !e.altKey) {
-                      e.preventDefault()
-                      handleSendMessage()
+                      e.preventDefault();
+                      handleSendMessage();
                     }
                   }}
                   onChange={(e) => setMessageText(e.target.value)}
                 />
 
-                {/* Send button */}
-                <div className="flex items-center gap-1">
-                  <button
-                    className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
-                    aria-label="Send message"
-                    onClick={handleSendMessage}
-                  >
-                    <Send className="w-6 h-6 text-gray-200" />
-                  </button>
-                </div>
+                <button
+                  className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
+                  aria-label="Send message"
+                  onClick={handleSendMessage}
+                >
+                  <Send className="w-6 h-6 text-gray-200" />
+                </button>
               </div>
-
-              {showEmojiPicker && (
-                <div className="absolute bottom-16 right-4">
-                  <div className="bg-gray-800 rounded-lg shadow-lg p-2">
-                    <div className="grid grid-cols-5 gap-2">
-                      {["😀", "😂", "😊", "❤️", "👍", "🎉", "🔥", "⭐", "🙏", "👏"].map((emoji, i) => (
-                        <button
-                          key={i}
-                          className="p-2 hover:bg-gray-700 rounded-md text-2xl"
-                          onClick={() => handleEmojiSelect({ native: emoji })}
-                        >
-                          {emoji}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
+
+
           </>
         )}
         {activeScreen === "send-message" && (
           <BroadcastModal
-          onClose={() => setActiveScreen("chat")}
-          broadcastFolders={broadcastFolders}
-          preConfiguredMessages={preConfiguredMessages}
-          chatList={chatList}
-          archivedChats={archivedChats}
-          settings={settings}
-          setSettings={setSettings}
-          setShowFolderModal={setShowFolderModal}
-          onBroadcast={handleBroadcast}
-          onCreateMessage={handleCreateMessage}
-        />
+            onClose={() => setActiveScreen("chat")}
+            broadcastFolders={broadcastFolders}
+            preConfiguredMessages={preConfiguredMessages}
+            chatList={chatList}
+            archivedChats={archivedChats}
+            settings={settings}
+            setSettings={setSettings}
+            setShowFolderModal={setShowFolderModal}
+            onBroadcast={handleBroadcast}
+            onCreateMessage={handleCreateMessage}
+          />
         )}
       </div>
 
@@ -1333,7 +1409,7 @@ export default function Communications() {
         onClose={handleEmailManagementClose}
         onOpenSendEmail={() => setShowEmailModal(true)}
         onOpenSettings={() => setShowSettings(true)}
-        onOpenBroadcast={() => setActiveScreen("send-message")} 
+        onOpenBroadcast={() => setActiveScreen("send-message")}
         initialEmailList={emailList}
       />
       <SettingsModal
@@ -1347,7 +1423,7 @@ export default function Communications() {
         setAppointmentNotificationTypes={setAppointmentNotificationTypes}
         handleSaveSettings={handleSaveSettings}
       />
-      
+
       <EmailModal
         show={showEmailModal}
         onClose={() => setShowEmailModal(false)}

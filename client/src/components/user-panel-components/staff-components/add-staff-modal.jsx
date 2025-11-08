@@ -1,9 +1,8 @@
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 
-import { X } from "lucide-react"
-import { useState } from "react"
+import { X, Info, Calculator } from "lucide-react"
+import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 
@@ -27,8 +26,39 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     country: "",
     password: "",
     vacationEntitlement: 30,
+    vacationDaysCurrentYear: 30, // New field for current year's available days
     birthday: "",
+    color: "#3F74FF", // Default color
   })
+
+  // Calculate pro-rated vacation days when component mounts or vacationEntitlement changes
+  useEffect(() => {
+    const calculateProRatedVacation = () => {
+      const currentYear = new Date().getFullYear()
+      const currentDate = new Date()
+      const startOfYear = new Date(currentYear, 0, 1) // January 1st of current year
+      const endOfYear = new Date(currentYear, 11, 31) // December 31st of current year
+      
+      const totalDaysInYear = Math.floor((endOfYear - startOfYear) / (1000 * 60 * 60 * 24)) + 1
+      const daysPassedInYear = Math.floor((currentDate - startOfYear) / (1000 * 60 * 60 * 24)) + 1
+      
+      // Calculate pro-rated vacation: (days remaining in year / total days) * annual entitlement
+      const daysRemainingInYear = totalDaysInYear - daysPassedInYear
+      const proRatedVacation = Math.round((daysRemainingInYear / totalDaysInYear) * newStaff.vacationEntitlement)
+      
+      return Math.max(0, proRatedVacation) // Ensure non-negative
+    }
+
+    // Only auto-calculate if we haven't manually adjusted the current year days
+    // or if this is a new staff member (no manual adjustment yet)
+    if (!newStaff.hasManualAdjustment) {
+      const proRatedDays = calculateProRatedVacation()
+      setNewStaff(prev => ({
+        ...prev,
+        vacationDaysCurrentYear: proRatedDays
+      }))
+    }
+  }, [newStaff.vacationEntitlement, newStaff.hasManualAdjustment])
 
   const handlePasswordToggle = () => {
     setShowPassword(!showPassword)
@@ -37,6 +67,30 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setNewStaff((prev) => ({ ...prev, [name]: value }))
+  }
+
+  // Special handler for vacation days current year to track manual adjustments
+  const handleVacationDaysCurrentYearChange = (e) => {
+    const value = parseInt(e.target.value) || 0
+    setNewStaff((prev) => ({ 
+      ...prev, 
+      vacationDaysCurrentYear: value,
+      hasManualAdjustment: true // Mark as manually adjusted
+    }))
+  }
+
+  // Handler for annual entitlement that also updates current year if not manually adjusted
+  const handleVacationEntitlementChange = (e) => {
+    const value = parseInt(e.target.value) || 0
+    setNewStaff((prev) => ({ 
+      ...prev, 
+      vacationEntitlement: value
+      // Current year will be recalculated in useEffect if not manually adjusted
+    }))
+  }
+
+  const handleColorChange = (e) => {
+    setNewStaff((prev) => ({ ...prev, color: e.target.value }))
   }
 
   const handleImgUpload = (e) => {
@@ -50,6 +104,26 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     }
   }
 
+  // Function to recalculate pro-rated vacation
+  const recalculateProRatedVacation = () => {
+    const currentYear = new Date().getFullYear()
+    const currentDate = new Date()
+    const startOfYear = new Date(currentYear, 0, 1)
+    const endOfYear = new Date(currentYear, 11, 31)
+    
+    const totalDaysInYear = Math.floor((endOfYear - startOfYear) / (1000 * 60 * 60 * 24)) + 1
+    const daysPassedInYear = Math.floor((currentDate - startOfYear) / (1000 * 60 * 60 * 24)) + 1
+    const daysRemainingInYear = totalDaysInYear - daysPassedInYear
+    
+    const proRatedVacation = Math.round((daysRemainingInYear / totalDaysInYear) * newStaff.vacationEntitlement)
+    
+    setNewStaff(prev => ({
+      ...prev,
+      vacationDaysCurrentYear: Math.max(0, proRatedVacation),
+      hasManualAdjustment: false // Reset manual adjustment flag
+    }))
+  }
+
   function createPassword() {
     return Math.random().toString(36).slice(-8)
   }
@@ -60,7 +134,9 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
       ...newStaff,
       id: staffMembers.length + 1,
       userId: newStaff.username,
-      description: newStaff.about, // Map 'about' to 'description' for compatibility
+      description: newStaff.about,
+      // Remove internal flags before saving
+      hasManualAdjustment: undefined
     }
     setStaffMembers([...staffMembers, newStaffMember])
     setIsModalOpen(false)
@@ -88,6 +164,20 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
             >
               Upload picture
             </label>
+          </div>
+          {/* Staff Identification Color Field */}
+          <div>
+            <label className="text-sm text-gray-200 block mb-2">Staff Identification Color</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                name="color"
+                value={newStaff.color}
+                onChange={handleColorChange}
+                className="w-12 h-12 bg-[#101010] rounded-xl cursor-pointer border border-gray-600"
+              />
+              <span className="text-sm text-gray-400">{newStaff.color}</span>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -127,18 +217,19 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
             />
           </div>
           <div>
-  <label className="text-sm text-gray-200 block mb-2">Gender</label>
-  <select
-    name="gender"
-    value={newStaff.gender || ""}
-    onChange={handleInputChange}
-    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-    required
-  >
-    <option value="male">Male</option>
-    <option value="female">Female</option>
-  </select>
-</div>
+            <label className="text-sm text-gray-200 block mb-2">Gender</label>
+            <select
+              name="gender"
+              value={newStaff.gender || ""}
+              onChange={handleInputChange}
+              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              required
+            >
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-gray-200 block mb-2">Email</label>
@@ -216,17 +307,6 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
             />
           </div>
           <div>
-            <label className="text-sm text-gray-200 block mb-2">Vacation Entitlement (Days)</label>
-            <input
-              type="number"
-              name="vacationEntitlement"
-              value={newStaff.vacationEntitlement}
-              onChange={handleInputChange}
-              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-              required
-            />
-          </div>
-          <div>
             <label className="text-sm text-gray-200 block mb-2">Role</label>
             <select
               name="role"
@@ -241,6 +321,74 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
               <option value="employee">Employee</option>
             </select>
           </div>
+
+          {/* Vacation Entitlement Section */}
+          <div className="space-y-3 p-4 bg-[#101010] rounded-xl border border-gray-700">
+            <div>
+              <label className="text-sm text-gray-200 block mb-2 flex items-center gap-2">
+                Annual Vacation Entitlement (Days)
+                <div className="relative group">
+                  <Info size={14} className="text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                    Full vacation days per complete year
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                  </div>
+                </div>
+              </label>
+              <input
+                type="number"
+                name="vacationEntitlement"
+                value={newStaff.vacationEntitlement}
+                onChange={handleVacationEntitlementChange}
+                min="0"
+                max="365"
+                className="w-full bg-[#151515] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                required
+              />
+            </div>
+
+            <div className="pt-2 border-t border-gray-700">
+              <label className="text-sm text-gray-200 block mb-2 flex items-center gap-2">
+                Vacation Days Available for {new Date().getFullYear()}
+                <button
+                  type="button"
+                  onClick={recalculateProRatedVacation}
+                  className="flex items-center gap-1 text-xs text-[#3F74FF] hover:text-[#3F74FF]/80 transition-colors"
+                  title="Recalculate pro-rated vacation"
+                >
+                  <Calculator size={12} />
+                  Recalculate
+                </button>
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  name="vacationDaysCurrentYear"
+                  value={newStaff.vacationDaysCurrentYear}
+                  onChange={handleVacationDaysCurrentYearChange}
+                  min="0"
+                  max={newStaff.vacationEntitlement}
+                  className="w-full bg-[#151515] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                />
+                {newStaff.hasManualAdjustment && (
+                  <div className="absolute -top-2 -right-2">
+                    <div className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full">
+                      Manual
+                    </div>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                Automatically calculated based on current date. You can manually adjust this value.
+                {newStaff.vacationDaysCurrentYear < newStaff.vacationEntitlement && (
+                  <span className="block text-yellow-400">
+                    Pro-rated: {newStaff.vacationDaysCurrentYear} of {newStaff.vacationEntitlement} days
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
           <div>
             <label className="text-sm text-gray-200 block mb-2">About</label>
             <textarea

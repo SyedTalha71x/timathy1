@@ -1,13 +1,13 @@
 /* eslint-disable no-unused-vars */
 import { X, Users, Trash2, Plus } from "lucide-react"
 import { useState } from "react"
-
 /* eslint-disable react/prop-types */
+
 const AddLeadModal = ({ 
   isVisible, 
   onClose, 
-  onSave,
-  availableMembersLeads = [], // For relations
+  onSave, 
+  availableMembersLeads = [], 
   relationOptions = {
     family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Spouse"],
     friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
@@ -18,7 +18,8 @@ const AddLeadModal = ({
 }) => {
   const [activeTab, setActiveTab] = useState("details")
   const [editingRelations, setEditingRelations] = useState(false)
-
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -45,14 +46,43 @@ const AddLeadModal = ({
     },
   })
 
-  // New relation state
-  const [newRelation, setNewRelation] = useState({
-    name: "",
-    relation: "",
-    category: "family",
-    type: "manual",
-    selectedMemberId: null,
-  })
+  // Country options - you can expand this list
+  const countryOptions = [
+    "United States",
+    "Canada",
+    "United Kingdom",
+    "Germany",
+    "France",
+    "Italy",
+    "Spain",
+    "Australia",
+    "Japan",
+    "China",
+    "Brazil",
+    "Mexico",
+    "India",
+    "South Korea",
+    "Netherlands",
+    "Switzerland",
+    "Sweden",
+    "Norway",
+    "Denmark",
+    "Finland",
+    "Austria",
+    "Belgium",
+    "Portugal",
+    "Ireland",
+    "New Zealand",
+    "Singapore",
+    "United Arab Emirates",
+    "South Africa",
+    // Add more countries as needed
+  ]
+
+  // Filter countries based on input
+  const filteredCountries = countryOptions.filter(country =>
+    country.toLowerCase().includes(formData.country.toLowerCase())
+  )
 
   const sourceOptions = [
     "Website",
@@ -68,7 +98,7 @@ const AddLeadModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    e.stopPropagation() // Prevent event bubbling
+    e.stopPropagation()
     onSave(formData)
     setFormData({
       firstName: "",
@@ -97,15 +127,20 @@ const AddLeadModal = ({
     })
     setActiveTab("details")
     setEditingRelations(false)
-    setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
+    setNewRelation({
+      name: "",
+      relation: "",
+      category: "family",
+      type: "manual",
+      selectedMemberId: null
+    })
     onClose()
   }
 
   // Add relation
   const addRelation = (e) => {
     e.preventDefault()
-    e.stopPropagation() // Prevent event bubbling
-    
+    e.stopPropagation()
     if (!newRelation.name || !newRelation.relation) {
       alert("Please fill in all fields")
       return
@@ -127,14 +162,19 @@ const AddLeadModal = ({
       }
     }))
 
-    setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
+    setNewRelation({
+      name: "",
+      relation: "",
+      category: "family",
+      type: "manual",
+      selectedMemberId: null
+    })
   }
 
   // Remove relation
   const removeRelation = (category, relationId, e) => {
     e.preventDefault()
-    e.stopPropagation() // Prevent event bubbling
-    
+    e.stopPropagation()
     setFormData(prev => ({
       ...prev,
       relations: {
@@ -145,7 +185,28 @@ const AddLeadModal = ({
   }
 
   const updateFormData = (field, value) => {
-    setFormData({ ...formData, [field]: value })
+    setFormData({
+      ...formData,
+      [field]: value
+    })
+  }
+
+  // Handle country selection
+  const handleCountrySelect = (country) => {
+    setFormData({
+      ...formData,
+      country: country
+    })
+    setShowCountryDropdown(false)
+  }
+
+  // Handle country input change
+  const handleCountryChange = (value) => {
+    setFormData({
+      ...formData,
+      country: value
+    })
+    setShowCountryDropdown(true)
   }
 
   // Handle tab clicks with event stopping
@@ -176,6 +237,15 @@ const AddLeadModal = ({
     }
   }
 
+  // New relation state
+  const [newRelation, setNewRelation] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
+
   if (!isVisible) return null
 
   return (
@@ -184,8 +254,8 @@ const AddLeadModal = ({
       onClick={handleBackdropClick}
     >
       <div 
-        className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md"
-        onClick={(e) => e.stopPropagation()} // Prevent clicks inside modal from bubbling
+        className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md" 
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl text-white font-bold">Create Lead</h2>
@@ -196,30 +266,33 @@ const AddLeadModal = ({
 
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-700 mb-6">
-          <button
+          <button 
             onClick={(e) => handleTabClick("details", e)}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
-              ? "text-blue-400 border-b-2 border-blue-400"
-              : "text-gray-400 hover:text-white"
-              }`}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === "details" 
+                ? "text-blue-400 border-b-2 border-blue-400" 
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             Details
           </button>
-          <button
+          <button 
             onClick={(e) => handleTabClick("note", e)}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === "note"
-              ? "text-blue-400 border-b-2 border-blue-400"
-              : "text-gray-400 hover:text-white"
-              }`}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === "note" 
+                ? "text-blue-400 border-b-2 border-blue-400" 
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             Special Note
           </button>
-          <button
+          <button 
             onClick={(e) => handleTabClick("relations", e)}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
-              ? "text-blue-400 border-b-2 border-blue-400"
-              : "text-gray-400 hover:text-white"
-              }`}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === "relations" 
+                ? "text-blue-400 border-b-2 border-blue-400" 
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             Relations
           </button>
@@ -227,7 +300,6 @@ const AddLeadModal = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="max-h-[50vh] overflow-y-auto custom-scrollbar space-y-4">
-            
             {/* Details Tab */}
             {activeTab === "details" && (
               <>
@@ -253,7 +325,7 @@ const AddLeadModal = ({
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="text-sm text-gray-200 block mb-2">Email</label>
                   <input
@@ -264,7 +336,7 @@ const AddLeadModal = ({
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm text-gray-200 block mb-2">Phone</label>
                   <input
@@ -275,6 +347,7 @@ const AddLeadModal = ({
                     required
                   />
                 </div>
+
                 <div>
                   <label className="text-sm text-gray-200 block mb-2">Gender</label>
                   <select
@@ -283,12 +356,12 @@ const AddLeadModal = ({
                     onChange={(e) => updateFormData("gender", e.target.value)}
                     className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                   >
+                    <option value="">Select Gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
-
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -309,6 +382,9 @@ const AddLeadModal = ({
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">City</label>
                     <input
@@ -318,59 +394,75 @@ const AddLeadModal = ({
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
-                  <div>
+                  <div className="relative">
                     <label className="text-sm text-gray-200 block mb-2">Country</label>
                     <input
                       type="text"
                       value={formData.country}
-                      onChange={(e) => updateFormData("country", e.target.value)}
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      onFocus={() => setShowCountryDropdown(true)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      placeholder="Type or select country"
                     />
+                    
+                    {/* Country Dropdown */}
+                    {showCountryDropdown && filteredCountries.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-[#141414] border border-gray-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                        {filteredCountries.map((country) => (
+                          <div
+                            key={country}
+                            onClick={() => handleCountrySelect(country)}
+                            className="px-4 py-2 text-sm text-white hover:bg-[#2A2A2A] cursor-pointer first:rounded-t-xl last:rounded-b-xl"
+                          >
+                            {country}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-  <div>
-    <label className="text-sm text-gray-200 block mb-2">Source</label>
-    <select
-      value={formData.source}
-      onChange={(e) => updateFormData("source", e.target.value)}
-      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-    >
-      <option value="">Select Source</option>
-      {sourceOptions.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
-  </div>
-  <div>
-    <label className="text-sm text-gray-200 block mb-2">Status</label>
-    <select
-      value={formData.status}
-      onChange={(e) => updateFormData("status", e.target.value)}
-      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-    >
-      <option value="active">Active prospect</option>
-      <option value="passive">Passive prospect</option>
-      <option value="uninterested">Uninterested</option>
-      <option value="missed">Missed Call</option>
-    </select>
-  </div>
-</div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Source</label>
+                    <select
+                      value={formData.source}
+                      onChange={(e) => updateFormData("source", e.target.value)}
+                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    >
+                      <option value="">Select Source</option>
+                      {sourceOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Status</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => updateFormData("status", e.target.value)}
+                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    >
+                      <option value="active">Active prospect</option>
+                      <option value="passive">Passive prospect</option>
+                      <option value="uninterested">Uninterested</option>
+                      <option value="missed">Missed Call</option>
+                    </select>
+                  </div>
+                </div>
 
-{/* Textarea matching other fields */}
-<div>
-  <label className="text-sm text-gray-200 block mb-2">About</label>
-  <textarea
-    value={formData.details}
-    onChange={(e) => updateFormData("details", e.target.value)}
-    className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
-    placeholder="Enter more details..."
-  />
-</div>
-
+                {/* Textarea matching other fields */}
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">About</label>
+                  <textarea
+                    value={formData.details}
+                    onChange={(e) => updateFormData("details", e.target.value)}
+                    className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
+                    placeholder="Enter more details..."
+                  />
+                </div>
               </>
             )}
 
@@ -436,7 +528,7 @@ const AddLeadModal = ({
                     {editingRelations ? "Done" : "Edit"}
                   </button>
                 </div>
-                
+
                 {editingRelations && (
                   <div className="mb-4 p-3 bg-[#101010] rounded-xl">
                     <div className="grid grid-cols-1 gap-2 mb-2">
@@ -444,7 +536,12 @@ const AddLeadModal = ({
                         value={newRelation.type}
                         onChange={(e) => {
                           const type = e.target.value
-                          setNewRelation({ ...newRelation, type, name: "", selectedMemberId: null })
+                          setNewRelation({
+                            ...newRelation,
+                            type,
+                            name: "",
+                            selectedMemberId: null
+                          })
                         }}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
@@ -452,6 +549,7 @@ const AddLeadModal = ({
                         <option value="member">Select Member</option>
                         <option value="lead">Select Lead</option>
                       </select>
+
                       {newRelation.type === "manual" ? (
                         <input
                           type="text"
@@ -487,12 +585,15 @@ const AddLeadModal = ({
                         </select>
                       )}
                     </div>
+
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <select
                         value={newRelation.category}
-                        onChange={(e) =>
-                          setNewRelation({ ...newRelation, category: e.target.value, relation: "" })
-                        }
+                        onChange={(e) => setNewRelation({
+                          ...newRelation,
+                          category: e.target.value,
+                          relation: ""
+                        })}
                         className="bg-[#222] text-white rounded px-3 py-2 text-sm"
                       >
                         <option value="family">Family</option>
@@ -501,6 +602,7 @@ const AddLeadModal = ({
                         <option value="work">Work</option>
                         <option value="other">Other</option>
                       </select>
+
                       <select
                         value={newRelation.relation}
                         onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
@@ -514,6 +616,7 @@ const AddLeadModal = ({
                         ))}
                       </select>
                     </div>
+
                     <button
                       type="button"
                       onClick={addRelation}
@@ -523,7 +626,7 @@ const AddLeadModal = ({
                     </button>
                   </div>
                 )}
-                
+
                 <div className="space-y-2 max-h-32 overflow-y-auto">
                   {Object.entries(formData.relations).map(([category, relations]) =>
                     relations.map((relation) => (
@@ -540,8 +643,8 @@ const AddLeadModal = ({
                               relation.type === "member"
                                 ? "bg-green-600 text-green-100"
                                 : relation.type === "lead"
-                                  ? "bg-blue-600 text-blue-100"
-                                  : "bg-gray-600 text-gray-100"
+                                ? "bg-blue-600 text-blue-100"
+                                : "bg-gray-600 text-gray-100"
                             }`}
                           >
                             {relation.type}
@@ -559,6 +662,7 @@ const AddLeadModal = ({
                       </div>
                     )),
                   )}
+
                   {Object.values(formData.relations).every(arr => arr.length === 0) && (
                     <div className="text-gray-500 text-sm text-center py-4">
                       No relations added yet
@@ -578,7 +682,10 @@ const AddLeadModal = ({
             >
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E]">
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E]"
+            >
               Add Lead
             </button>
           </div>

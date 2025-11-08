@@ -1,8 +1,7 @@
 /* eslint-disable react/prop-types */
-
 /* eslint-disable no-unused-vars */
 import { useState, createContext } from "react"
-import { X, Calendar, Users, History, MessageCircle, Grid3X3, List, FileText } from "lucide-react"
+import { X, Calendar, Users, History, MessageCircle, Grid3X3, List, FileText, Eye, ChevronUp, ChevronDown } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import AddStaffModal from "../../components/user-panel-components/staff-components/add-staff-modal"
 import EditStaffModal from "../../components/user-panel-components/staff-components/edit-staff-modal"
@@ -10,12 +9,11 @@ import StaffPlanningModal from "../../components/user-panel-components/staff-com
 import AttendanceOverviewModal from "../../components/user-panel-components/staff-components/attendance-overview-modal"
 import VacationCalendarModal from "../../components/user-panel-components/staff-components/vacation-calendar-modal"
 import StaffHistoryModal from "../../components/user-panel-components/staff-components/staff-history-modal"
-import { useNavigate } from "react-router-dom"
-import { IoIosMenu } from "react-icons/io"
 import { staffMemberDataNew } from "../../utils/user-panel-states/staff-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import Sidebar from "../../components/central-sidebar"
+import { TbPlusMinus } from "react-icons/tb";
 
 
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
@@ -35,26 +33,36 @@ import EditAppointmentModalV2 from "../../components/myarea-components/EditAppoi
 import { StafffDocumentManagementModal } from "../../components/user-panel-components/staff-components/document-management-modal"
 import ChatPopup from "../../components/user-panel-components/staff-components/chat-popup"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import { Briefcase } from 'lucide-react';
+import { FaPlusMinus } from "react-icons/fa6"
+import VacationContingentModal from "../../components/user-panel-components/staff-components/vacation-contigent"
 
 
 const StaffContext = createContext(null)
 
 const RoleTag = ({ role }) => {
+  const getDynamicRoleColor = (role) => {
+    const colors = [
+      'bg-red-600', 'bg-blue-600', 'bg-green-600',
+      'bg-yellow-600', 'bg-purple-600', 'bg-pink-600',
+      'bg-indigo-600', 'bg-teal-600', 'bg-orange-600',
+      'bg-cyan-600', 'bg-lime-600', 'bg-amber-600'
+    ];
+
+    let hash = 0;
+    for (let i = 0; i < role.length; i++) {
+      hash = role.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
+  };
+
+  const bgColor = getDynamicRoleColor(role);
+
   return (
-    <div className="inline-flex items-center gap-1 bg-red-600 text-white px-2 py-1 rounded-md text-xs font-medium">
-      <svg
-        className="w-3 h-3"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-        />
-      </svg>
+    <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-2 py-1 rounded-md text-xs font-medium`}>
+      <Briefcase size={15} />
       <span>{role}</span>
     </div>
   );
@@ -73,6 +81,9 @@ export default function StaffManagement() {
   const [selectedStaffForHistory, setSelectedStaffForHistory] = useState(null)
   const [viewMode, setViewMode] = useState("grid")
 
+  const [isCompactView, setIsCompactView] = useState(false);
+  const [expandedStaffId, setExpandedStaffId] = useState(null);
+
   const [showDocumentModal, setShowDocumentModal] = useState(false)
   const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
 
@@ -80,6 +91,26 @@ export default function StaffManagement() {
     isOpen: false,
     staff: null
   });
+
+  const [isVacationContingentModalOpen, setIsVacationContingentModalOpen] = useState(false)
+  const [selectedStaffForContingent, setSelectedStaffForContingent] = useState(null)
+
+  const handleVacationContingentClick = (staff) => {
+    setSelectedStaffForContingent(staff)
+    setIsVacationContingentModalOpen(true)
+  }
+  const handleUpdateVacationContingent = (staffId, newContingent, notes) => {
+    setStaffMembers(prev => prev.map(staff =>
+      staff.id === staffId
+        ? {
+          ...staff,
+          vacationDays: newContingent,
+          vacationNotes: notes
+        }
+        : staff
+    ))
+    toast.success("Vacation contingent updated successfully")
+  }
 
 
   const trainingVideos = trainingVideosData
@@ -530,7 +561,7 @@ export default function StaffManagement() {
         >
           <div className="flex-1 min-w-0 p-4 sm:p-6">
             <div
-              className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 transition-all duration-500`}
+              className={`flex w-full flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 transition-all duration-500`}
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3">
@@ -538,44 +569,118 @@ export default function StaffManagement() {
                     Staff
                   </h1>
 
-                  <div className="flex items-center gap-1 bg-black rounded-xl p-1 w-fit">
-                    <span className="text-xs text-gray-400 px-2">View</span>
-                    <button
-                      onClick={toggleViewMode}
-                      className={`p-2 rounded-lg transition-colors ${viewMode === "grid"
-                        ? "bg-[#FF843E] text-white"
-                        : "text-gray-400 hover:text-white"
-                        }`}
-                      title="Grid View"
-                    >
-                      <Grid3X3 size={16} />
-                    </button>
-                    <button
-                      onClick={toggleViewMode}
-                      className={`p-2 rounded-lg transition-colors ${viewMode === "list"
-                        ? "bg-[#FF843E] text-white"
-                        : "text-gray-400 hover:text-white"
-                        }`}
-                      title="List View"
-                    >
-                      <List size={16} />
-                    </button>
+                  <div className="md:flex gap-2 items-center  hidden">
+
+
+                    <div className="flex items-center gap-1 bg-black rounded-xl p-1 w-fit">
+                      <span className="text-xs text-gray-400 px-2">View</span>
+                      <button
+                        onClick={toggleViewMode}
+                        className={`p-2 rounded-lg transition-colors ${viewMode === "grid"
+                          ? "bg-[#FF843E] text-white"
+                          : "text-gray-400 hover:text-white"
+                          }`}
+                        title="Grid View"
+                      >
+                        <Grid3X3 size={16} />
+                      </button>
+                      <button
+                        onClick={toggleViewMode}
+                        className={`p-2 rounded-lg transition-colors ${viewMode === "list"
+                          ? "bg-[#FF843E] text-white"
+                          : "text-gray-400 hover:text-white"
+                          }`}
+                        title="List View"
+                      >
+                        <List size={16} />
+                      </button>
+                    </div>
+
+                    {/* Display Mode Switch - Added from members code */}
+                    <div className="flex bg-black items-center rounded-xl border border-gray-800 p-1 w-fit">
+                      <span className="text-xs text-gray-400 px-2">Display</span>
+                      <button
+                        onClick={() => setIsCompactView(false)}
+                        className={`p-2 rounded-lg transition-colors ${!isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                          }`}
+                        title="Detailed View"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setIsCompactView(true)}
+                        className={`p-2 rounded-lg transition-colors ${isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                          }`}
+                        title="Compact View"
+                      >
+                        <Grid3X3 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* <button
-                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md lg:hidden block"
-                >
-                  <IoIosMenu size={24} />
-                </button> */}
-                <div onClick={toggleRightSidebar} className="cursor-pointer block lg:hidden">
-                  <img src="/icon.svg" className="h-5 w-5" alt="menu" />
+                {isRightSidebarOpen ? (
+                  <div onClick={toggleRightSidebar} className="lg:hidden block ">
+                    <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+                  </div>
+                ) : (
+                  <div onClick={toggleRightSidebar} className="lg:hidden block ">
+                    <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                  </div>
+                )}
+              </div>
+
+              <div className="md:hidden flex items-center gap-2 ">
+
+
+                <div className="flex items-center gap-1 bg-black rounded-xl p-1 w-fit">
+                  <span className="text-xs text-gray-400 px-2">View</span>
+                  <button
+                    onClick={toggleViewMode}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === "grid"
+                      ? "bg-[#FF843E] text-white"
+                      : "text-gray-400 hover:text-white"
+                      }`}
+                    title="Grid View"
+                  >
+                    <Grid3X3 size={16} />
+                  </button>
+                  <button
+                    onClick={toggleViewMode}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === "list"
+                      ? "bg-[#FF843E] text-white"
+                      : "text-gray-400 hover:text-white"
+                      }`}
+                    title="List View"
+                  >
+                    <List size={16} />
+                  </button>
+                </div>
+
+                {/* Display Mode Switch - Added from members code */}
+                <div className="flex bg-black items-center rounded-xl border border-gray-800 p-1 w-fit">
+                  <span className="text-xs text-gray-400 px-2">Display</span>
+                  <button
+                    onClick={() => setIsCompactView(false)}
+                    className={`p-2 rounded-lg transition-colors ${!isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                      }`}
+                    title="Detailed View"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsCompactView(true)}
+                    className={`p-2 rounded-lg transition-colors ${isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+                      }`}
+                    title="Compact View"
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col lg:flex-row  items-center gap-3 w-full">
+              <div className="flex flex-col lg:flex-row items-center gap-3 w-full  lg:justify-end">
                 <button
                   onClick={() => setIsPlanningModalOpen(true)}
                   className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center justify-center gap-2 w-full lg:w-auto"
@@ -598,103 +703,378 @@ export default function StaffManagement() {
                   onClick={() => setIsModalOpen(true)}
                   className="bg-orange-500 text-white px-4 lg:px-10 py-2.5 rounded-xl text-sm whitespace-nowrap w-full lg:w-auto"
                 >
-                  + Add Staff
+                  + Create Staff
                 </button>
 
-                {/* <button
-                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md lg:block hidden"
-                >
-                  <IoIosMenu size={24} />
-                </button> */}
-                <div onClick={toggleRightSidebar} className="cursor-pointer hidden lg:block">
-                  <img src="/icon.svg" className="h-5 w-5" alt="menu" />
-                </div>
+                {isRightSidebarOpen ? (
+                  <div onClick={toggleRightSidebar} className="lg:block hidden ">
+                    <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+                  </div>
+                ) : (
+                  <div onClick={toggleRightSidebar} className="lg:block hidden ">
+                    <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                  </div>
+                )}
               </div>
             </div>
 
+            {/* Staff List/Grid View with Compact/Detailed modes */}
+            <div className="open_sans_font">
+              {viewMode === "list" ? (
+                // LIST VIEW
+                isCompactView ? (
+                  // COMPACT LIST VIEW
+                  <div className="space-y-2">
+                    {staffMembers.map((staff) => (
+                      <div key={staff.id}>
+                        {expandedStaffId === staff.id ? (
+                          // Expanded compact view
+                          <div className="flex flex-col lg:flex-row lg:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4">
+                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                              <img
+                                src={staff.img || "/placeholder.svg?height=80&width=80"}
+                                className="h-12 w-12 rounded-2xl flex-shrink-0 object-cover"
+                                alt={`${staff.firstName} ${staff.lastName}`}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-white font-medium text-base sm:text-lg truncate">
+                                  {staff.firstName} {staff.lastName}
+                                </h3>
+                                <div className="mb-2">
+                                  <RoleTag role={staff.role} />
+                                </div>
+                                <p className="text-gray-400 text-sm">
+                                  {staff.description}
+                                </p>
+                              </div>
+                            </div>
 
-            <div
-              className={`open_sans_font mt-6 sm:mt-15 ${viewMode === "grid"
-                ? `grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "xl:grid-cols-2" : "xl:grid-cols-3"
-                } gap-3 sm:gap-4`
-                : "flex flex-col gap-3"
-                }`}
-            >
-              {staffMembers.map((staff) => (
-                <div
-                  key={staff.id}
-                  className={`bg-[#141414] rounded-xl p-4 sm:p-6 ${viewMode === "grid"
-                    ? "flex flex-col items-center text-center"
-                    : "flex flex-col sm:flex-row items-start sm:items-center text-left gap-4"
-                    }`}
-                >
+                            <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleEdit(staff)}
+                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleHistoryClick(staff)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <History size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleChatClick(staff)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <MessageCircle size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleVacationContingentClick(staff)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <TbPlusMinus size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDocumentClick(staff)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <FileText size={16} />
+                                </button>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => setExpandedStaffId(null)}
+                              className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
+                            >
+                              <ChevronUp className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </div>
+                        ) : (
+                          // Collapsed compact view
+                          <div className="flex items-center justify-between bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-3">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <img
+                                src={staff.img || "/placeholder.svg?height=80&width=80"}
+                                alt={`${staff.firstName} ${staff.lastName}`}
+                                className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-white font-medium text-sm truncate">
+                                    {staff.firstName}
+                                  </span>
+                                  <span className="text-white font-medium text-sm truncate">
+                                    {staff.lastName}
+                                  </span>
+                                  <span className="px-1.5 py-0.5 text-xs font-medium rounded flex-shrink-0 bg-blue-600 text-white">
+                                    {staff.role}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setExpandedStaffId(staff.id)}
+                              className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors flex-shrink-0"
+                            >
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // DETAILED LIST VIEW (your existing list view)
+                  <div className="flex flex-col gap-3">
+                    {staffMembers.map((staff) => (
+                      <div
+                        key={staff.id}
+                        className="bg-[#141414] rounded-xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center text-left gap-4"
+                      >
+                        <div className="flex-shrink-0 self-center sm:self-start">
+                          <img
+                            src={staff.img || "/placeholder.svg?height=80&width=80"}
+                            width={80}
+                            height={80}
+                            className="rounded-xl h-12 w-12 sm:h-16 sm:w-16"
+                            alt={`${staff.firstName} ${staff.lastName}`}
+                          />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-white font-medium text-base sm:text-lg mb-1 text-center sm:text-left">
+                            {staff.firstName} {staff.lastName}
+                          </h3>
+                          <div className="mb-2 text-center sm:text-left">
+                            <RoleTag role={staff.role} />
+                          </div>
+                          <p className="text-gray-400 text-xs sm:text-sm mb-3 text-center sm:text-left">
+                            {staff.description}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row flex-shrink-0 w-full sm:w-auto gap-2">
+                          <button
+                            onClick={() => handleEdit(staff)}
+                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 sm:px-6 hover:text-white hover:border-slate-400 transition-colors text-sm flex-1 sm:flex-none"
+                          >
+                            Edit
+                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleHistoryClick(staff)}
+                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center flex-1 sm:flex-none sm:w-12"
+                            >
+                              <History size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleChatClick(staff)}
+                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center flex-1 sm:flex-none sm:w-12"
+                            >
+                              <MessageCircle size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleVacationContingentClick(staff)}
+                              className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                              title="Manage Vacation Contingent"
+                            >
+                              <TbPlusMinus size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDocumentClick(staff)}
+                              className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                              title="Document Management"
+                            >
+                              <FileText size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : // GRID VIEW
+                isCompactView ? (
+                  // COMPACT GRID VIEW
+                  <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {staffMembers.map((staff) => (
+                      <div key={staff.id}>
+                        {expandedStaffId === staff.id ? (
+                          // Expanded grid view
+                          <div className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col h-full col-span-2 md:col-span-2 lg:col-span-2">
+                            <div className="flex-1  mb-4 flex flex-col gap-1.5">
+                              <div className="flex flex-col justify-center items-center gap-3 mb-3">
+                                <img
+                                  src={staff.img || "/placeholder.svg?height=80&width=80"}
+                                  className="h-16 w-16 rounded-2xl flex-shrink-0 object-cover"
+                                  alt={`${staff.firstName} ${staff.lastName}`}
+                                />
+                                <div>
+                                  <h3 className="text-white text-center font-medium text-lg leading-tight">
+                                    {staff.firstName} {staff.lastName}
+                                  </h3>
+                                  <p className="text-gray-400 text-center text-sm">
+                                    {staff.role}
+                                  </p>
+                                </div>
+                              </div>
+                              <p className="text-gray-400 text-center text-sm leading-snug">
+                                {staff.description}
+                              </p>
+                            </div>
+
+                            <div className="flex  flex-col gap-2 mt-auto">
+                              <div className="grid grid-cols-3 gap-2">
+                                <button
+                                  onClick={() => handleEdit(staff)}
+                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex-1"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleHistoryClick(staff)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <History size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleChatClick(staff)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <MessageCircle size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleVacationContingentClick(staff)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <TbPlusMinus size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDocumentClick(staff)}
+                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                >
+                                  <FileText size={16} />
+                                </button>
+                              </div>
+
+                              <button
+                                onClick={() => setExpandedStaffId(null)}
+                                className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
+                              >
+                                <ChevronUp size={16} />
+                                Collapse
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          // Compact tile view
+                          <div className="bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col items-center justify-center gap-2 h-full">
+                            <div className="relative w-full">
+                              <img
+                                src={staff.img || "/placeholder.svg?height=80&width=80"}
+                                alt={`${staff.firstName} ${staff.lastName}`}
+                                className="w-12 h-12 rounded-full mx-auto object-cover"
+                              />
+                              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold text-white bg-blue-600">
+                                {staff.role.charAt(0)}
+                              </span>
+                            </div>
+
+                            <div className="text-center w-full min-w-0">
+                              <p className="text-white font-medium text-xs truncate">
+                                {staff.firstName}
+                              </p>
+                              <p className="text-gray-400 text-xs truncate">
+                                {staff.lastName}
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={() => setExpandedStaffId(staff.id)}
+                              className="p-1.5 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors w-full flex items-center justify-center"
+                            >
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // DETAILED GRID VIEW (your existing grid view)
                   <div
-                    className={`${viewMode === "grid"
-                      ? "relative w-full mb-4"
-                      : "flex-shrink-0 self-center sm:self-start"
-                      }`}
+                    className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "xl:grid-cols-2" : "xl:grid-cols-3"
+                      } gap-3 sm:gap-4`}
                   >
-                    <img
-                      src={staff.img || "/placeholder.svg?height=80&width=80"}
-                      width={80}
-                      height={80}
-                      className={`rounded-xl ${viewMode === "grid"
-                        ? "h-16 w-16 sm:h-20 sm:w-20 mx-auto"
-                        : "h-12 w-12 sm:h-16 sm:w-16"
-                        }`}
-                      alt={`${staff.firstName} ${staff.lastName}`}
-                    />
-                  </div>
+                    {staffMembers.map((staff) => (
+                      <div
+                        key={staff.id}
+                        className="bg-[#141414] rounded-xl p-4 sm:p-6 flex flex-col items-center text-center"
+                      >
+                        <div className="relative w-full mb-4">
+                          <img
+                            src={staff.img || "/placeholder.svg?height=80&width=80"}
+                            width={80}
+                            height={80}
+                            className="rounded-xl h-16 w-16 sm:h-20 sm:w-20 mx-auto"
+                            alt={`${staff.firstName} ${staff.lastName}`}
+                          />
+                        </div>
 
-                  <div className={`${viewMode === "list" ? "flex-1 min-w-0" : "w-full"}`}>
-                    <h3 className={`text-white font-medium text-base sm:text-lg mb-1 ${viewMode === "list" ? "text-center sm:text-left" : "text-center"}`}>
-                      {staff.firstName} {staff.lastName}
-                    </h3>
-                    <div className={`mb-2 ${viewMode === "list" ? "text-center sm:text-left" : "text-center"}`}>
-                      <RoleTag role={staff.role} />
-                    </div>
-                    <p className={`text-gray-400 text-xs sm:text-sm ${viewMode === "grid" ? "mb-4" : "mb-3"} ${viewMode === "list" ? "text-center sm:text-left" : "text-center"}`}>
-                      {staff.description}
-                    </p>
-                  </div>
+                        <div className="w-full">
+                          <h3 className="text-white font-medium text-base sm:text-lg mb-1 text-center">
+                            {staff.firstName} {staff.lastName}
+                          </h3>
+                          <div className="mb-2 text-center">
+                            <RoleTag role={staff.role} />
+                          </div>
+                          <p className="text-gray-400 text-xs sm:text-sm mb-4 text-center">
+                            {staff.description}
+                          </p>
+                        </div>
 
-                  <div
-                    className={`flex gap-2 ${viewMode === "grid"
-                      ? "flex-col sm:flex-row justify-center w-full"
-                      : "flex-col sm:flex-row flex-shrink-0 w-full sm:w-auto"
-                      }`}
-                  >
-                    <button
-                      onClick={() => handleEdit(staff)}
-                      className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 sm:px-6 hover:text-white hover:border-slate-400 transition-colors text-sm flex-1 sm:flex-none"
-                    >
-                      Edit
-                    </button>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleHistoryClick(staff)}
-                        className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center flex-1 sm:flex-none sm:w-12"
-                      >
-                        <History size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleChatClick(staff)}
-                        className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center flex-1 sm:flex-none sm:w-12"
-                      >
-                        <MessageCircle size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDocumentClick(staff)}
-                        className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
-                        title="Document Management"
-                      >
-                        <FileText size={16} />
-                      </button>
-                    </div>
+                        <div className="flex flex-col sm:flex-row justify-center w-full gap-2">
+                          <button
+                            onClick={() => handleEdit(staff)}
+                            className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 sm:px-6 hover:text-white hover:border-slate-400 transition-colors text-sm flex-1 sm:flex-none"
+                          >
+                            Edit
+                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleHistoryClick(staff)}
+                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center flex-1 sm:flex-none sm:w-12"
+                            >
+                              <History size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleChatClick(staff)}
+                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center flex-1 sm:flex-none sm:w-12"
+                            >
+                              <MessageCircle size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleVacationContingentClick(staff)}
+                              className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                              title="Manage Vacation Contingent"
+                            >
+                              <TbPlusMinus size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDocumentClick(staff)}
+                              className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                              title="Document Management"
+                            >
+                              <FileText size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                )}
             </div>
           </div>
         </div>
@@ -812,6 +1192,18 @@ export default function StaffManagement() {
           />
         )}
 
+        {isVacationContingentModalOpen && selectedStaffForContingent && (
+          <VacationContingentModal
+            isOpen={isVacationContingentModalOpen}
+            onClose={() => {
+              setIsVacationContingentModalOpen(false)
+              setSelectedStaffForContingent(null)
+            }}
+            staff={selectedStaffForContingent}
+            onUpdateContingent={handleUpdateVacationContingent}
+          />
+        )}
+
 
         {/* sidebar related stuff */}
 
@@ -870,6 +1262,7 @@ export default function StaffManagement() {
           handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
           onSaveSpecialNote={handleSaveSpecialNoteWrapper}
           notifications={notifications}
+          setTodos={setTodos}
         />
 
         {/* Sidebar related modals */}

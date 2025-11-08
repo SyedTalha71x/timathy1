@@ -1,27 +1,34 @@
 /* eslint-disable react/no-unknown-property */
-
-
 /* eslint-disable react/prop-types */
-import { X, ChevronDown, Users, Tag } from "lucide-react"
+
+import { X, ChevronDown, Users, Tag, Bell, Repeat } from "lucide-react"
 import { useState } from "react"
 import { toast, Toaster } from "react-hot-toast"
 
-const AddTaskModal = ({ onClose, onAddTask, configuredTags = [], initialTask = null }) => {
+const AddTaskModal = ({ onClose, onAddTask, configuredTags = [] }) => {
   const [newTask, setNewTask] = useState({
-    title: initialTask?.title || "",
-    assignees: initialTask?.assignees || [],
-    roles: initialTask?.roles || [],
-    tags: initialTask?.tags || [],
-    dueDate: initialTask?.dueDate || "",
-    dueTime: initialTask?.dueTime || "",
+    title: "",
+    assignees: [],
+    roles: [],
+    tags: [],
+    dueDate: "",
+    dueTime: "",
   })
 
-  const [assignmentType, setAssignmentType] = useState(
-    initialTask?.assignees?.length > 0 || initialTask?.assignee ? "staff" : "roles",
-  )
+  const [assignmentType, setAssignmentType] = useState("staff")
 
   const [isAssignDropdownOpen, setIsAssignDropdownOpen] = useState(false)
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false)
+
+  const [reminder, setReminder] = useState("")
+  const [showCustomReminder, setShowCustomReminder] = useState(false)
+  const [customValue, setCustomValue] = useState("")
+  const [customUnit, setCustomUnit] = useState("Minutes")
+
+  const [repeat, setRepeat] = useState("")
+  const [repeatEndType, setRepeatEndType] = useState("never")
+  const [repeatEndDate, setRepeatEndDate] = useState("")
+  const [repeatOccurrences, setRepeatOccurrences] = useState("")
 
   // Sample data - replace with your actual data
   const staff = [
@@ -37,24 +44,56 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [], initialTask = n
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!newTask.dueDate) {
-      toast.error("Task not added. You must add a due date.")
+    
+    if (!newTask.title.trim()) {
+      toast.error("Please enter a task description")
       return
     }
+
+    if (!newTask.dueDate) {
+      toast.error("You must add a due date.")
+      return
+    }
+
+    // Build repeat settings only when repeat is chosen
+    const builtRepeatSettings =
+      repeat && repeat !== ""
+        ? {
+            frequency: repeat.toLowerCase(), // daily | weekly | monthly
+            endType: repeatEndType, // never | onDate | after
+            endDate: repeatEndType === "onDate" ? repeatEndDate : "",
+            occurrences: repeatEndType === "after" ? Number(repeatOccurrences) || "" : "",
+          }
+        : undefined
+
+    // Generate a unique ID for the new task
+    const taskId = Date.now()
+
+    const taskToAdd = {
+      id: taskId,
+      title: newTask.title,
+      assignees: newTask.assignees,
+      roles: newTask.roles,
+      tags: newTask.tags,
+      dueDate: newTask.dueDate,
+      dueTime: newTask.dueTime,
+      status: "ongoing",
+      category: "general",
+      isPinned: false,
+      dragVersion: 0,
+      reminder,
+      customReminderValue: reminder === "Custom" ? customValue : "",
+      customReminderUnit: reminder === "Custom" ? customUnit : "",
+      repeatSettings: builtRepeatSettings,
+      createdAt: new Date().toISOString(),
+      assignee: assignmentType === "staff" ? newTask.assignees[0] || "" : "",
+      role: assignmentType === "roles" ? newTask.roles[0] || "" : "",
+    }
+
     if (onAddTask) {
-      const taskToAdd = {
-        ...newTask,
-        id: Date.now(),
-        status: "ongoing",
-        isPinned: false,
-        assignee: assignmentType === "staff" ? newTask.assignees[0] || "" : "",
-        role: assignmentType === "roles" ? newTask.roles[0] || "" : "",
-      }
       onAddTask(taskToAdd)
+      onClose()
       toast.success("Task has been added successfully!")
-      setTimeout(() => {
-        onClose()
-      }, 1500)
     }
   }
 
@@ -91,6 +130,26 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [], initialTask = n
     }))
   }
 
+  const handleClearForm = () => {
+    setNewTask({
+      title: "",
+      assignees: [],
+      roles: [],
+      tags: [],
+      dueDate: "",
+      dueTime: "",
+    })
+    setAssignmentType("staff")
+    setReminder("")
+    setRepeat("")
+    setRepeatEndType("never")
+    setRepeatEndDate("")
+    setRepeatOccurrences("")
+    setCustomValue("")
+    setCustomUnit("Minutes")
+    setShowCustomReminder(false)
+  }
+
   return (
     <>
       <Toaster
@@ -117,7 +176,7 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [], initialTask = n
             className="space-y-4 max-h-[calc(90vh-120px)] overflow-y-auto custom-scrollbar pr-2"
           >
             <div>
-              <label className="text-sm text-gray-200">Task Title</label>
+              <label className="text-sm text-gray-200">Task Description</label>
               <input
                 type="text"
                 value={newTask.title}
@@ -366,10 +425,134 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [], initialTask = n
               </div>
             </div>
 
+            <div className="mt-2 space-y-2">
+              <label className="text-sm text-gray-200 flex items-center gap-2">
+                <Bell size={16} className="text-gray-400" />
+                Reminder
+              </label>
+              <select
+                value={reminder}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setReminder(val)
+                  setShowCustomReminder(val === "Custom")
+                }}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+              >
+                <option value="">None</option>
+                <option value="On time">On time</option>
+                <option value="5 minutes before">5 minutes before</option>
+                <option value="15 minutes before">15 minutes before</option>
+                <option value="30 minutes before">30 minutes before</option>
+                <option value="1 hour before">1 hour before</option>
+                <option value="1 day before">1 day before</option>
+                <option value="Custom">Custom</option>
+              </select>
+
+              {showCustomReminder && (
+                <div className="flex items-center gap-2 ml-1">
+                  <input
+                    type="number"
+                    min="1"
+                    value={customValue}
+                    onChange={(e) => setCustomValue(e.target.value)}
+                    className="bg-[#101010] text-white px-3 py-2 rounded-xl text-sm w-24 outline-none"
+                    placeholder="30"
+                  />
+                  <select
+                    value={customUnit}
+                    onChange={(e) => setCustomUnit(e.target.value)}
+                    className="bg-[#101010] text-white px-3 py-2 rounded-xl text-sm outline-none"
+                  >
+                    <option value="Minutes">Minutes</option>
+                    <option value="Hours">Hours</option>
+                    <option value="Days">Days</option>
+                    <option value="Weeks">Weeks</option>
+                  </select>
+                  <span className="text-sm text-gray-400">ahead</span>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-3 space-y-2">
+              <label className="text-sm text-gray-200 flex items-center gap-2">
+                <Repeat size={16} className="text-gray-400" />
+                Repeat
+              </label>
+              <select
+                value={repeat}
+                onChange={(e) => setRepeat(e.target.value)}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+              >
+                <option value="">Never</option>
+                <option value="Daily">Daily</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Monthly">Monthly</option>
+              </select>
+
+              {repeat && (
+                <div className="ml-1 space-y-2">
+                  <div className="text-sm text-gray-200">Ends:</div>
+                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="repeatEnd"
+                      value="never"
+                      checked={repeatEndType === "never"}
+                      onChange={() => setRepeatEndType("never")}
+                      className="form-radio h-3 w-3 text-[#FF843E]"
+                    />
+                    Never
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="repeatEnd"
+                      value="onDate"
+                      checked={repeatEndType === "onDate"}
+                      onChange={() => setRepeatEndType("onDate")}
+                      className="form-radio h-3 w-3 text-[#FF843E]"
+                    />
+                    On date:
+                    <input
+                      type="date"
+                      value={repeatEndDate}
+                      onChange={(e) => setRepeatEndDate(e.target.value)}
+                      onClick={() => setRepeatEndType("onDate")}
+                      className="bg-[#101010] text-white px-3 py-2 rounded-xl text-xs ml-1 outline-none"
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="repeatEnd"
+                      value="after"
+                      checked={repeatEndType === "after"}
+                      onChange={() => setRepeatEndType("after")}
+                      className="form-radio h-3 w-3 text-[#FF843E]"
+                    />
+                    After
+                    <input
+                      type="number"
+                      min="1"
+                      value={repeatOccurrences}
+                      onChange={(e) => setRepeatOccurrences(e.target.value)}
+                      onClick={() => setRepeatEndType("after")}
+                      className="w-20 bg-[#101010] text-white px-3 py-2 rounded-xl text-xs ml-1 outline-none"
+                    />
+                    occurrences
+                  </label>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-end gap-2 mt-6">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => {
+                  handleClearForm()
+                  onClose()
+                }}
                 className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#2F2F2F]/90"
               >
                 Cancel

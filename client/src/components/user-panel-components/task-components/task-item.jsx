@@ -20,6 +20,8 @@ export default function TaskItem({
   availableRoles = [],
   onOpenAssignModal,
   onOpenTagsModal,
+  onOpenCalendarModal,
+  repeatConfigs = {} // Add this line
 }) {
   const [isAnimatingCompletion, setIsAnimatingCompletion] = useState(false)
   const [isCheckboxAnimating, setIsCheckboxAnimating] = useState(false)
@@ -88,56 +90,6 @@ export default function TaskItem({
     setIsEditMode(!isEditMode)
   }
 
-  // Tag management functions
-  const toggleTag = (tagName) => {
-    const currentTags = task.tags || []
-    let updatedTags
-    if (currentTags.includes(tagName)) {
-      updatedTags = currentTags.filter((tag) => tag !== tagName)
-    } else {
-      updatedTags = [...currentTags, tagName]
-    }
-    onUpdate(task.id, { ...task, tags: updatedTags })
-  }
-
-  const removeTag = (tagToRemove) => {
-    const updatedTags = (task.tags || []).filter((tag) => tag !== tagToRemove)
-    onUpdate(task.id, { ...task, tags: updatedTags })
-  }
-
-  // Assignment management functions
-  const toggleAssignee = (assignee) => {
-    const currentAssignees = task.assignees || []
-    const assigneeName = `${assignee.firstName} ${assignee.lastName}`
-    let updatedAssignees
-    if (currentAssignees.includes(assigneeName)) {
-      updatedAssignees = currentAssignees.filter((a) => a !== assigneeName)
-    } else {
-      updatedAssignees = [...currentAssignees, assigneeName]
-    }
-    onUpdate(task.id, { ...task, assignees: updatedAssignees })
-  }
-
-  const toggleRole = (role) => {
-    const currentRoles = task.roles || []
-    let updatedRoles
-    if (currentRoles.includes(role)) {
-      updatedRoles = currentRoles.filter((r) => r !== role)
-    } else {
-      updatedRoles = [...currentRoles, role]
-    }
-    onUpdate(task.id, { ...task, roles: updatedRoles })
-  }
-
-  const removeAssignment = () => {
-    onUpdate(task.id, { ...task, assignees: [], roles: [] })
-  }
-
-  // Date/time management functions
-  const handleDateTimeUpdate = (newDate, newTime) => {
-    onUpdate(task.id, { ...task, dueDate: newDate, dueTime: newTime })
-    setShowCalendar(false)
-  }
 
   const formatDateTime = () => {
     let display = ""
@@ -173,7 +125,7 @@ export default function TaskItem({
 
   const isCompleted = task.status === "completed"
   const isCanceled = task.status === "canceled"
-  const hasRepeat = task.repeatSettings && task.repeatSettings.frequency
+  const hasRepeat = (task.repeatSettings && task.repeatSettings.frequency) || repeatConfigs[task.id]
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -207,12 +159,12 @@ export default function TaskItem({
           ? "bg-[#1c1c1c] text-gray-500"
           : isCanceled
             ? "bg-[#1a1a1a] text-gray-600 italic line-through"
-            : "bg-[#161616] text-white"
+            : "bg-[#1a1a1a] text-white"
         } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
       style={{
         position: isDragging ? "relative" : "static",
         zIndex: isDragging ? 9999 : "auto",
-        pointerEvents: isDragging ? "none" : "auto",
+        pointerEvents: isDragging ? "none" : "auto",  
       }}
     >
       <div className="flex flex-col gap-3">
@@ -289,32 +241,31 @@ export default function TaskItem({
         </div>
 
         {/* Tags */}
-{task.tags && task.tags.length > 0 && (
-  <div className="relative ml-7">
-    <div className="flex flex-wrap gap-1.5">
-      {task.tags?.map(
-        (tag, index) =>
-          tag && (
-            <span
-              key={index}
-              className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag ${
-                isCompleted || isCanceled 
-                  ? "bg-[#2b2b2b] text-gray-500" 
-                  : "text-white"
-              }`}
-              style={{
-                backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag),
-              }}
-              onClick={handleTagsClick}
-            >
-              <Tag size={10} />
-              {tag}
-            </span>
-          ),
-      )}
-    </div>
-  </div>
-)}
+        {task.tags && task.tags.length > 0 && (
+          <div className="relative ml-7">
+            <div className="flex flex-wrap gap-1.5">
+              {task.tags?.map(
+                (tag, index) =>
+                  tag && (
+                    <span
+                      key={index}
+                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag ${isCompleted || isCanceled
+                          ? "bg-[#2b2b2b] text-gray-500"
+                          : "text-white"
+                        }`}
+                      style={{
+                        backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag),
+                      }}
+                      onClick={handleTagsClick}
+                    >
+                      <Tag size={10} />
+                      {tag}
+                    </span>
+                  ),
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Assignees and Date */}
         <div className="flex flex-col items-center flex-wrap justify-center gap-2 mt-2 lg:flex-row lg:justify-center">
@@ -330,16 +281,28 @@ export default function TaskItem({
               </div>
             </div>
           )}
-          <div className="relative">
-            <div
-              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag ${isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
-                }`}
-            >
-              <Calendar size={12} />
-              <span className="whitespace-nowrap">{formatDateTime()}</span>
-              {hasRepeat && <Repeat size={10} className="text-blue-400 ml-1" title="Repeating task" />}
-            </div>
-          </div>
+
+<div className="relative">
+  <div
+    className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag cursor-pointer ${isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300 hover:bg-gray-700"
+      }`}
+    onClick={(e) => {
+      e.stopPropagation();
+      if (!isCompleted && !isCanceled) {
+        // This will open the modal for editing task date/time
+        onOpenCalendarModal?.(task.id, task.dueDate, task.dueTime, task.reminder, task.repeat);
+      }
+    }}
+    title={!isCompleted && !isCanceled ? "Click to edit date/time" : ""}
+  >
+    <Calendar size={12} />
+    <span className="whitespace-nowrap">{formatDateTime()}</span>
+    {(hasRepeat || (task.repeatConfig && task.repeatConfig.repeatOptions)) && (
+      <Repeat size={20} className="text-blue-400 ml-1" title="Repeating task" />
+    )}
+  </div>
+ 
+</div>
         </div>
 
         {/* Edit buttons panel - shown when in edit mode */}

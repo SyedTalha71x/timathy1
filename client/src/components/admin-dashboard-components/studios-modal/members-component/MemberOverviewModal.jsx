@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable react/prop-types */
 import { X, Search, Eye, Edit, Calendar, FileText, History } from "lucide-react"
 

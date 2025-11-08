@@ -31,6 +31,7 @@ import MarketPlace from './dashboard-pages/user-panel-view/market-place'
 import NotesApp from "./dashboard-pages/user-panel-view/notes";
 import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
 import MembersCheckIn from './dashboard-pages/user-panel-view/members-checkin'
+import Assessment from "./dashboard-pages/user-panel-view/assessment";
 
 
 // Admin Dashboard
@@ -62,9 +63,6 @@ import MemberDashboardLayout from "./layouts/member-dashboard-layout";
 // import { startModalWatcher } from "./utils/fixModals";
 
 function App() {
-
-
-  
   const location = useLocation();
   const isAuthOrDashboardPage = ["/login", "/register", "/profile"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
 
@@ -106,6 +104,7 @@ function App() {
           <Route path="notes" element={<NotesApp />} />
           <Route path="bulletin-board" element={<BulletinBoard />} />
           <Route path="members-checkin" element={<MembersCheckIn />} />
+          <Route path="assessment" element={<Assessment />} />
 
         </Route>
 

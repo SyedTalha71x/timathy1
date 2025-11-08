@@ -1,13 +1,88 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { ImageIcon } from "lucide-react"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { List, X } from "react-feather"
+import ReactQuill from "react-quill"
+
+const WysiwygEditor = ({ value, onChange, placeholder }) => {
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      [{ 'color': [] }, { 'background': [] }],
+      ['link', 'image'],
+      ['clean']
+    ],
+  }
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'align',
+    'color', 'background',
+    'link', 'image'
+  ]
+
+  // Add custom CSS for placeholder
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .ql-editor.ql-blank::before {
+        color: #ffffff !important;
+        opacity: 0.7 !important;
+        font-style: normal !important;
+      }
+      .ql-editor {
+        color: #ffffff !important;
+      }
+      .ql-toolbar {
+        border-color: #303030 !important;
+        background-color: #151515 !important;
+      }
+      .ql-container {
+        border-color: #303030 !important;
+        background-color: #101010 !important;
+      }
+      .ql-snow .ql-stroke {
+        stroke: #ffffff !important;
+      }
+      .ql-snow .ql-fill {
+        fill: #ffffff !important;
+      }
+      .ql-snow .ql-picker-label {
+        color: #ffffff !important;
+      }
+    `
+    document.head.appendChild(style)
+
+    return () => {
+      document.head.removeChild(style)
+    }
+  }, [])
+
+  return (
+    <ReactQuill
+      value={value}
+      onChange={onChange}
+      modules={modules}
+      formats={formats}
+      placeholder={placeholder}
+      theme="snow"
+    />
+  )
+}
 
 const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
     const [replyText, setReplyText] = useState("")
     const [uploadedImages, setUploadedImages] = useState([])
     const [isBold, setIsBold] = useState(false)
     const [isItalic, setIsItalic] = useState(false)
+    const [showCloseConfirm, setShowCloseConfirm] = useState(false)
     const textareaRef = useRef(null)
     const fileInputRef = useRef(null)
   
@@ -39,13 +114,20 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
     }
   
     const handleCloseTicket = () => {
-      if (window.confirm("Are you sure you want to close this ticket? You won't be able to send replies anymore.")) {
-        const updatedTicket = {
-          ...ticket,
-          status: "Closed",
-        }
-        onUpdateTicket(updatedTicket)
+      setShowCloseConfirm(true)
+    }
+  
+    const confirmCloseTicket = () => {
+      const updatedTicket = {
+        ...ticket,
+        status: "Closed",
       }
+      onUpdateTicket(updatedTicket)
+      setShowCloseConfirm(false)
+    }
+  
+    const cancelCloseTicket = () => {
+      setShowCloseConfirm(false)
     }
   
     const toggleBold = () => {
@@ -109,146 +191,173 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
         </div>
       )
     }
+
+    // Close Confirmation Modal Component
+    const CloseConfirmationModal = () => {
+      if (!showCloseConfirm) return null
+
+      return (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+          <div className="bg-[#2A2A2A] rounded-xl p-6 w-full max-w-md mx-auto border border-gray-600">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Close Ticket</h3>
+              <button
+                onClick={cancelCloseTicket}
+                className="text-gray-400 hover:text-gray-200 p-1"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <p className="text-gray-300 mb-6 text-sm leading-relaxed">
+              Are you sure you want to close this ticket? <span className="text-yellow-400 font-medium">You won't be able to send replies anymore.</span>
+            </p>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelCloseTicket}
+                className="px-4 py-2 text-sm border border-gray-600 rounded-lg font-medium text-gray-300 bg-[#2A2A2A] hover:bg-[#3A3A3A] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmCloseTicket}
+                className="px-4 py-2 text-sm rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+              >
+                Close Ticket
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
   
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-        <div className="bg-[#2A2A2A] rounded-lg sm:rounded-xl w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col max-h-screen">
-          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-600 flex-shrink-0">
-            <h2 className="text-base sm:text-lg font-semibold text-white truncate pr-2">{ticket.subject}</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-200 p-1 flex-shrink-0">
-              <X size={20} className="sm:w-6 sm:h-6" />
-            </button>
-          </div>
-  
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 min-h-0 bg-[#1C1C1C]">
-            <div className="space-y-4 sm:space-y-6">
-              {ticket.messages.map((message) => (
-                <div key={message.id} className="flex items-start gap-2 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-xs sm:text-sm">
-                      {message.sender === "user" ? "U" : "G"}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                      <span className="font-medium text-white text-sm sm:text-base">
-                        {message.sender === "user" ? "You" : "GamsGo"}
+      <>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-[#2A2A2A] rounded-lg sm:rounded-xl w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col max-h-screen">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-600 flex-shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <h2 className="text-base sm:text-lg font-semibold text-white truncate">{ticket.subject}</h2>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                  ticket.status === "Open" ? "bg-green-500 text-white" :
+                  ticket.status === "In Progress" ? "bg-blue-500 text-white" :
+                  ticket.status === "Awaiting your reply" ? "bg-yellow-500 text-white" :
+                  ticket.status === "Resolved" ? "bg-purple-500 text-white" :
+                  ticket.status === "Closed" ? "bg-gray-500 text-white" :
+                  ticket.status === "Urgent" ? "bg-red-500 text-white" :
+                  "bg-gray-400 text-white"
+                }`}>
+                  {ticket.status}
+                </span>
+              </div>
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-200 p-1 flex-shrink-0">
+                <X size={20} className="sm:w-6 sm:h-6" />
+              </button>
+            </div>
+    
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 min-h-0 bg-[#1C1C1C]">
+              <div className="space-y-4 sm:space-y-6">
+                {ticket.messages.map((message) => (
+                  <div key={message.id} className="flex items-start gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-xs sm:text-sm">
+                        {message.sender === "user" ? "U" : "G"}
                       </span>
-                      <span className="text-gray-400 text-xs sm:text-sm">{message.timestamp}</span>
                     </div>
-                    {renderMessageContent(message)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                        <span className="font-medium text-white text-sm sm:text-base">
+                          {message.sender === "user" ? "You" : "GamsGo"}
+                        </span>
+                        <span className="text-gray-400 text-xs sm:text-sm">{message.timestamp}</span>
+                      </div>
+                      {renderMessageContent(message)}
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+    
+            <div className="border-t border-gray-600 p-3 sm:p-4 flex-shrink-0 bg-[#2A2A2A]">
+  {isTicketClosed ? (
+    <div className="text-center text-gray-400 py-4 bg-[#1C1C1C] rounded-lg">
+      <div className="text-sm font-medium mb-1">This ticket is closed</div>
+      <div className="text-xs">You cannot send replies anymore.</div>
+    </div>
+  ) : (
+    <>
+      <div className="mb-3 sm:mb-4">
+        {/* Image upload section */}
+        <div className="mb-3">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            multiple
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+          >
+            <ImageIcon size={16} />
+            Attach Images
+          </button>
+          
+          {uploadedImages.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {uploadedImages.map((img, idx) => (
+                <div key={idx} className="relative">
+                  <img src={img || "/placeholder.svg"} alt="Preview" className="w-20 h-20 object-cover rounded border border-gray-600" />
+                  <button
+                    onClick={() => removeImage(idx)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
             </div>
-          </div>
-  
-          <div className="border-t border-gray-600 p-3 sm:p-4 flex-shrink-0 bg-[#2A2A2A]">
-            {isTicketClosed ? (
-              <div className="text-center text-gray-400 py-4">
-                This ticket is closed. You cannot send replies anymore.
-              </div>
-            ) : (
-              <>
-                <div className="mb-3 sm:mb-4">
-                  <div className="border border-gray-600 rounded-md sm:rounded-lg overflow-hidden bg-[#1C1C1C]">
-                    <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-[#2A2A2A] border-b border-gray-600">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleImageUpload}
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                      />
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className={`p-1 hover:bg-gray-700 rounded text-gray-300`}
-                        title="Add image"
-                      >
-                        <ImageIcon size={14} className="sm:w-4 sm:h-4" />
-                      </button>
-                      <button
-                        onClick={toggleBold}
-                        className={`px-1.5 py-1 hover:bg-gray-700 rounded font-bold text-xs sm:text-sm ${
-                          isBold ? "bg-gray-700 text-white" : "text-gray-300"
-                        }`}
-                        title="Bold"
-                      >
-                        B
-                      </button>
-                      <button
-                        onClick={toggleItalic}
-                        className={`px-1.5 py-1 hover:bg-gray-700 rounded italic text-xs sm:text-sm ${
-                          isItalic ? "bg-gray-700 text-white" : "text-gray-300"
-                        }`}
-                        title="Italic"
-                      >
-                        I
-                      </button>
-                      <button
-                        onClick={addBulletPoint}
-                        className="p-1 hover:bg-gray-700 rounded text-gray-300"
-                        title="Add list"
-                      >
-                        <List size={14} className="sm:w-4 sm:h-4" />
-                      </button>
-                    </div>
-  
-                    {uploadedImages.length > 0 && (
-                      <div className="flex flex-wrap gap-2 p-2 bg-[#1C1C1C]">
-                        {uploadedImages.map((img, idx) => (
-                          <div key={idx} className="relative">
-                            <img
-                              src={img || "/placeholder.svg"}
-                              alt="Preview"
-                              className="w-20 h-20 object-cover rounded"
-                            />
-                            <button
-                              onClick={() => removeImage(idx)}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-  
-                    <textarea
-                      ref={textareaRef}
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="Additional description"
-                      style={{
-                        fontWeight: isBold ? "bold" : "normal",
-                        fontStyle: isItalic ? "italic" : "normal",
-                      }}
-                      className="w-full p-2 sm:p-3 min-h-[80px] sm:min-h-[100px] resize-none border-none outline-none text-sm sm:text-base text-white placeholder-gray-500 bg-[#1C1C1C]"
-                    />
-                  </div>
-                </div>
-  
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
-                  <button
-                    onClick={handleCloseTicket}
-                    className="text-white text-sm py-2 px-6 rounded-lg bg-gray-600 font-medium  order-2 sm:order-1"
-                  >
-                    Close ticket
-                  </button>
-                  <button
-                    onClick={handleAddReply}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-md sm:rounded-lg hover:bg-blue-600 font-medium text-sm order-1 sm:order-2"
-                  >
-                    Add Reply
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          )}
+        </div>
+
+        {/* WYSIWYG Editor */}
+        <div className="border border-gray-600 rounded-lg overflow-hidden bg-[#101010]">
+          <WysiwygEditor
+            value={replyText}
+            onChange={setReplyText}
+            placeholder="Type your reply here..."
+          />
         </div>
       </div>
+
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
+        <button
+          onClick={handleCloseTicket}
+          className="w-full sm:w-auto px-4 sm:px-6 py-2 text-white text-sm rounded-lg bg-gray-600 hover:bg-gray-700 font-medium transition-colors order-2 sm:order-1"
+        >
+          Close ticket
+        </button>
+        <button
+          onClick={handleAddReply}
+          disabled={!replyText.trim()}
+          className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-md sm:rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition-colors order-1 sm:order-2"
+        >
+          Add Reply
+        </button>
+      </div>
+    </>
+  )}
+</div>
+          </div>
+        </div>
+
+        {/* Close Confirmation Modal */}
+        <CloseConfirmationModal />
+      </>
     )
   }
 
-  export default TicketView
+export default TicketView

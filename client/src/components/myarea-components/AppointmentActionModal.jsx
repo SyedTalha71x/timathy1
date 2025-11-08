@@ -34,9 +34,9 @@ export default function AppointmentActionModalV2({
 
         <div className="p-6 space-y-2">
           <div className="mb-4">
-            <h3 className="text-white font-medium">{appointment.name}</h3>
-            <p className="text-gray-400 text-sm">{appointment.type}</p>
-            <p className="text-gray-400 text-sm">
+          <p className="font-semibold text-white text-sm">{appointment.name} {appointment.lastName || ""}</p>
+          <p className="text-gray-400 text-sm">{appointment.type}</p>
+            <p className="text-gray-400  text-sm">
               {appointment.date && appointment.date.split("|")[1]} • {appointment.startTime} - {appointment.endTime}
             </p>
 
