@@ -587,15 +587,16 @@ const Sidebar = ({
 
   return (
     <>
-      <aside
+     <aside
         className={`
-          fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 lg:w-84 bg-[#181818]
+          fixed inset-y-0 right-0 z-50 w-[85vw] md:h-[220vh] h-full sm:w-80 lg:w-84 bg-[#181818]
           transform transition-transform duration-500 ease-in-out
           ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
           lg:relative lg:translate-x-0
+          flex flex-col
         `}
       >
-        <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto max-h-[200vh]">
+         <div className="flex-1 p-4 md:p-5 custom-scrollbar overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center justify-between w-full mb-3 sm:mb-4">
               <div className="flex items-center gap-2 min-w-0">

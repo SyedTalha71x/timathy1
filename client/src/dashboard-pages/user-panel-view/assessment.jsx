@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
+import { Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Assessment = () => {
@@ -205,7 +206,7 @@ const Assessment = () => {
   };
 
   return (
-    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-6">
+    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold mb-2">Assessment</h1>
@@ -213,10 +214,10 @@ const Assessment = () => {
         </div>
         <button
           onClick={handleCreateForm}
-          className="bg-blue-600 text-sm hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2"
+          className="bg-blue-600 text-sm hover:bg-blue-700 gap-2 text-white px-6 py-3 rounded-lg font-medium transition-colors flex justify-center items-center "
         >
-          <span>+</span>
-          <span>Create Assessment</span>
+          <span><Plus size={20}/></span>
+          <span className='md:inline hidden'>Create Assessment</span>
         </button>
       </div>
 

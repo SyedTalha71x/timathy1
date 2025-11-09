@@ -1331,11 +1331,11 @@ export default function MyArea() {
               </div>
 
               {/* Buttons Section */}
-              <div className="flex flex-wrap justify-center md:justify-end gap-2">
+              <div className="flex   justify-center md:justify-end gap-2">
                 {!isEditing && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
-                    className="px-4 py-2  flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                    className="px-4 py-2  flex items-center md:w-auto w-full text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
                   >
                     <Eye size={16} />
                     {currentView ? currentView.name : "Standard View"}
