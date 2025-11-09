@@ -304,7 +304,7 @@ const Sidebar = () => {
     if (!isOpen) return null
 
     return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] md:p-4 p-2">
         <div className="bg-[#1a1a1a] rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
           <div className="flex items-center justify-between p-6 border-b border-zinc-700">
             <h2 className="text-xl font-bold text-white">{title}</h2>
@@ -636,25 +636,33 @@ const Sidebar = () => {
       {/* Activity Log Modal */}
       <Modal isOpen={isActivityLogModalOpen} onClose={() => setIsActivityLogModalOpen(false)} title="Activity Log">
         <div className="text-zinc-300">
-          <div className="mb-6">
-            <p className="text-zinc-400 mb-4">Recent activities and actions performed on the platform</p>
+          <div className="mb-4 md:mb-6">
+            <p className="text-zinc-400 mb-3 md:mb-4 text-sm md:text-base px-2 md:px-0 text-center md:text-left">
+              Recent activities and actions performed on the platform
+            </p>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4 max-h-[60vh] md:max-h-none overflow-y-auto px-1">
               {activityLogs.map((activity) => (
                 <div
                   key={activity.id}
-                  className={`border-l-4 ${getActivityColor(activity.type)} pl-4 py-3 bg-[#222222] rounded-r-lg`}
+                  className={`border-l-4 ${getActivityColor(activity.type)} pl-3 md:pl-4 py-2 md:py-3 bg-[#222222] rounded-r-lg mx-1 md:mx-0`}
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg">{getActivityIcon(activity.type)}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-white">{activity.action}</h4>
-                        <span className="text-xs text-zinc-400 bg-[#2a2a2a] px-2 py-1 rounded">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <span className="text-base md:text-lg mt-0.5 flex-shrink-0">
+                      {getActivityIcon(activity.type)}
+                    </span>
+                    <div className="flex-1 min-w-0"> {/* min-w-0 prevents flex overflow */}
+                      <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-1 xs:gap-2">
+                        <h4 className="font-semibold text-white text-sm md:text-base truncate">
+                          {activity.action}
+                        </h4>
+                        <span className="text-xs text-zinc-400 bg-[#2a2a2a] px-2 py-1 rounded flex-shrink-0">
                           {activity.timestamp}
                         </span>
                       </div>
-                      <p className="text-sm text-zinc-300 mt-1">{activity.description}</p>
+                      <p className="text-xs md:text-sm text-zinc-300 mt-1 break-words">
+                        {activity.description}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -662,11 +670,11 @@ const Sidebar = () => {
             </div>
           </div>
 
-          <div className="flex justify-between items-center mt-6 pt-4 border-t border-zinc-700">
-            <p className="text-sm text-zinc-400">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 md:gap-0 mt-4 md:mt-6 pt-3 md:pt-4 border-t border-zinc-700">
+            <p className="text-xs md:text-sm text-zinc-400 text-center sm:text-left order-2 sm:order-1">
               Showing {activityLogs.length} recent activities
             </p>
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm">
+            <button className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm w-full sm:w-auto order-1 sm:order-2">
               Load More
             </button>
           </div>

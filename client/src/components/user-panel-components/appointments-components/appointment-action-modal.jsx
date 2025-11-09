@@ -15,11 +15,11 @@ export default function AppointmentActionModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] md:p-4 p-2"
       onClick={onClose}
     >
       <div
-        className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+        className="bg-[#181818] w-[90%] sm:w-[500px] rounded-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">

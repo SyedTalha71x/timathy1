@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
 
-
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 import { toast } from "react-hot-toast"
@@ -67,9 +66,9 @@ export const SpecialNoteEditModal = ({ isOpen, onClose, appointment, onSave }) =
   if (!isOpen) return null
 
   const modalContent = (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-        <div className="p-6 space-y-4">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
+      <div className="bg-[#181818] rounded-xl w-full max-w-lg md:mx-4 mx-2 z-[10000]">
+        <div className="md:p-6 p-3 space-y-4">
           {/* Header */}
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold text-white">Edit Special Note</h2>

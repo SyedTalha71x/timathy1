@@ -1326,7 +1326,7 @@ Payment Method: ${invoiceData.paymentMethod}
                 </div>
               </div>
             </div>
-            <div className="hidden lg:flex items-center mb-3 justify-end gap-2">
+            <div className="flex items-center mb-3 justify-end gap-2">
               <label htmlFor="sort" className="text-sm text-gray-200 whitespace-nowrap">
                 Sort:
               </label>
@@ -1368,39 +1368,9 @@ Payment Method: ${invoiceData.paymentMethod}
                 <span className="hidden sm:inline">Add {activeTab === "services" ? "Service" : "Product"}</span>
                 <span className="sm:hidden">Add</span>
               </button>
-              {/* Desktop Menu button */}
+            
             </div>
-            <div className="md:hidden block mb-5 w-full">
-              <label htmlFor="sort" className="text-sm text-gray-200 hidden whitespace-nowrap">
-                Sort:
-              </label>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <select
-                    id="sort"
-                    value={sortBy}
-                    onChange={(e) => {
-                      setSortBy(e.target.value)
-                    }}
-                    className="flex-1 bg-[#000000] text-sm rounded-xl px-3 py-2 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                  >
-                    <option value="custom">Custom</option>
-                    <option value="name">Name</option>
-                    <option value="price">Price</option>
-                    {activeTab === "products" && <option value="articalNo">Article No.</option>}
-                  </select>
-                  <select
-                    id="sortDirection"
-                    value={sortDirection}
-                    onChange={(e) => setSortDirection(e.target.value)}
-                    className="md:w-auto w-full flex cursor-pointer items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000]"
-                  >
-                    <option value="asc">Ascending</option>
-                    <option value="desc">Descending</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+            
             {isEditModeActive && (
               <div className="bg-[#101010] p-3 rounded-xl mb-4 text-sm text-gray-300">
                 <div className="flex items-center gap-2 mb-2">

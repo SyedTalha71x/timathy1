@@ -210,26 +210,25 @@ const Assessment = () => {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold mb-2">Assessment</h1>
-        
         </div>
         <button
           onClick={handleCreateForm}
-          className="bg-blue-600 text-sm hover:bg-blue-700 gap-2 text-white px-6 py-3 rounded-lg font-medium transition-colors flex justify-center items-center "
+          className="bg-blue-600 text-sm hover:bg-blue-700 gap-2 text-white px-4 md:px-6 py-3 rounded-lg font-medium transition-colors flex justify-center items-center"
         >
           <span><Plus size={20}/></span>
-          <span className='md:inline hidden'>Create Assessment</span>
+          <span className='hidden sm:inline'>Create Assessment</span>
         </button>
       </div>
 
       {/* Forms Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {forms.map((form) => (
           <div
             key={form.id}
-            className="bg-[#161616] rounded-lg p-6 border border-gray-700 relative"
+            className="bg-[#161616] rounded-lg p-4 md:p-6 border border-gray-700 relative"
           >
             {/* Three dots dropdown */}
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-3 right-3 md:top-4 md:right-4">
               <button
                 onClick={(e) => toggleDropdown(form.id, e)}
                 className="text-gray-400 hover:text-white p-1 rounded transition-colors"
@@ -258,30 +257,28 @@ const Assessment = () => {
               )}
             </div>
 
-            <div className="flex justify-between items-start mb-4 pr-8">
-              <h3 className="text-lg font-semibold">{form.title}</h3>
+            <div className="flex justify-between items-start mb-3 pr-8">
+              <h3 className="text-base md:text-lg font-semibold line-clamp-2">{form.title}</h3>
             </div>
 
-            <div className="text-sm text-gray-400 mb-4">
+            <div className="text-xs md:text-sm text-gray-400 mb-3">
               {form.sections.length} Sections • {form.sections.reduce((acc, section) => acc + section.questions.length, 0)} Questions
             </div>
 
             {/* Toggle switch for active/inactive */}
-            <div className="flex items-center justify-between mt-4">
-            <button
+            <div className="flex items-center justify-between mt-3">
+              <button
                 onClick={(e) => toggleFormActive(form.id, e)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-5 w-9 md:h-6 md:w-11 items-center rounded-full transition-colors ${
                   form.active ? 'bg-blue-600' : 'bg-gray-600'
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    form.active ? 'translate-x-6' : 'translate-x-1'
+                  className={`inline-block h-3 w-3 md:h-4 md:w-4 transform rounded-full bg-white transition-transform ${
+                    form.active ? 'translate-x-4 md:translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>
-                <div></div>
-                <div className="flex items-center ">
               <span
                 className={`text-xs px-2 py-1 rounded-full ${
                   form.active
@@ -292,10 +289,6 @@ const Assessment = () => {
                 {form.active ? 'Active' : 'Inactive'}
               </span>
             </div>
-              
-            </div>
-
-          
           </div>
         ))}
 
@@ -306,22 +299,23 @@ const Assessment = () => {
         )}
       </div>
 
+      {/* Create/Edit Form Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#1C1C1C] rounded-lg p-6 w-full max-w-4xl max-h-[90vh] custom-scrollbar overflow-y-auto border border-gray-700">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-lg p-4 sm:p-6 w-full max-w-4xl my-4 border border-gray-700 max-h-[calc(100vh-3 rem)] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold">
                 {editingForm ? 'Edit Form' : 'Create New Form'}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white text-lg"
               >
                 ✕
               </button>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-4 sm:mb-6">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Form Title
               </label>
@@ -329,49 +323,49 @@ const Assessment = () => {
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                className="w-full bg-[#161616] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#161616] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                 placeholder="Enter a title..."
               />
             </div>
 
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Sections</h3>
+            <div className="mb-4 sm:mb-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 gap-2">
+                <h3 className="text-base sm:text-lg font-semibold">Sections</h3>
                 <button
                   onClick={addSection}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors w-full sm:w-auto"
                 >
                   + Add Section
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {sections.map((section, sectionIndex) => (
                   <div
                     key={section.id}
-                    className="bg-[#161616] border border-gray-700 rounded-lg p-4"
+                    className="bg-[#161616] border border-gray-700 rounded-lg p-3 sm:p-4"
                   >
-                    <div className="flex justify-between items-center mb-3">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
                       <input
                         type="text"
                         value={section.name}
                         onChange={(e) => updateSectionName(section.id, e.target.value)}
-                        className="bg-transparent text-white font-medium flex-1 focus:outline-none focus:border-b border-gray-600"
+                        className="bg-transparent text-white font-medium flex-1 focus:outline-none focus:border-b border-gray-600 text-sm sm:text-base w-full"
                       />
                       <button
                         onClick={() => deleteSection(section.id)}
-                        className="text-red-500 hover:text-red-400 ml-2"
+                        className="text-red-500 hover:text-red-400 text-sm w-full sm:w-auto sm:ml-2"
                       >
-                        Delete
+                        Delete Section
                       </button>
                     </div>
 
                     {/* Questions */}
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                       {section.questions.map((question) => (
                         <div
                           key={question.id}
-                          className="flex items-center space-x-3 p-2 bg-[#1C1C1C] rounded"
+                          className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-[#1C1C1C] rounded"
                         >
                           <input
                             type="text"
@@ -379,62 +373,73 @@ const Assessment = () => {
                             onChange={(e) =>
                               updateQuestion(section.id, question.id, 'text', e.target.value)
                             }
-                            className="flex-1 bg-[#161616] border border-gray-600 rounded px-3 py-1 text-white text-sm focus:outline-none focus:border-blue-500"
+                            className="flex-1 bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 w-full"
+                            placeholder="Question text..."
                           />
-                          <select
-                            value={question.type}
-                            onChange={(e) =>
-                              updateQuestion(section.id, question.id, 'type', e.target.value)
-                            }
-                            className="bg-[#161616] border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-blue-500"
-                          >
-                            <option value="yesno">Yes/No</option>
-                            <option value="multiple">Multiple Choice</option>
-                            <option value="text">Text</option>
-                          </select>
-                          <button
-                            onClick={() => deleteQuestion(section.id, question.id)}
-                            className="text-red-500 hover:text-red-400 text-sm"
-                          >
-                            Delete
-                          </button>
+                          <div className="flex gap-2 w-full sm:w-auto">
+                            <select
+                              value={question.type}
+                              onChange={(e) =>
+                                updateQuestion(section.id, question.id, 'type', e.target.value)
+                              }
+                              className="bg-[#161616] border border-gray-600 rounded px-2 py-2 text-white text-sm focus:outline-none focus:border-blue-500 flex-1 sm:flex-none"
+                            >
+                              <option value="yesno">Yes/No</option>
+                              <option value="multiple">Multiple Choice</option>
+                              <option value="text">Text</option>
+                            </select>
+                            <button
+                              onClick={() => deleteQuestion(section.id, question.id)}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors w-20 sm:w-auto"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
 
                     <button
                       onClick={() => addQuestion(section.id)}
-                      className="mt-3 text-blue-400 hover:text-blue-300 text-sm"
+                      className="mt-3 text-blue-400 hover:text-blue-300 text-sm w-full sm:w-auto text-center block"
                     >
-                      + Add Question
+                      + Add Question to this Section
                     </button>
                   </div>
                 ))}
               </div>
+
+              {sections.length === 0 && (
+                <div className="text-center py-6 text-gray-400 text-sm">
+                  No sections added yet. Click "Add Section" to get started.
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 sm:space-x-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-gray-300 text-sm hover:text-white transition-colors"
+                className="px-4 py-3 text-gray-300 text-sm hover:text-white transition-colors border border-gray-600 rounded-lg w-full sm:w-auto order-2 sm:order-1"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveForm}
-                className="bg-blue-600 hover:bg-blue-700 text-sm text-white px-4 py-2 rounded-lg transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-sm text-white px-4 py-3 rounded-lg transition-colors w-full sm:w-auto order-1 sm:order-2"
+                disabled={!formTitle.trim()}
               >
-                {editingForm ? 'Save' : 'Create'}
+                {editingForm ? 'Save Changes' : 'Create Form'}
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#1C1C1C] rounded-lg p-6 w-full max-w-md border border-gray-700">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#1C1C1C] rounded-lg p-6 w-full max-w-md border border-gray-700 mx-4">
             <div className="mb-6">
               <h2 className="text-xl font-bold mb-2">Confirm Deletion</h2>
               <p className="text-gray-300 text-sm">
@@ -442,16 +447,16 @@ const Assessment = () => {
               </p>
             </div>
 
-            <div className="flex justify-end space-x-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end">
               <button
                 onClick={handleDeleteCancel}
-                className="px-4 py-2 text-gray-300 text-sm hover:text-white transition-colors"
+                className="px-4 py-2 text-gray-300 text-sm hover:text-white transition-colors border border-gray-600 rounded-lg w-full sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                className="bg-red-600 hover:bg-red-700 text-sm text-white px-4 py-2 rounded-lg transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-sm text-white px-4 py-2 rounded-lg transition-colors w-full sm:w-auto"
               >
                 Delete
               </button>

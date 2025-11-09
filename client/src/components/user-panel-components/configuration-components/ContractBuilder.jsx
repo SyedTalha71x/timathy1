@@ -14,6 +14,8 @@ const ContractBuilder = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [templates, setTemplates] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [variables] = useState([
     'Studio Name',
     'Studio Owner Name',
@@ -189,6 +191,11 @@ const ContractBuilder = () => {
     updatedPages[currentPage].elements.push(element);
     setContractPages(updatedPages);
     setSelectedElement(element.id);
+    
+    // Close sidebar on mobile after adding element
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
   };
 
   // Update element property
@@ -254,12 +261,24 @@ const ContractBuilder = () => {
     if (isDragging) {
       document.addEventListener('mousemove', handleDrag);
       document.addEventListener('mouseup', handleDragEnd);
+      document.addEventListener('touchmove', handleDrag);
+      document.addEventListener('touchend', handleDragEnd);
       return () => {
         document.removeEventListener('mousemove', handleDrag);
         document.removeEventListener('mouseup', handleDragEnd);
+        document.removeEventListener('touchmove', handleDrag);
+        document.removeEventListener('touchend', handleDragEnd);
       };
     }
   }, [isDragging, handleDrag]);
+
+  // Close sidebars when clicking on canvas on mobile
+  const handleCanvasClick = () => {
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+      setPropertiesOpen(false);
+    }
+  };
 
   // Render element in builder
   const renderBuilderElement = (element) => {
@@ -275,7 +294,8 @@ const ContractBuilder = () => {
       borderRadius: '4px',
       padding: '8px',
       cursor: 'move',
-      boxSizing: 'border-box'
+      boxSizing: 'border-box',
+      touchAction: 'none'
     };
 
     return (
@@ -284,13 +304,23 @@ const ContractBuilder = () => {
         style={style}
         className="element"
         onMouseDown={(e) => handleDragStart(element.id, e)}
-        onClick={() => setSelectedElement(element.id)}
+        onTouchStart={(e) => handleDragStart(element.id, e)}
+        onClick={() => {
+          setSelectedElement(element.id);
+          if (window.innerWidth < 1024) {
+            setPropertiesOpen(true);
+            setSidebarOpen(false);
+          }
+        }}
       >
         {renderElementContent(element)}
         {isSelected && (
-          <div className="absolute -top-8 left-0 flex gap-1 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+          <div className="absolute -top-8 left-0 flex gap-1 bg-blue-500 text-white px-2 py-1 rounded text-xs z-10">
             <button
-              onClick={() => removeElement(element.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                removeElement(element.id);
+              }}
               className="hover:bg-blue-600 px-1 rounded"
             >
               🗑️
@@ -320,7 +350,7 @@ const ContractBuilder = () => {
       case 'heading':
         return (
           <h3 style={{
-            fontSize: `${element.fontSize}px`,
+            fontSize: `${Math.min(element.fontSize, window.innerWidth < 768 ? 18 : element.fontSize)}px`,
             fontWeight: element.bold ? 'bold' : 'normal',
             textAlign: element.alignment,
             margin: 0
@@ -331,7 +361,7 @@ const ContractBuilder = () => {
       case 'paragraph':
         return (
           <p style={{
-            fontSize: `${element.fontSize}px`,
+            fontSize: `${Math.min(element.fontSize, window.innerWidth < 768 ? 12 : element.fontSize)}px`,
             fontWeight: element.bold ? 'bold' : 'normal',
             textAlign: element.alignment,
             margin: 0
@@ -432,7 +462,15 @@ const ContractBuilder = () => {
 
     return (
       <div className="p-4 space-y-4">
-        <h3 className="font-semibold text-lg">Element Properties</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-lg">Element Properties</h3>
+          <button
+            onClick={() => setPropertiesOpen(false)}
+            className="lg:hidden text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
+        </div>
         
         {/* Common properties */}
         <div className="space-y-2">
@@ -562,7 +600,7 @@ const ContractBuilder = () => {
               <span className="text-xs">{element.fontSize}px</span>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
               <label className="flex items-center gap-1">
                 <input
                   type="checkbox"
@@ -591,8 +629,80 @@ const ContractBuilder = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Left Sidebar - Tools */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center z-40">
+        <h2 className="font-semibold text-lg">Contract Builder</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="bg-blue-500 text-white p-2 rounded-lg"
+          >
+            🛠️ Tools
+          </button>
+          <button
+            onClick={() => setPropertiesOpen(!propertiesOpen)}
+            className="bg-green-500 text-white p-2 rounded-lg"
+          >
+            ⚙️ Properties
+          </button>
+          <button
+            onClick={addPage}
+            className="bg-purple-500 text-white p-2 rounded-lg"
+          >
+            📄 Add Page
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/50 bg-opacity-50" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute left-0 top-0 h-full w-80 bg-white overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="font-semibold text-lg">Add Elements</h2>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {fieldTypes.map(category => (
+                <div key={category.category} className="p-4 border-b border-gray-200">
+                  <h3 className="font-medium text-sm text-gray-500 mb-2">{category.category}</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {category.types.map(type => (
+                      <button
+                        key={type.value}
+                        onClick={() => addElement(type.value)}
+                        className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm"
+                      >
+                        <span className="text-xl mb-1">{type.icon}</span>
+                        <span className="text-xs">{type.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Properties Overlay */}
+      {propertiesOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/50 bg-opacity-50" onClick={() => setPropertiesOpen(false)} />
+          <div className="absolute right-0 top-0 h-full w-full sm:w-96 bg-white overflow-y-auto">
+            {renderPropertyPanel()}
+          </div>
+        </div>
+      )}
+
+      {/* Left Sidebar - Tools (Desktop) */}
+      <div className="hidden lg:flex lg:w-64 bg-white border-r border-gray-200 flex-col">
         <div className="p-4 border-b border-gray-200">
           <h2 className="font-semibold text-lg">Contract Builder</h2>
         </div>
@@ -628,27 +738,27 @@ const ContractBuilder = () => {
       </div>
 
       {/* Main Canvas */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0 mt-16 lg:mt-0">
         {/* Page Tabs */}
         <div className="bg-white border-b border-gray-200">
-          <div className="flex items-center px-4">
+          <div className="flex items-center px-4 overflow-x-auto">
             {contractPages.map((page, index) => (
               <div
                 key={page.id}
-                className={`flex items-center px-4 py-2 border-b-2 ${
+                className={`flex items-center px-4 py-2 border-b-2 flex-shrink-0 ${
                   currentPage === index ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
                 }`}
               >
                 <button
                   onClick={() => setCurrentPage(index)}
-                  className="mr-2"
+                  className="mr-2 text-sm lg:text-base"
                 >
                   {page.title}
                 </button>
                 {contractPages.length > 1 && (
                   <button
                     onClick={() => removePage(index)}
-                    className="text-gray-400 hover:text-red-500"
+                    className="text-gray-400 hover:text-red-500 text-lg"
                   >
                     ×
                   </button>
@@ -659,19 +769,33 @@ const ContractBuilder = () => {
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-2 lg:p-4">
           <div
             ref={containerRef}
             className="bg-white border border-gray-300 rounded-lg relative h-full overflow-auto"
-            style={{ minHeight: '500px' }}
+            style={{ minHeight: '400px' }}
+            onClick={handleCanvasClick}
           >
             {contractPages[currentPage]?.elements.map(renderBuilderElement)}
             
             {contractPages[currentPage]?.elements.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <div className="text-center">
+                <div className="text-center p-4">
                   <div className="text-4xl mb-4">📄</div>
-                  <p>Add elements from the sidebar to build your contract</p>
+                  <p className="text-sm lg:text-base">
+                    {window.innerWidth < 1024 
+                      ? 'Tap "Tools" to add elements' 
+                      : 'Add elements from the sidebar to build your contract'
+                    }
+                  </p>
+                  {window.innerWidth < 1024 && (
+                    <button
+                      onClick={() => setSidebarOpen(true)}
+                      className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                    >
+                      Open Tools
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -679,8 +803,8 @@ const ContractBuilder = () => {
         </div>
       </div>
 
-      {/* Right Sidebar - Properties */}
-      <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
+      {/* Right Sidebar - Properties (Desktop) */}
+      <div className="hidden lg:block lg:w-80 bg-white border-l border-gray-200 overflow-y-auto">
         {renderPropertyPanel()}
       </div>
     </div>
