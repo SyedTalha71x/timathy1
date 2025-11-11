@@ -39,14 +39,14 @@ import {
 import { toast } from "react-hot-toast"
 import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 import RightSidebarWidget from "../../myarea-components/sidebar-components/RightSidebarWidget"
-import StaffCheckInWidget from "../../myarea-components/widjets/StaffWidgetCheckIn"
+import StaffCheckInWidget from "../../myarea-components/widgets/StaffWidgetCheckIn"
 import { SpecialNoteEditModal } from "../../myarea-components/SpecialNoteEditModal"
 import ViewManagementModal from "../../myarea-components/sidebar-components/ViewManagementModal"
 import { bulletinBoardData, demoNotifications } from "../../../utils/user-panel-states/myarea-states"
 import PersonImage from '../../../../public/avatar3.png'
-import NotesWidget from "../../myarea-components/widjets/NotesWidjets"
-import BulletinBoardWidget from "../../myarea-components/widjets/BulletinBoardWidget"
-import ShiftScheduleWidget from "../../myarea-components/widjets/ShiftScheduleWidget"
+import NotesWidget from "../../myarea-components/widgets/NotesWidjets"
+import BulletinBoardWidget from "../../myarea-components/widgets/BulletinBoardWidget"
+import ShiftScheduleWidget from "../../myarea-components/widgets/ShiftScheduleWidget"
 import ReplyModal from "../../myarea-components/sidebar-components/ReplyModal"
 
 const MessageReplyModal = ({ isOpen, onClose, message, onSendReply }) => {
@@ -249,6 +249,11 @@ const SidebarAreaSelling = ({
   const chartDropdownRef = useRef(null)
   const notePopoverRef = useRef(null)
 
+  const [sidebarCustomLinks, setSidebarCustomLinks] = useState(customLinks || [])
+  const [sidebarOpenDropdownIndex, setSidebarOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+  const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
+
   // Widget tab states
   const [savedViews, setSavedViews] = useState([])
   const [currentView, setCurrentView] = useState(null)
@@ -270,6 +275,22 @@ const SidebarAreaSelling = ({
   })
 
   const [sidebarBulletinFilter, setSidebarBulletinFilter] = useState("all")
+
+  const addCustomLink = () => {
+    setEditingLink({})
+    setIsWebsiteLinkModalOpen(true)
+  }
+
+  const updateCustomLink = (id, field, value) => {
+    setSidebarCustomLinks((currentLinks) =>
+      currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)),
+    )
+  }
+
+  const removeCustomLink = (id) => {
+    setSidebarCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
+    setSidebarOpenDropdownIndex(null)
+  }
 
   const getFilteredTodos = () => {
     switch (todoFilter) {
@@ -424,7 +445,7 @@ const SidebarAreaSelling = ({
     }))
   }
 
-  const handleOpenFullMessenger = () =>{
+  const handleOpenFullMessenger = () => {
     window.location.href = "/dashboard/communication"
   }
   const toggleNotificationSection = (section) => {
@@ -456,81 +477,153 @@ const SidebarAreaSelling = ({
     return notificationData[section].filter((msg) => !msg.isRead).length
   }
 
-    /**
- * Handles activity actions (approve, reject, resolve, etc.)
- */
-    const handleActivityAction = (activity, action) => {
-      console.log(`Performing ${action} on activity:`, activity.id)
-  
-      // Update the activity status based on the action
-      setNotificationData((prev) => ({
-        ...prev,
-        activityMonitor: prev.activityMonitor.map((item) =>
-          item.id === activity.id
-            ? {
-              ...item,
-              status: action === "approve" || action === "resolve" ? "completed" :
-                action === "reject" ? "rejected" : item.status,
-              isRead: true,
-              actionRequired: false
-            }
-            : item
-        ),
-      }))
-  
-      // Show appropriate toast message
-      const actionMessages = {
-        approve: "Vacation request approved",
-        reject: "Vacation request rejected",
-        resolve: "Activity marked as resolved",
-        archive: "Activity archived",
-      }
-  
-      toast.success(actionMessages[action] || "Action completed")
-    }
-  
-    /**
-     * Handles clicking on an activity notification
-     */
-    const handleActivityClick = (activity) => {
-      // Mark as read
-      markMessageAsRead(activity.id, activity.type)
-  
-      // Here you can implement what happens when an activity is clicked
-      // For example, open a detailed view or perform a specific action
-      console.log("Activity clicked:", activity)
-  
-      // You could also open a modal with more details here
-      // setSelectedActivity(activity)
-      // setIsActivityDetailModalOpen(true)
-    }
-  
-    /**
-     * Handles jumping to the full activity monitor
-     */
-    const handleJumpToActivityMonitor = (activity) => {
-      window.location.href = "/dashboard/activity-monitor"
+  /**
+* Handles activity actions (approve, reject, resolve, etc.)
+*/
+  const handleActivityAction = (activity, action) => {
+    console.log(`Performing ${action} on activity:`, activity.id)
+
+    // Update the activity status based on the action
+    setNotificationData((prev) => ({
+      ...prev,
+      activityMonitor: prev.activityMonitor.map((item) =>
+        item.id === activity.id
+          ? {
+            ...item,
+            status: action === "approve" || action === "resolve" ? "completed" :
+              action === "reject" ? "rejected" : item.status,
+            isRead: true,
+            actionRequired: false
+          }
+          : item
+      ),
+    }))
+
+    // Show appropriate toast message
+    const actionMessages = {
+      approve: "Vacation request approved",
+      reject: "Vacation request rejected",
+      resolve: "Activity marked as resolved",
+      archive: "Activity archived",
     }
 
-    const activityTypes = {
-      vacation: {
-        icon: Users,
-        color: "bg-blue-600",
-      },
-      contract: {
-        icon: Building2,
-        color: "bg-orange-600",
-      },
-      appointment: {
-        icon: CalendarIcon,
-        color: "bg-green-600",
-      },
-      email: {
-        icon: MessageCircle,
-        color: "bg-purple-600",
-      },
+    toast.success(actionMessages[action] || "Action completed")
+  }
+
+  /**
+   * Handles clicking on an activity notification
+   */
+  const handleActivityClick = (activity) => {
+    // Mark as read
+    markMessageAsRead(activity.id, activity.type)
+
+    // Here you can implement what happens when an activity is clicked
+    // For example, open a detailed view or perform a specific action
+    console.log("Activity clicked:", activity)
+
+    // You could also open a modal with more details here
+    // setSelectedActivity(activity)
+    // setIsActivityDetailModalOpen(true)
+  }
+
+  /**
+   * Handles jumping to the full activity monitor
+   */
+  const handleJumpToActivityMonitor = (activity) => {
+    window.location.href = "/dashboard/activity-monitor"
+  }
+
+  const activityTypes = {
+    vacation: {
+      icon: Users,
+      color: "bg-blue-600",
+    },
+    contract: {
+      icon: Building2,
+      color: "bg-orange-600",
+    },
+    appointment: {
+      icon: CalendarIcon,
+      color: "bg-green-600",
+    },
+    email: {
+      icon: MessageCircle,
+      color: "bg-purple-600",
+    },
+  }
+
+  const WebsiteLinkModal = ({ link, onClose }) => {
+    const [title, setTitle] = useState(link?.title?.trim() || "")
+    const [url, setUrl] = useState(link?.url?.trim() || "")
+
+    const handleSave = () => {
+      if (!title.trim() || !url.trim()) return
+      if (link?.id) {
+        updateCustomLink(link.id, "title", title)
+        updateCustomLink(link.id, "url", url)
+      } else {
+        const newLink = {
+          id: `link${Date.now()}`,
+          url: url.trim(),
+          title: title.trim(),
+        }
+        setSidebarCustomLinks((prev) => [...prev, newLink])
+      }
+      onClose()
     }
-  
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+          <div className="p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Website link</h2>
+              <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                  placeholder="Enter title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">URL</label>
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                  placeholder="Enter URL"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-4">
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
 
 
   return (
@@ -549,21 +642,21 @@ const SidebarAreaSelling = ({
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <h2 className="text-base sm:text-lg font-semibold text-white truncate">Selling Sidebar</h2>
-                
+
                 </div>
               </div>
               <div></div>
               <div className="flex items-center gap-1 sm:gap-2">
                 {/* WIDGETS TAB LOGIC - View management and widget controls */}
                 {!isSidebarEditing && activeTab !== "notifications" && (
-                   <button
-                   onClick={() => setIsViewModalOpen(true)}
-                   className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
-                   title="Manage Sidebar Views"
-                 >
-                   <Eye size={16} />
-                   {currentView ? currentView.name : "Standard View"}
-                 </button>
+                  <button
+                    onClick={() => setIsViewModalOpen(true)}
+                    className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                    title="Manage Sidebar Views"
+                  >
+                    <Eye size={16} />
+                    {currentView ? currentView.name : "Standard View"}
+                  </button>
                 )}
                 {activeTab === "widgets" && isSidebarEditing && (
                   <button
@@ -712,82 +805,82 @@ const SidebarAreaSelling = ({
 
               {/* Cart items */}
               <div className="space-y-4 max-h-[40vh] overflow-y-auto mb-4">
-  {cart.length === 0 ? (
-    <div className="text-center py-6 text-gray-400">Your basket is empty</div>
-  ) : (
-    cart.map((item) => (
-      <div key={item.id} className="bg-[#1C1C1C] rounded-lg p-4 relative">
-        <div className="flex gap-3">
-          {/* Image or Blue Box */}
-          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-            {item.image ? (
-              <img
-                src={item.image || "/placeholder.svg"}
-                alt={item.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium text-center p-1">
-                <p className="line-clamp-3 leading-tight">{item.name}</p>
+                {cart.length === 0 ? (
+                  <div className="text-center py-6 text-gray-400">Your basket is empty</div>
+                ) : (
+                  cart.map((item) => (
+                    <div key={item.id} className="bg-[#1C1C1C] rounded-lg p-4 relative">
+                      <div className="flex gap-3">
+                        {/* Image or Blue Box */}
+                        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                          {item.image ? (
+                            <img
+                              src={item.image || "/placeholder.svg"}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium text-center p-1">
+                              <p className="line-clamp-3 leading-tight">{item.name}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          {/* Title with truncation */}
+                          <h3 className="mb-1 oxanium_font truncate">{item.name}</h3>
+
+                          {/* Article number with truncation */}
+                          {item.type === "product" && item.articalNo && (
+                            <p className="text-xs text-zinc-400 mb-1 truncate">Art. No: {item.articalNo}</p>
+                          )}
+
+                          <p className="text-sm font-bold">${item.price.toFixed(2)}</p>
+
+                          <div className="flex gap-2 mt-1">
+                            <span className="text-xs bg-gray-600 px-2 py-1 rounded">
+                              {item.type === "service" ? "Service" : "Product"}
+                            </span>
+                            <select
+                              value={item.vatRate}
+                              onChange={(e) => updateItemVatRate(item.id, Number(e.target.value))}
+                              className="text-xs bg-blue-600 px-2 py-1 rounded cursor-pointer outline-none hover:bg-blue-700 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <option value={19}>VAT: 19%</option>
+                              <option value={7}>VAT: 7%</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="p-1 bg-[#101010] rounded-md hover:bg-[#333333]"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="w-8 text-center">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="p-1 bg-[#101010] rounded-md hover:bg-[#333333]"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-zinc-500 hover:text-red-500 transition-colors duration-200"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            )}
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            {/* Title with truncation */}
-            <h3 className="mb-1 oxanium_font truncate">{item.name}</h3>
-            
-            {/* Article number with truncation */}
-            {item.type === "product" && item.articalNo && (
-              <p className="text-xs text-zinc-400 mb-1 truncate">Art. No: {item.articalNo}</p>
-            )}
-            
-            <p className="text-sm font-bold">${item.price.toFixed(2)}</p>
-            
-            <div className="flex gap-2 mt-1">
-              <span className="text-xs bg-gray-600 px-2 py-1 rounded">
-                {item.type === "service" ? "Service" : "Product"}
-              </span>
-              <select
-                value={item.vatRate}
-                onChange={(e) => updateItemVatRate(item.id, Number(e.target.value))}
-                className="text-xs bg-blue-600 px-2 py-1 rounded cursor-pointer outline-none hover:bg-blue-700 transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <option value={19}>VAT: 19%</option>
-                <option value={7}>VAT: 7%</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center justify-between mt-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-              className="p-1 bg-[#101010] rounded-md hover:bg-[#333333]"
-            >
-              <Minus size={14} />
-            </button>
-            <span className="w-8 text-center">{item.quantity}</span>
-            <button
-              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-              className="p-1 bg-[#101010] rounded-md hover:bg-[#333333]"
-            >
-              <Plus size={14} />
-            </button>
-          </div>
-          <button
-            onClick={() => removeFromCart(item.id)}
-            className="text-zinc-500 hover:text-red-500 transition-colors duration-200"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      </div>
-    ))
-  )}
-</div>
 
               {/* Payment options */}
               {cart.length > 0 && (
@@ -809,8 +902,8 @@ const SidebarAreaSelling = ({
                             key={method}
                             onClick={() => setSelectedPaymentMethod(method)}
                             className={`py-2 px-3 text-sm rounded-lg border ${selectedPaymentMethod === method
-                                ? "border-[#3F74FF] bg-[#3F74FF]/20"
-                                : "border-[#333333] hover:bg-[#101010]"
+                              ? "border-[#3F74FF] bg-[#3F74FF]/20"
+                              : "border-[#333333] hover:bg-[#101010]"
                               }`}
                           >
                             {method}
@@ -1043,7 +1136,7 @@ const SidebarAreaSelling = ({
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Bell size={18}  />
+                    <Bell size={18} />
                     <h3 className="text-white font-medium text-sm">Activity Monitor</h3>
 
                     {getUnreadCount("activityMonitor") > 0 && (
@@ -1103,7 +1196,7 @@ const SidebarAreaSelling = ({
                                   <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
                                     {/* Time & Status */}
                                     <div className="flex items-center gap-2 text-gray-500 text-xs sm:text-sm">
-                                      
+
 
                                       {activity.actionRequired && (
                                         <span className="px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-yellow-600 text-white">
@@ -1155,7 +1248,7 @@ const SidebarAreaSelling = ({
                                                 <Check size={12} className="text-white" />
                                               </button>
                                             )}
-                                            
+
                                         </>
                                       )}
 
@@ -1171,8 +1264,8 @@ const SidebarAreaSelling = ({
                                       </button>
                                       <div className="text-xs flex items-center gap-2">
 
-                                      <Clock size={12} />
-                                      <span>{activity.time}</span>
+                                        <Clock size={12} />
+                                        <span>{activity.time}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -1340,8 +1433,8 @@ const SidebarAreaSelling = ({
                             <div
                               key={birthday.id}
                               className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${isBirthdayToday(birthday.date)
-                                  ? "bg-yellow-900/30 border border-yellow-600"
-                                  : "bg-black"
+                                ? "bg-yellow-900/30 border border-yellow-600"
+                                : "bg-black"
                                 }`}
                             >
                               <div className="flex items-center gap-2">
@@ -1381,26 +1474,71 @@ const SidebarAreaSelling = ({
                     {widget.type === "websiteLinks" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl font-bold cursor-pointer">Website Links</h2>
+                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
+                          <button
+                            onClick={addCustomLink}
+                            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
+                          >
+                            <Plus size={18} />
+                          </button>
                         </div>
-                        <div className="space-y-2">
-                          {customLinks?.map((link) => (
+                        <div className="space-y-2 open_sans_font">
+                          {sidebarCustomLinks.map((link) => (
                             <div
                               key={link.id}
                               className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
                             >
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-sm truncate">{link.title}</h3>
-                                <p className="text-xs text-zinc-400 truncate max-w-[150px]">
+                                <h3 className="font-semibold open_sans_font text-sm truncate">{link.title}</h3>
+                                <p className="text-xs open_sans_font text-zinc-400 truncate max-w-[150px]">
                                   {truncateUrl(link.url, 30)}
                                 </p>
                               </div>
-                              <button
-                                onClick={() => window.open(link.url, "_blank")}
-                                className="p-2 hover:bg-zinc-700 rounded-lg"
-                              >
-                                <ExternalLink size={16} />
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => window.open(link.url, "_blank")}
+                                  className="p-2 hover:bg-zinc-700 rounded-lg"
+                                >
+                                  <ExternalLink size={16} />
+                                </button>
+                                <div className="relative">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setSidebarOpenDropdownIndex(
+                                        sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`,
+                                      )
+                                    }}
+                                    className="p-2 hover:bg-zinc-700 rounded-lg"
+                                  >
+                                    <MoreVertical size={16} />
+                                  </button>
+                                  {sidebarOpenDropdownIndex === `link-${link.id}` && (
+                                    <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setEditingLink(link)
+                                          setIsWebsiteLinkModalOpen(true)
+                                          setSidebarOpenDropdownIndex(null)
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          removeCustomLink(link.id)
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                      >
+                                        Remove
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1461,8 +1599,8 @@ const SidebarAreaSelling = ({
                                         handleCheckIn(appointment.id)
                                       }}
                                       className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                          ? " border border-white/50 text-white bg-transparent"
-                                          : "bg-black text-white"
+                                        ? " border border-white/50 text-white bg-transparent"
+                                        : "bg-black text-white"
                                         }`}
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
@@ -1534,7 +1672,7 @@ const SidebarAreaSelling = ({
                     )}
 
                     {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
-                    
+
 
                     {widget.type === "staffCheckIn" && (
                       <div className="mb-6">
@@ -1550,12 +1688,12 @@ const SidebarAreaSelling = ({
                     {widget.type === "notes" && <NotesWidget />}
 
                     {widget.type === "shiftSchedule" && (
-  <ShiftScheduleWidget
-    isEditing={isSidebarEditing}
-    onRemove={() => removeRightSidebarWidget(widget.id)}
-    className="h-full"
-  />
-)}
+                      <ShiftScheduleWidget
+                        isEditing={isSidebarEditing}
+                        onRemove={() => removeRightSidebarWidget(widget.id)}
+                        className="h-full"
+                      />
+                    )}
                   </RightSidebarWidget>
                 ))}
             </>
@@ -1576,7 +1714,17 @@ const SidebarAreaSelling = ({
         />
       )}
 
-<ReplyModal
+      {isWebsiteLinkModalOpen && (
+        <WebsiteLinkModal
+          link={editingLink}
+          onClose={() => {
+            setIsWebsiteLinkModalOpen(false)
+            setEditingLink(null)
+          }}
+        />
+      )}
+
+      <ReplyModal
         isOpen={isReplyModalOpen}
         onClose={() => {
           setIsReplyModalOpen(false);

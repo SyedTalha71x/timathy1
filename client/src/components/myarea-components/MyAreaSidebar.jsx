@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
@@ -25,27 +27,23 @@ import {
   ChevronUp,
   Reply,
   Users,
-  Camera,
   User,
   Building2,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import StaffCheckInWidget from "./widjets/StaffWidgetCheckIn"
+import StaffCheckInWidget from "./widgets/StaffWidgetCheckIn"
 import { SpecialNoteEditModal } from "./SpecialNoteEditModal"
 import RightSidebarWidget from "./sidebar-components/RightSidebarWidget"
 import ViewManagementModal from "./sidebar-components/ViewManagementModal"
-import { bulletinBoardData, demoNotifications, memberTypesData } from "../../utils/user-panel-states/myarea-states"
-
-import PersonImage from '../../../public/avatar3.png'
-import BulletinBoardWidget from "./widjets/BulletinBoardWidget"
-import NotesWidget from "./widjets/NotesWidjets"
+import { demoNotifications, memberTypesData } from "../../utils/user-panel-states/myarea-states"
+import BulletinBoardWidget from "./widgets/BulletinBoardWidget"
+import NotesWidget from "./widgets/NotesWidjets"
 import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
 import AddTaskModal from "../user-panel-components/task-components/add-task-modal"
-import ShiftScheduleWidget from "./widjets/ShiftScheduleWidget"
+import ShiftScheduleWidget from "./widgets/ShiftScheduleWidget"
 import { createPortal } from "react-dom"
 import ReplyModal from "./sidebar-components/ReplyModal"
-
 
 const ChartWithLocalState = () => {
   const [selectedMemberType, setSelectedMemberType] = useState("All members")
@@ -172,7 +170,6 @@ const ChartWithLocalState = () => {
   )
 }
 
-
 const Sidebar = ({
   isRightSidebarOpen,
   toggleRightSidebar,
@@ -211,7 +208,10 @@ const Sidebar = ({
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
   const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
 
-
+  const [sidebarCustomLinks, setSidebarCustomLinks] = useState(customLinks || [])
+  const [sidebarOpenDropdownIndex, setSidebarOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+  const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
 
   const [savedViews, setSavedViews] = useState([])
   const [currentView, setCurrentView] = useState(null)
@@ -226,7 +226,6 @@ const Sidebar = ({
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
   const [hoverTimeout, setHoverTimeout] = useState(null)
 
-
   const [notificationData, setNotificationData] = useState(demoNotifications)
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
   const [selectedMessage, setSelectedMessage] = useState(null)
@@ -234,7 +233,6 @@ const Sidebar = ({
     memberChat: false,
     studioChat: false,
     activityMonitor: false,
-
   })
 
   // Local state for todo filtering
@@ -249,7 +247,7 @@ const Sidebar = ({
   ]
 
   const handleAddTask = (newTask) => {
-    setTodos(prevTodos => [...prevTodos, newTask]) // Also add to todos if needed
+    setTodos((prevTodos) => [...prevTodos, newTask]) // Also add to todos if needed
     toast.success("Task added successfully!")
   }
 
@@ -272,7 +270,6 @@ const Sidebar = ({
     },
   }
 
-  
   /**
    * Handles opening the reply modal for a specific message
    * This function sets the selected message and opens the reply modal
@@ -295,13 +292,12 @@ const Sidebar = ({
     }))
   }
   const handleOpenFullMessenger = (message) => {
-    setIsReplyModalOpen(false);
-    
-        window.location.href = `/dashboard/communication`;
-    
-    toast.success(`Redirecting to ${message.type === "member_chat" ? "Member" : "Studio"} Messenger`);
-  };
+    setIsReplyModalOpen(false)
 
+    window.location.href = `/dashboard/communication`
+
+    toast.success(`Redirecting to ${message.type === "member_chat" ? "Member" : "Studio"} Messenger`)
+  }
 
   const toggleNotificationSection = (section) => {
     setCollapsedSections((prev) => ({
@@ -333,8 +329,8 @@ const Sidebar = ({
   }
 
   /**
- * Handles activity actions (approve, reject, resolve, etc.)
- */
+   * Handles activity actions (approve, reject, resolve, etc.)
+   */
   const handleActivityAction = (activity, action) => {
     console.log(`Performing ${action} on activity:`, activity.id)
 
@@ -344,13 +340,17 @@ const Sidebar = ({
       activityMonitor: prev.activityMonitor.map((item) =>
         item.id === activity.id
           ? {
-            ...item,
-            status: action === "approve" || action === "resolve" ? "completed" :
-              action === "reject" ? "rejected" : item.status,
-            isRead: true,
-            actionRequired: false
-          }
-          : item
+              ...item,
+              status:
+                action === "approve" || action === "resolve"
+                  ? "completed"
+                  : action === "reject"
+                    ? "rejected"
+                    : item.status,
+              isRead: true,
+              actionRequired: false,
+            }
+          : item,
       ),
     }))
 
@@ -388,10 +388,6 @@ const Sidebar = ({
     window.location.href = "/dashboard/activity-monitor"
   }
 
-
-
-
-
   const getFilteredTodos = () => {
     switch (todoFilter) {
       case "ongoing":
@@ -404,7 +400,6 @@ const Sidebar = ({
         return todos
     }
   }
-
 
   const handleSidebarEditNote = (appointmentId, currentNote) => {
     const appointment = appointments.find((app) => app.id === appointmentId)
@@ -435,7 +430,7 @@ const Sidebar = ({
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
-  
+
       const handleNoteClick = (e) => {
         e.stopPropagation()
         const rect = e.currentTarget.getBoundingClientRect()
@@ -445,7 +440,7 @@ const Sidebar = ({
         })
         setSidebarActiveNoteId(sidebarActiveNoteId === memberId ? null : memberId)
       }
-  
+
       const handleMouseEnter = (e) => {
         e.stopPropagation()
         // Clear any existing timeout
@@ -453,20 +448,20 @@ const Sidebar = ({
           clearTimeout(hoverTimeout)
           setHoverTimeout(null)
         }
-        
+
         const rect = e.currentTarget.getBoundingClientRect()
         setNotePosition({
           top: rect.bottom + window.scrollY + 8,
           left: rect.left + window.scrollX,
         })
-        
+
         // Set a small delay before showing to prevent flickering
         const timeout = setTimeout(() => {
           setHoveredNoteId(memberId)
         }, 300)
         setHoverTimeout(timeout)
       }
-  
+
       const handleMouseLeave = (e) => {
         e.stopPropagation()
         // Clear the timeout if mouse leaves before delay
@@ -476,22 +471,23 @@ const Sidebar = ({
         }
         setHoveredNoteId(null)
       }
-  
+
       const handleEditClick = (e) => {
         e.stopPropagation()
         setSidebarActiveNoteId(null) // Close the note popover
         setHoveredNoteId(null) // Close hover popover
         handleSidebarEditNote(memberId, specialNote) // Open the edit modal
       }
-  
+
       // Determine if we should show the popover (either clicked or hovered)
       const shouldShowPopover = sidebarActiveNoteId === memberId || hoveredNoteId === memberId
-  
+
       return (
         <div className="relative">
           <div
-            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer transition-all duration-200 hover:scale-110`}
+            className={`${
+              specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
+            } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer transition-all duration-200 hover:scale-110`}
             onClick={handleNoteClick}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -502,8 +498,8 @@ const Sidebar = ({
               <Info size={18} className="text-white" />
             )}
           </div>
-  
-          {shouldShowPopover && (
+
+          {shouldShowPopover &&
             createPortal(
               <div
                 ref={notePopoverRef}
@@ -533,9 +529,7 @@ const Sidebar = ({
                   )}
                   <h4 className="text-white flex gap-1 items-center font-medium">
                     <div>Special Note</div>
-                    <div className="text-sm text-gray-400">
-                      {specialNote.isImportant ? "(Important)" : ""}
-                    </div>
+                    <div className="text-sm text-gray-400">{specialNote.isImportant ? "(Important)" : ""}</div>
                   </h4>
                   <button
                     onClick={handleEditClick}
@@ -576,18 +570,105 @@ const Sidebar = ({
                   )}
                 </div>
               </div>,
-              document.body
-            )
-          )}
+              document.body,
+            )}
         </div>
       )
     },
     [sidebarActiveNoteId, notePosition, hoveredNoteId, hoverTimeout],
   )
 
+  const addCustomLink = () => {
+    setEditingLink({})
+    setIsWebsiteLinkModalOpen(true)
+  }
+
+  const updateCustomLink = (id, field, value) => {
+    setSidebarCustomLinks((currentLinks) =>
+      currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)),
+    )
+  }
+
+  const removeCustomLink = (id) => {
+    setSidebarCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
+    setSidebarOpenDropdownIndex(null)
+  }
+
+  const WebsiteLinkModal = ({ link, onClose }) => {
+    const [title, setTitle] = useState(link?.title?.trim() || "")
+    const [url, setUrl] = useState(link?.url?.trim() || "")
+
+    const handleSave = () => {
+      if (!title.trim() || !url.trim()) return
+      if (link?.id) {
+        updateCustomLink(link.id, "title", title)
+        updateCustomLink(link.id, "url", url)
+      } else {
+        const newLink = {
+          id: `link${Date.now()}`,
+          url: url.trim(),
+          title: title.trim(),
+        }
+        setSidebarCustomLinks((prev) => [...prev, newLink])
+      }
+      onClose()
+    }
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+          <div className="p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Website link</h2>
+              <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                  placeholder="Enter title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">URL</label>
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                  placeholder="Enter URL"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-4">
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
-     <aside
+      <aside
         className={`
           fixed inset-y-0 right-0 z-50 w-[85vw] md:h-[220vh] h-full sm:w-80 lg:w-84 bg-[#181818]
           transform transition-transform duration-500 ease-in-out
@@ -596,13 +677,12 @@ const Sidebar = ({
           flex flex-col
         `}
       >
-         <div className="flex-1 p-4 md:p-5 custom-scrollbar overflow-y-auto">
+        <div className="flex-1 p-4 md:p-5 custom-scrollbar overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center justify-between w-full mb-3 sm:mb-4">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <h2 className="text-base sm:text-lg font-semibold text-white truncate">Sidebar</h2>
-
                 </div>
               </div>
               <div></div>
@@ -629,8 +709,9 @@ const Sidebar = ({
                 {activeTab === "widgets" && (
                   <button
                     onClick={toggleSidebarEditing}
-                    className={`p-1.5 sm:p-2 ${isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                      } rounded-lg flex items-center gap-1`}
+                    className={`p-1.5 sm:p-2 ${
+                      isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+                    } rounded-lg flex items-center gap-1`}
                     title="Toggle Edit Mode"
                   >
                     {isSidebarEditing ? <Check size={18} /> : <Edit size={18} />}
@@ -651,8 +732,9 @@ const Sidebar = ({
           <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
             <button
               onClick={() => setActiveTab("widgets")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-                }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+              }`}
             >
               <Settings size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Widgets</span>
@@ -660,8 +742,9 @@ const Sidebar = ({
 
             <button
               onClick={() => setActiveTab("notifications")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-                }`}
+              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
+                activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+              }`}
             >
               <Bell size={14} className="inline mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
@@ -706,8 +789,9 @@ const Sidebar = ({
                       notificationData.memberChat.map((message) => (
                         <div
                           key={message.id}
-                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-blue-900/20" : ""
-                            }`}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
+                            !message.isRead ? "bg-blue-900/20" : ""
+                          }`}
                           onClick={() => {
                             handleMessageClick(message)
                             markMessageAsRead(message.id, message.type)
@@ -776,8 +860,9 @@ const Sidebar = ({
                       notificationData.studioChat.map((message) => (
                         <div
                           key={message.id}
-                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-green-900/20" : ""
-                            }`}
+                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
+                            !message.isRead ? "bg-green-900/20" : ""
+                          }`}
                           onClick={() => {
                             handleMessageClick(message)
                             markMessageAsRead(message.id, message.type)
@@ -825,7 +910,7 @@ const Sidebar = ({
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Bell size={18}  />
+                    <Bell size={18} />
                     <h3 className="text-white font-medium text-sm">Activity Monitor</h3>
 
                     {getUnreadCount("activityMonitor") > 0 && (
@@ -848,17 +933,18 @@ const Sidebar = ({
                     {notificationData.activityMonitor.length > 0 ? (
                       <div className="divide-y divide-gray-800">
                         {notificationData.activityMonitor.map((activity) => {
-                          const config = activityTypes[activity.activityType];
-                          const Icon = config ? config.icon : Bell;
+                          const config = activityTypes[activity.activityType]
+                          const Icon = config ? config.icon : Bell
 
                           return (
                             <div
                               key={activity.id}
-                              className={`p-4 sm:p-5 hover:bg-gray-900 transition-colors cursor-pointer ${!activity.isRead ? "bg-purple-900/20" : ""
-                                }`}
+                              className={`p-4 sm:p-5 hover:bg-gray-900 transition-colors cursor-pointer ${
+                                !activity.isRead ? "bg-purple-900/20" : ""
+                              }`}
                               onClick={() => {
-                                handleActivityClick(activity);
-                                markMessageAsRead(activity.id, activity.type);
+                                handleActivityClick(activity)
+                                markMessageAsRead(activity.id, activity.type)
                               }}
                             >
                               <div className="flex items-start gap-3">
@@ -885,8 +971,6 @@ const Sidebar = ({
                                   <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
                                     {/* Time & Status */}
                                     <div className="flex items-center gap-2 text-gray-500 text-xs sm:text-sm">
-                                      
-
                                       {activity.actionRequired && (
                                         <span className="px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-yellow-600 text-white">
                                           ACTION REQUIRED
@@ -902,8 +986,8 @@ const Sidebar = ({
                                             <>
                                               <button
                                                 onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  handleActivityAction(activity, "approve");
+                                                  e.stopPropagation()
+                                                  handleActivityAction(activity, "approve")
                                                 }}
                                                 className="p-1.5 sm:p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                                                 title="Approve"
@@ -912,8 +996,8 @@ const Sidebar = ({
                                               </button>
                                               <button
                                                 onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  handleActivityAction(activity, "reject");
+                                                  e.stopPropagation()
+                                                  handleActivityAction(activity, "reject")
                                                 }}
                                                 className="p-1.5 sm:p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
                                                 title="Reject"
@@ -926,25 +1010,24 @@ const Sidebar = ({
                                           {(activity.activityType === "email" ||
                                             activity.activityType === "contract" ||
                                             activity.activityType === "appointment") && (
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  handleActivityAction(activity, "resolve");
-                                                }}
-                                                className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                                title="Mark as Resolved"
-                                              >
-                                                <Check size={12} className="text-white" />
-                                              </button>
-                                            )}
-                                            
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleActivityAction(activity, "resolve")
+                                              }}
+                                              className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                              title="Mark as Resolved"
+                                            >
+                                              <Check size={12} className="text-white" />
+                                            </button>
+                                          )}
                                         </>
                                       )}
 
                                       <button
                                         onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleJumpToActivityMonitor(activity);
+                                          e.stopPropagation()
+                                          handleJumpToActivityMonitor(activity)
                                         }}
                                         className="p-1.5 sm:p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
                                         title="Open in Activity Monitor"
@@ -952,16 +1035,15 @@ const Sidebar = ({
                                         <ExternalLink size={12} className="text-gray-400" />
                                       </button>
                                       <div className="text-xs flex items-center gap-2">
-
-                                      <Clock size={12} />
-                                      <span>{activity.time}</span>
+                                        <Clock size={12} />
+                                        <span>{activity.time}</span>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                          );
+                          )
                         })}
                       </div>
                     ) : (
@@ -973,7 +1055,6 @@ const Sidebar = ({
                   </div>
                 )}
               </div>
-
             </div>
           )}
 
@@ -991,7 +1072,6 @@ const Sidebar = ({
                     moveRightSidebarWidget={moveRightSidebarWidget}
                     removeRightSidebarWidget={removeRightSidebarWidget}
                   >
-
                     {widget.type === "todo" && (
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
@@ -1025,10 +1105,7 @@ const Sidebar = ({
                                   }}
                                 >
                                   {option.color && (
-                                    <div
-                                      className="w-2 h-2 rounded-full"
-                                      style={{ backgroundColor: option.color }}
-                                    />
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: option.color }} />
                                   )}
                                   {option.label}
                                 </button>
@@ -1044,7 +1121,10 @@ const Sidebar = ({
                               {getFilteredTodos()
                                 .slice(0, 3)
                                 .map((todo) => (
-                                  <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
+                                  <div
+                                    key={todo.id}
+                                    className="p-2 bg-black rounded-xl flex items-center justify-between"
+                                  >
                                     <div className="flex items-center gap-2 flex-1">
                                       <input
                                         type="checkbox"
@@ -1129,10 +1209,11 @@ const Sidebar = ({
                           {birthdays.slice(0, 3).map((birthday) => (
                             <div
                               key={birthday.id}
-                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${isBirthdayToday(birthday.date)
-                                ? "bg-yellow-900/30 border border-yellow-600"
-                                : "bg-black"
-                                }`}
+                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${
+                                isBirthdayToday(birthday.date)
+                                  ? "bg-yellow-900/30 border border-yellow-600"
+                                  : "bg-black"
+                              }`}
                             >
                               <div className="flex items-center gap-2">
                                 <div>
@@ -1172,9 +1253,15 @@ const Sidebar = ({
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
                           <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
+                          <button
+                            onClick={addCustomLink}
+                            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
+                          >
+                            <Plus size={18} />
+                          </button>
                         </div>
                         <div className="space-y-2 open_sans_font">
-                          {customLinks.map((link) => (
+                          {sidebarCustomLinks.map((link) => (
                             <div
                               key={link.id}
                               className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
@@ -1185,12 +1272,51 @@ const Sidebar = ({
                                   {truncateUrl(link.url, 30)}
                                 </p>
                               </div>
-                              <button
-                                onClick={() => window.open(link.url, "_blank")}
-                                className="p-2 hover:bg-zinc-700 rounded-lg"
-                              >
-                                <ExternalLink size={16} />
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => window.open(link.url, "_blank")}
+                                  className="p-2 hover:bg-zinc-700 rounded-lg"
+                                >
+                                  <ExternalLink size={16} />
+                                </button>
+                                <div className="relative">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setSidebarOpenDropdownIndex(
+                                        sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`,
+                                      )
+                                    }}
+                                    className="p-2 hover:bg-zinc-700 rounded-lg"
+                                  >
+                                    <MoreVertical size={16} />
+                                  </button>
+                                  {sidebarOpenDropdownIndex === `link-${link.id}` && (
+                                    <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setEditingLink(link)
+                                          setIsWebsiteLinkModalOpen(true)
+                                          setSidebarOpenDropdownIndex(null)
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          removeCustomLink(link.id)
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                      >
+                                        Remove
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1235,7 +1361,9 @@ const Sidebar = ({
                                       />
                                     </div>
                                     <div className="text-white text-left flex-1">
-                                      <p className="font-semibold text-sm">{appointment.name} {appointment.lastName || ""}</p>
+                                      <p className="font-semibold text-sm">
+                                        {appointment.name} {appointment.lastName || ""}
+                                      </p>
                                       <p className="text-xs flex gap-1 items-center opacity-80">
                                         <Clock size={14} />
                                         {appointment.time} | {appointment.date.split("|")[0]}
@@ -1251,10 +1379,11 @@ const Sidebar = ({
                                         e.stopPropagation()
                                         handleCheckIn(appointment.id)
                                       }}
-                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                        ? "border border-white/50 text-white bg-transparent"
-                                        : "bg-black text-white"
-                                        }`}
+                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${
+                                        appointment.isCheckedIn
+                                          ? "border border-white/50 text-white bg-transparent"
+                                          : "bg-black text-white"
+                                      }`}
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                     </button>
@@ -1328,10 +1457,7 @@ const Sidebar = ({
 
                     {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
 
-
-
                     {widget.type === "notes" && <NotesWidget />}
-
 
                     {widget.type === "staffCheckIn" && (
                       <div className="mb-6">
@@ -1351,14 +1477,13 @@ const Sidebar = ({
                         className="h-full"
                       />
                     )}
-
                   </RightSidebarWidget>
                 ))}
             </>
           )}
         </div>
       </aside>
-      
+
       <ViewManagementModal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
@@ -1367,25 +1492,37 @@ const Sidebar = ({
         currentView={currentView}
         setCurrentView={setCurrentView}
         sidebarWidgets={rightSidebarWidgets}
-        setSidebarWidgets={() => { }} // This might need to be adjusted based on your implementation
+        setSidebarWidgets={() => {}} // This might need to be adjusted based on your implementation
       />
 
-      {isAddTaskModalOpen && <AddTaskModal
-        onClose={() => setIsAddTaskModalOpen(false)}
-        onAddTask={handleAddTask}
-        configuredTags={configuredTags}
-      />}
+      {isAddTaskModalOpen && (
+        <AddTaskModal
+          onClose={() => setIsAddTaskModalOpen(false)}
+          onAddTask={handleAddTask}
+          configuredTags={configuredTags}
+        />
+      )}
 
-<ReplyModal
+      <ReplyModal
         isOpen={isReplyModalOpen}
         onClose={() => {
-          setIsReplyModalOpen(false);
-          setSelectedMessage(null);
+          setIsReplyModalOpen(false)
+          setSelectedMessage(null)
         }}
         message={selectedMessage}
         onSendReply={handleSendReply}
         onOpenFullMessenger={handleOpenFullMessenger}
       />
+
+      {isWebsiteLinkModalOpen && (
+        <WebsiteLinkModal
+          link={editingLink}
+          onClose={() => {
+            setIsWebsiteLinkModalOpen(false)
+            setEditingLink(null)
+          }}
+        />
+      )}
     </>
   )
 }

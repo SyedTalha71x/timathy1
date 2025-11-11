@@ -36,14 +36,14 @@ import PersonImage from '../../public/avatar3.png'
 import Avatar from "../../public/gray-avatar-fotor-20250912192528.png"
 import RightSidebarWidget from "./myarea-components/sidebar-components/RightSidebarWidget"
 import { SpecialNoteEditModal } from "./myarea-components/SpecialNoteEditModal"
-import StaffCheckInWidget from "./myarea-components/widjets/StaffWidgetCheckIn"
+import StaffCheckInWidget from "./myarea-components/widgets/StaffWidgetCheckIn"
 import ViewManagementModal from "./myarea-components/sidebar-components/ViewManagementModal"
 import { bulletinBoardData, demoNotifications, memberTypesData } from "../utils/user-panel-states/myarea-states"
-import NotesWidget from "./myarea-components/widjets/NotesWidjets"
-import BulletinBoardWidget from "./myarea-components/widjets/BulletinBoardWidget"
+import NotesWidget from "./myarea-components/widgets/NotesWidjets"
+import BulletinBoardWidget from "./myarea-components/widgets/BulletinBoardWidget"
 import AddTaskModal from "./user-panel-components/task-components/add-task-modal"
 import { configuredTagsData } from "../utils/user-panel-states/todo-states"
-import ShiftScheduleWidget from "./myarea-components/widjets/ShiftScheduleWidget"
+import ShiftScheduleWidget from "./myarea-components/widgets/ShiftScheduleWidget"
 import { createPortal } from "react-dom"
 import ReplyModal from "./myarea-components/sidebar-components/ReplyModal"
 
@@ -216,6 +216,10 @@ const Sidebar = ({
   const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false)
   const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
 
+  const [sidebarCustomLinks, setSidebarCustomLinks] = useState(customLinks || [])
+const [sidebarOpenDropdownIndex, setSidebarOpenDropdownIndex] = useState(null)
+const [editingLink, setEditingLink] = useState(null)
+const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
 
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
@@ -252,6 +256,22 @@ const Sidebar = ({
     { value: "completed", label: "Completed", color: "#10b981" },
     { value: "canceled", label: "Canceled", color: "#ef4444" },
   ]
+
+  const addCustomLink = () => {
+    setEditingLink({})
+    setIsWebsiteLinkModalOpen(true)
+  }
+  
+  const updateCustomLink = (id, field, value) => {
+    setSidebarCustomLinks((currentLinks) =>
+      currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)),
+    )
+  }
+  
+  const removeCustomLink = (id) => {
+    setSidebarCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
+    setSidebarOpenDropdownIndex(null)
+  }
 
   const getFilteredTodos = () => {
     switch (todoFilter) {
@@ -571,6 +591,78 @@ const Sidebar = ({
      */
     const handleJumpToActivityMonitor = (activity) => {
       window.location.href = "/dashboard/activity-monitor"
+    }
+
+    const WebsiteLinkModal = ({ link, onClose }) => {
+      const [title, setTitle] = useState(link?.title?.trim() || "")
+      const [url, setUrl] = useState(link?.url?.trim() || "")
+    
+      const handleSave = () => {
+        if (!title.trim() || !url.trim()) return
+        if (link?.id) {
+          updateCustomLink(link.id, "title", title)
+          updateCustomLink(link.id, "url", url)
+        } else {
+          const newLink = {
+            id: `link${Date.now()}`,
+            url: url.trim(),
+            title: title.trim(),
+          }
+          setSidebarCustomLinks((prev) => [...prev, newLink])
+        }
+        onClose()
+      }
+    
+      return (
+        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Website link</h2>
+                <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                    placeholder="Enter title"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-1">URL</label>
+                  <input
+                    type="text"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                    placeholder="Enter URL"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
     }
 
   return (
@@ -1151,34 +1243,79 @@ const Sidebar = ({
                       </div>
                     )}
 
-                    {widget.type === "websiteLinks" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
-                        </div>
-                        <div className="space-y-2 open_sans_font">
-                          {customLinks.map((link) => (
-                            <div
-                              key={link.id}
-                              className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold open_sans_font text-sm truncate">{link.title}</h3>
-                                <p className="text-xs open_sans_font text-zinc-400 truncate max-w-[150px]">
-                                  {truncateUrl(link.url, 30)}
-                                </p>
-                              </div>
-                              <button
-                                onClick={() => window.open(link.url, "_blank")}
-                                className="p-2 hover:bg-zinc-700 rounded-lg"
-                              >
-                                <ExternalLink size={16} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+{widget.type === "websiteLinks" && (
+  <div className="mb-6">
+    <div className="flex items-center justify-between mb-2">
+      <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
+      <button
+        onClick={addCustomLink}
+        className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
+      >
+        <Plus size={18} />
+      </button>
+    </div>
+    <div className="space-y-2 open_sans_font">
+      {sidebarCustomLinks.map((link) => (
+        <div
+          key={link.id}
+          className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
+        >
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold open_sans_font text-sm truncate">{link.title}</h3>
+            <p className="text-xs open_sans_font text-zinc-400 truncate max-w-[150px]">
+              {truncateUrl(link.url, 30)}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => window.open(link.url, "_blank")}
+              className="p-2 hover:bg-zinc-700 rounded-lg"
+            >
+              <ExternalLink size={16} />
+            </button>
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSidebarOpenDropdownIndex(
+                    sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`,
+                  )
+                }}
+                className="p-2 hover:bg-zinc-700 rounded-lg"
+              >
+                <MoreVertical size={16} />
+              </button>
+              {sidebarOpenDropdownIndex === `link-${link.id}` && (
+                <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setEditingLink(link)
+                      setIsWebsiteLinkModalOpen(true)
+                      setSidebarOpenDropdownIndex(null)
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeCustomLink(link.id)
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
                     {widget.type === "appointments" && (
                       <div className="mb-6">
@@ -1351,6 +1488,16 @@ const Sidebar = ({
         onSendReply={handleSendReply}
         onOpenFullMessenger={handleOpenFullMessenger}
       />
+
+{isWebsiteLinkModalOpen && (
+  <WebsiteLinkModal
+    link={editingLink}
+    onClose={() => {
+      setIsWebsiteLinkModalOpen(false)
+      setEditingLink(null)
+    }}
+  />
+)}
 
       <ViewManagementModal
         isOpen={isViewModalOpen}
