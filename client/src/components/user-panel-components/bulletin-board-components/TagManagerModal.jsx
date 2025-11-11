@@ -21,7 +21,7 @@ export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDel
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-80 p-4">
       <div className="bg-[#181818] rounded-xl p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">Manage Tags</h2>

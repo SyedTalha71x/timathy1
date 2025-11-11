@@ -1412,7 +1412,7 @@ export default function Members() {
                                         <h4 className="text-white flex gap-1 items-center font-medium">
                                           <div>Special Note</div>
                                           <div className="text-sm text-gray-400">
-                                            {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+                                            {member.noteImportance === "important" ? "(Important)" : ""}
                                           </div>
                                         </h4>
                                         <button
@@ -1672,7 +1672,7 @@ export default function Members() {
                                     <h4 className="text-white flex gap-1 items-center font-medium">
                                       <div>Special Note</div>
                                       <div className="text-sm text-gray-400">
-                                        {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
+                                        {member.noteImportance === "important" ? "(Important)" : ""}
                                       </div>
                                     </h4>
                                     <button
