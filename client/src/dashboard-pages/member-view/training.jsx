@@ -32,7 +32,7 @@ import { ViewPlanModal } from "../../components/member-panel-components/training
 
 export default function Training() {
   const [activeTab, setActiveTab] = useState("videos")
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedCategories, setSelectedCategories] = useState(["all"])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedVideo, setSelectedVideo] = useState(null)
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
@@ -83,7 +83,9 @@ export default function Training() {
 
   // Filter videos based on category and search
   const filteredVideos = trainingVideos.filter((video) => {
-    const matchesCategory = selectedCategory === "all" || video.category === selectedCategory
+    const matchesCategory = 
+      selectedCategories.includes("all") || 
+      selectedCategories.includes(video.category)
     const matchesSearch =
       video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       video.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -317,19 +319,10 @@ export default function Training() {
             <div>
               <h1 className="text-white oxanium_font text-xl md:text-2xl">Training</h1>
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-              <div className="flex items-center gap-2 bg-[#161616] rounded-xl px-3 sm:px-4 py-2">
-                <Dumbbell className="text-blue-500" size={18} />
-                <span className="text-xs sm:text-sm text-gray-300">{trainingVideos.length} Videos</span>
-              </div>
-              <div className="flex items-center gap-2 bg-[#161616] rounded-xl px-3 sm:px-4 py-2">
-                <BookOpen className="text-green-500" size={18} />
-                <span className="text-xs sm:text-sm text-gray-300">{trainingPlans.length} Plans</span>
-              </div>
-            </div>
+           
           </div>
 
-          <div className="w-full sm:max-w-xs mb-6">
+          <div className="w-full sm:max-w-sm mb-6">
             <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
               <button
                 onClick={() => setActiveTab("videos")}
@@ -337,7 +330,7 @@ export default function Training() {
                   }`}
               >
                 <Play size={14} className="inline mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Training </span>Videos
+                <span className="hidden sm:inline">Training </span>Videos ({trainingVideos.length})
               </button>
               <button
                 onClick={() => setActiveTab("plans")}
@@ -345,7 +338,7 @@ export default function Training() {
                   }`}
               >
                 <Target size={14} className="inline mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Training </span>Plans
+                <span className="hidden sm:inline">Training </span>Plans ({trainingPlans.length})
               </button>
             </div>
           </div>
@@ -367,28 +360,44 @@ export default function Training() {
               </div>
 
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
-                <button
-                  onClick={() => setSelectedCategory("all")}
-                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategory === "all"
-                    ? "bg-blue-600 text-white"
-                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                    }`}
-                >
-                  All
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategory === category.id
-                      ? `${category.color} text-white`
-                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                      }`}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
+  <button
+    onClick={() => setSelectedCategories(["all"])}
+    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
+      selectedCategories.includes("all")
+        ? "bg-blue-600 text-white"
+        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+    }`}
+  >
+    All
+  </button>
+  {categories.map((category) => (
+    <button
+      key={category.id}
+      onClick={(e) => {
+        e.preventDefault()
+        setSelectedCategories(prev => {
+          if (prev.includes("all")) {
+            return [category.id]
+          }
+          
+          if (prev.includes(category.id)) {
+            const newCategories = prev.filter(cat => cat !== category.id)
+            return newCategories.length === 0 ? ["all"] : newCategories
+          } else {
+            return [...prev, category.id]
+          }
+        })
+      }}
+      className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
+        selectedCategories.includes(category.id)
+          ? `bg-blue-600 text-white`
+          : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+      }`}
+    >
+      {category.name}
+    </button>
+  ))}
+</div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {filteredVideos.map((video) => (

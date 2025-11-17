@@ -28,6 +28,9 @@ const MemberViewSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(3);
+
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -109,7 +112,7 @@ const MemberViewSidebar = () => {
       label: "Studio",
       to: "/member-view/studio-menu",
     },
-    { icon: MessageCircle, label: "Communication", to: "/member-view/communication" },
+    { icon: MessageCircle, label: "Communication", to: "/member-view/communication",  badgeCount: unreadMessagesCount },
 
 
     {
@@ -185,8 +188,7 @@ const MemberViewSidebar = () => {
 
 
           {/* Navigation Menu */}
-        {/* Navigation Menu */}
-<nav className="flex-1 overflow-y-auto mt-7 custom-scrollbar">
+          <nav className="flex-1 overflow-y-auto mt-7 custom-scrollbar">
   <ul className="space-y-2 p-4">
     {menuItems.map((item, index) => (
       <li key={item.label}>
@@ -217,14 +219,25 @@ const MemberViewSidebar = () => {
                 }
               `}
             />
+            {/* Orange badge indicator for Communication */}
+            {item.badgeCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                {item.badgeCount}
+              </span>
+            )}
           </div>
-          {!isCollapsed && <span className="text-md">{item.label}</span>}
+          {!isCollapsed && (
+            <div className="flex items-center justify-between flex-1">
+              <span className="text-md">{item.label}</span>
+                
+            </div>
+          )}
         </button>
       </li>
     ))}
 
-    {/* Logout Button (moved here, just below menus) */}
-    <li className="mt-6"> {/* thoda neeche rakha */}
+    {/* Logout Button */}
+    <li className="mt-6">
       <button
         onClick={redirectToHome}
         className={`
@@ -247,6 +260,7 @@ const MemberViewSidebar = () => {
     </li>
   </ul>
 </nav>
+
 
         </div>
       </aside>

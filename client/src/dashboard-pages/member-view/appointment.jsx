@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { IoIosInformation } from "react-icons/io"
 import BookingModal from "../../components/member-panel-components/appointments-components/BookingModal"
 import RequestModal from "../../components/member-panel-components/appointments-components/RequestModal"
@@ -14,7 +14,7 @@ const Appointments = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
   const [showMyAppointments, setShowMyAppointments] = useState(false)
   const [showFilter, setShowFilter] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState("All courses")
+  const [selectedCategories, setSelectedCategories] = useState(["All courses"]) // Changed to array for multi-select
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [appointmentToCancel, setAppointmentToCancel] = useState(null)
   const [appointmentView, setAppointmentView] = useState("upcoming")
@@ -23,6 +23,22 @@ const Appointments = () => {
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [availabilityFilter, setAvailabilityFilter] = useState("available")
   const [showRequestModal, setShowRequestModal] = useState(false)
+
+  const filterRef = useRef(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setShowFilter(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   const currentMonth = new Date().getMonth()
   const currentYear = new Date().getFullYear()
@@ -41,7 +57,6 @@ const Appointments = () => {
     "November",
     "December",
   ]
-
 
   const categories = [
     "All courses",
@@ -73,8 +88,37 @@ const Appointments = () => {
     return acc
   }, {})
 
-  const filteredServices =
-    selectedCategory === "All courses" ? services : services.filter((service) => service.category === selectedCategory)
+  // Updated filter logic for multi-select
+  const filteredServices = selectedCategories.includes("All courses") 
+    ? services 
+    : services.filter((service) => selectedCategories.includes(service.category))
+
+  // Handle category selection for multi-select
+  const handleCategoryToggle = (category) => {
+    setSelectedCategories(prev => {
+      if (category === "All courses") {
+        return ["All courses"]
+      }
+      
+      const newSelection = prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev.filter(c => c !== "All courses"), category]
+      
+      // If no categories selected, default to "All courses"
+      return newSelection.length === 0 ? ["All courses"] : newSelection
+    })
+  }
+
+  // Get display text for filter button
+  const getFilterButtonText = () => {
+    if (selectedCategories.includes("All courses") || selectedCategories.length === 0) {
+      return "All courses"
+    }
+    if (selectedCategories.length === 1) {
+      return selectedCategories[0]
+    }
+    return `${selectedCategories.length} selected`
+  }
 
   const getDaysInMonth = (month, year) => {
     return new Date(year, month + 1, 0).getDate()
@@ -231,7 +275,6 @@ const Appointments = () => {
           months={months}
         />
 
-
         <CancelModal
           show={showCancelModal}
           onClose={() => setShowCancelModal(false)}
@@ -274,7 +317,7 @@ const Appointments = () => {
                 <div>
                   <h2 className="text-lg sm:text-2xl font-bold text-white">Available Services</h2>
                 </div>
-                <div className="flex gap-2 relative w-full sm:w-auto">
+                <div className="flex gap-2 relative w-full sm:w-auto" ref={filterRef}>
                   <button
                     onClick={() => setShowFilter(!showFilter)}
                     className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs sm:text-sm transition-colors flex items-center justify-center gap-2"
@@ -287,21 +330,30 @@ const Appointments = () => {
                         d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
                       />
                     </svg>
-                    <span className="truncate">{selectedCategory}</span>
+                    <span className="truncate">{getFilterButtonText()}</span>
+                    {selectedCategories.length > 1 && (
+                      <span className="bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {selectedCategories.length}
+                      </span>
+                    )}
                   </button>
 
                   {showFilter && (
-                    <div className="absolute top-full left-0 sm:right-0 sm:left-auto mt-2 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 w-full sm:min-w-[200px]">
+                    <div className="absolute top-full left-0 sm:right-0 sm:left-auto mt-2 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-20 w-full sm:min-w-[200px] max-h-60 custom-scrollbar overflow-y-auto">
                       {categories.map((category) => (
                         <button
                           key={category}
-                          onClick={() => {
-                            setSelectedCategory(category)
-                            setShowFilter(false)
-                          }}
-                          className={`w-full text-left px-4 py-2.5 hover:bg-gray-600 transition-colors first:rounded-t-lg last:rounded-b-lg text-sm ${selectedCategory === category ? "bg-gray-600 text-orange-400" : "text-white"
+                          onClick={() => handleCategoryToggle(category)}
+                          className={`w-full text-left px-4 py-2.5 hover:bg-gray-600 transition-colors first:rounded-t-lg last:rounded-b-lg text-sm flex items-center gap-3 ${selectedCategories.includes(category) ? "bg-gray-600 text-orange-400" : "text-white"
                             }`}
                         >
+                          <div className={`w-4 h-4 border rounded flex items-center justify-center ${selectedCategories.includes(category) ? "bg-orange-400 border-orange-400" : "border-gray-400"}`}>
+                            {selectedCategories.includes(category) && (
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
                           {category}
                         </button>
                       ))}
@@ -367,6 +419,7 @@ const Appointments = () => {
             </div>
           </>
         ) : showMyAppointments ? (
+          // ... rest of the component remains the same
           <>
             <div className="p-4 sm:p-6">
               <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">

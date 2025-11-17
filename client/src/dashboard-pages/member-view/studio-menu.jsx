@@ -199,6 +199,28 @@ const StudioMenu = () => {
     setIsEditingContact(false)
   }
 
+  // Function to get border color based on message type
+  const getBorderColor = (type) => {
+    switch (type) {
+      case 'info': return 'border-blue-500'
+      case 'update': return 'border-green-500'
+      case 'maintenance': return 'border-yellow-500'
+      case 'class': return 'border-purple-500'
+      default: return 'border-orange-500'
+    }
+  }
+
+  // Function to get tag color based on message type
+  const getTagColor = (type) => {
+    switch (type) {
+      case 'info': return 'bg-blue-500/20 text-blue-400'
+      case 'update': return 'bg-green-500/20 text-green-400'
+      case 'maintenance': return 'bg-yellow-500/20 text-yellow-400'
+      case 'class': return 'bg-purple-500/20 text-purple-400'
+      default: return 'bg-orange-500/20 text-orange-400'
+    }
+  }
+
   return (
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] p-2 md:p-6">
       <div className="text-center py-4 sm:py-6 md:py-8 border-b border-gray-700">
@@ -215,44 +237,45 @@ const StudioMenu = () => {
       </div>
 
       <div className="flex border-b border-gray-700 bg-gray-800/50 rounded-lg mt-4 sm:mt-6 overflow-x-auto">
-        <button
-          onClick={() => setActiveSection("checkin")}
-          className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-2 sm:px-3 md:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "checkin"
-            ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-            : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-            }`}
-        >
-          Check-in
-        </button>
-        <button
-          onClick={() => setActiveSection("info")}
-          className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-2 sm:px-3 md:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "info"
-            ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-            : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-            }`}
-        >
-          Studio Info
-        </button>
-        <button
-          onClick={() => setActiveSection("data")}
-          className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-2 sm:px-3 md:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "data"
-            ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-            : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-            }`}
-        >
-          Studio Data
-        </button>
-
-        <button
-          onClick={() => setActiveSection("bulletin")}
-          className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-2 sm:px-3 md:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "bulletin"
-            ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-            : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-            }`}
-        >
-          Bulletin Board
-        </button>
-      </div>
+  <div className="flex min-w-max w-full"> {/* Add this wrapper */}
+    <button
+      onClick={() => setActiveSection("checkin")}
+      className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "checkin"
+        ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+        }`}
+    >
+      Check-in
+    </button>
+    <button
+      onClick={() => setActiveSection("bulletin")}
+      className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "bulletin"
+        ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+        }`}
+    >
+      Bulletin Board
+    </button>
+    <button
+      onClick={() => setActiveSection("info")}
+      className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "info"
+        ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+        }`}
+    >
+      Studio Info
+    </button>
+    <button
+      onClick={() => setActiveSection("data")}
+      className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "data"
+        ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+        }`}
+    >
+      Studio Data
+    </button>
+  </div>
+</div>
 
       <div className="p-2 md:p-4 mt-3 sm:mt-4">
         {activeSection === "checkin" && (
@@ -940,45 +963,24 @@ const StudioMenu = () => {
                   <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z" />
                   <path d="M7 7h10v2H7zm0 4h10v2H7zm0 4h7v2H7z" />
                 </svg>
-                Studio Announcements
+                Bulletin Board
               </h2>
 
               <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`bg-gray-700/50 rounded-xl p-3 sm:p-4 border-l-4 ${message.priority === 'high'
-                      ? 'border-red-500'
-                      : message.priority === 'medium'
-                        ? 'border-orange-500'
-                        : 'border-green-500'
-                      } hover:bg-gray-700 transition-colors cursor-pointer`}
+                    className={`bg-gray-700/50 rounded-xl p-3 sm:p-4 border-l-4 ${getBorderColor(message.type)} hover:bg-gray-700 transition-colors cursor-pointer`}
                   >
                     <div className="flex justify-between items-start mb-2 gap-2">
                       <h3 className="text-white font-semibold text-base sm:text-lg flex-1">{message.title}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${message.type === 'info'
-                        ? 'bg-blue-500/20 text-blue-400'
-                        : message.type === 'update'
-                          ? 'bg-green-500/20 text-green-400'
-                          : message.type === 'maintenance'
-                            ? 'bg-yellow-500/20 text-yellow-400'
-                            : 'bg-purple-500/20 text-purple-400'
-                        }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getTagColor(message.type)}`}>
                         {message.type}
                       </span>
                     </div>
                     <p className="text-gray-300 text-xs sm:text-sm mb-3">{message.content}</p>
                     <div className="flex justify-between items-center text-[10px] sm:text-xs text-gray-400">
                       <span>{message.date}</span>
-                      {message.priority === 'high' && (
-                        <span className="flex items-center text-red-400">
-                          <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2L1 21h22L12 2zm0 4l7.5 13h-15L12 6z" />
-                            <path d="M11 10v4h2v-4h-2zm0 6v2h2v-2h-2z" />
-                          </svg>
-                          Important
-                        </span>
-                      )}
                     </div>
                   </div>
                 ))}
