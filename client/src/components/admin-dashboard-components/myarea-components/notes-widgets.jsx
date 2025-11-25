@@ -1,10 +1,9 @@
-
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react";
 import { Plus, Filter, MoreVertical, X, Edit, Trash2, ArrowDown } from "lucide-react";
-import CreateNoteModal from "../../myarea-components/notes-widget-components/CreateNoteModal";
-import EditNoteModal from "../../myarea-components/notes-widget-components/EditNoteModal";
-import DeleteConfirmModal from "../../myarea-components/notes-widget-components/DeleteConfirmModal";
+import CreateNoteModal from "./notes-widget-components-admin/CreateNoteModal";
+import EditNoteModal from "./notes-widget-components-admin/EditNoteModal";
+import DeleteConfirmModal from "./notes-widget-components-admin/DeleteConfirmModal";
 
 const NotesWidget = () => {
     const [notes, setNotes] = useState([
@@ -12,7 +11,6 @@ const NotesWidget = () => {
             id: 1,
             title: "Meeting Notes",
             content: "Discussed new training programs with the team",
-            category: "studio",
             createdAt: "2024-01-15",
             updatedAt: "2024-01-15"
         },
@@ -20,13 +18,12 @@ const NotesWidget = () => {
             id: 2,
             title: "Personal Goals",
             content: "Focus on improving client retention this quarter",
-            category: "personal",
             createdAt: "2024-01-14",
             updatedAt: "2024-01-14"
         }
     ]);
 
-    const [filter, setFilter] = useState("all");
+    // Removed filter & categories completely
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -34,21 +31,11 @@ const NotesWidget = () => {
     const [noteToDelete, setNoteToDelete] = useState(null);
     const [openDropdownId, setOpenDropdownId] = useState(null);
 
-    const categories = [
-        { value: "all", label: "All Notes" },
-        { value: "personal", label: "Personal" },
-        { value: "studio", label: "Studio" }
-    ];
-
-    const filteredNotes = notes.filter(note =>
-        filter === "all" || note.category === filter
-    );
-
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
-            // Check if click is on dropdown button or dropdown menu
-            const isDropdownClick = event.target.closest('[data-dropdown-button]') ||
+            const isDropdownClick =
+                event.target.closest('[data-dropdown-button]') ||
                 event.target.closest('[data-dropdown-menu]');
 
             if (!isDropdownClick) {
@@ -117,9 +104,6 @@ const NotesWidget = () => {
                 <div className="flex justify-between items-center">
                     <h2 className="text-lg font-semibold">Notes</h2>
                     <div className="flex items-center gap-2">
-
-
-                        {/* Add Note Button */}
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
                             className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
@@ -128,25 +112,11 @@ const NotesWidget = () => {
                         </button>
                     </div>
                 </div>
-                <div className="w-full relative">
-                    <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="w-full p-2 bg-black rounded-xl text-white text-sm"
-                    >
-                        {categories.map((category) => (
-                            <option key={category.value} value={category.value}>
-                                {category.label}
-                            </option>
-                        ))}
-                    </select>
 
-                 
-                </div>
-
+                {/* Removed Category Dropdown Entirely */}
 
                 <div className="space-y-3 max-h-50 overflow-y-auto custom-scrollbar">
-                    {filteredNotes.map((note) => (
+                    {notes.map((note) => (
                         <div key={note.id} className="bg-black p-3 rounded-lg">
                             <div className="flex justify-between items-start mb-2">
                                 <h3 className="font-medium text-sm">{note.title}</h3>
@@ -182,15 +152,16 @@ const NotesWidget = () => {
                                     )}
                                 </div>
                             </div>
+
                             <p className="text-gray-300 text-xs mb-2 line-clamp-2">{note.content}</p>
+
                             <div className="flex justify-between items-center text-xs text-gray-500">
-                                <span className="capitalize px-2 py-1 rounded-full">{note.category}</span>
                                 <span>{note.updatedAt}</span>
                             </div>
                         </div>
                     ))}
 
-                    {filteredNotes.length === 0 && (
+                    {notes.length === 0 && (
                         <div className="text-center py-4 text-gray-400">
                             <p className="text-sm">No notes found</p>
                         </div>

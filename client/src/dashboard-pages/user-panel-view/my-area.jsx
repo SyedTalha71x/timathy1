@@ -1335,10 +1335,10 @@ export default function MyArea() {
                 {!isEditing && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
-                    className="px-4 py-2  flex items-center md:w-auto w-full text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                    className="px-4 py-2  flex justify-center items-center md:w-auto w-full text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
                   >
                     <Eye size={16} />
-                    {currentView ? currentView.name : "Standard View"}
+                    <span className="md:inline hidden">{currentView ? currentView.name : "Standard View"}</span>
                   </button>
                 )}
 
@@ -1737,37 +1737,43 @@ export default function MyArea() {
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Upcoming Birthday</h2>
                           </div>
-                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+
+                          {/* Scrollable area */}
+                          <div className="flex-1 overflow-y-auto max-h-[300px] custom-scrollbar pr-1">
                             <div className="space-y-2">
-                              {birthdays.slice(0, 3).map((birthday) => (
+                              {birthdays.map((birthday) => (
                                 <div
                                   key={birthday.id}
                                   className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${isBirthdayToday(birthday.date)
-                                    ? "bg-yellow-900/30 border border-yellow-600"
-                                    : "bg-black"
+                                      ? "bg-yellow-900/30 border border-yellow-600"
+                                      : "bg-black"
                                     }`}
                                 >
                                   <div className="flex items-center gap-3">
-                                    <div>
+                                    <div className="h-10 w-10 rounded-xl overflow-hidden">
                                       <img
                                         src={birthday.avatar || "/placeholder.svg"}
-                                        className="h-10 w-10 rounded-full"
+                                        className="h-full w-full object-cover"
                                         alt=""
                                       />
                                     </div>
+
                                     <div>
                                       <h3 className="font-semibold text-sm flex items-center gap-1">
                                         {birthday.name}
-                                        {isBirthdayToday(birthday.date) && <span className="text-yellow-500">🎂</span>}
+                                        {isBirthdayToday(birthday.date) && (
+                                          <span className="text-yellow-500">🎂</span>
+                                        )}
                                       </h3>
                                       <p className="text-xs text-zinc-400">{birthday.date}</p>
                                     </div>
                                   </div>
+
                                   {isBirthdayToday(birthday.date) && (
                                     <button
                                       onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleSendBirthdayMessage(birthday)
+                                        e.stopPropagation();
+                                        handleSendBirthdayMessage(birthday);
                                       }}
                                       className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
                                       title="Send Birthday Message"
@@ -1781,6 +1787,7 @@ export default function MyArea() {
                           </div>
                         </div>
                       )}
+
                       {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
 
                       {widget.type === "notes" && <NotesWidget />}

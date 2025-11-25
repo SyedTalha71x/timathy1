@@ -132,15 +132,6 @@ const ChatPopup = ({ staff, isOpen, onClose, onOpenFullMessenger }) => {
     }
   };
 
-  // const removeMessageEmoji = (messageId, e) => {
-  //   e.stopPropagation();
-  //   setMessages(prev => prev.map(msg => 
-  //     msg.id === messageId 
-  //       ? { ...msg, text: msg.text.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '') }
-  //       : msg
-  //   ));
-  // };
-
   if (!isOpen) return null;
 
   return (
@@ -190,8 +181,8 @@ const ChatPopup = ({ staff, isOpen, onClose, onOpenFullMessenger }) => {
                 <div
                   className={`rounded-xl p-3 text-sm relative ${
                     msg.sender === 'user' 
-                      ? "bg-[#005c4b] text-white rounded-br-none" 
-                      : "bg-[#202c33] text-white rounded-bl-none"
+                      ? "bg-blue-500 text-white rounded-br-none"  // Changed from #005c4b to blue-500
+                      : "bg-black text-white rounded-bl-none"  // Changed from #202c33 to gray-200 and text to black
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -200,7 +191,7 @@ const ChatPopup = ({ staff, isOpen, onClose, onOpenFullMessenger }) => {
                     {/* Message menu button */}
                     <button
                       onClick={() => setActiveMessageMenu(activeMessageMenu === msg.id ? null : msg.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-black/10 rounded"
                     >
                       <MoreVertical size={14} />
                     </button>
@@ -212,15 +203,6 @@ const ChatPopup = ({ staff, isOpen, onClose, onOpenFullMessenger }) => {
                       ref={messageMenuRef}
                       className={`absolute top-8 ${msg.sender === 'user' ? 'left-0' : 'right-0'} bg-gray-800 rounded-lg shadow-lg p-1 min-w-[120px] z-20`}
                     >
-                      {/* <button
-                        onClick={(e) => {
-                          removeMessageEmoji(msg.id, e);
-                          setActiveMessageMenu(null);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-md text-white"
-                      >
-                        Remove Emojis
-                      </button> */}
                       <button
                         onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-md text-white"
@@ -309,12 +291,12 @@ const ChatPopup = ({ staff, isOpen, onClose, onOpenFullMessenger }) => {
 
             {/* Send button */}
             <button
-              className="p-2 bg-blue-600 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Send message"
               onClick={handleSendMessage}
               disabled={!message.trim()}
             >
-              <Send className="w-5 h-5 text-white" />
+              <Send className="w-5 h-5 text-white" />  {/* White icon, no background */}
             </button>
           </div>
 

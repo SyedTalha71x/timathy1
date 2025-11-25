@@ -1,112 +1,92 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef } from 'react';
-import {
-  Button,
-  Input,
-  Select,
-  Upload,
-  Form,
-  Space,
-  Divider,
-  ColorPicker,
-  InputNumber,
-  Switch,
-  Modal,
-  Tabs,
-  Card,
-  notification,
-  Checkbox,
-  Radio,
-  Tooltip
-} from 'antd';
-import {
-  PlusOutlined,
-  DeleteOutlined,
-  UploadOutlined,
-  EyeOutlined,
-  BoldOutlined,
-  ItalicOutlined,
-  UnderlineOutlined,
-  AlignLeftOutlined,
-  AlignCenterOutlined,
-  AlignRightOutlined,
-  FontSizeOutlined,
-  FileTextOutlined,
-  SaveOutlined,
-  DragOutlined
-} from '@ant-design/icons';
-
-const { TextArea } = Input;
-const { Option } = Select;
-const { TabPane } = Tabs;
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 const ContractBuilder = () => {
   const [contractPages, setContractPages] = useState([
     {
       id: 1,
-      title: 'Page 1',
+      title: 'Contract Page 1',
       elements: []
     }
   ]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [additionalDocuments, setAdditionalDocuments] = useState([]);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [contractLogo, setContractLogo] = useState(null);
-  const [contractLogoUrl, setContractLogoUrl] = useState('');
+  const [selectedElement, setSelectedElement] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [templates, setTemplates] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [propertiesOpen, setPropertiesOpen] = useState(false);
+  const [variables] = useState([
+    'Studio Name',
+    'Studio Owner Name',
+    'Salutation',
+    'Member First Name',
+    'Member Last Name',
+    'Street',
+    'House Number',
+    'ZIP Code',
+    'City',
+    'Phone Number',
+    'Email Address',
+    'Date of Birth',
+    'Contract Type',
+    'Contract Cost',
+    'Contract Start',
+    'Termination Notice Period',
+    'Contract Renewal Duration',
+    'Contribution Adjustment',
+    'Creditor ID'
+  ]);
+
+  const containerRef = useRef();
   const nextElementId = useRef(1);
   const nextPageId = useRef(2);
 
-  const inputStyle = {
-    backgroundColor: '#1f2937',
-    border: '1px solid #374151',
-    color: '#f3f4f6',
-    padding: '10px',
-  };
-
-  const buttonStyle = {
-    backgroundColor: '#1f2937',
-    border: '1px solid #374151',
-    color: '#f3f4f6',
-  };
-
-  const saveButtonStyle = {
-    backgroundColor: '#f97316',
-    border: '1px solid #ea580c',
-    color: '#fff',
-  };
-
-  // Field type options
+  // Field types with icons and categories
   const fieldTypes = [
-    { value: 'text', label: 'Text Input', icon: <FileTextOutlined /> },
-    { value: 'textarea', label: 'Text Area', icon: <AlignLeftOutlined /> },
-    { value: 'checkbox', label: 'Checkbox', icon: '☑' },
-    { value: 'signature', label: 'Signature Field', icon: '✍' },
-    { value: 'date', label: 'Date Field', icon: '📅' },
-    { value: 'heading', label: 'Heading Text', icon: <FontSizeOutlined /> },
-    { value: 'paragraph', label: 'Paragraph Text', icon: <AlignLeftOutlined /> },
+    { 
+      category: 'Basic Fields',
+      types: [
+        { value: 'text', label: 'Text Input', icon: '📝' },
+        { value: 'textarea', label: 'Text Area', icon: '📄' },
+        { value: 'number', label: 'Number', icon: '🔢' },
+        { value: 'date', label: 'Date', icon: '📅' },
+        { value: 'email', label: 'Email', icon: '📧' },
+        { value: 'phone', label: 'Phone', icon: '📞' }
+      ]
+    },
+    {
+      category: 'Special Fields',
+      types: [
+        { value: 'checkbox', label: 'Checkbox', icon: '☑️' },
+        { value: 'signature', label: 'Signature', icon: '✍️' },
+        { value: 'initial', label: 'Initial', icon: '🖊️' }
+      ]
+    },
+    {
+      category: 'Content',
+      types: [
+        { value: 'heading', label: 'Heading', icon: '🔤' },
+        { value: 'paragraph', label: 'Paragraph', icon: '📝' },
+        { value: 'divider', label: 'Divider', icon: '➖' }
+      ]
+    }
   ];
 
   // Add new page
   const addPage = () => {
-    setContractPages([
-      ...contractPages,
-      {
-        id: nextPageId.current++,
-        title: `Page ${contractPages.length + 1}`,
-        elements: []
-      }
-    ]);
+    const newPage = {
+      id: nextPageId.current++,
+      title: `Contract Page ${contractPages.length + 1}`,
+      elements: []
+    };
+    setContractPages([...contractPages, newPage]);
+    setCurrentPage(contractPages.length);
   };
 
   // Remove page
   const removePage = (pageIndex) => {
-    if (contractPages.length === 1) {
-      notification.warning({
-        message: 'Cannot Remove',
-        description: 'Contract must have at least one page.'
-      });
-      return;
-    }
+    if (contractPages.length === 1) return;
     const updatedPages = contractPages.filter((_, i) => i !== pageIndex);
     setContractPages(updatedPages);
     if (currentPage >= updatedPages.length) {
@@ -116,41 +96,122 @@ const ContractBuilder = () => {
 
   // Add element to current page
   const addElement = (type) => {
-    const newElement = {
+    const baseElement = {
       id: nextElementId.current++,
       type,
-      label: type === 'heading' ? 'Section Title' : type === 'paragraph' ? 'Content text here...' : `${type} field`,
-      placeholder: type === 'text' || type === 'textarea' ? 'Enter text...' : '',
+      x: 50,
+      y: contractPages[currentPage].elements.length * 60 + 50,
+      width: type === 'heading' ? 80 : type === 'paragraph' ? 90 : 45,
+      height: type === 'textarea' ? 80 : type === 'paragraph' ? 60 : 40,
       required: false,
-      width: '100',
-      formatting: {
-        bold: false,
-        italic: false,
-        underline: false,
-        alignment: 'left',
-        fontSize: type === 'heading' ? '24' : '14',
-        color: '#000000'
-      }
+      variable: null
     };
 
+    let element;
+    switch (type) {
+      case 'text':
+      case 'email':
+      case 'phone':
+      case 'number':
+        element = {
+          ...baseElement,
+          label: 'Text Field',
+          placeholder: 'Enter text...',
+          value: ''
+        };
+        break;
+      case 'textarea':
+        element = {
+          ...baseElement,
+          label: 'Text Area',
+          placeholder: 'Enter longer text...',
+          value: ''
+        };
+        break;
+      case 'date':
+        element = {
+          ...baseElement,
+          label: 'Date',
+          value: ''
+        };
+        break;
+      case 'checkbox':
+        element = {
+          ...baseElement,
+          label: 'Checkbox option',
+          checked: false
+        };
+        break;
+      case 'heading':
+        element = {
+          ...baseElement,
+          content: 'Section Heading',
+          fontSize: 24,
+          bold: true,
+          alignment: 'left'
+        };
+        break;
+      case 'paragraph':
+        element = {
+          ...baseElement,
+          content: 'Paragraph text goes here...',
+          fontSize: 14,
+          bold: false,
+          alignment: 'left'
+        };
+        break;
+      case 'signature':
+        element = {
+          ...baseElement,
+          label: 'Signature',
+          width: 60,
+          height: 80
+        };
+        break;
+      case 'initial':
+        element = {
+          ...baseElement,
+          label: 'Initial',
+          width: 20,
+          height: 40
+        };
+        break;
+      case 'divider':
+        element = {
+          ...baseElement,
+          width: 90,
+          height: 2
+        };
+        break;
+      default:
+        element = baseElement;
+    }
+
     const updatedPages = [...contractPages];
-    updatedPages[currentPage].elements.push(newElement);
+    updatedPages[currentPage].elements.push(element);
     setContractPages(updatedPages);
+    setSelectedElement(element.id);
+    
+    // Close sidebar on mobile after adding element
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
   };
 
-  // Update element
-  const updateElement = (elementId, field, value) => {
+  // Update element property
+  const updateElement = (elementId, property, value) => {
     const updatedPages = [...contractPages];
-    const element = updatedPages[currentPage].elements.find(el => el.id === elementId);
-    if (element) {
-      if (field.includes('.')) {
-        const [parent, child] = field.split('.');
-        element[parent][child] = value;
+    const elementIndex = updatedPages[currentPage].elements.findIndex(el => el.id === elementId);
+    
+    if (elementIndex !== -1) {
+      if (property.includes('.')) {
+        const [parent, child] = property.split('.');
+        updatedPages[currentPage].elements[elementIndex][parent][child] = value;
       } else {
-        element[field] = value;
+        updatedPages[currentPage].elements[elementIndex][property] = value;
       }
+      setContractPages(updatedPages);
     }
-    setContractPages(updatedPages);
   };
 
   // Remove element
@@ -160,577 +221,592 @@ const ContractBuilder = () => {
       el => el.id !== elementId
     );
     setContractPages(updatedPages);
+    setSelectedElement(null);
   };
 
-  // Move element up/down
-  const moveElement = (elementId, direction) => {
-    const updatedPages = [...contractPages];
-    const elements = updatedPages[currentPage].elements;
-    const index = elements.findIndex(el => el.id === elementId);
-    
-    if (direction === 'up' && index > 0) {
-      [elements[index], elements[index - 1]] = [elements[index - 1], elements[index]];
-    } else if (direction === 'down' && index < elements.length - 1) {
-      [elements[index], elements[index + 1]] = [elements[index + 1], elements[index]];
-    }
-    
-    setContractPages(updatedPages);
-  };
-
-  // Handle logo upload
-  const handleLogoUpload = (info) => {
-    if (info.file.originFileObj) {
-      const url = URL.createObjectURL(info.file.originFileObj);
-      setContractLogoUrl(url);
-      setContractLogo([info.file]);
+  // Handle drag start
+  const handleDragStart = (elementId, e) => {
+    const element = contractPages[currentPage].elements.find(el => el.id === elementId);
+    if (element) {
+      setIsDragging(true);
+      setSelectedElement(elementId);
+      const rect = e.currentTarget.getBoundingClientRect();
+      const containerRect = containerRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
     }
   };
 
-  // Handle additional documents
-  const handleDocumentUpload = (info) => {
-    setAdditionalDocuments(info.fileList);
+  // Handle drag
+  const handleDrag = useCallback((e) => {
+    if (!isDragging || !selectedElement) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
+    const y = ((e.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
+
+    updateElement(selectedElement, 'x', Math.max(0, Math.min(95, x)));
+    updateElement(selectedElement, 'y', Math.max(0, Math.min(95, y)));
+  }, [isDragging, selectedElement, dragOffset]);
+
+  // Handle drag end
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Add event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleDrag);
+      document.addEventListener('mouseup', handleDragEnd);
+      document.addEventListener('touchmove', handleDrag);
+      document.addEventListener('touchend', handleDragEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleDrag);
+        document.removeEventListener('mouseup', handleDragEnd);
+        document.removeEventListener('touchmove', handleDrag);
+        document.removeEventListener('touchend', handleDragEnd);
+      };
+    }
+  }, [isDragging, handleDrag]);
+
+  // Close sidebars when clicking on canvas on mobile
+  const handleCanvasClick = () => {
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+      setPropertiesOpen(false);
+    }
   };
 
   // Render element in builder
   const renderBuilderElement = (element) => {
-    const formatStyle = {
-      fontWeight: element.formatting.bold ? 'bold' : 'normal',
-      fontStyle: element.formatting.italic ? 'italic' : 'normal',
-      textDecoration: element.formatting.underline ? 'underline' : 'none',
-      textAlign: element.formatting.alignment,
-      fontSize: `${element.formatting.fontSize}px`,
-      color: element.formatting.color
+    const isSelected = selectedElement === element.id;
+    const style = {
+      left: `${element.x}%`,
+      top: `${element.y}%`,
+      width: `${element.width}%`,
+      height: `${element.height}px`,
+      position: 'absolute',
+      border: isSelected ? '2px solid #3b82f6' : '1px dashed #6b7280',
+      backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'white',
+      borderRadius: '4px',
+      padding: '8px',
+      cursor: 'move',
+      boxSizing: 'border-box',
+      touchAction: 'none'
     };
 
     return (
-      <Card
+      <div
         key={element.id}
-        className="mb-3 sm:mb-4"
-        style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-        extra={
-          <Space size="small">
-            <Button
-              icon={<DragOutlined />}
-              size="small"
-              style={buttonStyle}
-              onClick={() => moveElement(element.id, 'up')}
-            >
-              ↑
-            </Button>
-            <Button
-              icon={<DragOutlined />}
-              size="small"
-              style={buttonStyle}
-              onClick={() => moveElement(element.id, 'down')}
-            >
-              ↓
-            </Button>
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-              onClick={() => removeElement(element.id)}
-            />
-          </Space>
-        }
+        style={style}
+        className="element"
+        onMouseDown={(e) => handleDragStart(element.id, e)}
+        onTouchStart={(e) => handleDragStart(element.id, e)}
+        onClick={() => {
+          setSelectedElement(element.id);
+          if (window.innerWidth < 1024) {
+            setPropertiesOpen(true);
+            setSidebarOpen(false);
+          }
+        }}
       >
-        <Space direction="vertical" className="w-full" size="small">
-          {/* Element Type */}
-          <div className="text-gray-400 text-xs">
-            {fieldTypes.find(t => t.value === element.type)?.label}
-          </div>
-
-          {/* Label/Content */}
-          {(element.type === 'heading' || element.type === 'paragraph') ? (
-            <TextArea
-              value={element.label}
-              onChange={(e) => updateElement(element.id, 'label', e.target.value)}
-              placeholder="Enter text content..."
-              rows={element.type === 'paragraph' ? 4 : 2}
-              style={{...inputStyle, ...formatStyle}}
-            />
-          ) : (
-            <Input
-              value={element.label}
-              onChange={(e) => updateElement(element.id, 'label', e.target.value)}
-              placeholder="Field label"
-              style={inputStyle}
-            />
-          )}
-
-          {/* Placeholder for input fields */}
-          {(element.type === 'text' || element.type === 'textarea') && (
-            <Input
-              value={element.placeholder}
-              onChange={(e) => updateElement(element.id, 'placeholder', e.target.value)}
-              placeholder="Placeholder text"
-              style={inputStyle}
-            />
-          )}
-
-          {/* Formatting toolbar */}
-          <Space wrap className="w-full" size="small">
-            <Tooltip title="Bold">
-              <Button
-                icon={<BoldOutlined />}
-                size="small"
-                type={element.formatting.bold ? 'primary' : 'default'}
-                onClick={() => updateElement(element.id, 'formatting.bold', !element.formatting.bold)}
-              />
-            </Tooltip>
-            <Tooltip title="Italic">
-              <Button
-                icon={<ItalicOutlined />}
-                size="small"
-                type={element.formatting.italic ? 'primary' : 'default'}
-                onClick={() => updateElement(element.id, 'formatting.italic', !element.formatting.italic)}
-              />
-            </Tooltip>
-            <Tooltip title="Underline">
-              <Button
-                icon={<UnderlineOutlined />}
-                size="small"
-                type={element.formatting.underline ? 'primary' : 'default'}
-                onClick={() => updateElement(element.id, 'formatting.underline', !element.formatting.underline)}
-              />
-            </Tooltip>
-            
-            <Select
-              value={element.formatting.alignment}
-              onChange={(value) => updateElement(element.id, 'formatting.alignment', value)}
-              style={{ width: 90 }}
-              size="small"
+        {renderElementContent(element)}
+        {isSelected && (
+          <div className="absolute -top-8 left-0 flex gap-1 bg-blue-500 text-white px-2 py-1 rounded text-xs z-10">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                removeElement(element.id);
+              }}
+              className="hover:bg-blue-600 px-1 rounded"
             >
-              <Option value="left"><AlignLeftOutlined /> Left</Option>
-              <Option value="center"><AlignCenterOutlined /> Center</Option>
-              <Option value="right"><AlignRightOutlined /> Right</Option>
-            </Select>
-
-            <InputNumber
-              value={element.formatting.fontSize}
-              onChange={(value) => updateElement(element.id, 'formatting.fontSize', value)}
-              min={8}
-              max={72}
-              size="small"
-              addonBefore={<FontSizeOutlined />}
-              style={{ width: 90 }}
-              className='white-text text-white'
-            />
-
-            <ColorPicker
-              value={element.formatting.color}
-              onChange={(color) => updateElement(element.id, 'formatting.color', color.toHexString())}
-              size="small"
-            />
-          </Space>
-
-          {/* Additional options */}
-          <Space wrap size="small">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-300 text-xs sm:text-sm">Width:</span>
-              <InputNumber
-                value={element.width}
-                onChange={(value) => updateElement(element.id, 'width', value)}
-                min={10}
-                max={100}
-                formatter={value => `${value}%`}
-                parser={value => value.replace('%', '')}
-                size="small"
-                style={{ width: 70 }}
-                className='white-text text-white'
-              />
-            </div>
-            
-            {element.type !== 'heading' && element.type !== 'paragraph' && (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-300 text-xs sm:text-sm">Required:</span>
-                <Switch
-                  checked={element.required}
-                  onChange={(checked) => updateElement(element.id, 'required', checked)}
-                  size="small"
-                />
-              </div>
-            )}
-          </Space>
-
-          {/* Preview */}
-          <div className="mt-2 p-2 sm:p-3 bg-white rounded" style={{ width: `${element.width}%` }}>
-            <div style={formatStyle}>
-              {element.type === 'heading' && element.label}
-              {element.type === 'paragraph' && element.label}
-              {element.type === 'text' && (
-                <div>
-                  <div className="text-xs sm:text-sm text-gray-600 mb-1">{element.label} {element.required && <span className="text-red-500">*</span>}</div>
-                  <input
-                    type="text"
-                    placeholder={element.placeholder}
-                    className="w-full border border-gray-300 rounded px-2 sm:px-3 py-1 sm:py-2 text-sm"
-                    disabled
-                  />
-                </div>
-              )}
-              {element.type === 'textarea' && (
-                <div>
-                  <div className="text-xs sm:text-sm text-gray-600 mb-1">{element.label} {element.required && <span className="text-red-500">*</span>}</div>
-                  <textarea
-                    placeholder={element.placeholder}
-                    className="w-full border border-gray-300 rounded px-2 sm:px-3 py-1 sm:py-2 text-sm"
-                    rows={4}
-                    disabled
-                  />
-                </div>
-              )}
-              {element.type === 'checkbox' && (
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" disabled />
-                  <span className="text-xs sm:text-sm">{element.label} {element.required && <span className="text-red-500">*</span>}</span>
-                </div>
-              )}
-              {element.type === 'signature' && (
-                <div>
-                  <div className="text-xs sm:text-sm text-gray-600 mb-1">{element.label} {element.required && <span className="text-red-500">*</span>}</div>
-                  <div className="border-2 border-dashed border-gray-300 rounded p-3 sm:p-4 text-center text-gray-400 text-xs sm:text-sm">
-                    Signature Area
-                  </div>
-                </div>
-              )}
-              {element.type === 'date' && (
-                <div>
-                  <div className="text-xs sm:text-sm text-gray-600 mb-1">{element.label} {element.required && <span className="text-red-500">*</span>}</div>
-                  <input
-                    type="date"
-                    className="border border-gray-300 rounded px-2 sm:px-3 py-1 sm:py-2 text-sm"
-                    disabled
-                  />
-                </div>
-              )}
-            </div>
+              🗑️
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // Clone element
+                const newElement = { ...element, id: nextElementId.current++ };
+                const updatedPages = [...contractPages];
+                updatedPages[currentPage].elements.push(newElement);
+                setContractPages(updatedPages);
+              }}
+              className="hover:bg-blue-600 px-1 rounded"
+            >
+              📋
+            </button>
           </div>
-        </Space>
-      </Card>
+        )}
+      </div>
     );
   };
 
-  // Render preview
-  const renderPreview = () => {
-    return (
-      <div className="bg-gray-100 text-black max-w-4xl mx-auto">
-        {/* Logo */}
-        {contractLogoUrl && (
-          <div className="flex justify-end p-4 sm:p-6 lg:p-8 bg-white">
-            <img src={contractLogoUrl} alt="Logo" className="h-12 sm:h-16 lg:h-20 object-contain" />
+  // Render element content based on type
+  const renderElementContent = (element) => {
+    switch (element.type) {
+      case 'heading':
+        return (
+          <h3 style={{
+            fontSize: `${Math.min(element.fontSize, window.innerWidth < 768 ? 18 : element.fontSize)}px`,
+            fontWeight: element.bold ? 'bold' : 'normal',
+            textAlign: element.alignment,
+            margin: 0
+          }}>
+            {element.content}
+          </h3>
+        );
+      case 'paragraph':
+        return (
+          <p style={{
+            fontSize: `${Math.min(element.fontSize, window.innerWidth < 768 ? 12 : element.fontSize)}px`,
+            fontWeight: element.bold ? 'bold' : 'normal',
+            textAlign: element.alignment,
+            margin: 0
+          }}>
+            {element.content}
+          </p>
+        );
+      case 'text':
+      case 'email':
+      case 'phone':
+      case 'number':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              {element.label} {element.required && '*'}
+            </label>
+            <input
+              type={element.type}
+              placeholder={element.placeholder}
+              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              disabled
+            />
           </div>
+        );
+      case 'textarea':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              {element.label} {element.required && '*'}
+            </label>
+            <textarea
+              placeholder={element.placeholder}
+              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              rows={3}
+              disabled
+            />
+          </div>
+        );
+      case 'checkbox':
+        return (
+          <div className="flex items-center gap-2">
+            <input type="checkbox" disabled />
+            <span className="text-sm">
+              {element.label} {element.required && '*'}
+            </span>
+          </div>
+        );
+      case 'date':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              {element.label} {element.required && '*'}
+            </label>
+            <input type="date" className="border border-gray-300 rounded px-2 py-1 text-sm" disabled />
+          </div>
+        );
+      case 'signature':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              {element.label} {element.required && '*'}
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded h-16 flex items-center justify-center text-gray-400">
+              Signature
+            </div>
+          </div>
+        );
+      case 'initial':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              {element.label} {element.required && '*'}
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded w-12 h-8 flex items-center justify-center text-gray-400">
+              Initial
+            </div>
+          </div>
+        );
+      case 'divider':
+        return <hr className="border-t border-gray-300 my-2" />;
+      default:
+        return <div>Unknown element type</div>;
+    }
+  };
+
+  // Property panel for selected element
+  const renderPropertyPanel = () => {
+    if (!selectedElement) {
+      return (
+        <div className="p-4 text-gray-500 text-sm">
+          Select an element to edit its properties
+        </div>
+      );
+    }
+
+    const element = contractPages[currentPage].elements.find(el => el.id === selectedElement);
+    if (!element) return null;
+
+    return (
+      <div className="p-4 space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-lg">Element Properties</h3>
+          <button
+            onClick={() => setPropertiesOpen(false)}
+            className="lg:hidden text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
+        </div>
+        
+        {/* Common properties */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Position & Size</label>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <span className="text-xs">X: {Math.round(element.x)}%</span>
+              <input
+                type="range"
+                min="0"
+                max="95"
+                value={element.x}
+                onChange={(e) => updateElement(element.id, 'x', parseInt(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <span className="text-xs">Y: {Math.round(element.y)}%</span>
+              <input
+                type="range"
+                min="0"
+                max="95"
+                value={element.y}
+                onChange={(e) => updateElement(element.id, 'y', parseInt(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <span className="text-xs">Width: {element.width}%</span>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={element.width}
+                onChange={(e) => updateElement(element.id, 'width', parseInt(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            {element.height !== undefined && (
+              <div>
+                <span className="text-xs">Height: {element.height}px</span>
+                <input
+                  type="range"
+                  min="20"
+                  max="200"
+                  value={element.height}
+                  onChange={(e) => updateElement(element.id, 'height', parseInt(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Type-specific properties */}
+        {['text', 'textarea', 'email', 'phone', 'number', 'date', 'checkbox'].includes(element.type) && (
+          <>
+            <div>
+              <label className="block text-sm font-medium">Label</label>
+              <input
+                type="text"
+                value={element.label || ''}
+                onChange={(e) => updateElement(element.id, 'label', e.target.value)}
+                className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              />
+            </div>
+            
+            {['text', 'textarea'].includes(element.type) && (
+              <div>
+                <label className="block text-sm font-medium">Placeholder</label>
+                <input
+                  type="text"
+                  value={element.placeholder || ''}
+                  onChange={(e) => updateElement(element.id, 'placeholder', e.target.value)}
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                />
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={element.required || false}
+                onChange={(e) => updateElement(element.id, 'required', e.target.checked)}
+              />
+              <label className="text-sm font-medium">Required Field</label>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium">Bind to Variable</label>
+              <select
+                value={element.variable || ''}
+                onChange={(e) => updateElement(element.id, 'variable', e.target.value)}
+                className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              >
+                <option value="">None</option>
+                {variables.map(variable => (
+                  <option key={variable} value={variable}>{variable}</option>
+                ))}
+              </select>
+            </div>
+          </>
         )}
 
-        {/* Contract pages */}
-        {contractPages.map((page, pageIndex) => (
-          <div key={page.id} className="p-4 sm:p-6 lg:p-8 min-h-screen bg-white" style={{ pageBreakAfter: 'always' }}>
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{page.title}</h2>
+        {['heading', 'paragraph'].includes(element.type) && (
+          <>
+            <div>
+              <label className="block text-sm font-medium">Content</label>
+              <textarea
+                value={element.content || ''}
+                onChange={(e) => updateElement(element.id, 'content', e.target.value)}
+                className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                rows={3}
+              />
+            </div>
             
-            {page.elements.map(element => {
-              const formatStyle = {
-                fontWeight: element.formatting.bold ? 'bold' : 'normal',
-                fontStyle: element.formatting.italic ? 'italic' : 'normal',
-                textDecoration: element.formatting.underline ? 'underline' : 'none',
-                textAlign: element.formatting.alignment,
-                fontSize: `${element.formatting.fontSize}px`,
-                color: element.formatting.color,
-                marginBottom: '1rem'
-              };
+            <div>
+              <label className="block text-sm font-medium">Font Size</label>
+              <input
+                type="range"
+                min="8"
+                max="48"
+                value={element.fontSize || 14}
+                onChange={(e) => updateElement(element.id, 'fontSize', parseInt(e.target.value))}
+                className="w-full"
+              />
+              <span className="text-xs">{element.fontSize}px</span>
+            </div>
 
-              return (
-                <div key={element.id} style={{ width: `${element.width}%`, marginBottom: '1.5rem' }}>
-                  {element.type === 'heading' && (
-                    <h3 style={formatStyle}>{element.label}</h3>
-                  )}
-                  {element.type === 'paragraph' && (
-                    <p style={formatStyle}>{element.label}</p>
-                  )}
-                  {element.type === 'text' && (
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium mb-1">
-                        {element.label} {element.required && <span className="text-red-500">*</span>}
-                      </label>
-                      <input
-                        type="text"
-                        placeholder={element.placeholder}
-                        className="w-full border border-gray-300 rounded px-2 sm:px-3 py-1 sm:py-2 text-sm"
-                      />
-                    </div>
-                  )}
-                  {element.type === 'textarea' && (
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium mb-1">
-                        {element.label} {element.required && <span className="text-red-500">*</span>}
-                      </label>
-                      <textarea
-                        placeholder={element.placeholder}
-                        className="w-full border border-gray-300 rounded px-2 sm:px-3 py-1 sm:py-2 text-sm"
-                        rows={4}
-                      />
-                    </div>
-                  )}
-                  {element.type === 'checkbox' && (
-                    <div className="flex items-start gap-2">
-                      <input type="checkbox" className="mt-1" />
-                      <span style={formatStyle}>{element.label} {element.required && <span className="text-red-500">*</span>}</span>
-                    </div>
-                  )}
-                  {element.type === 'signature' && (
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium mb-1">
-                        {element.label} {element.required && <span className="text-red-500">*</span>}
-                      </label>
-                      <div className="border-2 border-gray-300 rounded p-6 sm:p-8 text-center text-gray-400">
-                        Signature
-                      </div>
-                    </div>
-                  )}
-                  {element.type === 'date' && (
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium mb-1">
-                        {element.label} {element.required && <span className="text-red-500">*</span>}
-                      </label>
-                      <input type="date" className="border border-gray-300 rounded px-2 sm:px-3 py-1 sm:py-2 text-sm" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-
-        {/* Additional documents note */}
-        {additionalDocuments.length > 0 && (
-          <div className="p-4 sm:p-6 lg:p-8 bg-white">
-            <h3 className="text-lg sm:text-xl font-bold mb-4">Additional Documents</h3>
-            <p className="text-gray-600 mb-2 text-sm sm:text-base">The following documents are attached to this contract:</p>
-            <ul className="list-disc pl-4 sm:pl-6">
-              {additionalDocuments.map((doc, index) => (
-                <li key={index} className="text-gray-700 text-sm sm:text-base">{doc.name}</li>
-              ))}
-            </ul>
-          </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={element.bold || false}
+                  onChange={(e) => updateElement(element.id, 'bold', e.target.checked)}
+                />
+                <span className="text-sm">Bold</span>
+              </label>
+              
+              <label className="block text-sm font-medium">Alignment</label>
+              <select
+                value={element.alignment || 'left'}
+                onChange={(e) => updateElement(element.id, 'alignment', e.target.value)}
+                className="border border-gray-300 rounded px-2 py-1 text-sm"
+              >
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+          </>
         )}
       </div>
     );
   };
 
   return (
-    <div className="w-full mx-auto p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl lg:rounded-3xl space-y-4 sm:space-y-6 lg:space-y-8 bg-[#111827] min-h-screen text-white">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">Contract Builder</h1>
-        <Space wrap size="small">
-          <Button
-            icon={<EyeOutlined />}
-            onClick={() => setPreviewVisible(true)}
-            style={buttonStyle}
-            size="small"
-            className="text-xs sm:text-sm"
+    <div className="flex h-screen bg-gray-100">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center z-40">
+        <h2 className="font-semibold text-lg">Contract Builder</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="bg-blue-500 text-white p-2 rounded-lg"
           >
-            <span className="hidden sm:inline">Preview Contract</span>
-            <span className="sm:hidden">Preview</span>
-          </Button>
-          <Button
-            icon={<SaveOutlined />}
-            type="primary"
-            style={saveButtonStyle}
-            size="small"
-            className="text-xs sm:text-sm"
-            onClick={() => {
-              notification.success({
-                message: 'Contract Saved',
-                description: 'Your contract template has been saved successfully.'
-              });
-            }}
+            🛠️ Tools
+          </button>
+          <button
+            onClick={() => setPropertiesOpen(!propertiesOpen)}
+            className="bg-green-500 text-white p-2 rounded-lg"
           >
-            <span className="hidden sm:inline">Save Contract</span>
-            <span className="sm:hidden">Save</span>
-          </Button>
-        </Space>
+            ⚙️ Properties
+          </button>
+          <button
+            onClick={addPage}
+            className="bg-purple-500 text-white p-2 rounded-lg"
+          >
+            📄 Add Page
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-        {/* Sidebar - Tools */}
-        <div className="lg:col-span-1 space-y-3 sm:space-y-4">
-          <Card 
-            style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-            title={<span className="text-white text-sm sm:text-base">Contract Logo</span>}
-          >
-            <Space direction="vertical" className="w-full" size="small">
-              {contractLogoUrl && (
-                <div className="w-full h-24 sm:h-32 flex items-center justify-center bg-white rounded">
-                  <img src={contractLogoUrl} alt="Logo" className="max-h-full object-contain" />
-                </div>
-              )}
-              <Upload
-                accept="image/*"
-                maxCount={1}
-                onChange={handleLogoUpload}
-                fileList={contractLogo}
-                showUploadList={false}
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/50 bg-opacity-50" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute left-0 top-0 h-full w-80 bg-white overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="font-semibold text-lg">Add Elements</h2>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
               >
-                <Button icon={<UploadOutlined />} style={buttonStyle} className="w-full text-xs sm:text-sm">
-                  {contractLogo ? 'Change Logo' : 'Upload Logo'}
-                </Button>
-              </Upload>
-              {contractLogo && (
-                <Button
-                  danger
-                  size="small"
-                  onClick={() => {
-                    setContractLogo(null);
-                    setContractLogoUrl('');
-                  }}
-                  className="w-full text-xs sm:text-sm"
-                >
-                  Remove Logo
-                </Button>
-              )}
-            </Space>
-          </Card>
-
-<div className='mt-2'>
-
-
-          <Card 
-            style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-            title={<span className="text-white text-sm sm:text-base">Add Elements</span>}
-          >
-            <Space direction="vertical" className="w-full" size="small">
-              {fieldTypes.map(type => (
-                <Button
-                  key={type.value}
-                  icon={type.icon}
-                  onClick={() => addElement(type.value)}
-                  style={buttonStyle}
-                  className="w-full justify-start text-xs sm:text-sm"
-                  size="small"
-                >
-                  {type.label}
-                </Button>
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {fieldTypes.map(category => (
+                <div key={category.category} className="p-4 border-b border-gray-200">
+                  <h3 className="font-medium text-sm text-gray-500 mb-2">{category.category}</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {category.types.map(type => (
+                      <button
+                        key={type.value}
+                        onClick={() => addElement(type.value)}
+                        className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm"
+                      >
+                        <span className="text-xl mb-1">{type.icon}</span>
+                        <span className="text-xs">{type.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </Space>
-          </Card>
+            </div>
           </div>
+        </div>
+      )}
 
-          <Card 
-            style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-            title={<span className="text-white text-sm sm:text-base">Additional Documents</span>}
-          >
-            <Upload
-              accept=".pdf"
-              multiple
-              onChange={handleDocumentUpload}
-              fileList={additionalDocuments}
-            >
-              <Button icon={<UploadOutlined />} style={buttonStyle} className="w-full text-xs sm:text-sm" size="small">
-                Upload PDFs
-              </Button>
-            </Upload>
-            <p className="text-xs text-gray-400 mt-2">
-              Upload additional PDF documents. They will be appended after your contract pages.
-            </p>
-          </Card>
+      {/* Mobile Properties Overlay */}
+      {propertiesOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/50 bg-opacity-50" onClick={() => setPropertiesOpen(false)} />
+          <div className="absolute right-0 top-0 h-full w-full sm:w-96 bg-white overflow-y-auto">
+            {renderPropertyPanel()}
+          </div>
+        </div>
+      )}
+
+      {/* Left Sidebar - Tools (Desktop) */}
+      <div className="hidden lg:flex lg:w-64 bg-white border-r border-gray-200 flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <h2 className="font-semibold text-lg">Contract Builder</h2>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto">
+          {fieldTypes.map(category => (
+            <div key={category.category} className="p-4 border-b border-gray-200">
+              <h3 className="font-medium text-sm text-gray-500 mb-2">{category.category}</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {category.types.map(type => (
+                  <button
+                    key={type.value}
+                    onClick={() => addElement(type.value)}
+                    className="flex flex-col items-center justify-center p-2 border border-gray-200 rounded hover:bg-gray-50 text-sm"
+                  >
+                    <span className="text-lg mb-1">{type.icon}</span>
+                    <span>{type.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Main area - Pages */}
-        <div className="lg:col-span-3">
-          <Card style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}>
-            <Tabs
-              activeKey={currentPage.toString()}
-              onChange={(key) => setCurrentPage(parseInt(key))}
-              tabBarExtraContent={
-                <Button
-                  icon={<PlusOutlined />}
-                  onClick={addPage}
-                  style={buttonStyle}
-                  size="small"
-                  className="text-xs sm:text-sm"
-                >
-                  <span className="hidden sm:inline">Add Page</span>
-                  <span className="sm:hidden">+</span>
-                </Button>
-              }
-            >
-              {contractPages.map((page, index) => (
-                <TabPane
-                  tab={
-                    <span className="text-xs sm:text-sm">
-                      {page.title}
-                      {contractPages.length > 1 && (
-                        <Button
-                          type="text"
-                          danger
-                          size="small"
-                          icon={<DeleteOutlined />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removePage(index);
-                          }}
-                          style={{ marginLeft: 4 }}
-                        />
-                      )}
-                    </span>
-                  }
-                  key={index.toString()}
-                >
-                  <div className="space-y-3 sm:space-y-4">
-                    <Input
-                      value={page.title}
-                      onChange={(e) => {
-                        const updatedPages = [...contractPages];
-                        updatedPages[index].title = e.target.value;
-                        setContractPages(updatedPages);
-                      }}
-                      placeholder="Page title"
-                      style={inputStyle}
-                      className="mb-3 sm:mb-4"
-                    />
-
-                    {page.elements.length === 0 ? (
-                      <div className="text-center py-8 sm:py-12 text-gray-400">
-                        <FileTextOutlined style={{ fontSize: 36, marginBottom: 12 }} className="sm:text-5xl" />
-                        <p className="text-sm sm:text-base">No elements added yet.</p>
-                        <p className="text-xs sm:text-sm">Use the sidebar to add fields and content.</p>
-                      </div>
-                    ) : (
-                      page.elements.map(element => renderBuilderElement(element))
-                    )}
-                  </div>
-                </TabPane>
-              ))}
-            </Tabs>
-          </Card>
+        <div className="p-4 border-t border-gray-200">
+          <button
+            onClick={addPage}
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+          >
+            Add Page
+          </button>
         </div>
       </div>
 
-      {/* Preview Modal */}
-      <Modal
-        title={<span className="text-sm sm:text-base">Contract Preview</span>}
-        open={previewVisible}
-        onCancel={() => setPreviewVisible(false)}
-        width="95%"
-        style={{ top: 10, maxWidth: '1200px', zIndex: 1000000 }}
-        footer={[
-          <Button key="close" onClick={() => setPreviewVisible(false)} size="small">
-            Close
-          </Button>,
-          <Button
-            key="print"
-            type="primary"
-            onClick={() => window.print()}
-            style={saveButtonStyle}
-            size="small"
-          >
-            Print
-          </Button>
-        ]}
-      >
-        <div style={{ maxHeight: '75vh', overflow: 'auto' }} className="bg-gray-100 p-2 sm:p-4">
-          {renderPreview()}
+      {/* Main Canvas */}
+      <div className="flex-1 flex flex-col min-w-0 mt-16 lg:mt-0">
+        {/* Page Tabs */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="flex items-center px-4 overflow-x-auto">
+            {contractPages.map((page, index) => (
+              <div
+                key={page.id}
+                className={`flex items-center px-4 py-2 border-b-2 flex-shrink-0 ${
+                  currentPage === index ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
+                }`}
+              >
+                <button
+                  onClick={() => setCurrentPage(index)}
+                  className="mr-2 text-sm lg:text-base"
+                >
+                  {page.title}
+                </button>
+                {contractPages.length > 1 && (
+                  <button
+                    onClick={() => removePage(index)}
+                    className="text-gray-400 hover:text-red-500 text-lg"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </Modal>
+
+        {/* Canvas Area */}
+        <div className="flex-1 p-2 lg:p-4">
+          <div
+            ref={containerRef}
+            className="bg-white border border-gray-300 rounded-lg relative h-full overflow-auto"
+            style={{ minHeight: '400px' }}
+            onClick={handleCanvasClick}
+          >
+            {contractPages[currentPage]?.elements.map(renderBuilderElement)}
+            
+            {contractPages[currentPage]?.elements.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                <div className="text-center p-4">
+                  <div className="text-4xl mb-4">📄</div>
+                  <p className="text-sm lg:text-base">
+                    {window.innerWidth < 1024 
+                      ? 'Tap "Tools" to add elements' 
+                      : 'Add elements from the sidebar to build your contract'
+                    }
+                  </p>
+                  {window.innerWidth < 1024 && (
+                    <button
+                      onClick={() => setSidebarOpen(true)}
+                      className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                    >
+                      Open Tools
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Sidebar - Properties (Desktop) */}
+      <div className="hidden lg:block lg:w-80 bg-white border-l border-gray-200 overflow-y-auto">
+        {renderPropertyPanel()}
+      </div>
     </div>
   );
 };

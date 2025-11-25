@@ -19,6 +19,7 @@ import {
   EyeOff,
   HistoryIcon,
 } from "lucide-react"
+import { BsCash } from "react-icons/bs";
 
 import {
   FranchiseData,
@@ -29,9 +30,11 @@ import {
   studioContractHistoryData,
   studioContractsData,
   studioDataNew,
+  studioFinanceData,
   studiofreeAppointmentsMainData,
   studiofreeAppointmentsStaffData,
   studioHistoryMainData,
+  studioLeadData,
   studiomemberHistoryNew,
   studioMembersData,
   studioStaffData,
@@ -81,8 +84,19 @@ import EditAppointmentModalStaff from "../../components/admin-dashboard-componen
 import ContingentModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/show-contigent-modal"
 import AddBillingPeriodModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/add-billing-period"
 import { ContractHistoryModal } from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-history-modal"
+import StudioFinancesModal from "../../components/admin-dashboard-components/studios-modal/finances-components/finances-modal";
+import { FaPeopleLine } from "react-icons/fa6";
+import StudioLeadsModal from "../../components/admin-dashboard-components/studios-modal/lead-components/lead-overview-modal";
+import { AddLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/add-lead-modal";
+import { ViewLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/view-lead-details";
+import { EditLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/edit-lead-modal";
+import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/user-panel-states/members-states";
+import EditStudioOptionsModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-options-modal";
+import { useNavigate } from "react-router-dom";
 
 export default function Studios() {
+  const navigate = useNavigate();
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
   const [selectedStudio, setSelectedStudio] = useState(null)
@@ -111,6 +125,8 @@ export default function Studios() {
   const [isContractsModalOpen, setIsContractsModalOpen] = useState(false)
   const [selectedStudioForModal, setSelectedStudioForModal] = useState(null)
 
+  const [isFinancesModalOpen, setisFinancesModalOpen] = useState(false)
+
   const [isEditStaffModalOpen, setisEditStaffModalOpen] = useState(false)
   const [selectedStaffForEdit, setselectedStaffForEdit] = useState(null)
 
@@ -124,6 +140,9 @@ export default function Studios() {
     joinDate: "",
     status: "active",
   })
+
+  const [isEditOptionsModalOpen, setIsEditOptionsModalOpen] = useState(false)
+  const [configurationMode, setConfigurationMode] = useState("studio") // "studio" or "admin"
 
   // New states for view details modals
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
@@ -155,7 +174,7 @@ export default function Studios() {
     noteEndDate: "",
     noteImportance: "unimportant",
     ownerName: "",
-  
+
     // =========================
     // Schedule and Operations
     // =========================
@@ -171,20 +190,20 @@ export default function Studios() {
     closingDays: "",
     openingHoursList: [], // [{ day, startTime, endTime }]
     closingDaysList: [], // [{ date, description }]
-  
+
     // =========================
     // Branding
     // =========================
     logoUrl: "",
     logoFile: null,
-  
+
     // =========================
     // Resources / Appointments
     // =========================
     maxCapacity: 10,
     appointmentTypes: [], // [{ name, duration, capacity, color, interval, images }]
     trialTraining: { name: "Trial Training", duration: 60, capacity: 1, color: "#1890ff" },
-  
+
     // =========================
     // Contracts
     // =========================
@@ -200,7 +219,7 @@ export default function Studios() {
     noticePeriod: 30,
     extensionPeriod: 12,
     allowMemberSelfCancellation: false,
-  
+
     // =========================
     // Communication
     // =========================
@@ -234,7 +253,7 @@ export default function Studios() {
       },
     ],
     broadcastMessages: [],
-  
+
     emailConfig: {
       smtpServer: "",
       smtpPort: 587,
@@ -245,7 +264,7 @@ export default function Studios() {
       smtpUser: "",
       smtpPass: "",
     },
-  
+
     birthdayMessages: {
       enabled: false,
       subject: "Happy Birthday from {Studio_Name}",
@@ -253,7 +272,7 @@ export default function Studios() {
       sendVia: ["email"],
       sendTime: "09:00",
     },
-  
+
     // =========================
     // Appearance
     // =========================
@@ -263,7 +282,7 @@ export default function Studios() {
       secondaryColor: "#1890ff",
       allowUserThemeToggle: true,
     },
-  
+
     // =========================
     // Configuration
     // =========================
@@ -271,13 +290,13 @@ export default function Studios() {
     permissionTemplates: [], // [{ name, roles: [...] }]
     leadSources: [], // [{ name }]
     tags: [], // [{ name, color }]
-  
+
     currency: "EUR",
     vatRates: [
       { name: "Standard", rate: 19 },
       { name: "Reduced", rate: 7 },
     ],
-  
+
     additionalContractDocuments: [],
     additionalDocs: [],
   })
@@ -334,6 +353,9 @@ export default function Studios() {
   const [showSelectedAppointmentModalMain, setShowSelectedAppointmentModalMain] = useState(false)
   const [appointmentToDelete, setAppointmentToDelete] = useState(null)
 
+  const [memberRelations, setMemberRelations] = useState(memberRelationsMainData)
+
+
   const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
   const [notifyActionMain, setNotifyActionMain] = useState("")
   const [memberContingent, setMemberContingent] = useState({
@@ -352,6 +374,20 @@ export default function Studios() {
       },
     },
   })
+
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return 'Unknown';
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age;
+  };
 
   const [showContingentModalMain, setShowContingentModalMain] = useState(false)
   const [tempContingentMain, setTempContingentMain] = useState({ used: 0, total: 0 })
@@ -440,6 +476,95 @@ export default function Studios() {
   const [contractHistory, setcontractHistory] = useState(studioContractHistoryData)
   const [isContractHistoryModalOpen, setIsContractHistoryModalOpen] = useState(false)
   const [selectedContractForHistory, setSelectedContractForHistory] = useState(null)
+
+  // for leads
+
+  const [isLeadsModalOpen, setIsLeadsModalOpen] = useState(false)
+  const [leadSearchQuery, setLeadSearchQuery] = useState("")
+  const [studioLeads, setStudioLeads] = useState(studioLeadData) // Import your studioLeadData
+
+  const [isViewLeadModalOpen, setIsViewLeadModalOpen] = useState(false)
+  const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false)
+  const [selectedLead, setSelectedLead] = useState(null)
+
+  const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false)
+  const [leadSources, setLeadSources] = useState([
+    "Website",
+    "Referral",
+    "Social Media",
+    "Walk-in",
+    "Phone Call",
+    "Email",
+    "Event",
+    "Other"
+  ])
+
+  const handleOpenLeadsModal = (studio) => {
+    setSelectedStudioForModal(studio)
+    setIsLeadsModalOpen(true)
+  }
+
+  const getFilteredLeads = () => {
+    if (!selectedStudioForModal || !studioLeads[selectedStudioForModal.id]) return []
+
+    return studioLeads[selectedStudioForModal.id].filter(
+      (lead) =>
+        `${lead.firstName} ${lead.surname}`.toLowerCase().includes(leadSearchQuery.toLowerCase()) ||
+        lead.email.toLowerCase().includes(leadSearchQuery.toLowerCase()) ||
+        lead.phoneNumber.includes(leadSearchQuery) ||
+        lead.about?.toLowerCase().includes(leadSearchQuery.toLowerCase())
+    )
+  }
+
+  const handleViewLead = (lead) => {
+    setSelectedLead(lead)
+    setIsViewLeadModalOpen(true)
+  }
+
+  const handleEditLead = (lead) => {
+    setSelectedLead(lead)
+    setIsEditLeadModalOpen(true)
+  }
+
+  const handleSaveEditedLead = (updatedLeadData) => {
+    if (!selectedStudioForModal || !selectedLead) return
+
+    setStudioLeads(prev => ({
+      ...prev,
+      [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map(lead =>
+        lead.id === selectedLead.id ? updatedLeadData : lead
+      )
+    }))
+
+    toast.success("Lead updated successfully!")
+    setIsEditLeadModalOpen(false)
+    setSelectedLead(null)
+  }
+
+  const handleAddLead = () => {
+    setIsAddLeadModalOpen(true)
+  }
+
+  const handleSaveLead = (newLeadData) => {
+    if (!selectedStudioForModal) return
+
+    setStudioLeads(prev => ({
+      ...prev,
+      [selectedStudioForModal.id]: [
+        ...(prev[selectedStudioForModal.id] || []),
+        {
+          ...newLeadData,
+          trialPeriod: newLeadData.hasTrialTraining ? "Trial Period" : "",
+          avatar: "",
+          source: newLeadData.source || "hardcoded"
+        }
+      ]
+    }))
+
+    toast.success("Lead added successfully!")
+  }
+
+
 
 
 
@@ -939,8 +1064,20 @@ export default function Studios() {
 
   const handleEditStudio = (studio) => {
     setSelectedStudio(studio)
-    setIsEditModalOpen(true)
+    setIsEditOptionsModalOpen(true)
   }
+
+  // Add these functions to your Studios component
+  const handleStudioConfig = (studio) => {
+    navigate(`/admin-dashboard/edit-studio-configuration/${studio.id}`)
+    setIsEditOptionsModalOpen(false)
+  }
+  
+  const handleAdminConfig = (studio) => {
+    navigate(`/admin-dashboard/edit-admin-configuration/${studio.id}`)
+    setIsEditOptionsModalOpen(false)
+  }
+
 
   const handleEditFranchise = (franchise) => {
     setSelectedFranchise(franchise)
@@ -1401,12 +1538,18 @@ export default function Studios() {
                   {viewMode === "studios" ? "Studios" : "Franchises"}
                 </h1>
               </div>
-              <div
+              {/* <div
                 onClick={toggleRightSidebar}
                 className="cursor-pointer lg:hidden md:hidden block  text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
               >
                 <IoIosMenu size={26} />
-              </div>
+              </div> */}
+               <img
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className="h-5 w-5 lg:hidden md:hidden block   cursor-pointer"
+                  src="/icon.svg"
+                  alt=""
+                />
             </div>
 
             <div className="flex md:items-center items-start  md:flex-row flex-col gap-3 w-full sm:w-auto">
@@ -1467,12 +1610,18 @@ export default function Studios() {
                   </div>
                 )}
               </div>
-              <div
+              {/* <div
                 onClick={toggleRightSidebar}
                 className="cursor-pointer lg:block md:block hidden  text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
               >
                 <IoIosMenu size={26} />
-              </div>
+              </div> */}
+              <img
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className="h-5 w-5 mr-5  lg:block md:block hidden   cursor-pointer"
+                  src="/icon.svg"
+                  alt=""
+                />
             </div>
           </div>
           <div className="flex flex-col space-y-4 mb-6">
@@ -1694,6 +1843,27 @@ export default function Studios() {
                             <span>{studioStats[studio.id]?.contracts || 0}</span>
                             <span className="">Contracts</span>
                           </button>
+
+                          <button
+                            onClick={() => handleOpenLeadsModal(studio)}
+                            className="flex items-center md:w-auto w-full justify-center cursor-pointer gap-2 bg-transparent border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
+                          >
+                            <FaPeopleLine size={16} />
+                            <span>{studioLeads[studio.id]?.length || 0}</span>
+                            <span className="">Leads</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setSelectedStudioForModal(studio); // Add this line
+                              setisFinancesModalOpen(true);
+                            }}
+                            className="flex items-center md:w-auto w-full justify-center cursor-pointer  gap-2 bg-transparent  border border-slate-700/50 px-4 py-2 rounded-lg text-sm transition-colors"
+                          >
+                            <BsCash size={16} />
+
+                            <span className="">Finances</span>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1782,10 +1952,10 @@ export default function Studios() {
                       <div className="flex flex-col gap-4">
                         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto">
-                            <div className="h-20 w-20 sm:h-16 sm:w-16 rounded-full flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
-                              {franchise.logo ? (
+                            <div className="h-20 w-20 sm:h-16 sm:w-16 rounded-xl flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                              {franchise.img ? (
                                 <img
-                                  src={franchise.logo || "/placeholder.svg"}
+                                  src={franchise.img || "/placeholder.svg"}
                                   alt={franchise.name}
                                   className="w-full h-full object-cover"
                                 />
@@ -1890,7 +2060,7 @@ export default function Studios() {
           setSelectedStudioForModal(null)
           setMemberSearchQuery("")
         }}
-        onViewMember={handleViewMemberDetails}
+        onViewMember={(member) => handleViewMemberDetails(member)}
         onEditMember={handleEditMember}
         handleHistoryFromOverview={handleHistoryFromOverview}
         handleDocumentFromOverview={handleDocumentFromOverview}
@@ -1902,12 +2072,25 @@ export default function Studios() {
         onClose={() => setIsEditMemberModalOpen(false)}
         selectedMember={selectedMemberForEdit}
         onSave={handleMemberEditSubmit}
+        memberRelations={memberRelations} // Pass relations data
+        availableMembersLeads={availableMembersLeadsMain} // Pass available members/leads
+        onArchiveMember={(memberId) => {
+          // Implement archive functionality
+          toast.success("Member archived successfully")
+        }}
+        onUnarchiveMember={(memberId) => {
+          // Implement unarchive functionality  
+          toast.success("Member unarchived successfully")
+        }}
       />
 
       <MemberDetailsModal
         isOpen={isMemberDetailsModalOpen}
         onClose={() => setIsMemberDetailsModalOpen(false)}
         member={selectedItemForDetails}
+        calculateAge={calculateAge} // You'll need to implement this function
+        isContractExpiringSoon={isContractExpiringSoon}
+        memberRelations={memberRelations[selectedItemForDetails?.id]} // Pass specific member's relations
       />
 
       <MemberHistoryModalMain
@@ -2199,9 +2382,58 @@ export default function Studios() {
       )}
       {/* end ----- */}
 
+
+      {/* lead related modals  */}
+      {/* Leads Modal */}
+      <StudioLeadsModal
+        isOpen={isLeadsModalOpen}
+        studio={selectedStudioForModal}
+        studioLeads={studioLeads}
+        leadSearchQuery={leadSearchQuery}
+        setLeadSearchQuery={setLeadSearchQuery}
+        getFilteredLeads={getFilteredLeads}
+        onClose={() => {
+          setIsLeadsModalOpen(false)
+          setSelectedStudioForModal(null)
+          setLeadSearchQuery("")
+        }}
+        onViewLead={handleViewLead}
+        onEditLead={handleEditLead}
+        onAddLead={handleAddLead}
+      />
+
+      <AddLeadModal
+        isVisible={isAddLeadModalOpen}
+        onClose={() => setIsAddLeadModalOpen(false)}
+        onSave={handleSaveLead}
+        leadSources={leadSources}
+      />
+
+      {/* View Lead Modal */}
+      <ViewLeadModal
+        isVisible={isViewLeadModalOpen}
+        onClose={() => {
+          setIsViewLeadModalOpen(false)
+          setSelectedLead(null)
+        }}
+        leadData={selectedLead}
+      />
+
+      {/* Edit Lead Modal */}
+      <EditLeadModal
+        isVisible={isEditLeadModalOpen}
+        onClose={() => {
+          setIsEditLeadModalOpen(false)
+          setSelectedLead(null)
+        }}
+        onSave={handleSaveEditedLead}
+        leadData={selectedLead}
+        leadSources={leadSources}
+      />
+
       {/* Main Studio related Modals */}
       {/* start  */}
-      <EditStudioModal
+      {/* <EditStudioModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         selectedStudio={selectedStudio}
@@ -2210,7 +2442,7 @@ export default function Studios() {
         handleInputChange={handleInputChange}
         handleEditSubmit={handleEditSubmit}
         DefaultStudioImage={DefaultStudioImage}
-      />
+      /> */}
 
       <StudioDetailsModal
         isOpen={isViewDetailsModalOpen}
@@ -2285,7 +2517,24 @@ export default function Studios() {
         onEditStudio={handleEditStudio}
         toast={toast}
       />
-      {/* end----- */}
+
+
+      <StudioFinancesModal
+        isOpen={isFinancesModalOpen}
+        onClose={() => setisFinancesModalOpen(false)}
+        studio={selectedStudioForModal} // Changed from selectedStudio to selectedStudioForModal
+        studioFinances={studioFinanceData}
+        financesPeriod={financesPeriod}
+        onPeriodChange={setFinancesPeriod}
+      />
+
+      <EditStudioOptionsModal
+        isOpen={isEditOptionsModalOpen}
+        onClose={() => setIsEditOptionsModalOpen(false)}
+        studio={selectedStudio}
+        onStudioConfig={handleStudioConfig}
+        onAdminConfig={handleAdminConfig}
+      />
 
       {/* sidebar related modals  */}
       <Sidebar

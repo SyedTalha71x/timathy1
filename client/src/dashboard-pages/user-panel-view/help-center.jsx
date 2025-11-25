@@ -135,24 +135,25 @@ const HelpCenter = () => {
         </h1>
 
         <div className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-            <input
-              type="search"
-              placeholder="Search Tickets...."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-11 bg-[#181818] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] leading-none"
-            />
-          </div>
+  <div className="relative w-full sm:flex-1">
+    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+    <input
+      type="search"
+      placeholder="Search Tickets...."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="h-11 bg-[#181818] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] leading-none"
+    />
+  </div>
 
-          <button
-            onClick={handleNewTicketClick}
-            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors duration-200 whitespace-nowrap"
-          >
-            New ticket
-          </button>
-        </div>
+  <button
+    onClick={handleNewTicketClick}
+    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors duration-200 whitespace-nowrap"
+  >
+    New ticket
+  </button>
+</div>
+
       </div>
 
       <div className="flex-1 flex flex-col px-4 sm:px-8 pb-8">

@@ -4,22 +4,21 @@ import { useState } from "react"
 import Modal from "./Modal"
 
 function CreateNoteModal({ isOpen, onClose, onSave }) {
-  const [newNote, setNewNote] = useState({ title: "", content: "", category: "personal" })
+  const [newNote, setNewNote] = useState({ title: "", content: "" })
 
   const handleSave = () => {
     if (newNote.title.trim() || newNote.content.trim()) {
       onSave({
         title: newNote.title || "Untitled",
         content: newNote.content,
-        category: newNote.category,
       })
-      setNewNote({ title: "", content: "", category: "personal" })
+      setNewNote({ title: "", content: "" })
       onClose()
     }
   }
 
   const handleClose = () => {
-    setNewNote({ title: "", content: "", category: "personal" })
+    setNewNote({ title: "", content: "" })
     onClose()
   }
 
@@ -36,17 +35,7 @@ function CreateNoteModal({ isOpen, onClose, onSave }) {
             placeholder="Enter note title..."
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
-          <select
-            value={newNote.category}
-            onChange={(e) => setNewNote((prev) => ({ ...prev, category: e.target.value }))}
-            className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-          >
-            <option value="personal">Personal</option>
-            <option value="studio">Studio</option>
-          </select>
-        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
           <textarea

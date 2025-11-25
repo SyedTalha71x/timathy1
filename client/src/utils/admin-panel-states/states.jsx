@@ -1,237 +1,298 @@
+import dayjs from "dayjs";
+import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
+import FranchiseImage from '../../../public/franchise-icon.png'
+import StudioIcon from '../../../public/studio.avif'
+
 export const studioMembersData = {
-    1: [
-        {
-            id: 1,
-            firstName: "John",
-            lastName: "Doe",
-            email: "john@example.com",
-            phone: "+49123456789",
-            street: "Hauptstraße 123",
-            zipCode: "10115",
-            city: "Berlin",
-            dateOfBirth: "1990-05-15",
-            about: "Regular gym member who enjoys weightlifting and cardio workouts.",
-            note: "Prefers evening workout sessions",
-            noteStartDate: "2023-01-15",
-            noteEndDate: "2023-12-31",
-            noteImportance: "unimportant",
-            contractStart: "2023-01-15",
-            contractEnd: "2024-01-15",
-            membershipType: "Premium",
-            joinDate: "2023-01-15",
-            status: "active",
-            image: "/default-avatar.avif",
-        },
-        // ... other members
-    ],
-    2: [
-        {
-            id: 4,
-            firstName: "Sarah",
-            lastName: "Wilson",
-            email: "sarah@example.com",
-            phone: "+49111222333",
-            street: "Alexanderplatz 12",
-            zipCode: "10178",
-            city: "Berlin",
-            dateOfBirth: "1988-04-17",
-            about: "Dance instructor and fitness enthusiast. Specializes in Zumba and aerobics.",
-            note: "Allergic to latex - use alternative equipment",
-            noteStartDate: "2023-01-05",
-            noteEndDate: "2024-01-05",
-            noteImportance: "important",
-            contractStart: "2023-01-05",
-            contractEnd: "2024-01-05",
-            membershipType: "Basic",
-            joinDate: "2023-01-05",
-            status: "active",
-            image: "/default-avatar.avif",
-        },
-        // ... other members
-    ],
+  1: [
+    {
+      id: 1,
+      firstName: "John",
+      lastName: "Doe",
+      email: "john@example.com",
+      phone: "+49123456789",
+      street: "Hauptstraße 123",
+      zipCode: "10115",
+      city: "Berlin",
+      dateOfBirth: "1990-05-15",
+      about: "Regular gym member who enjoys weightlifting and cardio workouts.",
+      note: "Prefers evening workout sessions",
+      noteStartDate: "2023-01-15",
+      noteEndDate: "2023-12-31",
+      noteImportance: "unimportant",
+      contractStart: "2023-01-15",
+      contractEnd: "2024-01-15",
+      membershipType: "Premium",
+      joinDate: "2023-01-15",
+      status: "active",
+      image: "/default-avatar.avif",
+    },
+    // ... other members
+  ],
+  2: [
+    {
+      id: 4,
+      firstName: "Sarah",
+      lastName: "Wilson",
+      email: "sarah@example.com",
+      phone: "+49111222333",
+      street: "Alexanderplatz 12",
+      zipCode: "10178",
+      city: "Berlin",
+      dateOfBirth: "1988-04-17",
+      about: "Dance instructor and fitness enthusiast. Specializes in Zumba and aerobics.",
+      note: "Allergic to latex - use alternative equipment",
+      noteStartDate: "2023-01-05",
+      noteEndDate: "2024-01-05",
+      noteImportance: "important",
+      contractStart: "2023-01-05",
+      contractEnd: "2024-01-05",
+      membershipType: "Basic",
+      joinDate: "2023-01-05",
+      status: "active",
+      image: "/default-avatar.avif",
+    },
+    // ... other members
+  ],
 };
 
 export const studioStaffData = {
-    1: [
-        {
-            id: 1,
-            firstName: "Natalia",
-            lastName: "Brown",
-            role: "Telephone operator",
-            email: "natalia.brown@example.com",
-            phone: "+1234567890",
-            description: "Experienced telephone operator with excellent communication skills.",
-            img: null,
-            userId: "natalia.telephone-operator",
-            username: "natalia.brown",
-            street: "123 Main St",
-            zipCode: "12345",
-            city: "Anytown",
-            vacationEntitlement: 30,
-            birthday: "1990-05-10",
-        },
-    ],
-    2: [
-        {
-            id: 2,
-            firstName: "Natalia",
-            lastName: "Brown",
-            role: "Telephone operator",
-            email: "natalia.brown@example.com",
-            phone: "+1234567890",
-            description: "Experienced telephone operator with excellent communication skills.",
-            img: null,
-            userId: "natalia.telephone-operator",
-            username: "natalia.brown",
-            street: "123 Main St",
-            zipCode: "12345",
-            city: "Anytown",
-            vacationEntitlement: 30,
-            birthday: "1990-05-10",
-        },
-    ],
+  1: [
+    {
+      id: 1,
+      firstName: "Natalia",
+      lastName: "Brown",
+      role: "Telephone operator",
+      email: "natalia.brown@example.com",
+      phone: "+1234567890",
+      description: "Experienced telephone operator with excellent communication skills.",
+      img: null,
+      userId: "natalia.telephone-operator",
+      username: "natalia.brown",
+      street: "123 Main St",
+      zipCode: "12345",
+      city: "Anytown",
+      vacationEntitlement: 30,
+      birthday: "1990-05-10",
+    },
+  ],
+  2: [
+    {
+      id: 2,
+      firstName: "Natalia",
+      lastName: "Brown",
+      role: "Telephone operator",
+      email: "natalia.brown@example.com",
+      phone: "+1234567890",
+      description: "Experienced telephone operator with excellent communication skills.",
+      img: null,
+      userId: "natalia.telephone-operator",
+      username: "natalia.brown",
+      street: "123 Main St",
+      zipCode: "12345",
+      city: "Anytown",
+      vacationEntitlement: 30,
+      birthday: "1990-05-10",
+    },
+  ],
 }
 
 export const studioLeadData = {
-    1: [
-        {
-              id: 1,
-              firstName: "John",
-              surname: "Smith",
-              email: "john.smith@example.com",
-              phoneNumber: "+1234567890",
-              trialPeriod: "Trial Period",
-              hasTrialTraining: true,
-              avatar: "",
-              source: "hardcoded",
-              status: "active",
-              about: "Software Engineer",
-              createdAt: "2025-01-15T10:30:00Z",
-              specialNote: {
-                text: "Interested in personal training sessions twice a week.",
-                isImportant: false,
-                startDate: "2025-01-15",
-                endDate: "2025-03-15",
-              },
-            },
-    ],
-    2: [
-        {
-              id: 2,
-              firstName: "John",
-              surname: "Smith",
-              email: "john.smith@example.com",
-              phoneNumber: "+1234567890",
-              trialPeriod: "Trial Period",
-              hasTrialTraining: true,
-              avatar: "",
-              source: "hardcoded",
-              status: "active",
-              about: "Software Engineer",
-              createdAt: "2025-01-15T10:30:00Z",
-              specialNote: {
-                text: "Interested in personal training sessions twice a week.",
-                isImportant: false,
-                startDate: "2025-01-15",
-                endDate: "2025-03-15",
-              },
-            },
-    ],
+  1: [
+    {
+      id: "h1",
+      firstName: "John",
+      surname: "Smith",
+      email: "john.smith@example.com",
+      phoneNumber: "+1234567890",
+      trialPeriod: "Trial Period",
+      hasTrialTraining: true,
+      avatar: Avatar,
+      source: "Website",
+      status: "active",
+      about: "Software Engineer",
+      createdAt: "2025-01-15T10:30:00Z",
+      specialNote: {
+        text: "Interested in personal training sessions twice a week.",
+        isImportant: false,
+        startDate: "2025-01-15",
+        endDate: "2025-03-15",
+      },
+      columnId: "active",
+      studioName: "Studio Name XYZ..",
+      street: "123 Main St",
+      zipCode: "12345",
+      city: "New York",
+      country: "USA",
+      website: "https://example.com",
+      leadId: "LEAD-001",
+    },
+    {
+      id: "h2",
+      firstName: "Sarah",
+      surname: "Wilson",
+      email: "sarah.wilson@example.com",
+      phoneNumber: "+1987654321",
+      trialPeriod: "Trial Period",
+      hasTrialTraining: false,
+      avatar: Avatar,
+      source: "Google Ads",
+      status: "passive",
+      createdAt: "2025-01-20T14:45:00Z",
+      specialNote: {
+        text: "Has dietary restrictions - needs specialized nutrition plan.",
+        isImportant: false,
+        startDate: "2025-01-20",
+        endDate: "2025-04-20",
+      },
+      columnId: "passive",
+      studioName: "Studio Name XYZ..",
+      street: "456 Oak Ave",
+      zipCode: "67890",
+      city: "Los Angeles",
+      country: "USA",
+      website: "https://sarahwilson.com",
+      leadId: "LEAD-002",
+    },
+
+  ],
+  2: [
+    {
+      id: "h3",
+      firstName: "Michael",
+      surname: "Brown",
+      email: "michael.brown@example.com",
+      phoneNumber: "+1122334455",
+      trialPeriod: "Trial Period",
+      hasTrialTraining: true,
+      avatar: Avatar,
+      source: "Social Media Ads",
+      status: "active",
+      createdAt: "2025-01-25T09:15:00Z",
+      specialNote: {
+        text: "Former athlete, looking for high-intensity workouts.",
+        isImportant: false,
+        startDate: "2025-01-25",
+        endDate: "2025-02-25",
+      },
+      columnId: "active",
+      studioName: "Studio Name XYZ..",
+      street: "789 Pine Rd",
+      zipCode: "54321",
+      city: "Chicago",
+      country: "USA",
+      website: "https://michaelbrown.fitness",
+      leadId: "LEAD-003",
+    },
+    {
+      id: "h4",
+      firstName: "Emma",
+      surname: "Davis",
+      email: "emma.davis@example.com",
+      phoneNumber: "+1555666777",
+      trialPeriod: "Trial Period",
+      hasTrialTraining: false,
+      avatar: Avatar,
+      source: "Email Campaign",
+      status: "uninterested",
+      createdAt: "2025-02-01T11:20:00Z",
+      specialNote: {
+        text: "Requested follow-up in 3 months - not ready to commit now.",
+        isImportant: true,
+        startDate: "2025-02-01",
+        endDate: "2025-05-01",
+      },
+      columnId: "uninterested",
+      studioName: "",
+      street: "321 Elm St",
+      zipCode: "98765",
+      city: "Miami",
+      country: "USA",
+      website: "https://emmadavis.com",
+      leadId: "LEAD-004",
+    },
+  ],
 }
 
 export const studioContractsData = {
-    1: [
-        {
-            id: 1,
-            memberName: "John Doe",
-            duration: "12 months",
-            startDate: "2023-01-15",
-            endDate: "2024-01-15",
-            status: "active",
-            files: ["contract_john.pdf", "terms_john.pdf"],
-        },
-        {
-            id: 2,
-            memberName: "Jane Smith",
-            duration: "6 months",
-            startDate: "2023-02-20",
-            endDate: "2023-08-20",
-            status: "paused",
-            files: ["contract_jane.pdf"],
-        },
-        {
-            id: 3,
-            memberName: "Mike Johnson",
-            duration: "12 months",
-            startDate: "2023-03-10",
-            endDate: "2024-03-10",
-            status: "inactive",
-            files: ["contract_mike.pdf", "cancellation_mike.pdf"],
-        },
-    ],
-    2: [
-        {
-            id: 4,
-            memberName: "Sarah Wilson",
-            duration: "24 months",
-            startDate: "2023-01-05",
-            endDate: "2025-01-05",
-            status: "active",
-            files: ["contract_sarah.pdf"],
-        },
-        {
-            id: 5,
-            memberName: "Tom Brown",
-            duration: "12 months",
-            startDate: "2023-02-15",
-            endDate: "2024-02-15",
-            status: "active",
-            files: ["contract_tom.pdf", "addendum_tom.pdf"],
-        },
-    ],
-}
+  1: [
+    {
+      id: "12321-1",
+      studioName: "Pro Physio Studio",
+      studioOwnerName: "John Doe",
+      contractType: "Premium",
+      startDate: "2023-01-01",
+      endDate: "2024-01-01",
+      status: "Active",
+      pauseReason: null,
+      cancelReason: null,
+      isDigital: true,
+      email: "prostudio@example.com",
+      phone: "1234567890",
+      iban: "DE89370400440532013000",
+    },
+  ],
+
+  2: [
+    {
+      id: "12321-2",
+      studioName: "Power Fitness Gym",
+      studioOwnerName: "Jane Smith",
+      contractType: "Basic",
+      startDate: "2023-02-15",
+      endDate: "2024-02-15",
+      status: "Paused",
+      pauseReason: "Pregnancy",
+      cancelReason: null,
+      isDigital: false,
+    },
+
+  ],
+};
+
 
 export const studioFinanceData = {
-    1: {
-        month: { totalRevenue: 45000, successfulPayments: 42000, pendingPayments: 2500, failedPayments: 500 },
-        quarter: { totalRevenue: 135000, successfulPayments: 128000, pendingPayments: 5500, failedPayments: 1500 },
-        year: { totalRevenue: 540000, successfulPayments: 515000, pendingPayments: 18000, failedPayments: 7000 },
-        overall: { totalRevenue: 640000, successfulPayments: 215000, pendingPayments: 28000, failedPayments: 4000 },
+  1: {
+    month: { totalRevenue: 45000, successfulPayments: 42000, pendingPayments: 2500, failedPayments: 500 },
+    quarter: { totalRevenue: 135000, successfulPayments: 128000, pendingPayments: 5500, failedPayments: 1500 },
+    year: { totalRevenue: 540000, successfulPayments: 515000, pendingPayments: 18000, failedPayments: 7000 },
+    overall: { totalRevenue: 640000, successfulPayments: 215000, pendingPayments: 28000, failedPayments: 4000 },
 
-    },
-    2: {
-        month: { totalRevenue: 32000, successfulPayments: 30000, pendingPayments: 1500, failedPayments: 500 },
-        quarter: { totalRevenue: 96000, successfulPayments: 91000, pendingPayments: 3500, failedPayments: 1500 },
-        year: { totalRevenue: 384000, successfulPayments: 365000, pendingPayments: 12000, failedPayments: 7000 },
-        overall: { totalRevenue: 984000, successfulPayments: 165000, pendingPayments: 42000, failedPayments: 9000 },
-    },
+  },
+  2: {
+    month: { totalRevenue: 32000, successfulPayments: 30000, pendingPayments: 1500, failedPayments: 500 },
+    quarter: { totalRevenue: 96000, successfulPayments: 91000, pendingPayments: 3500, failedPayments: 1500 },
+    year: { totalRevenue: 384000, successfulPayments: 365000, pendingPayments: 12000, failedPayments: 7000 },
+    overall: { totalRevenue: 984000, successfulPayments: 165000, pendingPayments: 42000, failedPayments: 9000 },
+  },
 }
 
 export const studioStatsData = {
-    1: { members: 120, trainers: 8, classes: 15, leads: 4, contracts: 6 },
-    2: { members: 85, trainers: 5, classes: 10, leads: 4, contracts: 6 },
+  1: { members: 120, trainers: 8, classes: 15, leads: 4, contracts: 6 },
+  2: { members: 85, trainers: 5, classes: 10, leads: 4, contracts: 6 },
 }
 
 export const FranchiseData = [
-    {
-        id: 1,
-        name: "FitChain Franchise Group",
-        email: "info@fitchain.com",
-        phone: "+49123456789",
-        street: "Franchise Straße 1",
-        zipCode: "10115",
-        city: "Berlin",
-        website: "www.fitchain.com",
-        about: "Leading fitness franchise with multiple studio locations across Germany.",
-        ownerName: "Klaus Weber",
-        ownerFirstName: "Klaus",
-        ownerLastName: "Weber",
-        taxId: "DE111222333",
-        loginEmail: "admin@fitchain.com",
-        loginPassword: "franchise123",
-        createdDate: "2023-01-15",
-        studioCount: 2,
-    }
+  {
+    id: 1,
+    name: "FitChain Franchise Group",
+    email: "info@fitchain.com",
+    phone: "+49123456789",
+    street: "Franchise Straße 1",
+    zipCode: "10115",
+    city: "Berlin",
+    website: "www.fitchain.com",
+    about: "Leading fitness franchise with multiple studio locations across Germany.",
+    ownerName: "Klaus Weber",
+    ownerFirstName: "Klaus",
+    ownerLastName: "Weber",
+    taxId: "DE111222333",
+    loginEmail: "admin@fitchain.com",
+    loginPassword: "franchise123",
+    createdDate: "2023-01-15",
+    studioCount: 2,
+    img: FranchiseImage
+  }
 ];
 
 
@@ -1945,10 +2006,10 @@ export const studioDataNew = [
     street: "Hauptstraße 123",
     zipCode: "10115",
     city: "Berlin",
-    country: "Germany",
+    country: "DE",
     iban: "DE89 3704 0044 0532 0130 00",
     taxId: "DE123456789",
-    image: null,
+    image: StudioIcon,
     isActive: true,
     note: "Premium partner, VIP treatment",
     noteStartDate: "2023-01-01",
@@ -1961,16 +2022,520 @@ export const studioDataNew = [
     contractEnd: "2023-03-01",
     ownerName: "Hans Mueller",
     franchiseId: 1,
-    openingHours: {
-      monday: "6:00 - 22:00",
-      tuesday: "6:00 - 22:00",
-      wednesday: "6:00 - 22:00",
-      thursday: "6:00 - 22:00",
-      friday: "6:00 - 22:00",
-      saturday: "8:00 - 20:00",
-      sunday: "10:00 - 18:00",
+
+    // Studio Data (Corrected for ConfigurationPage)
+    studioName: "Fitness for Life GmbH",
+    studioOperator: "Hans Mueller",
+    studioPhoneNo: "+49123456789",
+    studioEmail: "info@fitnessforlife.de",
+    studioStreet: "Hauptstraße 123",
+    studioZipCode: "10115",
+    studioCity: "Berlin",
+    studioCountry: "DE",
+    studioWebsite: "https://www.fitnessforlife.de",
+    logoUrl: "",
+    logo: [],
+
+    // Opening Hours (Corrected - Array format)
+    openingHours: [
+      { day: "Monday", startTime: dayjs("06:00", "HH:mm"), endTime: dayjs("22:00", "HH:mm") },
+      { day: "Tuesday", startTime: dayjs("06:00", "HH:mm"), endTime: dayjs("22:00", "HH:mm") },
+      { day: "Wednesday", startTime: dayjs("06:00", "HH:mm"), endTime: dayjs("22:00", "HH:mm") },
+      { day: "Thursday", startTime: dayjs("06:00", "HH:mm"), endTime: dayjs("22:00", "HH:mm") },
+      { day: "Friday", startTime: dayjs("06:00", "HH:mm"), endTime: dayjs("22:00", "HH:mm") },
+      { day: "Saturday", startTime: dayjs("08:00", "HH:mm"), endTime: dayjs("20:00", "HH:mm") },
+      { day: "Sunday", startTime: dayjs("10:00", "HH:mm"), endTime: dayjs("18:00", "HH:mm") }
+    ],
+
+    // Closing Days (Array format)
+    closingDays: [
+      { date: dayjs("2024-12-25"), description: "Christmas Day" },
+      { date: dayjs("2025-01-01"), description: "New Year's Day" }
+    ],
+
+    // Public Holidays (for import functionality)
+    publicHolidays: [
+      { date: "2024-12-25", name: "Christmas Day" },
+      { date: "2025-01-01", name: "New Year's Day" }
+    ],
+
+    // Resources
+    maxCapacity: 15,
+
+    // Appointment Types (Array format)
+    appointmentTypes: [
+      {
+        name: "Personal Training",
+        duration: 60,
+        capacity: 1,
+        color: "#FF843E",
+        interval: 30,
+        images: []
+      },
+      {
+        name: "Group Fitness",
+        duration: 45,
+        capacity: 12,
+        color: "#3F74FF",
+        interval: 15,
+        images: []
+      },
+      {
+        name: "Yoga Class",
+        duration: 60,
+        capacity: 8,
+        color: "#10B981",
+        interval: 30,
+        images: []
+      }
+    ],
+
+    // Trial Training (Object format)
+    trialTraining: {
+      duration: 60,
+      capacity: 1,
+      color: "#1890ff"
     },
-    closingDays: "Christmas Day, New Year's Day",
+
+    // Staff Management
+    // Updated roles section using the PERMISSION_GROUPS format
+    roles: [
+      {
+        name: "Manager",
+        permissions: [
+          // Appointments
+          "appointments.view",
+          "appointments.create",
+          "appointments.edit",
+          "appointments.cancel",
+          "appointments.manage_contingent",
+
+          // Communication
+          "communication.view",
+          "emails.send",
+          "chat.member_send",
+          "chat.studio_send",
+          "broadcasts.send",
+          "bulletin_board.view",
+          "bulletin_board.posts_create",
+          "bulletin_board.posts_edit",
+          "bulletin_board.posts_delete",
+
+          // Activity Monitor
+          "activity_monitor.view",
+          "activity_monitor.take_actions",
+
+          // To-Do & Tags
+          "todos.view",
+          "todos.create",
+          "todos.edit",
+          "todos.delete",
+          "tags.manage",
+
+          // Notes
+          "notes.view",
+          "notes.personal_create",
+          "notes.studio_create",
+          "notes.studio_delete",
+
+          // Members
+          "members.view",
+          "members.create",
+          "members.edit",
+          "members.history_view",
+          "members.documents_manage",
+
+          // Staff
+          "staff.view",
+          "staff.create",
+          "staff.edit",
+          "staff.history_view",
+          "staff.vacation_calendar_view",
+          "staff.planning_view",
+          "staff.shifts_manage",
+
+          // Leads
+          "leads.view",
+          "leads.create",
+          "leads.edit",
+          "leads.columns_edit",
+
+          // Contracts
+          "contracts.view",
+          "contracts.create",
+          "contracts.edit",
+          "contracts.cancel",
+          "contracts.view_details",
+          "contracts.documents_manage",
+
+          // Selling & Products
+          "selling.view",
+          "products.manage",
+          "services.manage",
+          "sales_journal.view",
+          "sales_journal.take_actions",
+
+          // Finances
+          "finances.view",
+          "payments.run",
+
+          // Training
+          "training.view",
+          "training_plans.create",
+          "training_plans.assign",
+
+          // Analytics
+          "analytics.view",
+          "analytics.finance_view",
+          "analytics.members_view",
+          "analytics.leads_view",
+          "analytics.appointments_view",
+
+          // Configuration
+          "profile.edit_own",
+          "studio.config_manage",
+          "appointments.config_manage",
+          "staff.config_manage",
+          "leads.sources_manage",
+          "contracts.config_manage",
+          "documents.config_manage",
+          "communication.config_manage",
+          "finance.config_manage",
+          "appearance.manage"
+        ],
+        color: "#FF843E",
+        defaultVacationDays: 25
+      },
+      {
+        name: "Trainer",
+        permissions: [
+          // Appointments
+          "appointments.view",
+          "appointments.create",
+          "appointments.edit",
+          "appointments.cancel",
+
+          // Communication
+          "communication.view",
+          "chat.member_send",
+          "bulletin_board.view",
+
+          // To-Do & Tags
+          "todos.view",
+          "todos.create",
+          "todos.edit",
+
+          // Notes
+          "notes.view",
+          "notes.personal_create",
+          "notes.studio_create",
+
+          // Members
+          "members.view",
+          "members.history_view",
+
+          // Staff - Limited
+          "staff.vacation_calendar_view",
+          "staff.planning_view",
+
+          // Leads
+          "leads.view",
+
+          // Contracts
+          "contracts.view",
+
+          // Selling & Products
+          "selling.view",
+
+          // Training
+          "training.view",
+          "training_plans.assign",
+
+          // Analytics - Limited
+          "analytics.members_view",
+          "analytics.appointments_view",
+
+          // Configuration - Limited
+          "profile.edit_own"
+        ],
+        color: "#3F74FF",
+        defaultVacationDays: 20
+      },
+      {
+        name: "Reception",
+        permissions: [
+          // Appointments
+          "appointments.view",
+          "appointments.create",
+          "appointments.edit",
+          "appointments.cancel",
+
+          // Communication
+          "communication.view",
+          "chat.member_send",
+          "bulletin_board.view",
+
+          // To-Do & Tags
+          "todos.view",
+          "todos.create",
+
+          // Notes
+          "notes.view",
+          "notes.personal_create",
+
+          // Members
+          "members.view",
+          "members.create",
+          "members.edit",
+
+          // Leads
+          "leads.view",
+          "leads.create",
+
+          // Contracts
+          "contracts.view",
+
+          // Selling & Products
+          "selling.view",
+
+          // Configuration - Limited
+          "profile.edit_own"
+        ],
+        color: "#10B981",
+        defaultVacationDays: 20
+      },
+      {
+        name: "Read Only",
+        permissions: [
+          // View only permissions across most modules
+          "appointments.view",
+          "communication.view",
+          "activity_monitor.view",
+          "todos.view",
+          "notes.view",
+          "members.view",
+          "staff.view",
+          "leads.view",
+          "contracts.view",
+          "selling.view",
+          "training.view",
+          "analytics.view",
+          "profile.edit_own"
+        ],
+        color: "#6B7280",
+        defaultVacationDays: 20
+      }
+    ],
+    defaultVacationDays: 20,
+
+    // Member Management
+    allowMemberQRCheckIn: true,
+    memberQRCodeUrl: "https://fitnessforlife.de/checkin/qr123",
+
+    // Lead Sources (Array format)
+    leadSources: [
+      { id: 1, name: "Website", color: "#3F74FF" },
+      { id: 2, name: "Referral", color: "#10B981" },
+      { id: 3, name: "Social Media", color: "#FF843E" },
+      { id: 4, name: "Walk-in", color: "#8B5CF6" }
+    ],
+
+    // Tags (Array format)
+    tags: [
+      { name: "VIP", color: "#FF843E" },
+      { name: "New", color: "#3F74FF" },
+      { name: "Renewal", color: "#10B981" }
+    ],
+
+    // Contracts
+    contractTypes: [
+      {
+        name: "Premium Membership",
+        duration: 12,
+        cost: 89.99,
+        billingPeriod: "monthly",
+        userCapacity: 8,
+        autoRenewal: true,
+        renewalPeriod: 12,
+        renewalPrice: 79.99,
+        cancellationPeriod: 30
+      },
+      {
+        name: "Basic Membership",
+        duration: 6,
+        cost: 59.99,
+        billingPeriod: "monthly",
+        userCapacity: 4,
+        autoRenewal: false,
+        renewalPeriod: 6,
+        renewalPrice: 54.99,
+        cancellationPeriod: 30
+      }
+    ],
+
+    // Contract Pause Reasons (Array format)
+    contractPauseReasons: [
+      { name: "Vacation", maxDays: 30 },
+      { name: "Medical", maxDays: 90 },
+      { name: "Business Trip", maxDays: 21 }
+    ],
+
+    noticePeriod: 30,
+    extensionPeriod: 12,
+    allowMemberSelfCancellation: true,
+
+    // Settings (Structured for ConfigurationPage)
+    settings: {
+      // General Communication
+      autoArchiveDuration: 30,
+
+      // Notification Settings
+      notificationSubTab: "email",
+      emailNotificationEnabled: true,
+      appNotificationEnabled: true,
+
+      // Birthday Messages
+      birthdayMessageEnabled: true,
+      birthdayMessageTemplate: "Happy Birthday, {Member_First_Name} {Member_Last_Name}! Best wishes from {Studio_Name}!",
+      birthdayAppNotificationEnabled: true,
+
+      // Appointment Notifications
+      appointmentNotificationEnabled: true,
+      appointmentAppNotificationEnabled: true,
+
+      // Email Notifications
+      appConfirmationEnabled: true,
+      appCancellationEnabled: true,
+      appRescheduledEnabled: true,
+      appReminderEnabled: true,
+
+      // Appointment Notification Types
+      appointmentNotificationTypes: {
+        confirmation: {
+          enabled: true,
+          template: "Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been booked for {Booked_Time}.",
+          sendApp: true,
+          sendEmail: true,
+          hoursBefore: 24
+        },
+        cancellation: {
+          enabled: true,
+          template: "Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
+          sendApp: true,
+          sendEmail: true,
+          hoursBefore: 24
+        },
+        rescheduled: {
+          enabled: true,
+          template: "Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}.",
+          sendApp: true,
+          sendEmail: true,
+          hoursBefore: 24
+        },
+        reminder: {
+          enabled: true,
+          template: "Hello {Member_First_Name} {Member_Last_Name}, this is a reminder for your {Appointment_Type} at {Booked_Time}.",
+          sendApp: true,
+          sendEmail: true,
+          hoursBefore: 24
+        }
+      },
+
+      // SMTP Configuration
+      smtpHost: "smtp.fitnessforlife.de",
+      smtpPort: 587,
+      smtpUser: "noreply@fitnessforlife.de",
+      smtpPass: "encrypted_password",
+
+      // Email Signature
+      emailSignature: "Best regards,\n{Studio_Name} Team"
+    },
+
+    // Email Configuration (for backward compatibility)
+    emailConfig: {
+      smtpServer: "smtp.fitnessforlife.de",
+      smtpPort: 587,
+      emailAddress: "noreply@fitnessforlife.de",
+      password: "encrypted_password",
+      useSSL: false,
+      senderName: "Fitness for Life",
+      smtpUser: "noreply@fitnessforlife.de",
+      smtpPass: "encrypted_password"
+    },
+
+    // Finances
+    currency: "€",
+
+    // VAT Rates (Array format)
+    vatRates: [
+      { name: "Standard", percentage: 19, description: "Standard VAT rate for services" },
+      { name: "Reduced", percentage: 7, description: "Reduced VAT rate for essential goods" }
+    ],
+
+    vatNumber: "DE123456789",
+    bankName: "Deutsche Bank",
+    creditorId: "DE98ZZZ09999999999",
+
+    // Appearance
+    appearance: {
+      theme: "dark",
+      primaryColor: "#FF843E",
+      secondaryColor: "#3F74FF",
+      allowStaffThemeToggle: true,
+      allowMemberThemeToggle: false
+    },
+
+    // Additional Documents
+    additionalDocs: [
+      "terms_and_conditions.pdf",
+      "privacy_policy.pdf",
+      "health_declaration_form.pdf"
+    ],
+
+    // ========== ADMIN CONFIGURATION DATA ==========
+
+    // Legal Information for Admin Panel
+    imprint: "<h1>Fitness for Life GmbH</h1><p>Hauptstraße 123<br>10115 Berlin<br>Germany</p><p><strong>Managing Director:</strong> Hans Mueller</p><p><strong>Commercial Register:</strong> Amtsgericht Berlin Charlottenburg, HRB 123456</p><p><strong>VAT ID:</strong> DE123456789</p>",
+
+    privacyPolicy: "<h1>Privacy Policy</h1><p>We take the protection of your personal data very seriously. We treat your personal data confidentially and in accordance with the statutory data protection regulations and this privacy policy.</p><h2>Data Collection</h2><p>We collect and process personal data only to the extent necessary for the fulfillment of contracts and legal obligations.</p>",
+
+    termsAndConditions: "<h1>Terms and Conditions</h1><p><strong>§1 General</strong></p><p>These terms and conditions govern the contractual relationship between Fitness for Life GmbH and its members.</p><p><strong>§2 Membership</strong></p><p>Membership begins on the date of contract conclusion and runs for the agreed minimum term.</p>",
+
+    // Changelog for Admin Panel
+    changelog: [
+      {
+        version: "2.1.0",
+        date: dayjs("2024-01-15"),
+        color: "#10B981",
+        content: "<h3>New Features</h3><ul><li>Added advanced reporting dashboard</li><li>Integrated new payment gateway</li><li>Enhanced mobile app performance</li></ul>"
+      },
+      {
+        version: "2.0.5",
+        date: dayjs("2023-11-20"),
+        color: "#3B82F6",
+        content: "<h3>Improvements</h3><ul><li>Optimized database queries</li><li>Improved email template system</li><li>Enhanced security features</li></ul>"
+      },
+      {
+        version: "2.0.0",
+        date: dayjs("2023-09-01"),
+        color: "#FF843E",
+        content: "<h3>Major Release</h3><ul><li>Complete UI redesign</li><li>New appointment scheduling system</li><li>Advanced member management</li></ul>"
+      }
+    ],
+
+    // Demo Access Email Settings
+    demoEmailSettings: {
+      subject: "Demo Access to Fitness for Life Management System",
+      content: "<p>Dear {Recipient_Name},</p><p>You have been granted demo access to our Fitness for Life management system.</p><p><strong>Access Link:</strong> {Link}</p><p>This demo access will expire on {Expiry_Date}.</p><p>Best regards,<br>Fitness for Life Team</p>",
+      expiryDays: 7
+    },
+
+    // Email Signature Settings
+    emailSignatureSettings: {
+      autoAppend: true,
+      includeInReplies: true,
+      useHTML: true
+    }
   },
   {
     id: 2,
@@ -1980,191 +2545,315 @@ export const studioDataNew = [
     street: "Friedrichstraße 45",
     zipCode: "20354",
     city: "Hamburg",
-    country: "Germany",
-    iban: "DE12 5001 0517 0648 4898 90",
-    taxId: "DE987654321",
-    image: null,
-    isActive: false,
-    note: "",
-    noteStartDate: "",
-    noteEndDate: "",
-    noteImportance: "unimportant",
-    website: "www.powergym.com",
-    about: "Specialized in strength training and bodybuilding with professional coaching.",
-    joinDate: "2021-11-15",
-    contractStart: "2021-11-15",
-    contractEnd: "2024-04-15",
-    ownerName: "Maria Schmidt",
-    franchiseId: 1,
-    openingHours: {
-      monday: "5:00 - 23:00",
-      tuesday: "5:00 - 23:00",
-      wednesday: "5:00 - 23:00",
-      thursday: "5:00 - 23:00",
-      friday: "5:00 - 23:00",
-      saturday: "7:00 - 21:00",
-      sunday: "9:00 - 19:00",
+    country: "DE",
+    image: StudioIcon,
+
+    // Studio Data
+    studioName: "PowerGym AG",
+    studioOperator: "Maria Schmidt",
+    studioPhoneNo: "+49987654321",
+    studioEmail: "contact@powergym.com",
+    studioStreet: "Friedrichstraße 45",
+    studioZipCode: "20354",
+    studioCity: "Hamburg",
+    studioCountry: "DE",
+    studioWebsite: "https://www.powergym.com",
+    logoUrl: "",
+    logo: [],
+
+    // Opening Hours (Array format)
+    openingHours: [
+      { day: "Monday", startTime: dayjs("05:00", "HH:mm"), endTime: dayjs("23:00", "HH:mm") },
+      { day: "Tuesday", startTime: dayjs("05:00", "HH:mm"), endTime: dayjs("23:00", "HH:mm") },
+      { day: "Wednesday", startTime: dayjs("05:00", "HH:mm"), endTime: dayjs("23:00", "HH:mm") },
+      { day: "Thursday", startTime: dayjs("05:00", "HH:mm"), endTime: dayjs("23:00", "HH:mm") },
+      { day: "Friday", startTime: dayjs("05:00", "HH:mm"), endTime: dayjs("23:00", "HH:mm") },
+      { day: "Saturday", startTime: dayjs("07:00", "HH:mm"), endTime: dayjs("21:00", "HH:mm") },
+      { day: "Sunday", startTime: dayjs("09:00", "HH:mm"), endTime: dayjs("19:00", "HH:mm") }
+    ],
+
+    // Closing Days
+    closingDays: [
+      { date: dayjs("2024-04-21"), description: "Easter Sunday" },
+      { date: dayjs("2024-12-25"), description: "Christmas Day" }
+    ],
+
+    // Resources
+    maxCapacity: 20,
+
+    // Appointment Types
+    appointmentTypes: [
+      {
+        name: "Strength Training",
+        duration: 90,
+        capacity: 1,
+        color: "#DC2626",
+        interval: 30,
+        images: []
+      },
+      {
+        name: "Bodybuilding Class",
+        duration: 60,
+        capacity: 15,
+        color: "#7C3AED",
+        interval: 15,
+        images: []
+      }
+    ],
+
+    trialTraining: {
+      duration: 45,
+      capacity: 1,
+      color: "#1890ff"
     },
-    closingDays: "Easter Sunday, Christmas Day",
-  },
-  {
-    id: 3,
-    name: "FlexFit Studio",
-    email: "info@flexfit.com",
-    phone: "+49555123456",
-    street: "Sportstraße 10",
-    zipCode: "80331",
-    city: "Munich",
-    country: "Germany",
-    iban: "DE89 7005 0000 0000 1234 56",
-    taxId: "DE555123456",
-    image: null,
-    isActive: true,
-    note: "",
-    noteStartDate: "",
-    noteEndDate: "",
-    noteImportance: "unimportant",
-    website: "www.flexfit.com",
-    about: "Modern fitness studio focusing on flexibility and wellness.",
-    joinDate: "2023-01-15",
-    contractStart: "2023-01-15",
-    contractEnd: "2024-01-15",
-    ownerName: "Anna Weber",
-    franchiseId: null,
-    openingHours: {
-      monday: "7:00 - 21:00",
-      tuesday: "7:00 - 21:00",
-      wednesday: "7:00 - 21:00",
-      thursday: "7:00 - 21:00",
-      friday: "7:00 - 21:00",
-      saturday: "9:00 - 18:00",
-      sunday: "Closed",
+
+    // Staff Management
+    roles: [
+      {
+        name: "Head Coach",
+        permissions: ["read", "write", "delete"],
+        color: "#DC2626",
+        defaultVacationDays: 25
+      },
+      {
+        name: "Assistant Coach",
+        permissions: ["read", "write"],
+        color: "#7C3AED",
+        defaultVacationDays: 20
+      }
+    ],
+    defaultVacationDays: 20,
+
+    // Member Management
+    allowMemberQRCheckIn: false,
+    memberQRCodeUrl: "",
+
+    // Lead Sources
+    leadSources: [
+      { id: 1, name: "Website", color: "#DC2626" },
+      { id: 2, name: "Referral", color: "#7C3AED" }
+    ],
+
+    // Tags
+    tags: [
+      { name: "Bodybuilding", color: "#DC2626" },
+      { name: "Strength", color: "#7C3AED" }
+    ],
+
+    // Contracts
+    contractTypes: [
+      {
+        name: "Pro Bodybuilding",
+        duration: 12,
+        cost: 129.99,
+        billingPeriod: "monthly",
+        userCapacity: 12,
+        autoRenewal: true,
+        renewalPeriod: 12,
+        renewalPrice: 119.99,
+        cancellationPeriod: 60
+      }
+    ],
+
+    contractPauseReasons: [
+      { name: "Vacation", maxDays: 30 },
+      { name: "Medical", maxDays: 90 }
+    ],
+
+    noticePeriod: 60,
+    extensionPeriod: 12,
+    allowMemberSelfCancellation: false,
+
+    // Settings
+    settings: {
+      autoArchiveDuration: 45,
+      notificationSubTab: "email",
+      emailNotificationEnabled: true,
+      appNotificationEnabled: false,
+      birthdayMessageEnabled: false,
+      birthdayMessageTemplate: "",
+      birthdayAppNotificationEnabled: false,
+      appointmentNotificationEnabled: true,
+      appointmentAppNotificationEnabled: false,
+      appointmentNotificationTypes: {
+        confirmation: {
+          enabled: true,
+          template: "Your strength training session is confirmed for {Booked_Time}.",
+          sendApp: false,
+          sendEmail: true,
+          hoursBefore: 24
+        },
+        cancellation: {
+          enabled: false,
+          template: "",
+          sendApp: false,
+          sendEmail: false,
+          hoursBefore: 24
+        },
+        rescheduled: {
+          enabled: false,
+          template: "",
+          sendApp: false,
+          sendEmail: false,
+          hoursBefore: 24
+        },
+        reminder: {
+          enabled: false,
+          template: "",
+          sendApp: false,
+          sendEmail: false,
+          hoursBefore: 24
+        }
+      },
+      smtpHost: "smtp.powergym.com",
+      smtpPort: 587,
+      smtpUser: "info@powergym.com",
+      smtpPass: "encrypted_password",
+      emailSignature: "Best regards,\nPowerGym Team"
     },
-    closingDays: "Public holidays",
-  },
-  {
-    id: 4,
-    name: "StrengthZone",
-    email: "contact@strengthzone.de",
-    phone: "+49666789012",
-    street: "Kraftstraße 25",
-    zipCode: "50667",
-    city: "Cologne",
-    country: "Germany",
-    iban: "DE44 5001 0517 5407 3249 31",
-    taxId: "DE666789012",
-    image: null,
-    isActive: true,
-    note: "",
-    noteStartDate: "",
-    noteEndDate: "",
-    noteImportance: "unimportant",
-    website: "www.strengthzone.de",
-    about: "Specialized in strength training and powerlifting.",
-    joinDate: "2023-02-01",
-    contractStart: "2023-02-01",
-    contractEnd: "2024-02-01",
-    ownerName: "Michael Klein",
-    franchiseId: null,
-    openingHours: {
-      monday: "6:00 - 22:00",
-      tuesday: "6:00 - 22:00",
-      wednesday: "6:00 - 22:00",
-      thursday: "6:00 - 22:00",
-      friday: "6:00 - 22:00",
-      saturday: "8:00 - 20:00",
-      sunday: "10:00 - 16:00",
+
+    // Finances
+    currency: "€",
+    vatRates: [
+      { name: "Standard", percentage: 19, description: "Standard VAT rate" }
+    ],
+
+    // Appearance
+    appearance: {
+      theme: "dark",
+      primaryColor: "#DC2626",
+      secondaryColor: "#7C3AED",
+      allowStaffThemeToggle: false,
+      allowMemberThemeToggle: false
     },
-    closingDays: "Christmas Eve, Christmas Day, New Year's Day",
-  },
-]
+
+    // ========== ADMIN CONFIGURATION DATA ==========
+
+    // Legal Information for Admin Panel
+    imprint: "<h1>PowerGym AG</h1><p>Friedrichstraße 45<br>20354 Hamburg<br>Germany</p><p><strong>CEO:</strong> Maria Schmidt</p><p><strong>Commercial Register:</strong> Amtsgericht Hamburg, HRB 98765</p><p><strong>VAT ID:</strong> DE987654321</p>",
+
+    privacyPolicy: "<h1>Privacy Policy</h1><p>At PowerGym, we are committed to protecting your privacy and ensuring the security of your personal information.</p><h2>Information We Collect</h2><p>We collect information that you provide directly to us when you register for our services, including your name, email address, and fitness goals.</p>",
+
+    termsAndConditions: "<h1>Terms and Conditions</h1><p><strong>1. Membership Agreement</strong></p><p>By signing up for PowerGym services, you agree to abide by these terms and conditions.</p><p><strong>2. Payment Terms</strong></p><p>All membership fees are due monthly in advance.</p>",
+
+    // Changelog for Admin Panel
+    changelog: [
+      {
+        version: "1.8.2",
+        date: dayjs("2024-02-10"),
+        color: "#DC2626",
+        content: "<h3>Bug Fixes</h3><ul><li>Fixed payment processing issues</li><li>Resolved calendar synchronization problems</li><li>Fixed member import functionality</li></ul>"
+      },
+      {
+        version: "1.8.0",
+        date: dayjs("2024-01-05"),
+        color: "#7C3AED",
+        content: "<h3>New Features</h3><ul><li>Added advanced analytics</li><li>Integrated with fitness tracking apps</li><li>Enhanced staff management tools</li></ul>"
+      }
+    ],
+
+    // Demo Access Email Settings
+    demoEmailSettings: {
+      subject: "PowerGym Management System Demo Access",
+      content: "<p>Hello {Recipient_Name},</p><p>Welcome to PowerGym! You now have demo access to our management system.</p><p><strong>Demo Link:</strong> {Link}</p><p>This access is valid until {Expiry_Date}.</p><p>Strength & Success,<br>PowerGym Team</p>",
+      expiryDays: 5
+    },
+
+    // Email Signature Settings
+    emailSignatureSettings: {
+      autoAppend: false,
+      includeInReplies: false,
+      useHTML: false
+    }
+  }
+];
 
 
 export const studiomemberHistoryNew = {
   1: {
-      general: [
-          {
-              id: 1,
-              date: "2025-01-15",
-              action: "Email updated",
-              details: "Changed from old@email.com to jennifer@example.com",
-              user: "Admin",
-          },
-          { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
-      ],
-      checkins: [
-          { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "Jennifer Markus" },
-          { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "Jennifer Markus" },
-      ],
-      appointments: [
-          { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
-          { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
-      ],
-      finance: [
-          {
-              id: 1,
-              date: "2025-01-01",
-              type: "Payment",
-              amount: "$99.99",
-              description: "Monthly membership fee",
-              status: "completed",
-          },
-          {
-              id: 2,
-              date: "2024-12-01",
-              type: "Payment",
-              amount: "$99.99",
-              description: "Monthly membership fee",
-              status: "completed",
-          },
-      ],
-      contracts: [
-          {
-              id: 1,
-              date: "2024-03-01",
-              action: "Contract signed",
-              details: "Initial 12-month membership contract",
-              user: "Admin",
-          },
-          { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
-      ],
+    general: [
+      {
+        id: 1,
+        date: "2025-01-15",
+        action: "Email updated",
+        details: "Changed from old@email.com to jennifer@example.com",
+        user: "Admin",
+      },
+      { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "Jennifer Markus" },
+      { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "Jennifer Markus" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
+      { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
+    ],
+    finance: [
+      {
+        id: 1,
+        date: "2025-01-01",
+        type: "Payment",
+        amount: "$99.99",
+        description: "Monthly membership fee",
+        status: "completed",
+      },
+      {
+        id: 2,
+        date: "2024-12-01",
+        type: "Payment",
+        amount: "$99.99",
+        description: "Monthly membership fee",
+        status: "completed",
+      },
+    ],
+    contracts: [
+      {
+        id: 1,
+        date: "2024-03-01",
+        action: "Contract signed",
+        details: "Initial 12-month membership contract",
+        user: "Admin",
+      },
+      { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
+    ],
   },
   2: {
-      general: [
-          {
-              id: 1,
-              date: "2025-01-12",
-              action: "Profile updated",
-              details: "Updated personal information",
-              user: "Admin",
-          },
-      ],
-      checkins: [
-          { id: 1, date: "2025-01-19T08:00", type: "Check-in", location: "Main Entrance", user: "Jerry Haffer" },
-          { id: 2, date: "2025-01-19T10:30", type: "Check-out", location: "Main Entrance", user: "Jerry Haffer" },
-      ],
-      appointments: [
-          { id: 1, date: "2025-01-17T14:00", title: "Cardio Session", status: "completed", trainer: "Lisa Davis" },
-      ],
-      finance: [
-          {
-              id: 1,
-              date: "2025-01-01",
-              type: "Payment",
-              amount: "$89.99",
-              description: "Monthly membership fee",
-              status: "completed",
-          },
-      ],
-      contracts: [
-          {
-              id: 1,
-              date: "2021-11-15",
-              action: "Contract signed",
-              details: "Initial membership contract",
-              user: "Admin",
-          },
-      ],
+    general: [
+      {
+        id: 1,
+        date: "2025-01-12",
+        action: "Profile updated",
+        details: "Updated personal information",
+        user: "Admin",
+      },
+    ],
+    checkins: [
+      { id: 1, date: "2025-01-19T08:00", type: "Check-in", location: "Main Entrance", user: "Jerry Haffer" },
+      { id: 2, date: "2025-01-19T10:30", type: "Check-out", location: "Main Entrance", user: "Jerry Haffer" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-01-17T14:00", title: "Cardio Session", status: "completed", trainer: "Lisa Davis" },
+    ],
+    finance: [
+      {
+        id: 1,
+        date: "2025-01-01",
+        type: "Payment",
+        amount: "$89.99",
+        description: "Monthly membership fee",
+        status: "completed",
+      },
+    ],
+    contracts: [
+      {
+        id: 1,
+        date: "2021-11-15",
+        action: "Contract signed",
+        details: "Initial membership contract",
+        user: "Admin",
+      },
+    ],
   },
   3: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
   4: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
@@ -2228,89 +2917,89 @@ export const studiofreeAppointmentsMainData = [
 
 export const studiostaffHistoryNew = {
   1: {
-      general: [
-          {
-              id: 1,
-              date: "2025-01-15",
-              action: "Email updated",
-              details: "Changed from old@email.com to jennifer@example.com",
-              user: "Admin",
-          },
-          { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
-      ],
-      checkins: [
-          { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "Jennifer Markus" },
-          { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "Jennifer Markus" },
-      ],
-      appointments: [
-          { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
-          { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
-      ],
-      finance: [
-          {
-              id: 1,
-              date: "2025-01-01",
-              type: "Payment",
-              amount: "$99.99",
-              description: "Monthly membership fee",
-              status: "completed",
-          },
-          {
-              id: 2,
-              date: "2024-12-01",
-              type: "Payment",
-              amount: "$99.99",
-              description: "Monthly membership fee",
-              status: "completed",
-          },
-      ],
-      contracts: [
-          {
-              id: 1,
-              date: "2024-03-01",
-              action: "Contract signed",
-              details: "Initial 12-month membership contract",
-              user: "Admin",
-          },
-          { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
-      ],
+    general: [
+      {
+        id: 1,
+        date: "2025-01-15",
+        action: "Email updated",
+        details: "Changed from old@email.com to jennifer@example.com",
+        user: "Admin",
+      },
+      { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "Jennifer Markus" },
+      { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "Jennifer Markus" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
+      { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
+    ],
+    finance: [
+      {
+        id: 1,
+        date: "2025-01-01",
+        type: "Payment",
+        amount: "$99.99",
+        description: "Monthly membership fee",
+        status: "completed",
+      },
+      {
+        id: 2,
+        date: "2024-12-01",
+        type: "Payment",
+        amount: "$99.99",
+        description: "Monthly membership fee",
+        status: "completed",
+      },
+    ],
+    contracts: [
+      {
+        id: 1,
+        date: "2024-03-01",
+        action: "Contract signed",
+        details: "Initial 12-month membership contract",
+        user: "Admin",
+      },
+      { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
+    ],
   },
   2: {
-      general: [
-          {
-              id: 1,
-              date: "2025-01-12",
-              action: "Profile updated",
-              details: "Updated personal information",
-              user: "Admin",
-          },
-      ],
-      checkins: [
-          { id: 1, date: "2025-01-19T08:00", type: "Check-in", location: "Main Entrance", user: "Jerry Haffer" },
-          { id: 2, date: "2025-01-19T10:30", type: "Check-out", location: "Main Entrance", user: "Jerry Haffer" },
-      ],
-      appointments: [
-          { id: 1, date: "2025-01-17T14:00", title: "Cardio Session", status: "completed", trainer: "Lisa Davis" },
-      ],
-      finance: [
-          {
-              id: 1,
-              date: "2025-01-01",
-              type: "Payment",
-              amount: "$89.99",
-              description: "Monthly membership fee",
-              status: "completed",
-          },
-      ],
-      contracts: [
-          {
-              id: 1,
-              date: "2021-11-15",
-              action: "Contract signed",
-              details: "Initial membership contract",
-              user: "Admin",
-          },
-      ],
+    general: [
+      {
+        id: 1,
+        date: "2025-01-12",
+        action: "Profile updated",
+        details: "Updated personal information",
+        user: "Admin",
+      },
+    ],
+    checkins: [
+      { id: 1, date: "2025-01-19T08:00", type: "Check-in", location: "Main Entrance", user: "Jerry Haffer" },
+      { id: 2, date: "2025-01-19T10:30", type: "Check-out", location: "Main Entrance", user: "Jerry Haffer" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-01-17T14:00", title: "Cardio Session", status: "completed", trainer: "Lisa Davis" },
+    ],
+    finance: [
+      {
+        id: 1,
+        date: "2025-01-01",
+        type: "Payment",
+        amount: "$89.99",
+        description: "Monthly membership fee",
+        status: "completed",
+      },
+    ],
+    contracts: [
+      {
+        id: 1,
+        date: "2021-11-15",
+        action: "Contract signed",
+        details: "Initial membership contract",
+        user: "Admin",
+      },
+    ],
   },
   3: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
   4: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
@@ -2372,34 +3061,34 @@ export const studiofreeAppointmentsStaffData = [
 
 export const studioContractHistoryData = {
   "12321-1": [
-      {
-          id: "hist-1",
-          date: "2023-12-15",
-          action: "Contract Changed",
-          details: "Changed from Basic to Premium",
-          performedBy: "Admin User",
-          oldValue: "Basic",
-          newValue: "Premium",
-      },
-      {
-          id: "hist-2",
-          date: "2023-11-20",
-          action: "Contract Renewed",
-          details: "Renewed for 12 months",
-          performedBy: "System",
-          oldValue: "2023-01-01 to 2024-01-01",
-          newValue: "2024-01-01 to 2025-01-01",
-      },
+    {
+      id: "hist-1",
+      date: "2023-12-15",
+      action: "Contract Changed",
+      details: "Changed from Basic to Premium",
+      performedBy: "Admin User",
+      oldValue: "Basic",
+      newValue: "Premium",
+    },
+    {
+      id: "hist-2",
+      date: "2023-11-20",
+      action: "Contract Renewed",
+      details: "Renewed for 12 months",
+      performedBy: "System",
+      oldValue: "2023-01-01 to 2024-01-01",
+      newValue: "2024-01-01 to 2025-01-01",
+    },
   ],
   "12321-2": [
-      {
-          id: "hist-3",
-          date: "2023-10-10",
-          action: "Contract Paused",
-          details: "Paused due to Pregnancy",
-          performedBy: "Admin User",
-          oldValue: "Active",
-          newValue: "Paused",
-      },
+    {
+      id: "hist-3",
+      date: "2023-10-10",
+      action: "Contract Paused",
+      details: "Paused due to Pregnancy",
+      performedBy: "Admin User",
+      oldValue: "Active",
+      newValue: "Paused",
+    },
   ],
 }

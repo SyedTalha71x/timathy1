@@ -17,7 +17,6 @@ import Sidebar from '../../components/admin-dashboard-components/central-sidebar
 
 
 export default function NotesApp() {
-    const [activeTab, setActiveTab] = useState("personal")
     const [notes, setNotes] = useState(demoNotes)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [editingNote, setEditingNote] = useState(null)
@@ -25,36 +24,29 @@ export default function NotesApp() {
 
     const [deleteConfirm, setDeleteConfirm] = useState(null)
     const createNote = (noteData) => {
-        const note = {
-            id: Date.now(),
-            title: noteData.title,
-            content: noteData.content,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        }
+      const note = {
+          id: Date.now(),
+          title: noteData.title,
+          content: noteData.content,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+      }
+  
+      setNotes((prev) => [...prev, note])
+  }
 
-        setNotes((prev) => ({
-            ...prev,
-            [activeTab]: [...prev[activeTab], note],
-        }))
-    }
+  const updateNote = (id, updatedNote) => {
+    setNotes((prev) => 
+        prev.map((note) =>
+            note.id === id ? { ...note, ...updatedNote, updatedAt: new Date().toISOString() } : note
+        )
+    )
+}
 
-    const updateNote = (id, updatedNote) => {
-        setNotes((prev) => ({
-            ...prev,
-            [activeTab]: prev[activeTab].map((note) =>
-                note.id === id ? { ...note, ...updatedNote, updatedAt: new Date().toISOString() } : note,
-            ),
-        }))
-    }
-
-    const deleteNote = (id) => {
-        setNotes((prev) => ({
-            ...prev,
-            [activeTab]: prev[activeTab].filter((note) => note.id !== id),
-        }))
-        setDeleteConfirm(null)
-    }
+const deleteNote = (id) => {
+  setNotes((prev) => prev.filter((note) => note.id !== id))
+  setDeleteConfirm(null)
+}
 
     const formatDate = (dateString) => {
         const date = new Date(dateString)
@@ -67,7 +59,6 @@ export default function NotesApp() {
         })
     }
 
-    const currentNotes = notes[activeTab]
 
      //sidebar related logic and states 
       const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -275,33 +266,17 @@ export default function NotesApp() {
                         <h1 className="text-xl md:text-2xl font-bold oxanium_font whitespace-nowrap">Notes</h1>
                         <div>
                             <div className="block">
-                                <IoIosMenu
-                                    onClick={toggleRightSidebar}
-                                    size={25}
-                                    className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md"
-                                />
+                            <img
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className="h-5 w-5  cursor-pointer"
+                  src="/icon.svg"
+                  alt=""
+                />
                             </div>
                         </div>
 
                     </div>
 
-                    {/* Tabs - Fixed border issue */}
-                    <div className="flex border-b border-gray-700 mb-6">
-                        <button
-                            onClick={() => setActiveTab("personal")}
-                            className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "personal" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
-                                }`}
-                        >
-                            Personal Notes
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("studio")}
-                            className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "studio" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
-                                }`}
-                        >
-                            Studio Notes
-                        </button>
-                    </div>
 
                     <div className="mb-8 flex justify-end items-center">
                         <button
@@ -316,7 +291,7 @@ export default function NotesApp() {
                     </div>
 
                     {/* Notes Grid */}
-                    {currentNotes.length === 0 ? (
+                    {notes.length === 0 ? (
                         <div className="text-center py-16">
                             <div className="text-gray-500 mb-6">
                                 <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,7 +304,7 @@ export default function NotesApp() {
                                 </svg>
                             </div>
                             <h3 className="text-xl font-medium text-gray-300 mb-3">No notes yet</h3>
-                            <p className="text-gray-500 mb-6">Create your first {activeTab} note to get started</p>
+                            <p className="text-gray-500 mb-6">Create your first note to get started</p>
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
                                 className="bg-blue-600 text-sm cursor-pointer hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2"
@@ -345,7 +320,7 @@ export default function NotesApp() {
                             className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"
                                 } gap-6`}
                         >
-                            {currentNotes.map((note) => (
+                            {notes.map((note) => (
                                 <div
                                     key={note.id}
                                     className="bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 flex flex-col"

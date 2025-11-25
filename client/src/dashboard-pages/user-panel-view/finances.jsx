@@ -898,8 +898,9 @@ export default function FinancesPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mb-3 md:mb-4">
+
           {/* Search input */}
-          <div className="relative flex-1">
+          <div className="relative w-full sm:flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
             <input
               type="search"
@@ -914,8 +915,9 @@ export default function FinancesPage() {
           <div className="relative w-full sm:w-auto">
             <button
               onClick={() => setStatusFilterOpen(!statusFilterOpen)}
-              className={`h-11 bg-black text-white rounded-xl border border-gray-800 flex items-center justify-between gap-2 px-3 sm:px-4 w-full sm:w-auto text-sm leading-none ${isRightSidebarOpen ? 'min-w-[140px]' : 'min-w-[140px] md:min-w-[160px] lg:min-w-[180px]'
-                }`}
+              className={`h-11 bg-black text-white rounded-xl border border-gray-800 flex items-center justify-between gap-2 px-3 sm:px-4 w-full sm:w-auto text-sm leading-none 
+        sm:min-w-[140px] md:min-w-[160px] lg:min-w-[180px]
+      `}
             >
               <Filter className="w-4 h-4" />
               <span className="text-xs md:text-sm">Status: {selectedStatus}</span>
@@ -945,7 +947,9 @@ export default function FinancesPage() {
               </div>
             )}
           </div>
+
         </div>
+
 
 
 

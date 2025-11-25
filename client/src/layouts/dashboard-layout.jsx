@@ -15,7 +15,7 @@ const Dashboardlayout = () => {
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
   const [isChangelogModalOpen, setIsChangelogModalOpen] = useState(false)
   const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false)
-  
+
   const toggleLanguageDropdown = () => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
 
   const languages = [
@@ -99,7 +99,7 @@ const Dashboardlayout = () => {
   }
 
   const studioName = "Studio One"
-  const fullName = "Samantha"
+  const fullName = "Samantha Jerry"
   const role = "Trainer"
 
   const handleEditProfile = () => {
@@ -184,14 +184,14 @@ const Dashboardlayout = () => {
       <div className="bg-[#111111] min-h-screen">
         <div className="flex flex-col md:flex-row h-full">
           <Sidebar />
-          
+
           <main
             className={`
     flex-1 md:h-screen h-[calc(100vh-4rem)] overflow-y-auto 
     lg:pt-5    /* large screens ke liye chhota padding */
-    md:pt-28   /* tablets ke liye 80px padding */
-    sm:pt-24   /* small screens ke liye 96px padding */
-    pt-28      /* extra-small (mobile) screens ke liye 112px padding */
+    md:pt-16   /* tablets ke liye 80px padding */
+    sm:pt-16   /* small screens ke liye 96px padding */
+    pt-16     /* extra-small (mobile) screens ke liye 112px padding */
     pb-10 p-2
    
     
@@ -203,32 +203,29 @@ const Dashboardlayout = () => {
               <div className="flex gap-1 items-center">
                 <div className="">
                   <div className="flex items-center gap-2 ">
-                    <div className="flex items-center gap-1">
-                      <h2 className="font-semibold text-white text-md leading-tight">{fullName}</h2>
-                      {/* <span className="text-zinc-400 text-md font-medium">{role}</span> */}
-                    </div>
 
+                    {/* Studio Name */}
+                    <div className="flex items-center bg-[#161616]  gap-1 p-2 px-3 rounded-xl w-fit">
+                      <Building2 size={14} className="text-white" />
+                      <p className="text-sm font-bold text-white">{studioName}</p>
+                    </div>
                     {/* Activity Log Icon */}
                     <button
                       onClick={handleActivityLogClick}
-                      className="text-white bg-black rounded-xl border border-slate-600 py-2 px-4 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                      className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1"
                       aria-label="Activity Log"
                     >
                       <History size={20} />
                     </button>
 
-                    {/* Studio Name */}
-                    <div className="flex items-center  gap-1 bg-black py-1 px-3 rounded-md w-fit">
-                      <Building2 size={14} className="text-white" />
-                      <p className="text-sm font-bold text-white">{studioName}</p>
-                    </div>
+
                   </div>
                 </div>
 
                 <div className="relative mr-2">
                   <button
                     onClick={toggleLanguageDropdown}
-                    className="p-2 px-3 rounded-xl text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center gap-1"
+                    className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1"
                     aria-label="Language Selection"
                   >
                     <Globe size={20} />
@@ -254,6 +251,9 @@ const Dashboardlayout = () => {
 
                 <div onClick={toggleDropdownMain} className="flex items-center gap-1 cursor-pointer">
                   <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
+                </div>
+                <div className="flex ml-2 items-center gap-1">
+                  <h2 className="font-semibold text-white text-md leading-tight">{fullName}</h2>
                 </div>
                 {isDropdownOpen && (
                   <div className="absolute right-[980px] top-17 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]  ">
@@ -309,11 +309,11 @@ const Dashboardlayout = () => {
         <div className="text-zinc-300">
           <div className="mb-6">
             <p className="text-zinc-400 mb-4">Recent activities and actions performed on the platform</p>
-            
+
             <div className="space-y-4">
               {activityLogs.map((activity) => (
-                <div 
-                  key={activity.id} 
+                <div
+                  key={activity.id}
                   className={`border-l-4 ${getActivityColor(activity.type)} pl-4 py-3 bg-[#222222] rounded-r-lg`}
                 >
                   <div className="flex items-start gap-3">

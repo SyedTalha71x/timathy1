@@ -1303,178 +1303,199 @@ const SidebarAreaSelling = ({
 
                     {/* Todo Widget */}
                     {widget.type === "todo" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">To-Do</h2>
-                        </div>
+  <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+    <div className="flex justify-between items-center">
+      <h2 className="text-lg font-semibold open_sans_font cursor-pointer">To-Do</h2>
+      <button
+        // onClick={() => setIsAddTaskModalOpen(true)}
+        className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+      >
+        <Plus size={18} />
+      </button>
+    </div>
 
-                        <div className="relative mb-3" ref={todoFilterDropdownRef}>
-                          <button
-                            onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
-                          >
-                            {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
-                            <ChevronDown className="w-4 h-4" />
-                          </button>
-                          {isTodoFilterDropdownOpen && (
-                            <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
-                              {todoFilterOptions.map((option) => (
-                                <button
-                                  key={option.value}
-                                  className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
-                                  onClick={() => {
-                                    setTodoFilter(option.value)
-                                    setIsTodoFilterDropdownOpen(false)
-                                  }}
-                                >
-                                  {option.color && (
-                                    <div
-                                      className="w-2 h-2 rounded-full"
-                                      style={{ backgroundColor: option.color }}
-                                    />
-                                  )}
-                                  {option.label}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+    <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
+      <button
+        onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+        className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
+      >
+        {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+        <ChevronDown className="w-4 h-4" />
+      </button>
+      {isTodoFilterDropdownOpen && (
+        <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+          {todoFilterOptions.map((option) => (
+            <button
+              key={option.value}
+              className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+              onClick={() => {
+                setTodoFilter(option.value)
+                setIsTodoFilterDropdownOpen(false)
+              }}
+            >
+              {option.color && (
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: option.color }}
+                />
+              )}
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
 
-                        {/* Todo Items */}
-                        <div className="space-y-3 open_sans_font">
-                          {getFilteredTodos().length > 0 ? (
-                            <>
-                              {getFilteredTodos()
-                                .slice(0, 3)
-                                .map((todo) => (
-                                  <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
-                                    <div className="flex items-center gap-2 flex-1">
-                                      <input
-                                        type="checkbox"
-                                        checked={todo.completed}
-                                        onChange={() => handleTaskComplete(todo.id)}
-                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                      />
-                                      <div className="flex-1">
-                                        <h3
-                                          className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
-                                        >
-                                          {todo.title}
-                                        </h3>
-                                        <p className="text-xs open_sans_font text-zinc-400">
-                                          Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="relative">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          toggleDropdown(`todo-${todo.id}`)
-                                        }}
-                                        className="p-1 hover:bg-zinc-700 rounded"
-                                      >
-                                        <MoreVertical size={16} />
-                                      </button>
-                                      {openDropdownIndex === `todo-${todo.id}` && (
-                                        <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                                          <button
-                                            onClick={() => {
-                                              handleEditTask(todo)
-                                            }}
-                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                                          >
-                                            Edit Task
-                                          </button>
-                                          <button
-                                            onClick={() => {
-                                              setTaskToCancel(todo.id)
-                                            }}
-                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                                          >
-                                            Cancel Task
-                                          </button>
-                                          <button
-                                            onClick={() => {
-                                              setTaskToDelete(todo.id)
-                                            }}
-                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                                          >
-                                            Delete Task
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              <Link
-                                to={"/dashboard/to-do"}
-                                className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                              >
-                                See all
-                              </Link>
-                            </>
-                          ) : (
-                            <div className="text-center py-4 text-gray-400">
-                              <p className="text-sm">No tasks in this category</p>
-                            </div>
-                          )}
-                        </div>
+    {/* Todo Items with Scroll */}
+    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+      <div className="space-y-2">
+        {getFilteredTodos().length > 0 ? (
+          <>
+            {getFilteredTodos()
+              .slice(0, 3)
+              .map((todo) => (
+                <div key={todo.id} className="p-3 bg-black rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1">
+                    <input
+                      type="checkbox"
+                      checked={todo.completed}
+                      onChange={() => handleTaskComplete(todo.id)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <h3
+                        className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                      >
+                        {todo.title}
+                      </h3>
+                      <p className="text-xs open_sans_font text-zinc-400">
+                        Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleDropdown(`todo-${todo.id}`)
+                      }}
+                      className="p-1 hover:bg-zinc-700 rounded"
+                    >
+                      <MoreVertical size={16} />
+                    </button>
+                    {openDropdownIndex === `todo-${todo.id}` && (
+                      <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                        <button
+                          onClick={() => {
+                            handleEditTask(todo)
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                        >
+                          Edit Task
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTaskToCancel(todo.id)
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                        >
+                          Cancel Task
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTaskToDelete(todo.id)
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                        >
+                          Delete Task
+                        </button>
                       </div>
                     )}
+                  </div>
+                </div>
+              ))}
+          </>
+        ) : (
+          <div className="text-center py-4 text-gray-400">
+            <p className="text-sm">No tasks in this category</p>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div className="flex justify-center">
+      <Link
+        to={"/dashboard/to-do"}
+        className="text-sm open_sans_font text-white hover:underline"
+      >
+        See all
+      </Link>
+    </div>
+  </div>
+)}
 
                     {widget.type === "birthday" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl font-bold cursor-pointer">Upcoming Birthday</h2>
+                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Upcoming Birthday</h2>
                         </div>
-                        <div className="space-y-2">
-                          {birthdays?.slice(0, 3).map((birthday) => (
-                            <div
-                              key={birthday.id}
-                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${isBirthdayToday(birthday.date)
-                                ? "bg-yellow-900/30 border border-yellow-600"
-                                : "bg-black"
-                                }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <div>
-                                  <img
-                                    src={birthday.avatar || "/placeholder.svg"}
-                                    className="h-8 w-8 rounded-full"
-                                    alt=""
-                                  />
+
+                        {/* Scrollable area */}
+                        <div className="flex-1 overflow-y-auto max-h-[300px] custom-scrollbar pr-1">
+                          <div className="space-y-2">
+                            {birthdays.map((birthday) => (
+                              <div
+                                key={birthday.id}
+                                className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${isBirthdayToday(birthday.date)
+                                  ? "bg-yellow-900/30 border border-yellow-600"
+                                  : "bg-black"
+                                  }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-xl overflow-hidden">
+                                    <img
+                                      src={birthday.avatar || "/placeholder.svg"}
+                                      className="h-full w-full object-cover"
+                                      alt=""
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <h3 className="font-semibold text-sm flex items-center gap-1">
+                                      {birthday.name}
+                                      {isBirthdayToday(birthday.date) && (
+                                        <span className="text-yellow-500">🎂</span>
+                                      )}
+                                    </h3>
+                                    <p className="text-xs text-zinc-400">{birthday.date}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <h3 className="font-semibold text-sm flex items-center gap-1">
-                                    {birthday.name}
-                                    {isBirthdayToday(birthday.date) && <span className="text-yellow-500">🎂</span>}
-                                  </h3>
-                                  <p className="text-xs text-zinc-400">{birthday.date}</p>
-                                </div>
+
+                                {isBirthdayToday(birthday.date) && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSendBirthdayMessage(birthday);
+                                    }}
+                                    className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                                    title="Send Birthday Message"
+                                  >
+                                    <MessageCircle size={16} />
+                                  </button>
+                                )}
                               </div>
-                              {isBirthdayToday(birthday.date) && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleSendBirthdayMessage(birthday)
-                                  }}
-                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
-                                  title="Send Birthday Message"
-                                >
-                                  <MessageCircle size={16} />
-                                </button>
-                              )}
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </div>
                     )}
 
                     {widget.type === "websiteLinks" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
+                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+
+                        {/* Header */}
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Website Links</h2>
                           <button
                             onClick={addCustomLink}
                             className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
@@ -1482,68 +1503,81 @@ const SidebarAreaSelling = ({
                             <Plus size={18} />
                           </button>
                         </div>
-                        <div className="space-y-2 open_sans_font">
-                          {sidebarCustomLinks.map((link) => (
-                            <div
-                              key={link.id}
-                              className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold open_sans_font text-sm truncate">{link.title}</h3>
-                                <p className="text-xs open_sans_font text-zinc-400 truncate max-w-[150px]">
-                                  {truncateUrl(link.url, 30)}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => window.open(link.url, "_blank")}
-                                  className="p-2 hover:bg-zinc-700 rounded-lg"
-                                >
-                                  <ExternalLink size={16} />
-                                </button>
-                                <div className="relative">
+
+                        {/* Scrollable Grid List */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                          <div className="grid grid-cols-1 gap-3">
+                            {sidebarCustomLinks.map((link) => (
+                              <div
+                                key={link.id}
+                                className="p-5 bg-black rounded-xl flex items-center justify-between"
+                              >
+                                {/* Link Title + URL */}
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm font-medium truncate">{link.title}</h3>
+                                  <p className="text-xs mt-1 text-zinc-400 truncate max-w-[200px]">
+                                    {truncateUrl(link.url, 30)}
+                                  </p>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex items-center gap-2">
+                                  {/* Open in new tab */}
                                   <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setSidebarOpenDropdownIndex(
-                                        sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`,
-                                      )
-                                    }}
+                                    onClick={() => window.open(link.url, "_blank")}
                                     className="p-2 hover:bg-zinc-700 rounded-lg"
                                   >
-                                    <MoreVertical size={16} />
+                                    <ExternalLink size={16} />
                                   </button>
-                                  {sidebarOpenDropdownIndex === `link-${link.id}` && (
-                                    <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          setEditingLink(link)
-                                          setIsWebsiteLinkModalOpen(true)
-                                          setSidebarOpenDropdownIndex(null)
-                                        }}
-                                        className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
-                                      >
-                                        Edit
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          removeCustomLink(link.id)
-                                        }}
-                                        className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                                      >
-                                        Remove
-                                      </button>
-                                    </div>
-                                  )}
+
+                                  {/* Dropdown */}
+                                  <div className="relative">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setSidebarOpenDropdownIndex(
+                                          sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`
+                                        )
+                                      }}
+                                      className="p-2 hover:bg-zinc-700 rounded-lg"
+                                    >
+                                      <MoreVertical size={16} />
+                                    </button>
+
+                                    {sidebarOpenDropdownIndex === `link-${link.id}` && (
+                                      <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setEditingLink(link)
+                                            setIsWebsiteLinkModalOpen(true)
+                                            setSidebarOpenDropdownIndex(null)
+                                          }}
+                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            removeCustomLink(link.id)
+                                            setSidebarOpenDropdownIndex(null)
+                                          }}
+                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                        >
+                                          Remove
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </div>
                     )}
+
 
                     {widget.type === "appointments" && (
                       <div className="mb-6">

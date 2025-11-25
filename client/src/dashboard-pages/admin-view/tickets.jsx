@@ -59,7 +59,7 @@ const AdminTicketsSystem = () => {
         { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
         { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
         { id: "sidebar-notes", type: "notes", position: 4 },
-      ])
+    ])
 
     const [todos, setTodos] = useState([
         {
@@ -365,9 +365,13 @@ const AdminTicketsSystem = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex justify-between items-center w-full">
                         <h1 className="text-2xl font-bold text-white">Tickets </h1>
-                        <div onClick={toggleRightSidebar} className="cursor-pointer text-white lg:hidden md:hidden block hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-                            <IoIosMenu size={26} />
-                        </div>
+
+                        <img
+                            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                            className="h-5 w-5 mr-5  lg:hidden md:hidden block   cursor-pointer"
+                            src="/icon.svg"
+                            alt=""
+                        />
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -379,9 +383,13 @@ const AdminTicketsSystem = () => {
                             <RefreshCw size={16} />
                             Refresh
                         </button>
-                        <div onClick={toggleRightSidebar} className="cursor-pointer text-white lg:block md:block hidden hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-                            <IoIosMenu size={26} />
-                        </div>
+
+                        <img
+                            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                            className="h-5 w-5 mr-5   lg:block md:block hidden  cursor-pointer"
+                            src="/icon.svg"
+                            alt=""
+                        />
                     </div>
                 </div>
             </div>
@@ -462,77 +470,79 @@ const AdminTicketsSystem = () => {
                 )}
             </div>
 
-            <div className="flex-1  py-4">
-                <div className="bg-[#1C1C1C] rounded-lg  overflow-hidden">
-                    <div className="">
-                        <div className="bg-[#1C1C1C]  overflow-hidden">
-                            <div>
-                                {filteredTickets.map((ticket) => (
-                                    <div
-                                        key={ticket.id}
-                                        className="border border-slate-600/50 rounded-md m-2 p-4 cursor-pointer hover:bg-[#161616]"
-                                        onClick={() => handleTicketClick(ticket)}
-                                    >
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div className="flex items-center gap-2">
-                                                {getStatusIcon(ticket.status)}
-                                                <span className="font-medium text-white text-sm">#{ticket.id}</span>
-                                            </div>
-                                            <span className="text-xs text-gray-400">{ticket.createdDate}</span>
+            <div className="flex-1 py-3">
+                <div className="bg-[#1C1C1C] rounded-lg overflow-hidden">
+                    <div className="bg-[#1C1C1C] overflow-hidden">
+                        <div className="space-y-2">
+                            {filteredTickets.map((ticket) => (
+                                <div
+                                    key={ticket.id}
+                                    className="border border-slate-600/40 rounded-md mx-1 p-3 cursor-pointer hover:bg-[#161616] transition-colors duration-200"
+                                    onClick={() => handleTicketClick(ticket)}
+                                >
+                                    {/* Header with ID, Studio, and Date */}
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            {getStatusIcon(ticket.status)}
+                                            <span className="font-semibold text-white text-sm">#{ticket.id}</span>
+                                            <span className="text-sm text-gray-300 font-medium">{ticket.studioName}</span>
                                         </div>
+                                        <span className="text-xs text-gray-400">
+                                            Created: {ticket.createdDate}
+                                        </span>
+                                    </div>
 
-                                        <span className="font-bold ">{ticket.studioName}</span>
+                                    {/* Subject Line */}
+                                    <h3 className="font-medium text-white mb-2 text-sm leading-tight">
+                                        {ticket.subject}
+                                    </h3>
 
-                                        <h3 className="font-medium text-white mb-2 mt-4 text-sm">{ticket.subject}</h3>
-
-                                        <div className="flex flex-wrap items-center gap-2 mb-3">
-                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(ticket.status)}`}>
+                                    {/* Status, Priority and Customer Info */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getStatusColor(ticket.status)}`}>
                                                 {ticket.status}
                                             </span>
-                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(ticket.priority)}`}>
+                                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getPriorityColor(ticket.priority)}`}>
                                                 {ticket.priority}
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center justify-between text-sm text-gray-400">
-                                            <div>
-                                                <span className="font-medium text-gray-300">{ticket.customer.name}</span>
-                                                <span className="block text-xs">{ticket.customer.email}</span>
+                                        <div className="text-right">
+                                            <div className="text-sm text-gray-300 font-medium">
+                                                {ticket.customer.name}
                                             </div>
-                                            <div className="text-right">
-                                                <span className="block text-xs">Assigned to:</span>
-                                                <span className="font-medium text-gray-300">{ticket.assignedTo}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex justify-between items-center mt-3 pt-3 ">
-                                            <span className="text-xs text-gray-400">Updated: {ticket.lastUpdated}</span>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    handleTicketClick(ticket)
-                                                }}
-                                                className="text-white cursor-pointer text-sm bg-blue-600 py-1.5 px-4 rounded-md font-medium flex items-center gap-1"
-                                            >
-                                                <Eye size={14} />
-                                                View
-                                            </button>
                                         </div>
                                     </div>
-                                ))}
+
+                                    {/* Footer with Last Updated and Action */}
+                                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-600/30">
+                                        <span className="text-xs text-gray-400">
+                                            Updated: {ticket.lastUpdated}
+                                        </span>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleTicketClick(ticket)
+                                            }}
+                                            className="text-white cursor-pointer text-sm bg-blue-600 py-1 px-3 rounded-md font-medium flex items-center gap-1 hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Eye size={14} />
+                                            View
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {filteredTickets.length === 0 && (
+                            <div className="text-center py-10">
+                                <MessageSquare size={40} className="mx-auto text-gray-600 mb-3" />
+                                <h3 className="text-lg font-medium text-white mb-2">No tickets found</h3>
+                                <p className="text-gray-400">Try adjusting your search or filter criteria.</p>
                             </div>
-
-
-                        </div>
+                        )}
                     </div>
-
-                    {filteredTickets.length === 0 && (
-                        <div className="text-center py-12">
-                            <MessageSquare size={48} className="mx-auto text-gray-600 mb-4" />
-                            <h3 className="text-lg font-medium text-white mb-2">No tickets found</h3>
-                            <p className="text-gray-400">Try adjusting your search or filter criteria.</p>
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -568,7 +578,7 @@ const AdminTicketsSystem = () => {
                 setEditingLink={setEditingLink}
                 openDropdownIndex={openDropdownIndex}
                 setOpenDropdownIndex={setOpenDropdownIndex}
-                onToggleEditing={()=>{ setIsEditing(!isEditing);}} // Add this line
+                onToggleEditing={() => { setIsEditing(!isEditing); }} // Add this line
                 setTodos={setTodos}
             />
 

@@ -217,9 +217,9 @@ const Sidebar = ({
   const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
 
   const [sidebarCustomLinks, setSidebarCustomLinks] = useState(customLinks || [])
-const [sidebarOpenDropdownIndex, setSidebarOpenDropdownIndex] = useState(null)
-const [editingLink, setEditingLink] = useState(null)
-const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
+  const [sidebarOpenDropdownIndex, setSidebarOpenDropdownIndex] = useState(null)
+  const [editingLink, setEditingLink] = useState(null)
+  const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
 
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
@@ -261,13 +261,13 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
     setEditingLink({})
     setIsWebsiteLinkModalOpen(true)
   }
-  
+
   const updateCustomLink = (id, field, value) => {
     setSidebarCustomLinks((currentLinks) =>
       currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)),
     )
   }
-  
+
   const removeCustomLink = (id) => {
     setSidebarCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
     setSidebarOpenDropdownIndex(null)
@@ -313,7 +313,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
-  
+
       const handleNoteClick = (e) => {
         e.stopPropagation()
         const rect = e.currentTarget.getBoundingClientRect()
@@ -323,7 +323,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
         })
         setSidebarActiveNoteId(sidebarActiveNoteId === memberId ? null : memberId)
       }
-  
+
       const handleMouseEnter = (e) => {
         e.stopPropagation()
         // Clear any existing timeout
@@ -331,20 +331,20 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
           clearTimeout(hoverTimeout)
           setHoverTimeout(null)
         }
-        
+
         const rect = e.currentTarget.getBoundingClientRect()
         setNotePosition({
           top: rect.bottom + window.scrollY + 8,
           left: rect.left + window.scrollX,
         })
-        
+
         // Set a small delay before showing to prevent flickering
         const timeout = setTimeout(() => {
           setHoveredNoteId(memberId)
         }, 300)
         setHoverTimeout(timeout)
       }
-  
+
       const handleMouseLeave = (e) => {
         e.stopPropagation()
         // Clear the timeout if mouse leaves before delay
@@ -354,17 +354,17 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
         }
         setHoveredNoteId(null)
       }
-  
+
       const handleEditClick = (e) => {
         e.stopPropagation()
         setSidebarActiveNoteId(null) // Close the note popover
         setHoveredNoteId(null) // Close hover popover
         handleSidebarEditNote(memberId, specialNote) // Open the edit modal
       }
-  
+
       // Determine if we should show the popover (either clicked or hovered)
       const shouldShowPopover = sidebarActiveNoteId === memberId || hoveredNoteId === memberId
-  
+
       return (
         <div className="relative">
           <div
@@ -380,7 +380,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
               <Info size={18} className="text-white" />
             )}
           </div>
-  
+
           {shouldShowPopover && (
             createPortal(
               <div
@@ -504,7 +504,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
     }))
   }
 
-  const handleOpenFullMessenger = () =>{
+  const handleOpenFullMessenger = () => {
     window.location.href = "/dashboard/communication"
   }
 
@@ -537,133 +537,133 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
     return notificationData[section].filter((msg) => !msg.isRead).length
   }
 
-    /**
- * Handles activity actions (approve, reject, resolve, etc.)
- */
-    const handleActivityAction = (activity, action) => {
-      console.log(`Performing ${action} on activity:`, activity.id)
-  
-      // Update the activity status based on the action
-      setNotificationData((prev) => ({
-        ...prev,
-        activityMonitor: prev.activityMonitor.map((item) =>
-          item.id === activity.id
-            ? {
-              ...item,
-              status: action === "approve" || action === "resolve" ? "completed" :
-                action === "reject" ? "rejected" : item.status,
-              isRead: true,
-              actionRequired: false
-            }
-            : item
-        ),
-      }))
-  
-      // Show appropriate toast message
-      const actionMessages = {
-        approve: "Vacation request approved",
-        reject: "Vacation request rejected",
-        resolve: "Activity marked as resolved",
-        archive: "Activity archived",
-      }
-  
-      toast.success(actionMessages[action] || "Action completed")
-    }
-  
-    /**
-     * Handles clicking on an activity notification
-     */
-    const handleActivityClick = (activity) => {
-      // Mark as read
-      markMessageAsRead(activity.id, activity.type)
-  
-      // Here you can implement what happens when an activity is clicked
-      // For example, open a detailed view or perform a specific action
-      console.log("Activity clicked:", activity)
-  
-      // You could also open a modal with more details here
-      // setSelectedActivity(activity)
-      // setIsActivityDetailModalOpen(true)
-    }
-  
-    /**
-     * Handles jumping to the full activity monitor
-     */
-    const handleJumpToActivityMonitor = (activity) => {
-      window.location.href = "/dashboard/activity-monitor"
+  /**
+* Handles activity actions (approve, reject, resolve, etc.)
+*/
+  const handleActivityAction = (activity, action) => {
+    console.log(`Performing ${action} on activity:`, activity.id)
+
+    // Update the activity status based on the action
+    setNotificationData((prev) => ({
+      ...prev,
+      activityMonitor: prev.activityMonitor.map((item) =>
+        item.id === activity.id
+          ? {
+            ...item,
+            status: action === "approve" || action === "resolve" ? "completed" :
+              action === "reject" ? "rejected" : item.status,
+            isRead: true,
+            actionRequired: false
+          }
+          : item
+      ),
+    }))
+
+    // Show appropriate toast message
+    const actionMessages = {
+      approve: "Vacation request approved",
+      reject: "Vacation request rejected",
+      resolve: "Activity marked as resolved",
+      archive: "Activity archived",
     }
 
-    const WebsiteLinkModal = ({ link, onClose }) => {
-      const [title, setTitle] = useState(link?.title?.trim() || "")
-      const [url, setUrl] = useState(link?.url?.trim() || "")
-    
-      const handleSave = () => {
-        if (!title.trim() || !url.trim()) return
-        if (link?.id) {
-          updateCustomLink(link.id, "title", title)
-          updateCustomLink(link.id, "url", url)
-        } else {
-          const newLink = {
-            id: `link${Date.now()}`,
-            url: url.trim(),
-            title: title.trim(),
-          }
-          setSidebarCustomLinks((prev) => [...prev, newLink])
+    toast.success(actionMessages[action] || "Action completed")
+  }
+
+  /**
+   * Handles clicking on an activity notification
+   */
+  const handleActivityClick = (activity) => {
+    // Mark as read
+    markMessageAsRead(activity.id, activity.type)
+
+    // Here you can implement what happens when an activity is clicked
+    // For example, open a detailed view or perform a specific action
+    console.log("Activity clicked:", activity)
+
+    // You could also open a modal with more details here
+    // setSelectedActivity(activity)
+    // setIsActivityDetailModalOpen(true)
+  }
+
+  /**
+   * Handles jumping to the full activity monitor
+   */
+  const handleJumpToActivityMonitor = (activity) => {
+    window.location.href = "/dashboard/activity-monitor"
+  }
+
+  const WebsiteLinkModal = ({ link, onClose }) => {
+    const [title, setTitle] = useState(link?.title?.trim() || "")
+    const [url, setUrl] = useState(link?.url?.trim() || "")
+
+    const handleSave = () => {
+      if (!title.trim() || !url.trim()) return
+      if (link?.id) {
+        updateCustomLink(link.id, "title", title)
+        updateCustomLink(link.id, "url", url)
+      } else {
+        const newLink = {
+          id: `link${Date.now()}`,
+          url: url.trim(),
+          title: title.trim(),
         }
-        onClose()
+        setSidebarCustomLinks((prev) => [...prev, newLink])
       }
-    
-      return (
-        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Website link</h2>
-                <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
-                  <X size={16} />
-                </button>
+      onClose()
+    }
+
+    return (
+      <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+          <div className="p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Website link</h2>
+              <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                  placeholder="Enter title"
+                />
               </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-zinc-400 mb-1">Title</label>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full p-3 bg-black rounded-xl text-sm outline-none"
-                    placeholder="Enter title"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-zinc-400 mb-1">URL</label>
-                  <input
-                    type="text"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    className="w-full p-3 bg-black rounded-xl text-sm outline-none"
-                    placeholder="Enter URL"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">URL</label>
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
+                  placeholder="Enter URL"
+                />
               </div>
-              <div className="flex gap-2 pt-4">
-                <button
-                  onClick={onClose}
-                  className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium"
-                >
-                  Save
-                </button>
-              </div>
+            </div>
+            <div className="flex gap-2 pt-4">
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
-      )
-    }
+      </div>
+    )
+  }
 
   return (
     <>
@@ -684,7 +684,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
               </div>
               <div></div>
               <div className="flex items-center gap-1 sm:gap-2">
-              {!isSidebarEditing && activeTab !== "notifications" && (
+                {!isSidebarEditing && activeTab !== "notifications" && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
                     className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
@@ -761,7 +761,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                   className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                  <User size={16} className="inline mr-2" />
+                    <User size={16} className="inline mr-2" />
                     <h3 className="text-white font-medium text-sm">Member Chat</h3>
                     {getUnreadCount("memberChat") > 0 && (
                       <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
@@ -831,7 +831,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                   className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                  <Building2 size={16} className="inline mr-2" />
+                    <Building2 size={16} className="inline mr-2" />
                     <h3 className="text-white font-medium text-sm">Studio Chat</h3>
                     {getUnreadCount("studioChat") > 0 && (
                       <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
@@ -900,7 +900,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Bell size={18}  />
+                    <Bell size={18} />
                     <h3 className="text-white font-medium text-sm">Activity Monitor</h3>
 
                     {getUnreadCount("activityMonitor") > 0 && (
@@ -960,7 +960,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                                   <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
                                     {/* Time & Status */}
                                     <div className="flex items-center gap-2 text-gray-500 text-xs sm:text-sm">
-                                      
+
 
                                       {activity.actionRequired && (
                                         <span className="px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-yellow-600 text-white">
@@ -1012,7 +1012,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                                                 <Check size={12} className="text-white" />
                                               </button>
                                             )}
-                                            
+
                                         </>
                                       )}
 
@@ -1028,8 +1028,8 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                                       </button>
                                       <div className="text-xs flex items-center gap-2">
 
-                                      <Clock size={12} />
-                                      <span>{activity.time}</span>
+                                        <Clock size={12} />
+                                        <span>{activity.time}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -1065,257 +1065,285 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                     moveRightSidebarWidget={moveRightSidebarWidget}
                     removeRightSidebarWidget={removeRightSidebarWidget}
                   >
-                  
 
-                  {widget.type === "todo" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">To-Do</h2>
-                          <button
-                              onClick={() => setIsAddTaskModalOpen(true)}
-                              className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                            >
-                              <Plus size={18} />
-                            </button>
-                        </div>
 
-                        <div className="relative mb-3" ref={todoFilterDropdownRef}>
-                          <button
-                            onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
-                          >
-                            {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
-                            <ChevronDown className="w-4 h-4" />
-                          </button>
-                          {isTodoFilterDropdownOpen && (
-                            <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
-                              {todoFilterOptions.map((option) => (
-                                <button
-                                  key={option.value}
-                                  className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
-                                  onClick={() => {
-                                    setTodoFilter(option.value)
-                                    setIsTodoFilterDropdownOpen(false)
-                                  }}
-                                >
-                                  {option.color && (
-                                    <div
-                                      className="w-2 h-2 rounded-full"
-                                      style={{ backgroundColor: option.color }}
-                                    />
-                                  )}
-                                  {option.label}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Todo Items */}
-                        <div className="space-y-3 open_sans_font">
-                          {getFilteredTodos().length > 0 ? (
-                            <>
-                              {getFilteredTodos()
-                                .slice(0, 3)
-                                .map((todo) => (
-                                  <div key={todo.id} className="p-2 bg-black rounded-xl flex items-center justify-between">
-                                    <div className="flex items-center gap-2 flex-1">
-                                      <input
-                                        type="checkbox"
-                                        checked={todo.completed}
-                                        onChange={() => handleTaskComplete(todo.id)}
-                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                      />
-                                      <div className="flex-1">
-                                        <h3
-                                          className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
-                                        >
-                                          {todo.title}
-                                        </h3>
-                                        <p className="text-xs open_sans_font text-zinc-400">
-                                          Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="relative">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          toggleDropdown(`todo-${todo.id}`)
-                                        }}
-                                        className="p-1 hover:bg-zinc-700 rounded"
-                                      >
-                                        <MoreVertical size={16} />
-                                      </button>
-                                      {openDropdownIndex === `todo-${todo.id}` && (
-                                        <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                                          <button
-                                            onClick={() => {
-                                              handleEditTask(todo)
-                                            }}
-                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                                          >
-                                            Edit Task
-                                          </button>
-                                          <button
-                                            onClick={() => {
-                                              setTaskToCancel(todo.id)
-                                            }}
-                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                                          >
-                                            Cancel Task
-                                          </button>
-                                          <button
-                                            onClick={() => {
-                                              setTaskToDelete(todo.id)
-                                            }}
-                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                                          >
-                                            Delete Task
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              <Link
-                                to={"/dashboard/to-do"}
-                                className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
-                              >
-                                See all
-                              </Link>
-                            </>
-                          ) : (
-                            <div className="text-center py-4 text-gray-400">
-                              <p className="text-sm">No tasks in this category</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ... rest of existing widgets remain the same ... */}
-                    {widget.type === "birthday" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Upcoming Birthday</h2>
-                        </div>
-                        <div className="space-y-2 open_sans_font">
-                          {birthdays.slice(0, 3).map((birthday) => (
-                            <div
-                              key={birthday.id}
-                              className={`p-2 cursor-pointer rounded-xl flex items-center gap-2 justify-between ${isBirthdayToday(birthday.date)
-                                  ? "bg-yellow-900/30 border border-yellow-600"
-                                  : "bg-black"
-                                }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <div>
-                                  <img
-                                    src={birthday.avatar || "/placeholder.svg"}
-                                    className="h-8 w-8 rounded-full"
-                                    alt=""
-                                  />
-                                </div>
-                                <div>
-                                  <h3 className="font-semibold open_sans_font text-sm flex items-center gap-1">
-                                    {birthday.name}
-                                    {isBirthdayToday(birthday.date) && <span className="text-yellow-500">🎂</span>}
-                                  </h3>
-                                  <p className="text-xs open_sans_font text-zinc-400">{birthday.date}</p>
-                                </div>
-                              </div>
-                              {isBirthdayToday(birthday.date) && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleSendBirthdayMessage(birthday)
-                                  }}
-                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
-                                  title="Send Birthday Message"
-                                >
-                                  <MessageCircle size={16} />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-{widget.type === "websiteLinks" && (
-  <div className="mb-6">
-    <div className="flex items-center justify-between mb-2">
-      <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
+{widget.type === "todo" && (
+  <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+    <div className="flex justify-between items-center">
+      <h2 className="text-lg font-semibold open_sans_font cursor-pointer">To-Do</h2>
       <button
-        onClick={addCustomLink}
-        className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
+        onClick={() => setIsAddTaskModalOpen(true)}
+        className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
       >
         <Plus size={18} />
       </button>
     </div>
-    <div className="space-y-2 open_sans_font">
-      {sidebarCustomLinks.map((link) => (
-        <div
-          key={link.id}
-          className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
-        >
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold open_sans_font text-sm truncate">{link.title}</h3>
-            <p className="text-xs open_sans_font text-zinc-400 truncate max-w-[150px]">
-              {truncateUrl(link.url, 30)}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+
+    <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
+      <button
+        onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+        className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
+      >
+        {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+        <ChevronDown className="w-4 h-4" />
+      </button>
+      {isTodoFilterDropdownOpen && (
+        <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+          {todoFilterOptions.map((option) => (
             <button
-              onClick={() => window.open(link.url, "_blank")}
-              className="p-2 hover:bg-zinc-700 rounded-lg"
+              key={option.value}
+              className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+              onClick={() => {
+                setTodoFilter(option.value)
+                setIsTodoFilterDropdownOpen(false)
+              }}
             >
-              <ExternalLink size={16} />
-            </button>
-            <div className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setSidebarOpenDropdownIndex(
-                    sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`,
-                  )
-                }}
-                className="p-2 hover:bg-zinc-700 rounded-lg"
-              >
-                <MoreVertical size={16} />
-              </button>
-              {sidebarOpenDropdownIndex === `link-${link.id}` && (
-                <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setEditingLink(link)
-                      setIsWebsiteLinkModalOpen(true)
-                      setSidebarOpenDropdownIndex(null)
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      removeCustomLink(link.id)
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                  >
-                    Remove
-                  </button>
-                </div>
+              {option.color && (
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: option.color }}
+                />
               )}
-            </div>
-          </div>
+              {option.label}
+            </button>
+          ))}
         </div>
-      ))}
+      )}
+    </div>
+
+    {/* Todo Items with Scroll */}
+    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+      <div className="space-y-2">
+        {getFilteredTodos().length > 0 ? (
+          <>
+            {getFilteredTodos()
+              .slice(0, 3)
+              .map((todo) => (
+                <div key={todo.id} className="p-3 bg-black rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1">
+                    <input
+                      type="checkbox"
+                      checked={todo.completed}
+                      onChange={() => handleTaskComplete(todo.id)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <h3
+                        className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                      >
+                        {todo.title}
+                      </h3>
+                      <p className="text-xs open_sans_font text-zinc-400">
+                        Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleDropdown(`todo-${todo.id}`)
+                      }}
+                      className="p-1 hover:bg-zinc-700 rounded"
+                    >
+                      <MoreVertical size={16} />
+                    </button>
+                    {openDropdownIndex === `todo-${todo.id}` && (
+                      <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                        <button
+                          onClick={() => {
+                            handleEditTask(todo)
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                        >
+                          Edit Task
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTaskToCancel(todo.id)
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                        >
+                          Cancel Task
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTaskToDelete(todo.id)
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                        >
+                          Delete Task
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+          </>
+        ) : (
+          <div className="text-center py-4 text-gray-400">
+            <p className="text-sm">No tasks in this category</p>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div className="flex justify-center">
+      <Link
+        to={"/dashboard/to-do"}
+        className="text-sm open_sans_font text-white hover:underline"
+      >
+        See all
+      </Link>
     </div>
   </div>
 )}
+
+                    {/* ... rest of existing widgets remain the same ... */}
+                    {widget.type === "birthday" && (
+                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Upcoming Birthday</h2>
+                        </div>
+
+                        {/* Scrollable area */}
+                        <div className="flex-1 overflow-y-auto max-h-[300px] custom-scrollbar pr-1">
+                          <div className="space-y-2">
+                            {birthdays.map((birthday) => (
+                              <div
+                                key={birthday.id}
+                                className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${isBirthdayToday(birthday.date)
+                                  ? "bg-yellow-900/30 border border-yellow-600"
+                                  : "bg-black"
+                                  }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-xl overflow-hidden">
+                                    <img
+                                      src={birthday.avatar || "/placeholder.svg"}
+                                      className="h-full w-full object-cover"
+                                      alt=""
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <h3 className="font-semibold text-sm flex items-center gap-1">
+                                      {birthday.name}
+                                      {isBirthdayToday(birthday.date) && (
+                                        <span className="text-yellow-500">🎂</span>
+                                      )}
+                                    </h3>
+                                    <p className="text-xs text-zinc-400">{birthday.date}</p>
+                                  </div>
+                                </div>
+
+                                {isBirthdayToday(birthday.date) && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSendBirthdayMessage(birthday);
+                                    }}
+                                    className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                                    title="Send Birthday Message"
+                                  >
+                                    <MessageCircle size={16} />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "websiteLinks" && (
+                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+
+                        {/* Header */}
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">Website Links</h2>
+                          <button
+                            onClick={addCustomLink}
+                            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
+                          >
+                            <Plus size={18} />
+                          </button>
+                        </div>
+
+                        {/* Scrollable Grid List */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                          <div className="grid grid-cols-1 gap-3">
+                            {sidebarCustomLinks.map((link) => (
+                              <div
+                                key={link.id}
+                                className="p-5 bg-black rounded-xl flex items-center justify-between"
+                              >
+                                {/* Link Title + URL */}
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm font-medium truncate">{link.title}</h3>
+                                  <p className="text-xs mt-1 text-zinc-400 truncate max-w-[200px]">
+                                    {truncateUrl(link.url, 30)}
+                                  </p>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex items-center gap-2">
+                                  {/* Open in new tab */}
+                                  <button
+                                    onClick={() => window.open(link.url, "_blank")}
+                                    className="p-2 hover:bg-zinc-700 rounded-lg"
+                                  >
+                                    <ExternalLink size={16} />
+                                  </button>
+
+                                  {/* Dropdown */}
+                                  <div className="relative">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setSidebarOpenDropdownIndex(
+                                          sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`
+                                        )
+                                      }}
+                                      className="p-2 hover:bg-zinc-700 rounded-lg"
+                                    >
+                                      <MoreVertical size={16} />
+                                    </button>
+
+                                    {sidebarOpenDropdownIndex === `link-${link.id}` && (
+                                      <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setEditingLink(link)
+                                            setIsWebsiteLinkModalOpen(true)
+                                            setSidebarOpenDropdownIndex(null)
+                                          }}
+                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            removeCustomLink(link.id)
+                                            setSidebarOpenDropdownIndex(null)
+                                          }}
+                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                        >
+                                          Remove
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
 
                     {widget.type === "appointments" && (
                       <div className="mb-6">
@@ -1356,8 +1384,8 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                                       />
                                     </div>
                                     <div className="text-white text-left">
-                                    <p className="font-semibold text-sm">{appointment.name} {appointment.lastName || ""}</p>
-                                    <p className="text-xs flex gap-1 items-center opacity-80">
+                                      <p className="font-semibold text-sm">{appointment.name} {appointment.lastName || ""}</p>
+                                      <p className="text-xs flex gap-1 items-center opacity-80">
                                         <Clock size={14} />
                                         {appointment.time} | {appointment.date.split("|")[0]}
                                       </p>
@@ -1373,13 +1401,13 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                                         handleCheckIn(appointment.id)
                                       }}
                                       className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                          ? " border border-white/50 text-white bg-transparent"
-                                          : "bg-black text-white"
+                                        ? " border border-white/50 text-white bg-transparent"
+                                        : "bg-black text-white"
                                         }`}
                                     >
                                       {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                     </button>
-                                  
+
                                   </div>
                                 </div>
                               </div>
@@ -1449,7 +1477,7 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                     )}
 
                     {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
-                    
+
 
                     {widget.type === "staffCheckIn" && (
                       <div className="mb-6">
@@ -1461,9 +1489,9 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
                         </div>
                       </div>
                     )}
-                     {widget.type === "notes" && <NotesWidget />}
+                    {widget.type === "notes" && <NotesWidget />}
 
-                     {widget.type === "shiftSchedule" && (
+                    {widget.type === "shiftSchedule" && (
                       <ShiftScheduleWidget
                         isEditing={isSidebarEditing}
                         onRemove={() => removeRightSidebarWidget(widget.id)}
@@ -1489,15 +1517,15 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
         onOpenFullMessenger={handleOpenFullMessenger}
       />
 
-{isWebsiteLinkModalOpen && (
-  <WebsiteLinkModal
-    link={editingLink}
-    onClose={() => {
-      setIsWebsiteLinkModalOpen(false)
-      setEditingLink(null)
-    }}
-  />
-)}
+      {isWebsiteLinkModalOpen && (
+        <WebsiteLinkModal
+          link={editingLink}
+          onClose={() => {
+            setIsWebsiteLinkModalOpen(false)
+            setEditingLink(null)
+          }}
+        />
+      )}
 
       <ViewManagementModal
         isOpen={isViewModalOpen}
@@ -1510,11 +1538,11 @@ const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
         setSidebarWidgets={() => { }}
       />
 
-{isAddTaskModalOpen && <AddTaskModal
-          onClose={() => setIsAddTaskModalOpen(false)}
-          onAddTask={handleAddTask}
-          configuredTags={configuredTags}
-        />}
+      {isAddTaskModalOpen && <AddTaskModal
+        onClose={() => setIsAddTaskModalOpen(false)}
+        onAddTask={handleAddTask}
+        configuredTags={configuredTags}
+      />}
     </>
   )
 }

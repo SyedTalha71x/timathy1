@@ -82,29 +82,26 @@ const AdminDashboardLayout = () => {
     <div className="bg-[#111111] min-h-screen">
       <div className="flex flex-col md:flex-row h-full">
         <Sidebar />
-        <main className="
+        <main className={`
     flex-1 md:h-screen h-[calc(100vh-4rem)] overflow-y-auto 
     lg:pt-5    /* large screens ke liye chhota padding */
-    md:pt-20   /* tablets ke liye 80px padding */
-    sm:pt-24   /* small screens ke liye 96px padding */
-    pt-28      /* extra-small (mobile) screens ke liye 112px padding */
+    md:pt-16   /* tablets ke liye 80px padding */
+    sm:pt-16   /* small screens ke liye 96px padding */
+    pt-20     /* extra-small (mobile) screens ke liye 112px padding */
     pb-10 p-2
-  ">
+   
+    
+  `}>
           <div
-            className="lg:flex hidden rounded-md justify-end bg-[#1f1e1e] z-10 p-2 mb-2 items-center gap-2"
+            className="lg:flex hidden rounded-md justify-start bg-[#1f1e1e] z-10 p-2 mb-2 items-center gap-2"
           >
             <div className="flex gap-1 items-center">
-              <div className="">
-                <div className="flex items-center gap-2 ">
+              <div>
+                <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
-                    <h2 className="font-semibold text-white text-md leading-tight">{fullName}</h2>
-                    <span className="text-zinc-400 text-md font-medium">{role}</span>
-                  </div>
-
-                  {/* Studio Name */}
-                  <div className="flex items-center  gap-1 bg-black py-1 px-3 rounded-md w-fit">
-                    <Building2 size={14} className="text-white" />
-                    <p className="text-sm font-bold text-white">{studioName}</p>
+                    <h2 className="font-semibold text-white text-md leading-tight">
+                      {fullName}
+                    </h2>
                   </div>
                 </div>
               </div>
@@ -113,18 +110,20 @@ const AdminDashboardLayout = () => {
                 <button
                   onClick={toggleLanguageDropdown}
                   className="p-2 px-3 rounded-xl text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center gap-1"
-                  aria-label="Language Selection"
                 >
                   <Globe size={20} />
                 </button>
+
                 {isLanguageDropdownOpen && (
-                  <div className="absolute right-0 top-12 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]">
+                  <div className="absolute -right-6 top-12 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]">
                     <div className="py-2" role="menu">
                       {languages.map((language) => (
                         <button
                           key={language.code}
                           onClick={() => handleLanguageSelect(language)}
-                          className={` w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-3 ${selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
+                          className={`w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-3 ${selectedLanguage === language.name
+                            ? "text-white bg-zinc-600"
+                            : "text-zinc-300"
                             }`}
                         >
                           <img src={language.flag} className="h- rounded-sm w-8" />
@@ -136,52 +135,71 @@ const AdminDashboardLayout = () => {
                 )}
               </div>
 
-              <div onClick={toggleDropdownMain} className="flex items-center gap-1 cursor-pointer">
-                <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
-              </div>
-              {isDropdownOpen && (
-                <div className="absolute right-8 top-17 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]  ">
-                  <div className="py-2" role="menu">
-                    <button
-                      onClick={handleEditProfile}
-                      className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                    >
-                      Edit Profile
-                    </button>
-                    <hr className="border-zinc-600 my-1" />
-                    <button
-                      onClick={handlePrivacyPolicy}
-                      className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                    >
-                      Privacy Policy
-                    </button>
-                    <button
-                      onClick={handleTermsOfUse}
-                      className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                    >
-                      Terms & Conditions
-                    </button>
-                    <button
-                      onClick={handleChangelog}
-                      className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                    >
-                      Changelog
-                    </button>
-                    <hr className="border-zinc-600 my-1" />
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
-                    >
-                      Logout
-                    </button>
-                  </div>
+              {/* ✅ FIX START — added relative wrapper */}
+              <div className="relative">
+                <div
+                  onClick={toggleDropdownMain}
+                  className="flex items-center gap-1 cursor-pointer"
+                >
+                  <img
+                    src="/gray-avatar-fotor-20250912192528.png"
+                    alt="Profile"
+                    className="w-9 h-9 rounded-lg"
+                  />
                 </div>
-              )}
 
+                {isDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[999]">
+                    <div className="py-2" role="menu">
+                      <button
+                        onClick={handleEditProfile}
+                        className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                      >
+                        Edit Profile
+                      </button>
+                      <hr className="border-zinc-600 my-1" />
+
+                      <button
+                        onClick={handlePrivacyPolicy}
+                        className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                      >
+                        Privacy Policy
+                      </button>
+
+                      <button
+                        onClick={handleTermsOfUse}
+                        className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                      >
+                        Terms & Conditions
+                      </button>
+
+                      <button
+                        onClick={handleChangelog}
+                        className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                      >
+                        Changelog
+                      </button>
+
+                      <hr className="border-zinc-600 my-1" />
+
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* ✅ FIX END */}
             </div>
-
           </div>
-          <Outlet />
+
+          <div className="lg:pt-0 pt-6">
+
+            <Outlet />
+          </div>
         </main>
       </div>
       <Modal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} title="Terms & Conditions">

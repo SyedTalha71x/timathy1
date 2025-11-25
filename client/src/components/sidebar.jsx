@@ -130,7 +130,7 @@ const Sidebar = () => {
   ]
 
   const studioName = "Studio One"
-  const fullName = "Samantha"
+  const fullName = "Samantha Jerry"
   const role = "Trainer"
 
   const location = useLocation()
@@ -340,7 +340,7 @@ const Sidebar = () => {
           {/* Activity Log Icon for Mobile */}
           <button
             onClick={handleActivityLogClick}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-[#2a2a2a] cursor-pointer flex items-center transition-colors"
+            className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1"
             aria-label="Activity Log"
           >
             <History size={18} />
@@ -349,7 +349,7 @@ const Sidebar = () => {
           <div className="relative mr-1">
             <button
               onClick={toggleLanguageDropdown}
-              className="p-1.5 px-2 rounded-lg text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center"
+              className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1"
               aria-label="Language Selection"
             >
               <Globe size={18} />
@@ -383,11 +383,10 @@ const Sidebar = () => {
                   {/* Trainer Name and Role */}
                   <div className="flex flex-col">
                     <h2 className="font-semibold text-white text-xs leading-tight">{fullName}</h2>
-                    <span className="text-zinc-400 text-xs font-medium">{role}</span>
                   </div>
 
                   {/* Studio Name */}
-                  <div className="flex items-center mt-1 gap-1 bg-black py-1 px-2 rounded w-fit">
+                  <div className="flex items-center mt-2 gap-1 bg-black py-1 px-2 rounded w-fit">
                     <Building2 size={12} className="text-white" />
                     <p className="text-xs font-medium text-white">{studioName}</p>
                   </div>

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useCallback } from 'react';
-import { Calendar, Clock, Users, ChevronDown, CheckCircle, XCircle } from 'lucide-react';
+import { Clock, Users, ChevronDown, CheckCircle, XCircle } from 'lucide-react';
 
 const mockShiftData = [
   {
@@ -58,28 +58,37 @@ const mockShiftData = [
   }
 ];
 
-const ShiftScheduleWidget = ({ 
+const ShiftScheduleWidget = ({
   isEditing = false,
   onRemove,
   className = "",
-  showHeader = true 
+  showHeader = true
 }) => {
   const [selectedDate, setSelectedDate] = useState("2024-01-15");
   const [viewType, setViewType] = useState("daily");
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState("All Staff");
+  const [isStaffDropdownOpen, setIsStaffDropdownOpen] = useState(false);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
   const getShiftsForDate = useCallback((date) => {
-    return mockShiftData.filter(shift => shift.date === date);
-  }, []);
+    let filteredShifts = mockShiftData.filter(shift => shift.date === date);
+
+    // Filter by selected staff if not "All Staff"
+    if (selectedStaff !== "All Staff") {
+      filteredShifts = filteredShifts.filter(shift => shift.staffName === selectedStaff);
+    }
+
+    return filteredShifts;
+  }, [selectedStaff]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -116,22 +125,50 @@ const ShiftScheduleWidget = ({
     }
   };
 
+  // Get unique staff names for dropdown
+  const staffNames = ["All Staff", ...new Set(mockShiftData.map(shift => shift.staffName))];
+
   const currentShifts = getShiftsForDate(selectedDate);
 
   return (
     <div className={`space-y-4 p-4 rounded-xl bg-[#2F2F2F] ${className}`}>
       {showHeader && (
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Calendar size={20} className="text-blue-400" />
-            <h2 className="text-lg font-semibold">Staff Shifts</h2>
+          <h2 className="text-lg font-semibold">Staff Shifts</h2>
+
+          {/* Staff Filter Dropdown */}
+          <div className="relative">
+            <button
+              className="flex items-center gap-2 px-3 py-1 bg-black rounded-lg text-sm hover:bg-zinc-800 transition-colors"
+              onClick={() => setIsStaffDropdownOpen(!isStaffDropdownOpen)}
+            >
+              <span>{selectedStaff}</span>
+              <ChevronDown size={16} className={`transition-transform ${isStaffDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isStaffDropdownOpen && (
+              <div className="absolute top-full right-0 mt-1 w-40 bg-black rounded-lg shadow-lg border border-zinc-700 z-10">
+                {staffNames.map((staff) => (
+                  <button
+                    key={staff}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-zinc-800 transition-colors first:rounded-t-lg last:rounded-b-lg ${selectedStaff === staff ? 'bg-blue-500/20 text-blue-400' : ''
+                      }`}
+                    onClick={() => {
+                      setSelectedStaff(staff);
+                      setIsStaffDropdownOpen(false);
+                    }}
+                  >
+                    {staff}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          
         </div>
       )}
 
       <div className="flex items-center justify-between bg-black rounded-lg p-3">
-        <button 
+        <button
           className="p-2 hover:bg-zinc-700 rounded-lg transition-colors"
           onClick={() => {
             const date = new Date(selectedDate);
@@ -141,7 +178,7 @@ const ShiftScheduleWidget = ({
         >
           ←
         </button>
-        
+
         <div className="text-center">
           <div className="font-medium">{formatDate(selectedDate)}</div>
           <div className="text-xs text-zinc-400">
@@ -149,7 +186,7 @@ const ShiftScheduleWidget = ({
           </div>
         </div>
 
-        <button 
+        <button
           className="p-2 hover:bg-zinc-700 rounded-lg transition-colors"
           onClick={() => {
             const date = new Date(selectedDate);
@@ -166,27 +203,20 @@ const ShiftScheduleWidget = ({
           currentShifts.map((shift) => (
             <div
               key={shift.id}
-              className="p-3 rounded-xl bg-black/50 border-l-4"
-              style={{ borderLeftColor: shift.color.replace('bg-', '').split('-')[0] }}
+              className="p-3 rounded-xl bg-black/50 "
+            // style={{ borderLeftColor: shift.color.replace('bg-', '').split('-')[0] }}
             >
               {/* Staff Info */}
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ 
-                        backgroundColor: shift.color.replace('bg-', '').split('-')[0] === 'blue' ? '#3b82f6' :
-                                        shift.color.replace('bg-', '').split('-')[0] === 'green' ? '#10b981' :
-                                        shift.color.replace('bg-', '').split('-')[0] === 'purple' ? '#8b5cf6' : '#f97316'
-                      }}
-                    />
+
                     <div>
                       <h3 className="font-semibold text-sm">{shift.staffName}</h3>
                       <p className="text-xs text-zinc-400">{shift.position}</p>
                     </div>
                   </div>
-                  
+
                   {/* Shift Time */}
                   <div className="flex items-center gap-2 text-xs text-zinc-300 mb-2">
                     <Clock size={12} />
@@ -200,20 +230,7 @@ const ShiftScheduleWidget = ({
                   </div>
                 </div>
 
-                {/* Status Indicator */}
-                <div className="flex flex-col items-end gap-1">
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${getStatusColor(shift.status)}`}>
-                    {getStatusIcon(shift.status, shift.isClockedIn)}
-                    <span>{getStatusText(shift.status, shift.isClockedIn)}</span>
-                  </div>
-                  
-                  {shift.status === 'working' && shift.isClockedIn && (
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-green-400">Live</span>
-                    </div>
-                  )}
-                </div>
+
               </div>
             </div>
           ))
@@ -226,6 +243,16 @@ const ShiftScheduleWidget = ({
         )}
       </div>
 
+      {/* Close dropdown when clicking outside */}
+      {(isStaffDropdownOpen || isViewDropdownOpen) && (
+        <div
+          className="fixed inset-0 z-0"
+          onClick={() => {
+            setIsStaffDropdownOpen(false);
+            setIsViewDropdownOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 };

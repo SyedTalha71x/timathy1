@@ -240,21 +240,21 @@ export default function TodoApp() {
     const now = new Date();
     const updatedRepeatConfigs = { ...repeatConfigs };
     let tasksUpdated = false;
-  
+
     Object.entries(repeatConfigs).forEach(([taskId, config]) => {
       const task = tasks.find(t => t.id === parseInt(taskId));
-      
+
       // Skip if task doesn't exist or isn't completed
       if (!task || task.status !== "completed") return;
-  
+
       // Check if we need to create repeat tasks
       const lastCompleted = config.lastCompletedDate ? new Date(config.lastCompletedDate) : null;
       const taskCompletedDate = new Date(task.updatedAt || now);
-      
+
       // Only process if this completion is newer than our last processing
       if (!lastCompleted || lastCompleted < taskCompletedDate) {
         const createdTasks = createNextRepeatTasks(config, task);
-        
+
         if (createdTasks > 0) {
           // Update the last completed date
           updatedRepeatConfigs[taskId] = {
@@ -266,7 +266,7 @@ export default function TodoApp() {
         }
       }
     });
-  
+
     if (tasksUpdated) {
       setRepeatConfigs(updatedRepeatConfigs);
     }
@@ -330,33 +330,33 @@ export default function TodoApp() {
   const createNextRepeatTasks = (config, completedTask) => {
     const { originalTask, repeatOptions } = config;
     let tasksCreated = 0;
-  
+
     try {
       // Calculate how many occurrences should exist based on the original task
-      const allRepeatTasks = tasks.filter(t => 
-        t.title === originalTask.title && 
+      const allRepeatTasks = tasks.filter(t =>
+        t.title === originalTask.title &&
         t.id !== originalTask.id
       );
-      
+
       const currentOccurrences = allRepeatTasks.length;
       const maxOccurrences = repeatOptions.occurrences || Infinity;
-      
+
       // If we haven't reached the occurrence limit, create the next task
       if (currentOccurrences < maxOccurrences - 1) { // -1 because original task counts as first occurrence
         const lastTaskDate = new Date(completedTask.dueDate);
         let nextDate = new Date(lastTaskDate);
-  
+
         // Calculate next occurrence based on repeat frequency
         if (repeatOptions.frequency === "daily") {
           nextDate.setDate(nextDate.getDate() + 1);
         } else if (repeatOptions.frequency === "weekly") {
           nextDate.setDate(nextDate.getDate() + 7);
-          
+
           // For weekly repeats with specific days, find the next selected day
           if (repeatOptions.repeatDays && repeatOptions.repeatDays.length > 0) {
             const currentDay = nextDate.getDay();
             const nextDays = repeatOptions.repeatDays.filter(day => day > currentDay);
-            const daysToAdd = nextDays.length > 0 
+            const daysToAdd = nextDays.length > 0
               ? nextDays[0] - currentDay
               : 7 - currentDay + repeatOptions.repeatDays[0];
             nextDate.setDate(nextDate.getDate() + daysToAdd);
@@ -364,12 +364,12 @@ export default function TodoApp() {
         } else if (repeatOptions.frequency === "monthly") {
           nextDate.setMonth(nextDate.getMonth() + 1);
         }
-  
+
         // Check end date condition
         if (repeatOptions.endDate && nextDate > new Date(repeatOptions.endDate)) {
           return tasksCreated;
         }
-  
+
         // Check if this repeat task already exists
         const newDueDate = nextDate.toISOString().split('T')[0];
         const taskAlreadyExists = tasks.some(t =>
@@ -377,7 +377,7 @@ export default function TodoApp() {
           t.dueDate === newDueDate &&
           t.status === "ongoing"
         );
-  
+
         if (!taskAlreadyExists) {
           const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
           const newTask = {
@@ -389,7 +389,7 @@ export default function TodoApp() {
             status: "ongoing",
             createdAt: new Date().toISOString()
           };
-  
+
           setTasks(prevTasks => [...prevTasks, newTask]);
           tasksCreated = 1;
           toast.success(`New repeat task created for ${originalTask.title}`);
@@ -399,7 +399,7 @@ export default function TodoApp() {
       console.error("Error creating repeat task:", error);
       toast.error("Error creating repeat task");
     }
-    
+
     return tasksCreated;
   };
 
@@ -461,13 +461,13 @@ export default function TodoApp() {
           occurrencesCreated: 0
         }
       }));
-  
+
       toast.success(`Repeat settings saved! Task will repeat ${repeatOptions.occurrences || 'until'} ${repeatOptions.endDate || 'indefinitely'}.`);
     } catch (error) {
       toast.error("Error setting up repeat task. Please try again.");
       console.error("Repeat task error:", error);
     }
-  
+
     setIsRepeatModalOpen(false);
     setSelectedTaskForRepeat(null);
   };
@@ -861,62 +861,62 @@ export default function TodoApp() {
         </div>
         <div className="">
 
-       
-        <div className="p-3 flex-1 min-h-[400px] relative">
-          {tasks.length > 0 ? (
-            tasks.map((task, index) => {
-              if (!taskItemRefs.current[task.id]) {
-                taskItemRefs.current[task.id] = React.createRef()
-              }
-              return (
-                <Draggable
-                  key={`${task.id}-${task.dragVersion}`}
-                  nodeRef={taskItemRefs.current[task.id]}
-                  onStart={() => setDraggingTaskId(task.id)}
-                  onStop={(e, data) => {
-                    setDraggingTaskId(null)
-                    onDragStop(e, data, task, id)
-                  }}
-                  cancel=".no-drag"
-                  defaultPosition={{ x: 0, y: 0 }}
-                >
-                  <div
-                    ref={taskItemRefs.current[task.id]}
-                    className={`cursor-grab mb-3  ${draggingTaskId === task.id ? "z-[9999] relative" : ""} `}
-                    style={{
-                      zIndex: draggingTaskId === task.id ? 9999 : "auto",
-                      position: draggingTaskId === task.id ? "relative" : "static",
+
+          <div className="p-3 flex-1 min-h-[400px] relative">
+            {tasks.length > 0 ? (
+              tasks.map((task, index) => {
+                if (!taskItemRefs.current[task.id]) {
+                  taskItemRefs.current[task.id] = React.createRef()
+                }
+                return (
+                  <Draggable
+                    key={`${task.id}-${task.dragVersion}`}
+                    nodeRef={taskItemRefs.current[task.id]}
+                    onStart={() => setDraggingTaskId(task.id)}
+                    onStop={(e, data) => {
+                      setDraggingTaskId(null)
+                      onDragStop(e, data, task, id)
                     }}
+                    cancel=".no-drag"
+                    defaultPosition={{ x: 0, y: 0 }}
                   >
-                    <TaskItem
-                      task={task}
-                      onStatusChange={onTaskStatusChange}
-                      onUpdate={onTaskUpdate}
-                      onPinToggle={onTaskPinToggle}
-                      onRemove={onTaskRemove}
-                      onEditRequest={onEditRequest}
-                      onDeleteRequest={onDeleteRequest}
-                      onDuplicateRequest={onDuplicateRequest}
-                      onRepeatRequest={onRepeatRequest}
-                      isDragging={draggingTaskId === task.id}
-                      openDropdownTaskId={openDropdownTaskId}
-                      setOpenDropdownTaskId={setOpenDropdownTaskId}
-                      configuredTags={configuredTags}
-                      availableAssignees={availableAssignees}
-                      availableRoles={availableRoles}
-                      onOpenAssignModal={handleOpenAssignModal}
-                      onOpenTagsModal={handleOpenTagsModal}
-                      onOpenCalendarModal={handleOpenCalendarModal} 
-                      repeatConfigs={repeatConfigs} 
-                    />
-                  </div>
-                </Draggable>
-              )
-            })
-          ) : (
-            <div className="text-gray-400 text-center py-8">No {title.toLowerCase()} tasks found</div>
-          )}
-        </div>
+                    <div
+                      ref={taskItemRefs.current[task.id]}
+                      className={`cursor-grab mb-3  ${draggingTaskId === task.id ? "z-[9999] relative" : ""} `}
+                      style={{
+                        zIndex: draggingTaskId === task.id ? 9999 : "auto",
+                        position: draggingTaskId === task.id ? "relative" : "static",
+                      }}
+                    >
+                      <TaskItem
+                        task={task}
+                        onStatusChange={onTaskStatusChange}
+                        onUpdate={onTaskUpdate}
+                        onPinToggle={onTaskPinToggle}
+                        onRemove={onTaskRemove}
+                        onEditRequest={onEditRequest}
+                        onDeleteRequest={onDeleteRequest}
+                        onDuplicateRequest={onDuplicateRequest}
+                        onRepeatRequest={onRepeatRequest}
+                        isDragging={draggingTaskId === task.id}
+                        openDropdownTaskId={openDropdownTaskId}
+                        setOpenDropdownTaskId={setOpenDropdownTaskId}
+                        configuredTags={configuredTags}
+                        availableAssignees={availableAssignees}
+                        availableRoles={availableRoles}
+                        onOpenAssignModal={handleOpenAssignModal}
+                        onOpenTagsModal={handleOpenTagsModal}
+                        onOpenCalendarModal={handleOpenCalendarModal}
+                        repeatConfigs={repeatConfigs}
+                      />
+                    </div>
+                  </Draggable>
+                )
+              })
+            ) : (
+              <div className="text-gray-400 text-center py-8">No {title.toLowerCase()} tasks found</div>
+            )}
+          </div>
         </div>
       </div>
     )
@@ -1353,14 +1353,14 @@ export default function TodoApp() {
             <div className="flex flex-col gap-4 mb-6">
               <div className="flex justify-between items-center gap-4 mb-6">
                 <h1 className="text-2xl font-bold text-white">To-Do</h1>
-               
+
                 {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className=" ">
-            <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
-          </div>
-          ) : (<div onClick={toggleRightSidebar} className=" ">
-            <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-          </div>
-          )}
+                  <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                ) : (<div onClick={toggleRightSidebar} className=" ">
+                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                )}
               </div>
 
               <div className="flex flex-col md:flex-row gap-4 items-stretch">
@@ -1579,80 +1579,76 @@ export default function TodoApp() {
                   </button>
 
                   <div className="relative sort-dropdown">
-  <button
-    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-    className="md:w-auto w-full flex cursor-pointer items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
-  >
-    <span>
-      {sortOption === "dueDate-asc" && "Due Date (Earliest)"}
-      {sortOption === "dueDate-desc" && "Due Date (Latest)"}
-      {sortOption === "tag-asc" && "Tag (A-Z)"}
-      {sortOption === "tag-desc" && "Tag (Z-A)"}
-    </span>
-    <ChevronDown size={16} />
-  </button>
+                    <button
+                      onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                      className="md:w-auto w-full flex cursor-pointer items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+                    >
+                      <span>
+                        {sortOption === "dueDate-asc" && "Due Date (Earliest)"}
+                        {sortOption === "dueDate-desc" && "Due Date (Latest)"}
+                        {sortOption === "tag-asc" && "Tag (A-Z)"}
+                        {sortOption === "tag-desc" && "Tag (Z-A)"}
+                      </span>
+                      <ChevronDown size={16} />
+                    </button>
 
-  {isSortDropdownOpen && (
-    <div className="absolute right-0 top-full mt-1 bg-[#2F2F2F] rounded-xl shadow-lg z-10 w-48">
-      <div className="p-2">
-        <h3 className="text-xs text-gray-400 px-3 py-1">Sort by Due Date</h3>
+                    {isSortDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-1 bg-[#2F2F2F] rounded-xl shadow-lg z-10 w-48">
+                        <div className="p-2">
+                          <h3 className="text-xs text-gray-400 px-3 py-1">Sort by Due Date</h3>
 
-        <button
-          onClick={() => {
-            setSortOption("dueDate-asc")
-            setIsSortDropdownOpen(false)
-          }}
-          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-            sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
-          }`}
-        ><Calendar size={14} />
-          <span>Earliest First</span>
-        </button>
+                          <button
+                            onClick={() => {
+                              setSortOption("dueDate-asc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          ><Calendar size={14} />
+                            <span>Earliest First</span>
+                          </button>
 
-        <button
-          onClick={() => {
-            setSortOption("dueDate-desc")
-            setIsSortDropdownOpen(false)
-          }}
-          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-            sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
-          }`}
-        >
-          <Calendar size={14} />
-          <span>Latest First</span>
-        </button>
+                          <button
+                            onClick={() => {
+                              setSortOption("dueDate-desc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-desc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Calendar size={14} />
+                            <span>Latest First</span>
+                          </button>
 
-        <h3 className="text-xs text-gray-400 px-3 py-1 mt-2">Sort by Tag</h3>
+                          <h3 className="text-xs text-gray-400 px-3 py-1 mt-2">Sort by Tag</h3>
 
-        <button
-          onClick={() => {
-            setSortOption("tag-asc")
-            setIsSortDropdownOpen(false)
-          }}
-          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-            sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
-          }`}
-        >
-          <Tag size={14} />
-          <span>A to Z</span>
-        </button>
+                          <button
+                            onClick={() => {
+                              setSortOption("tag-asc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-asc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Tag size={14} />
+                            <span>A to Z</span>
+                          </button>
 
-        <button
-          onClick={() => {
-            setSortOption("tag-desc")
-            setIsSortDropdownOpen(false)
-          }}
-          className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${
-            sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
-          }`}
-        >
-          <Tag size={14} />
-          <span>Z to A</span>
-        </button>
-      </div>
-    </div>
-  )}
-</div>
+                          <button
+                            onClick={() => {
+                              setSortOption("tag-desc")
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "tag-desc" ? "bg-[#3F3F3F]" : ""
+                              }`}
+                          >
+                            <Tag size={14} />
+                            <span>Z to A</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                 </div>
               </div>

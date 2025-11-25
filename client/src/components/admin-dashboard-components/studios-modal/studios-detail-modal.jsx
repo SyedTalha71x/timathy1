@@ -20,6 +20,40 @@ const StudioDetailsModal = ({
 
   const franchise = franchises.find((f) => f.id === studio.franchiseId)
 
+  // Helper function to render opening hours from array format
+  const renderOpeningHours = () => {
+    if (!studio.openingHours || !Array.isArray(studio.openingHours)) {
+      return <p>No opening hours set</p>
+    }
+
+    return (
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        {studio.openingHours.map((hour) => (
+          <p key={hour.day}>
+            {hour.day}: {hour.startTime?.format?.('HH:mm') || 'N/A'} - {hour.endTime?.format?.('HH:mm') || 'N/A'}
+          </p>
+        ))}
+      </div>
+    )
+  }
+
+  // Helper function to render closing days from array format
+  const renderClosingDays = () => {
+    if (!studio.closingDays || !Array.isArray(studio.closingDays) || studio.closingDays.length === 0) {
+      return <p>No special closing days</p>
+    }
+
+    return (
+      <div>
+        {studio.closingDays.map((day, index) => (
+          <p key={index}>
+            {day.date?.format?.('YYYY-MM-DD') || 'N/A'}: {day.description}
+          </p>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl my-8 relative">
@@ -103,33 +137,14 @@ const StudioDetailsModal = ({
               <p>{`${studio.street}, ${studio.zipCode} ${studio.city}`}</p>
             </div>
 
-            {/* <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-400">Lead Count</p>
-                <p className="text-lg font-semibold">{studioStats[studio.id]?.leads || 0}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Contract Count</p>
-                <p className="text-lg font-semibold">{studioStats[studio.id]?.contracts || 0}</p>
-              </div>
-            </div> */}
-
             <div>
               <p className="text-sm text-gray-400">Opening Hours</p>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <p>Monday: {studio.openingHours?.monday || "9:00 - 22:00"}</p>
-                <p>Tuesday: {studio.openingHours?.tuesday || "9:00 - 22:00"}</p>
-                <p>Wednesday: {studio.openingHours?.wednesday || "9:00 - 22:00"}</p>
-                <p>Thursday: {studio.openingHours?.thursday || "9:00 - 22:00"}</p>
-                <p>Friday: {studio.openingHours?.friday || "9:00 - 22:00"}</p>
-                <p>Saturday: {studio.openingHours?.saturday || "10:00 - 20:00"}</p>
-                <p>Sunday: {studio.openingHours?.sunday || "Closed"}</p>
-              </div>
+              {renderOpeningHours()}
             </div>
 
             <div>
               <p className="text-sm text-gray-400">Closing Days</p>
-              <p>{studio.closingDays || "No special closing days"}</p>
+              {renderClosingDays()}
             </div>
 
             <div className="grid grid-cols-2 gap-4 bg-[#161616] p-4 rounded-xl">

@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Target,
   Dumbbell,
+  Settings,
 } from "lucide-react"
 import { IoIosMenu } from "react-icons/io";
 import toast from "react-hot-toast";
@@ -26,6 +27,10 @@ import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea
 import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets";
 import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal";
 import Sidebar from "../../components/admin-dashboard-components/central-sidebar";
+import ManageOptionsModal from "../../components/admin-dashboard-components/training-components/ManageOptionsModal";
+import ExerciseFormModal from "../../components/admin-dashboard-components/training-components/ExerciseFormModal";
+import ViewExerciseModal from "../../components/admin-dashboard-components/training-components/ViewExerciseModal";
+import DeleteExerciseModal from "../../components/admin-dashboard-components/training-components/DeleteExerciseModal";
 
 const initialTrainingVideos = [
   {
@@ -57,13 +62,13 @@ const initialTrainingVideos = [
 
 ];
 
-const muscleOptions = [
+const initialMuscleOptions = [
   "Chest", "Shoulders", "Triceps", "Biceps", "Back", "Lats", "Traps",
   "Core", "Abs", "Obliques", "Quadriceps", "Hamstrings", "Glutes",
   "Calves", "Forearms", "Lower Back"
 ]
 
-const equipmentOptions = [
+const initialEquipmentOptions = [
   "None", "Dumbbells", "Barbell", "Resistance Bands", "Pull-up Bar",
   "Kettlebell", "Medicine Ball", "Cable Machine", "Bench", "Squat Rack",
   "Weight Plates", "Foam Roller", "Yoga Mat", "TRX Straps"
@@ -92,6 +97,17 @@ export default function AdminTrainingManagement() {
     videoFile: null,
     thumbnailFile: null,
   })
+
+  // New state for managing options
+  const [muscleOptions, setMuscleOptions] = useState(initialMuscleOptions)
+  const [equipmentOptions, setEquipmentOptions] = useState(initialEquipmentOptions)
+  const [isManageOptionsModalOpen, setIsManageOptionsModalOpen] = useState(false)
+  const [newMuscleGroup, setNewMuscleGroup] = useState("")
+  const [newEquipment, setNewEquipment] = useState("")
+  const [editingMuscleIndex, setEditingMuscleIndex] = useState(null)
+  const [editingEquipmentIndex, setEditingEquipmentIndex] = useState(null)
+  const [editingMuscleValue, setEditingMuscleValue] = useState("")
+  const [editingEquipmentValue, setEditingEquipmentValue] = useState("")
 
   const videoRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -214,8 +230,6 @@ export default function AdminTrainingManagement() {
   ])
 
   // -------------- end of sidebar logic
-
-
 
   // Filter videos based on search and difficulty
   const filteredVideos = trainingVideos.filter((video) => {
@@ -381,6 +395,74 @@ export default function AdminTrainingManagement() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`
   }
 
+  // Manage Options Functions
+  const addMuscleGroup = () => {
+    if (newMuscleGroup.trim() && !muscleOptions.includes(newMuscleGroup.trim())) {
+      setMuscleOptions([...muscleOptions, newMuscleGroup.trim()])
+      setNewMuscleGroup("")
+      toast.success("Muscle group added successfully")
+    }
+  }
+
+  const addEquipment = () => {
+    if (newEquipment.trim() && !equipmentOptions.includes(newEquipment.trim())) {
+      setEquipmentOptions([...equipmentOptions, newEquipment.trim()])
+      setNewEquipment("")
+      toast.success("Equipment added successfully")
+    }
+  }
+
+  const removeMuscleGroup = (index) => {
+    const updatedMuscles = muscleOptions.filter((_, i) => i !== index)
+    setMuscleOptions(updatedMuscles)
+    toast.success("Muscle group removed successfully")
+  }
+
+  const removeEquipment = (index) => {
+    const updatedEquipment = equipmentOptions.filter((_, i) => i !== index)
+    setEquipmentOptions(updatedEquipment)
+    toast.success("Equipment removed successfully")
+  }
+
+  const startEditingMuscle = (index, value) => {
+    setEditingMuscleIndex(index)
+    setEditingMuscleValue(value)
+  }
+
+  const startEditingEquipment = (index, value) => {
+    setEditingEquipmentIndex(index)
+    setEditingEquipmentValue(value)
+  }
+
+  const saveEditedMuscle = () => {
+    if (editingMuscleValue.trim()) {
+      const updatedMuscles = [...muscleOptions]
+      updatedMuscles[editingMuscleIndex] = editingMuscleValue.trim()
+      setMuscleOptions(updatedMuscles)
+      setEditingMuscleIndex(null)
+      setEditingMuscleValue("")
+      toast.success("Muscle group updated successfully")
+    }
+  }
+
+  const saveEditedEquipment = () => {
+    if (editingEquipmentValue.trim()) {
+      const updatedEquipment = [...equipmentOptions]
+      updatedEquipment[editingEquipmentIndex] = editingEquipmentValue.trim()
+      setEquipmentOptions(updatedEquipment)
+      setEditingEquipmentIndex(null)
+      setEditingEquipmentValue("")
+      toast.success("Equipment updated successfully")
+    }
+  }
+
+  const cancelEditing = () => {
+    setEditingMuscleIndex(null)
+    setEditingEquipmentIndex(null)
+    setEditingMuscleValue("")
+    setEditingEquipmentValue("")
+  }
+
   // continue sidebar logic
   const updateCustomLink = (id, field, value) => {
     setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
@@ -438,12 +520,22 @@ export default function AdminTrainingManagement() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex justify-between items-center gap-2 w-full md:w-auto">
             <h1 className="text-white text-xl md:text-2xl font-bold mb-2">Training Exercises</h1>
-            <div onClick={toggleRightSidebar} className="cursor-pointer text-white lg:hidden md:hidden block hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-              <IoIosMenu size={26} />
-            </div>
+           
+            <img
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className="h-5 w-5 mr-5 lg:hidden md:hidden block  cursor-pointer"
+              src="/icon.svg"
+              alt=""
+            />
           </div>
           <div className="flex items-center gap-2">
-
+            <button
+              onClick={() => setIsManageOptionsModalOpen(true)}
+              className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-gray-600 hover:bg-gray-700 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
+            >
+              <Settings size={18} />
+              Manage Options
+            </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
@@ -451,9 +543,13 @@ export default function AdminTrainingManagement() {
               <Plus size={18} />
               Upload Exercise
             </button>
-            <div onClick={toggleRightSidebar} className="cursor-pointer text-white lg:block md:block hidden hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-              <IoIosMenu size={26} />
-            </div>
+           
+            <img
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className="h-5 w-5 mr-5 lg:block md:block hidden  cursor-pointer"
+              src="/icon.svg"
+              alt=""
+            />
           </div>
         </div>
 
@@ -598,413 +694,91 @@ export default function AdminTrainingManagement() {
         )}
       </div>
 
+      {/* Manage Options Modal */}
+      <ManageOptionsModal
+        isOpen={isManageOptionsModalOpen}
+        onClose={() => setIsManageOptionsModalOpen(false)}
+
+        muscleOptions={muscleOptions}
+        newMuscleGroup={newMuscleGroup}
+        setNewMuscleGroup={setNewMuscleGroup}
+        addMuscleGroup={addMuscleGroup}
+        removeMuscleGroup={removeMuscleGroup}
+        editingMuscleIndex={editingMuscleIndex}
+        editingMuscleValue={editingMuscleValue}
+        setEditingMuscleValue={setEditingMuscleValue}
+        startEditingMuscle={startEditingMuscle}
+        saveEditedMuscle={saveEditedMuscle}
+
+        equipmentOptions={equipmentOptions}
+        newEquipment={newEquipment}
+        setNewEquipment={setNewEquipment}
+        addEquipment={addEquipment}
+        removeEquipment={removeEquipment}
+        editingEquipmentIndex={editingEquipmentIndex}
+        editingEquipmentValue={editingEquipmentValue}
+        setEditingEquipmentValue={setEditingEquipmentValue}
+        startEditingEquipment={startEditingEquipment}
+        saveEditedEquipment={saveEditedEquipment}
+
+        cancelEditing={cancelEditing}
+      />
+
       {/* Create/Edit Modal */}
-      {(isCreateModalOpen || isEditModalOpen) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-5xl max-h-[80vh] custom-scrollbar overflow-y-auto">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg sm:text-xl font-bold text-white">
-                  {isCreateModalOpen ? "Upload New Exercise" : "Edit Exercise"}
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsCreateModalOpen(false)
-                    setIsEditModalOpen(false)
-                    setSelectedVideo(null)
-                    resetForm()
-                  }}
-                  className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors"
-                >
-                  <X size={20} className="text-gray-400" />
-                </button>
-              </div>
+      <ExerciseFormModal
+        isCreateModalOpen={isCreateModalOpen}
+        isEditModalOpen={isEditModalOpen}
+        formData={formData}
+        setFormData={setFormData}
+        muscleOptions={muscleOptions}
+        equipmentOptions={equipmentOptions}
+        handleMuscleToggle={handleMuscleToggle}
+        handleEquipmentToggle={handleEquipmentToggle}
+        handleCreate={handleCreate}
+        handleEdit={handleEdit}
+        setIsCreateModalOpen={setIsCreateModalOpen}
+        setIsEditModalOpen={setIsEditModalOpen}
+        setSelectedVideo={setSelectedVideo}
+        resetForm={resetForm}
+      />
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left Column - Basic Info */}
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Exercise Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none"
-                      placeholder="Enter exercise name..."
-                    />
-                  </div>
+      <ViewExerciseModal
+        isOpen={isViewModalOpen}
+        selectedVideo={selectedVideo}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedVideo(null);
+        }}
+        videoRef={videoRef}
+        isPlaying={isPlaying}
+        isMuted={isMuted}
+        currentTime={currentTime}
+        duration={duration}
+        togglePlay={togglePlay}
+        toggleMute={toggleMute}
+        handleTimeUpdate={handleTimeUpdate}
+        handleLoadedMetadata={handleLoadedMetadata}
+        formatTime={formatTime}
+        getDifficultyColor={getDifficultyColor}
+        openEditModal={openEditModal}
+        setVideoToDelete={setVideoToDelete}
+        openDeleteModal={() => setIsDeleteModalOpen(true)}
+        setIsPlaying={setIsPlaying}
+      />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Description *
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none resize-none"
-                      rows={4}
-                      placeholder="Describe the exercise..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Difficulty Level
-                    </label>
-                    <select
-                      value={formData.difficulty}
-                      onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-                      className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none"
-                    >
-                      {difficultyOptions.map((difficulty) => (
-                        <option key={difficulty} value={difficulty}>
-                          {difficulty}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* File Uploads */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">
-                        Exercise Video {isCreateModalOpen ? "*" : "(Optional)"}
-                      </label>
-                      <input
-                        type="file"
-                        accept="video/*"
-                        onChange={(e) => setFormData({ ...formData, videoFile: e.target.files[0] })}
-                        className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">
-                        Thumbnail Image (Optional)
-                      </label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setFormData({ ...formData, thumbnailFile: e.target.files[0] })}
-                        className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column - Muscles & Equipment */}
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-3">
-                      Target Muscles * ({formData.targetMuscles.length} selected)
-                    </label>
-                    <div className="max-h-48 overflow-y-auto custom-scrollbar bg-[#161616] rounded-xl border border-gray-700 p-3">
-                      <div className="grid grid-cols-2 gap-2">
-                        {muscleOptions.map((muscle) => (
-                          <label
-                            key={muscle}
-                            className="flex items-center gap-2 cursor-pointer hover:bg-[#2F2F2F] p-2 rounded"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.targetMuscles.includes(muscle)}
-                              onChange={() => handleMuscleToggle(muscle)}
-                              className="w-4 h-4 accent-blue-600"
-                            />
-                            <span className="text-white text-sm">{muscle}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-3">
-                      Equipment Needed ({formData.equipment.length} selected)
-                    </label>
-                    <div className="max-h-48 overflow-y-auto custom-scrollbar bg-[#161616] rounded-xl border border-gray-700 p-3">
-                      <div className="grid grid-cols-1 gap-2">
-                        {equipmentOptions.map((equipment) => (
-                          <label
-                            key={equipment}
-                            className="flex items-center gap-2 cursor-pointer hover:bg-[#2F2F2F] p-2 rounded"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.equipment.includes(equipment)}
-                              onChange={() => handleEquipmentToggle(equipment)}
-                              className="w-4 h-4 accent-blue-600"
-                            />
-                            <span className="text-white text-sm">{equipment}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Preview Selected */}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-400 mb-2">Selected Muscles:</h4>
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {formData.targetMuscles.map((muscle, index) => (
-                        <span
-                          key={index}
-                          className="bg-blue-600 text-white px-2 py-1 rounded text-xs"
-                        >
-                          {muscle}
-                        </span>
-                      ))}
-                    </div>
-
-                    <h4 className="text-sm font-medium text-gray-400 mb-2">Selected Equipment:</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {formData.equipment.map((equipment, index) => (
-                        <span
-                          key={index}
-                          className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs"
-                        >
-                          {equipment}
-                        </span>
-                      ))}
-                      {formData.equipment.length === 0 && (
-                        <span className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs">
-                          None
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8">
-                <button
-                  onClick={() => {
-                    setIsCreateModalOpen(false)
-                    setIsEditModalOpen(false)
-                    setSelectedVideo(null)
-                    resetForm()
-                  }}
-                  className="flex-1 px-4 py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={isCreateModalOpen ? handleCreate : handleEdit}
-                  disabled={!formData.name || !formData.description || formData.targetMuscles.length === 0}
-                  className="flex-1 px-4 py-3 text-sm  bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl text-white transition-colors flex items-center justify-center gap-2"
-                >
-                  {isCreateModalOpen ? <Upload size={16} /> : <Save size={16} />}
-                  {isCreateModalOpen ? "Upload Exercise" : "Save Changes"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isViewModalOpen && selectedVideo && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[80vh] custom-scrollbar overflow-y-auto">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg sm:text-xl font-bold text-white">
-                  {selectedVideo.name}
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsViewModalOpen(false)
-                    setSelectedVideo(null)
-                    setIsPlaying(false)
-                  }}
-                  className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors"
-                >
-                  <X size={20} className="text-gray-400" />
-                </button>
-              </div>
-
-              {/* Video Player */}
-              <div className="relative bg-black rounded-xl overflow-hidden mb-6">
-                <video
-                  ref={videoRef}
-                  className="w-full h-48 sm:h-64 md:h-96"
-                  onTimeUpdate={handleTimeUpdate}
-                  onLoadedMetadata={handleLoadedMetadata}
-                  onEnded={() => setIsPlaying(false)}
-                >
-                  <source src={selectedVideo.videoUrl} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-
-                {/* Video Controls */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-4">
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <button
-                      onClick={togglePlay}
-                      className="p-1.5 sm:p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-                    >
-                      {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-                    </button>
-                    <button
-                      onClick={toggleMute}
-                      className="p-1.5 sm:p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-                    >
-                      {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                    </button>
-                    <div className="flex-1 flex items-center gap-2 text-xs sm:text-sm">
-                      <span>{formatTime(currentTime)}</span>
-                      <div className="flex-1 bg-white/20 rounded-full h-1">
-                        <div
-                          className="bg-blue-500 h-1 rounded-full transition-all"
-                          style={{ width: `${(currentTime / duration) * 100}%` }}
-                        />
-                      </div>
-                      <span>{formatTime(duration)}</span>
-                    </div>
-                    <button className="p-1.5 sm:p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
-                      <Maximize size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Exercise Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Exercise Information</h3>
-                  <div className="bg-[#161616] rounded-xl p-4 space-y-3">
-                    <div>
-                      <span className="text-gray-400 text-sm">Description:</span>
-                      <p className="text-white text-sm mt-1">{selectedVideo.description}</p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Difficulty:</span>
-                      <span
-                        className={`px-2 py-1 rounded text-xs text-white ${getDifficultyColor(selectedVideo.difficulty)}`}
-                      >
-                        {selectedVideo.difficulty}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Duration:</span>
-                      <span className="text-white text-sm">{selectedVideo.duration}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Uploaded:</span>
-                      <span className="text-white text-sm">{selectedVideo.uploadedAt}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Uploaded by:</span>
-                      <span className="text-white text-sm">{selectedVideo.uploadedBy}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Target Muscles & Equipment</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-400 mb-2">Target Muscles</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedVideo.targetMuscles.map((muscle, index) => (
-                          <span
-                            key={index}
-                            className="bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm"
-                          >
-                            {muscle}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-400 mb-2">Equipment Needed</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedVideo.equipment.map((item, index) => (
-                          <span
-                            key={index}
-                            className="bg-[#2F2F2F] text-gray-300 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm"
-                          >
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="mt-6 flex gap-3">
-                    <button
-                      onClick={() => {
-                        setIsViewModalOpen(false)
-                        openEditModal(selectedVideo)
-                      }}
-                      className="flex-1 px-3 py-2 bg-blue-600 text-sm hover:bg-blue-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Edit size={16} />
-                      Edit Exercise
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsViewModalOpen(false)
-                        setVideoToDelete(selectedVideo)
-                        setIsDeleteModalOpen(true)
-                      }}
-                      className="px-3 py-2 bg-red-600 hover:bg-red-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isDeleteModalOpen && videoToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md">
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-red-600/20 rounded-full">
-                  <Trash2 size={24} className="text-red-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white">Delete Exercise</h3>
-                  <p className="text-gray-400 text-sm">This action cannot be undone</p>
-                </div>
-              </div>
-
-              <p className="text-gray-300 mb-6 text-sm">
-                Are you sure you want to delete this exercise? All associated data will be permanently removed.
-              </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setIsDeleteModalOpen(false)
-                    setVideoToDelete(null)
-                  }}
-                  className="flex-1 px-4 py-3 bg-[#2F2F2F] text-sm cursor-pointer hover:bg-[#3F3F3F] rounded-xl text-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="flex-1 px-4 py-3 bg-red-600 text-sm cursor-pointer hover:bg-red-700 rounded-xl text-white transition-colors flex items-center justify-center gap-2"
-                >
-                  <Trash2 size={16} />
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteExerciseModal
+        isOpen={isDeleteModalOpen}
+        videoToDelete={videoToDelete}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setVideoToDelete(null);
+        }}
+        onConfirmDelete={handleDelete}
+      />
 
 
+
+      {/* sidebar related modals */}
       <Sidebar
         isOpen={isRightSidebarOpen}
         onClose={() => setIsRightSidebarOpen(false)}
@@ -1025,7 +799,7 @@ export default function AdminTrainingManagement() {
         setEditingLink={setEditingLink}
         openDropdownIndex={openDropdownIndex}
         setOpenDropdownIndex={setOpenDropdownIndex}
-        onToggleEditing={()=>{ setIsEditing(!isEditing);}} // Add this line
+        onToggleEditing={() => { setIsEditing(!isEditing); }} // Add this line
         setTodos={setTodos}
       />
 

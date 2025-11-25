@@ -110,13 +110,13 @@ export default function FinancesPage() {
   ])
   const [customPeriodModalOpen, setCustomPeriodModalOpen] = useState(false)
 
-  const transactionsPerPage = 5
+  // Remove pagination - show all transactions
   const statusOptions = ["All", "Successful", "Pending", "Failed", "Check incoming funds"]
 
   // Calculate financial summary data
   const calculateFinancialSummary = () => {
     if (selectedPeriod === "Overall") {
-      const allTransactions = Object.values(financialData).flatMap((period) => period.transactions || [])
+      const allTransactions = Object.values(financialState).flatMap((period) => period.transactions || [])
 
       const successful = allTransactions
         .filter((tx) => tx.status === "Successful")
@@ -139,7 +139,7 @@ export default function FinancesPage() {
       const startDate = new Date(customPeriodStart)
       const endDate = new Date(customPeriodEnd)
 
-      const customTransactions = Object.values(financialData)
+      const customTransactions = Object.values(financialState)
         .flatMap((period) => period.transactions || [])
         .filter((transaction) => {
           const transactionDate = new Date(transaction.date)
@@ -165,7 +165,7 @@ export default function FinancesPage() {
       }
     } else {
       // Safely access the period data with fallback
-      const periodData = financialData[selectedPeriod] || {
+      const periodData = financialState[selectedPeriod] || {
         totalRevenue: 0,
         successfulPayments: 0,
         pendingPayments: 0,
@@ -298,19 +298,19 @@ export default function FinancesPage() {
     let transactions = []
 
     if (selectedPeriod === "Overall") {
-      transactions = Object.values(financialData).flatMap((period) => period.transactions || [])
+      transactions = Object.values(financialState).flatMap((period) => period.transactions || [])
     } else if (selectedPeriod === "Custom Period" && customPeriodStart && customPeriodEnd) {
       const startDate = new Date(customPeriodStart)
       const endDate = new Date(customPeriodEnd)
 
-      transactions = Object.values(financialData)
+      transactions = Object.values(financialState)
         .flatMap((period) => period.transactions || [])
         .filter((transaction) => {
           const transactionDate = new Date(transaction.date)
           return transactionDate >= startDate && transactionDate <= endDate
         })
     } else {
-      transactions = financialData[selectedPeriod]?.transactions || []
+      transactions = financialState[selectedPeriod]?.transactions || []
     }
 
     const filtered = transactions.filter((transaction) => {
@@ -327,15 +327,10 @@ export default function FinancesPage() {
 
     setFilteredTransactions(filtered)
     setCurrentPage(1)
-  }, [searchTerm, selectedPeriod, selectedStatus, customPeriodStart, customPeriodEnd])
+  }, [searchTerm, selectedPeriod, selectedStatus, customPeriodStart, customPeriodEnd, financialState])
 
-  const totalPages = Math.ceil(filteredTransactions.length / transactionsPerPage)
-  const startIndex = (currentPage - 1) * transactionsPerPage
-  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + transactionsPerPage)
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page)
-  }
+  // Remove pagination logic since we're showing all transactions
+  const displayedTransactions = filteredTransactions
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
@@ -478,7 +473,7 @@ export default function FinancesPage() {
       document.body.appendChild(element)
       element.click()
       document.body.removeChild(element)
-      alert("SEPA XML file generated and saved successfully!")
+      toast.success("SEPA XML file generated and saved successfully!")
       return
     }
     const periodData = { ...updatedFinancialState[selectedPeriod] }
@@ -522,48 +517,52 @@ export default function FinancesPage() {
     element.click()
     document.body.removeChild(element)
 
-    alert("SEPA XML file generated and saved successfully!")
+    toast.success("SEPA XML file generated and saved successfully!")
   }
 
   const handleUpdateStatuses = (updatedTransactions) => {
     const updatedFinancialState = { ...financialState }
-    if (!updatedFinancialState[selectedPeriod] || !updatedFinancialState[selectedPeriod].transactions) {
-      alert("Statuses updated for selected transactions.")
-      return
-    }
-    const periodData = { ...updatedFinancialState[selectedPeriod] }
 
-    periodData.transactions = periodData.transactions.map((tx) => {
-      const updated = updatedTransactions.find((u) => u.id === tx.id)
-      if (updated) {
-        return {
-          ...tx,
-          status: updated.status,
-        }
+    // Update transactions across all periods
+    Object.keys(updatedFinancialState).forEach(period => {
+      if (updatedFinancialState[period] && updatedFinancialState[period].transactions) {
+        const periodData = { ...updatedFinancialState[period] }
+
+        periodData.transactions = periodData.transactions.map((tx) => {
+          const updated = updatedTransactions.find((u) => u.id === tx.id)
+          if (updated) {
+            return {
+              ...tx,
+              status: updated.status,
+            }
+          }
+          return tx
+        })
+
+        // Recalculate financial summary for this period
+        const successful = periodData.transactions
+          .filter((tx) => tx.status === "Successful")
+          .reduce((sum, tx) => sum + tx.amount, 0)
+
+        const pending = periodData.transactions
+          .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
+          .reduce((sum, tx) => sum + tx.amount, 0)
+
+        const failed = periodData.transactions
+          .filter((tx) => tx.status === "Failed")
+          .reduce((sum, tx) => sum + tx.amount, 0)
+
+        periodData.successfulPayments = successful
+        periodData.pendingPayments = pending
+        periodData.failedPayments = failed
+        periodData.totalRevenue = successful + pending + failed
+
+        updatedFinancialState[period] = periodData
       }
-      return tx
     })
 
-    const successful = periodData.transactions
-      .filter((tx) => tx.status === "Successful")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-
-    const pending = periodData.transactions
-      .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-
-    const failed = periodData.transactions
-      .filter((tx) => tx.status === "Failed")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-
-    periodData.successfulPayments = successful
-    periodData.pendingPayments = pending
-    periodData.failedPayments = failed
-
-    updatedFinancialState[selectedPeriod] = periodData
     setFinancialState(updatedFinancialState)
-
-    alert("Transaction statuses updated successfully!")
+    toast.success("Transaction statuses updated successfully!")
   }
 
   const handleDeleteDocument = (documentId) => {
@@ -606,13 +605,11 @@ export default function FinancesPage() {
     document.body.removeChild(link)
   }
 
+  // FIX: Check for "Check incoming funds" status in the current financial state across all periods
   const hasCheckingTransactions =
-    (selectedPeriod === "Overall"
-      ? Object.values(financialData).flatMap((period) => period.transactions || [])
-      : selectedPeriod === "Custom Period"
-        ? filteredTransactions
-        : financialData[selectedPeriod]?.transactions || []
-    ).some((tx) => tx.status === "Check incoming funds") || false
+    Object.values(financialState).some(period =>
+      period?.transactions?.some(tx => tx.status === "Check incoming funds")
+    )
 
   const getStatusColorClass = (status) => {
     switch (status) {
@@ -732,12 +729,18 @@ export default function FinancesPage() {
               )}
             </button>
           </div>
-          <div
+          {/* <div
             onClick={toggleRightSidebar}
             className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
           >
             <IoIosMenu size={26} />
-          </div>
+          </div> */}
+          <img
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className="h-5 w-5 mr-5 lg:hidden md:hidden block  cursor-pointer"
+              src="/icon.svg"
+              alt=""
+            />
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -784,13 +787,7 @@ export default function FinancesPage() {
               <Download className="w-4 h-4" />
               <span> Run Payment</span>
             </button>
-
-            <div
-              onClick={toggleRightSidebar}
-              className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
-            >
-              <IoIosMenu size={26} />
-            </div>
+            {/* FIX: This button will now show when there are transactions with "Check incoming funds" status */}
             {hasCheckingTransactions && (
               <button
                 onClick={() => setCheckFundsModalOpen(true)}
@@ -800,6 +797,15 @@ export default function FinancesPage() {
                 <span>Check Incoming Funds</span>
               </button>
             )}
+           
+            <img
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className="h-5 w-5 mr-5 lg:block md:block hidden  cursor-pointer"
+              src="/icon.svg"
+              alt=""
+            />
+
+
           </div>
         </div>
       </div>
@@ -894,10 +900,10 @@ export default function FinancesPage() {
             </tr>
           </thead>
           <tbody>
-            {paginatedTransactions.map((transaction, index) => (
+            {displayedTransactions.map((transaction, index) => (
               <tr
                 key={transaction.id}
-                className={`border-b border-gray-800 ${index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""
+                className={`border-b border-gray-800 ${index === displayedTransactions.length - 1 ? "rounded-b-xl" : ""
                   }`}
               >
                 <td className="px-4 py-3 font-medium">{transaction.studioName}</td>
@@ -960,7 +966,7 @@ export default function FinancesPage() {
         </table>
       </div>
 
-      {filteredTransactions.length === 0 && (
+      {displayedTransactions.length === 0 && (
         <div className="bg-[#141414] p-8 rounded-xl text-center mt-4">
           <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
           <p className="text-gray-400 text-lg mb-1">No transactions found</p>
@@ -974,38 +980,7 @@ export default function FinancesPage() {
         </div>
       )}
 
-      {filteredTransactions.length > transactionsPerPage && (
-        <div className="flex justify-center items-center gap-2 mt-6">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-3 py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800"
-          >
-            Previous
-          </button>
-          <div className="flex gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-3 py-1.5 rounded-xl transition-colors border ${currentPage === page
-                    ? "bg-[#3F74FF] text-white border-transparent"
-                    : "bg-black text-white border-gray-800 hover:bg-gray-900"
-                  }`}
-              >
-                {page}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      {/* REMOVED: Pagination section completely deleted */}
 
       {/* Custom Period Modal */}
       {customPeriodModalOpen && (
@@ -1070,23 +1045,24 @@ export default function FinancesPage() {
         selectedPeriod={selectedPeriod}
         transactions={
           selectedPeriod === "Overall"
-            ? Object.values(financialData).flatMap((period) => period.transactions || [])
+            ? Object.values(financialState).flatMap((period) => period.transactions || [])
             : selectedPeriod === "Custom Period"
               ? filteredTransactions
-              : financialData[selectedPeriod]?.transactions || []
+              : financialState[selectedPeriod]?.transactions || []
         }
         onGenerateXml={handleGenerateXml}
       />
 
+      {/* FIXED: CheckFundsModal now uses financialState instead of financialData */}
       <CheckFundsModal
         isOpen={checkFundsModalOpen}
         onClose={() => setCheckFundsModalOpen(false)}
         transactions={
           selectedPeriod === "Overall"
-            ? Object.values(financialData).flatMap((period) => period.transactions || [])
+            ? Object.values(financialState).flatMap((period) => period.transactions || [])
             : selectedPeriod === "Custom Period"
               ? filteredTransactions
-              : financialData[selectedPeriod]?.transactions || []
+              : financialState[selectedPeriod]?.transactions || []
         }
         onUpdateStatuses={handleUpdateStatuses}
       />
@@ -1134,7 +1110,7 @@ export default function FinancesPage() {
         setEditingLink={setEditingLink}
         openDropdownIndex={openDropdownIndex}
         setOpenDropdownIndex={setOpenDropdownIndex}
-        onToggleEditing={()=>{ setIsEditing(!isEditing);}} // Add this line
+        onToggleEditing={() => { setIsEditing(!isEditing); }} // Add this line
         setTodos={setTodos}
       />
 

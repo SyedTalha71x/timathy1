@@ -492,9 +492,15 @@ export default function ContractList() {
           <div className="flex justify-between md:mb-0 mb-4 items-center w-full md:w-auto">
 
             <h2 className="text-white oxanium_font text-2xl  text-left">Contracts</h2>
-            <div onClick={toggleRightSidebar} className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+            {/* <div onClick={toggleRightSidebar} className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
               <IoIosMenu size={26} />
-            </div>
+            </div> */}
+            <img
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className="h-5 w-5 mr-5  lg:hidden md:hidden block   cursor-pointer"
+                  src="/icon.svg"
+                  alt=""
+                />
           </div>
 
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 w-full sm:w-auto">
@@ -560,9 +566,15 @@ export default function ContractList() {
                 <span>Add Contract</span>
               </button>
 
-              <div onClick={toggleRightSidebar} className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+              {/* <div onClick={toggleRightSidebar} className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
                 <IoIosMenu size={26} />
-              </div>
+              </div> */}
+              <img
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className="h-5 w-5 mr-5  lg:block md:block hidden   cursor-pointer"
+                  src="/icon.svg"
+                  alt=""
+                />
             </div>
           </div>
         </div>

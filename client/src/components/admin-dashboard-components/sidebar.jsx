@@ -22,7 +22,9 @@ import {
   ClipboardList,
   Building2,
 } from "lucide-react";
-import { RiContractLine, RiStockFill } from "react-icons/ri";
+import OrgaGymLogoWihoutText from '../../../public/Orgagym white without text.svg'
+
+import { RiAccountPinCircleLine, RiContractLine, RiStockFill } from "react-icons/ri";
 import { MdEmail, MdOutlineHelpCenter, MdOutlineLeaderboard } from "react-icons/md";
 import { SiYoutubestudio } from "react-icons/si";
 import { CgGym } from "react-icons/cg";
@@ -184,11 +186,13 @@ const CustomerSidebar = () => {
       icon: MdOutlineHelpCenter,
       label: "Tickets",
       to: "/admin-dashboard/tickets",
+      indicatorCount: 3,
     },
     {
       icon: MdEmail,
       label: "Email",
       to: "/admin-dashboard/email",
+      indicatorCount: 3,
     },
     {
       icon: FaPeopleLine,
@@ -212,6 +216,11 @@ const CustomerSidebar = () => {
       to: "/admin-dashboard/analytics",
     },
     {
+      icon: RiAccountPinCircleLine,
+      label: "Demo Access",
+      to: "/admin-dashboard/demo-access",
+    },
+    {
       icon: Settings,
       label: "Configuration",
       to: "/admin-dashboard/configuration",
@@ -220,21 +229,21 @@ const CustomerSidebar = () => {
 
   return (
     <>
-      <div className="fixed top-0 left-0 w-full bg-[#111111] p-4 flex items-center justify-between lg:hidden z-40">
+      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-40">
         {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={toggleSidebar} />}
 
-        <div className="flex items-center gap-3">
-          <div className="bg-orange-500 p-4 rounded-md">
-            <img src="/Orgagym white.svg" className="h-10 w-10" alt="Orgagym Logo" />
-          </div>
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-lg text-white hover:bg-zinc-700"
-            aria-label="Toggle Sidebar"
-          >
-            <Menu size={24} />
-          </button>
-        </div>
+        <div className="flex items-center gap-2">
+                  <div className="bg-orange-500 p-2 rounded-md">
+                    <img src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
+                  </div>
+                  <button
+                    onClick={toggleSidebar}
+                    className="p-1.5 rounded-lg text-white hover:bg-zinc-700"
+                    aria-label="Toggle Sidebar"
+                  >
+                    <Menu size={20} />
+                  </button>
+                </div>
         <div className="flex gap-1 items-center">
           <div className="relative mr-2">
             <button
@@ -352,52 +361,63 @@ const CustomerSidebar = () => {
 
         <div className="flex flex-col h-full overflow-y-auto">
           <div className="hidden lg:block">
-            <div className={`flex ${isCollapsed ? "justify-center" : "justify-center"} items-center w-full`}>
-              {isCollapsed ? (
-                <div className="w-full bg-orange-500 flex items-center justify-center p-4">
-                  <img src="/Orgagym white.svg" className="h-auto w-auto max-w-full" alt="Orgagym Logo" />
-                </div>
-              ) : (
-                <div className="w-full bg-orange-500 flex items-center justify-center p-4">
-                  <img src="/Orgagym white.svg" className="h-20 w-auto max-w-full" alt="Orgagym Logo" />
-                </div>
-              )}
-            </div>
-          </div>
+                      <div className={`flex ${isCollapsed ? "justify-center" : "justify-center"} items-center w-full`}>
+                        {isCollapsed ? (
+                          <div className="w-full bg-orange-500 flex items-center justify-center p-4">
+                            <img src={OrgaGymLogoWihoutText} className="h-auto w-auto max-w-full" alt="Orgagym Logo" />
+                          </div>
+                        ) : (
+                          <div className="w-full bg-orange-500 flex items-center justify-center p-4">
+                            <img src="/Orgagym white.svg" className="h-20 w-auto max-w-full" alt="Orgagym Logo" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
           <nav className="flex-1 overflow-y-auto custom-scrollbar">
             <ul className="space-y-2 p-4">
-              {menuItems.map((item) => (
-                <li key={item.label}>
-                  {item.label === "Configuration" && (
-                    <hr className="border-t border-zinc-700 my-3" />
-                  )}
-                  <button
-                    onClick={() => handleNavigation(item.to)}
-                    className={`
-                      flex items-center gap-3 cursor-pointer text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
-                      ${isCollapsed ? "justify-center" : "text-left"}
-                      group transition-all duration-500 
-                      ${location.pathname === item.to
-                        ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
-                        : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
-                      }
-                    `}
-                  >
-                    <div className="relative">
-                      <item.icon
-                        size={20}
-                        className={`
-                          ${location.pathname === item.to
-                            ? "text-white"
-                            : "text-zinc-400 group-hover:text-white"
-                          }
-                        `}
-                      />
-                    </div>
-                    {!isCollapsed && <span className="text-md">{item.label}</span>}
-                  </button>
-                </li>
-              ))}
+            {menuItems.map((item) => (
+  <li key={item.label}>
+    {item.label === "Configuration" && (
+      <hr className="border-t border-zinc-700 my-3" />
+    )}
+    <button
+      onClick={() => handleNavigation(item.to)}
+      className={`
+        flex items-center gap-3 cursor-pointer text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full
+        ${isCollapsed ? "justify-center" : "text-left"}
+        group transition-all duration-500 
+        ${location.pathname === item.to
+          ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
+          : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
+        }
+      `}
+    >
+      <div className="relative">
+        <item.icon
+          size={20}
+          className={`
+            ${location.pathname === item.to
+              ? "text-white"
+              : "text-zinc-400 group-hover:text-white"
+            }
+          `}
+        />
+        {/* Orange indicator with count for Tickets and Email */}
+        {item.indicatorCount && (
+          <span className="absolute -top-2 -right-2 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
+            {item.indicatorCount}
+          </span>
+        )}
+      </div>
+      {!isCollapsed && (
+        <div className="flex items-center justify-between w-full">
+          <span className="text-md">{item.label}</span>
+        
+        </div>
+      )}
+    </button>
+  </li>
+))}
             </ul>
           </nav>
 

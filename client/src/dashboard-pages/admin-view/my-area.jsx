@@ -16,6 +16,9 @@ import ConfirmationModal from "../../components/admin-dashboard-components/myare
 import { Eye, Minus } from "react-feather"
 import ViewManagementModal from "../../components/admin-dashboard-components/myarea-components/view-management"
 import NotesWidget from "../../components/admin-dashboard-components/myarea-components/notes-widgets"
+import AddTaskModal from "../../components/admin-dashboard-components/myarea-components/add-task-modal"
+import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
+import EditTaskModal from "../../components/admin-dashboard-components/myarea-components/edit-task-modal"
 
 const DraggableWidget = ({
   id,
@@ -87,6 +90,37 @@ export default function MyArea() {
     { id: "notes", type: "notes", position: 4 },
   ])
 
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
+  const todoFilterDropdownRef = useRef(null)
+  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
+
+  const [todoFilter, setTodoFilter] = useState("all")
+  const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState(null)
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState(null)
+  const [taskToCancel, setTaskToCancel] = useState(null)
+
+  const todoFilterOptions = [
+    { value: "all", label: "All Tasks" },
+    { value: "ongoing", label: "Ongoing", color: "#f59e0b" },
+    { value: "completed", label: "Completed", color: "#10b981" },
+    { value: "canceled", label: "Canceled", color: "#ef4444" },
+  ]
+
+  const getFilteredTodos = () => {
+    switch (todoFilter) {
+      case "ongoing":
+        return todos.filter((todo) => todo.status === "ongoing")
+      case "canceled":
+        return todos.filter((todo) => todo.status === "canceled")
+      case "completed":
+        return todos.filter((todo) => todo.status === "completed")
+      default:
+        return todos
+    }
+  }
+
   // Sidebar widgets - now contains all widget types
   const [sidebarWidgets, setSidebarWidgets] = useState([
     { id: "sidebar-chart", type: "chart", position: 0 },
@@ -106,7 +140,10 @@ export default function MyArea() {
     { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
   ])
 
-  const [availableWidgetTypes] = useState(["chart", "todo", "websiteLink", "expiringContracts"])
+  const truncateUrl = (url, maxLength = 40) => {
+    if (url.length <= maxLength) return url
+    return url.substring(0, maxLength - 3) + "..."
+  }
 
   const [todos, setTodos] = useState([
     {
@@ -116,6 +153,8 @@ export default function MyArea() {
       assignee: "Jack",
       dueDate: "2024-12-15",
       dueTime: "14:30",
+      status: "ongoing",
+
     },
     {
       id: 2,
@@ -124,6 +163,8 @@ export default function MyArea() {
       assignee: "Jack",
       dueDate: "2024-12-16",
       dueTime: "10:00",
+      status: "completed",
+
     },
   ])
 
@@ -367,6 +408,41 @@ export default function MyArea() {
     setDragOverIndex(null)
   }
 
+
+  const handleAddTask = (newTask) => {
+    setTodos(prevTodos => [...prevTodos, newTask]) // Also add to todos if needed
+    toast.success("Task added successfully!")
+  }
+
+  const handleTaskComplete = (taskId) => {
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === taskId
+          ? { ...todo, completed: !todo.completed, status: todo.completed ? "ongoing" : "completed" }
+          : todo,
+      ),
+    )
+  }
+
+  const handleEditTask = (task) => {
+    setEditingTask(task)
+    setIsEditTaskModalOpen(true)
+  }
+
+  const handleDeleteTask = (taskId) => {
+    setTodos((prev) => prev.filter((todo) => todo.id !== taskId))
+    setTaskToDelete(null)
+  }
+
+  const handleCancelTask = (taskId) => {
+    setTodos((prev) => prev.map((todo) => (todo.id === taskId ? { ...todo, status: "cancelled" } : todo)))
+    setTaskToCancel(null)
+  }
+
+  const handleUpdateTask = (updatedTask) => {
+    setTodos((prev) => prev.map((todo) => (todo.id === updatedTask.id ? updatedTask : todo)))
+  }
+
   return (
     <>
       <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
@@ -389,47 +465,63 @@ export default function MyArea() {
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-3 md:p-5 space-y-4">
             {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+
+              {/* Left Section */}
+              <div className="flex items-center justify-between w-full gap-2">
                 <h1 className="text-xl font-bold">My Area</h1>
+
+                <img
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className="h-5 w-5 md:hidden block cursor-pointer"
+                  src="/icon.svg"
+                  alt=""
+                />
               </div>
-              <div className="flex items-center gap-2">
+
+              {/* Right Section */}
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:justify-end">
 
                 {!isEditing && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
-                    className="px-4 py-2 bg-zinc-700 md:w-auto w-full text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
+                    className="px-4 py-2 bg-zinc-700 w-full sm:w-auto text-zinc-200 rounded-xl text-sm flex justify-center items-center gap-2"
                   >
                     <Eye size={16} />
                     {currentView ? currentView.name : "Standard View"}
                   </button>
                 )}
-                <button
-                  onClick={() => setIsWidgetModalOpen(true)}
-                  className="py-2 px-4 bg-black text-white hover:bg-zinc-900 rounded-xl text-sm cursor-pointer flex items-center gap-1"
-                >
-                  <Plus size={16} />
-                  <span className="hidden sm:inline">Add Widget</span>
-                </button>
+
+                {isEditing && (
+                  <button
+                    onClick={() => setIsWidgetModalOpen(true)}
+                    className="py-2 px-4 bg-black md:w-auto w-full justify-center text-white rounded-xl text-sm flex items-center gap-1"
+                  >
+                    <Plus size={20} />
+                    <span className="hidden sm:inline">Add Widget</span>
+                  </button>
+                )}
 
                 <button
                   onClick={toggleEditing}
-                  className={`p-2 ${isEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"} rounded-lg flex items-center gap-1`}
-                  title={isEditing ? "Done" : "Edit Dashboard"}
+                  className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${isEditing ? "bg-blue-600 text-white" : "bg-zinc-700 text-zinc-200"
+                    }`}
                 >
-                  {isEditing ? <Check size={16} /> : <Edit size={16} />}
+                  {isEditing ? <Check size={18} /> : <Edit size={18} />}
+                  <span className="hidden sm:inline">
+                    {isEditing ? "Done" : "Edit Dashboard"}
+                  </span>
                 </button>
 
-
-
-                <button
+                <img
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className="p-2 text-zinc-400 hover:bg-zinc-800 rounded-lg lg:hidden"
-                >
-                  <BarChart3 className="rotate-180" />
-                </button>
+                  className="h-5 w-5 lg:hidden md:block hidden cursor-pointer mx-auto sm:mx-0"
+                  src="/icon.svg"
+                  alt=""
+                />
               </div>
             </div>
+
 
             {/* Widgets */}
             <div className="space-y-4">
@@ -515,9 +607,15 @@ export default function MyArea() {
                         isDragging={dragIndex === idx}
                         isDragOver={dragOverIndex === idx}
                       >
-                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] h-[350px] flex flex-col">
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[350px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Website Links</h2>
+                            <button
+                              onClick={addCustomLink}
+                              className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
+                            >
+                              <Plus size={18} />
+                            </button>
                           </div>
                           <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
                             <div className="grid grid-cols-1 gap-3">
@@ -526,9 +624,11 @@ export default function MyArea() {
                                   key={link.id}
                                   className="p-5 bg-black rounded-xl flex items-center justify-between"
                                 >
-                                  <div>
-                                    <h3 className="text-sm font-medium">{link.title}</h3>
-                                    <p className="text-xs mt-1 text-zinc-400">{link.url}</p>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium truncate">{link.title}</h3>
+                                    <p className="text-xs mt-1 text-zinc-400 truncate max-w-[200px]">
+                                      {truncateUrl(link.url)}
+                                    </p>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <button
@@ -577,12 +677,7 @@ export default function MyArea() {
                               ))}
                             </div>
                           </div>
-                          <button
-                            onClick={addCustomLink}
-                            className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900 mt-auto"
-                          >
-                            Add website link...
-                          </button>
+
                         </div>
                       </DraggableWidget>
                     )
@@ -638,7 +733,7 @@ export default function MyArea() {
                     )
                   })}
 
-{widgets
+                {widgets
                   .filter((widget) => widget.type === "notes")
                   .sort((a, b) => a.position - b.position)
                   .map((widget) => {
@@ -659,7 +754,152 @@ export default function MyArea() {
                         isDragging={dragIndex === idx}
                         isDragOver={dragOverIndex === idx}
                       >
-                        <NotesWidget/>
+                        <NotesWidget />
+                      </DraggableWidget>
+                    )
+                  })}
+
+                {widgets
+                  .filter((widget) => widget.type === "todo")
+                  .sort((a, b) => a.position - b.position)
+                  .map((widget) => {
+                    const idx = widgets.findIndex((w) => w.id === widget.id)
+                    return (
+                      <DraggableWidget
+                        key={widget.id}
+                        id={widget.id}
+                        index={idx}
+                        moveWidget={moveWidget}
+                        removeWidget={removeWidget}
+                        isEditing={isEditing}
+                        widgets={widgets}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        onDragEnd={handleDragEnd}
+                        isDragging={dragIndex === idx}
+                        isDragOver={dragOverIndex === idx}
+                      >
+                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">To-Do</h2>
+                            <button
+                              onClick={() => setIsAddTaskModalOpen(true)}
+                              className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                            >
+                              <Plus size={18} />
+                            </button>
+                          </div>
+                          <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
+                            <button
+                              onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+                              className="flex  justify-between items-center w-full gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
+                            >
+                              {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                            {isTodoFilterDropdownOpen && (
+                              <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+                                {todoFilterOptions.map((option) => (
+                                  <button
+                                    key={option.value}
+                                    className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                    onClick={() => {
+                                      setTodoFilter(option.value)
+                                      setIsTodoFilterDropdownOpen(false)
+                                    }}
+                                  >
+                                    {option.color && (
+                                      <div
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ backgroundColor: option.color }}
+                                      />
+                                    )}
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <div className="space-y-2">
+                              {getFilteredTodos()
+                                .slice(0, 3)
+                                .map((todo) => (
+                                  <div
+                                    key={todo.id}
+                                    className="p-3 bg-black rounded-xl flex items-center justify-between"
+                                  >
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <input
+                                        type="checkbox"
+                                        checked={todo.completed}
+                                        onChange={() => handleTaskComplete(todo.id)}
+                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                      />
+                                      <div className="flex-1">
+                                        <h3
+                                          className={`font-semibold text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                        >
+                                          {todo.title}
+                                        </h3>
+                                        <p className="text-xs text-zinc-400">
+                                          Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="relative">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          toggleDropdown(`main-todo-${todo.id}`)
+                                        }}
+                                        className="p-1 hover:bg-zinc-700 rounded"
+                                      >
+                                        <MoreVertical size={16} />
+                                      </button>
+                                      {openDropdownIndex === `main-todo-${todo.id}` && (
+                                        <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                          <button
+                                            onClick={() => {
+                                              handleEditTask(todo)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                          >
+                                            Edit Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToCancel(todo.id)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                          >
+                                            Cancel Task
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setTaskToDelete(todo.id)
+                                              setOpenDropdownIndex(null)
+                                            }}
+                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                          >
+                                            Delete Task
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                          <div className="flex justify-center">
+                            <Link to={"/dashboard/to-do"} className="text-sm text-white hover:underline">
+                              See all
+                            </Link>
+                          </div>
+                        </div>
                       </DraggableWidget>
                     )
                   })}
@@ -668,7 +908,55 @@ export default function MyArea() {
           </div>
         </main>
 
-        
+        {taskToDelete && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToDelete(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteTask(taskToDelete)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {taskToCancel && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setTaskToCancel(null)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => handleCancelTask(taskToCancel)}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+                >
+                  Cancel Task
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
 
         {/* Sidebar Component */}
         <Sidebar
@@ -686,15 +974,35 @@ export default function MyArea() {
           setSelectedMemberType={setSelectedMemberType}
           memberTypes={memberTypes}
           onAddWidget={() => setIsRightWidgetModalOpen(true)}
-          updateCustomLink={updateCustomLink}
-          removeCustomLink={removeCustomLink}
-          editingLink={editingLink}
-          setEditingLink={setEditingLink}
-          openDropdownIndex={openDropdownIndex}
-          setOpenDropdownIndex={setOpenDropdownIndex}
+          // updateCustomLink={updateCustomLink}
+          // removeCustomLink={removeCustomLink}
+          // editingLink={editingLink}
+          // setEditingLink={setEditingLink}
+          // openDropdownIndex={openDropdownIndex}
+          // setOpenDropdownIndex={setOpenDropdownIndex}
           onToggleEditing={() => setIsSidebarEditing((v) => !v)} // wire up sidebar-only edit toggle
+          handleTaskComplete={handleTaskComplete}
+          toggleDropdown={toggleDropdown}
+          openDropdownIndex={openDropdownIndex}
 
         />
+
+        {isAddTaskModalOpen && <AddTaskModal
+          onClose={() => setIsAddTaskModalOpen(false)}
+          onAddTask={handleAddTask}
+          configuredTags={configuredTags}
+        />}
+
+        {isEditTaskModalOpen && editingTask && (
+          <EditTaskModal
+            task={editingTask}
+            onClose={() => {
+              setIsEditTaskModalOpen(false)
+              setEditingTask(null)
+            }}
+            onUpdateTask={handleUpdateTask}
+          />
+        )}
 
         <ViewManagementModal
           isOpen={isViewModalOpen}

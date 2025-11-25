@@ -22,6 +22,7 @@ import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea
 import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
 import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
 import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
+import CalendarModal from "../../components/admin-dashboard-components/todo-components/calendar-modal"
 
 
 
@@ -53,6 +54,17 @@ export default function TodoApp() {
   const [newTaskInput, setNewTaskInput] = useState("")
   const [isRepeatModalOpen, setIsRepeatModalOpen] = useState(false)
   const [selectedTaskForRepeat, setSelectedTaskForRepeat] = useState(null)
+
+  const [repeatConfigs, setRepeatConfigs] = useState({});
+
+    const [calendarModal, setCalendarModal] = useState({
+      isOpen: false,
+      taskId: null,
+      initialDate: "",
+      initialTime: "",
+      initialReminder: "",
+      initialRepeat: ""
+    });
 
   const [tasks, setTasks] = useState(todosTaskData)
   const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
@@ -192,6 +204,16 @@ export default function TodoApp() {
   const handleOpenTagsModal = (task) => {
     setTagsModalTask(task)
   }
+  const handleOpenCalendarModal = (taskId, currentDate = "", currentTime = "", currentReminder = "", currentRepeat = "") => {
+    setCalendarModal({
+      isOpen: true,
+      taskId,
+      initialDate: currentDate,
+      initialTime: currentTime,
+      initialReminder: currentReminder,
+      initialRepeat: currentRepeat
+    });
+  };
 
   useEffect(() => {
     columns.forEach((column) => {
@@ -222,6 +244,119 @@ export default function TodoApp() {
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  const createNextRepeatTasks = (config, completedTask) => {
+    const { originalTask, repeatOptions } = config;
+    let tasksCreated = 0;
+
+    try {
+      // Calculate how many occurrences should exist based on the original task
+      const allRepeatTasks = tasks.filter(t =>
+        t.title === originalTask.title &&
+        t.id !== originalTask.id
+      );
+
+      const currentOccurrences = allRepeatTasks.length;
+      const maxOccurrences = repeatOptions.occurrences || Infinity;
+
+      // If we haven't reached the occurrence limit, create the next task
+      if (currentOccurrences < maxOccurrences - 1) { // -1 because original task counts as first occurrence
+        const lastTaskDate = new Date(completedTask.dueDate);
+        let nextDate = new Date(lastTaskDate);
+
+        // Calculate next occurrence based on repeat frequency
+        if (repeatOptions.frequency === "daily") {
+          nextDate.setDate(nextDate.getDate() + 1);
+        } else if (repeatOptions.frequency === "weekly") {
+          nextDate.setDate(nextDate.getDate() + 7);
+
+          // For weekly repeats with specific days, find the next selected day
+          if (repeatOptions.repeatDays && repeatOptions.repeatDays.length > 0) {
+            const currentDay = nextDate.getDay();
+            const nextDays = repeatOptions.repeatDays.filter(day => day > currentDay);
+            const daysToAdd = nextDays.length > 0
+              ? nextDays[0] - currentDay
+              : 7 - currentDay + repeatOptions.repeatDays[0];
+            nextDate.setDate(nextDate.getDate() + daysToAdd);
+          }
+        } else if (repeatOptions.frequency === "monthly") {
+          nextDate.setMonth(nextDate.getMonth() + 1);
+        }
+
+        // Check end date condition
+        if (repeatOptions.endDate && nextDate > new Date(repeatOptions.endDate)) {
+          return tasksCreated;
+        }
+
+        // Check if this repeat task already exists
+        const newDueDate = nextDate.toISOString().split('T')[0];
+        const taskAlreadyExists = tasks.some(t =>
+          t.title === originalTask.title &&
+          t.dueDate === newDueDate &&
+          t.status === "ongoing"
+        );
+
+        if (!taskAlreadyExists) {
+          const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+          const newTask = {
+            ...originalTask,
+            id: newId,
+            dueDate: newDueDate,
+            isPinned: false,
+            dragVersion: 0,
+            status: "ongoing",
+            createdAt: new Date().toISOString()
+          };
+
+          setTasks(prevTasks => [...prevTasks, newTask]);
+          tasksCreated = 1;
+          toast.success(`New repeat task created for ${originalTask.title}`);
+        }
+      }
+    } catch (error) {
+      console.error("Error creating repeat task:", error);
+      toast.error("Error creating repeat task");
+    }
+
+    return tasksCreated;
+  };
+
+    // Add this useEffect to handle task completion and create repeat tasks
+    useEffect(() => {
+      const now = new Date();
+      const updatedRepeatConfigs = { ...repeatConfigs };
+      let tasksUpdated = false;
+  
+      Object.entries(repeatConfigs).forEach(([taskId, config]) => {
+        const task = tasks.find(t => t.id === parseInt(taskId));
+  
+        // Skip if task doesn't exist or isn't completed
+        if (!task || task.status !== "completed") return;
+  
+        // Check if we need to create repeat tasks
+        const lastCompleted = config.lastCompletedDate ? new Date(config.lastCompletedDate) : null;
+        const taskCompletedDate = new Date(task.updatedAt || now);
+  
+        // Only process if this completion is newer than our last processing
+        if (!lastCompleted || lastCompleted < taskCompletedDate) {
+          const createdTasks = createNextRepeatTasks(config, task);
+  
+          if (createdTasks > 0) {
+            // Update the last completed date
+            updatedRepeatConfigs[taskId] = {
+              ...config,
+              lastCompletedDate: taskCompletedDate.toISOString(),
+              occurrencesCreated: (config.occurrencesCreated || 0) + createdTasks
+            };
+            tasksUpdated = true;
+          }
+        }
+      });
+  
+      if (tasksUpdated) {
+        setRepeatConfigs(updatedRepeatConfigs);
+      }
+    }, [tasks]);
 
   const handleTaskStatusChange = (taskId, newStatus) => {
     setTasks((prevTasks) =>
@@ -316,66 +451,25 @@ export default function TodoApp() {
 
   const handleRepeatTask = (taskToRepeat, repeatOptions) => {
     try {
-      const generated = []
-      const currentIterationDate = new Date(taskToRepeat.dueDate)
-      let count = 0
-
-      while (count < 100) {
-        if (repeatOptions.endDate && currentIterationDate > new Date(repeatOptions.endDate)) {
-          break
+      setRepeatConfigs(prev => ({
+        ...prev,
+        [taskToRepeat.id]: {
+          originalTask: { ...taskToRepeat },
+          repeatOptions: repeatOptions,
+          lastCompletedDate: null,
+          occurrencesCreated: 0
         }
-        if (repeatOptions.occurrences && count >= repeatOptions.occurrences) {
-          break
-        }
+      }));
 
-        let shouldAdd = false
-        if (repeatOptions.frequency === "daily") {
-          shouldAdd = true
-        } else if (repeatOptions.frequency === "weekly") {
-          if (repeatOptions.repeatDays.includes(currentIterationDate.getDay())) {
-            shouldAdd = true
-          }
-        }
-
-        if (shouldAdd) {
-          const newId =
-            tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 + generated.length : 1 + generated.length
-          generated.push({
-            ...taskToRepeat,
-            id: newId,
-            dueDate: currentIterationDate.toISOString().split("T")[0],
-            isPinned: false,
-            dragVersion: 0,
-            status: "ongoing",
-          })
-          count++
-        }
-
-        if (repeatOptions.frequency === "daily") {
-          currentIterationDate.setDate(currentIterationDate.getDate() + 1)
-        } else if (repeatOptions.frequency === "weekly") {
-          currentIterationDate.setDate(currentIterationDate.getDate() + 7)
-        } else if (repeatOptions.frequency === "monthly") {
-          currentIterationDate.setMonth(currentIterationDate.getMonth() + 1)
-        } else {
-          currentIterationDate.setDate(currentIterationDate.getDate() + 1)
-        }
-      }
-
-      if (generated.length > 0) {
-        setTasks((prevTasks) => [...prevTasks, ...generated])
-        toast.success(`${generated.length} new tasks generated based on repeat settings!`)
-      } else {
-        toast.error("No tasks generated. Check repeat settings.")
-      }
+      toast.success(`Repeat settings saved! Task will repeat ${repeatOptions.occurrences || 'until'} ${repeatOptions.endDate || 'indefinitely'}.`);
     } catch (error) {
-      toast.error("Error generating repeated tasks. Please try again.")
-      console.error("Repeat task error:", error)
+      toast.error("Error setting up repeat task. Please try again.");
+      console.error("Repeat task error:", error);
     }
 
-    setIsRepeatModalOpen(false)
-    setSelectedTaskForRepeat(null)
-  }
+    setIsRepeatModalOpen(false);
+    setSelectedTaskForRepeat(null);
+  };
 
   const handleDragStop = (e, data, task, sourceColumnId) => {
     const draggedElem = e.target
@@ -463,6 +557,43 @@ export default function TodoApp() {
     toast.success("Tag deleted successfully!")
   }
 
+  const handleCalendarSave = (calendarData) => {
+    if (calendarModal.taskId) {
+      // Update existing task
+      const taskToUpdate = tasks.find(t => t.id === calendarModal.taskId);
+      const updatedTask = {
+        ...taskToUpdate,
+        dueDate: calendarData.date,
+        dueTime: calendarData.time,
+        reminder: calendarData.reminder,
+        repeat: calendarData.repeat
+      };
+
+      handleTaskUpdate(updatedTask);
+      toast.success("Task date/time updated successfully!");
+    }
+
+    setCalendarModal({
+      isOpen: false,
+      taskId: null,
+      initialDate: "",
+      initialTime: "",
+      initialReminder: "",
+      initialRepeat: ""
+    });
+  };
+
+  const handleCalendarClose = () => {
+    setCalendarModal({
+      isOpen: false,
+      taskId: null,
+      initialDate: "",
+      initialTime: "",
+      initialReminder: "",
+      initialRepeat: ""
+    });
+  };
+
   const CalendarPopup = () => {
     const [currentDate, setCurrentDate] = useState(new Date())
     const [tempDate, setTempDate] = useState(selectedDate)
@@ -536,6 +667,8 @@ export default function TodoApp() {
       setCustomReminderValue("")
       setIsCalendarOpen(false)
     }
+
+    
 
     return (
       <div className="absolute top-full lg:-left-70 -left-55 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-90 p-4 lg:w-84 w-70">
@@ -805,6 +938,7 @@ export default function TodoApp() {
                       setOpenDropdownTaskId={setOpenDropdownTaskId}
                       configuredTags={configuredTags}
                       onOpenTagsModal={handleOpenTagsModal}
+                      onOpenCalendarModal={handleOpenCalendarModal}
                     />
                   </div>
                 </Draggable>
@@ -910,9 +1044,15 @@ export default function TodoApp() {
             <div className="flex flex-col gap-4 mb-6">
               <div className="flex justify-between items-center gap-4 mb-6">
                 <h1 className="text-2xl font-bold text-white">To-Do</h1>
-                 <div onClick={toggleRightSidebar} className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
+                 {/* <div onClick={toggleRightSidebar} className="cursor-pointer text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
                             <IoIosMenu size={26}/>
-                          </div>
+                          </div> */}
+                            <img
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className="h-5 w-5  cursor-pointer"
+                  src="/icon.svg"
+                  alt=""
+                />
               </div>
 
               <div className="flex flex-col md:flex-row gap-4 items-stretch">
@@ -1170,14 +1310,14 @@ export default function TodoApp() {
         />
 
         {isRepeatModalOpen && selectedTaskForRepeat && (
-          <RepeatTaskModal
-            task={selectedTaskForRepeat}
-            onClose={() => {
-              setIsRepeatModalOpen(false)
-              setSelectedTaskForRepeat(null)
-            }}
-            onRepeatTask={handleRepeatTask}
-          />
+         <RepeatTaskModal
+         task={selectedTaskForRepeat}
+         onClose={() => {
+           setIsRepeatModalOpen(false)
+           setSelectedTaskForRepeat(null)
+         }}
+         onRepeatTask={handleRepeatTask}
+       />
         )}
 
         {assignModalTask && (
@@ -1198,6 +1338,16 @@ export default function TodoApp() {
             onUpdate={handleTaskUpdate}
           />
         )}
+
+<CalendarModal
+          isOpen={calendarModal.isOpen}
+          onClose={handleCalendarClose}
+          onSave={handleCalendarSave}
+          initialDate={calendarModal.initialDate}
+          initialTime={calendarModal.initialTime}
+          initialReminder={calendarModal.initialReminder}
+          initialRepeat={calendarModal.initialRepeat}
+        />
 
           {/* sidebar related modals */}
 

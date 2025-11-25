@@ -1,4 +1,4 @@
-import Rectangle1 from "../../../public/Rectangle 1.png"
+import Rectangle1 from "../../../public/gray-avatar-fotor-20250912192528.png"
 import PersonImage from '../../../public/avatar3.png'
 
 
@@ -366,6 +366,18 @@ export const birthdaysData = [
         id: 3,
         name: "Mike Wilson",
         date: "2025-01-25",
+        avatar: Rectangle1, // Import separately
+    },
+    {
+        id: 4,
+        name: "Carter Jerry",
+        date: "2025-06-25",
+        avatar: Rectangle1, // Import separately
+    },
+    {
+        id: 5,
+        name: "Harry Coston",
+        date: "2025-02-25",
         avatar: Rectangle1, // Import separately
     },
 ];

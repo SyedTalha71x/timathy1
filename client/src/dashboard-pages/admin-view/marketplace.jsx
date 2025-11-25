@@ -393,9 +393,13 @@ const Marketplace = () => {
         <div className='flex justify-between items-center gap-2 md:w-auto w-full'>
 
           <h1 className="text-2xl font-bold mb-2">Marketplace</h1>
-          <div onClick={toggleRightSidebar} className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-            <IoIosMenu size={26} />
-          </div>
+          
+          <img
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className="h-5 w-5 mr-5 lg:hidden md:hidden block  cursor-pointer"
+              src="/icon.svg"
+              alt=""
+            />
         </div>
 
         <div className="mb-6 flex items-center gap-2">
@@ -405,9 +409,12 @@ const Marketplace = () => {
           >
             Add New Product
           </button>
-          <div onClick={toggleRightSidebar} className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-            <IoIosMenu size={26} />
-          </div>
+          <img
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className="h-5 w-5 mr-5 lg:block md:block hidden  cursor-pointer"
+              src="/icon.svg"
+              alt=""
+            />
         </div>
       </div>
 
@@ -464,7 +471,7 @@ const Marketplace = () => {
                   onClick={() => togglePinProduct(product.id)}
                   className={`p-2 rounded-full transition-colors duration-200 ${
                     product.isPinned 
-                      ? 'bg-yellow-500 text-black hover:bg-yellow-600' 
+                      ? 'bg-gray-500 text-white ' 
                       : 'bg-gray-600 text-white hover:bg-gray-700'
                   }`}
                   title={product.isPinned ? 'Unpin Product' : 'Pin Product'}
@@ -472,7 +479,7 @@ const Marketplace = () => {
                   <FaThumbtack size={14} />
                 </button>
                 
-                {product.infoText && (
+                {/* {product.infoText && (
                   <button
                     onClick={() => openInfoModal(product)}
                     className="bg-blue-600 text-white p-2 rounded-full transition-colors duration-200 hover:bg-blue-700"
@@ -480,7 +487,7 @@ const Marketplace = () => {
                   >
                     <FaInfoCircle size={14} />
                   </button>
-                )}
+                )} */}
                 
                 <button
                   onClick={() => openEditModal(product)}
@@ -509,7 +516,7 @@ const Marketplace = () => {
                   <h3 className="text-lg font-semibold text-white truncate flex-1 mr-2">
                     {product.productName}
                   </h3>
-                  {!product.infoText && (
+                  {/* {!product.infoText && (
                     <button
                       onClick={() => openEditModal(product)}
                       className="text-gray-400 hover:text-blue-400 transition-colors"
@@ -517,7 +524,7 @@ const Marketplace = () => {
                     >
                       <FaInfoCircle size={16} />
                     </button>
-                  )}
+                  )} */}
                 </div>
                 <p className="text-gray-400 text-sm mb-1 truncate">Brand: {product.brandName}</p>
                 <p className="text-gray-400 text-sm mb-1">Article No: {product.articleNo}</p>

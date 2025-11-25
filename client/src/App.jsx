@@ -49,6 +49,7 @@ import AdminAnalytics from './dashboard-pages/admin-view/analytics'
 import AdminMarketPlace from './dashboard-pages/admin-view/marketplace'
 import AdminEmailManagement from './dashboard-pages/admin-view/email'
 import AdminNotes from './dashboard-pages/admin-view/notes'
+import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
 
 
 // Member Dashboard  
@@ -59,6 +60,8 @@ import MemberSettings from './dashboard-pages/member-view/configuration'
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
 import MemberDashboardLayout from "./layouts/member-dashboard-layout";
+import EditAdminPage from "./dashboard-pages/admin-view/edit-admin-page";
+import EditStudioPage from "./dashboard-pages/admin-view/edit-studio-page";
 // import { useEffect } from "react";
 // import { startModalWatcher } from "./utils/fixModals";
 
@@ -123,6 +126,10 @@ function App() {
           <Route path="marketplace" element={<AdminMarketPlace />} />
           <Route path="email" element={<AdminEmailManagement />} />
           <Route path="notes" element={<AdminNotes />} />
+          <Route path="demo-access" element={<AdminDemoAccess />} />
+
+          <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
+          <Route path="edit-admin-configuration/:studioId" element={<EditAdminPage />} />
 
 
 
@@ -135,7 +142,7 @@ function App() {
           <Route path="settings" element={<MemberSettings />} />
           <Route path="edit-profile" element={<MemberViewProfile />} />
           <Route path="training" element={<MemberTraining />} />
-         
+
         </Route>
       </Routes>
       {!isAuthOrDashboardPage && <Footer />}

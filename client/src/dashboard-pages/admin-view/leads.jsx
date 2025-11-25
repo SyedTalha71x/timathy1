@@ -69,7 +69,6 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
   }
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
 
-
   return (
     <Draggable
       nodeRef={nodeRef}
@@ -168,7 +167,6 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
             )
           }
 
-
           <div className="flex-1 mt-6">
             <h5 className="font-bold text-lg mb-1 text-white min-h-[28px]">{lead.studioName || "No Studio Name"}</h5>
             <h4 className="font-medium text-gray-200">{`${lead.firstName} ${lead.surname}`}</h4>
@@ -179,13 +177,27 @@ const LeadCard = ({ lead, onViewDetails, onCreateContract, onEditLead, onDeleteL
             </p>
           </div>
         </div>
+
+        {/* Updated Button Section */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => onCreateContract(lead)}
-            className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
-          >
-            Create Contract
-          </button>
+          {columnId === "trial" ? (
+            <button
+              onClick={() => onCreateContract(lead)}
+              className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
+            >
+              Create Contract
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                // Redirect to demo access page
+                window.location.href = "/admin-dashboard/demo-access"
+              }}
+              className="bg-[#FF843E] hover:bg-[#E67A38] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
+            >
+              Create Demo Access
+            </button>
+          )}
           <div className="absolute top-2 right-2">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -409,7 +421,7 @@ export default function LeadManagement() {
     { id: "passive", title: "Passive prospect", color: "#f59e0b" },
     { id: "uninterested", title: "Uninterested", color: "#ef4444" },
     { id: "missed", title: "Missed Call", color: "#8b5cf6" },
-    { id: "trial", title: "Trial Training Arranged", color: "#3b82f6" },
+    { id: "trial", title: "Demo Access", color: "#3b82f6" },
   ])
 
   // Default lead sources
@@ -754,6 +766,7 @@ export default function LeadManagement() {
       avatar: data.avatar,
       source: data.source || "Other",
       status: data.status || "passive",
+      // Updated logic for demo access column
       columnId: data.hasTrialTraining ? "trial" : data.status || "passive",
       createdAt: now,
       studioName: data.studioName,
@@ -885,7 +898,7 @@ export default function LeadManagement() {
 
       // If moving to a different column
       if (targetColumnId !== sourceColumnId) {
-        // If dropping into trial column, set hasTrialTraining to true
+        // If dropping into demo access column, set hasTrialTraining to true
         const hasTrialTraining = targetColumnId === "trial"
 
         // Find the lead to move
@@ -1008,9 +1021,13 @@ export default function LeadManagement() {
         <div className="flex justify-between items-center md:w-auto w-full">
 
           <h1 className="text-2xl text-white font-bold">Leads</h1>
-          <div onClick={toggleRightSidebar} className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-            <IoIosMenu size={26} />
-          </div>
+
+          <img
+            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+            className="h-5 w-5 mr-5 lg:hidden md:hidden block    cursor-pointer"
+            src="/icon.svg"
+            alt=""
+          />
         </div>
         <div className="flex gap-2">
 
@@ -1024,9 +1041,12 @@ export default function LeadManagement() {
               <Plus size={18} />
               <span className="open_sans_font">Create Lead</span>
             </button>
-            <div onClick={toggleRightSidebar} className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-              <IoIosMenu size={26} />
-            </div>
+            <img
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className="h-5 w-5 mr-5 lg:block md:block hidden   cursor-pointer"
+              src="/icon.svg"
+              alt=""
+            />
           </div>
 
         </div>
@@ -1146,7 +1166,7 @@ export default function LeadManagement() {
         setEditingLink={setEditingLink}
         openDropdownIndex={openDropdownIndex}
         setOpenDropdownIndex={setOpenDropdownIndex}
-        onToggleEditing={()=>{ setIsEditing(!isEditing);}} // Add this line
+        onToggleEditing={() => { setIsEditing(!isEditing); }} // Add this line
         setTodos={setTodos}
       />
 

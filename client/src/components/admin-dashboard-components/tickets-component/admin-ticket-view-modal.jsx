@@ -122,7 +122,9 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                   {getStatusIcon(ticketStatus)}
                   <span className="text-sm font-medium text-gray-400">#{ticket.id}</span>
                 </div>
+
                 <h2 className="text-base sm:text-lg font-semibold text-white truncate">{ticket.subject}</h2>
+                <span className="font-bold ">({ticket.studioName})</span>
               </div>
               <div className="flex items-center gap-2">
                 {/* Sidebar Toggle for Mobile/Tablet */}

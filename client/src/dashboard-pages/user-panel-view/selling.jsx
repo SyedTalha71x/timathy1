@@ -1022,7 +1022,7 @@ Payment Method: ${invoiceData.paymentMethod}
       min-h-screen rounded-3xl text-white bg-[#1C1C1C]
       transition-all duration-500 ease-in-out flex-1
       ${isRightSidebarOpen
-            ? "lg:mr-[37%] mr-0" // Adjust right margin when sidebar is open on larger screens
+            ? "lg:mr-[31%] mr-0" // Adjust right margin when sidebar is open on larger screens
             : "mr-0" // No margin when closed
           }
     `}

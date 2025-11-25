@@ -17,6 +17,7 @@ export default function TaskItem({
   isDragging,
   configuredTags,
   onOpenTagsModal,
+  onOpenCalendarModal,
 }) {
   const [isAnimatingCompletion, setIsAnimatingCompletion] = useState(false)
   const [isCheckboxAnimating, setIsCheckboxAnimating] = useState(false)
@@ -272,17 +273,27 @@ export default function TaskItem({
 
         {/* Date */}
         <div className="flex flex-col items-center flex-wrap justify-center gap-2 mt-2 lg:flex-row lg:justify-center">
-          <div className="relative">
-            <div
-              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag ${
-                isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
-              }`}
-            >
-              <Calendar size={12} />
-              <span className="whitespace-nowrap">{formatDateTime()}</span>
-              {hasRepeat && <Repeat size={10} className="text-blue-400 ml-1" title="Repeating task" />}
-            </div>
-          </div>
+        <div className="relative">
+  <div
+    className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag cursor-pointer ${isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300 hover:bg-gray-700"
+      }`}
+    onClick={(e) => {
+      e.stopPropagation();
+      if (!isCompleted && !isCanceled) {
+        // This will open the modal for editing task date/time
+        onOpenCalendarModal?.(task.id, task.dueDate, task.dueTime, task.reminder, task.repeat);
+      }
+    }}
+    title={!isCompleted && !isCanceled ? "Click to edit date/time" : ""}
+  >
+    <Calendar size={12} />
+    <span className="whitespace-nowrap">{formatDateTime()}</span>
+    {(hasRepeat || (task.repeatConfig && task.repeatConfig.repeatOptions)) && (
+      <Repeat size={20} className="text-blue-400 ml-1" title="Repeating task" />
+    )}
+  </div>
+ 
+</div>
         </div>
 
         {/* Edit buttons panel - shown when in edit mode */}

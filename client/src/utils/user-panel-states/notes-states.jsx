@@ -1,5 +1,4 @@
-export const demoNotes = {
-    personal: [
+export const demoNotes = [
       {
         id: 1,
         title: "Welcome to Personal Notes",
@@ -20,9 +19,7 @@ export const demoNotes = {
         content: "1. Atomic Habits\n2. Deep Work\n3. The Psychology of Money",
         createdAt: new Date().toLocaleDateString(),
         updatedAt: new Date().toLocaleDateString(),
-      }
-    ],
-    studio: [
+      },
       {
         id: 4,
         title: "Studio Project Ideas",
@@ -44,5 +41,4 @@ export const demoNotes = {
         createdAt: new Date().toLocaleDateString(),
         updatedAt: new Date().toLocaleDateString(),
       }
-    ],
-  }
+    ]

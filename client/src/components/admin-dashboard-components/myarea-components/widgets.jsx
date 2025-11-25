@@ -11,6 +11,13 @@ export default function WidgetSelectionModal({
 }) {
   if (!isOpen) return null
 
+  // const analyticsWidgetOptions = [
+  //   { id: "analyticsStats-studios", type: "analyticsStats", label: "Studios Acquired Stats", metric: "Studios Acquired" },
+  //   { id: "analyticsStats-finance", type: "analyticsStats", label: "Finance Stats", metric: "Finance" },
+  //   { id: "analyticsStats-leads", type: "analyticsStats", label: "Leads Stats", metric: "Leads" },
+  //   { id: "analyticsStats-franchises", type: "analyticsStats", label: "Franchises Stats", metric: "Franchises" },
+  // ];
+
   const dashboardWidgets = [
     {
       id: "chart",

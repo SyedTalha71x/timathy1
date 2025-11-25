@@ -7,8 +7,13 @@ import Chart from "react-apexcharts"
 import { MoreVertical, X, ChevronDown, Edit, Check, ArrowDown, ArrowUp, Plus, ExternalLink } from "lucide-react"
 import { Eye, Minus } from "react-feather"
 import ViewManagementModal from "./sidebar-components/view-management"
-import EditTaskModal from '../todo-components/edit-task-modal'
 import NotesWidget from "./notes-widgets"
+import WebsiteLinkModal from "./website-link-modal"
+import ConfirmationModal from "./confirmation-modal"
+import { toast } from "react-hot-toast"
+import AddTaskModal from "./add-task-modal"
+import { configuredTagsData } from "../../../utils/user-panel-states/todo-states"
+import EditTaskModal from "./edit-task-modal"
 
 const DraggableSidebarWidget = ({
   id,
@@ -38,7 +43,6 @@ const DraggableSidebarWidget = ({
     >
       {isEditing && (
         <div className="absolute top-2 right-2 z-10 flex gap-2">
-
           <button
             onClick={() => removeWidget(id)}
             className="p-1 bg-gray-500 rounded-md cursor-pointer text-black flex items-center justify-center w-7 h-7"
@@ -60,25 +64,39 @@ const Sidebar = ({
   isEditing,
   todos,
   setTodos,
-  customLinks,
+  customLinks, // Same data from main area - READ ONLY
   setCustomLinks,
   expiringContracts,
   selectedMemberType,
   setSelectedMemberType,
   memberTypes,
   onAddWidget,
-  updateCustomLink,
-  removeCustomLink,
-  editingLink,
-  setEditingLink,
-  openDropdownIndex,
-  setOpenDropdownIndex,
-  onToggleEditing, // add prop to toggle sidebar-only editing
+  onToggleEditing,
+
+  handleTaskComplete,
+  toggleDropdown,
+  openDropdownIndex
 }) => {
   const navigate = useNavigate()
   const dropdownRef = useRef(null)
   const chartDropdownRef = useRef(null)
   const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
+
+  const todoFilterDropdownRef = useRef(null)
+
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
+  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
+
+  const [todoFilter, setTodoFilter] = useState("all")
+  const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
+
+  const todoFilterOptions = [
+    { value: "all", label: "All Tasks" },
+    { value: "ongoing", label: "Ongoing", color: "#f59e0b" },
+    { value: "completed", label: "Completed", color: "#10b981" },
+    { value: "canceled", label: "Canceled", color: "#ef4444" },
+  ]
+
 
   const [savedViews, setSavedViews] = useState([])
   const [currentView, setCurrentView] = useState(null)
@@ -89,14 +107,72 @@ const Sidebar = ({
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [taskToCancel, setTaskToCancel] = useState(null)
 
+  const handleAddTask = (newTask) => {
+    setTodos((prevTodos) => [...prevTodos, newTask]) // Also add to todos if needed
+    toast.success("Task added successfully!")
+  }
+
+  // Sidebar-specific states for website links operations
+  const [sidebarEditingLink, setSidebarEditingLink] = useState(null)
+  const [sidebarConfirmationModal, setSidebarConfirmationModal] = useState({ isOpen: false, linkId: null })
+  const [sidebarOpenDropdownIndex, setSidebarOpenDropdownIndex] = useState(null)
+
   const [dragIndex, setDragIndex] = useState(null)
   const [dragOverIndex, setDragOverIndex] = useState(null)
+
+  const getFilteredTodos = () => {
+    switch (todoFilter) {
+      case "ongoing":
+        return todos.filter((todo) => todo.status === "ongoing")
+      case "canceled":
+        return todos.filter((todo) => todo.status === "canceled")
+      case "completed":
+        return todos.filter((todo) => todo.status === "completed")
+      default:
+        return todos
+    }
+  }
+
+
+  // Sidebar-specific website links functions
+
+  const addSidebarCustomLink = () => {
+    setSidebarEditingLink({})
+  }
+
+  const updateSidebarCustomLink = (id, field, value) => {
+    console.log("updateSidebarCustomLink called:", { id, field, value }); // DEBUG
+
+    setCustomLinks(currentLinks => {
+      console.log("Current links before update:", currentLinks); // DEBUG
+      const updatedLinks = currentLinks.map(link =>
+        link.id === id ? { ...link, [field]: value } : link
+      );
+      console.log("Links after update:", updatedLinks); // DEBUG
+      return updatedLinks;
+    });
+
+    toast.success("Website link updated successfully");
+  }
+  const removeSidebarCustomLink = (id) => {
+    setSidebarConfirmationModal({ isOpen: true, linkId: id })
+  }
+
+  const confirmRemoveSidebarLink = () => {
+    if (sidebarConfirmationModal.linkId) {
+      setCustomLinks(currentLinks =>
+        currentLinks.filter(link => link.id !== sidebarConfirmationModal.linkId)
+      )
+      toast.success("Website link removed successfully")
+    }
+    setSidebarConfirmationModal({ isOpen: false, linkId: null })
+  }
+
 
   const handleDragStart = (index, e) => {
     if (!isEditing) return
     try {
       e.dataTransfer.effectAllowed = "move"
-      // Required for Firefox to initiate a drag operation
       e.dataTransfer.setData("text/plain", String(index))
     } catch { }
     setDragIndex(index)
@@ -146,12 +222,11 @@ const Sidebar = ({
     setWidgets((currentWidgets) => currentWidgets.filter((w) => w.id !== id))
   }
 
-  const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
-  const redirectToTodos = () => navigate("/admin-dashboard/to-do")
-
-  const addCustomLink = () => {
-    setEditingLink({})
+  const truncateUrl = (url, maxLength = 40) => {
+    if (url.length <= maxLength) return url
+    return url.substring(0, maxLength - 3) + "..."
   }
+
 
   // Chart options for sidebar (smaller version)
   const chartOptions = {
@@ -247,7 +322,7 @@ const Sidebar = ({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownIndex(null)
+        setSidebarOpenDropdownIndex(null)
       }
       if (chartDropdownRef.current && !chartDropdownRef.current.contains(event.target)) {
         setIsChartDropdownOpen(false)
@@ -258,8 +333,7 @@ const Sidebar = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [setOpenDropdownIndex])
-
+  }, [])
 
   const handleEditTask = (task) => {
     setEditingTask(task)
@@ -414,48 +488,91 @@ const Sidebar = ({
 
                   {/* TODO Widget */}
                   {widget.type === "todo" && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">To-Do</h3>
-                      </div>
-                      <div className="space-y-3">
-                        {todos.map((todo) => (
-                          <div
-                            onClick={redirectToTodos}
-                            key={todo.id}
-                            className="p-2 cursor-pointer bg-black rounded-xl"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-sm truncate">{todo.title}</h4>
-                                <p className="text-xs text-zinc-400 truncate">{todo.description}</p>
-                                <span className="text-xs text-zinc-400">
-                                  {todo.dueDate} {todo.dueTime}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button className="px-2 py-1 bg-blue-600 text-white rounded-lg text-xs flex-shrink-0 ml-2">
-                                  To-Do
-                                </button>
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">To-Do</h2>
 
-                                {/* Wrap dropdown in a div that stops propagation */}
-                                <div onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setIsAddTaskModalOpen(true)}
+                          className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                        >
+                          <Plus size={18} />
+                        </button>
+                      </div>
+
+                      <div className="relative mb-3" ref={todoFilterDropdownRef}>
+                        <button
+                          onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
+                        >
+                          {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                        {isTodoFilterDropdownOpen && (
+                          <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+                            {todoFilterOptions.map((option) => (
+                              <button
+                                key={option.value}
+                                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                onClick={() => {
+                                  setTodoFilter(option.value)
+                                  setIsTodoFilterDropdownOpen(false)
+                                }}
+                              >
+                                {option.color && (
+                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: option.color }} />
+                                )}
+                                {option.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Todo Items */}
+                      <div className="space-y-3 open_sans_font">
+                        {getFilteredTodos().length > 0 ? (
+                          <>
+                            {getFilteredTodos()
+                              .slice(0, 3)
+                              .map((todo) => (
+                                <div
+                                  key={todo.id}
+                                  className="p-2 bg-black rounded-xl flex items-center justify-between"
+                                >
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <input
+                                      type="checkbox"
+                                      checked={todo.completed}
+                                      onChange={() => handleTaskComplete(todo.id)}
+                                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                    <div className="flex-1">
+                                      <h3
+                                        className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                      >
+                                        {todo.title}
+                                      </h3>
+                                      <p className="text-xs open_sans_font text-zinc-400">
+                                        Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                      </p>
+                                    </div>
+                                  </div>
                                   <div className="relative">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
-                                        toggleDropdown(`main-todo-${todo.id}`)
+                                        toggleDropdown(`todo-${todo.id}`)
                                       }}
                                       className="p-1 hover:bg-zinc-700 rounded"
                                     >
                                       <MoreVertical size={16} />
                                     </button>
-                                    {openDropdownIndex === `main-todo-${todo.id}` && (
+                                    {openDropdownIndex === `todo-${todo.id}` && (
                                       <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
                                         <button
                                           onClick={() => {
                                             handleEditTask(todo)
-                                            setOpenDropdownIndex(null)
                                           }}
                                           className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
                                         >
@@ -464,7 +581,6 @@ const Sidebar = ({
                                         <button
                                           onClick={() => {
                                             setTaskToCancel(todo.id)
-                                            setOpenDropdownIndex(null)
                                           }}
                                           className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
                                         >
@@ -473,7 +589,6 @@ const Sidebar = ({
                                         <button
                                           onClick={() => {
                                             setTaskToDelete(todo.id)
-                                            setOpenDropdownIndex(null)
                                           }}
                                           className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
                                         >
@@ -483,90 +598,94 @@ const Sidebar = ({
                                     )}
                                   </div>
                                 </div>
-                              </div>
-                            </div>
+                              ))}
+                            <Link
+                              to={"/dashboard/to-do"}
+                              className="text-sm open_sans_font text-white flex justify-center items-center text-center hover:underline"
+                            >
+                              See all
+                            </Link>
+                          </>
+                        ) : (
+                          <div className="text-center py-4 text-gray-400">
+                            <p className="text-sm">No tasks in this category</p>
                           </div>
-                        ))}
-                        <Link
-                          to={"/admin-dashboard/to-do"}
-                          className="text-sm text-white flex justify-center items-center text-center hover:underline"
-                        >
-                          See all
-                        </Link>
+                        )}
                       </div>
                     </div>
                   )}
 
                   {/* Website Links Widget */}
                   {widget.type === "websiteLink" && (
-                    <div>
-                      <div className="flex mb-3 justify-between items-center">
-                        <h3 className="text-lg font-semibold">Website Links</h3>
-                      </div>
-                      <div className="space-y-3 p-3 rounded-xl bg-[#2F2F2F]">
-                        <div className="max-h-64 overflow-y-auto custom-scrollbar pr-1">
-                          <div className="space-y-2">
-                            {customLinks.map((link) => (
-                              <div key={link.id} className="p-3 bg-black rounded-xl">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-medium truncate">{link.title}</h4>
-                                    <p className="text-xs mt-1 text-zinc-400 truncate">{link.url}</p>
-                                  </div>
-                                  <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                                    <button
-                                      onClick={() => window.open(link.url, "_blank")}
-                                      className="p-1.5 hover:bg-zinc-700 rounded-lg"
-                                    >
-                                      <ExternalLink size={14} />
-                                    </button>
-                                    <div className="relative">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          toggleDropdown(`sidebar-link-${link.id}`)
-                                        }}
-                                        className="p-1.5 hover:bg-zinc-700 rounded-lg"
-                                      >
-                                        <MoreVertical size={14} />
-                                      </button>
-                                      {openDropdownIndex === `sidebar-link-${link.id}` && (
-                                        <div className="absolute right-0 top-full mt-1 w-24 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              setEditingLink(link)
-                                              setOpenDropdownIndex(null)
-                                            }}
-                                            className="w-full text-left px-2 py-1.5 text-xs hover:bg-zinc-700"
-                                          >
-                                            Edit
-                                          </button>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              removeCustomLink(link.id)
-                                              setOpenDropdownIndex(null)
-                                            }}
-                                            className="w-full text-left px-2 py-1.5 text-xs hover:bg-zinc-700 text-red-400"
-                                          >
-                                            Remove
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Website Links</h2>
                         <button
-                          onClick={addCustomLink}
-                          className="w-full p-3 bg-black rounded-xl text-sm text-zinc-400 text-left hover:bg-zinc-900"
+                          onClick={addSidebarCustomLink}
+                          className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
                         >
-                          Add website link...
+                          <Plus size={18} />
                         </button>
+                      </div>
+                      <div className="space-y-2 open_sans_font">
+                        {customLinks.map((link) => (
+                          <div
+                            key={link.id}
+                            className="p-2 cursor-pointer bg-black rounded-xl flex items-center justify-between"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold open_sans_font text-sm truncate">{link.title}</h3>
+                              <p className="text-xs open_sans_font text-zinc-400 truncate max-w-[150px]">
+                                {truncateUrl(link.url, 30)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => window.open(link.url, "_blank")}
+                                className="p-2 hover:bg-zinc-700 rounded-lg"
+                              >
+                                <ExternalLink size={16} />
+                              </button>
+                              <div className="relative">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSidebarOpenDropdownIndex(
+                                      sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`,
+                                    )
+                                  }}
+                                  className="p-2 hover:bg-zinc-700 rounded-lg"
+                                >
+                                  <MoreVertical size={16} />
+                                </button>
+                                {sidebarOpenDropdownIndex === `link-${link.id}` && (
+                                  <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setSidebarEditingLink(link)
+                                        setSidebarOpenDropdownIndex(null)
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        removeSidebarCustomLink(link.id)
+                                        setSidebarOpenDropdownIndex(null)
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -601,7 +720,8 @@ const Sidebar = ({
                       </div>
                     </div>
                   )}
-                    {widget.type === "notes" && <NotesWidget />}
+
+                  {widget.type === "notes" && <NotesWidget />}
                 </DraggableSidebarWidget>
               ))}
 
@@ -620,6 +740,28 @@ const Sidebar = ({
           </div>
         </div>
       </aside>
+
+      {/* Sidebar-specific Modals */}
+      {sidebarEditingLink && (
+        <WebsiteLinkModal
+          link={sidebarEditingLink}
+          onClose={() => setSidebarEditingLink(null)}
+          updateCustomLink={updateSidebarCustomLink} // Make sure it's this function
+          setCustomLinks={setCustomLinks}
+        />
+      )}
+
+
+
+      {sidebarConfirmationModal.isOpen && (
+        <ConfirmationModal
+          isOpen={sidebarConfirmationModal.isOpen}
+          onClose={() => setSidebarConfirmationModal({ isOpen: false, linkId: null })}
+          onConfirm={confirmRemoveSidebarLink}
+          title="Delete Website Link"
+          message="Are you sure you want to delete this website link? This action cannot be undone."
+        />
+      )}
 
       {taskToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -669,6 +811,13 @@ const Sidebar = ({
         </div>
       )}
 
+      {isAddTaskModalOpen && (
+        <AddTaskModal
+          onClose={() => setIsAddTaskModalOpen(false)}
+          onAddTask={handleAddTask}
+          configuredTags={configuredTags}
+        />
+      )}
       {isEditTaskModalOpen && editingTask && (
         <EditTaskModal
           task={editingTask}
@@ -677,8 +826,12 @@ const Sidebar = ({
             setEditingTask(null)
           }}
           onUpdateTask={handleUpdateTask}
+          configuredTags={configuredTags}
         />
       )}
+
+
+
 
       <ViewManagementModal
         isOpen={isViewModalOpen}
@@ -687,8 +840,8 @@ const Sidebar = ({
         setSavedViews={setSavedViews}
         currentView={currentView}
         setCurrentView={setCurrentView}
-        sidebarWidgets={widgets} // Fixed: pass the actual widgets array
-        setSidebarWidgets={setWidgets} // Fixed: pass the setWidgets function
+        sidebarWidgets={widgets}
+        setSidebarWidgets={setWidgets}
       />
     </>
   )

@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
 import { X, FolderPlus, Search } from "lucide-react"
+import { WysiwygEditor } from "../../user-panel-components/configuration-components/WysiwygEditor"
 
 export default function BroadcastModal({
   onClose,
@@ -15,7 +16,7 @@ export default function BroadcastModal({
   emailOnly, // NEW
 }) {
   const [activeMainTab, setActiveMainTab] = useState(emailOnly ? "email" : "push") // enforce email default when emailOnly
-  const [audienceTab, setAudienceTab] = useState("member") // 'member' | 'staff'
+  const [audienceTab, setAudienceTab] = useState("studio") // 'studio' | 'franchise'
 
   const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
   const [searchMember, setSearchMember] = useState("")
@@ -40,7 +41,7 @@ export default function BroadcastModal({
       id: 5001,
       folderId: 1001,
       subject: "Welcome to Our Community",
-      body: "<p>Hello,</p><p>We’re excited to have you with us. Here’s everything you need to know to get started.</p><p>Warm regards,<br/>Team</p>",
+      body: "<p>Hello,</p><p>We're excited to have you with us. Here's everything you need to know to get started.</p><p>Warm regards,<br/>Team</p>",
     },
     {
       id: 5002,
@@ -56,7 +57,6 @@ export default function BroadcastModal({
   const [builderFolderId, setBuilderFolderId] = useState(1001)
   const [builderHtml, setBuilderHtml] = useState("")
   const [includeSignatureOnSend, setIncludeSignatureOnSend] = useState(true)
-  const builderRef = useRef(null)
 
   // Handle outside clicks for recipients dropdown
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function BroadcastModal({
   const filteredChatsByAudience = combinedChats.filter((c) => {
     if (!c) return false
     if (!c.role) return true // if no role metadata, show all
-    return audienceTab === "staff" ? c.role === "staff" : c.role !== "staff"
+    return audienceTab === "studio" ? c.role === "studio" : c.role !== "studio"
   })
 
   const visibleRecipientList = filteredChatsByAudience.filter(
@@ -112,29 +112,7 @@ export default function BroadcastModal({
     }
   }, [emailFolders, selectedEmailFolder])
 
-  // Rich text formatting using execCommand (simple, widely supported)
-  const execFormat = (cmd, val = null) => {
-    if (!builderRef.current) return
-    builderRef.current.focus()
-    document.execCommand(cmd, false, val)
-    // sync HTML back
-    setBuilderHtml(builderRef.current.innerHTML)
-  }
 
-  const handleInsertLink = () => {
-    const url = prompt("Enter URL")
-    if (url) execFormat("createLink", url)
-  }
-
-  const handleInsertSignature = () => {
-    const sig = settings?.emailSignature || ""
-    if (!builderRef.current) return
-    builderRef.current.focus()
-    const signatureHtml = `<p><br/>${sig}</p>`
-    // Insert as HTML at caret
-    document.execCommand("insertHTML", false, signatureHtml)
-    setBuilderHtml(builderRef.current.innerHTML)
-  }
 
   const handleSaveEmailTemplate = () => {
     if (!builderSubject.trim() || !builderHtml.trim()) {
@@ -270,34 +248,41 @@ export default function BroadcastModal({
           <div className="flex bg-[#0E0E0E] border border-gray-800 rounded-xl p-1 mb-4">
             <button
               className={`flex-1 py-2 text-sm rounded-lg ${
-                audienceTab === "member" ? "bg-[#2B2B2B] text-white" : "text-gray-300 hover:text-white"
+                audienceTab === "studio" ? "bg-[#2B2B2B] text-white" : "text-gray-300 hover:text-white"
               }`}
-              onClick={() => setAudienceTab("member")}
+              onClick={() => setAudienceTab("studio")}
             >
-              Member
+              Studio
             </button>
             <button
               className={`flex-1 py-2 text-sm rounded-lg ${
-                audienceTab === "staff" ? "bg-[#2B2B2B] text-white" : "text-gray-300 hover:text-white"
+                audienceTab === "franchise" ? "bg-[#2B2B2B] text-white" : "text-gray-300 hover:text-white"
               }`}
-              onClick={() => setAudienceTab("staff")}
+              onClick={() => setAudienceTab("franchise")}
             >
-              Staff
+              Franchise
             </button>
           </div>
 
           {/* Recipient selector */}
           <div className="mb-4">
             <div className="relative">
-              <button
-                onClick={() => {
-                  setShowRecipientDropdown(!showRecipientDropdown)
-                  if (!showRecipientDropdown) setSearchMember("")
-                }}
-                className="w-full py-3 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
-              >
-                Select Recipients
-              </button>
+              {/* Create/Edit email template */}
+              {!showEmailBuilder && (
+                <button
+                  onClick={() => {
+                    setSelectedEmailTemplate(null)
+                    setShowEmailBuilder(true)
+                    setBuilderSubject("")
+                    setBuilderHtml("")
+                    if (selectedEmailFolder) setBuilderFolderId(selectedEmailFolder.id)
+                  }}
+                  className="w-full py-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
+                >
+                  Create Email Template
+                </button>
+              )}
+
               {showRecipientDropdown && (
                 <div
                   ref={recipientDropdownRef}
@@ -497,22 +482,16 @@ export default function BroadcastModal({
                 </div>
               </div>
 
-              {/* Create/Edit email template */}
-              {!showEmailBuilder && (
-                <button
-                  onClick={() => {
-                    setSelectedEmailTemplate(null)
-                    setShowEmailBuilder(true)
-                    setBuilderSubject("")
-                    setBuilderHtml("")
-                    if (selectedEmailFolder) setBuilderFolderId(selectedEmailFolder.id)
-                  }}
-                  className="w-full py-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
-                >
-                  Create Email Template
-                </button>
-              )}
-
+              <button
+                onClick={() => {
+                  setShowRecipientDropdown(!showRecipientDropdown)
+                  if (!showRecipientDropdown) setSearchMember("")
+                }}
+                className="w-full py-3 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
+              >
+                Select Recipients
+              </button>
+             
               {showEmailBuilder && (
                 <div className="border border-gray-800 rounded-xl p-3 space-y-3 bg-[#111111]">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -541,73 +520,14 @@ export default function BroadcastModal({
                     </div>
                   </div>
 
-                  {/* Formatting toolbar */}
-                  <div className="flex flex-wrap gap-2 bg-[#0E0E0E] border border-gray-800 rounded-lg p-2">
-                    <button className="px-2 py-1 text-sm bg-[#222222] rounded" onClick={() => execFormat("bold")}>
-                      Bold
-                    </button>
-                    <button className="px-2 py-1 text-sm bg-[#222222] rounded" onClick={() => execFormat("italic")}>
-                      Italic
-                    </button>
-                    <button className="px-2 py-1 text-sm bg-[#222222] rounded" onClick={() => execFormat("underline")}>
-                      Underline
-                    </button>
-                    <button
-                      className="px-2 py-1 text-sm bg-[#222222] rounded"
-                      onClick={() => execFormat("insertUnorderedList")}
-                    >
-                      Bullets
-                    </button>
-                    <button
-                      className="px-2 py-1 text-sm bg-[#222222] rounded"
-                      onClick={() => execFormat("insertOrderedList")}
-                    >
-                      Numbered
-                    </button>
-                    <button
-                      className="px-2 py-1 text-sm bg-[#222222] rounded"
-                      onClick={() => execFormat("justifyLeft")}
-                    >
-                      Left
-                    </button>
-                    <button
-                      className="px-2 py-1 text-sm bg-[#222222] rounded"
-                      onClick={() => execFormat("justifyCenter")}
-                    >
-                      Center
-                    </button>
-                    <button
-                      className="px-2 py-1 text-sm bg-[#222222] rounded"
-                      onClick={() => execFormat("justifyRight")}
-                    >
-                      Right
-                    </button>
-                    <button className="px-2 py-1 text-sm bg-[#222222] rounded" onClick={handleInsertLink}>
-                      Link
-                    </button>
-                    <button
-                      className="px-2 py-1 text-sm bg-[#222222] rounded"
-                      onClick={() => execFormat("formatBlock", "blockquote")}
-                    >
-                      Quote
-                    </button>
-                    <button
-                      className="px-2 py-1 text-sm bg-[#3F74FF] text-white rounded"
-                      onClick={handleInsertSignature}
-                    >
-                      Insert Signature
-                    </button>
-                  </div>
-
-                  {/* Editor */}
-                  <div
-                    ref={builderRef}
-                    contentEditable
-                    className="min-h-[160px] bg-[#222222] text-white rounded-xl p-3 text-sm outline-none"
-                    onInput={() => setBuilderHtml(builderRef.current.innerHTML)}
-                    suppressContentEditableWarning
-                  >
-                    {/* Empty initial content */}
+                  {/* WysiwygEditor for email body */}
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Email Body</label>
+                    <WysiwygEditor
+                      value={builderHtml}
+                      onChange={setBuilderHtml}
+                      placeholder="Compose your email message..."
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">

@@ -179,11 +179,11 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-3 ${msg.sender === 'user' ? "justify-end" : "justify-start"} group`}>
               <div className={`flex flex-col gap-1 ${msg.sender === 'user' ? "items-end" : "items-start"} max-w-[85%]`}>
-                <div
+              <div
                   className={`rounded-xl p-3 text-sm relative ${
                     msg.sender === 'user' 
-                      ? "bg-[#005c4b] text-white rounded-br-none" 
-                      : "bg-[#202c33] text-white rounded-bl-none"
+                      ? "bg-blue-500 text-white rounded-br-none"  // Changed from #005c4b to blue-500
+                      : "bg-black text-white rounded-bl-none"  // Changed from #202c33 to gray-200 and text to black
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -292,12 +292,12 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
 
             {/* Send button */}
             <button
-              className="p-2 bg-orange-600 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Send message"
               onClick={handleSendMessage}
               disabled={!message.trim()}
             >
-              <Send className="w-5 h-5 text-white" />
+              <Send className="w-5 h-5 text-white" />  {/* White icon, no background */}
             </button>
           </div>
 

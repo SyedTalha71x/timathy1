@@ -7,7 +7,6 @@ function EditNoteModal({ isOpen, onClose, note, onSave }) {
   const [editedNote, setEditedNote] = useState({
     title: note?.title || "",
     content: note?.content || "",
-    category: note?.category || "personal",
   })
 
   useEffect(() => {
@@ -15,7 +14,6 @@ function EditNoteModal({ isOpen, onClose, note, onSave }) {
       setEditedNote({
         title: note.title,
         content: note.content,
-        category: note.category,
       })
     }
   }, [note])
@@ -25,7 +23,6 @@ function EditNoteModal({ isOpen, onClose, note, onSave }) {
       onSave({
         title: editedNote.title || "Untitled",
         content: editedNote.content,
-        category: editedNote.category,
       })
       onClose()
     }
@@ -43,17 +40,6 @@ function EditNoteModal({ isOpen, onClose, note, onSave }) {
             className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
             placeholder="Enter note title..."
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
-          <select
-            value={editedNote.category}
-            onChange={(e) => setEditedNote((prev) => ({ ...prev, category: e.target.value }))}
-            className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-          >
-            <option value="personal">Personal</option>
-            <option value="studio">Studio</option>
-          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
